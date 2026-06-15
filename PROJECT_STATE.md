@@ -1,6 +1,6 @@
 # Project State
 
-Current module: Module 14 - Dashboard (in progress, Phase 1 complete)
+Current module: Module 14 - Dashboard (in progress, Phase 2 + Phase 2b complete)
 Last completed module: Module 13 - Achievement engine (complete)
 Current branch: master
 Last verified commit: 87d3890 - Baseline after Module 13 and approved Module 14
@@ -52,10 +52,24 @@ Known risks:
   intentionally frozen. Later seed-estimate edits will still update the parent
   `course_items` row, so planned item minutes and slice counts can diverge for
   already-started material.
-- The Vite chunk warning threshold is raised to 600 kB so the current
-  577.19 kB production bundle validates warning-free. If the bundle grows
-  materially again, later modules should add real route-splitting instead of
-  continuing to raise the threshold.
+- The Vite chunk warning threshold stays at 600 kB. Module 14 exposed that the
+  app had been shipping as a single eager JS chunk just under that budget, so
+  wiring the dashboard pushed it to ~611 kB. Module 14 Phase 2b split stable
+  third-party deps into manual vendor chunks (`react`, `router`, `zod`, `dexie`,
+  `vendor`) so no chunk exceeds 600 kB; the largest is now `react` at ~190 kB.
+  This did not reduce total shipped JS (~611 kB minified across chunks); it
+  resolved the per-chunk warning and improved cache separation. See
+  DECISIONS.md D-0036. True initial-load reduction (route-level lazy loading)
+  remains deferred pending an offline-safe route-prefetch strategy, because lazy
+  route chunks fetched on navigation could break in-session offline navigation.
+- Dark-theme overrides are still missing for `.card--subtle`, `.card--accent`,
+  and `.card--danger` (their backgrounds are hardcoded light values). Module 14
+  avoided the failing nested `EmptyState` (`.state-card`) combination by using a
+  plain `card__description` paragraph for the dashboard empty states, but the
+  broader design-system contrast issue (e.g. a `.card--danger` card or a
+  standalone `EmptyState` in dark theme) remains deferred to a dedicated
+  accessibility/design-system hardening task. Do not broaden this fix inside
+  Module 14 unless it becomes necessary.
 - The content-detail route now accepts manual `m:ss` and `h:mm:ss` timestamp
   input for long-form logging. Invalid ranges are rejected, but the product
   still lacks later backup or repair flows if a learner enters low-quality
@@ -78,7 +92,7 @@ Known risks:
   later deliberate schema change.
 
 Last Triple-Zero pass: 2026-06-15 - Module 13 full validation pass 3 of 3
-Next phase: Module 14 Phase 2 - Dashboard route component and styling
+Next phase: Module 14 Phase 3 - app-render + full-snapshot no-mutation tests
 
 Do not change:
 

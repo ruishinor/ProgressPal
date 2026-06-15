@@ -184,6 +184,11 @@ async function completeOnboarding(page: Page) {
   await page.getByRole('button', { name: 'Save and open dashboard' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  // The dashboard loads its local data asynchronously. Wait for a stable
+  // ready-state card heading so callers act on fully-loaded dashboard content.
+  await expect(
+    page.getByRole('heading', { name: 'Course progress' }),
+  ).toBeVisible();
 }
 
 test('redirects a fresh run to onboarding without console issues', async ({
@@ -316,6 +321,12 @@ test('creates a local profile, persists it across reload, and applies stored pre
       onboardingCompletedAt: expect.any(String),
       seedVersion: 20260611,
     });
+
+  // The /onboarding -> /dashboard redirect re-loads the dashboard's local data;
+  // wait for the ready-state dashboard before scanning for accessibility issues.
+  await expect(
+    page.getByRole('heading', { name: 'Course progress' }),
+  ).toBeVisible();
 
   const accessibilityScan = await new AxeBuilder({ page }).analyze();
 

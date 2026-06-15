@@ -496,3 +496,34 @@
     and existing immutable or current-state source data.
   - Recovery and reflection achievements wait for a later module that introduces
     an honest, event-sourced basis for them.
+
+## D-0036 - Manual Vendor Chunk Split To Preserve The 600 kB Per-Chunk Budget
+
+- Date: 2026-06-15
+- Status: accepted
+- Decision: Split stable third-party runtime dependencies into manual vendor
+  chunks (`react` for react/react-dom/scheduler, `router` for react-router(-dom),
+  `zod`, `dexie`, and a `vendor` catch-all) via `build.rollupOptions.output.manualChunks`
+  in `vite.config.ts`. Keep `chunkSizeWarningLimit` at 600. Do not adopt
+  route-level lazy loading yet.
+- Why: Module 14 exposed that the app had shipped as a single eager JS chunk
+  sitting just under the 600 kB warning budget (~599.7 kB before Module 14), so
+  any real feature would trip the per-chunk warning; wiring the dashboard pushed
+  it to ~611 kB. Investigation showed the chunk is vendor-dominated (react-dom,
+  react-router, zod, dexie ≈ 76%), the dashboard itself is a normal ~12 kB
+  addition, and `recharts`/`date-fns` are already tree-shaken out. A manual
+  vendor split keeps every chunk statically imported (module-preloaded at load),
+  which preserves in-session offline navigation, whereas route-level lazy loading
+  would fetch route chunks on navigation and could break offline navigation to a
+  not-yet-visited route (e.g. the offline `/settings` e2e flow).
+- Consequences:
+  - The single ~611 kB chunk becomes several chunks, the largest being `react`
+    at ~190 kB; no chunk exceeds 600 kB, so the per-chunk warning is resolved
+    without weakening the threshold.
+  - This does NOT reduce total shipped JavaScript (total stays ~611 kB minified);
+    it resolves the per-chunk warning and improves cache separation (vendor
+    chunks change less often than app code). True initial-load reduction remains
+    deferred pending an offline-safe route-prefetch strategy.
+  - Product behavior, routes, schema, stores, dashboard logic, tests, and UI are
+    unchanged; this is a build-configuration-only decision with no new
+    dependencies.

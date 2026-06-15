@@ -542,7 +542,8 @@
 .profile-page-grid,
 .showcase-grid,
 .state-grid,
-.placeholder-grid {
+.placeholder-grid,
+.dashboard-grid {
   display: grid;
   gap: var(--space-4);
 }
@@ -565,6 +566,38 @@
 
 .placeholder-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.dashboard-metric {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.dashboard-activity-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-activity-list > li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.dashboard-activity-list__date {
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .form-field {
@@ -1299,6 +1332,7 @@
   .showcase-grid,
   .state-grid,
   .placeholder-grid,
+  .dashboard-grid,
   .form-grid {
     grid-template-columns: 1fr;
   }
