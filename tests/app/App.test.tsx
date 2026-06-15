@@ -1,13 +1,16 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import {
+  addStudySessionAndAwardXp,
   getDatabaseSnapshot,
   initializeDatabase,
   logMediaProgress,
+  logMediaProgressAndAwardXp,
   saveLearnerProfile,
   upsertProgress,
   upsertProgressAndAwardXp,
+  type SaveLearnerProfileInput,
 } from '@/lib/db';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { bundledCourseSeed } from '@/seed';
@@ -360,5 +363,135 @@ describe('App', () => {
     expect(afterSnapshot.contentSlices).toEqual(beforeSnapshot.contentSlices);
     expect(afterSnapshot.resumePoints).toEqual(beforeSnapshot.resumePoints);
     expect(afterSnapshot.xpTransactions).toEqual(beforeSnapshot.xpTransactions);
+  });
+});
+
+describe('Dashboard route', () => {
+  const learnerProfileInput: SaveLearnerProfileInput = {
+    avatarConfig: {
+      face: 'square',
+      hair: 'parted',
+      topColor: 'ocean',
+    },
+    displayName: 'Alex',
+    preferredTheme: 'dark',
+    reducedMotion: true,
+    targetMinutesPerWeek: 360,
+    targetStudyDays: ['monday', 'thursday'],
+  };
+
+  // Seed an onboarded learner plus a non-trivial explicit-save history across
+  // every relevant store, so later snapshot equality is a meaningful proof
+  // rather than a comparison of empty arrays.
+  async function seedOnboardedLearnerWithHistory() {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(learnerProfileInput, { completeOnboarding: true });
+
+    await logMediaProgressAndAwardXp(
+      {
+        assetId: 'week-0-lecture-asset',
+        startSecond: 0,
+        endSecond: 1200,
+        energyBefore: 4,
+        energyAfter: 3,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-12T10:00:00.000Z' },
+    );
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
+      { now: () => '2026-06-12T11:00:00.000Z' },
+    );
+    await addStudySessionAndAwardXp(
+      {
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-12T08:00:00.000Z',
+        endedAt: '2026-06-12T08:45:00.000Z',
+        durationMinutes: 45,
+        mode: 'debugging',
+      },
+      { now: () => '2026-06-12T08:45:00.000Z' },
+    );
+  }
+
+  it('renders the derived dashboard sections after onboarding', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    await renderAppAtRoute('/dashboard');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeInTheDocument();
+
+    for (const cardTitle of [
+      'Course progress',
+      'Continue next',
+      'XP',
+      'Achievements',
+      'Resume long-form',
+      'Needs attention',
+      'Study sessions',
+      'Recent activity',
+    ]) {
+      expect(
+        await screen.findByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it('does not mutate any local store when the dashboard renders or reloads', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    const before = await getDatabaseSnapshot();
+
+    expect(before.xpTransactions.length).toBeGreaterThan(0);
+    expect(before.achievementUnlocks.length).toBeGreaterThan(0);
+    expect(before.studySessions).toHaveLength(1);
+    expect(before.mediaProgressEvents).toHaveLength(1);
+    expect(before.resumePoints.length).toBeGreaterThan(0);
+    expect(before.contentSlices.length).toBeGreaterThan(0);
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'Course progress' });
+    const afterRender = await getDatabaseSnapshot();
+
+    // Simulate a reload: unmount the mounted app, then mount it again at the
+    // same route. Allowed bootstrap initialization is idempotent for an
+    // already-initialized database, so store contents must be byte-for-byte
+    // identical across both the first render and the reload.
+    cleanup();
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'Course progress' });
+    const afterReload = await getDatabaseSnapshot();
+
+    const trackedStores = [
+      'xpTransactions',
+      'achievementUnlocks',
+      'progressEntries',
+      'studySessions',
+      'mediaProgressEvents',
+      'contentAssets',
+      'contentSlices',
+      'resumePoints',
+      'learnerProfile',
+      'appMeta',
+      'courseUnits',
+      'courseItems',
+    ] as const;
+
+    for (const store of trackedStores) {
+      // Full serialized content comparison, not just counts: a
+      // delete-and-reinsert mutation would change updatedAt and fail here.
+      expect(afterRender[store]).toEqual(before[store]);
+      expect(afterReload[store]).toEqual(before[store]);
+    }
+
+    // Explicit guarantees: dashboard reads award no XP and unlock no
+    // achievements on either the first render or the reload.
+    expect(afterRender.xpTransactions).toEqual(before.xpTransactions);
+    expect(afterRender.achievementUnlocks).toEqual(before.achievementUnlocks);
+    expect(afterReload.xpTransactions).toEqual(before.xpTransactions);
+    expect(afterReload.achievementUnlocks).toEqual(before.achievementUnlocks);
   });
 });

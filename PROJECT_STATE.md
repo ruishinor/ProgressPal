@@ -1,6 +1,6 @@
 # Project State
 
-Current module: Module 14 - Dashboard (in progress, Phase 2 + Phase 2b complete)
+Current module: Module 14 - Dashboard (in progress, Phase 3 + Phase 3b complete)
 Last completed module: Module 13 - Achievement engine (complete)
 Current branch: master
 Last verified commit: 87d3890 - Baseline after Module 13 and approved Module 14
@@ -52,6 +52,13 @@ Known risks:
   intentionally frozen. Later seed-estimate edits will still update the parent
   `course_items` row, so planned item minutes and slice counts can diverge for
   already-started material.
+- Module 14 Phase 3b made the derived long-form slice sync idempotent: a
+  repeated app bootstrap no longer churns `content_slices.updatedAt` for
+  unwatched assets whose derived plan is unchanged (previously every mount
+  delete+reinserted those rows). A semantic slice-plan change before any media
+  history still rewrites intentionally, and the frozen-after-media rule is
+  preserved. This is what lets the Module 14 dashboard no-mutation test assert
+  strict full-store equality across render and reload.
 - The Vite chunk warning threshold stays at 600 kB. Module 14 exposed that the
   app had been shipping as a single eager JS chunk just under that budget, so
   wiring the dashboard pushed it to ~611 kB. Module 14 Phase 2b split stable
@@ -92,7 +99,7 @@ Known risks:
   later deliberate schema change.
 
 Last Triple-Zero pass: 2026-06-15 - Module 13 full validation pass 3 of 3
-Next phase: Module 14 Phase 3 - app-render + full-snapshot no-mutation tests
+Next phase: Module 14 Phase 4 - e2e + axe coverage
 
 Do not change:
 
