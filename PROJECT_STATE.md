@@ -1,8 +1,9 @@
 # Project State
 
 Current module: Module 13 - Achievement engine (complete)
-Current branch: n/a - no git repository initialized
-Last verified commit: n/a - no git repository initialized
+Current branch: master
+Last verified commit: 87d3890 - Baseline after Module 13 and approved Module 14
+plan
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -14,8 +15,8 @@ Known blockers:
 
 Known risks:
 
-- The working directory is not a git repository, so branch and commit
-  traceability are unavailable.
+- Git is now initialized (branch `master`); branch and commit traceability are
+  available, so Module 14 can be committed per phase.
 - The project brief remains internally inconsistent about both module numbering
   and field details. The repo sequence treats Module 07 as onboarding/profile
   and Module 08 as course map even though the older detailed brief still

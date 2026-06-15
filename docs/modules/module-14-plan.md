@@ -68,10 +68,12 @@
   route-path helpers `getCourseItemDetailPath` / `getStudySessionsPath`, and
   `formatMinutes`.
 - Read-only behavior of helpers: only `getXpSummary` and `listXpTransactions`
-  call `ensureBaseInitialization` (which opens a `rw` transaction but performs
-  no add/put once the DB is initialized at current app/schema version, which is
-  always true on `/dashboard`). All other read helpers open read-only. This is
-  the one risk that section 3 pins down with a proof, not with prose.
+  call `ensureBaseInitialization` (which opens a `rw` transaction but is expected
+  to perform no add/put once the DB is initialized at current app/schema
+  version). That no-op is likely in the normal post-onboarding `/dashboard` flow
+  but is **not assumed** — tests must prove it across realistic render states.
+  All other read helpers open read-only. This is the one risk that section 3
+  pins down with a proof, not with prose.
 - Design primitives (`src/components/ui`): `PageHeader`, `Card`, `ProgressBar`
   (clamps via `clampNumber`, `role="progressbar"` with aria min/now/max),
   `StatusPill` (dot plus text label, never color alone), `Badge`, `EmptyState`,
