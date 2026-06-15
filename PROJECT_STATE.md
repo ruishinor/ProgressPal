@@ -3,8 +3,9 @@
 Current module: Module 14 - Dashboard (complete)
 Last completed module: Module 14 - Dashboard (complete)
 Current branch: master
-Last verified commit: 5ad455d - Module 14 phase 4 dashboard e2e and axe coverage
-(Module 14 code validated; this documentation commit adds no code)
+Last verified commit: 2b1bf2b - Module 14 finalize dashboard documentation
+(its tree passed a full npm run validate pass before commit; the only later
+change is this docs-consistency patch)
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with

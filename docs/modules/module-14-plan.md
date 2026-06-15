@@ -1,10 +1,12 @@
 # Module 14 Plan — Dashboard
 
-> Status: **Planning approved with amendments. Implementation NOT started.**
-> This document is the approved plan only. No Module 14 code, tests, UI,
-> styling, schema, or dependencies have been changed. Do not read any
-> completion or validation claim into this file beyond the verified Module 13
-> gate recorded in section 1.
+> Status: **Module 14 complete and validated** (three consecutive clean
+> `npm run validate` passes). This file contains both the original approved
+> plan (sections 1–14) and the verified end-of-module handoff (section 15);
+> read the handoff for the as-built outcome. The plan sections record intent at
+> approval time and may differ from final wording where the phased
+> implementation refined details (the vendor split, the derived-slice
+> idempotency fix, and the removal of non-dark-theme-safe card variants).
 
 ## Summary
 
