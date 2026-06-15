@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-06-15 - Module 14
+
+### Added
+
+- Pure dashboard read model in `src/features/dashboard/model.ts`
+  (`buildDashboardModel`): derives course progress, a deterministic
+  continue-next recommendation, XP summary, achievement summary, explicit-save
+  recent activity, blocked items, resume long-form, and a study-session summary
+  from existing stores and read models, with truthful empty states.
+- A real read-only `/dashboard` route (`DashboardPage.tsx`) that fetches via
+  existing repository read helpers, builds the model, and renders the sections
+  with existing design-system primitives, replacing the placeholder.
+- Manual vendor chunk split in `vite.config.ts` (`react`, `router`, `zod`,
+  `dexie`) so no built chunk exceeds the 600 kB warning budget without changing
+  the threshold; all chunks stay statically imported, so offline navigation is
+  unchanged (this does not reduce total shipped JS).
+- Tests: `tests/features/dashboardModel.test.ts` (pure model), extended
+  `tests/app/App.test.tsx` (dashboard render plus full-snapshot no-mutation
+  across all stores), extended `tests/db/repositories.test.ts` (derived-slice
+  sync idempotency), and extended `e2e/dashboard.spec.ts` (dashboard + axe
+  coverage, blocked-item state, and a guard against non-dark-theme-safe card
+  variants).
+
+### Changed
+
+- Made the derived long-form slice sync idempotent in
+  `src/lib/db/repositories.ts`: a repeated app bootstrap no longer
+  delete+reinserts `content_slices` for unwatched assets whose derived plan is
+  unchanged (previously it churned `updatedAt` on every mount). A real plan
+  change before media history still rewrites, and frozen-after-media is
+  preserved.
+- The dashboard avoids design-system card variants whose hardcoded light
+  backgrounds are not dark-theme safe: Needs attention uses a normal surface
+  plus a text `StatusPill` instead of `card--danger`, and Course progress drops
+  `card--accent`. Additive dashboard layout styles in `design-system.css`.
+
+### Deferred
+
+- Module 15 Insights (trends, charts, forecasts, streaks, coaching),
+  backup/import/export/reset, and the global dark-theme hardening of
+  `.card--subtle`, `.card--accent`, and `.card--danger` remain deferred. The
+  dashboard adds no XP rules, no achievements, no schema change, and no external
+  services.
+
 ## 2026-06-15 - Module 13
 
 ### Added

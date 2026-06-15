@@ -1,10 +1,10 @@
 # Project State
 
-Current module: Module 14 - Dashboard (in progress, Phase 3 + Phase 3b complete)
-Last completed module: Module 13 - Achievement engine (complete)
+Current module: Module 14 - Dashboard (complete)
+Last completed module: Module 14 - Dashboard (complete)
 Current branch: master
-Last verified commit: 87d3890 - Baseline after Module 13 and approved Module 14
-plan
+Last verified commit: 5ad455d - Module 14 phase 4 dashboard e2e and axe coverage
+(Module 14 code validated; this documentation commit adds no code)
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -98,8 +98,8 @@ Known risks:
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
 
-Last Triple-Zero pass: 2026-06-15 - Module 13 full validation pass 3 of 3
-Next phase: Module 14 Phase 4 - e2e + axe coverage
+Last Triple-Zero pass: 2026-06-15 - Module 14 full validation pass 3 of 3
+Next module: Module 15 - Insights (not started)
 
 Do not change:
 

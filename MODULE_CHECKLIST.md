@@ -2,88 +2,74 @@
 
 ## Current Module
 
-Module: 13 - Achievement engine
+Module: 14 - Dashboard
 Status: complete
 
 Objective:
 
-- Add a deterministic, idempotent achievement engine that unlocks achievements
-  from existing source-of-truth data with no duplication and no source-store
-  mutation.
-- Keep achievement definitions code-only and validated; leave the
-  `achievement_definitions` Dexie store unused/deferred.
-- Evaluate achievements only inside the existing explicit-save wrappers, in the
-  same atomic transaction, and persist only `achievement_unlocks`.
-- Replace the placeholder `/achievements` route with a real read-only
-  locked/unlocked listing.
+- Replace the `/dashboard` placeholder with a truthful, read-only, derived-only
+  local dashboard built from existing source-of-truth stores and existing read
+  models.
+- Surface where the learner is in CS50, what to continue next, XP/level,
+  achievement status, recent explicit-save activity, blocked items, resume
+  long-form, and a study-session summary, with truthful empty states.
+- Keep the dashboard pure-read: opening or reloading `/dashboard` mutates no
+  store, awards no XP, and unlocks no achievements.
 
-Expected files to change:
+Expected files changed:
 
-- src/lib/achievements/\*\* (new)
-- src/lib/db/repositories.ts
-- src/lib/db/index.ts
-- src/features/achievements/routes/AchievementsPage.tsx
-- src/features/achievements/model.ts (new)
-- src/app/routes/HomePage.tsx
-- src/app/shell/AppShell.tsx
+- src/features/dashboard/model.ts (new)
+- src/features/dashboard/routes/DashboardPage.tsx
 - src/styles/design-system.css
-- tests/lib/achievementsEngine.test.ts (new)
-- tests/db/repositories.test.ts
+- vite.config.ts
+- src/lib/db/repositories.ts
+- tests/features/dashboardModel.test.ts (new)
 - tests/app/App.test.tsx
-- tests/architecture/achievementsFeature.test.ts (new)
-- e2e/achievements.spec.ts (new)
-- implementation_plan_update_post_M12.md (Prettier format-only)
-- walkthrough_M12.md (Prettier format-only)
-- docs/modules/module-13-plan.md
+- tests/db/repositories.test.ts
+- e2e/dashboard.spec.ts
+- docs/modules/module-14-plan.md
 - PROJECT_STATE.md
+- DECISIONS.md
 - MODULE_CHECKLIST.md
 - VALIDATION_LOG.md
 - CHANGELOG.md
-- DECISIONS.md
-- SECURITY.md
 - TEST_PLAN.md
 
-Forbidden files / work for Module 13:
+Forbidden files / work for Module 14:
 
-- No schema-version bump, store rename, index change, or seeded-ID churn.
-- No achievement XP: every definition has `xpReward: 0` and evaluation writes no
-  `xp_transactions`.
-- No syncing definitions into `achievement_definitions`; that store stays
-  deferred.
-- No evaluation on app open, reload, navigation, route-load, or the
-  `/achievements` page read; no passive startup backfill.
-- No source-store mutation from achievement evaluation.
-- No `returned-after-gap`, recovery, or reflection achievements.
-- No Module 14+ work: no dashboard metrics, insights, charts, backup, import,
-  export, or reset.
+- No Dexie schema-version bump, store rename, index change, or seeded-ID churn.
+- No new persistent dashboard state; all dashboard values are derived.
+- No XP awarded, no achievements unlocked, and no source-store mutation from
+  dashboard reads.
+- No Module 15 Insights, charts, trends, forecasts, streak analytics, or
+  coaching.
+- No backup/import/export/reset, sync, auth, analytics, or external APIs.
+- No new XP rules, new achievements, or changes to achievement definitions.
+- No global design-system refactor of the dark-theme card variants.
 
 Acceptance criteria:
 
-- Saving a qualifying source event unlocks the expected achievement exactly
-  once; re-saving or reloading does not duplicate it.
-- Achievement evaluation writes zero `xp_transactions` and mutates no source
-  store.
-- Reads (`listAchievementUnlocks`, `getAchievementsView`, and opening
-  `/achievements`) never create unlocks.
-- An explicit save unlocks achievements already satisfied by accumulated
-  history; a passive read never does.
-- `/achievements` lists locked and unlocked achievements from code definitions
-  plus persisted unlocks, with text labels and not color alone, and stays
-  read-only.
-- The pure engine has no Dexie/database import.
-- Dexie schema remains version 2 and the migration fixture stays green.
+- `/dashboard` renders all derived sections after onboarding with truthful empty
+  states for a fresh learner.
+- Opening and reloading `/dashboard` yields full-store equality (no mutation)
+  across xp_transactions, achievement_unlocks, progress_entries, study_sessions,
+  media_progress_events, content_assets, content_slices, resume_points,
+  learner_profile, app_meta, course_units, and course_items.
+- The dashboard is accessible (axe) in both the normal and blocked-item states
+  and uses no known non-dark-theme-safe card variant.
+- The production build keeps every chunk under the 600 kB warning budget without
+  raising the threshold.
+- Dexie schema stays version 2 and the migration fixture stays green.
 - Triple-Zero achieved with lint, format check, typecheck, build, unit test,
   E2E test, circular-dependency analysis, and dependency audit.
 
-Tests added:
+Tests added/updated:
 
-- `tests/lib/achievementsEngine.test.ts`
-- `tests/db/repositories.test.ts` expanded for unlock persistence/idempotency,
-  zero-XP-on-unlock, source-store immutability, no-passive-unlock reads, and
-  history-based unlock on explicit save
-- `tests/app/App.test.tsx` updated for achievements render and no-unlock-on-open
-- `tests/architecture/achievementsFeature.test.ts`
-- `e2e/achievements.spec.ts`
+- `tests/features/dashboardModel.test.ts` (pure model behavior and empty states)
+- `tests/app/App.test.tsx` (dashboard render plus full-snapshot no-mutation)
+- `tests/db/repositories.test.ts` (derived-slice sync idempotency)
+- `e2e/dashboard.spec.ts` (dashboard + axe coverage, blocked-item state, and a
+  guard against non-dark-theme-safe card variants)
 
 Validation commands:
 
@@ -98,21 +84,22 @@ Validation commands:
 
 Data compatibility risk:
 
-- Module 13 keeps the existing version-2 Dexie schema, store names, indexes, and
+- Module 14 keeps the existing version-2 Dexie schema, store names, indexes, and
   singleton IDs intact.
-- Only `achievement_unlocks` receives new rows; unlocks are immutable and guarded
-  by the `&achievementId` unique index.
-- The `achievement_definitions` store remains untouched/deferred.
-- Achievement evaluation never mutates source stores or the XP ledger.
+- The only persistence change is a Module 09 bug fix: the derived long-form slice
+  sync is now idempotent, so a repeated app bootstrap no longer churns
+  `content_slices.updatedAt` for unwatched assets. Frozen-after-media and
+  deliberate seed-replan behavior are preserved.
 
 Rollback plan:
 
-- Remove `src/lib/achievements/`, the achievements page model and UI changes,
-  the additive CSS, the repository read APIs, and the achievement-evaluation
-  call plus `unlockedAchievements` results from the three XP-aware wrappers.
-- Restore the placeholder `/achievements` page and the prior shell/home copy.
-- Keep the pre-existing `achievement_unlocks` store and any written rows intact.
-- Reset Module 13 documentation and validation records to the Module 12 state.
+- Remove `src/features/dashboard/model.ts`, restore the placeholder
+  `DashboardPage.tsx`, drop the additive dashboard CSS, and revert the
+  `vite.config.ts` manual-chunks block and the slice-sync idempotency guard in
+  `repositories.ts`.
+- Remove the Module 14 tests and restore the prior `App.test.tsx`,
+  `repositories.test.ts`, and `e2e/dashboard.spec.ts` content.
+- Reset Module 14 documentation and validation records to the Module 13 state.
 
 ## Module Status
 
@@ -132,7 +119,7 @@ Rollback plan:
 | 11     | Study session logging                 | complete    |
 | 12     | XP engine                             | complete    |
 | 13     | Achievement engine                    | complete    |
-| 14     | Dashboard                             | not started |
+| 14     | Dashboard                             | complete    |
 | 15     | Insights                              | not started |
 | 16     | Settings, backup, import, reset       | not started |
 | 17     | Offline hardening                     | not started |

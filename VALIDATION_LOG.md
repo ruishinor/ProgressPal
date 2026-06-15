@@ -1531,3 +1531,112 @@ Retrospective:
 Decision:
 
 - Module 13 complete. Stop before Module 14.
+
+## Module 14 - Dashboard
+
+Date: 2026-06-15
+Commit: 5ad455d (Module 14 code; validated), finalized by the Module 14
+documentation commit that adds this record.
+
+Setup performed:
+
+- Added a pure dashboard read model (`src/features/dashboard/model.ts`) and a
+  real read-only `/dashboard` route, derived entirely from existing stores and
+  read models, replacing the placeholder.
+- Split stable vendor dependencies into manual chunks in `vite.config.ts` so no
+  built chunk exceeds the 600 kB warning budget without changing the threshold.
+- Made the derived long-form slice sync idempotent in
+  `src/lib/db/repositories.ts` so a repeated app bootstrap no longer churns
+  `content_slices.updatedAt` for unwatched assets.
+- Removed the dashboard's use of non-dark-theme-safe card variants
+  (`card--accent`, `card--danger`) in favor of normal surfaces plus text and
+  `StatusPill`.
+- Added dashboard model, app render/no-mutation, repository idempotency, and
+  Playwright dashboard/axe coverage.
+
+Phased execution and findings before Triple-Zero:
+
+- The dashboard was built in checkpoints (model, route + vendor split, app
+  no-mutation tests, e2e/axe, docs), each committed separately.
+- The build crossed the 600 kB per-chunk warning once the real route landed; a
+  bounded investigation showed the chunk was vendor-dominated and `recharts`/
+  `date-fns` were already tree-shaken. A manual vendor split resolved the
+  per-chunk warning without raising the threshold; total JS is unchanged.
+- The strict no-mutation test surfaced that app bootstrap re-ran the Module 09
+  derived-slice sync and delete+reinserted unwatched slices, churning only
+  `content_slices.updatedAt` (162 of 170 rows) on every mount. A bounded probe
+  confirmed only that field changed and only for unwatched derived slices; an
+  idempotency guard fixed it and let the no-mutation test assert strict
+  full-store equality.
+- e2e initially exposed an async-render race (the dashboard now loads
+  asynchronously) and a real dark-theme contrast failure from a nested
+  `EmptyState`; the tests now wait on a ready-state card and the dashboard uses
+  plain text instead of the nested `state-card` surface.
+- axe could not flag the gradient-background `card--accent`/`card--danger`
+  surfaces, so the dashboard removed them and the e2e tests guard that those
+  surfaces are not rendered.
+
+Pass 1:
+
+- Clean.
+- Full suite passed: lint, format check, typecheck, build, unit test, E2E test,
+  circular-dependency analysis, and dependency audit.
+
+Pass 2:
+
+- Clean.
+- Re-ran the same full suite without changes and confirmed identical results.
+
+Pass 3:
+
+- Clean.
+- Re-ran the same full suite a third time and confirmed zero errors, zero
+  warnings, zero circular dependencies, zero audit findings, and zero Playwright
+  failures (145 unit tests across 26 files, 13 E2E tests, all built chunks under
+  the 600 kB warning budget).
+
+Commands:
+
+- Counted full validation suite repeated three consecutive times with
+  `npm run validate`, which expands to:
+  - `npm run lint`
+  - `npm run format:check`
+  - `npm run typecheck`
+  - `npm run build`
+  - `npm run test`
+  - `npm run test:e2e`
+  - `npm run check:circular`
+  - `npm run audit`
+
+Adversarial findings:
+
+- "Opening `/dashboard` writes no data" is only true for the dashboard's own
+  reads; app bootstrap initialization is shared by all routes. The bootstrap
+  slice-sync churn was fixed rather than excused, so the read-only claim now
+  holds across a full-store snapshot.
+- axe cannot evaluate gradient (background-image) card surfaces, so an axe pass
+  alone did not prove the blocked-item dashboard was accessible. The dashboard
+  removed the broken variants and the suite guards against their reappearance.
+- The broader dark-theme hardening of `.card--subtle`, `.card--accent`, and
+  `.card--danger` remains a deferred design-system task; Module 14 only avoids
+  using them.
+
+Retrospective:
+
+- Intended: a truthful, read-only, derived-only dashboard that mutates no store
+  and stays within the 600 kB per-chunk budget.
+- Built: a pure dashboard model, a read-only route, a manual vendor split, a
+  derived-slice idempotency fix, dark-theme-safe dashboard surfaces, and unit,
+  app, repository, and e2e/axe coverage.
+- Changed from first draft: the vendor split (build pressure), the slice-sync
+  idempotency repair (no-mutation proof), and the removal of non-dark-theme-safe
+  card variants (gradient contrast that axe cannot measure).
+- Remaining debt: Module 15 Insights, backup/import/export/reset, and the global
+  dark-theme card-variant hardening remain deferred.
+- Backwards compatibility is preserved: the Dexie schema stays version 2, store
+  names and indexes are unchanged, and the migration fixture stays green.
+- Triple-Zero achieved: yes.
+
+Decision:
+
+- Module 14 complete. Stop before Module 15.

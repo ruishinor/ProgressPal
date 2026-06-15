@@ -540,6 +540,55 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 14 Scope
+
+- Validation covers the pure dashboard model and its derived sections, the
+  read-only `/dashboard` route, the guarantee that opening or reloading the
+  dashboard mutates no store and awards no XP and unlocks no achievement, the
+  manual vendor chunk split that keeps every built chunk under the 600 kB
+  warning budget, the idempotent derived-slice sync, and the dashboard's
+  accessibility in its normal and blocked-item states.
+- Triple-Zero for Module 14 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations in the tested
+  dashboard flows, and zero dependency-audit findings.
+
+## Module 14 Validation Protocol
+
+### Pass checks
+
+- Confirm `src/features/dashboard/model.ts` is a pure builder with no Dexie or
+  IO and derives every value from existing stores and read models.
+- Confirm `/dashboard` renders all sections after onboarding with truthful empty
+  states for a fresh learner.
+- Confirm full-store equality before and after dashboard render and reload
+  across `xp_transactions`, `achievement_unlocks`, `progress_entries`,
+  `study_sessions`, `media_progress_events`, `content_assets`, `content_slices`,
+  `resume_points`, `learner_profile`, `app_meta`, `course_units`, and
+  `course_items`.
+- Confirm dashboard reads award no XP and unlock no achievements.
+- Confirm a repeated app bootstrap leaves unchanged derived `content_slices`
+  byte-for-byte (idempotent sync), while a real seed-plan change still rewrites.
+- Confirm the dashboard is accessible (axe) in the normal and blocked-item
+  states and renders no `.card--accent`, `.card--danger`, or `.state-card`
+  surface.
+- Confirm the production build keeps every chunk under 600 kB without raising
+  the warning threshold.
+- Confirm the Dexie schema stays at version 2 and the migration fixture passes
+  unchanged.
+
+### Commands for Module 14
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

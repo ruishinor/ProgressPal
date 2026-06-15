@@ -290,19 +290,36 @@ validation fails or scope pressure appears:
 4. E2E + accessibility scan.
 5. Docs + triple-Zero validation + handoff (section 15).
 
-## 15. End-of-module handoff (to be filled at completion)
+## 15. End-of-module handoff (verified)
 
-To be completed only with verified facts when Module 14 finishes. Until then it
-stays empty.
-
-- Current module complete/incomplete:
-- Changed files:
-- Validation status (including whether three consecutive `npm run validate`
-  passes actually succeeded):
-- Confirmations: Dexie schema stayed version 2; dashboard reads derived only;
-  opening `/dashboard` wrote no data; no XP awarded from dashboard reads; no
+- Current module complete/incomplete: **complete.**
+- Changed files (across the Module 14 commits):
+  - `src/features/dashboard/model.ts` (new), `src/features/dashboard/routes/DashboardPage.tsx`
+  - `src/styles/design-system.css`, `vite.config.ts`, `src/lib/db/repositories.ts`
+  - `tests/features/dashboardModel.test.ts` (new), `tests/app/App.test.tsx`,
+    `tests/db/repositories.test.ts`, `e2e/dashboard.spec.ts`
+  - Docs: `PROJECT_STATE.md`, `DECISIONS.md` (D-0036), `docs/modules/module-14-plan.md`,
+    `MODULE_CHECKLIST.md`, `CHANGELOG.md`, `TEST_PLAN.md`, `VALIDATION_LOG.md`
+- Validation status: **three consecutive clean `npm run validate` passes**
+  (each: lint, format:check, typecheck, build with all chunks under the 600 kB
+  warning budget, 145 unit tests across 26 files, 13 E2E tests, no circular
+  dependencies, 0 audit vulnerabilities).
+- Confirmations: Dexie schema stayed version 2; dashboard values are derived
+  only; opening and reloading `/dashboard` mutates no store (full-snapshot
+  equality across all twelve stores); no XP awarded from dashboard reads; no
   achievements unlocked from dashboard reads; no Module 15 Insights, charts,
-  backup/import/export/reset, sync, auth, analytics, or external APIs added:
-- Known risks:
-- Next module:
-- Exact next prompt:
+  backup/import/export/reset, sync, auth, analytics, external APIs, new XP
+  rules, or new achievements were implemented.
+- Known risks (deferred): the global dark-theme hardening of `.card--subtle`,
+  `.card--accent`, and `.card--danger` (the dashboard avoids them, but the
+  design-system surfaces still need a contrast fix; axe cannot evaluate their
+  gradient backgrounds); Module 15 Insights and backup/import/export/reset
+  remain unbuilt.
+- Next module: **Module 15 - Insights (not started).**
+- Exact next prompt: "Begin Module 15 (Insights) planning only. Do not
+  implement. Re-read PROJECT_STATE.md and docs/modules, confirm Module 14 is
+  complete with three Triple-Zero passes, then produce a Module 15 plan covering
+  scope (trends/charts/forecasts/streaks deferred from Module 14), the
+  read-only/derived-only and offline constraints, the design-system dark-theme
+  card-variant hardening that Insights charts will depend on, proposed files,
+  tests, and validation, and stop for approval before any code."
