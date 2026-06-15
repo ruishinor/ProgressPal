@@ -469,3 +469,140 @@ test('renders persisted long-form progress summaries on the course map after rel
   );
   expect(consoleIssues).toEqual([]);
 });
+
+test('renders an accessible dashboard derived from a real saved activity flow', async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') {
+      consoleIssues.push(message.text());
+    }
+  });
+
+  await completeOnboarding(page);
+
+  // One explicit save through the real app: log a watched long-form range. This
+  // persists a media event, resume point, and started progress locally. (No
+  // blocked item is created, to avoid the deferred dark-theme .card--danger
+  // contrast issue recorded in PROJECT_STATE.)
+  await page.goto('/course');
+  await page
+    .getByTestId('course-item-week-0-lecture')
+    .getByRole('link', { name: 'Open detail' })
+    .click();
+  await expect(page).toHaveURL(/\/course\/week-0-lecture$/);
+  await page.getByLabel('Logging note').fill('Saved from Playwright.');
+  await page.getByRole('button', { name: 'Save watched range' }).click();
+  await expect(page.getByText('Last range 0:00-20:00 (20 min)')).toBeVisible();
+
+  // Open the dashboard so it reads the freshly persisted activity.
+  await page.goto('/dashboard');
+  await expect(
+    page.getByRole('heading', { name: 'Course progress' }),
+  ).toBeVisible();
+
+  // Every dashboard section renders from local data.
+  for (const sectionHeading of [
+    'Course progress',
+    'Continue next',
+    'XP',
+    'Achievements',
+    'Resume long-form',
+    'Needs attention',
+    'Study sessions',
+    'Recent activity',
+  ]) {
+    await expect(
+      page.getByRole('heading', { name: sectionHeading, exact: true }),
+    ).toBeVisible();
+  }
+
+  // A few stable, non-brittle derived values (exhaustive number checks live in
+  // the model/app unit tests, not here).
+  await expect(page.getByText(/required items complete/)).toBeVisible();
+  await expect(page.getByText('Resume at 20:00')).toBeVisible();
+  await expect(page.getByText('No local activity recorded yet.')).toHaveCount(
+    0,
+  );
+
+  // Actionable card links point at the right local routes.
+  await expect(page.getByRole('link', { name: 'Open item' })).toHaveAttribute(
+    'href',
+    '/course/week-0-lecture',
+  );
+  await expect(page.getByRole('link', { name: 'Resume item' })).toHaveAttribute(
+    'href',
+    '/course/week-0-lecture',
+  );
+  await expect(
+    page.getByRole('link', { name: 'View achievements' }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open sessions' })).toBeVisible();
+
+  // Regression guard: the dashboard must not use design-system card variants
+  // whose hardcoded light backgrounds are not dark-theme safe. axe cannot
+  // evaluate their gradient backgrounds, so this guards what axe cannot.
+  await expect(
+    page.locator('.card--accent, .card--danger, .state-card'),
+  ).toHaveCount(0);
+
+  // The fully loaded dashboard is accessible.
+  const accessibilityScan = await new AxeBuilder({ page }).analyze();
+
+  expect(accessibilityScan.violations).toEqual([]);
+  expect(consoleIssues).toEqual([]);
+});
+
+test('keeps the dashboard accessible when a blocked item is present', async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') {
+      consoleIssues.push(message.text());
+    }
+  });
+
+  await completeOnboarding(page);
+
+  // A blocked required item drives the dashboard's "Needs attention" state.
+  await writeProgressEntry(page, {
+    confidence: 0,
+    createdAt: '2026-06-12T09:00:00.000Z',
+    id: 'progress-week-0-problem-set',
+    itemId: 'week-0-problem-set',
+    notes: 'Stuck on the distribution.',
+    startedAt: '2026-06-12T08:00:00.000Z',
+    status: 'blocked',
+    updatedAt: '2026-06-12T09:00:00.000Z',
+  });
+
+  await page.goto('/dashboard');
+  await expect(
+    page.getByRole('heading', { name: 'Course progress' }),
+  ).toBeVisible();
+
+  // Needs attention surfaces the blocked item with a text label, not color
+  // alone.
+  await expect(
+    page.getByRole('heading', { name: 'Needs attention', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('a[href="/course/week-0-problem-set"]'),
+  ).toBeVisible();
+
+  // Even in the blocked state the dashboard avoids the non-dark-theme-safe
+  // card variants (the Needs attention card uses a normal surface + StatusPill).
+  await expect(
+    page.locator('.card--accent, .card--danger, .state-card'),
+  ).toHaveCount(0);
+
+  // The dashboard must stay accessible in this expected blocked-item state.
+  const accessibilityScan = await new AxeBuilder({ page }).analyze();
+
+  expect(accessibilityScan.violations).toEqual([]);
+  expect(consoleIssues).toEqual([]);
+});

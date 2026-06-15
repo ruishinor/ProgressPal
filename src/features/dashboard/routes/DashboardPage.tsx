@@ -266,7 +266,7 @@ export function DashboardPage() {
       />
 
       <div className="dashboard-grid">
-        <Card title="Course progress" variant="accent">
+        <Card title="Course progress">
           <ProgressBar
             helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required items complete`}
             label="Required course progress"
@@ -384,23 +384,32 @@ export function DashboardPage() {
           )}
         </Card>
 
-        <Card
-          title="Needs attention"
-          variant={blockedItems.isEmpty ? 'default' : 'danger'}
-        >
+        <Card title="Needs attention">
           {blockedItems.isEmpty ? (
             <p className="card__description">No items are marked blocked.</p>
           ) : (
-            <ul className="detail-list">
-              {blockedItems.items.map((blocked) => (
-                <li key={blocked.itemId}>
-                  <Link to={getCourseItemDetailPath(blocked.itemId)}>
-                    {blocked.itemTitle}
-                  </Link>
-                  {` — ${blocked.unitTitle}`}
-                </li>
-              ))}
-            </ul>
+            <>
+              {/*
+                Severity is conveyed with a text StatusPill on a normal card
+                surface rather than the `card--danger` variant: that variant
+                uses a hardcoded light gradient background that is not adapted
+                for dark theme (a deferred design-system gap), so using it here
+                would make this expected blocked state visually low-contrast.
+              */}
+              <StatusPill variant="blocked">
+                {`${blockedItems.items.length} blocked`}
+              </StatusPill>
+              <ul className="detail-list">
+                {blockedItems.items.map((blocked) => (
+                  <li key={blocked.itemId}>
+                    <Link to={getCourseItemDetailPath(blocked.itemId)}>
+                      {blocked.itemTitle}
+                    </Link>
+                    {` — ${blocked.unitTitle}`}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Card>
 
