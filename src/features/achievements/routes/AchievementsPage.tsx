@@ -1,0 +1,264 @@
+import { startTransition, useEffect, useId, useMemo, useState } from 'react';
+
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { LoadingState } from '@/components/ui/LoadingState';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Select } from '@/components/ui/Select';
+import { StatusPill } from '@/components/ui/StatusPill';
+import {
+  achievementCategoryLabels,
+  buildCategoryOptions,
+  filterAchievements,
+  formatUnlockDate,
+  type AchievementCategoryFilter,
+  type AchievementStatusFilter,
+} from '@/features/achievements/model';
+import { getAchievementsView, type AchievementsView } from '@/lib/db';
+
+type AchievementsPageStatus = 'error' | 'loading' | 'ready';
+
+type AchievementsPageState = {
+  error: string | null;
+  status: AchievementsPageStatus;
+  view: AchievementsView | null;
+};
+
+const initialState: AchievementsPageState = {
+  error: null,
+  status: 'loading',
+  view: null,
+};
+
+const statusOptions: { label: string; value: AchievementStatusFilter }[] = [
+  { value: 'all', label: 'All achievements' },
+  { value: 'unlocked', label: 'Unlocked' },
+  { value: 'locked', label: 'Locked' },
+];
+
+export function AchievementsPage() {
+  const [state, setState] = useState<AchievementsPageState>(initialState);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [statusFilter, setStatusFilter] =
+    useState<AchievementStatusFilter>('all');
+  const [categoryFilter, setCategoryFilter] =
+    useState<AchievementCategoryFilter>('all');
+
+  const statusFilterId = useId();
+  const categoryFilterId = useId();
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadAchievements() {
+      startTransition(() => {
+        setState((currentState) => ({
+          ...currentState,
+          error: null,
+          status: 'loading',
+        }));
+      });
+
+      try {
+        // Read-only: this merges code definitions with persisted unlocks. It
+        // never evaluates rules and never creates unlocks.
+        const view = await getAchievementsView();
+
+        if (!isActive) {
+          return;
+        }
+
+        startTransition(() => {
+          setState({ error: null, status: 'ready', view });
+        });
+      } catch (loadError) {
+        console.error('Achievements loading failed.', loadError);
+
+        if (!isActive) {
+          return;
+        }
+
+        startTransition(() => {
+          setState({
+            error: 'The local achievements could not be loaded.',
+            status: 'error',
+            view: null,
+          });
+        });
+      }
+    }
+
+    void loadAchievements();
+
+    return () => {
+      isActive = false;
+    };
+  }, [reloadToken]);
+
+  const categoryOptions = useMemo(
+    () => (state.view ? buildCategoryOptions(state.view) : []),
+    [state.view],
+  );
+
+  const visibleAchievements = useMemo(
+    () =>
+      state.view
+        ? filterAchievements(state.view, statusFilter, categoryFilter)
+        : [],
+    [state.view, statusFilter, categoryFilter],
+  );
+
+  if (state.status === 'error') {
+    return (
+      <section className="page-section">
+        <PageHeader
+          description="This route reads only validated achievement definitions and locally persisted unlocks."
+          eyebrow="Route: /achievements"
+          title="Achievements"
+        />
+        <ErrorState
+          action={
+            <button
+              className="button button--secondary button--md"
+              onClick={() => {
+                startTransition(() => {
+                  setState(initialState);
+                });
+                setReloadToken((currentToken) => currentToken + 1);
+              }}
+              type="button"
+            >
+              Try again
+            </button>
+          }
+          description={state.error ?? 'Unknown local achievements error.'}
+          title="Achievements could not be read"
+        />
+      </section>
+    );
+  }
+
+  if (state.status === 'loading' || state.view === null) {
+    return (
+      <section className="page-section">
+        <PageHeader
+          description="The app is reading validated achievement definitions and any locally saved unlocks."
+          eyebrow="Route: /achievements"
+          title="Achievements"
+        />
+        <LoadingState
+          description="Opening the local achievement catalog and merging it with saved unlocks."
+          title="Loading achievements"
+        />
+      </section>
+    );
+  }
+
+  const { unlockedCount, totalCount } = state.view;
+
+  return (
+    <section className="page-section">
+      <PageHeader
+        description="Achievements unlock only from your explicit saves and are derived from your local progress, sessions, and media history. Nothing here is synced. This page is read-only."
+        eyebrow="Route: /achievements"
+        meta={
+          <StatusPill
+            variant={unlockedCount > 0 ? 'completed' : 'notStarted'}
+          >{`${unlockedCount} of ${totalCount} unlocked`}</StatusPill>
+        }
+        title="Achievements"
+      />
+
+      <Card
+        className="achievements-filters"
+        title="Filter achievements"
+        variant="subtle"
+      >
+        <div className="achievements-filters__controls">
+          <div className="form-field">
+            <label className="form-field__label" htmlFor={statusFilterId}>
+              Status
+            </label>
+            <Select
+              id={statusFilterId}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as AchievementStatusFilter)
+              }
+              options={statusOptions}
+              value={statusFilter}
+            />
+          </div>
+          <div className="form-field">
+            <label className="form-field__label" htmlFor={categoryFilterId}>
+              Category
+            </label>
+            <Select
+              id={categoryFilterId}
+              onChange={(event) =>
+                setCategoryFilter(
+                  event.target.value as AchievementCategoryFilter,
+                )
+              }
+              options={categoryOptions}
+              value={categoryFilter}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {visibleAchievements.length === 0 ? (
+        <EmptyState
+          description="No achievements match the current filters. Try widening the status or category filter."
+          eyebrow="No matches"
+          title="Nothing to show here yet"
+        />
+      ) : (
+        <ul className="achievements-grid" role="list">
+          {visibleAchievements.map((achievement) => (
+            <li key={achievement.id}>
+              <Card
+                as="article"
+                className="achievement-card"
+                data-testid={`achievement-${achievement.id}`}
+                data-unlocked={achievement.unlocked ? 'true' : 'false'}
+                variant={achievement.unlocked ? 'accent' : 'default'}
+              >
+                <div className="achievement-card__head">
+                  <h3 className="achievement-card__title">
+                    {achievement.title}
+                  </h3>
+                  <StatusPill
+                    variant={achievement.unlocked ? 'completed' : 'notStarted'}
+                  >
+                    {achievement.unlocked ? 'Unlocked' : 'Locked'}
+                  </StatusPill>
+                </div>
+
+                <p className="achievement-card__how">
+                  <span className="achievement-card__how-label">
+                    {achievement.unlocked ? 'Earned for: ' : 'How to unlock: '}
+                  </span>
+                  {achievement.description}
+                </p>
+
+                <div className="achievement-card__meta">
+                  <Badge tone="neutral">
+                    {achievementCategoryLabels[achievement.category]}
+                  </Badge>
+                  <Badge tone="neutral">{`${achievement.xpReward} XP`}</Badge>
+                  {achievement.unlocked && achievement.unlockedAt ? (
+                    <span className="achievement-card__date">
+                      {`Unlocked ${formatUnlockDate(achievement.unlockedAt)}`}
+                    </span>
+                  ) : null}
+                </div>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

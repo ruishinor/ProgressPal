@@ -1,0 +1,692 @@
+{
+  "courseId": "cs50x-2026",
+  "title": "CS50x 2026",
+  "dataVersion": 20260611,
+  "sourceCheckedDate": "2026-06-11",
+  "units": [
+    {
+      "id": "week-0",
+      "order": 0,
+      "title": "Week 0: Scratch",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-0-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-0-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 0",
+          "required": true,
+          "estimatedMinutes": 240,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "id": "week-1",
+      "order": 10,
+      "title": "Week 1: C",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-1-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-1-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-1-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-1-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 1",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-2",
+      "order": 20,
+      "title": "Week 2: Arrays",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-2-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-2-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-2-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-2-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 2",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-3",
+      "order": 30,
+      "title": "Week 3: Algorithms",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-3-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-3-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-3-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-3-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 3",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-4",
+      "order": 40,
+      "title": "Week 4: Memory",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-4-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-4-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-4-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-4-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 4",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-5",
+      "order": 50,
+      "title": "Week 5: Data Structures",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-5-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-5-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-5-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-5-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 5",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-6",
+      "order": 60,
+      "title": "Week 6: Python",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-6-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-6-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-6-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-6-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 6",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-7",
+      "order": 70,
+      "title": "Week 7: SQL",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-7-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-7-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-7-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-7-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 7",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "artificial-intelligence",
+      "order": 75,
+      "title": "Artificial Intelligence",
+      "type": "special",
+      "sourceYear": 2026,
+      "required": false,
+      "items": [
+        {
+          "id": "artificial-intelligence-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": false,
+          "estimatedMinutes": 120,
+          "order": 0
+        }
+      ]
+    },
+    {
+      "id": "week-8",
+      "order": 80,
+      "title": "Week 8: HTML, CSS, JavaScript",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-8-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-8-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-8-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-8-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 8",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-9",
+      "order": 90,
+      "title": "Week 9: Flask",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-9-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 150,
+          "order": 0
+        },
+        {
+          "id": "week-9-shorts",
+          "type": "shorts",
+          "title": "Shorts",
+          "required": false,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "week-9-section",
+          "type": "section",
+          "title": "Section",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "week-9-problem-set",
+          "type": "problem_set",
+          "title": "Problem Set 9",
+          "required": true,
+          "estimatedMinutes": 360,
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "week-10",
+      "order": 100,
+      "title": "Week 10",
+      "type": "week",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "week-10-lecture",
+          "type": "lecture",
+          "title": "Lecture",
+          "required": true,
+          "estimatedMinutes": 120,
+          "order": 0
+        },
+        {
+          "id": "week-10-seminars",
+          "type": "reading",
+          "title": "Seminars",
+          "required": false,
+          "estimatedMinutes": 120,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "id": "additional-practice",
+      "order": 110,
+      "title": "Additional Practice",
+      "type": "special",
+      "sourceYear": 2026,
+      "required": false,
+      "items": [
+        {
+          "id": "practice-debug",
+          "type": "practice",
+          "title": "After Week 1: Debug",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 0
+        },
+        {
+          "id": "practice-half",
+          "type": "practice",
+          "title": "After Week 1: Half",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 1
+        },
+        {
+          "id": "practice-prime",
+          "type": "practice",
+          "title": "After Week 1: Prime",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 2
+        },
+        {
+          "id": "practice-hours",
+          "type": "practice",
+          "title": "After Week 2: Hours",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 3
+        },
+        {
+          "id": "practice-no-vowels",
+          "type": "practice",
+          "title": "After Week 2: N0 V0w3ls",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 4
+        },
+        {
+          "id": "practice-password",
+          "type": "practice",
+          "title": "After Week 2: Password",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 5
+        },
+        {
+          "id": "practice-recursive-atoi",
+          "type": "practice",
+          "title": "After Week 3: Recursive atoi",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 6
+        },
+        {
+          "id": "practice-average-temperatures",
+          "type": "practice",
+          "title": "After Week 3: Average Temperatures",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 7
+        },
+        {
+          "id": "practice-max",
+          "type": "practice",
+          "title": "After Week 3: Max",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 8
+        },
+        {
+          "id": "practice-snackbar",
+          "type": "practice",
+          "title": "After Week 3: Snackbar",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 9
+        },
+        {
+          "id": "practice-bottom-up",
+          "type": "practice",
+          "title": "After Week 4: Bottom Up",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 10
+        },
+        {
+          "id": "practice-license",
+          "type": "practice",
+          "title": "After Week 4: License",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 11
+        },
+        {
+          "id": "practice-trie",
+          "type": "practice",
+          "title": "After Week 5: Trie",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 12
+        },
+        {
+          "id": "practice-bank",
+          "type": "practice",
+          "title": "After Week 6: Bank",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 13
+        },
+        {
+          "id": "practice-frank-ian-and-glens-letters",
+          "type": "practice",
+          "title": "After Week 6: Frank, Ian and Glen's Letters",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 14
+        },
+        {
+          "id": "practice-jar",
+          "type": "practice",
+          "title": "After Week 6: Jar",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 15
+        },
+        {
+          "id": "practice-seven-day-average",
+          "type": "practice",
+          "title": "After Week 6: Seven Day Average",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 16
+        },
+        {
+          "id": "practice-taqueria",
+          "type": "practice",
+          "title": "After Week 6: Taqueria",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 17
+        },
+        {
+          "id": "practice-favorites",
+          "type": "practice",
+          "title": "After Week 7: Favorites",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 18
+        },
+        {
+          "id": "practice-hall-of-prophecy",
+          "type": "practice",
+          "title": "After Week 7: Hall of Prophecy",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 19
+        },
+        {
+          "id": "practice-radio-shack-redo",
+          "type": "practice",
+          "title": "After Week 8: Radio Shack Redo",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 20
+        },
+        {
+          "id": "practice-hello-flask",
+          "type": "practice",
+          "title": "After Week 9: Hello, Flask",
+          "required": false,
+          "estimatedMinutes": 90,
+          "order": 21
+        }
+      ]
+    },
+    {
+      "id": "final-project",
+      "order": 120,
+      "title": "Final Project",
+      "type": "final_project",
+      "sourceYear": 2026,
+      "required": true,
+      "items": [
+        {
+          "id": "final-project-build",
+          "type": "project_task",
+          "title": "Build the project",
+          "required": true,
+          "estimatedMinutes": 1500,
+          "order": 0
+        },
+        {
+          "id": "final-project-video-demo",
+          "type": "project_task",
+          "title": "Record the video demo",
+          "required": true,
+          "estimatedMinutes": 60,
+          "order": 1
+        },
+        {
+          "id": "final-project-readme",
+          "type": "project_task",
+          "title": "Write README.md",
+          "required": true,
+          "estimatedMinutes": 120,
+          "order": 2
+        },
+        {
+          "id": "final-project-submit50",
+          "type": "project_task",
+          "title": "Submit with submit50",
+          "required": true,
+          "estimatedMinutes": 30,
+          "order": 3
+        },
+        {
+          "id": "final-project-gradebook-check",
+          "type": "project_task",
+          "title": "Confirm completion in the gradebook",
+          "required": true,
+          "estimatedMinutes": 15,
+          "order": 4
+        }
+      ]
+    }
+  ]
+}

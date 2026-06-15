@@ -1,0 +1,25 @@
+# Module 12 Implementation Tasks
+
+- `[x]` **Phase 1: Pure XP Engine and Tests Only**
+  - `[x]` Extract existing course completion semantics to `src/lib/completion.ts` and refactor `src/features/course/model.ts` to import it.
+  - `[x]` Create `src/lib/xp/engine.ts` with pure XP engine functions (calculations, evaluations, deterministic collision-resistant ID helpers).
+  - `[x]` Create unit tests in `tests/lib/xpEngine.test.ts`.
+  - `[x]` Run Vitest to verify all tests in Phase 1 pass.
+- `[x]` **Phase 2: Repository Read Helpers and XP-Aware Wrappers**
+  - `[x]` Implement `listXpTransactions()` and `getXpSummary()` in `src/lib/db/repositories.ts`.
+  - `[x]` Implement wrappers: `upsertProgressAndAwardXp()`, `logMediaProgressAndAwardXp()`, `addStudySessionAndAwardXp()`.
+  - `[x]` Export new helpers/wrappers in `src/lib/db/index.ts`.
+  - `[x]` Write/expand tests in `tests/db/repositories.test.ts` for XP tracking, safe skips, derived level, and transaction safety.
+  - `[x]` Run Vitest unit tests to confirm repository wrappers pass.
+- `[x]` **Phase 3: Route Integration for Existing Explicit Save Flows**
+  - `[x]` Update `src/features/course/routes/ContentDetailPage.tsx` to use the XP-aware wrappers.
+  - `[x]` Update `src/features/sessions/routes/SessionsPage.tsx` to use the XP-aware wrapper.
+  - `[x]` Run unit and E2E tests to verify routes behave correctly.
+- `[x]` **Phase 4: Minimal Copy/Doc Updates**
+  - `[x]` Remove references stating XP is deferred in `HomePage.tsx`, `AppShell.tsx`, and `AchievementsPage.tsx`.
+- `[x]` **Phase 5: Full Validation and Adversarial Checks**
+  - `[x]` Create E2E spec `e2e/xp.spec.ts` for XP engine verification.
+  - `[x]` Update decisions log (`DECISIONS.md`) for square-root curve and deferred threshold tables.
+  - `[x]` Update checklist (`MODULE_CHECKLIST.md`), changelog (`CHANGELOG.md`), security (`SECURITY.md`), and test plan (`TEST_PLAN.md`).
+  - `[x]` Run the full validation command three consecutive times.
+  - `[x]` Update `VALIDATION_LOG.md` with passes, findings, and retrospective.

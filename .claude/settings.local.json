@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(echo \"TYPECHECK_EXIT=$?\")",
+      "Bash(echo \"CIRCULAR_EXIT=$?\")",
+      "Bash(echo \"AUDIT_EXIT=$?\")",
+      "Bash(echo \"BUILD_EXIT=$?\")",
+      "Bash(echo \"TEST_EXIT=$?\")"
+    ]
+  }
+}
