@@ -96,6 +96,103 @@ describe('database repositories', () => {
     ]);
   });
 
+  it('does not rewrite derived content slices when a repeated seed sync finds no plan change', async () => {
+    testDatabase = createTestDatabase('slice-sync-idempotent');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    const before = await listContentSlices(undefined, { db: testDatabase.db });
+    expect(before.length).toBeGreaterThan(0);
+    expect(
+      before.every((slice) => slice.updatedAt === '2026-06-11T10:00:00.000Z'),
+    ).toBe(true);
+
+    // A second seed sync with the identical catalog (what app bootstrap does on
+    // every mount) must leave derived slices byte-for-byte unchanged.
+    await ensureCourseCatalogFromSeed(sampleCourseSeed, {
+      db: testDatabase.db,
+      now: createClock('2026-06-11T12:00:00.000Z'),
+    });
+
+    const after = await listContentSlices(undefined, { db: testDatabase.db });
+
+    expect(after).toEqual(before);
+    expect(
+      after.every((slice) => slice.updatedAt === '2026-06-11T10:00:00.000Z'),
+    ).toBe(true);
+  });
+
+  it('rewrites derived slices for an unwatched asset when the seed plan actually changes', async () => {
+    testDatabase = createTestDatabase('slice-sync-replan');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    const lectureBefore = await listContentSlices('week-0-lecture-asset', {
+      db: testDatabase.db,
+    });
+    const shortsBefore = await listContentSlices('week-0-shorts-asset', {
+      db: testDatabase.db,
+    });
+    expect(lectureBefore.length).toBeGreaterThan(0);
+    expect(shortsBefore.length).toBeGreaterThan(0);
+
+    const replannedSeed = {
+      ...sampleCourseSeed,
+      dataVersion: 2,
+      units: sampleCourseSeed.units.map((unit) =>
+        unit.id === 'week-0'
+          ? {
+              ...unit,
+              items: unit.items.map((item) =>
+                item.id === 'week-0-lecture'
+                  ? { ...item, estimatedMinutes: 30 }
+                  : item,
+              ),
+            }
+          : unit,
+      ),
+    };
+
+    await ensureCourseCatalogFromSeed(replannedSeed, {
+      db: testDatabase.db,
+      now: createClock('2026-06-11T12:00:00.000Z'),
+    });
+
+    const lectureAfter = await listContentSlices('week-0-lecture-asset', {
+      db: testDatabase.db,
+    });
+    const shortsAfter = await listContentSlices('week-0-shorts-asset', {
+      db: testDatabase.db,
+    });
+
+    // The changed asset is deliberately rewritten: the new derived plan reflects
+    // the shorter 30-minute duration and carries the new write timestamp.
+    expect(
+      lectureAfter.every(
+        (slice) => slice.updatedAt === '2026-06-11T12:00:00.000Z',
+      ),
+    ).toBe(true);
+    expect(Math.max(...lectureAfter.map((slice) => slice.endSecond))).toBe(
+      30 * 60,
+    );
+
+    // The untouched asset keeps its original rows (idempotent skip).
+    expect(shortsAfter).toEqual(shortsBefore);
+    expect(
+      shortsAfter.every(
+        (slice) => slice.updatedAt === '2026-06-11T10:00:00.000Z',
+      ),
+    ).toBe(true);
+  });
+
   it('re-syncs revised seed fields without touching learner progress data', async () => {
     testDatabase = createTestDatabase('seed-resync-updates');
 

@@ -597,6 +597,40 @@ function contentAssetNeedsUpdate(existing: ContentAsset, next: ContentAsset) {
   );
 }
 
+function derivedSlicesAreUnchanged(
+  existingSlices: readonly ContentSlice[],
+  nextSlices: readonly ContentSlice[],
+) {
+  if (existingSlices.length !== nextSlices.length) {
+    return false;
+  }
+
+  const existingSlicesById = new Map(
+    existingSlices.map((slice) => [slice.id, slice]),
+  );
+
+  // Compares the semantic slice plan only. Metadata timestamps (createdAt and
+  // updatedAt) are intentionally ignored so a repeated bootstrap does not
+  // rewrite rows whose derived plan has not changed.
+  return nextSlices.every((nextSlice) => {
+    const existingSlice = existingSlicesById.get(nextSlice.id);
+
+    return (
+      existingSlice !== undefined &&
+      existingSlice.assetId === nextSlice.assetId &&
+      existingSlice.itemId === nextSlice.itemId &&
+      existingSlice.order === nextSlice.order &&
+      existingSlice.label === nextSlice.label &&
+      existingSlice.startSecond === nextSlice.startSecond &&
+      existingSlice.endSecond === nextSlice.endSecond &&
+      existingSlice.plannedMinutes === nextSlice.plannedMinutes &&
+      existingSlice.status === nextSlice.status &&
+      existingSlice.skipReason === nextSlice.skipReason &&
+      existingSlice.completedAt === nextSlice.completedAt
+    );
+  });
+}
+
 async function syncDerivedLongFormCatalogFromCourseItems(
   courseItems: readonly CourseItem[],
   options: BaseDatabaseOptions = {},
@@ -715,6 +749,15 @@ async function syncDerivedLongFormCatalogFromCourseItems(
           existingSlices,
           coverageRanges,
         );
+
+        // Idempotency guard: when the derived slice plan is semantically
+        // unchanged, leave the stored rows untouched so a repeated bootstrap
+        // does not churn updatedAt on unwatched assets. A real plan change
+        // (e.g. a seed-estimate edit before any media history) still falls
+        // through to the deliberate rewrite below.
+        if (derivedSlicesAreUnchanged(existingSlices, nextSlices)) {
+          continue;
+        }
 
         await database.contentSlices
           .where('assetId')
