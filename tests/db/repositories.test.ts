@@ -25,10 +25,14 @@ import {
   listXpTransactions,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  recordBackupEvent,
+  resetAllData,
+  restoreDatabaseFromBackup,
   saveLearnerProfile,
   updateProfile,
   upsertProgress,
   upsertProgressAndAwardXp,
+  type DatabaseSnapshot,
 } from '@/lib/db';
 
 import {
@@ -1359,5 +1363,190 @@ describe('database repositories', () => {
       const viewRepeat = await getAchievementsView({ db: testDatabase.db });
       expect(viewRepeat.unlockedCount).toBe(2);
     });
+  });
+});
+
+describe('backup, restore, and reset', () => {
+  let testDatabase: TestDatabaseContext | null = null;
+  let sourceDatabase: TestDatabaseContext | null = null;
+
+  afterEach(async () => {
+    await testDatabase?.cleanup();
+    await sourceDatabase?.cleanup();
+    testDatabase = null;
+    sourceDatabase = null;
+  });
+
+  function dataStores(snapshot: DatabaseSnapshot) {
+    const { backups: _backups, ...rest } = snapshot;
+    void _backups;
+    return rest;
+  }
+
+  async function seedRealActivity(context: TestDatabaseContext) {
+    await initializeDatabase({
+      db: context.db,
+      now: createClock('2026-06-12T09:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    await saveLearnerProfile(
+      {
+        displayName: 'Grace',
+        avatarConfig: { face: 'oval', hair: 'curly', topColor: 'ocean' },
+        targetStudyDays: ['monday', 'thursday'],
+        targetMinutesPerWeek: 240,
+        preferredTheme: 'dark',
+        reducedMotion: false,
+      },
+      {
+        db: context.db,
+        completeOnboarding: true,
+        now: createClock('2026-06-12T09:05:00.000Z'),
+      },
+    );
+
+    await addStudySessionAndAwardXp(
+      {
+        id: 'session-qualifying',
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-12T10:00:00.000Z',
+        endedAt: '2026-06-12T10:30:00.000Z',
+        durationMinutes: 30,
+        mode: 'coding',
+        notes: '<script>alert(1)</script>',
+      },
+      { db: context.db, now: createClock('2026-06-12T10:30:00.000Z') },
+    );
+
+    // Completing a required item unlocks the first-item achievement.
+    await upsertProgressAndAwardXp(
+      {
+        itemId: 'final-project-plan',
+        status: 'completed',
+        confidence: 5,
+      },
+      { db: context.db, now: createClock('2026-06-12T11:00:00.000Z') },
+    );
+  }
+
+  it('records a single export event without mutating other stores', async () => {
+    testDatabase = createTestDatabase('backup-export');
+    await seedRealActivity(testDatabase);
+
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+    const record = await recordBackupEvent(
+      { type: 'export', fileName: 'progresspal-backup-2026-06-16.json' },
+      { db: testDatabase.db, now: createClock('2026-06-16T11:00:00.000Z') },
+    );
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    expect(record.type).toBe('export');
+    expect(record.fileName).toBe('progresspal-backup-2026-06-16.json');
+    expect(after.backups).toHaveLength(before.backups.length + 1);
+    expect(dataStores(after)).toEqual(dataStores(before));
+  });
+
+  it('restores a backup with replace-all semantics and faithful equality', async () => {
+    sourceDatabase = createTestDatabase('backup-source');
+    await seedRealActivity(sourceDatabase);
+    const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+
+    // Confirm the fixture produced real, non-trivial activity to restore.
+    expect(exported.xpTransactions.length).toBeGreaterThan(0);
+    expect(exported.achievementUnlocks.length).toBeGreaterThan(0);
+    expect(exported.studySessions.length).toBeGreaterThan(0);
+
+    testDatabase = createTestDatabase('backup-target');
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-15T08:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    const restored = await restoreDatabaseFromBackup(exported, {
+      db: testDatabase.db,
+      seed: sampleCourseSeed,
+      fileName: 'progresspal-backup-2026-06-12.json',
+      now: createClock('2026-06-16T12:00:00.000Z'),
+    });
+
+    // The 13 non-`backups` stores restore to faithful equality.
+    expect(dataStores(restored)).toEqual(dataStores(exported));
+
+    // `backups` equals the backup's records plus exactly one import record.
+    expect(restored.backups).toHaveLength(exported.backups.length + 1);
+    const importRecords = restored.backups.filter(
+      (entry) => entry.type === 'import',
+    );
+    expect(importRecords).toHaveLength(1);
+
+    // Replace-all never duplicates XP, achievements, or sessions.
+    expect(restored.xpTransactions).toHaveLength(
+      exported.xpTransactions.length,
+    );
+    expect(restored.achievementUnlocks).toHaveLength(
+      exported.achievementUnlocks.length,
+    );
+    expect(restored.studySessions).toHaveLength(exported.studySessions.length);
+
+    // A reload reads the same restored state from disk.
+    const reread = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(dataStores(reread)).toEqual(dataStores(exported));
+  });
+
+  it('resets all data and re-bootstraps fresh defaults', async () => {
+    testDatabase = createTestDatabase('backup-reset');
+    await seedRealActivity(testDatabase);
+    await recordBackupEvent(
+      { type: 'export', fileName: 'progresspal-backup-2026-06-16.json' },
+      { db: testDatabase.db, now: createClock('2026-06-16T11:00:00.000Z') },
+    );
+
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(before.studySessions.length).toBeGreaterThan(0);
+    expect(before.backups.length).toBeGreaterThan(0);
+
+    await resetAllData({
+      db: testDatabase.db,
+      seed: sampleCourseSeed,
+      now: createClock('2026-06-16T13:00:00.000Z'),
+    });
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    expect(after.studySessions).toEqual([]);
+    expect(after.xpTransactions).toEqual([]);
+    expect(after.achievementUnlocks).toEqual([]);
+    expect(after.progressEntries).toEqual([]);
+    expect(after.backups).toEqual([]);
+
+    // Fresh default profile, not onboarded; seeded catalog re-bootstrapped.
+    expect(after.learnerProfile?.displayName).toBe('Learner');
+    expect(after.appMeta?.onboardingCompletedAt).toBeUndefined();
+    expect(after.courseUnits.length).toBeGreaterThan(0);
+    expect(after.courseItems.length).toBeGreaterThan(0);
+  });
+
+  it('writes nothing when a restore payload is invalid', async () => {
+    testDatabase = createTestDatabase('backup-invalid');
+    await seedRealActivity(testDatabase);
+
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+    const invalid = {
+      ...before,
+      studySessions: [{ ...before.studySessions[0]!, mode: 'not-a-mode' }],
+    } as unknown as DatabaseSnapshot;
+
+    await expect(
+      restoreDatabaseFromBackup(invalid, {
+        db: testDatabase.db,
+        seed: sampleCourseSeed,
+      }),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
   });
 });

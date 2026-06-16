@@ -567,3 +567,44 @@
     accessibility, no-mutation, and build-size are green.
   - Dexie stays version 2; opening or reloading `/insights` mutates no store,
     awards no XP, and unlocks no achievement (proven by full-snapshot equality).
+
+## D-0038 - Module 16 Data Control: Full-Snapshot Export, Replace-All Import, Reachable-After-Reset Recovery
+
+- Date: 2026-06-16
+- Status: accepted
+- Decision: Module 16 ships local data control from `/settings`: export a full
+  database snapshot as a versioned JSON backup, import a Zod-validated backup
+  with **replace-all** semantics, and reset all local data behind a typed
+  confirmation phrase (`RESET`). Backup import is also exposed on the onboarding
+  screen so it stays reachable after a reset. No Dexie schema change (the schema
+  v2 `backups` store and `BackupRecordSchema` already exist) and no new
+  dependency. Merge import, selective/learner-only export, and a dedicated
+  privacy page/`PRIVACY.md` are explicitly excluded.
+- Why: A faithful local restore is the honest goal. The full snapshot preserves
+  media progress, resume points, and frozen slice plans; replace-all avoids the
+  cross-store consistency and duplicate-XP/achievement risks a merge mode would
+  introduce. The app gate makes `/settings` unreachable on a fresh database, so
+  putting import only there would break recovery — hence the shared
+  `ImportBackupControl` on onboarding. The privacy page belongs to Module 19's
+  security/privacy review per the repo roadmap.
+- Consequences:
+  - The pure backup contract lives in `src/lib/backup/` (reusing `@/lib/domain`
+    schemas), the restore/reset/audit writes in `src/lib/db`, and the shared
+    import UI in `src/components/ui/ImportBackupControl.tsx` — no feature→feature
+    coupling and no dependency cycle.
+  - The `backups` store is a local audit log: export appends exactly one
+    `export` record after serializing (so the file never contains its own export
+    event); import appends exactly one `import` record after restore. Equality is
+    asserted on the 13 non-`backups` stores; `backups` equals the backup's rows
+    plus one new record. The `backups` store is deliberately excluded from the
+    strict restored-data equality claim and tested separately.
+  - Import validates before any write (size guard, `JSON.parse`, strict envelope
+    - per-row Zod, duplicate-ID rejection); an invalid payload writes nothing.
+      Notes render as inert text and backup import executes no scripts.
+  - Opening or reloading `/settings` mutates no store; export/import/reset mutate
+    only on explicit action. A successful import (from either route) lands on the
+    restored dashboard, because refreshing app state unmounts the page and a
+    success toast could not survive.
+  - Cross-seed-version imports rely on the current bundled seed for catalog
+    reconciliation. A future smaller portability/export format or a merge import
+    would be a separate, deliberate module.

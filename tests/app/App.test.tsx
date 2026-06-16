@@ -603,3 +603,88 @@ describe('Insights route', () => {
     expect(afterReload).toEqual(before);
   });
 });
+
+describe('Settings route', () => {
+  const learnerProfileInput: SaveLearnerProfileInput = {
+    avatarConfig: {
+      face: 'square',
+      hair: 'parted',
+      topColor: 'ocean',
+    },
+    displayName: 'Alex',
+    preferredTheme: 'dark',
+    reducedMotion: true,
+    targetMinutesPerWeek: 360,
+    targetStudyDays: ['monday', 'thursday'],
+  };
+
+  async function seedOnboardedLearnerWithHistory() {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(learnerProfileInput, { completeOnboarding: true });
+
+    await addStudySessionAndAwardXp(
+      {
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-12T08:00:00.000Z',
+        endedAt: '2026-06-12T08:45:00.000Z',
+        durationMinutes: 45,
+        mode: 'debugging',
+      },
+      { now: () => '2026-06-12T08:45:00.000Z' },
+    );
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
+      { now: () => '2026-06-12T11:00:00.000Z' },
+    );
+  }
+
+  it('renders the data-control surface with reset gated by a confirmation phrase', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    await renderAppAtRoute('/settings');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    for (const cardTitle of [
+      'Export a backup',
+      'Import a backup',
+      'Reset local data',
+    ]) {
+      expect(
+        screen.getByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+
+    expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Reset all local data' }),
+    ).toBeDisabled();
+  });
+
+  it('does not mutate any local store when settings renders or reloads', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    const before = await getDatabaseSnapshot();
+
+    expect(before.xpTransactions.length).toBeGreaterThan(0);
+    expect(before.studySessions).toHaveLength(1);
+    expect(before.backups).toHaveLength(0);
+
+    await renderAppAtRoute('/settings');
+    await screen.findByRole('heading', { name: 'Settings' });
+    const afterRender = await getDatabaseSnapshot();
+
+    cleanup();
+    await renderAppAtRoute('/settings');
+    await screen.findByRole('heading', { name: 'Settings' });
+    const afterReload = await getDatabaseSnapshot();
+
+    // Opening or reloading /settings is a pure read: export/import/reset mutate
+    // only on explicit action, so every store stays byte-for-byte identical.
+    expect(afterRender).toEqual(before);
+    expect(afterReload).toEqual(before);
+  });
+});

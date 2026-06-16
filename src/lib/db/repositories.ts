@@ -2386,3 +2386,216 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
     ),
   };
 }
+
+function allDataTables(database: ProgressPalDatabase) {
+  return [
+    database.appMeta,
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+    database.achievementDefinitions,
+    database.achievementUnlocks,
+    database.backups,
+  ];
+}
+
+/**
+ * Re-validate every row of a backup snapshot through the domain schemas before
+ * any write. Defense in depth: the UI already validated the envelope, but the
+ * restore path must never trust unvalidated structured input.
+ */
+function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
+  return {
+    appMeta:
+      snapshot.appMeta === null
+        ? null
+        : parseWithSchema(
+            AppMetaSchema,
+            snapshot.appMeta,
+            'Backup app metadata',
+          ),
+    learnerProfile:
+      snapshot.learnerProfile === null
+        ? null
+        : parseWithSchema(
+            LearnerProfileSchema,
+            snapshot.learnerProfile,
+            'Backup learner profile',
+          ),
+    courseUnits: parseStoredArray(
+      snapshot.courseUnits,
+      'Backup course unit',
+      CourseUnitSchema,
+    ),
+    courseItems: parseStoredArray(
+      snapshot.courseItems,
+      'Backup course item',
+      CourseItemSchema,
+    ),
+    progressEntries: parseStoredArray(
+      snapshot.progressEntries,
+      'Backup progress entry',
+      ProgressEntrySchema,
+    ),
+    contentAssets: parseStoredArray(
+      snapshot.contentAssets,
+      'Backup content asset',
+      ContentAssetSchema,
+    ),
+    contentSlices: parseStoredArray(
+      snapshot.contentSlices,
+      'Backup content slice',
+      ContentSliceSchema,
+    ),
+    mediaProgressEvents: parseStoredArray(
+      snapshot.mediaProgressEvents,
+      'Backup media progress event',
+      MediaProgressEventSchema,
+    ),
+    resumePoints: parseStoredArray(
+      snapshot.resumePoints,
+      'Backup resume point',
+      ResumePointSchema,
+    ),
+    studySessions: parseStoredArray(
+      snapshot.studySessions,
+      'Backup study session',
+      StudySessionSchema,
+    ),
+    xpTransactions: parseStoredArray(
+      snapshot.xpTransactions,
+      'Backup XP transaction',
+      XpTransactionSchema,
+    ),
+    achievementDefinitions: parseStoredArray(
+      snapshot.achievementDefinitions,
+      'Backup achievement definition',
+      AchievementDefinitionSchema,
+    ),
+    achievementUnlocks: parseStoredArray(
+      snapshot.achievementUnlocks,
+      'Backup achievement unlock',
+      AchievementUnlockSchema,
+    ),
+    backups: parseStoredArray(
+      snapshot.backups,
+      'Backup record',
+      BackupRecordSchema,
+    ),
+  };
+}
+
+export type RecordBackupEventInput = {
+  type: BackupRecord['type'];
+  fileName: string;
+  notes?: string;
+};
+
+/**
+ * Append one local audit record describing an export or import event. This is a
+ * deliberate, explicit-action mutation; it is the only write an export performs.
+ */
+export async function recordBackupEvent(
+  input: RecordBackupEventInput,
+  options: BaseDatabaseOptions = {},
+): Promise<BackupRecord> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const timestamp = (options.now ?? defaultClock)();
+  const record = parseWithSchema(
+    BackupRecordSchema,
+    {
+      id: createEntityId('backup'),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      type: input.type,
+      fileName: input.fileName,
+      ...(input.notes === undefined ? {} : { notes: input.notes }),
+    },
+    'Backup record',
+  );
+
+  await database.backups.add(record);
+
+  return record;
+}
+
+/**
+ * Destructively clear every store and re-bootstrap a fresh default profile and
+ * seeded catalog. The clear is atomic; re-initialization runs afterward.
+ */
+export async function resetAllData(
+  options: InitializeDatabaseOptions = {},
+): Promise<DatabaseInitializationResult> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = allDataTables(database);
+
+  await database.transaction('rw', tables, async () => {
+    await Promise.all(tables.map((table) => table.clear()));
+  });
+
+  return initializeDatabase({ ...options, db: database });
+}
+
+export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
+  fileName?: string;
+};
+
+/**
+ * Replace-all restore. Validates every row first, then in one atomic
+ * transaction clears all stores and writes the validated backup rows. After the
+ * transaction commits it reconciles the bundled seed catalog (idempotent on
+ * already-current data) and appends exactly one `import` audit record. The
+ * `backups` store therefore equals the backup's `backups` plus that one record;
+ * the other 13 stores match the backup exactly.
+ */
+export async function restoreDatabaseFromBackup(
+  snapshot: DatabaseSnapshot,
+  options: RestoreDatabaseFromBackupOptions = {},
+): Promise<DatabaseSnapshot> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const restored = parseSnapshotForRestore(snapshot);
+  const tables = allDataTables(database);
+
+  await database.transaction('rw', tables, async () => {
+    await Promise.all(tables.map((table) => table.clear()));
+
+    if (restored.appMeta !== null) {
+      await database.appMeta.add(restored.appMeta);
+    }
+
+    if (restored.learnerProfile !== null) {
+      await database.learnerProfile.add(restored.learnerProfile);
+    }
+
+    await Promise.all([
+      database.courseUnits.bulkAdd(restored.courseUnits),
+      database.courseItems.bulkAdd(restored.courseItems),
+      database.progressEntries.bulkAdd(restored.progressEntries),
+      database.contentAssets.bulkAdd(restored.contentAssets),
+      database.contentSlices.bulkAdd(restored.contentSlices),
+      database.mediaProgressEvents.bulkAdd(restored.mediaProgressEvents),
+      database.resumePoints.bulkAdd(restored.resumePoints),
+      database.studySessions.bulkAdd(restored.studySessions),
+      database.xpTransactions.bulkAdd(restored.xpTransactions),
+      database.achievementDefinitions.bulkAdd(restored.achievementDefinitions),
+      database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
+      database.backups.bulkAdd(restored.backups),
+    ]);
+  });
+
+  await initializeDatabase({ ...options, db: database });
+
+  await recordBackupEvent(
+    { type: 'import', fileName: options.fileName ?? 'imported-backup.json' },
+    { db: database, now: options.now },
+  );
+
+  return getDatabaseSnapshot({ db: database });
+}

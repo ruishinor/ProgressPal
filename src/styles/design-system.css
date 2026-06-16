@@ -1539,3 +1539,74 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Module 16: settings data-control and backup import surfaces (additive). */
+.data-action {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.data-action__file {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  max-width: 100%;
+}
+
+.data-action__error {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin: 0;
+}
+
+.backup-preview {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.backup-preview__heading {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.backup-preview__file {
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+.backup-preview__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.backup-preview__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.backup-preview__row dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.backup-preview__row dd {
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin: 0;
+}
+
+.backup-verify {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.backup-verify__title {
+  color: var(--color-text-soft);
+  font-weight: 600;
+  margin: 0;
+}

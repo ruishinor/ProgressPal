@@ -641,6 +641,58 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 16 Scope
+
+- Validation covers the pure backup envelope (build, parse, validate, summarize)
+  and its rejections, the new replace-all restore / reset / audit repository
+  surfaces, the shared import control, the `/settings` data-control UI, the
+  onboarding recovery entry point, and the real export → reset → onboarding →
+  import recovery loop.
+- Triple-Zero for Module 16 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations on the tested
+  data-control/reset surface, and zero dependency-audit findings.
+
+## Module 16 Validation Protocol
+
+### Pass checks
+
+- Confirm `src/lib/backup/envelope.ts` is pure (no Dexie/UI/app imports) and that
+  `parseBackupFile` rejects malformed JSON, oversized input, wrong format/format
+  version, mismatched schema version, unknown top-level and nested fields,
+  malformed rows, and per-store duplicate IDs, while allowing the same id across
+  unrelated stores.
+- Confirm export serializes the full snapshot first, then appends exactly one
+  `export` audit record and mutates no non-`backups` store.
+- Confirm replace-all restore yields equality on the 13 non-`backups` stores
+  against the backup data, with `backups` equal to the backup's rows plus exactly
+  one `import` record, and that it does not duplicate XP, achievements, or
+  sessions.
+- Confirm an invalid restore payload writes nothing (validation before any
+  mutation) and that reset clears every store, including `backups`, then
+  re-bootstraps a fresh default profile and seeded catalog.
+- Confirm opening or reloading `/settings` mutates no store, and that reset is
+  gated by the exact typed `RESET` phrase.
+- Confirm backup import stays reachable on the onboarding screen after a reset and
+  that the full recovery loop restores state that persists across a reload.
+- Confirm the data-control/reset surface is accessible (axe) in dark theme,
+  renders no `.card--accent`, `.card--subtle`, `.card--danger`, or `.state-card`
+  surface, and that an injected `<script>` note never executes (no dialog).
+- Confirm the Dexie schema stays at version 2, no new dependency is imported, and
+  every chunk stays under the 600 kB warning budget.
+
+### Commands for Module 16
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

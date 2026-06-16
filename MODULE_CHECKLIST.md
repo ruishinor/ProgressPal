@@ -2,29 +2,37 @@
 
 ## Current Module
 
-Module: 15 - Insights
+Module: 16 - Settings, backup, import, reset
 Status: complete
 
 Objective:
 
-- Replace the `/insights` placeholder with a truthful, read-only, derived-only
-  local insights surface that describes how locally recorded effort has
-  accumulated over time, built only from existing stores and read models.
-- Trend the immutable ledgers (`study_sessions`, `media_progress_events`,
-  `xp_transactions`, `achievement_unlocks`); treat `progress_entries` as a
-  current snapshot only, never a reconstructed history.
-- Keep insights pure-read: opening or reloading `/insights` mutates no store,
-  awards no XP, and unlocks no achievements.
+- Give the learner local data control from `/settings`: export a full local
+  backup as JSON, import a Zod-validated backup with replace-all semantics, and
+  reset all local data behind a typed confirmation phrase.
+- Keep backup import reachable after a reset by exposing it on the onboarding
+  screen (the app gate makes `/settings` unreachable on a fresh database).
+- Reuse existing infrastructure: the schema-v2 `backups` store,
+  `getDatabaseSnapshot()` as the export source, and `initializeDatabase` /
+  `AppStateProvider.refresh()` for post-action re-bootstrap. No schema change,
+  no new dependency.
 
 Expected files changed:
 
-- src/features/insights/model.ts (new)
-- src/features/insights/routes/InsightsPage.tsx
+- src/lib/backup/envelope.ts (new)
+- src/lib/backup/index.ts (new)
+- src/components/ui/ImportBackupControl.tsx (new)
+- src/lib/db/repositories.ts
+- src/lib/db/index.ts
+- src/features/settings/routes/SettingsPage.tsx
+- src/features/profile/routes/OnboardingPage.tsx
 - src/styles/design-system.css
-- tests/features/insightsModel.test.ts (new)
+- tests/lib/backup.test.ts (new)
+- tests/components/importBackupControl.test.tsx (new)
+- tests/db/repositories.test.ts
 - tests/app/App.test.tsx
-- e2e/insights.spec.ts (new)
-- docs/modules/module-15-plan.md (new)
+- e2e/settings.spec.ts (new)
+- docs/modules/module-16-plan.md (new)
 - PROJECT_STATE.md
 - DECISIONS.md
 - MODULE_CHECKLIST.md
@@ -32,57 +40,56 @@ Expected files changed:
 - CHANGELOG.md
 - TEST_PLAN.md
 
-Forbidden files / work for Module 15:
+Forbidden files / work for Module 16:
 
 - No Dexie schema-version bump, store rename, index change, or seeded-ID churn.
-- No new persistent insights state and no insights cache; all values are derived.
-- No XP awarded, no achievements unlocked, and no source-store mutation from
-  insights reads.
-- No charts: no Recharts, no first-party SVG charts in this version.
-- No new dependencies (Recharts and date-fns stay unimported).
-- No forecasts, coaching, recommendations, motivational interpretation, or
-  gamified streak branding.
-- No new read/write repository surfaces.
-- No new XP rules, new achievements, or changes to achievement definitions.
-- No backup/import/export/reset, settings changes, sync, auth, analytics, or
-  external APIs.
-- No global design-system refactor of the dark-theme card variants.
+- No merge-import mode; no selective/learner-only export.
+- No `/privacy` route, no `PRIVACY.md`, no broad security/privacy review (Module
+  19); only short action-specific inline warnings.
+- No new dependencies (export/import use native `Blob`, anchor download, file
+  input, `JSON`, and existing Zod).
+- No new XP rules, no new/changed achievements, no edits to the locked engines
+  (`src/lib/xp/engine.ts`, `src/lib/achievements/**`, `src/lib/progress/engine.ts`),
+  `src/lib/domain/**`, or `src/seed/**`.
+- No dark-theme-unsafe card variants (`.card--accent`, `.card--subtle`,
+  `.card--danger`, `.state-card`) on the data-control/reset UI.
+- No cloud, sync, auth, analytics, AI, or Module 17 work.
 
 Acceptance criteria:
 
-- `/insights` renders all derived sections after onboarding with truthful empty
-  states for a fresh learner.
-- Opening and reloading `/insights` yields full-snapshot equality (no mutation)
-  across every store returned by `getDatabaseSnapshot()`.
-- "Watched minutes logged" sums `media_progress_events.watchedSeconds` (logged
-  effort, overlaps included), floors partial minutes, and is never presented as
-  unique watched coverage.
-- Sessions and media events are attributed whole to the local day/week of their
-  `startedAt` / `createdAt`, never split across a boundary; active days derive
-  only from positive-duration study sessions.
-- Recorded completion awards count exact XP-engine `sourceType` values, with
-  item-completion and `week_completed` (unit) awards counted separately; a test
-  fails loudly if the engine and the Insights classification diverge.
-- The insights surface is accessible (axe) in dark theme and uses no
-  non-dark-theme-safe card variant (`.card--accent`, `.card--subtle`,
-  `.card--danger`, `.state-card`).
-- The production build keeps every chunk under the 600 kB warning budget without
-  raising the threshold.
-- Dexie schema stays version 2 and the migration fixture stays green.
+- Real recovery loop works: export from `/settings` → reset → app gates to
+  onboarding → import from the reachable onboarding control → restored state
+  visible → reload preserves it.
+- Opening or reloading `/settings` mutates no store; export/import/reset mutate
+  only on explicit action.
+- Export serializes the full snapshot first, then appends exactly one `export`
+  audit record; it mutates no non-`backups` store.
+- Replace-all import restores the 13 non-`backups` stores to equality with the
+  backup data, with `backups` equal to the backup's rows plus exactly one
+  `import` record; it does not duplicate XP, achievements, or sessions.
+- Reset clears every store (incl. `backups`) and re-bootstraps a fresh default
+  profile and seeded catalog.
+- Import rejects malformed JSON, oversized files, wrong format/format version,
+  mismatched schema version, unknown fields, malformed rows, and duplicate IDs;
+  an invalid payload writes nothing and notes render as inert text.
+- The data-control/reset surface is accessible (axe) in dark theme and uses no
+  non-dark-theme-safe card variant.
+- The production build keeps every chunk under the 600 kB warning budget; Dexie
+  schema stays version 2 and the migration fixture stays green.
 - Triple-Zero achieved with lint, format check, typecheck, build, unit test,
   E2E test, circular-dependency analysis, and dependency audit.
 
 Tests added/updated:
 
-- `tests/features/insightsModel.test.ts` (pure model: weekly buckets, whole
-  attribution, floored watched minutes, overlap-not-deduplicated, active days,
-  mode breakdown, completion-award classification with an XP-engine divergence
-  guard, achievement timeline order, course snapshot, empty states)
-- `tests/app/App.test.tsx` (insights render plus full-snapshot no-mutation across
-  every store)
-- `e2e/insights.spec.ts` (insights + axe coverage in dark theme, real
-  saved-activity flow, reload leaves ledgers unchanged, and a guard against
-  non-dark-theme-safe card variants)
+- `tests/lib/backup.test.ts` (pure envelope build/parse/summary + all rejections)
+- `tests/db/repositories.test.ts` (export audit, replace-all equality and
+  no-duplication, reset re-bootstrap, invalid-payload writes nothing)
+- `tests/components/importBackupControl.test.tsx` (confirm gating, error display,
+  preview)
+- `tests/app/App.test.tsx` (settings data-control render + reset gating;
+  `/settings` no passive mutation)
+- `e2e/settings.spec.ts` (recovery loop, settings import, invalid-file rejection,
+  dark-theme axe, no unsafe card variant, no console errors)
 
 Validation commands:
 
@@ -97,17 +104,21 @@ Validation commands:
 
 Data compatibility risk:
 
-- Module 15 is read-only and additive: no Dexie schema, store, index, or
-  seeded-ID change, and no new repository surface. It only reads existing stores
-  through existing helpers and renders derived views.
+- No Dexie schema, store, index, or seeded-ID change. The `backups` store and
+  `BackupRecordSchema` already exist in schema v2. New repository surfaces
+  (`restoreDatabaseFromBackup`, `resetAllData`, `recordBackupEvent`) are additive.
+  Restore re-validates every row through the domain schemas before writing.
 
 Rollback plan:
 
-- Remove `src/features/insights/model.ts`, restore the placeholder
-  `InsightsPage.tsx`, and drop the additive insights CSS in `design-system.css`.
-- Remove `tests/features/insightsModel.test.ts` and `e2e/insights.spec.ts`, and
-  revert the Insights describe block added to `tests/app/App.test.tsx`.
-- Reset Module 15 documentation and validation records to the Module 14 state.
+- Remove `src/lib/backup/`, `src/components/ui/ImportBackupControl.tsx`,
+  `tests/lib/backup.test.ts`, `tests/components/importBackupControl.test.tsx`,
+  and `e2e/settings.spec.ts`.
+- Revert the new repository functions in `src/lib/db/repositories.ts` /
+  `index.ts`, the data-control UI in `SettingsPage.tsx`, the import entry point
+  in `OnboardingPage.tsx`, the additive CSS, and the Module 16 test additions to
+  `repositories.test.ts` and `App.test.tsx`.
+- Reset Module 16 documentation and validation records to the Module 15 state.
 
 ## Module Status
 
@@ -129,7 +140,7 @@ Rollback plan:
 | 13     | Achievement engine                    | complete    |
 | 14     | Dashboard                             | complete    |
 | 15     | Insights                              | complete    |
-| 16     | Settings, backup, import, reset       | not started |
+| 16     | Settings, backup, import, reset       | complete    |
 | 17     | Offline hardening                     | not started |
 | 18     | Accessibility and UX hardening        | not started |
 | 19     | Security and privacy review           | not started |

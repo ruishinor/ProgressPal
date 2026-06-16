@@ -1,9 +1,9 @@
 # Project State
 
-Current module: Module 15 - Insights (complete)
-Last completed module: Module 15 - Insights (complete)
+Current module: Module 16 - Settings, backup, import, reset (complete)
+Last completed module: Module 16 - Settings, backup, import, reset (complete)
 Current branch: master
-Last committed module: Module 14 - Dashboard (commit e2e4b8e). The Module 15
+Last committed module: Module 15 - Insights (commit 43c7f8c). The Module 16
 working tree is implemented and validated but not yet committed; it passed three
 consecutive clean `npm run validate` runs.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
@@ -100,8 +100,8 @@ Known risks:
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
 
-Last Triple-Zero pass: 2026-06-16 - Module 15 full validation pass 3 of 3
-Next module: Module 16 - Settings, backup, import, reset (not started)
+Last Triple-Zero pass: 2026-06-16 - Module 16 full validation pass 3 of 3
+Next module: Module 17 - Offline hardening (not started)
 
 Do not change:
 
@@ -155,6 +155,16 @@ Do not change:
   uses neutral active-day wording (no streak branding), and adds no charts, no
   new dependencies, and no new repository surface. Keep the completion-award
   `sourceType` classification aligned with the XP engine via its divergence test.
+- Preserve the Module 16 data-control behavior: export is a full-database-snapshot
+  backup; import is replace-all only (validate first, then atomic clear+restore,
+  then seed reconcile, then exactly one `import` audit record); reset clears every
+  store and re-bootstraps a fresh profile + seeded catalog. Backup import stays
+  reachable from onboarding after a reset. Opening or reloading `/settings`
+  mutates no store; export mutates only `backups`. The `backups` store is a local
+  audit log excluded from the strict restored-data equality claim. Keep the
+  versioned `progresspal-backup` envelope (`formatVersion` 1, `schemaVersion` 2)
+  and its strict Zod validation. Merge import, selective export, and the privacy
+  page/`PRIVACY.md` stay deferred.
 - Do not introduce backup/import/export/reset UI before its assigned module.
 - Preserve future backwards compatibility now that persistence exists.
 
@@ -196,6 +206,17 @@ Backwards compatibility fixtures:
   without duplication on re-save, that evaluation writes zero `xp_transactions`
   and mutates no source store, that reads never create unlocks, and that an
   explicit save unlocks accumulated history while a passive read does not.
+- `tests/lib/backup.test.ts` verifies the versioned backup envelope: build →
+  parse round-trip, format/version metadata, summary counts, null-profile
+  tolerance, and rejection of malformed JSON, oversized input, wrong
+  format/format version, mismatched schema version, unknown fields, malformed
+  rows, and per-store duplicate IDs (while allowing the same id across unrelated
+  stores).
+- `tests/db/repositories.test.ts` also verifies Module 16 data control: an export
+  audit record is written without mutating other stores, replace-all restore
+  yields equality on the 13 non-`backups` stores plus exactly one `import` record
+  with no XP/achievement/session duplication, reset clears all stores and
+  re-bootstraps, and an invalid restore payload writes nothing.
 
 Current repo inventory:
 
@@ -250,6 +271,14 @@ Current repo inventory:
   decorative token CSS bars, replacing the placeholder, with additive insights
   styles in `design-system.css`. It adds no schema change, no new dependency, and
   no new repository surface.
+- Module 16 adds the pure backup contract in `src/lib/backup/` (versioned
+  `progresspal-backup` envelope, build/parse/validate/summarize), the shared
+  `src/components/ui/ImportBackupControl.tsx`, and three additive repository
+  surfaces (`restoreDatabaseFromBackup`, `resetAllData`, `recordBackupEvent`). It
+  wires export/import/reset into `SettingsPage.tsx`, a backup-import recovery
+  entry point into `OnboardingPage.tsx`, and additive data-control styles into
+  `design-system.css`. No Dexie schema change (the `backups` store already exists)
+  and no new dependency.
 - The `/onboarding` route now creates the first-run local learner profile,
   `/` acts as the saved-profile summary, and `/course` now renders the seeded
   CS50 catalog instead of a placeholder while `/course/:itemId` now owns the

@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-06-16 - Module 16
+
+### Added
+
+- Pure backup contract in `src/lib/backup/` (`envelope.ts`): a versioned,
+  `.strict()` `BackupEnvelopeSchema` over a full `getDatabaseSnapshot()` payload,
+  plus `buildBackupEnvelope`, `parseBackupFile` (size guard + `JSON.parse` +
+  strict Zod + per-store duplicate-ID rejection, with learner-facing error
+  messages), `summarizeBackup`, and `backupFileName`. Reuses `@/lib/domain`
+  schemas; no Dexie/UI/app imports.
+- New repository surfaces in `src/lib/db`: `restoreDatabaseFromBackup`
+  (replace-all in one atomic transaction, then `initializeDatabase` reconcile and
+  one `import` audit record), `resetAllData` (clear all stores + re-bootstrap),
+  and `recordBackupEvent` (one `export`/`import` `backups` audit record).
+- Feature-agnostic `src/components/ui/ImportBackupControl.tsx`: file pick →
+  local validation → preview + "verify your restore" checklist → confirm a
+  destructive replace-all. Checks `File.size` before reading. Reused by Settings
+  and onboarding.
+- `/settings` data control (`SettingsPage.tsx`): export a local JSON backup,
+  import a validated backup (lands on the restored dashboard), and reset all
+  local data behind the typed `RESET` confirmation, with inline warnings about
+  what backups contain and that import/reset are destructive and local-only.
+- Backup import recovery entry point on `OnboardingPage.tsx` so import stays
+  reachable after a reset (the app gate routes a fresh database to onboarding).
+- Additive, dark-theme-safe data-control and backup-preview styles in
+  `design-system.css`.
+- Tests: `tests/lib/backup.test.ts` (pure), extended
+  `tests/db/repositories.test.ts` (export audit, replace-all 13-store equality
+  and no XP/achievement/session duplication, reset re-bootstrap, invalid payload
+  writes nothing), `tests/components/importBackupControl.test.tsx`, extended
+  `tests/app/App.test.tsx` (settings data-control render + reset gating +
+  `/settings` no passive mutation), and `e2e/settings.spec.ts` (recovery loop,
+  settings import, invalid-file rejection, dark-theme axe, no unsafe card
+  variant, no console errors).
+- Module 16 plan and handoff in `docs/modules/module-16-plan.md`.
+
+### Data-control semantics
+
+- Export = full database snapshot (every store, including media events, resume
+  points, and frozen slice plans). Import = replace-all only (no merge mode).
+- The `backups` store is a local audit log: export appends one `export` record
+  after serializing (the file never contains its own export event); import
+  appends one `import` record after restore. Restored-data equality is asserted
+  on the 13 non-`backups` stores; `backups` equals the backup's rows plus one new
+  record.
+- Opening or reloading `/settings` mutates no store; export/import/reset mutate
+  only on explicit action. No Dexie schema change (schema stays version 2) and no
+  new dependency. Backup import executes no scripts; the privacy page and
+  `PRIVACY.md` remain deferred to Module 19. See DECISIONS.md D-0038.
+
 ## 2026-06-16 - Module 15
 
 ### Added

@@ -1750,3 +1750,126 @@ Retrospective:
 Decision:
 
 - Module 15 complete. Stop before Module 16.
+
+## Module 16 - Settings, Backup, Import, Reset
+
+Date: 2026-06-16
+Commit: Module 16 working tree (uncommitted) on `master`; last committed module
+is 15 (commit 43c7f8c). This record is added with the Module 16 code in place.
+
+Setup performed:
+
+- Added the pure backup contract `src/lib/backup/` (versioned `progresspal-backup`
+  envelope: `BackupEnvelopeSchema`, `buildBackupEnvelope`, `parseBackupFile`,
+  `summarizeBackup`, `backupFileName`), reusing `@/lib/domain` schemas with no
+  Dexie/UI/app imports.
+- Added three additive repository surfaces in `src/lib/db`
+  (`restoreDatabaseFromBackup`, `resetAllData`, `recordBackupEvent`) reusing
+  `getDatabaseSnapshot()` as the export source.
+- Added the feature-agnostic `src/components/ui/ImportBackupControl.tsx`, wired
+  export/import/reset into `SettingsPage.tsx`, added a backup-import recovery
+  entry point to `OnboardingPage.tsx`, and added dark-theme-safe data-control
+  styles to `design-system.css`.
+- Added `tests/lib/backup.test.ts` and
+  `tests/components/importBackupControl.test.tsx`, extended
+  `tests/db/repositories.test.ts` (export audit, replace-all equality and
+  no-duplication, reset re-bootstrap, invalid-payload-writes-nothing) and
+  `tests/app/App.test.tsx` (settings data-control render + reset gating +
+  `/settings` no passive mutation), and added `e2e/settings.spec.ts` (recovery
+  loop, settings import, invalid-file rejection, dark-theme axe, unsafe-variant
+  guard, injected-script no-execution).
+
+Findings and repairs before Triple-Zero:
+
+- A settings import calls `refresh()`, which sets app state to `loading` and
+  unmounts `SettingsPage`, so a post-import success toast could never survive. The
+  import handler was changed to land the learner on the restored dashboard as the
+  visible confirmation instead; the e2e asserts the dashboard and restored ledger
+  counts.
+- The recovery path was verified to be reachable after a reset: `AppShell`
+  redirects all non-onboarding routes to `/onboarding` when onboarding is
+  required, so the shared `ImportBackupControl` was added to `OnboardingPage` and
+  the e2e drives import from there.
+- An untracked duplicate of the acceptance pack (`Module 16 Acceptance Pack —
+ProgressPal CS50 Edition.md`) at the repo root failed `format:check`. It was
+  confirmed untracked and not part of the Module 16 surface, and removed (not
+  added to ignore lists and not committed) with user approval.
+- Two new docs (`DECISIONS.md`, `docs/modules/module-16-plan.md`) initially failed
+  `format:check`; they were formatted with Prettier before the clean passes.
+
+Pass 1:
+
+- Clean.
+- Full suite passed: lint, format check, typecheck, build, unit test, E2E test,
+  circular-dependency analysis, and dependency audit.
+
+Pass 2:
+
+- Clean.
+- Re-ran the same full suite without changes and confirmed identical results.
+
+Pass 3:
+
+- Clean.
+- Re-ran the same full suite a third time and confirmed zero errors, zero
+  warnings, zero accessibility violations on the tested data-control/reset flow,
+  zero circular dependencies, and zero audit findings (188 unit tests across 29
+  files, 17 E2E tests, all built chunks under the 600 kB warning budget; largest
+  chunk `react` at ~190 kB).
+
+Commands:
+
+- Counted full validation suite repeated three consecutive times with
+  `npm run validate`, which expands to:
+  - `npm run lint`
+  - `npm run format:check`
+  - `npm run typecheck`
+  - `npm run build`
+  - `npm run test`
+  - `npm run test:e2e`
+  - `npm run check:circular`
+  - `npm run audit`
+
+Adversarial findings:
+
+- Untrusted backup files are validated before any write: a `File.size` guard in
+  the UI and a text-length guard in `parseBackupFile`, `JSON.parse` in a
+  try/catch, a strict envelope plus per-row domain-schema validation, explicit
+  rejection of wrong format/format version, mismatched schema version, unknown
+  fields, and per-store duplicate IDs. An invalid payload writes nothing because
+  validation precedes the clear+restore transaction.
+- Replace-all restore is atomic: clear and bulk-add run in one `rw` transaction,
+  so a failure rolls back and leaves prior data intact. The post-restore
+  `initializeDatabase` reconcile is idempotent on already-current data (the
+  existing slice-sync idempotency test backs this), so the 13 non-`backups`
+  stores restore to exact equality.
+- The `backups` store is a local audit log, not restored-data: export appends one
+  `export` record after serializing (the file never contains its own export
+  event) and import appends one `import` record, so equality is asserted on the 13
+  non-`backups` stores plus an explicit "+1 import record" assertion.
+- Injected markup cannot execute: notes are stored as plain strings and rendered
+  as text (no raw-HTML injection), and the e2e fails if any dialog fires from an
+  imported `<script>` note.
+
+Retrospective:
+
+- Intended: local data control (full-snapshot export, replace-all import, reset)
+  with a recovery path that survives a reset, no schema change, and no new
+  dependency.
+- Built: a pure backup envelope, three additive repository surfaces, a shared
+  import control reused by Settings and onboarding, the `/settings` data-control
+  UI, full unit/component/app/e2e coverage including the real recovery loop, and
+  dark-theme axe coverage.
+- Changed from first draft: a settings import now lands on the restored dashboard
+  (the refresh-driven remount made a success toast impossible to keep).
+- Remaining debt (deferred): merge import, selective/learner-only export, and the
+  dedicated privacy page/`PRIVACY.md` (Module 19). Cross-seed-version imports rely
+  on the current bundled seed for catalog reconciliation.
+- Backwards compatibility is preserved: Dexie schema stays version 2 (the
+  `backups` store already existed), store names and indexes are unchanged, the new
+  repository surfaces are additive, and the migration fixture stays green.
+- Triple-Zero achieved: yes.
+
+Decision:
+
+- Module 16 complete. Stop before Module 17.
