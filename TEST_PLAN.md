@@ -589,6 +589,58 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 15 Scope
+
+- Validation covers the pure insights model and its derived sections, the
+  read-only `/insights` route, the guarantee that opening or reloading insights
+  mutates no store and awards no XP and unlocks no achievement, the local
+  day/week bucketing rules, the honest watched-minutes-logged and
+  completion-award semantics, and the insights surface's accessibility in dark
+  theme.
+- Triple-Zero for Module 15 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations in the tested
+  insights flow, and zero dependency-audit findings.
+
+## Module 15 Validation Protocol
+
+### Pass checks
+
+- Confirm `src/features/insights/model.ts` is a pure builder with no Dexie or IO
+  and derives every value from existing stores and read models.
+- Confirm `/insights` renders all sections after onboarding with truthful empty
+  states for a fresh learner.
+- Confirm full-snapshot equality before and after insights render and reload
+  across every store returned by `getDatabaseSnapshot()`.
+- Confirm "watched minutes logged" sums `media_progress_events.watchedSeconds`
+  (overlaps included), floors partial minutes (a 90-second week is 1 minute, not
+  2), and is never presented as unique coverage.
+- Confirm sessions and media events are attributed whole to the local day/week of
+  their `startedAt` / `createdAt` and are never split across a boundary, and that
+  active days derive only from positive-duration study sessions.
+- Confirm recorded completion awards count exact XP-engine `sourceType` values
+  with item-completion and `week_completed` (unit) awards separated, and that the
+  divergence guard fails loudly if the engine and the model classification
+  disagree.
+- Confirm the insights surface is accessible (axe) in dark theme and renders no
+  `.card--accent`, `.card--subtle`, `.card--danger`, or `.state-card` surface.
+- Confirm the production build keeps every chunk under 600 kB without raising the
+  warning threshold, with no new dependency imported.
+- Confirm the Dexie schema stays at version 2 and the migration fixture passes
+  unchanged.
+
+### Commands for Module 15
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

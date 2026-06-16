@@ -1640,3 +1640,113 @@ Retrospective:
 Decision:
 
 - Module 14 complete. Stop before Module 15.
+
+## Module 15 - Insights
+
+Date: 2026-06-16
+Commit: Module 15 working tree (uncommitted) on `master`; last committed module
+is 14 (commit e2e4b8e). This record is added with the Module 15 code in place.
+
+Setup performed:
+
+- Added a pure insights read model (`src/features/insights/model.ts`,
+  `buildInsightsModel`) deriving weekly activity (study minutes, watched minutes
+  logged, XP earned and cumulative), a study mode breakdown, factual active days,
+  recorded completion awards over time, an achievement timeline, and a current
+  course-progress snapshot from existing stores and read models.
+- Replaced the `/insights` placeholder with a real read-only route rendering
+  semantic tables and decorative token CSS bars, with additive styles in
+  `design-system.css`.
+- Added `tests/features/insightsModel.test.ts`, extended `tests/app/App.test.tsx`
+  with an insights render and full-snapshot no-mutation test, and added
+  `e2e/insights.spec.ts` (insights + axe in dark theme, real saved-activity flow,
+  reload-stable ledgers, unsafe-card-variant guard).
+
+Findings and repairs before Triple-Zero:
+
+- Watched minutes were changed from `Math.round` to `Math.floor(watchedSeconds /
+60)` so logged minutes never overstate. A regression test was added: a
+  90-second week floors to 1 minute (fails under the old `Math.round`, which
+  overstated to 2). The earlier premise that 89 seconds would distinguish the two
+  was incorrect (`round(89/60) = 1`), so the discriminating case uses 90 seconds.
+- The completion `sourceType` guard was initially a weak set-size/no-overlap
+  check. It was strengthened to drive the real `evaluateProgressXp` across every
+  branch, collect emitted source types, and assert bidirectionally that the
+  Insights classification matches the engine (forward and backward), failing
+  loudly on divergence.
+- Four stray untracked files left from an interim session
+  (`MODULE15_insights_model_WIP_backup.ts`, `src/features/insights/model.ts.bak`,
+  a duplicate plan markdown, and the context bundle) would have failed
+  `format:check`/`lint`; they were confirmed to be backups/duplicates of tracked
+  work and removed rather than added to ignore lists.
+
+Pass 1:
+
+- Clean.
+- Full suite passed: lint, format check, typecheck, build, unit test, E2E test,
+  circular-dependency analysis, and dependency audit.
+
+Pass 2:
+
+- Clean.
+- Re-ran the same full suite without changes and confirmed identical results.
+
+Pass 3:
+
+- Clean.
+- Re-ran the same full suite a third time and confirmed zero errors, zero
+  warnings, zero accessibility violations in the tested insights flow, zero
+  circular dependencies, and zero audit findings (160 unit tests across 27 files,
+  14 E2E tests, all built chunks under the 600 kB warning budget).
+
+Commands:
+
+- Counted full validation suite repeated three consecutive times with
+  `npm run validate`, which expands to:
+  - `npm run lint`
+  - `npm run format:check`
+  - `npm run typecheck`
+  - `npm run build`
+  - `npm run test`
+  - `npm run test:e2e`
+  - `npm run check:circular`
+  - `npm run audit`
+
+Adversarial findings:
+
+- Immutability matters for honesty: `xp_transactions`, `study_sessions`,
+  `media_progress_events`, and `achievement_unlocks` can be trended, but
+  `progress_entries` are mutable current-state rows, so Insights uses them only
+  for a current snapshot and never as a reconstructed history.
+- "Watched minutes logged" and "unique watched coverage" are different claims;
+  summing `watchedSeconds` measures logged effort and can exceed unique coverage
+  when ranges overlap. The column is labeled "logged" and a test asserts overlaps
+  are not silently de-duplicated.
+- A hand-copied completion source-type list could silently drift from the XP
+  engine; the divergence guard turns that into a loud test failure and a
+  stop-and-report condition rather than a quiet inaccuracy.
+- Device-local day/week bucketing is environment-sensitive; the model attributes
+  each session/event whole to its start/creation instant and the tests use
+  timezone-less local timestamps so bucket boundaries are deterministic.
+
+Retrospective:
+
+- Intended: a truthful, read-only, derived-only insights surface that trends only
+  immutable ledgers, mutates no store, adds no charts or dependencies, and stays
+  within the 600 kB per-chunk budget.
+- Built: a pure insights model, a read-only route with semantic tables and
+  decorative CSS bars, full-snapshot no-mutation coverage, an XP-engine
+  divergence guard, and dark-theme axe E2E coverage.
+- Changed from first draft: floored watched minutes (no overstatement) and a
+  strengthened, engine-driven source-type guard replacing a weak size check.
+- Remaining debt: charts (deferred follow-up), the deferred insight categories
+  (confidence/recovery/energy trends, forecasts), and the global dark-theme
+  card-variant hardening (Module 18).
+- Backwards compatibility is preserved: Dexie schema stays version 2, store names
+  and indexes are unchanged, no new repository surface exists, and the migration
+  fixture stays green.
+- Triple-Zero achieved: yes.
+
+Decision:
+
+- Module 15 complete. Stop before Module 16.

@@ -495,3 +495,111 @@ describe('Dashboard route', () => {
     expect(afterReload.achievementUnlocks).toEqual(before.achievementUnlocks);
   });
 });
+
+describe('Insights route', () => {
+  const learnerProfileInput: SaveLearnerProfileInput = {
+    avatarConfig: {
+      face: 'square',
+      hair: 'parted',
+      topColor: 'ocean',
+    },
+    displayName: 'Alex',
+    preferredTheme: 'dark',
+    reducedMotion: true,
+    targetMinutesPerWeek: 360,
+    targetStudyDays: ['monday', 'thursday'],
+  };
+
+  // Seed an onboarded learner plus a non-trivial explicit-save history across
+  // the immutable ledgers Insights reads, so snapshot equality is a meaningful
+  // proof rather than a comparison of empty arrays.
+  async function seedOnboardedLearnerWithHistory() {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(learnerProfileInput, { completeOnboarding: true });
+
+    await logMediaProgressAndAwardXp(
+      {
+        assetId: 'week-0-lecture-asset',
+        startSecond: 0,
+        endSecond: 1200,
+        energyBefore: 4,
+        energyAfter: 3,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-12T10:00:00.000Z' },
+    );
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
+      { now: () => '2026-06-12T11:00:00.000Z' },
+    );
+    await addStudySessionAndAwardXp(
+      {
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-12T08:00:00.000Z',
+        endedAt: '2026-06-12T08:45:00.000Z',
+        durationMinutes: 45,
+        mode: 'debugging',
+      },
+      { now: () => '2026-06-12T08:45:00.000Z' },
+    );
+  }
+
+  it('renders the derived insights sections after onboarding', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    await renderAppAtRoute('/insights');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Insights' }),
+    ).toBeInTheDocument();
+
+    for (const cardTitle of [
+      'Course progress',
+      'Effort over time',
+      'XP over time',
+      'Study mode breakdown',
+      'Active days',
+      'Recorded completion awards',
+      'Achievement timeline',
+    ]) {
+      expect(
+        await screen.findByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it('does not mutate any local store when insights renders or reloads', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    const before = await getDatabaseSnapshot();
+
+    expect(before.xpTransactions.length).toBeGreaterThan(0);
+    expect(before.achievementUnlocks.length).toBeGreaterThan(0);
+    expect(before.studySessions).toHaveLength(1);
+    expect(before.mediaProgressEvents).toHaveLength(1);
+
+    await renderAppAtRoute('/insights');
+    await screen.findByRole('heading', { name: 'Insights' });
+    await screen.findByRole('heading', { name: 'Effort over time' });
+    const afterRender = await getDatabaseSnapshot();
+
+    // Simulate a reload: unmount, then mount again at the same route. Allowed
+    // bootstrap initialization is idempotent for an already-initialized
+    // database, so store contents must be byte-for-byte identical.
+    cleanup();
+    await renderAppAtRoute('/insights');
+    await screen.findByRole('heading', { name: 'Insights' });
+    await screen.findByRole('heading', { name: 'Effort over time' });
+    const afterReload = await getDatabaseSnapshot();
+
+    // Full-snapshot equality across EVERY store getDatabaseSnapshot returns
+    // (achievementDefinitions, achievementUnlocks, appMeta, backups,
+    // contentAssets, contentSlices, courseItems, courseUnits, learnerProfile,
+    // mediaProgressEvents, progressEntries, resumePoints, studySessions,
+    // xpTransactions), before/after first render and after reload. A
+    // delete-and-reinsert would change updatedAt and fail here.
+    expect(afterRender).toEqual(before);
+    expect(afterReload).toEqual(before);
+  });
+});

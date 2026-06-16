@@ -1,11 +1,11 @@
 # Project State
 
-Current module: Module 14 - Dashboard (complete)
-Last completed module: Module 14 - Dashboard (complete)
+Current module: Module 15 - Insights (complete)
+Last completed module: Module 15 - Insights (complete)
 Current branch: master
-Last verified commit: 2b1bf2b - Module 14 finalize dashboard documentation
-(its tree passed a full npm run validate pass before commit; the only later
-change is this docs-consistency patch)
+Last committed module: Module 14 - Dashboard (commit e2e4b8e). The Module 15
+working tree is implemented and validated but not yet committed; it passed three
+consecutive clean `npm run validate` runs.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -75,9 +75,10 @@ Known risks:
   avoided the failing nested `EmptyState` (`.state-card`) combination by using a
   plain `card__description` paragraph for the dashboard empty states, but the
   broader design-system contrast issue (e.g. a `.card--danger` card or a
-  standalone `EmptyState` in dark theme) remains deferred to a dedicated
-  accessibility/design-system hardening task. Do not broaden this fix inside
-  Module 14 unless it becomes necessary.
+  standalone `EmptyState` in dark theme) remains deferred to Module 18
+  (accessibility and UX hardening). Module 15 insights likewise avoids those
+  variants (plain cards, semantic tables, token CSS bars). Do not broaden this
+  fix inside Module 15 unless it becomes necessary.
 - The content-detail route now accepts manual `m:ss` and `h:mm:ss` timestamp
   input for long-form logging. Invalid ranges are rejected, but the product
   still lacks later backup or repair flows if a learner enters low-quality
@@ -99,8 +100,8 @@ Known risks:
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
 
-Last Triple-Zero pass: 2026-06-15 - Module 14 full validation pass 3 of 3
-Next module: Module 15 - Insights (not started)
+Last Triple-Zero pass: 2026-06-16 - Module 15 full validation pass 3 of 3
+Next module: Module 16 - Settings, backup, import, reset (not started)
 
 Do not change:
 
@@ -143,8 +144,18 @@ Do not change:
   explicit-save-only evaluation rule (no passive unlocks), the immutable
   `achievement_unlocks` records, zero achievement XP, and the deferred status of
   the `achievement_definitions` store plus recovery and reflection categories.
-- Do not introduce dashboard logic or backup/reset UI before their assigned
-  modules.
+- Preserve the Module 14 read-only, derived-only dashboard: opening or reloading
+  `/dashboard` mutates no store, awards no XP, and unlocks no achievement, and it
+  uses no non-dark-theme-safe card variant.
+- Preserve the Module 15 read-only, derived-only insights surface: opening or
+  reloading `/insights` mutates no store, awards no XP, and unlocks no
+  achievement; it trends only the immutable ledgers, treats `progress_entries` as
+  a current snapshot only, labels watched minutes as logged effort (not unique
+  coverage), keeps day/week buckets device-local with whole-event attribution,
+  uses neutral active-day wording (no streak branding), and adds no charts, no
+  new dependencies, and no new repository surface. Keep the completion-award
+  `sourceType` classification aligned with the XP engine via its divergence test.
+- Do not introduce backup/import/export/reset UI before its assigned module.
 - Preserve future backwards compatibility now that persistence exists.
 
 Backwards compatibility fixtures:
@@ -230,6 +241,15 @@ Current repo inventory:
   XP-aware wrappers), a real read-only `/achievements` page with status and
   category filters under `src/features/achievements/`, and Playwright E2E tests
   for explicit-save unlocking and reload-no-duplicate behavior.
+- Module 14 adds `src/features/dashboard/model.ts` plus a real read-only
+  `/dashboard` route derived from existing stores and read models, a manual
+  vendor chunk split in `vite.config.ts`, and an idempotent derived-slice sync in
+  `repositories.ts`.
+- Module 15 adds `src/features/insights/model.ts` plus a real read-only
+  `/insights` route that trends the immutable ledgers as semantic tables with
+  decorative token CSS bars, replacing the placeholder, with additive insights
+  styles in `design-system.css`. It adds no schema change, no new dependency, and
+  no new repository surface.
 - The `/onboarding` route now creates the first-run local learner profile,
   `/` acts as the saved-profile summary, and `/course` now renders the seeded
   CS50 catalog instead of a placeholder while `/course/:itemId` now owns the
@@ -247,4 +267,11 @@ Current repo inventory:
   onboarding creation, course-map reload persistence, content-detail watched
   range logging, study session and progress milestone XP awards, achievement
   unlock on explicit save with reload-no-duplicate, stored preference
-  application, not-found routing, and offline navigation after setup.
+  application, not-found routing, and offline navigation after setup. Module 14
+  added dashboard-model unit tests, a full-snapshot dashboard no-mutation test,
+  derived-slice idempotency coverage, and dashboard + axe E2E coverage. Module 15
+  adds insights-model unit tests (weekly buckets, whole attribution, floored
+  watched minutes, overlap-not-deduplicated, active days, mode breakdown, an
+  XP-engine completion `sourceType` divergence guard, achievement timeline, and
+  empty states), a full-snapshot insights no-mutation test across every store,
+  and an insights + axe E2E flow in dark theme.

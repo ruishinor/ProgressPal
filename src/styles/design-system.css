@@ -543,9 +543,16 @@
 .showcase-grid,
 .state-grid,
 .placeholder-grid,
-.dashboard-grid {
+.dashboard-grid,
+.insights-grid {
   display: grid;
   gap: var(--space-4);
+}
+
+/* Insights stacks full-width cards so the descriptive tables stay readable. */
+.insights-grid {
+  grid-template-columns: 1fr;
+  align-items: start;
 }
 
 .showcase-grid {
@@ -598,6 +605,84 @@
 .dashboard-activity-list__date {
   color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+/* Insights tables: semantic data tables with exact values as text. The CSS bar
+   below is a decorative, aria-hidden enhancement only. */
+.insights-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.insights-table__caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-3);
+}
+
+.insights-table th,
+.insights-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-muted);
+  vertical-align: top;
+}
+
+.insights-table thead th {
+  color: var(--color-text-soft);
+  font-weight: 600;
+}
+
+.insights-table tbody th[scope='row'],
+.insights-table tfoot th[scope='row'] {
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.insights-table tfoot th,
+.insights-table tfoot td {
+  border-bottom: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.insights-table__numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.insights-bar {
+  display: block;
+  height: 6px;
+  margin-top: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.insights-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+.insights-bar__fill--study {
+  background: var(--color-accent);
+}
+
+.insights-bar__fill--watched {
+  background: var(--color-success);
+}
+
+.insights-bar__fill--xp {
+  background: var(--color-warning);
+}
+
+.insights-bar__fill--share {
+  background: var(--color-accent);
 }
 
 .form-field {

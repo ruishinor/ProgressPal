@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-06-16 - Module 15
+
+### Added
+
+- Pure insights read model in `src/features/insights/model.ts`
+  (`buildInsightsModel`): derives weekly activity (study minutes, watched minutes
+  logged, XP earned and cumulative), a study mode breakdown, factual active-days
+  (active days in a window plus consecutive active days), recorded completion
+  awards over time, an achievement timeline, and a current course-progress
+  snapshot — all from existing stores and read models, with truthful empty
+  states.
+- A real read-only `/insights` route (`InsightsPage.tsx`) that fetches via
+  existing repository read helpers, builds the model, and renders semantic
+  tables with token-based, decorative `aria-hidden` CSS bars (exact values stay
+  visible as text), replacing the placeholder. Additive insights table and bar
+  styles in `design-system.css`.
+- Tests: `tests/features/insightsModel.test.ts` (pure model, including a
+  watched-minute flooring regression, an overlap-not-deduplicated assertion, and
+  a bidirectional XP-engine completion `sourceType` divergence guard), extended
+  `tests/app/App.test.tsx` (insights render plus full-snapshot no-mutation across
+  every store), and `e2e/insights.spec.ts` (insights + axe in dark theme, a real
+  saved-activity flow, reload leaves the immutable ledgers unchanged, and a guard
+  against non-dark-theme-safe card variants).
+- Module 15 plan and handoff in `docs/modules/module-15-plan.md`.
+
+### Truthfulness boundaries
+
+- "Watched minutes logged" sums `media_progress_events.watchedSeconds` as logged
+  effort over time (overlaps included) and floors partial minutes; it is labeled
+  "logged" and is never presented as unique watched coverage.
+- "Recorded completion awards" count exact XP-engine completion `sourceType`
+  values, with item-completion and `week_completed` (unit) awards kept separate;
+  it is not a reconstructed item-by-item completion history.
+- Day and week buckets use this device's local time (Monday week start); a
+  session or event is attributed whole to its start/creation instant and never
+  split across a boundary. The model does not claim universal timezone
+  correctness because stored timestamps are absolute UTC instants.
+- Active days are derived only from positive-duration study sessions, with
+  neutral wording and no streak branding or motivational framing.
+
+### Deferred
+
+- Charts (Recharts and first-party SVG), forecasts, coaching, recommendations,
+  confidence trends (no confidence history exists), recovery/blocked-resolution
+  views, and energy trends remain deferred. Insights adds no XP rules, no
+  achievements, no schema change, no new dependencies, and no external services.
+- The global dark-theme hardening of `.card--subtle`, `.card--accent`, and
+  `.card--danger` remains deferred to Module 18; Insights only avoids them.
+
 ## 2026-06-15 - Module 14
 
 ### Added

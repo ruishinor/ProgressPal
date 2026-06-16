@@ -527,3 +527,43 @@
   - Product behavior, routes, schema, stores, dashboard logic, tests, and UI are
     unchanged; this is a build-configuration-only decision with no new
     dependencies.
+
+## D-0037 - Module 15 Insights Are Read-Only Tables, Trend Only Immutable Ledgers, And Add No Charts
+
+- Date: 2026-06-16
+- Status: accepted
+- Decision: Build `/insights` as a read-only, derived-only surface using semantic
+  tables with token-based, decorative `aria-hidden` CSS bars (exact values stay
+  visible as text). Trend only the immutable ledgers (`study_sessions`,
+  `media_progress_events`, `xp_transactions`, `achievement_unlocks`); use
+  `progress_entries`/`course_map` only for a current completion snapshot, never a
+  reconstructed history. Bucket by device-local day/week (Monday start),
+  attributing each session/event whole to its `startedAt`/`createdAt`. Ship no
+  charts (no Recharts, no first-party SVG), no new dependencies, no new
+  repository surface, no schema change, and avoid the non-dark-theme-safe card
+  variants locally rather than hardening them globally.
+- Why: The honesty constraint is the binding one. Immutable ledgers can be
+  trended truthfully; `progress_entries` are mutable current-state rows with no
+  change history, so a historical progress trend from them would overclaim.
+  Tables keep exact values visible, are the cleanest to make accessible (axe can
+  evaluate them, no gradients), work in dark theme with normal tokens, and add no
+  bundle weight — whereas Recharts would re-import victory-vendor/d3/decimal.js
+  (reversing the Module 14 tree-shake) and first-party SVG would add new
+  accessibility, scaling, and theming obligations not justified for v1. The
+  global dark-theme card-variant fix belongs to Module 18, not here.
+- Consequences:
+  - "Watched minutes logged" sums `watchedSeconds` (logged effort, overlaps
+    included) and floors partial minutes; it is labeled "logged" and never
+    presented as unique coverage.
+  - "Recorded completion awards" count exact engine `sourceType` values with
+    item vs `week_completed` separated; a bidirectional test fails loudly if the
+    XP engine and the Insights classification diverge. Such divergence is a
+    stop-and-report condition — the XP engine is not edited to make Insights pass.
+  - Active days use neutral wording (no streak branding) and derive only from
+    positive-duration study sessions.
+  - Charts, forecasts, coaching, recommendations, confidence trends,
+    recovery/blocked-resolution views, and energy trends stay deferred. First-party
+    SVG charts may be reconsidered as a separate follow-up after the table model,
+    accessibility, no-mutation, and build-size are green.
+  - Dexie stays version 2; opening or reloading `/insights` mutates no store,
+    awards no XP, and unlocks no achievement (proven by full-snapshot equality).
