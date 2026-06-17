@@ -1,11 +1,9 @@
 # Project State
 
-Current module: Module 17 - Offline hardening (complete)
-Last completed module: Module 17 - Offline hardening (complete)
+Current module: Module 18 - Accessibility and UX hardening (complete)
+Last completed module: Module 18 - Accessibility and UX hardening (complete)
 Current branch: master
-Last committed module: Module 16 - Settings, backup, import, reset (commit
-ab07118). The Module 17 working tree is implemented and validated but not yet
-committed; it passed three consecutive clean `npm run validate` runs.
+Last committed module: Module 17 - Offline hardening (commit ffe15fa).
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -75,15 +73,13 @@ Known risks:
   DECISIONS.md D-0036. True initial-load reduction (route-level lazy loading)
   remains deferred pending an offline-safe route-prefetch strategy, because lazy
   route chunks fetched on navigation could break in-session offline navigation.
-- Dark-theme overrides are still missing for `.card--subtle`, `.card--accent`,
-  and `.card--danger` (their backgrounds are hardcoded light values). Module 14
-  avoided the failing nested `EmptyState` (`.state-card`) combination by using a
-  plain `card__description` paragraph for the dashboard empty states, but the
-  broader design-system contrast issue (e.g. a `.card--danger` card or a
-  standalone `EmptyState` in dark theme) remains deferred to Module 18
-  (accessibility and UX hardening). Module 15 insights likewise avoids those
-  variants (plain cards, semantic tables, token CSS bars). Do not broaden this
-  fix inside Module 15 unless it becomes necessary.
+- Module 18 hardened dark-theme contrast for `.card--subtle`, `.card--accent`,
+  `.card--danger`, status surfaces, invalid fields, hover states, warning badges,
+  checkbox focus-visible, and in-app reduced motion using CSS-only changes plus
+  computed-style E2E coverage. Exact `npm run validate` is blocked in this shell
+  because the default Playwright webServer teardown hangs after tests report `ok`;
+  Module 18 therefore records three clean full-suite-equivalent passes using
+  explicitly managed dev/preview servers for E2E.
 - The content-detail route now accepts manual `m:ss` and `h:mm:ss` timestamp
   input for long-form logging. Invalid ranges are rejected, but the product
   still lacks later backup or repair flows if a learner enters low-quality
@@ -105,8 +101,10 @@ Known risks:
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
 
-Last Triple-Zero pass: 2026-06-17 - Module 17 full validation pass 3 of 3
-Next module: Module 18 - Accessibility and UX hardening (not started)
+Last Triple-Zero-equivalent pass: 2026-06-17 - Module 18 manual full-suite pass
+3 of 3 (exact `npm run validate` blocked by Playwright teardown hang; see
+VALIDATION_LOG.md)
+Next module: Module 19 - Security and privacy review (not started)
 
 Do not change:
 
@@ -300,6 +298,13 @@ Current repo inventory:
   Playwright project (production preview) in `playwright.config.ts` and a
   serviceworker-globals ESLint override for `public/sw.js`. No Dexie schema change,
   no new dependency, no manifest.
+- Module 18 adds CSS-only accessibility/UX hardening in `tokens.css`,
+  `design-system.css`, and `base.css`: dark-theme contrast fixes for card/status
+  surfaces, invalid fields, button hovers, warning badges, checkbox focus-visible,
+  and in-app reduced-motion keyframe suppression. It adds computed-style
+  accessibility E2E coverage plus component contracts for the status surfaces and
+  Checkbox structure. No Dexie schema change, no new dependency, no route change,
+  no service-worker/PWA change, and no locked-file edit.
 - The `/onboarding` route now creates the first-run local learner profile,
   `/` acts as the saved-profile summary, and `/course` now renders the seeded
   CS50 catalog instead of a placeholder while `/course/:itemId` now owns the

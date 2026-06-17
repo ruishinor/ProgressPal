@@ -1966,3 +1966,115 @@ Retrospective:
 Decision:
 
 - Module 17 complete. Stop before Module 18.
+
+## Module 18 - Accessibility and UX Hardening
+
+Date: 2026-06-17
+Commit: pending (working tree implemented and validated; commit deferred to the
+user). Built on top of `ffe15fa` (Module 17).
+
+Setup performed:
+
+- Added computed-style accessibility E2E coverage in `e2e/accessibility.spec.ts`
+  for dark-theme card/status surfaces, invalid fields, button hover states,
+  warning badges, checkbox focus-visible, and in-app reduced-motion keyframe
+  suppression.
+- Extended `tests/components/checkbox.test.tsx` with component contracts for
+  EmptyState, LoadingState, ErrorState, and the Checkbox input/indicator adjacency
+  required by `.checkbox__input + .checkbox__indicator`.
+- Hardened CSS only: dark-theme surface tokens and overrides in
+  `tokens.css`/`design-system.css`, plus in-app reduced-motion animation
+  neutralization in `base.css`.
+
+Targeted validation:
+
+- `npm run test -- tests/components/checkbox.test.tsx` - clean (5 tests passed).
+- `npx playwright test e2e/accessibility.spec.ts` under the default config
+  reported all 5 tests `ok` but the process hung during Playwright webServer
+  teardown.
+- The same accessibility spec with an explicitly managed Vite dev server and a
+  no-webServer temporary config exited cleanly: 5 passed.
+- Affected regressions with managed dev/preview servers:
+  - dashboard/insights/settings dev E2E: 12 passed.
+  - offline production-preview E2E: 2 passed, including Module 16 recovery under
+    the active service worker.
+
+Validation caveat:
+
+- Exact `npm run validate` could not be counted because the default
+  `npm run test:e2e`/Playwright webServer teardown hangs in this shell after tests
+  report `ok`. The Playwright config was not changed because that would broaden
+  Module 18 beyond CSS/tests/docs. Full-suite-equivalent passes below run the same
+  checks with explicit dev/preview server lifecycle management for E2E.
+
+Pass 1:
+
+- Clean manual full-suite-equivalent pass.
+- Static/build/unit/circular checks: `npm run lint`, `npm run format:check`,
+  `npm run typecheck`, `npm run build`, `npm run test`, and
+  `npm run check:circular` passed; build chunks stayed under the 600 kB warning
+  budget; 195 unit tests across 30 files passed; no circular dependencies.
+- `npm run audit` with network access: 0 vulnerabilities.
+- Dev E2E with managed Vite server: 22 passed.
+- Offline production-preview E2E with managed preview server: 2 passed.
+
+Pass 2:
+
+- Clean manual full-suite-equivalent pass.
+- Static/build/unit/circular checks passed; build chunks stayed under the 600 kB
+  warning budget; 195 unit tests across 30 files passed; no circular
+  dependencies.
+- `npm run audit` with network access: 0 vulnerabilities.
+- Dev E2E with managed Vite server: 22 passed.
+- Offline production-preview E2E with managed preview server: 2 passed.
+
+Pass 3:
+
+- Clean manual full-suite-equivalent pass.
+- Static/build/unit/circular checks passed; build chunks stayed under the 600 kB
+  warning budget; 195 unit tests across 30 files passed; no circular
+  dependencies.
+- `npm run audit` with network access: 0 vulnerabilities.
+- Dev E2E with managed Vite server: 22 passed.
+- Offline production-preview E2E with managed preview server: 2 passed.
+
+Post-pass final checks:
+
+- After normalizing new code comments to ASCII, `npm run format:check`,
+  `npm run lint`, and `npm run typecheck` were re-run and passed on the final
+  tree.
+
+Adversarial findings:
+
+- axe did not cover the defect class that motivated this module: text over
+  gradient or hardcoded card backgrounds. Computed-style contrast checks are now
+  required for those surfaces.
+- Fixture-based E2E can drift into testing fake markup; component contract tests
+  now pin the fixture classes and Checkbox adjacency to real components.
+- The default Playwright webServer lifecycle currently hangs in this shell after
+  tests report `ok`; this is a validation-runner issue, not an assertion failure,
+  and remains a follow-up if exact `npm run validate` must be restored here.
+- CSS-only global changes can still regress critical workflows, so Module 16
+  reset/onboarding-import recovery and Module 17 offline behavior were explicitly
+  re-run.
+
+Retrospective:
+
+- Intended: accessibility/UX hardening without structural UI changes, persistence
+  changes, dependencies, route changes, or PWA/service-worker changes.
+- Built: dark-theme contrast fixes, visible custom-checkbox keyboard focus,
+  in-app reduced-motion keyframe suppression, computed-style E2E checks, and
+  component contract tests.
+- Changed from first draft: the hover contrast test now proves the broad button
+  selector is unique after hovering the intended element, and the E2E browser
+  helpers use local browser-scope declarations so node-side typechecking stays
+  strict without adding DOM globals to `tsconfig.node.json`.
+- Backwards compatibility is preserved: Dexie schema stays version 2, no store or
+  index changed, no seed/domain/engine/service-worker/PWA file changed, and Module
+  16 recovery plus Module 17 offline behavior still pass.
+- Triple-Zero achieved: exact `npm run validate` no, due the Playwright teardown
+  hang described above; full-suite-equivalent three clean passes yes.
+
+Decision:
+
+- Module 18 complete. Stop before Module 19.

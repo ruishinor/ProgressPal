@@ -742,6 +742,49 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 18 Scope
+
+- Validation covers CSS-only accessibility and UX hardening: dark-theme contrast
+  for card/status surfaces, invalid controls, button hover states, warning badges,
+  checkbox keyboard focus, and in-app reduced-motion keyframe suppression.
+- Triple-Zero for Module 18 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations in the tested
+  flows, zero circular dependencies, and zero dependency-audit findings.
+
+## Module 18 Validation Protocol
+
+### Pass checks
+
+- Confirm `.card--accent`, `.card--subtle`, and `.card--danger` use readable
+  dark-theme surfaces without light gradients behind text.
+- Confirm EmptyState, LoadingState, and ErrorState retain their expected card
+  variant and status classes, so CSS-fixture E2E checks stay tied to real
+  components.
+- Confirm invalid field values, primary/danger button hover states, and warning
+  badges meet computed-style contrast expectations in dark theme.
+- Confirm the custom Checkbox shows visible keyboard focus on
+  `.checkbox__indicator`, and the component preserves the
+  `.checkbox__input + .checkbox__indicator` adjacency required by the selector.
+- Confirm the in-app reduced-motion setting neutralizes keyframe animations, not
+  only transitions.
+- Confirm Module 16 reset/onboarding-import recovery and Module 17 cold-start
+  offline behavior still pass.
+- Confirm no dependency, Dexie schema/store/index, seed/domain/engine,
+  service-worker/PWA, route, or component-markup change was introduced.
+
+### Commands for Module 18
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

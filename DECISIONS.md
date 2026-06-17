@@ -657,3 +657,33 @@
     Bump `progresspal-cache-vN` when the SW logic changes. A registered SW persists
     in a real browser beyond file deletion (clean-kill via clearing site data or a
     tombstone `sw.js`).
+
+## D-0040 - Module 18 Uses CSS-Level Hardening Plus Computed-Style Contrast Tests
+
+- Date: 2026-06-17
+- Status: accepted
+- Decision: Module 18 fixes the deferred dark-theme accessibility defects at the
+  design-system CSS layer, and validates them with computed-style Playwright
+  checks plus component contract tests. The module changes only CSS, tests, and
+  documentation: no component markup restructuring, no route changes, no
+  persistence/schema changes, no service-worker/PWA edits, and no dependencies.
+- Why: axe is necessary but insufficient for the specific defect class: it did
+  not catch unreadable text on gradient or hardcoded card backgrounds. A
+  computed-style contrast check can detect the actual rendered text/background
+  combination and can also flag light gradients behind dark-theme text. Browser
+  fixtures are acceptable only for states that are transient or unreachable
+  without forcing app failure/loading, and component contract tests pin those
+  fixture classes to real components so the tests cannot drift into testing a
+  fake surface.
+- Consequences:
+  - Dark theme gets opaque, tokenized surfaces for `.card--accent` and
+    `.card--danger`, a dark override for `.card--subtle`, and targeted contrast
+    fixes for invalid fields, primary/danger hover states, and warning badges.
+  - The custom Checkbox focus-visible rule targets
+    `.checkbox__input + .checkbox__indicator`, preserving the existing markup
+    contract while making keyboard focus visible on the rendered control.
+  - The in-app reduced-motion setting now suppresses keyframe animations as well
+    as transitions, matching the OS `prefers-reduced-motion` behavior.
+  - Module 16 recovery and Module 17 offline behavior remain required regression
+    checks because global CSS and motion behavior can affect those flows even
+    without schema or service-worker changes.

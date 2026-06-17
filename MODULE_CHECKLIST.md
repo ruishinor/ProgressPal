@@ -2,30 +2,25 @@
 
 ## Current Module
 
-Module: 17 - Offline hardening
+Module: 18 - Accessibility and UX hardening
 Status: complete
 
 Objective:
 
-- Give ProgressPal real cold-start offline support: after one successful online
-  production load, reloading the tab or reopening the app with no network still
-  boots to saved local data (not a browser "can't reach this page" error).
-- Ship a dependency-free, production-only service worker that caches the app shell
-  and the build's hashed boot assets during install, then serves them from cache
-  offline. Prove it against the production build without destabilizing the existing
-  dev-based E2E suite.
+- Harden dark-theme accessibility and UX at the design-system level without
+  changing routes, component markup, persistence, schema, service-worker behavior,
+  or dependencies.
+- Cover contrast defects axe cannot see with computed-style E2E checks, and pin
+  the component class/structure contracts those checks depend on.
 
 Expected files changed:
 
-- public/sw.js (new)
-- src/lib/pwa/registerServiceWorker.ts (new)
-- src/lib/pwa/index.ts (new)
-- src/main.tsx
-- eslint.config.js
-- playwright.config.ts
-- e2e/offline.spec.ts (new)
-- tests/lib/registerServiceWorker.test.ts (new)
-- docs/modules/module-17-plan.md (new)
+- src/styles/tokens.css
+- src/styles/design-system.css
+- src/styles/base.css
+- e2e/accessibility.spec.ts (new)
+- tests/components/checkbox.test.tsx
+- docs/modules/module-18-plan.md (new)
 - PROJECT_STATE.md
 - DECISIONS.md
 - MODULE_CHECKLIST.md
@@ -33,46 +28,43 @@ Expected files changed:
 - CHANGELOG.md
 - TEST_PLAN.md
 
-Forbidden files / work for Module 17:
+Forbidden files / work for Module 18:
 
-- No new dependencies (no `vite-plugin-pwa`, no Workbox); use native `caches`,
-  `fetch`, and `ServiceWorkerGlobalScope`.
-- No `manifest.webmanifest`, app icons, install prompt, or PWA installability.
-- No route-level lazy loading / code-splitting changes.
-- No Dexie schema/store/index change; no seed change.
-- No update-notification UI.
-- No "cache everything" behavior — same-origin app shell + built assets only.
-- No switch of the existing dev-based E2E suite to preview; no broad Playwright
-  migration.
+- No new dependencies.
+- No Dexie schema/store/index change; no seed/domain/engine change.
+- No service-worker/PWA edits, manifest/installability work, route-level lazy
+  loading, route changes, or new routes.
+- No forced/artificial app failure or loading state.
+- No component markup/DOM structure change, heading hierarchy refactor, landmark
+  rewrite, toast live-region dedupe, or dialog restructuring.
 - No edits to locked engines (`src/lib/xp/engine.ts`, `src/lib/achievements/**`,
   `src/lib/progress/engine.ts`), `src/lib/domain/**`, `src/seed/**`, or the Dexie
-  schema in `src/lib/db/database.ts`.
-- No Module 18/19/20 work.
+  schema in `src/lib/db/database.ts`; no edits to `public/sw.js` or
+  `src/lib/pwa/**`.
+- No Module 19 security/privacy work or Module 20 packaging work.
 
 Acceptance criteria:
 
-- After one online production load, the app boots offline on cold start (reload
-  offline reaches the dashboard with its boot JS/CSS), proven in
-  `e2e/offline.spec.ts` against the production build, including a Cache-Storage
-  assertion that the hashed boot JS/CSS was cached after that single load. The bar
-  is not weakened to two online loads.
-- The service worker fails closed: a partial cache never becomes the active offline
-  shell.
-- Offline navigation resolves for not-yet-visited routes; persisted IndexedDB
-  state is visible offline.
-- Module 16 reset/onboarding-import recovery is not regressed under the SW.
-- The SW registers only in production; the dev-based E2E suite and unit suite run
-  unchanged.
-- No new dependency, no manifest, no schema change (Dexie stays version 2,
-  migration fixture green); every chunk under the 600 kB warning budget.
-- Triple-Zero achieved with lint, format check, typecheck, build, unit test, E2E
-  test, circular-dependency analysis, and dependency audit.
+- Dark-theme `.card--accent`, `.card--subtle`, `.card--danger`, EmptyState,
+  LoadingState, ErrorState, invalid fields, primary/danger button hovers, and
+  warning badges meet contrast expectations in computed-style tests.
+- Custom Checkbox exposes a visible keyboard focus indicator on the visible
+  indicator, and tests preserve the adjacent input/indicator structure required by
+  the CSS selector.
+- The in-app reduced-motion setting neutralizes keyframe animations, not only
+  transitions.
+- Component contract tests prove fixture-tested CSS classes stay connected to real
+  components.
+- No schema change, no dependency change, no service-worker/PWA change, no route
+  change, and no locked-file changes.
+- Module 16 recovery and Module 17 offline behavior remain green.
 
 Tests added/updated:
 
-- `tests/lib/registerServiceWorker.test.ts` (registration guard)
-- `e2e/offline.spec.ts` (production-preview cold-start offline + Cache-Storage
-  assertion + Module 16 recovery under the SW)
+- `e2e/accessibility.spec.ts` (computed-style contrast, checkbox focus-visible,
+  in-app reduced motion)
+- `tests/components/checkbox.test.tsx` (status component and checkbox structure
+  contracts)
 
 Validation commands:
 
@@ -87,18 +79,15 @@ Validation commands:
 
 Data compatibility risk:
 
-- None. No Dexie schema, store, index, or seeded-ID change (stays version 2). The
-  service worker caches only static same-origin app assets and never touches
-  IndexedDB. The registration helper and Playwright project are additive.
+- None expected. Module 18 is CSS/test/docs only and does not touch Dexie schema,
+  stores, indexes, seed data, repositories, or persisted data contracts.
 
 Rollback plan:
 
-- Delete `public/sw.js`, `src/lib/pwa/`, `e2e/offline.spec.ts`, and
-  `tests/lib/registerServiceWorker.test.ts`.
-- Revert `src/main.tsx`, `eslint.config.js`, and `playwright.config.ts`.
-- Reset Module 17 documentation and validation records to the Module 16 state.
-- Browser-persistence caveat: a registered SW outlives file deletion; clear site
-  data or ship a one-line self-unregistering tombstone `sw.js` for a clean kill.
+- Revert `src/styles/tokens.css`, `src/styles/design-system.css`,
+  `src/styles/base.css`, `e2e/accessibility.spec.ts`, and
+  `tests/components/checkbox.test.tsx`.
+- Reset Module 18 documentation and validation records to the Module 17 state.
 
 ## Module Status
 
@@ -122,6 +111,6 @@ Rollback plan:
 | 15     | Insights                              | complete    |
 | 16     | Settings, backup, import, reset       | complete    |
 | 17     | Offline hardening                     | complete    |
-| 18     | Accessibility and UX hardening        | not started |
+| 18     | Accessibility and UX hardening        | complete    |
 | 19     | Security and privacy review           | not started |
 | 20     | Final CS50 project packaging          | not started |

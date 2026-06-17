@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-06-17 - Module 18
+
+### Added
+
+- `e2e/accessibility.spec.ts` with computed-style contrast checks for dark-theme
+  surfaces axe cannot evaluate reliably, including real reachable routes and
+  browser-rendered CSS fixtures for transient/unreachable status states.
+- Component contract coverage in `tests/components/checkbox.test.tsx` for
+  EmptyState, LoadingState, ErrorState, and the custom Checkbox input/indicator
+  adjacency required by the focus-visible CSS selector.
+- Module 18 plan and handoff scaffold in `docs/modules/module-18-plan.md`.
+
+### Changed
+
+- Dark theme now uses opaque, theme-aware card surfaces for `.card--accent`,
+  `.card--subtle`, and `.card--danger`, plus contrast fixes for status surfaces,
+  invalid fields, primary/danger button hovers, and warning badges.
+- The custom Checkbox now shows keyboard focus on the visible indicator.
+- The in-app reduced-motion setting now neutralizes keyframe animations as well as
+  transitions.
+
+### Boundaries
+
+- CSS/test/docs only: no dependency change, no Dexie schema/store/index change, no
+  seed/domain/engine change, no route change, no service-worker/PWA change, and no
+  component markup restructuring.
+
 ## 2026-06-17 - Module 17
 
 ### Added

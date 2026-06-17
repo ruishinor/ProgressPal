@@ -122,3 +122,15 @@ textarea:focus-visible,
     transition-duration: 0ms !important;
   }
 }
+
+/* The in-app "reduce motion" setting must match the OS path: the token override
+   in tokens.css only zeroes transitions, so neutralize keyframe animations
+   (spinner, skeleton pulse, loading bar) here too. */
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0ms !important;
+}

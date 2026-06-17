@@ -802,6 +802,13 @@
   box-shadow: inset 0 0 0 0.2rem var(--color-canvas-strong);
 }
 
+/* The native input is visually hidden (opacity: 0), which also hides the global
+   :focus-visible outline. Surface keyboard focus on the visible indicator. */
+.checkbox__input:focus-visible + .checkbox__indicator {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .checkbox__copy {
   display: grid;
   gap: 0.1rem;
@@ -1609,4 +1616,41 @@
   color: var(--color-text-soft);
   font-weight: 600;
   margin: 0;
+}
+
+/* Module 18: dark-theme contrast hardening (design-system level).
+   These surfaces carried hardcoded light-theme values with no dark override, so
+   their text became unreadable in dark theme (axe cannot evaluate the gradient /
+   hardcoded backgrounds that caused it). Dark theme uses solid, theme-aware
+   surfaces - no light gradient - so contrast is deterministic and testable.
+   Light theme is intentionally left untouched. */
+:root[data-theme='dark'] .card--accent {
+  background: var(--color-accent-surface);
+  border-color: var(--color-accent);
+}
+
+:root[data-theme='dark'] .card--subtle {
+  background: var(--color-surface-muted);
+}
+
+:root[data-theme='dark'] .card--danger {
+  background: var(--color-danger-surface);
+  border-color: rgba(213, 154, 144, 0.4);
+}
+
+:root[data-theme='dark'] .field-control[aria-invalid='true'] {
+  background: #38241f;
+  border-color: var(--color-danger);
+}
+
+:root[data-theme='dark'] .button--primary:hover:not(:disabled) {
+  background: #d8dee0;
+}
+
+:root[data-theme='dark'] .button--danger:hover:not(:disabled) {
+  background: #e0a99f;
+}
+
+:root[data-theme='dark'] .badge--warning {
+  color: var(--color-heading);
 }

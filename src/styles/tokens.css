@@ -116,4 +116,10 @@
 
   --color-focus: #f0c171;
   --color-overlay: rgba(7, 10, 12, 0.72);
+
+  /* Opaque dark surfaces for the accent/danger card variants. Dark theme must
+     not reuse the light-theme gradient/hardcoded fills (unreadable text); these
+     keep the variant identity while staying solid and high-contrast. */
+  --color-accent-surface: #1f312d;
+  --color-danger-surface: #3a2723;
 }
