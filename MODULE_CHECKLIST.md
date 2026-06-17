@@ -2,37 +2,30 @@
 
 ## Current Module
 
-Module: 16 - Settings, backup, import, reset
+Module: 17 - Offline hardening
 Status: complete
 
 Objective:
 
-- Give the learner local data control from `/settings`: export a full local
-  backup as JSON, import a Zod-validated backup with replace-all semantics, and
-  reset all local data behind a typed confirmation phrase.
-- Keep backup import reachable after a reset by exposing it on the onboarding
-  screen (the app gate makes `/settings` unreachable on a fresh database).
-- Reuse existing infrastructure: the schema-v2 `backups` store,
-  `getDatabaseSnapshot()` as the export source, and `initializeDatabase` /
-  `AppStateProvider.refresh()` for post-action re-bootstrap. No schema change,
-  no new dependency.
+- Give ProgressPal real cold-start offline support: after one successful online
+  production load, reloading the tab or reopening the app with no network still
+  boots to saved local data (not a browser "can't reach this page" error).
+- Ship a dependency-free, production-only service worker that caches the app shell
+  and the build's hashed boot assets during install, then serves them from cache
+  offline. Prove it against the production build without destabilizing the existing
+  dev-based E2E suite.
 
 Expected files changed:
 
-- src/lib/backup/envelope.ts (new)
-- src/lib/backup/index.ts (new)
-- src/components/ui/ImportBackupControl.tsx (new)
-- src/lib/db/repositories.ts
-- src/lib/db/index.ts
-- src/features/settings/routes/SettingsPage.tsx
-- src/features/profile/routes/OnboardingPage.tsx
-- src/styles/design-system.css
-- tests/lib/backup.test.ts (new)
-- tests/components/importBackupControl.test.tsx (new)
-- tests/db/repositories.test.ts
-- tests/app/App.test.tsx
-- e2e/settings.spec.ts (new)
-- docs/modules/module-16-plan.md (new)
+- public/sw.js (new)
+- src/lib/pwa/registerServiceWorker.ts (new)
+- src/lib/pwa/index.ts (new)
+- src/main.tsx
+- eslint.config.js
+- playwright.config.ts
+- e2e/offline.spec.ts (new)
+- tests/lib/registerServiceWorker.test.ts (new)
+- docs/modules/module-17-plan.md (new)
 - PROJECT_STATE.md
 - DECISIONS.md
 - MODULE_CHECKLIST.md
@@ -40,56 +33,46 @@ Expected files changed:
 - CHANGELOG.md
 - TEST_PLAN.md
 
-Forbidden files / work for Module 16:
+Forbidden files / work for Module 17:
 
-- No Dexie schema-version bump, store rename, index change, or seeded-ID churn.
-- No merge-import mode; no selective/learner-only export.
-- No `/privacy` route, no `PRIVACY.md`, no broad security/privacy review (Module
-  19); only short action-specific inline warnings.
-- No new dependencies (export/import use native `Blob`, anchor download, file
-  input, `JSON`, and existing Zod).
-- No new XP rules, no new/changed achievements, no edits to the locked engines
-  (`src/lib/xp/engine.ts`, `src/lib/achievements/**`, `src/lib/progress/engine.ts`),
-  `src/lib/domain/**`, or `src/seed/**`.
-- No dark-theme-unsafe card variants (`.card--accent`, `.card--subtle`,
-  `.card--danger`, `.state-card`) on the data-control/reset UI.
-- No cloud, sync, auth, analytics, AI, or Module 17 work.
+- No new dependencies (no `vite-plugin-pwa`, no Workbox); use native `caches`,
+  `fetch`, and `ServiceWorkerGlobalScope`.
+- No `manifest.webmanifest`, app icons, install prompt, or PWA installability.
+- No route-level lazy loading / code-splitting changes.
+- No Dexie schema/store/index change; no seed change.
+- No update-notification UI.
+- No "cache everything" behavior — same-origin app shell + built assets only.
+- No switch of the existing dev-based E2E suite to preview; no broad Playwright
+  migration.
+- No edits to locked engines (`src/lib/xp/engine.ts`, `src/lib/achievements/**`,
+  `src/lib/progress/engine.ts`), `src/lib/domain/**`, `src/seed/**`, or the Dexie
+  schema in `src/lib/db/database.ts`.
+- No Module 18/19/20 work.
 
 Acceptance criteria:
 
-- Real recovery loop works: export from `/settings` → reset → app gates to
-  onboarding → import from the reachable onboarding control → restored state
-  visible → reload preserves it.
-- Opening or reloading `/settings` mutates no store; export/import/reset mutate
-  only on explicit action.
-- Export serializes the full snapshot first, then appends exactly one `export`
-  audit record; it mutates no non-`backups` store.
-- Replace-all import restores the 13 non-`backups` stores to equality with the
-  backup data, with `backups` equal to the backup's rows plus exactly one
-  `import` record; it does not duplicate XP, achievements, or sessions.
-- Reset clears every store (incl. `backups`) and re-bootstraps a fresh default
-  profile and seeded catalog.
-- Import rejects malformed JSON, oversized files, wrong format/format version,
-  mismatched schema version, unknown fields, malformed rows, and duplicate IDs;
-  an invalid payload writes nothing and notes render as inert text.
-- The data-control/reset surface is accessible (axe) in dark theme and uses no
-  non-dark-theme-safe card variant.
-- The production build keeps every chunk under the 600 kB warning budget; Dexie
-  schema stays version 2 and the migration fixture stays green.
-- Triple-Zero achieved with lint, format check, typecheck, build, unit test,
-  E2E test, circular-dependency analysis, and dependency audit.
+- After one online production load, the app boots offline on cold start (reload
+  offline reaches the dashboard with its boot JS/CSS), proven in
+  `e2e/offline.spec.ts` against the production build, including a Cache-Storage
+  assertion that the hashed boot JS/CSS was cached after that single load. The bar
+  is not weakened to two online loads.
+- The service worker fails closed: a partial cache never becomes the active offline
+  shell.
+- Offline navigation resolves for not-yet-visited routes; persisted IndexedDB
+  state is visible offline.
+- Module 16 reset/onboarding-import recovery is not regressed under the SW.
+- The SW registers only in production; the dev-based E2E suite and unit suite run
+  unchanged.
+- No new dependency, no manifest, no schema change (Dexie stays version 2,
+  migration fixture green); every chunk under the 600 kB warning budget.
+- Triple-Zero achieved with lint, format check, typecheck, build, unit test, E2E
+  test, circular-dependency analysis, and dependency audit.
 
 Tests added/updated:
 
-- `tests/lib/backup.test.ts` (pure envelope build/parse/summary + all rejections)
-- `tests/db/repositories.test.ts` (export audit, replace-all equality and
-  no-duplication, reset re-bootstrap, invalid-payload writes nothing)
-- `tests/components/importBackupControl.test.tsx` (confirm gating, error display,
-  preview)
-- `tests/app/App.test.tsx` (settings data-control render + reset gating;
-  `/settings` no passive mutation)
-- `e2e/settings.spec.ts` (recovery loop, settings import, invalid-file rejection,
-  dark-theme axe, no unsafe card variant, no console errors)
+- `tests/lib/registerServiceWorker.test.ts` (registration guard)
+- `e2e/offline.spec.ts` (production-preview cold-start offline + Cache-Storage
+  assertion + Module 16 recovery under the SW)
 
 Validation commands:
 
@@ -104,21 +87,18 @@ Validation commands:
 
 Data compatibility risk:
 
-- No Dexie schema, store, index, or seeded-ID change. The `backups` store and
-  `BackupRecordSchema` already exist in schema v2. New repository surfaces
-  (`restoreDatabaseFromBackup`, `resetAllData`, `recordBackupEvent`) are additive.
-  Restore re-validates every row through the domain schemas before writing.
+- None. No Dexie schema, store, index, or seeded-ID change (stays version 2). The
+  service worker caches only static same-origin app assets and never touches
+  IndexedDB. The registration helper and Playwright project are additive.
 
 Rollback plan:
 
-- Remove `src/lib/backup/`, `src/components/ui/ImportBackupControl.tsx`,
-  `tests/lib/backup.test.ts`, `tests/components/importBackupControl.test.tsx`,
-  and `e2e/settings.spec.ts`.
-- Revert the new repository functions in `src/lib/db/repositories.ts` /
-  `index.ts`, the data-control UI in `SettingsPage.tsx`, the import entry point
-  in `OnboardingPage.tsx`, the additive CSS, and the Module 16 test additions to
-  `repositories.test.ts` and `App.test.tsx`.
-- Reset Module 16 documentation and validation records to the Module 15 state.
+- Delete `public/sw.js`, `src/lib/pwa/`, `e2e/offline.spec.ts`, and
+  `tests/lib/registerServiceWorker.test.ts`.
+- Revert `src/main.tsx`, `eslint.config.js`, and `playwright.config.ts`.
+- Reset Module 17 documentation and validation records to the Module 16 state.
+- Browser-persistence caveat: a registered SW outlives file deletion; clear site
+  data or ship a one-line self-unregistering tombstone `sw.js` for a clean kill.
 
 ## Module Status
 
@@ -141,7 +121,7 @@ Rollback plan:
 | 14     | Dashboard                             | complete    |
 | 15     | Insights                              | complete    |
 | 16     | Settings, backup, import, reset       | complete    |
-| 17     | Offline hardening                     | not started |
+| 17     | Offline hardening                     | complete    |
 | 18     | Accessibility and UX hardening        | not started |
 | 19     | Security and privacy review           | not started |
 | 20     | Final CS50 project packaging          | not started |

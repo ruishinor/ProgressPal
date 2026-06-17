@@ -1,11 +1,11 @@
 # Project State
 
-Current module: Module 16 - Settings, backup, import, reset (complete)
-Last completed module: Module 16 - Settings, backup, import, reset (complete)
+Current module: Module 17 - Offline hardening (complete)
+Last completed module: Module 17 - Offline hardening (complete)
 Current branch: master
-Last committed module: Module 15 - Insights (commit 43c7f8c). The Module 16
-working tree is implemented and validated but not yet committed; it passed three
-consecutive clean `npm run validate` runs.
+Last committed module: Module 16 - Settings, backup, import, reset (commit
+ab07118). The Module 17 working tree is implemented and validated but not yet
+committed; it passed three consecutive clean `npm run validate` runs.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -25,8 +25,13 @@ Known risks:
   numbers different work as Modules 07 and 08.
 - README.md and PRIVACY.md are still absent and remain deferred until later
   modules.
-- Full cold-start offline behavior is not implemented yet. Module 01 verified
-  only in-session offline navigation after the app had already loaded.
+- Cold-start offline is now implemented (Module 17): a dependency-free,
+  production-only service worker (`public/sw.js`) caches the app shell and the
+  build's hashed boot assets via install-time discovery, so after one successful
+  online production load the app boots offline on reload/reopen. Forward risk: a
+  later module that adds lazy route chunks must revisit install-time discovery
+  (those chunks would not appear in `index.html`); a registered SW persists in a
+  real browser beyond file deletion. See DECISIONS.md D-0039.
 - Bundled `estimatedMinutes` values remain local planning estimates, not
   official CS50 durations. Module 09 now derives long-form asset timing from
   those estimates, so watched-time percentages are only as strong as the local
@@ -100,8 +105,8 @@ Known risks:
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
 
-Last Triple-Zero pass: 2026-06-16 - Module 16 full validation pass 3 of 3
-Next module: Module 17 - Offline hardening (not started)
+Last Triple-Zero pass: 2026-06-17 - Module 17 full validation pass 3 of 3
+Next module: Module 18 - Accessibility and UX hardening (not started)
 
 Do not change:
 
@@ -165,6 +170,15 @@ Do not change:
   versioned `progresspal-backup` envelope (`formatVersion` 1, `schemaVersion` 2)
   and its strict Zod validation. Merge import, selective export, and the privacy
   page/`PRIVACY.md` stay deferred.
+- Preserve the Module 17 offline behavior: the production-only service worker
+  (`public/sw.js`) registers only when `import.meta.env.PROD` and the browser
+  supports it; install-time discovery caches the app shell plus every
+  `/assets/*.{js,css}` boot asset from `index.html` and fails closed; the fetch
+  handler serves same-origin GET only (navigation network-first → cached
+  `/index.html`; assets cache-first) and never touches IndexedDB. Keep the
+  versioned cache name with activate cleanup, and keep offline behavior verified by
+  the dedicated production-preview Playwright `offline` project while the dev-based
+  suite stays unchanged. No manifest, no new dependency, no Dexie schema change.
 - Do not introduce backup/import/export/reset UI before its assigned module.
 - Preserve future backwards compatibility now that persistence exists.
 
@@ -279,6 +293,13 @@ Current repo inventory:
   entry point into `OnboardingPage.tsx`, and additive data-control styles into
   `design-system.css`. No Dexie schema change (the `backups` store already exists)
   and no new dependency.
+- Module 17 adds the production-only service worker `public/sw.js` (install-time
+  discovery of the app shell + hashed boot assets, fail-closed atomic caching,
+  navigation fallback, versioned-cache cleanup) and `src/lib/pwa/` with a guarded
+  `registerServiceWorker()` called from `main.tsx`. It adds a dedicated `offline`
+  Playwright project (production preview) in `playwright.config.ts` and a
+  serviceworker-globals ESLint override for `public/sw.js`. No Dexie schema change,
+  no new dependency, no manifest.
 - The `/onboarding` route now creates the first-run local learner profile,
   `/` acts as the saved-profile summary, and `/course` now renders the seeded
   CS50 catalog instead of a placeholder while `/course/:itemId` now owns the
@@ -303,4 +324,10 @@ Current repo inventory:
   watched minutes, overlap-not-deduplicated, active days, mode breakdown, an
   XP-engine completion `sourceType` divergence guard, achievement timeline, and
   empty states), a full-snapshot insights no-mutation test across every store,
-  and an insights + axe E2E flow in dark theme.
+  and an insights + axe E2E flow in dark theme. Module 17 adds
+  service-worker-registration guard unit tests and a dedicated production-preview
+  `offline` Playwright project proving cold-start offline after one online load (a
+  Cache-Storage assertion that the hashed boot JS/CSS is cached, an offline
+  cold-start reload, persisted state visible offline, offline navigation to a
+  not-yet-visited route, and Module 16 reset/onboarding-import recovery still
+  working with the service worker active).

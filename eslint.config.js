@@ -129,5 +129,15 @@ export default tseslint.config(
       'no-restricted-imports': 'off',
     },
   },
+  {
+    files: ['public/sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
   prettierConfig,
 );

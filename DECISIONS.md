@@ -608,3 +608,52 @@
   - Cross-seed-version imports rely on the current bundled seed for catalog
     reconciliation. A future smaller portability/export format or a merge import
     would be a separate, deliberate module.
+
+## D-0039 - Module 17 Offline Hardening: Dependency-Free SW With Install-Time Discovery
+
+- Date: 2026-06-17
+- Status: accepted
+- Decision: Module 17 adds real cold-start offline support with a single
+  dependency-free, production-only classic service worker at `public/sw.js`. On
+  `install` it performs **install-time discovery**: fetch `/index.html`, parse
+  every same-origin `/assets/*.{js,css}` reference (entry script, stylesheet, and
+  the modulepreload vendor chunks), and atomically `cache.addAll` the shell plus
+  those boot assets into a versioned cache (`progresspal-cache-v1`). It **fails
+  closed** (`skipWaiting` only after the boot set is cached). The fetch handler
+  serves same-origin GET only (navigation network-first → cached `/index.html`;
+  assets cache-first). Cache matches use `ignoreVary` (and `ignoreSearch`) so a
+  precached app-shell asset is served regardless of request headers — notably the
+  CORS `Origin` header on crossorigin module scripts, which otherwise makes the
+  match honor the response `Vary` header and intermittently miss offline.
+  Registration is guarded by `import.meta.env.PROD` and feature detection. Offline behavior is proven by a dedicated production-preview
+  Playwright `offline` project; the existing dev-based suite is unchanged. No
+  manifest/installability, no `vite-plugin-pwa`, no new dependency, no route-level
+  lazy loading, no update-notification UI, and no Dexie schema change.
+- Why: The offline-only claim previously held only in-session. The browser HTTP
+  cache is not a guarantee, so a cold start offline needs a service worker. A plain
+  runtime-cache SW would not reliably cache the boot JS/CSS, because the first load
+  happens before the SW controls the page; install-time discovery caches the boot
+  set proactively, making **one** online load sufficient without weakening the goal
+  to two loads. Parsing `index.html` is complete because the app uses static
+  `manualChunks` with no lazy/dynamic route imports (D-0036) and no custom Vite
+  `base`, so every boot chunk is referenced directly in `index.html` as `/assets/*`
+  — which is why a generated asset manifest (and its build-config surface) is
+  unnecessary. A hand-rolled SW was chosen over `vite-plugin-pwa`/Workbox to avoid
+  a dependency, generated config, and update-state complexity for a local
+  single-user app.
+- Consequences:
+  - Cold-start offline works after one successful online production load; reload or
+    reopen offline boots to saved local data. Proven by an E2E Cache-Storage
+    assertion (hashed boot JS/CSS cached after one load) plus an offline cold-start
+    reload.
+  - Local-first is preserved: the SW caches only static same-origin app assets and
+    never touches IndexedDB. Module 16 reset/onboarding-import recovery is not
+    regressed under the active SW (covered by E2E).
+  - The dev-based E2E suite and unit suite are untouched because the SW registers
+    only in production builds; a separate `offline` Playwright project covers the
+    production preview.
+  - Forward risk: a later module that introduces lazy route chunks must revisit
+    install-time discovery, since those chunks would not appear in `index.html`.
+    Bump `progresspal-cache-vN` when the SW logic changes. A registered SW persists
+    in a real browser beyond file deletion (clean-kill via clearing site data or a
+    tombstone `sw.js`).

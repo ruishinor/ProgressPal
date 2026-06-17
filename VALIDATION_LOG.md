@@ -1873,3 +1873,96 @@ Retrospective:
 Decision:
 
 - Module 16 complete. Stop before Module 17.
+
+## Module 17 - Offline Hardening
+
+Date: 2026-06-17
+Commit: pending (working tree implemented and validated; commit deferred to the
+user). Built on top of `ab07118` (Module 16).
+
+Pass 1:
+
+- Clean. Full `npm run validate` suite passed: lint, format:check, typecheck,
+  build (every chunk under the 600 kB warning budget; largest `react` ~189.6 kB),
+  191 unit tests across 30 files, 19 E2E tests across the `chromium` (dev) and
+  `offline` (production preview) projects, no circular dependencies, 0 audit
+  vulnerabilities.
+
+Pass 2:
+
+- Clean. Re-ran `npm run validate` with no changes; identical clean result.
+
+Pass 3:
+
+- Clean. Re-ran `npm run validate` a third time; identical clean result.
+
+Commands:
+
+- Counted full validation suite repeated three consecutive times with
+  `npm run validate`, which expands to:
+  - `npm run lint`
+  - `npm run format:check`
+  - `npm run typecheck`
+  - `npm run build`
+  - `npm run test`
+  - `npm run test:e2e`
+  - `npm run check:circular`
+  - `npm run audit`
+
+Adversarial findings:
+
+- Boot-asset completeness was the key risk: a plain runtime-cache SW would not
+  cache the boot JS/CSS requested during the first (uncontrolled) load.
+  Install-time discovery (parse `index.html`, atomic `cache.addAll`) caches them
+  proactively. The hardened E2E reads the served `index.html`, extracts every
+  `/assets/*.{js,css}` reference, and asserts via Cache Storage that the shell plus
+  **every** referenced boot asset is present after a single online load.
+- The hardened test exposed a real offline miss (not a timing flake): the
+  cross-origin entry module `<script src="/assets/index-*.js" crossorigin>` request
+  carries an `Origin` header, so `cache.match(request)` honored the response `Vary`
+  header and **intermittently missed** the precached entry, falling through to a
+  network fetch that fails offline (`net::ERR_FAILED`) — the app then never mounted.
+  Diagnostics via `response.fromServiceWorker()` pinpointed the single failing
+  asset. The product fix is matching the cache with `ignoreVary` (and
+  `ignoreSearch`) in `public/sw.js`, so a precached app-shell asset is served
+  regardless of request headers; offline cold-start then passed 5/5 consecutive
+  isolated runs and every validate pass.
+- The offline E2E was also hardened against false positives: it relies on
+  Playwright's per-test context isolation for a clean pre-state (a `beforeEach`
+  app-load-then-clear was removed because it churned SW registration), waits for the
+  service worker to actually control the page before going offline, and keeps an
+  `afterEach` SW/cache/localStorage cleanup.
+- Fail-closed verified by design: `skipWaiting` runs only after `cache.addAll`
+  resolves, so a partial cache cannot become the active offline shell.
+- Module 16 recovery is not regressed: a dedicated E2E runs the reset →
+  onboarding-import recovery loop with the service worker active and lands on the
+  restored dashboard.
+- Isolation verified: the service worker registers only in production
+  (`import.meta.env.PROD`), so the dev-based E2E suite and jsdom unit suite run
+  unchanged; the offline spec runs only in the dedicated production-preview project.
+
+Retrospective:
+
+- Intended: real cold-start offline after one successful online production load,
+  proven against the production build, with no new dependency and without
+  destabilizing the existing suite.
+- Built: a dependency-free production-only service worker with install-time
+  discovery, a guarded registration helper, a serviceworker-globals ESLint
+  override, a dedicated production-preview Playwright `offline` project, and unit +
+  E2E coverage.
+- Changed from first draft: matched the cache with `ignoreVary`/`ignoreSearch`
+  after the hardened cache assertion exposed a real intermittent offline miss on the
+  cross-origin entry module script; removed a churning `beforeEach` in favor of
+  per-test context isolation plus a wait for actual SW control; and kept a generous
+  explicit timeout on the offline-boot assertions.
+- Remaining debt (deferred): manifest/installability and an update-notification
+  flow remain out of scope; a future module that adds lazy route chunks must
+  revisit install-time discovery; a registered service worker persists in a real
+  browser beyond file deletion.
+- Backwards compatibility is preserved: Dexie schema stays version 2, no store or
+  index change, the migration fixture stays green, and the new code is additive.
+- Triple-Zero achieved: yes.
+
+Decision:
+
+- Module 17 complete. Stop before Module 18.

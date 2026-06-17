@@ -693,6 +693,55 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 17 Scope
+
+- Validation covers the production-only service worker (`public/sw.js`), the
+  guarded registration helper, install-time discovery of the app shell and hashed
+  boot assets, the navigation fallback and cache-first asset serving, and the
+  dedicated production-preview offline E2E project, while keeping the existing
+  dev-based suite unchanged.
+- Triple-Zero for Module 17 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations in the tested
+  flows, and zero dependency-audit findings.
+
+## Module 17 Validation Protocol
+
+### Pass checks
+
+- Confirm `registerServiceWorker` no-ops outside a production build and when
+  service workers are unsupported, and registers `/sw.js` on `load` in production
+  when supported.
+- Confirm `public/sw.js` caches the app shell and every hashed boot asset
+  (`/assets/*.{js,css}`) discovered from `/index.html` during install, atomically
+  and fail-closed (no activation on a partial cache).
+- Confirm that after exactly one online production load the versioned cache holds
+  `/index.html` and at least one `/assets/*.js` and one `/assets/*.css` entry.
+- Confirm that, while offline, a cold-start reload still boots the app to the
+  dashboard, persisted state remains visible, and navigation to a not-yet-visited
+  route resolves — with no second online load.
+- Confirm the service worker handles same-origin GET only (navigation
+  network-first → cached `/index.html`; assets cache-first) and never touches
+  IndexedDB.
+- Confirm Module 16 reset → onboarding-import recovery still works with the
+  service worker active.
+- Confirm the existing dev-based E2E suite runs unchanged (the offline spec runs
+  only in the dedicated `offline` preview project).
+- Confirm no new dependency, no manifest, no Dexie schema change (stays version 2,
+  migration fixture green), and every chunk under the 600 kB warning budget.
+
+### Commands for Module 17
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

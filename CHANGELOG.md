@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-06-17 - Module 17
+
+### Added
+
+- Real cold-start offline support via a dependency-free, production-only service
+  worker `public/sw.js`. It uses **install-time discovery**: on install it fetches
+  `/index.html`, parses every same-origin `/assets/*.{js,css}` reference (entry
+  script, stylesheet, and the modulepreload vendor chunks), and atomically
+  `cache.addAll`s the shell plus those boot assets into a versioned cache
+  (`progresspal-cache-v1`). It **fails closed** — `skipWaiting` runs only after the
+  boot set is cached, so a partial cache never becomes the active offline shell.
+  The fetch handler serves same-origin GET only: navigation network-first →
+  cached `/index.html`; assets cache-first, matched with `ignoreVary`/`ignoreSearch`
+  so a precached asset is served regardless of request headers (notably the CORS
+  `Origin` header on crossorigin module scripts). It never touches IndexedDB.
+- `src/lib/pwa/registerServiceWorker.ts` (+ barrel), called from `main.tsx`,
+  guarded by `import.meta.env.PROD && 'serviceWorker' in navigator` and registered
+  on `window` `load` — so the Vite dev server and jsdom unit tests never register.
+- A dedicated `offline` Playwright project that builds and serves the production
+  app via `vite preview` on an isolated port and runs `e2e/offline.spec.ts`. The
+  existing `chromium` (dev-server) project is unchanged and ignores the offline
+  spec.
+- Tests: `tests/lib/registerServiceWorker.test.ts` (registration guard) and
+  `e2e/offline.spec.ts` (one-online-load → Cache-Storage assertion that the hashed
+  boot JS/CSS is cached → offline cold-start reload boots the dashboard → persisted
+  state visible offline → offline navigation to a not-yet-visited route; plus
+  Module 16 reset/onboarding-import recovery still working with the SW active).
+- Module 17 plan and handoff in `docs/modules/module-17-plan.md`.
+
+### Changed
+
+- `eslint.config.js` adds a `public/sw.js` override with serviceworker globals.
+- `playwright.config.ts` now defines two web servers (dev + production preview) and
+  two projects (`chromium` on dev, `offline` on preview); per-project `baseURL`.
+
+### Boundaries
+
+- One successful online production load is sufficient for offline cold-start; the
+  acceptance bar is not weakened to two loads. No new dependency, no
+  `manifest.webmanifest`/installability, no route-level lazy loading, no
+  update-notification UI, no Dexie schema change (stays version 2), and no
+  engine/domain/seed edits. Every built chunk stays under the 600 kB warning
+  budget. See DECISIONS.md D-0039.
+
+### Deferred
+
+- Manifest/installability and an update-notification flow remain out of scope. A
+  future module that introduces lazy route chunks must revisit install-time
+  discovery (those chunks would not appear in `index.html`).
+
 ## 2026-06-16 - Module 16
 
 ### Added
