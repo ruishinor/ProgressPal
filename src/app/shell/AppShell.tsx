@@ -134,7 +134,7 @@ export function AppShell() {
       summary={
         requiresOnboarding
           ? 'Create the local learner profile before opening the rest of the app. Nothing is synced or sent anywhere.'
-          : 'Local-first CS50 tracking is active. Course progression, study-session logging, XP, and achievements now persist on-device, while insights still land in a later module.'
+          : 'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, backup, restore, reset, and offline support all run on this device.'
       }
       title="ProgressPal CS50 Edition"
     >

@@ -269,7 +269,7 @@ export function SessionsPage() {
               </div>
             }
             description="This route stays offline and only reads local catalog and study-session records."
-            eyebrow="Route: /sessions"
+            eyebrow="Study ledger"
             title="Study sessions"
           />
           <ErrorState
@@ -294,7 +294,7 @@ export function SessionsPage() {
       <section className="page-section">
         <PageHeader
           description="Opening the local course catalog and saved study-session ledger."
-          eyebrow="Route: /sessions"
+          eyebrow="Study ledger"
           title="Study sessions"
         />
         <LoadingState
@@ -447,7 +447,7 @@ export function SessionsPage() {
             ? 'Log real study effort against one existing course item. Sessions stay append-only and never imply completion.'
             : `This route is prefilled from one course item. The unit stays locked to that item while you log effort for ${prefillItemTitle ?? 'the selected item'}.`
         }
-        eyebrow="Route: /sessions"
+        eyebrow="Study ledger"
         meta={
           <>
             <Badge tone="accent">Logged effort only</Badge>

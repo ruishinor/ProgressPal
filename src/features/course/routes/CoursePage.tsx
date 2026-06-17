@@ -122,7 +122,7 @@ export function CoursePage() {
         <section className="page-section">
           <PageHeader
             description="This route depends only on the seeded local catalog and saved progress records."
-            eyebrow="Route: /course"
+            eyebrow="CS50 course map"
             title="Course Map"
           />
           <ErrorState
@@ -151,7 +151,7 @@ export function CoursePage() {
       <section className="page-section">
         <PageHeader
           description="The app is reading the seeded course catalog and any saved item-progress records."
-          eyebrow="Route: /course"
+          eyebrow="CS50 course map"
           title="Course Map"
         />
         <LoadingState
@@ -175,8 +175,8 @@ export function CoursePage() {
             </Link>
           </div>
         }
-        description="The seeded CS50 catalog now renders directly from local persistence. The map stays structurally read-only, but Module 10 turns each item row into an entry point for the saved detail screen and long-form logging controls."
-        eyebrow="Route: /course"
+        description="The seeded CS50 catalog renders from local persistence. Each item links to a detail screen where you can save status, confidence, notes, evidence, and watched ranges for long-form material."
+        eyebrow="CS50 course map"
         meta={
           <>
             <StatusPill

@@ -146,7 +146,7 @@ export function SettingsPage() {
           </div>
         }
         description="Edit your local profile and manage your on-device data: export a backup, restore one, or reset everything."
-        eyebrow="Route: /settings"
+        eyebrow="Data controls"
         meta={
           <>
             <StatusPill variant="completed">Settings active</StatusPill>

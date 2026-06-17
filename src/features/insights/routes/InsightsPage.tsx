@@ -157,7 +157,7 @@ export function InsightsPage() {
       <section className="page-section">
         <PageHeader
           description="This route reads only your local sessions, watched ranges, XP, and achievement records."
-          eyebrow="Route: /insights"
+          eyebrow="Local insights"
           title="Insights"
         />
         <ErrorState
@@ -187,7 +187,7 @@ export function InsightsPage() {
       <section className="page-section">
         <PageHeader
           description="The app is reading your local sessions, watched ranges, XP, and achievement records."
-          eyebrow="Route: /insights"
+          eyebrow="Local insights"
           title="Insights"
         />
         <LoadingState
@@ -211,7 +211,7 @@ export function InsightsPage() {
     <section className="page-section">
       <PageHeader
         description="A read-only view of how your local CS50 effort has accumulated over time, derived only from your saved sessions, watched ranges, XP ledger, and achievements. Nothing here is synced, fetched, or stored separately. Days and weeks use this device's local time, and weeks start on Monday."
-        eyebrow="Route: /insights"
+        eyebrow="Local insights"
         title="Insights"
       />
 

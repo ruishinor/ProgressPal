@@ -48,7 +48,7 @@ export function OnboardingPage() {
     <section className="page-section">
       <PageHeader
         description="Create the first local learner profile before the rest of ProgressPal opens. Nothing is uploaded, synced, or shared."
-        eyebrow="Route: /onboarding"
+        eyebrow="Setup"
         meta={
           <>
             <StatusPill variant="planned">First run required</StatusPill>

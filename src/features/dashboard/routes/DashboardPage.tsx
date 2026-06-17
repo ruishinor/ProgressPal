@@ -178,7 +178,7 @@ export function DashboardPage() {
       <section className="page-section">
         <PageHeader
           description="This route reads only your local progress, sessions, XP, and achievement records."
-          eyebrow="Route: /dashboard"
+          eyebrow="Local dashboard"
           title="Dashboard"
         />
         <ErrorState
@@ -208,7 +208,7 @@ export function DashboardPage() {
       <section className="page-section">
         <PageHeader
           description="The app is reading your local progress, sessions, XP, and achievement records."
-          eyebrow="Route: /dashboard"
+          eyebrow="Local dashboard"
           title="Dashboard"
         />
         <LoadingState
@@ -253,7 +253,7 @@ export function DashboardPage() {
           </div>
         }
         description="A read-only view derived from your local CS50 records. Nothing here is synced, fetched, or stored separately — it reflects only what you have explicitly saved on this device."
-        eyebrow="Route: /dashboard"
+        eyebrow="Local dashboard"
         meta={
           <>
             <StatusPill variant={courseStatusVariant(courseProgress)}>

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-06-17 - Post-Module-20 UI copy polish
+
+### Changed
+
+- Removed stale internal module-development references from app-facing copy.
+- Reframed visible route/page descriptions as final product language.
+- Replaced "Route: /..." eyebrow labels with meaningful page-context labels
+  (e.g. "Local dashboard", "CS50 course map", "Study ledger", "Data controls").
+- Replaced "What this module does not claim" card on the home page with a
+  "Privacy boundary" card describing the local-only scope.
+- Fixed AppShell summary that said insights "still land in a later module".
+
+### Boundaries
+
+- No route, schema, persistence, dependency, service-worker, or behavior change.
+- No new features, no redesign, no CSS layout change.
+
+---
+
 ## 2026-06-17 - Module 20
 
 ### Added

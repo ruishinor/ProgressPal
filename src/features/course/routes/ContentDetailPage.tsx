@@ -14,11 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
-import {
-  courseMapPath,
-  getCourseItemDetailPath,
-  getStudySessionsPath,
-} from '@/features/course/paths';
+import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
   buildCourseDetailView,
   createCourseDetailProgressFormValues,
@@ -396,7 +392,7 @@ export function ContentDetailPage() {
               </div>
             }
             description="The detail route depends only on local seeded catalog data and saved progress records."
-            eyebrow={`Route: /course/${itemId || ':itemId'}`}
+            eyebrow="Course item"
             title="Content detail"
           />
           <ErrorState
@@ -423,7 +419,7 @@ export function ContentDetailPage() {
       <section className="page-section">
         <PageHeader
           description="Opening the seeded item, its local progress record, and any saved long-form asset history."
-          eyebrow={`Route: /course/${itemId || ':itemId'}`}
+          eyebrow="Course item"
           title="Content detail"
         />
         <LoadingState
@@ -447,8 +443,6 @@ export function ContentDetailPage() {
     longFormProgress: detail.longFormDetail?.progress ?? null,
     required: detail.item.required,
   });
-  const detailPath = getCourseItemDetailPath(detail.item.id);
-
   async function handleProgressSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -721,8 +715,8 @@ export function ContentDetailPage() {
             </Link>
           </div>
         }
-        description="This screen is the write surface for one local course item. Long-form items can log exact watched ranges; other items can still persist status, confidence, notes, and evidence without waiting for later modules."
-        eyebrow={`Route: ${detailPath}`}
+        description="This screen is the write surface for one local course item. Saved progress updates the course map, dashboard, XP ledger, achievements, and insights through local derived state."
+        eyebrow="Course item"
         meta={
           <>
             <StatusPill variant={detailView.statusVariant}>
