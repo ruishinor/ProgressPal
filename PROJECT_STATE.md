@@ -1,18 +1,24 @@
 # Project State
 
-Current module: Module 19 - Security and privacy review (complete). HEAD includes
-two commits: `Complete Module 19 security and privacy review` (commit 011981f)
-and a post-Module-19 bundle-hygiene fix `Fix embedded package manifest in client
-bundle` (D-0042). Both committed on `master`, not yet pushed (see `git log` for
-the current bundle-hygiene fix hash, which changes if that commit is amended).
-Last completed module: Module 19 - Security and privacy review (complete)
-Current branch: master
+Current module: Module 20 - Final CS50 project packaging (docs-only; complete in
+the working tree, not yet committed). HEAD is the post-Module-19 bundle-hygiene
+fix `Fix embedded package manifest in client bundle` (commit eb12b01, D-0042),
+which is committed and pushed to `origin/master`. The Module 20 packaging
+documents are present in the working tree, final validation passed, and the docs
+are pending commit.
+Last completed module: Module 20 - Final CS50 project packaging (complete;
+working tree validated, not yet committed).
+Current branch: master (in sync with `origin/master` before the Module 20 commit).
 Last committed module: Module 19 (commit 011981f) plus its post-Module-19
-bundle-hygiene fix (D-0042; see `git log` for its hash).
+bundle-hygiene fix (commit eb12b01, D-0042), both pushed to `origin/master`.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
 `dataVersion` 20260611 and `sourceCheckedDate` 2026-06-11
+
+Next module: none - Module 20 is the final module in `ROADMAP.md`. Once the
+Module 20 packaging docs are committed, the offline CS50 MVP endpoint is reached.
+Any further work would be a new, separately scoped initiative.
 
 Known blockers:
 
@@ -26,8 +32,10 @@ Known risks:
   and field details. The repo sequence treats Module 07 as onboarding/profile
   and Module 08 as course map even though the older detailed brief still
   numbers different work as Modules 07 and 08.
-- README.md and demo/submission documentation remain deferred to Module 20;
-  PRIVACY.md now exists from Module 19.
+- README.md and demo/submission documentation are now delivered in Module 20:
+  `README.md` (root) and `docs/DEMO.md` (walkthrough + CS50 video script) exist,
+  and `PRIVACY.md`/`SECURITY.md` remain the authoritative privacy/security
+  references the README mirrors. No outstanding deferred-docs item remains.
 - Cold-start offline is now implemented (Module 17): a dependency-free,
   production-only service worker (`public/sw.js`) caches the app shell and the
   build's hashed boot assets via install-time discovery, so after one successful
@@ -115,12 +123,14 @@ Known risks:
   remain declared-but-unimported, reserved for the future Charts feature
   (documented, not removed, per D-0041).
 
-Last Triple-Zero-equivalent pass: 2026-06-17 - post-Module-19 bundle-hygiene fix
-(D-0042) managed-server full-suite pass 3 of 3 (197 unit tests, 24 E2E incl.
-offline, 0 audit findings; exact `npm run validate` intentionally not used to
-avoid the documented Playwright teardown hang; see VALIDATION_LOG.md). The
-Module 19 commit (011981f) itself also passed 3 of 3 beforehand.
-Next module: Module 20 - Final CS50 project packaging (not started)
+Last Triple-Zero-equivalent pass: 2026-06-17 - Module 20 final CS50 project
+packaging full-suite sequence after documentation correction. Exact
+`npm run validate` was intentionally not used; validation was run as the explicit
+command sequence: `npm run lint`, `npm run format:check`, `npm run typecheck`,
+`npm run build`, `npm run test`, `npm run test:e2e`, `npm run check:circular`,
+and `npm run audit`. Result: 31 Vitest files / 197 tests passed, 24 Playwright
+tests passed including offline coverage, no circular dependencies, and 0
+moderate-or-higher audit vulnerabilities.
 
 Do not change:
 
@@ -199,6 +209,12 @@ Do not change:
   and non-allowlisted external URLs. Widen the URL allowlist only with a justified
   inline comment; do not weaken the primitive checks. Keep `SECURITY.md` and
   `PRIVACY.md` honest and free of guarantees beyond evidence.
+- Preserve the Module 20 packaging honesty: keep `README.md` and `docs/DEMO.md`
+  claims tied to actually implemented routes/behavior and aligned with
+  `PRIVACY.md`/`SECURITY.md`. Do not describe charts as shipped (reserved per
+  D-0041), do not claim production-grade security, compliance, or encryption, and
+  do not bake exact validation counts into README/DEMO (counts live in
+  `VALIDATION_LOG.md`).
 - Do not introduce backup/import/export/reset UI before its assigned module.
 - Preserve future backwards compatibility now that persistence exists.
 
@@ -325,6 +341,13 @@ Current repo inventory:
   and `docs/modules/module-19-plan.md`, and refreshes `SECURITY.md` to Modules
   14-19. It changes no runtime source, no dependency, no schema, no route, and no
   service worker.
+- Module 20 adds the project `README.md` (the repo's first), `docs/DEMO.md`
+  (written demo walkthrough + ~3-minute CS50 video script), and
+  `docs/modules/module-20-plan.md`, and refreshes the planning/state docs. It is
+  documentation only: no runtime source, route, schema, service-worker,
+  dependency, or package-script change, no new tests, and no binary/screenshot
+  assets. README/DEMO claims are tied to the real routes and mirror
+  `PRIVACY.md`/`SECURITY.md`; charts remain reserved/deferred, not shipped.
 - Module 18 adds CSS-only accessibility/UX hardening in `tokens.css`,
   `design-system.css`, and `base.css`: dark-theme contrast fixes for card/status
   surfaces, invalid fields, button hovers, warning badges, checkbox focus-visible,

@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-06-17 - Module 20
+
+### Added
+
+- `README.md` (the repo's first project README): an accurate overview with a
+  CS50 non-affiliation disclaimer, a feature inventory tied to the real routes,
+  the tech stack and project layout, install/run/build/preview instructions, a
+  testing & validation section that documents the known `npm run validate`
+  Playwright teardown caveat and the managed-server workaround honestly, the
+  local-only privacy/security boundary (mirroring `PRIVACY.md`/`SECURITY.md`),
+  scope/non-goals, limitations, CS50 final-project notes, and a repository map.
+- `docs/DEMO.md`: a written demo walkthrough (onboarding → progress and long-form
+  watched ranges → study session → XP/level → achievement → dashboard → insights
+  → settings backup/export/import/reset → offline) plus a selective ~3-minute
+  CS50 video narration script focused on the core product loop.
+- `docs/modules/module-20-plan.md` with the packaging scope, accuracy rules, and
+  validation protocol.
+
+### Changed
+
+- Updated `MODULE_CHECKLIST.md` (Module 20 current and complete), `PROJECT_STATE.md`
+  (current module 20; resolved the "README/demo deferred to Module 20" risk),
+  `DECISIONS.md` (D-0043), `TEST_PLAN.md` (Module 20 adds no tests), and
+  `VALIDATION_LOG.md` (Module 20 validation record).
+
+### Boundaries
+
+- Documentation only: no runtime application source change, no route/UI change,
+  no Dexie schema/store/index change, no service-worker/PWA change, no dependency
+  or package-script change (`package.json` / `package-lock.json` untouched), no
+  new tests, and no screenshots or other binary assets. No production-readiness,
+  compliance, or encryption claims; "local-only" is documented as "data not
+  transmitted", not as encrypted or device-safe.
+
 ## 2026-06-17 - Post-Module-19 bundle-hygiene fix
 
 ### Fixed

@@ -831,6 +831,51 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 20 Scope
+
+- Module 20 (final CS50 project packaging) is documentation only: it adds
+  `README.md`, `docs/DEMO.md`, and `docs/modules/module-20-plan.md`, and refreshes
+  the planning/state docs. It adds **no tests** and changes no runtime source,
+  routes, schema, service worker, dependencies, or package scripts.
+- Because no code changed, the full suite is run as a **regression confirmation**;
+  the most relevant gate for the Markdown edits is `format:check` (Prettier).
+- Triple-Zero for Module 20 means three consecutive clean full-suite-equivalent
+  runs with zero errors, zero warnings, zero accessibility violations in the
+  tested flows, zero circular dependencies, and zero dependency-audit findings.
+
+## Module 20 Validation Protocol
+
+### Pass checks
+
+- Confirm `README.md` exists and its feature/route, command, and privacy/security
+  claims match the codebase (`src/app/router/routeDefinitions.ts`,
+  `package.json` scripts, `PRIVACY.md`/`SECURITY.md`); charts are described as
+  reserved/deferred, not shipped.
+- Confirm `docs/DEMO.md` describes only reachable flows and adds no binary assets.
+- Confirm the new docs contain no TODO/TBD/FIXME markers and reintroduce no
+  cloud/social/external-API/analytics/auth dependence outside the non-goals
+  framing.
+- Confirm no exact final test/E2E counts are hard-coded into `README.md` /
+  `docs/DEMO.md` (counts live in `VALIDATION_LOG.md`).
+- Confirm no runtime source change, no `package.json` / `package-lock.json`
+  change, no Dexie schema change (stays version 2), no route change, and no
+  service-worker/PWA change.
+- Confirm Module 16 recovery, Module 17 offline, Module 18 accessibility, and the
+  Module 19 local-only guard still pass.
+
+### Commands for Module 20
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

@@ -756,3 +756,25 @@
   - `recharts` and `date-fns` remain declared in `package.json`/lockfile,
     reserved for the future Charts feature (still documented, not removed, per
     D-0041). No schema, service-worker, route, or dependency change.
+
+## D-0043 - Module 20 Demo Assets Are Written, Source-Controlled Materials
+
+- Date: 2026-06-17
+- Status: accepted
+- Decision: for Module 20 (final CS50 project packaging), "demo assets" are
+  written, source-controlled materials - a `docs/DEMO.md` walkthrough plus a
+  ~3-minute CS50 video narration script - not screenshots, PNGs, or other binary
+  capture assets. The video itself is recorded by the author from that script and
+  is not committed to the repository.
+- Why: screenshots and captured binaries go stale as the UI changes, add binary
+  churn to a docs-only module, and would require running and capturing the app.
+  A written walkthrough and video script stay reviewable in plain text, are easy
+  to keep aligned with actual behavior, and fit the offline, docs-only scope of
+  the final packaging module.
+- Consequences:
+  - `docs/DEMO.md` is the canonical demo artifact; `README.md` links to it and
+    carries a "video to be recorded" placeholder rather than an embedded image.
+  - No binary or generated assets are added in Module 20.
+  - Exact final validation counts stay in `VALIDATION_LOG.md`, not baked into
+    `README.md` / `docs/DEMO.md`, so the prose does not drift from the recorded
+    validation results.

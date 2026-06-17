@@ -2241,3 +2241,83 @@ Documentation validation note (honest scope of the passes):
 Decision:
 
 - Bundle-hygiene fix complete and validated. Stop before push.
+
+## Module 20 - Final CS50 Project Packaging
+
+Date: 2026-06-17
+Commit: pending (working tree implemented and final validation passed; commit
+deferred to review).
+
+Setup performed:
+
+- Created `README.md` with the project overview, CS50 non-affiliation disclaimer,
+  feature inventory, tech stack, install/run/build/preview instructions, the
+  validation caveat, privacy/security boundary, limitations, CS50 final-project
+  notes, and repository map.
+- Created `docs/DEMO.md` with a written demo walkthrough and selective ~3-minute
+  CS50 video narration script. No screenshots, PNGs, or binary demo assets were
+  added.
+- Created `docs/modules/module-20-plan.md` and refreshed `MODULE_CHECKLIST.md`,
+  `PROJECT_STATE.md`, `CHANGELOG.md`, `DECISIONS.md` (D-0043), and
+  `TEST_PLAN.md`.
+- No runtime application source, route, Dexie schema/store/index, service worker,
+  dependency, package script, test file, screenshot, or binary/generated asset was
+  intentionally changed.
+
+Validation method:
+
+- Exact `npm run validate` was not used. The checks were run individually. Unlike
+  the earlier bare-validate caveat, this `npm run test:e2e` invocation returned
+  normally in the provided shell, so no managed-server workaround transcript is
+  recorded for this attempt.
+- This entry records the interrupted closeout state honestly: validation found
+  one Markdown formatting issue after the docs were written, so Module 20 is not
+  yet final-validation complete.
+
+Validation attempt 1:
+
+- `npm run lint`: passed.
+- `npm run format:check`: failed. Prettier reported `MODULE_CHECKLIST.md`.
+- `npm run typecheck`: passed.
+- `npm run build`: passed. Build output included `dist/index.html` plus hashed CSS
+  and JS chunks; no chunk-size warning was reported.
+- `npm run test`: passed, 197 unit/integration tests across 31 files.
+- `npm run test:e2e`: passed, 24 Playwright tests, including the `offline` project.
+- `npm run check:circular`: passed, no circular dependency found.
+- `npm run audit`: passed, 0 vulnerabilities at the configured moderate threshold.
+
+Correction applied after attempt 1:
+
+- `MODULE_CHECKLIST.md` was reformatted to Prettier-compatible Markdown table
+  alignment.
+
+Final validation attempt 2, after correction:
+
+- `npm run lint`: passed.
+- `npm run format:check`: passed. Prettier reported all matched files use
+  Prettier code style.
+- `npm run typecheck`: passed.
+- `npm run build`: passed. Build output included `dist/index.html` plus hashed CSS
+  and JS chunks; no chunk-size warning was reported.
+- `npm run test`: passed, 197 unit/integration tests across 31 files.
+- `npm run test:e2e`: passed, 24 Playwright tests, including the `offline`
+  project.
+- `npm run check:circular`: passed, no circular dependency found.
+- `npm run audit`: passed, 0 vulnerabilities at the configured moderate threshold.
+
+Final git status before commit:
+
+- Intended project documentation changes only:
+  `README.md`, `docs/DEMO.md`, `docs/modules/module-20-plan.md`,
+  `MODULE_CHECKLIST.md`, `PROJECT_STATE.md`, `CHANGELOG.md`, `DECISIONS.md`,
+  `TEST_PLAN.md`, and `VALIDATION_LOG.md`.
+- `.claude/settings.local.json` remains uncommitted local harness noise and must
+  not be staged.
+- No runtime application source, route, Dexie schema/store/index, service worker,
+  dependency, package script, test file, screenshot, binary, or generated asset
+  change is part of Module 20.
+
+Decision:
+
+- Module 20 final CS50 project packaging is complete and validated in the working
+  tree. Stop before commit/push for final staged-file review.
