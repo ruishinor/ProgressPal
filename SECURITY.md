@@ -382,12 +382,13 @@
   browser. It never caches or transmits stored learner data, but a registered
   worker outlives file deletion and must be cleared via site-data reset or a
   tombstone worker (see Module 17 decision).
-- The production bundle currently inlines the full `package.json` (all
-  dependencies, devDependencies, and npm scripts) because `src/lib/db/constants.ts`
-  imports the whole JSON to read `version`. This discloses the dependency
-  manifest in shipped client code. It is low severity for a local-only app (the
-  manifest is not secret and never leaves the device) but is needless surface;
-  see Open Risks for the recommended follow-up.
+- Embedded build manifest (resolved in a post-Module-19 fix, D-0042): the
+  production bundle previously inlined the full `package.json` (all dependencies,
+  devDependencies, and npm scripts) because `src/lib/db/constants.ts` imported
+  the whole JSON to read `version`. `src/lib/db/constants.ts` now imports only
+  the `version` field, so the manifest is no longer shipped (verified against
+  build output). The `recharts`/`date-fns` names no longer appear in built
+  output.
 - Route loaders and `AppStateProvider` log raw error objects via `console.error`.
   The console is local-only with no telemetry, so leakage risk is low, but error
   payloads could surface local detail in developer tools.
@@ -470,12 +471,11 @@
   Charts feature, so Module 19 documents rather than removes them. They remain
   part of the install/audit supply-chain surface; removal should be a separate
   dependency-pruning decision if Charts is dropped or re-scoped.
-- Embedded build manifest: the production bundle inlines the entire
-  `package.json` (dependencies, devDependencies, and npm scripts) as a string
-  because `src/lib/db/constants.ts` imports the whole JSON to read `version`.
-  This is why the `recharts`/`date-fns` names appear in built output even though
-  their code does not. Low severity for an offline, local-only app, but a
-  recommended follow-up is to read only the version (a named import or a
-  build-time define) so the manifest is not shipped. This is a runtime-source
-  change and was intentionally left out of the documentation-only Module 19
-  scope.
+- Embedded build manifest (resolved): the production bundle previously inlined
+  the entire `package.json` (dependencies, devDependencies, and npm scripts) as
+  a string because `src/lib/db/constants.ts` imported the whole JSON to read
+  `version`. A post-Module-19 fix (D-0042) changed it to a named `version`
+  import, so the manifest is no longer shipped and the `recharts`/`date-fns`
+  names no longer appear in built output. The version string is still embedded.
+  This was the one concrete runtime-source fix that the documentation-only
+  Module 19 deliberately deferred.

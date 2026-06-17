@@ -1,10 +1,14 @@
 # Project State
 
-Current module: Module 19 - Security and privacy review (complete, not yet
-committed)
+Current module: Module 19 - Security and privacy review (complete). HEAD includes
+two commits: `Complete Module 19 security and privacy review` (commit 011981f)
+and a post-Module-19 bundle-hygiene fix `Fix embedded package manifest in client
+bundle` (D-0042). Both committed on `master`, not yet pushed (see `git log` for
+the current bundle-hygiene fix hash, which changes if that commit is amended).
 Last completed module: Module 19 - Security and privacy review (complete)
 Current branch: master
-Last committed module: Module 18 - Accessibility hardening (commit c734b13).
+Last committed module: Module 19 (commit 011981f) plus its post-Module-19
+bundle-hygiene fix (D-0042; see `git log` for its hash).
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -22,8 +26,8 @@ Known risks:
   and field details. The repo sequence treats Module 07 as onboarding/profile
   and Module 08 as course map even though the older detailed brief still
   numbers different work as Modules 07 and 08.
-- README.md and PRIVACY.md are still absent and remain deferred until later
-  modules.
+- README.md and demo/submission documentation remain deferred to Module 20;
+  PRIVACY.md now exists from Module 19.
 - Cold-start offline is now implemented (Module 17): a dependency-free,
   production-only service worker (`public/sw.js`) caches the app shell and the
   build's hashed boot assets via install-time discovery, so after one successful
@@ -38,9 +42,11 @@ Known risks:
 - The TypeScript alias configuration currently relies on
   `ignoreDeprecations: "6.0"` because the compiler still requires `baseUrl` for
   the chosen path-mapping style. Revisit before TypeScript 7.
-- Local IndexedDB now persists user profile, notes, and progress data on-device
-  with no encryption or export/reset UI yet. Device compromise and unsafe local
-  tampering are now concrete risks rather than future-only concerns.
+- Local IndexedDB persists user profile, notes, progress, sessions, backup audit
+  records, XP transactions, and achievement unlocks on-device without encryption
+  at rest. Module 16 provides user-facing backup/export, import, and reset flows,
+  but device compromise, shared browser profiles, unsafe local tampering, and
+  exported backup-file handling remain concrete user-controlled risks.
 - Onboarding completion now depends on `app_meta.onboardingCompletedAt`, with a
   fallback that treats non-default legacy profiles as complete. Future profile
   migrations must preserve both the explicit metadata stamp and the default
@@ -101,19 +107,19 @@ Known risks:
 - The current `StudySessionSchema` requires both `unitId` and `itemId`, so
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
-- Module 19 review finding (not yet fixed): `src/lib/db/constants.ts` imports the
-  whole `package.json` to read `version`, so the production bundle inlines the
-  entire manifest (dependencies, devDependencies, npm scripts) as a string. This
-  is why `recharts`/`date-fns` names appear in built output even though their
-  library code is not bundled. Low severity for a local-only app; recommended
-  follow-up is a named `version` import or a build-time define. `recharts` and
-  `date-fns` remain declared-but-unimported, reserved for the future Charts
-  feature (documented, not removed, per D-0041).
+- Module 19 review finding (fixed post-Module-19, D-0042): `src/lib/db/constants.ts`
+  previously imported the whole `package.json` to read `version`, inlining the
+  entire manifest into the bundle. It now imports only the `version` field, so the
+  manifest is no longer shipped (verified against build output); `recharts`/
+  `date-fns` names no longer appear in built output. `recharts` and `date-fns`
+  remain declared-but-unimported, reserved for the future Charts feature
+  (documented, not removed, per D-0041).
 
-Last Triple-Zero-equivalent pass: 2026-06-17 - Module 19 managed-server
-full-suite pass 3 of 3 (197 unit tests, 24 E2E incl. offline, 0 audit findings;
-exact `npm run validate` intentionally not used to avoid the documented
-Playwright teardown hang; see VALIDATION_LOG.md)
+Last Triple-Zero-equivalent pass: 2026-06-17 - post-Module-19 bundle-hygiene fix
+(D-0042) managed-server full-suite pass 3 of 3 (197 unit tests, 24 E2E incl.
+offline, 0 audit findings; exact `npm run validate` intentionally not used to
+avoid the documented Playwright teardown hang; see VALIDATION_LOG.md). The
+Module 19 commit (011981f) itself also passed 3 of 3 beforehand.
 Next module: Module 20 - Final CS50 project packaging (not started)
 
 Do not change:

@@ -727,3 +727,32 @@
   - The guardrail scans only runtime `src/` source, strips comments, and
     allowlists XML-namespace URLs, so it stays a boring regression guard rather
     than a brittle scanner. It is not a claim of comprehensive security.
+
+## D-0042 - Stop Embedding The Full package.json In The Client Bundle
+
+- Date: 2026-06-17
+- Status: accepted
+- Decision: change `src/lib/db/constants.ts` to import only the `version` field
+  from `package.json` via a named import, instead of importing the whole default
+  object. This is the concrete follow-up fix for the bundle-hygiene finding
+  recorded in D-0041, and it ships as a separate post-Module-19 commit so the
+  audit trail stays clean (Module 19 found and documented the issue; this commit
+  fixes it).
+- Why: importing the whole JSON default object caused the bundler to inline the
+  entire manifest - dependencies, devDependencies, and npm scripts - as a string
+  in the app chunk, which is needless shipped surface and disclosed the
+  dependency manifest in client code. A named import lets the JSON be
+  tree-shaken to just the version.
+- Mechanism choice: the named import was tried first and verified against build
+  output to actually remove the manifest (the acceptance check, not the
+  mechanism, was decisive). A Vite build-time `define` was the fallback if the
+  named import had still embedded more than the version; it was not needed.
+- Consequences:
+  - `currentApplicationVersion` keeps the same runtime string value and type;
+    consumers (repositories, backup `appVersion`, settings) are unchanged.
+  - Build output no longer contains the `devDependencies`/`scripts` blocks or the
+    dependency names that were present only via manifest embedding; the version
+    string is still present.
+  - `recharts` and `date-fns` remain declared in `package.json`/lockfile,
+    reserved for the future Charts feature (still documented, not removed, per
+    D-0041). No schema, service-worker, route, or dependency change.

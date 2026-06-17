@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-06-17 - Post-Module-19 bundle-hygiene fix
+
+### Fixed
+
+- The production bundle no longer inlines the full `package.json`.
+  `src/lib/db/constants.ts` now imports only the `version` field
+  (`import { version as applicationVersion } from '../../../package.json'`)
+  instead of the whole JSON default object, so dependencies, devDependencies,
+  and the npm scripts block are no longer embedded as a string in the app chunk.
+  This resolves the bundle-hygiene finding documented in Module 19 (D-0041).
+
+### Notes
+
+- `currentApplicationVersion` keeps the same runtime string value and type, and
+  all consumers (repositories, backup `appVersion`, settings) are unchanged.
+- Verified against build output: the manifest tokens (`devDependencies`,
+  `scripts`, `recharts`, `date-fns`, dev tool names) no longer appear in `dist`,
+  while the version string still does. `recharts` and `date-fns` remain declared
+  in `package.json`/lockfile, reserved for the future Charts feature. No schema,
+  service-worker, route, or dependency change.
+
 ## 2026-06-17 - Module 19
 
 ### Added

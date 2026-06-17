@@ -2185,3 +2185,59 @@ Decision:
 
 - Module 19 complete pending review. Stop before commit/push for explicit
   approval.
+
+## Post-Module-19 - Bundle-Hygiene Fix (Embedded package.json)
+
+Date: 2026-06-17
+Commit: separate follow-up commit after Module 19 (commit 011981f) on `master`.
+This is the concrete fix for the bundle-hygiene finding documented during the
+Module 19 review (D-0041); recorded here per D-0042.
+
+Change performed:
+
+- `src/lib/db/constants.ts` now imports only the version field
+  (`import { version as applicationVersion } from '../../../package.json'`)
+  instead of the whole JSON default object. `currentApplicationVersion` keeps
+  the same runtime string value and type.
+
+Mechanism decision:
+
+- The named JSON import was tried first and then verified against build output.
+  Build output confirmed the manifest is no longer embedded, so the more
+  explicit Vite build-time `define` fallback was not needed. The acceptance
+  check (manifest absent from `dist`) decided this, not the mechanism.
+
+Build-output acceptance check:
+
+- After `npm run build`, scanning `dist/assets/*.js` for `devDependencies`,
+  `"scripts"`, `recharts`, `date-fns`, `typescript-eslint`, and `@playwright`
+  returns no matches (the full manifest, scripts block, and devDependencies block
+  are gone). The version string `0.1.0` is still present, so the app version is
+  still embedded. `recharts` and `date-fns` remain in `package.json`/lockfile.
+
+Validation (managed-server full-suite-equivalent, same method as Module 19):
+
+- Pass 1: all eight steps (`format:check`, `lint`, `typecheck`, `build`, `test`,
+  `test:e2e`, `check:circular`, `audit`) returned exit code 0. 197 unit tests
+  pass; 24 E2E pass (22 chromium + 2 offline); 0 vulnerabilities.
+- Pass 2: all eight steps returned exit code 0; same counts.
+- Pass 3: all eight steps returned exit code 0; same counts.
+- Exact `npm run validate` again not used, to avoid the documented Playwright
+  teardown hang; no claim is made that the bare command passed.
+
+Documentation validation note (honest scope of the passes):
+
+- The three passes above validated the code fix (`src/lib/db/constants.ts`). The
+  accompanying documentation edits (this log, CHANGELOG, DECISIONS, SECURITY,
+  PROJECT_STATE) were written after those passes, so they did not go through
+  `format:check` as part of the three runs. A follow-up `format:check` then
+  flagged a Prettier whitespace issue in the D-0042 entry in `DECISIONS.md`
+  (an inline-code line-wrap); it was reworded/reformatted until `format:check`
+  passed cleanly. The doc-only changes do not affect lint, typecheck, build,
+  unit/E2E tests, circular checks, or audit, which remained green at the code
+  fix. This correction and the late `PROJECT_STATE.md` accuracy fixes were folded
+  into the same follow-up commit by amend so history stays at two commits.
+
+Decision:
+
+- Bundle-hygiene fix complete and validated. Stop before push.
