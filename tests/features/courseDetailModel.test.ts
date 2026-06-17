@@ -49,8 +49,8 @@ const partialLongFormProgress: CourseLongFormProgress = {
   resumeLabel: 'Resume at 20:00',
   resumeSecond: 1200,
   sliceCount: 6,
-  sliceProgressLabel: '1 of 6 slices complete',
-  summaryLine: '20 min logged | 1 of 6 slices complete | Resume at 20:00',
+  sliceProgressLabel: '1 of 6 segments complete',
+  summaryLine: '20 min logged | 1 of 6 segments complete | Resume at 20:00',
   watchedSeconds: 1200,
   watchedSummaryLabel: '20 min logged',
 };

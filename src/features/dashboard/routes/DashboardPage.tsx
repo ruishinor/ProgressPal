@@ -177,8 +177,7 @@ export function DashboardPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="This route reads only your local progress, sessions, XP, and achievement records."
-          eyebrow="Local dashboard"
+          description="This page shows your CS50 progress on this device."
           title="Dashboard"
         />
         <ErrorState
@@ -208,11 +207,10 @@ export function DashboardPage() {
       <section className="page-section">
         <PageHeader
           description="The app is reading your local progress, sessions, XP, and achievement records."
-          eyebrow="Local dashboard"
           title="Dashboard"
         />
         <LoadingState
-          description="Opening local stores and assembling your derived dashboard."
+          description="Building your dashboard."
           title="Loading your local data"
         />
       </section>
@@ -252,8 +250,7 @@ export function DashboardPage() {
             </Link>
           </div>
         }
-        description="A read-only view derived from your local CS50 records. Nothing here is synced, fetched, or stored separately — it reflects only what you have explicitly saved on this device."
-        eyebrow="Local dashboard"
+        description="Your CS50 progress on this device. Nothing is synced or stored remotely."
         meta={
           <>
             <StatusPill variant={courseStatusVariant(courseProgress)}>
@@ -268,7 +265,7 @@ export function DashboardPage() {
       <div className="dashboard-grid">
         <Card title="Course progress">
           <ProgressBar
-            helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required items complete`}
+            helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
             label="Required course progress"
             tone={
               courseProgress.blockedItemCount > 0
@@ -285,13 +282,13 @@ export function DashboardPage() {
               <dd>{`${courseProgress.completedUnitCount} of ${courseProgress.unitCount}`}</dd>
             </div>
             <div>
-              <dt>Blocked items</dt>
+              <dt>Blocked</dt>
               <dd>{courseProgress.blockedItemCount}</dd>
             </div>
           </dl>
         </Card>
 
-        <Card title="Continue next">
+        <Card title="What's next?">
           {continueNext.kind === 'recommended' ? (
             <>
               <p className="dashboard-metric">
@@ -305,7 +302,7 @@ export function DashboardPage() {
                   className="button button--primary button--sm"
                   to={getCourseItemDetailPath(continueNext.itemId)}
                 >
-                  Open item
+                  Start
                 </Link>
               </div>
             </>
@@ -359,7 +356,7 @@ export function DashboardPage() {
           </div>
         </Card>
 
-        <Card title="Resume long-form">
+        <Card title="Resume lecture">
           {resume.kind === 'resume' ? (
             <>
               <p className="dashboard-metric">
@@ -373,7 +370,7 @@ export function DashboardPage() {
                   className="button button--primary button--sm"
                   to={getCourseItemDetailPath(resume.itemId)}
                 >
-                  Resume item
+                  Resume
                 </Link>
               </div>
             </>
@@ -386,7 +383,7 @@ export function DashboardPage() {
 
         <Card title="Needs attention">
           {blockedItems.isEmpty ? (
-            <p className="card__description">No items are marked blocked.</p>
+            <p className="card__description">Nothing is blocked right now.</p>
           ) : (
             <>
               {/*
@@ -442,8 +439,7 @@ export function DashboardPage() {
           {recentActivity.isEmpty ? (
             <p className="card__description">
               No local activity recorded yet. Your explicit saves — progress,
-              study sessions, watched ranges, XP, and unlocks — will appear
-              here.
+              study sessions, XP, and achievements — will appear here.
             </p>
           ) : (
             <ul className="dashboard-activity-list">

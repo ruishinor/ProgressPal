@@ -224,21 +224,21 @@ function validateSelectedItem(
 
   if (itemId.trim().length === 0) {
     return {
-      error: 'Choose a course item before saving.',
+      error: 'Choose a task before saving.',
       item: null,
     };
   }
 
   if (item === null) {
     return {
-      error: 'Choose an existing course item before saving.',
+      error: 'Choose an existing task before saving.',
       item: null,
     };
   }
 
   if (item.unitId !== unitId) {
     return {
-      error: 'The selected item does not belong to the selected unit.',
+      error: 'The selected task does not belong to the selected unit.',
       item: null,
     };
   }

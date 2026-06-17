@@ -69,8 +69,8 @@ test.describe('Achievement engine E2E tests', () => {
       page.getByRole('heading', { name: 'Problem Set 0' }),
     ).toBeVisible();
     await page.getByLabel('Status').selectOption('completed');
-    await page.getByLabel('Confidence').selectOption('5');
-    await page.getByRole('button', { name: 'Save local progress' }).click();
+    await page.getByLabel('How sure are you?').selectOption('5');
+    await page.getByRole('button', { name: 'Save progress' }).click();
     await expect(page.locator('.toast__title').first()).toBeVisible();
 
     // The unlock is persisted exactly once and shows on the achievements page.

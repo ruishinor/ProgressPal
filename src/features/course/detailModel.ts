@@ -212,7 +212,7 @@ export function validateCourseDetailProgressForm(
     (values.status === 'completed' || values.status === 'skipped_optional')
   ) {
     errors.status =
-      'This long-form item already has partial watched history. Finish its slices through logging instead of forcing a full completion state.';
+      'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.';
   }
 
   return {

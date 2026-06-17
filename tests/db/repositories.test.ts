@@ -650,7 +650,7 @@ describe('database repositories', () => {
     });
     expect(firstEvent.longFormProgress).toMatchObject({
       completionPercent: 16.7,
-      summaryLine: '20 min logged · 1 of 6 slices complete · Resume at 20:00',
+      summaryLine: '20 min logged · 1 of 6 segments complete · Resume at 20:00',
     });
     expect(secondEvent.resumePoint.lastSecond).toBe(1920);
     expect(events).toHaveLength(2);

@@ -176,7 +176,7 @@ describe('sessions model', () => {
         sessionCatalog,
         nowIso,
       ).errors.itemId,
-    ).toMatch(/existing course item/i);
+    ).toMatch(/existing task/i);
     expect(
       validateManualSessionForm(
         { ...baseForm, itemId: 'final-project-plan', unitId: 'week-0' },

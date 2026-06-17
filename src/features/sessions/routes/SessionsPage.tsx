@@ -106,7 +106,7 @@ async function loadSessionsPageData(
 
     if (item === null) {
       throw new Error(
-        'The requested prefilled course item could not be found in the local catalog.',
+        'The requested prefilled task could not be found in the local catalog.',
       );
     }
 
@@ -268,8 +268,7 @@ export function SessionsPage() {
                 </Link>
               </div>
             }
-            description="This route stays offline and only reads local catalog and study-session records."
-            eyebrow="Study ledger"
+            description="Log study effort against a task from the course."
             title="Study sessions"
           />
           <ErrorState
@@ -293,12 +292,11 @@ export function SessionsPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="Opening the local course catalog and saved study-session ledger."
-          eyebrow="Study ledger"
+          description="Opening the local course catalog and your saved study sessions."
           title="Study sessions"
         />
         <LoadingState
-          description="Reading saved study-session records and available course items."
+          description="Reading saved study sessions and available tasks."
           title="Loading study sessions"
         />
       </section>
@@ -366,8 +364,8 @@ export function SessionsPage() {
       );
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
       setToast({
-        description: `One study session was saved locally as logged effort. No item progress or media history changed.${xpToastSuffix}`,
-        title: 'Study session saved',
+        description: `Session saved.${xpToastSuffix}`,
+        title: 'Session saved',
         tone: 'success',
       });
       resetPageStateAfterSave();
@@ -405,8 +403,8 @@ export function SessionsPage() {
       );
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
       setToast({
-        description: `One live study session was saved locally as logged effort. No completion or watched-range data was inferred.${xpToastSuffix}`,
-        title: 'Study session saved',
+        description: `Session saved.${xpToastSuffix}`,
+        title: 'Session saved',
         tone: 'success',
       });
       resetPageStateAfterSave();
@@ -437,17 +435,16 @@ export function SessionsPage() {
                 className="button button--secondary button--md"
                 to={lockedItemPath}
               >
-                Open item detail
+                View task
               </Link>
             ) : null}
           </div>
         }
         description={
           lockedUnitId === null
-            ? 'Log real study effort against one existing course item. Sessions stay append-only and never imply completion.'
-            : `This route is prefilled from one course item. The unit stays locked to that item while you log effort for ${prefillItemTitle ?? 'the selected item'}.`
+            ? 'Log study effort against a task from the course. Sessions stay append-only and never imply completion.'
+            : `Prefilled from one course task. The unit stays locked to that task while you log effort for ${prefillItemTitle ?? 'the selected task'}.`
         }
-        eyebrow="Study ledger"
         meta={
           <>
             <Badge tone="accent">Logged effort only</Badge>
@@ -557,7 +554,7 @@ export function SessionsPage() {
                   <FormField
                     controlId="live-session-item"
                     error={liveErrors.itemId}
-                    label="Item"
+                    label="What were you working on?"
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -585,7 +582,7 @@ export function SessionsPage() {
                         placeholder={
                           liveSession.unitId.trim().length === 0
                             ? 'Choose a unit first'
-                            : 'Choose a course item'
+                            : 'Choose a lecture or task'
                         }
                         value={liveSession.itemId}
                       />
@@ -593,7 +590,6 @@ export function SessionsPage() {
                   </FormField>
                 </div>
                 <div className="course-detail-note">
-                  <p className="course-detail-note__label">Storage rule</p>
                   <p>
                     Unfinished live sessions are not saved. Only explicit finish
                     and save writes one study-session row.
@@ -635,12 +631,11 @@ export function SessionsPage() {
                     <dd>{catalog.unitById.get(liveSession.unitId)?.title}</dd>
                   </div>
                   <div>
-                    <dt>Item</dt>
+                    <dt>Working on</dt>
                     <dd>{catalog.itemById.get(liveSession.itemId)?.title}</dd>
                   </div>
                 </dl>
                 <div className="course-detail-note">
-                  <p className="course-detail-note__label">Storage rule</p>
                   <p>
                     Unfinished sessions stay in memory only. Reloading or
                     discarding this timer writes nothing.
@@ -699,7 +694,7 @@ export function SessionsPage() {
               <div className="course-detail-form">
                 <div className="sessions-review">
                   <div>
-                    <p className="sessions-review__label">Derived duration</p>
+                    <p className="sessions-review__label">Time logged</p>
                     <p className="sessions-review__value">
                       {liveSession.durationMinutes} min logged effort
                     </p>
@@ -885,7 +880,7 @@ export function SessionsPage() {
                   <FormField
                     controlId="manual-session-item"
                     error={manualErrors.itemId}
-                    label="Item"
+                    label="What were you working on?"
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -912,7 +907,7 @@ export function SessionsPage() {
                         placeholder={
                           manualForm.unitId.trim().length === 0
                             ? 'Choose a unit first'
-                            : 'Choose a course item'
+                            : 'Choose a lecture or task'
                         }
                         value={manualForm.itemId}
                       />
@@ -1045,7 +1040,7 @@ export function SessionsPage() {
                 </FormField>
                 <div className="course-detail-form__actions">
                   <Button loading={manualIsSaving} size="lg" type="submit">
-                    Save logged effort
+                    Save session
                   </Button>
                 </div>
               </form>
@@ -1054,12 +1049,12 @@ export function SessionsPage() {
         </div>
         <Card
           description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
-          title="Saved session ledger"
+          title="Your saved sessions"
         >
           {ledgerRows.length === 0 ? (
             <EmptyState
               description="No study sessions have been logged yet."
-              eyebrow="Local ledger"
+              eyebrow="Sessions"
               title="No study sessions logged"
             />
           ) : (
@@ -1133,8 +1128,7 @@ export function SessionsPage() {
       >
         <p>
           This action clears the current live timer, notes, and blockers draft.
-          Unfinished study sessions are represented by absence, not by partial
-          saved rows.
+          Nothing is saved until you finish and save explicitly.
         </p>
       </Dialog>
       {toast ? (

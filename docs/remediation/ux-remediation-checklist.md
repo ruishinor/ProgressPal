@@ -6,13 +6,13 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                                       |
-| ---------------------- | ----------------------------------------------------------- |
-| Branch                 | `ux/00-remediation-roadmap`                                 |
-| Baseline commit        | `34e0be7 Surface CS50 course content in tracker`            |
-| Current module         | UX-00 — Adversarial UX audit and baseline lock              |
-| Last completed subtask | Full validation suite passed; checklist updated             |
-| Status                 | UX-00 complete; all validation passed; awaiting commit approval |
+| Field                  | Value                                                           |
+| ---------------------- | --------------------------------------------------------------- |
+| Branch                 | `ux/01-plain-language-terminology`                              |
+| Baseline commit        | `5364aae Document ProgressPal UX remediation roadmap`           |
+| Current module         | UX-01 — Plain-language terminology cleanup                      |
+| Last completed subtask | Full validation suite passed; checklist updated                 |
+| Status                 | UX-01 complete; all validation passed; awaiting commit approval |
 
 ---
 
@@ -123,12 +123,20 @@ Document ProgressPal UX remediation roadmap
 
 ---
 
+## Proposed commit message (UX-01)
+
+```
+Replace technical course-detail language
+```
+
+---
+
 ## Module status tracker
 
 | Module | Goal                               | Status      | Commit  |
 | ------ | ---------------------------------- | ----------- | ------- |
-| UX-00  | Audit and baseline lock            | In progress | pending |
-| UX-01  | Plain-language terminology cleanup | Not started | —       |
+| UX-00  | Audit and baseline lock            | Complete    | 5364aae |
+| UX-01  | Plain-language terminology cleanup | Complete    | pending |
 | UX-02  | Learner-first lecture page         | Not started | —       |
 | UX-03  | Learner-first problem set page     | Not started | —       |
 | UX-04  | Stronger XP/achievement/level loop | Not started | —       |
@@ -201,18 +209,114 @@ All hits in user-facing strings must be removed or justified. Internal code name
 
 ### UX-00 — 2026-06-17
 
-| Command                  | Result | Notes                                                                                                                          |
-| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `git status -sb`         | PASS   | Only `docs/remediation/` untracked; no runtime changes                                                                        |
-| `npm run lint`           | PASS   | Zero warnings                                                                                                                  |
-| `npm run format:check`   | PASS   | After running `prettier --write docs/remediation/` to fix table formatting in new .md files                                   |
-| `npm run typecheck`      | PASS   | Zero errors                                                                                                                    |
-| `npm run build`          | PASS   | All chunks under 600 kB; 195 modules transformed                                                                               |
-| `npm run test`           | PASS   | 32 test files / 208 tests passed                                                                                               |
-| `npm run test:e2e`       | PASS   | 24/24 Playwright tests passed using `--workers=2`; managed-server method (known environment teardown limitation documented)    |
-| `npm run check:circular` | PASS   | No circular dependencies                                                                                                       |
-| `npm run audit`          | PASS   | 0 vulnerabilities                                                                                                              |
-| Forbidden-term search    | PASS   | All hits in "forbidden/current" columns or grep-pattern strings; none appear as recommended UI language                        |
-| Content review pass 1    | PASS   | No mojibake; no spelling errors; no overclaims; no affiliation language; roadmap matches actual local-only CS50-only product   |
+| Command                  | Result | Notes                                                                                                                              |
+| ------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `git status -sb`         | PASS   | Only `docs/remediation/` untracked; no runtime changes                                                                             |
+| `npm run lint`           | PASS   | Zero warnings                                                                                                                      |
+| `npm run format:check`   | PASS   | After running `prettier --write docs/remediation/` to fix table formatting in new .md files                                        |
+| `npm run typecheck`      | PASS   | Zero errors                                                                                                                        |
+| `npm run build`          | PASS   | All chunks under 600 kB; 195 modules transformed                                                                                   |
+| `npm run test`           | PASS   | 32 test files / 208 tests passed                                                                                                   |
+| `npm run test:e2e`       | PASS   | 24/24 Playwright tests passed using `--workers=2`; managed-server method (known environment teardown limitation documented)        |
+| `npm run check:circular` | PASS   | No circular dependencies                                                                                                           |
+| `npm run audit`          | PASS   | 0 vulnerabilities                                                                                                                  |
+| Forbidden-term search    | PASS   | All hits in "forbidden/current" columns or grep-pattern strings; none appear as recommended UI language                            |
+| Content review pass 1    | PASS   | No mojibake; no spelling errors; no overclaims; no affiliation language; roadmap matches actual local-only CS50-only product       |
 | Content review pass 2    | PASS   | Forbidden terms listed as problems not recommendations; all module descriptions match actual planned scope; no CS50 content copied |
-| Content review pass 3    | PASS   | Five-second test passes for each doc; plain language throughout; no security/encryption overclaims                             |
+| Content review pass 3    | PASS   | Five-second test passes for each doc; plain language throughout; no security/encryption overclaims                                 |
+
+### UX-01 — 2026-06-17 (initial pass)
+
+E2E method: `npx playwright test --workers=2` (managed-server; `npm run test:e2e` has known teardown limitation).
+
+| Command                  | Result | Notes                                                                                                                                     |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`           | PASS   | Zero warnings                                                                                                                             |
+| `npm run format:check`   | PASS   | 10 files needed `prettier --write` after initial edits; all clean on re-check                                                             |
+| `npm run typecheck`      | PASS   | Zero errors                                                                                                                               |
+| `npm run build`          | PASS   | 195 modules transformed; all chunks under 600 kB                                                                                          |
+| `npm run test`           | PASS   | 32 test files / 208 tests. One miss fixed: `'Item'` label → `'What were you working on?'` in `App.test.tsx`                               |
+| E2E `--workers=2`        | PASS   | 24/24. Four misses fixed: `'Save logged effort'` → `'Save session'`; `'Study session saved'` → exact `'Session saved'`; strict-mode fixes |
+| `npm run check:circular` | PASS   | No circular dependencies                                                                                                                  |
+| `npm run audit`          | PASS   | 0 vulnerabilities                                                                                                                         |
+| Forbidden-term search    | FAIL   | Missed: `slices` in progress engine label; `course item` in loading/error/validation copy; `seeded` in CoursePage; video segments description |
+
+### UX-01 acceptance correction — 2026-06-18
+
+Corrections after acceptance review identified 4 failed criteria:
+
+1. `slices complete` / `slices planned` in learner-visible summary labels → `segments`
+2. ContentDetailPage loading/error copy still said "course item" → "course task"
+3. CoursePage loading/error copy still said "seeded" and "item-progress" → plain language
+4. Video segments card description still said "this timeline" / "saved local ranges" → plain language
+
+Additional issues found during correction-round forbidden-term scan:
+- `SliceProgressBar.tsx`: `"No slices defined yet."` and `"planned slices are complete."` → `segments`
+- `detailModel.ts`: `"Finish its slices through logging…"` → `"segments"`
+- `engine.ts:250`: `slices planned` → `segments planned`
+- `CourseMapSummary.tsx`: `"seeded locally"` → `"built in"`
+- `ImportBackupControl.tsx`: `"course item statuses"` → `"task statuses"`
+- `SessionsPage.tsx`: 4 learner-visible `"course item"` strings → `"task"` / `"course task"`
+- `sessions/model.ts`: 3 validation errors with `"course item"` / `"selected item"` → plain language
+- `achievements/definitions.ts`: `"first course item of any kind"` → `"first task of any kind"`
+- Test files: `slices complete`/`slices planned` updated in 8 test files; `existing course item` assertion updated in `sessionsModel.test.ts`
+
+| Command                  | Result | Notes                                                             |
+| ------------------------ | ------ | ----------------------------------------------------------------- |
+| `npm run lint`           | PASS   | Zero warnings                                                     |
+| `npm run format:check`   | PASS   | One file reformatted (`SliceProgressBar.tsx`)                     |
+| `npm run typecheck`      | PASS   | Zero errors                                                       |
+| `npm run build`          | PASS   | 195 modules; all chunks under 600 kB                              |
+| `npm run test`           | PASS   | 32 test files / 208 tests                                         |
+| E2E `--workers=2`        | PASS   | 24/24                                                             |
+| `npm run check:circular` | PASS   | No circular dependencies                                          |
+| `npm run audit`          | PASS   | 0 vulnerabilities                                                 |
+| Forbidden-term search    | PASS   | All remaining hits are internal (see below)                       |
+
+#### Remaining forbidden-term hits — all acceptable
+
+| Term | Location | Reason acceptable |
+| ---- | -------- | ----------------- |
+| `slice` / `slices` / `contentSlices` | `repositories.ts`, `engine.ts`, `model.ts`, `domain/types.ts`, `backup/envelope.ts` | Schema type names, DB field names, internal variable names; never rendered as UI text |
+| `ContentSlice` / `ContentSliceSchema` | Type declarations | Internal TypeScript types; not learner-facing |
+| `"Completed before slice logging"` | `engine.ts:246` | Legacy migration label for pre-segment-tracking completions; visible only in edge case where user completed before segments existed; deferred to UX-02 evaluation |
+| `InsightsAchievementTimeline` | `insights/model.ts` | Internal TypeScript type name |
+| `"Achievement timeline"` | `InsightsPage.tsx:463` | Card title using "timeline" as ordinary English (chronological list); distinct from the removed jargon use `"Slice timeline"` / `"this timeline reflects"` |
+| `"Course item"` (variations) | `repositories.ts:361,988,1128,1149,1782,2250,2325,2439` | Internal debug/assertion strings in DB parsing code; `'Course item'` fallback in XP `reason` field (DB metadata); never rendered in learner UI |
+| `"course item id"` | `domain/schemas.ts:441` | Internal Zod error label for malformed data; not shown in normal UI flow |
+| `seeded` | README files, code comments | Internal documentation; not rendered in UI |
+| `item-progress` | `course/README.md` | Internal README |
+| `"No long-form item is in progress right now."` | `DashboardPage.tsx:379` | Resume lecture card empty state; "long-form item" not in forbidden list; acceptable for now |
+| `"route"` | `PlaceholderPage.tsx:50,64` | Placeholder pages for deferred modules; will be replaced by UX-02+; not normal UI flow |
+
+#### Files changed in UX-01
+
+| File                                                    | Type      | Change summary                                                              |
+| ------------------------------------------------------- | --------- | --------------------------------------------------------------------------- |
+| `src/features/course/routes/ContentDetailPage.tsx`      | Source    | ~30 label/copy changes; two helper fns for type-specific card titles        |
+| `src/features/course/components/CourseUnitCard.tsx`     | Source    | `Unit rollup` → `Week progress`; `items` → `tasks`; `Open detail` → `Open`  |
+| `src/features/course/components/CourseMapSummary.tsx`   | Source    | Description and `Items` → `Tasks` copy updates                              |
+| `src/features/course/routes/CoursePage.tsx`             | Source    | Description removing `evidence`, `confidence`, `watched ranges`             |
+| `src/features/sessions/routes/SessionsPage.tsx`         | Source    | ~15 label/copy changes; eyebrows removed; `Save session` unified            |
+| `src/features/dashboard/routes/DashboardPage.tsx`       | Source    | ~10 label/copy changes; `What's next?`, `Resume lecture` card titles        |
+| `src/features/insights/routes/InsightsPage.tsx`         | Source    | ~8 label/copy changes; eyebrows removed; plain descriptions                 |
+| `src/features/achievements/routes/AchievementsPage.tsx` | Source    | Eyebrows removed; plain descriptions                                        |
+| `e2e/achievements.spec.ts`                              | E2E test  | `Confidence` → `How sure are you?`; `Save local progress` → `Save progress` |
+| `e2e/dashboard.spec.ts`                                 | E2E test  | 10+ label assertions updated to match new copy                              |
+| `e2e/insights.spec.ts`                                  | E2E test  | 4 label assertions updated                                                  |
+| `e2e/sessions.spec.ts`                                  | E2E test  | `Save logged effort` → `Save session`; toast checks with `{ exact: true }`  |
+| `e2e/settings.spec.ts`                                  | E2E test  | 4 label assertions in shared helper updated                                 |
+| `e2e/xp.spec.ts`                                        | E2E test  | `Confidence` → `How sure are you?`; `Save session`; exact text match        |
+| `tests/app/App.test.tsx`                                | Unit test | `Item` → `What were you working on?`; card title assertions updated         |
+
+#### Scope risk assessment
+
+No schema, database, route, XP rule, achievement rule, service-worker, or dependency change. All changes are copy/label only. Backup/import/reset contracts unaffected (confirmed by settings E2E). Safe to commit.
+
+#### Remaining forbidden-term hits (acceptable)
+
+- `ledger` / `session-ledger-list` — Internal CSS classes, TypeScript types, function names; never rendered as text
+- `confidence` / `parsedConfidence` — Internal field names for the schema-backed `confidence` column; UI label is `How sure are you?`
+- `watched range` in `engine.ts`, `progress/README.md` — Code comments and internal docs
+- `Content detail` in `ContentDetailPage.tsx:340` — `console.error` developer log
+- `Course item` in `repositories.ts:361,2250` — Debug assertion string and XP transaction fallback; not rendered in learner UI

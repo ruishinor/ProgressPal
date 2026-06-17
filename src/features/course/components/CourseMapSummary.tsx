@@ -23,7 +23,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
         variant="accent"
       >
         <ProgressBar
-          helperText={`${courseMap.completedRequiredItemCount} of ${courseMap.requiredItemCount} required items complete`}
+          helperText={`${courseMap.completedRequiredItemCount} of ${courseMap.requiredItemCount} required tasks complete`}
           label="Course completion"
           tone={courseMap.blockedItemCount > 0 ? 'warning' : 'accent'}
           value={courseMap.completionPercent}
@@ -37,7 +37,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
         </div>
       </Card>
       <Card
-        description="The CS50x 2026 tracker catalog is seeded locally and ready to track."
+        description="The CS50x 2026 course list is built in and ready to track."
         title="Catalog"
       >
         <dl className="course-map-stat-list">
@@ -46,7 +46,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
             <dd>{courseMap.unitCount}</dd>
           </div>
           <div>
-            <dt>Items</dt>
+            <dt>Tasks</dt>
             <dd>{courseMap.itemCount}</dd>
           </div>
           <div>
@@ -56,7 +56,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
         </dl>
       </Card>
       <Card
-        description="Item detail and watched-range logging use this ordered catalog, while dashboard and insights derive from your saved local records."
+        description="Open any task to track your progress. Your dashboard and insights update from your saved records."
         title="Current focus"
       >
         <div className="course-map-focus-card">

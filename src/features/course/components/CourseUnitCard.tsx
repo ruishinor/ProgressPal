@@ -26,8 +26,8 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
     >
       <div className="course-unit-card__header">
         <ProgressBar
-          helperText={`${unit.completedRequiredItemCount} of ${unit.requiredItemCount} required items complete`}
-          label="Unit rollup"
+          helperText={`${unit.completedRequiredItemCount} of ${unit.requiredItemCount} required tasks complete`}
+          label="Week progress"
           showValue={unit.requiredItemCount > 0}
           tone={unit.statusVariant === 'blocked' ? 'warning' : 'accent'}
           value={unit.completionPercent}
@@ -36,7 +36,7 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
           <StatusPill variant={unit.statusVariant}>
             {unit.statusLabel}
           </StatusPill>
-          <Badge tone="neutral">{unit.itemCount} items</Badge>
+          <Badge tone="neutral">{unit.itemCount} tasks</Badge>
           <Badge tone="accent">{formatMinutes(unit.estimatedMinutes)}</Badge>
           {unit.optionalItemCount > 0 ? (
             <Badge tone="warning">{unit.optionalItemCount} optional</Badge>
@@ -75,7 +75,7 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
                 className="button button--quiet button--md"
                 to={getCourseItemDetailPath(item.id)}
               >
-                Open detail
+                Open
               </Link>
             </div>
           </li>

@@ -63,7 +63,7 @@ test.describe('XP Engine E2E Tests', () => {
     await page.locator('#manual-session-duration').fill('30');
     await page.locator('#manual-session-mode').selectOption('watching');
     await page.locator('#manual-session-notes').fill('Studying Week 0 Lecture');
-    await page.getByRole('button', { name: 'Save logged effort' }).click();
+    await page.getByRole('button', { name: 'Save session' }).click();
 
     // 3. Verify toast message contains "+10 XP!"
     await expect(page.getByText(/\+10 XP!/)).toBeVisible();
@@ -91,8 +91,8 @@ test.describe('XP Engine E2E Tests', () => {
 
     // 2. Select 'started' status and save (awards problem_set_started milestone: +20 XP)
     await page.getByLabel('Status').selectOption('started');
-    await page.getByLabel('Confidence').selectOption('3');
-    await page.getByRole('button', { name: 'Save local progress' }).click();
+    await page.getByLabel('How sure are you?').selectOption('3');
+    await page.getByRole('button', { name: 'Save progress' }).click();
 
     // Verify toast notification (+20 XP!)
     await expect(page.getByText(/\+20 XP!/)).toBeVisible();
@@ -102,12 +102,14 @@ test.describe('XP Engine E2E Tests', () => {
 
     // 3. Select 'completed' status first, because submitted/accepted are only transitionable from completed status
     await page.getByLabel('Status').selectOption('completed');
-    await page.getByRole('button', { name: 'Save local progress' }).click();
-    await expect(page.getByText(/Progress saved/)).toBeVisible();
+    await page.getByRole('button', { name: 'Save progress' }).click();
+    await expect(
+      page.getByText('Progress saved', { exact: true }),
+    ).toBeVisible();
 
     // 4. Select 'submitted' status and save (awards problem_set_submitted milestone: +75 XP)
     await page.getByLabel('Status').selectOption('submitted');
-    await page.getByRole('button', { name: 'Save local progress' }).click();
+    await page.getByRole('button', { name: 'Save progress' }).click();
 
     // Verify toast notification (+75 XP!)
     await expect(page.getByText(/\+75 XP!/)).toBeVisible();

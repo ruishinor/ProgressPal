@@ -59,7 +59,7 @@ export function SliceProgressBar({
       : Math.round((progressTotal / segments.length) * 100);
   const summary =
     segments.length === 0
-      ? 'No slices defined yet.'
+      ? 'No segments defined yet.'
       : `${completedCount} complete, ${activeCount} in progress, ${remainingCount} remaining.`;
 
   return (
@@ -68,7 +68,8 @@ export function SliceProgressBar({
         <div>
           <p className="slice-progress__label">{label}</p>
           <p className="slice-progress__helper">
-            {helperText ?? `${percentage}% of the planned slices are complete.`}
+            {helperText ??
+              `${percentage}% of the planned segments are complete.`}
           </p>
         </div>
         <span className="slice-progress__summary">{summary}</span>

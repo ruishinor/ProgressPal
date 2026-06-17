@@ -120,7 +120,7 @@ test('saves one live session, persists the ledger, and leaves non-session stores
   await page.locator('#live-session-blockers').fill('Context switch');
   await page.getByRole('button', { name: 'Save study session' }).click();
 
-  await expect(page.getByText('Study session saved')).toBeVisible();
+  await expect(page.getByText('Session saved', { exact: true })).toBeVisible();
   await expect(page.getByText('Week 0: Scratch - Lecture')).toBeVisible();
   await expect(
     page.locator('.session-ledger-list').getByText('Watching'),
@@ -157,20 +157,20 @@ test('rejects invalid manual input and writes nothing for discard or reload-mid-
   const beforeStores = await readSessionStores(page);
 
   await page.locator('#manual-session-duration').fill('0');
-  await page.getByRole('button', { name: 'Save logged effort' }).click();
+  await page.getByRole('button', { name: 'Save session' }).click();
   await expect(
     page.getByText('Enter a whole number of minutes between 1 and 720.'),
   ).toBeVisible();
 
   await page.locator('#manual-session-duration').fill('9999');
-  await page.getByRole('button', { name: 'Save logged effort' }).click();
+  await page.getByRole('button', { name: 'Save session' }).click();
   await expect(
     page.getByText('Enter a whole number of minutes between 1 and 720.'),
   ).toBeVisible();
 
   await page.locator('#manual-session-duration').fill('25');
   await page.locator('#manual-session-mode').selectOption('');
-  await page.getByRole('button', { name: 'Save logged effort' }).click();
+  await page.getByRole('button', { name: 'Save session' }).click();
   await expect(
     page.getByText('Choose a session mode before saving.'),
   ).toBeVisible();

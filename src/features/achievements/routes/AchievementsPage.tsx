@@ -114,8 +114,7 @@ export function AchievementsPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="This route reads only validated achievement definitions and locally persisted unlocks."
-          eyebrow="Achievement record"
+          description="This page shows your earned and locked achievements."
           title="Achievements"
         />
         <ErrorState
@@ -144,12 +143,11 @@ export function AchievementsPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is reading validated achievement definitions and any locally saved unlocks."
-          eyebrow="Achievement record"
+          description="Loading your achievements."
           title="Achievements"
         />
         <LoadingState
-          description="Opening the local achievement catalog and merging it with saved unlocks."
+          description="Opening your achievement records."
           title="Loading achievements"
         />
       </section>
@@ -161,8 +159,7 @@ export function AchievementsPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="Achievements unlock only from your explicit saves and are derived from your local progress, sessions, and media history. Nothing here is synced. This page is read-only."
-        eyebrow="Achievement record"
+        description="Achievements unlock when you save progress and complete work. Everything is stored on this device."
         meta={
           <StatusPill
             variant={unlockedCount > 0 ? 'completed' : 'notStarted'}

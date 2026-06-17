@@ -247,7 +247,7 @@ function buildSummaryLine(view: Omit<LongFormProgressView, 'summaryLine'>) {
   }
 
   if (!view.hasProgress) {
-    return `${view.sliceCount} slices planned`;
+    return `${view.sliceCount} segments planned`;
   }
 
   const parts = [view.watchedSummaryLabel, view.sliceProgressLabel];
@@ -328,7 +328,7 @@ export function buildLongFormProgressView(
         : `Resume at ${formatMediaTimestamp(resumeSecond)}`,
     resumeSecond,
     sliceCount,
-    sliceProgressLabel: `${completedSliceCount} of ${sliceCount} slices complete`,
+    sliceProgressLabel: `${completedSliceCount} of ${sliceCount} segments complete`,
     watchedSeconds,
     watchedSummaryLabel: `${formatLoggedMinutes(watchedSeconds)} logged`,
   };

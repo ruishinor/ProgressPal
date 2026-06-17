@@ -121,7 +121,7 @@ export function CoursePage() {
       return (
         <section className="page-section">
           <PageHeader
-            description="This route depends only on the seeded local catalog and saved progress records."
+            description="This page uses the built-in CS50 course list and your saved progress."
             eyebrow="CS50 course map"
             title="Course Map"
           />
@@ -150,12 +150,12 @@ export function CoursePage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is reading the seeded course catalog and any saved item-progress records."
+          description="The app is opening the CS50 course list and your saved progress."
           eyebrow="CS50 course map"
           title="Course Map"
         />
         <LoadingState
-          description="Opening the local course catalog and assembling ordered progress rollups."
+          description="Building your course map."
           title="Loading course map"
         />
       </section>
@@ -175,7 +175,7 @@ export function CoursePage() {
             </Link>
           </div>
         }
-        description="The seeded CS50 catalog renders from local persistence. Each item links to a detail screen where you can save status, confidence, notes, evidence, and watched ranges for long-form material."
+        description="Open any task to save your progress, notes, and video history. Saves update your course map, dashboard, and insights."
         eyebrow="CS50 course map"
         meta={
           <>

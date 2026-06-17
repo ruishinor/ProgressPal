@@ -231,19 +231,23 @@ test('opens the content-detail route, logs a watched range, and reflects it afte
   await page.goto('/course');
   await page
     .getByTestId('course-item-week-0-lecture')
-    .getByRole('link', { name: 'Open detail' })
+    .getByRole('link', { name: 'Open' })
     .click();
 
   await expect(page).toHaveURL(/\/course\/week-0-lecture$/);
   await expect(
     page.getByRole('heading', { name: 'Week 0: Scratch - Lecture' }),
   ).toBeVisible();
-  await page.getByLabel('Logging note').fill('Saved from Playwright.');
-  await page.getByRole('button', { name: 'Save watched range' }).click();
+  await page.getByLabel('Session Notes').fill('Saved from Playwright.');
+  await page.getByRole('button', { name: 'Save session' }).click();
 
-  await expect(page.getByText('Last range 0:00-20:00 (20 min)')).toBeVisible();
+  await expect(
+    page.getByText('Last watched 0:00-20:00 (20 min)'),
+  ).toBeVisible();
   await page.reload();
-  await expect(page.getByText('Last range 0:00-20:00 (20 min)')).toBeVisible();
+  await expect(
+    page.getByText('Last watched 0:00-20:00 (20 min)'),
+  ).toBeVisible();
 
   await page.goto('/course');
   await expect(page.getByTestId('course-item-week-0-lecture')).toContainText(
@@ -409,7 +413,7 @@ test('renders the seeded course map and reflects persisted progress after reload
     'Week 0: Scratch',
   );
   await expect(page.getByTestId('course-unit-week-0')).toContainText(
-    '1 of 2 required items complete',
+    '1 of 2 required tasks complete',
   );
   await expect(page.getByTestId('course-item-week-0-lecture')).toContainText(
     'Completed',
@@ -418,7 +422,7 @@ test('renders the seeded course map and reflects persisted progress after reload
   await page.reload();
 
   await expect(page.getByTestId('course-unit-week-0')).toContainText(
-    '1 of 2 required items complete',
+    '1 of 2 required tasks complete',
   );
   expect(consoleIssues).toEqual([]);
 });
@@ -456,7 +460,7 @@ test('renders persisted long-form progress summaries on the course map after rel
   await page.goto('/course');
 
   await expect(page.getByTestId('course-item-week-0-lecture')).toContainText(
-    '20 min logged · 1 of 8 slices complete · Resume at 20:00',
+    '20 min logged · 1 of 8 segments complete · Resume at 20:00',
   );
   await expect(page.getByTestId('course-item-week-0-lecture')).toContainText(
     'Started',
@@ -465,7 +469,7 @@ test('renders persisted long-form progress summaries on the course map after rel
   await page.reload();
 
   await expect(page.getByTestId('course-item-week-0-lecture')).toContainText(
-    '20 min logged · 1 of 8 slices complete · Resume at 20:00',
+    '20 min logged · 1 of 8 segments complete · Resume at 20:00',
   );
   expect(consoleIssues).toEqual([]);
 });
@@ -490,12 +494,14 @@ test('renders an accessible dashboard derived from a real saved activity flow', 
   await page.goto('/course');
   await page
     .getByTestId('course-item-week-0-lecture')
-    .getByRole('link', { name: 'Open detail' })
+    .getByRole('link', { name: 'Open' })
     .click();
   await expect(page).toHaveURL(/\/course\/week-0-lecture$/);
-  await page.getByLabel('Logging note').fill('Saved from Playwright.');
-  await page.getByRole('button', { name: 'Save watched range' }).click();
-  await expect(page.getByText('Last range 0:00-20:00 (20 min)')).toBeVisible();
+  await page.getByLabel('Session Notes').fill('Saved from Playwright.');
+  await page.getByRole('button', { name: 'Save session' }).click();
+  await expect(
+    page.getByText('Last watched 0:00-20:00 (20 min)'),
+  ).toBeVisible();
 
   // Open the dashboard so it reads the freshly persisted activity.
   await page.goto('/dashboard');
@@ -506,10 +512,10 @@ test('renders an accessible dashboard derived from a real saved activity flow', 
   // Every dashboard section renders from local data.
   for (const sectionHeading of [
     'Course progress',
-    'Continue next',
+    "What's next?",
     'XP',
     'Achievements',
-    'Resume long-form',
+    'Resume lecture',
     'Needs attention',
     'Study sessions',
     'Recent activity',
@@ -521,18 +527,18 @@ test('renders an accessible dashboard derived from a real saved activity flow', 
 
   // A few stable, non-brittle derived values (exhaustive number checks live in
   // the model/app unit tests, not here).
-  await expect(page.getByText(/required items complete/)).toBeVisible();
+  await expect(page.getByText(/required tasks complete/)).toBeVisible();
   await expect(page.getByText('Resume at 20:00')).toBeVisible();
   await expect(page.getByText('No local activity recorded yet.')).toHaveCount(
     0,
   );
 
   // Actionable card links point at the right local routes.
-  await expect(page.getByRole('link', { name: 'Open item' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Start' })).toHaveAttribute(
     'href',
     '/course/week-0-lecture',
   );
-  await expect(page.getByRole('link', { name: 'Resume item' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Resume' })).toHaveAttribute(
     'href',
     '/course/week-0-lecture',
   );

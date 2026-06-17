@@ -103,7 +103,7 @@ const mediaStopReasonOptions: readonly {
   label: string;
   value: MediaStopReason;
 }[] = [
-  { label: 'Completed slice', value: 'completed_slice' },
+  { label: 'Completed segment', value: 'completed_slice' },
   { label: 'Reached limit', value: 'reached_limit' },
   { label: 'Interruption', value: 'interruption' },
   { label: 'Confusion', value: 'confusion' },
@@ -137,6 +137,19 @@ const assetTypeLabels = {
   shorts_group: 'Shorts group',
   video: 'Video',
 } as const;
+
+function getItemContextTitle(itemType: CourseItem['type']): string {
+  if (itemType === 'problem_set') return 'About this problem set';
+  if (itemType === 'lab') return 'About this lab';
+  if (itemType === 'lecture') return 'About this lecture';
+  return 'About this content';
+}
+
+function getLogCardTitle(itemType: CourseItem['type']): string {
+  return itemType === 'lecture' || itemType === 'shorts'
+    ? 'Log Lecture'
+    : 'Log Session';
+}
 
 function getAssetSummaryDescription(asset: ContentDetailData['asset']) {
   if (asset === null) {
@@ -236,7 +249,7 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
 
   if (item === null) {
     throw new Error(
-      'The requested course item was not found in the local catalog.',
+      'The requested course task was not found in the local catalog.',
     );
   }
 
@@ -247,7 +260,7 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
   ]);
 
   if (unit === null) {
-    throw new Error('The parent unit for this course item could not be found.');
+    throw new Error('The week for this course task could not be found.');
   }
 
   const asset = assets[0] ?? null;
@@ -392,9 +405,8 @@ export function ContentDetailPage() {
                 </Link>
               </div>
             }
-            description="The detail route depends only on local seeded catalog data and saved progress records."
-            eyebrow="Course item"
-            title="Content detail"
+            description="This page reads your local catalog and saved progress."
+            title="Course content"
           />
           <ErrorState
             action={
@@ -410,7 +422,7 @@ export function ContentDetailPage() {
             description={
               pageState.error ?? 'Unknown local content-detail error.'
             }
-            title="Content detail could not be opened"
+            title="Course content could not be opened"
           />
         </section>
       );
@@ -419,13 +431,12 @@ export function ContentDetailPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="Opening the seeded item, its local progress record, and any saved long-form asset history."
-          eyebrow="Course item"
-          title="Content detail"
+          description="Opening this course task and your saved progress."
+          title="Course content"
         />
         <LoadingState
-          description="Reading the selected item and assembling its saved local detail view."
-          title="Loading content detail"
+          description="Reading this course task and your saved progress."
+          title="Loading course content"
         />
       </section>
     );
@@ -526,7 +537,7 @@ export function ContentDetailPage() {
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
 
       setToast({
-        description: `The item status, notes, and evidence were saved to local persistence.${xpToastSuffix}`,
+        description: `Progress saved.${xpToastSuffix}`,
         title: 'Progress saved',
         tone: 'success',
       });
@@ -542,7 +553,7 @@ export function ContentDetailPage() {
                 submit:
                   saveError instanceof Error
                     ? saveError.message
-                    : 'The progress record could not be saved.',
+                    : 'Could not save your progress.',
               },
               isSaving: false,
             },
@@ -630,10 +641,13 @@ export function ContentDetailPage() {
         0,
       );
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
+      const watchedMin = Math.round((endSecond - startSecond) / 60);
+      const minutesSuffix =
+        watchedMin > 0 ? ` · ${watchedMin} min watched` : '';
 
       setToast({
-        description: `The watched range, stop reason, and resume point were saved locally.${xpToastSuffix}`,
-        title: 'Watched range saved',
+        description: `Session saved${minutesSuffix}.${xpToastSuffix}`,
+        title: 'Session saved',
         tone: 'success',
       });
       setReloadToken((currentToken) => currentToken + 1);
@@ -646,7 +660,7 @@ export function ContentDetailPage() {
               error:
                 saveError instanceof Error
                   ? saveError.message
-                  : 'The watched range could not be saved.',
+                  : 'Could not save your session.',
               isSaving: false,
             },
       );
@@ -719,8 +733,8 @@ export function ContentDetailPage() {
             </Link>
           </div>
         }
-        description="This screen is the write surface for one local course item. Saved progress updates the course map, dashboard, XP ledger, achievements, and insights through local derived state."
-        eyebrow="Course item"
+        description="Save your progress here. Updates your course map, dashboard, XP, and achievements."
+        eyebrow={detailView.typeLabel}
         meta={
           <>
             <StatusPill variant={detailView.statusVariant}>
@@ -752,8 +766,8 @@ export function ContentDetailPage() {
       ) : null}
       <div className="course-detail-grid">
         <Card
-          description="Saved here. Updates the course map, dashboard, XP ledger, achievements, and insights through local derived state."
-          title="Progress record"
+          description="Saved here. Updates your progress, XP, achievements, and dashboard."
+          title="Your progress"
           variant="accent"
         >
           <form
@@ -799,9 +813,9 @@ export function ContentDetailPage() {
               </FormField>
               <FormField
                 controlId="course-detail-confidence"
-                description="0 means unset. 5 means high confidence."
+                description="0 means unset. 5 means very sure."
                 error={progressForm?.errors.confidence}
-                label="Confidence"
+                label="How sure are you?"
                 required
               >
                 {({ describedBy, inputId, invalid }) => (
@@ -860,7 +874,7 @@ export function ContentDetailPage() {
               controlId="course-detail-evidence"
               description="Required when a problem set or lab is marked accepted."
               error={progressForm?.errors.evidenceText}
-              label="Evidence"
+              label="Submission note"
             >
               {({ describedBy, inputId, invalid }) => (
                 <TextArea
@@ -880,7 +894,7 @@ export function ContentDetailPage() {
                           },
                     )
                   }
-                  placeholder="What proves this is done?"
+                  placeholder="Example: submitted with submit50, or completed in the gradebook."
                   value={progressForm?.values.evidenceText ?? ''}
                 />
               )}
@@ -896,15 +910,12 @@ export function ContentDetailPage() {
                 size="lg"
                 type="submit"
               >
-                Save local progress
+                Save progress
               </Button>
             </div>
           </form>
         </Card>
-        <Card
-          description="The route stays bounded to the current item and whatever local progress has already been saved for it."
-          title="Item context"
-        >
+        <Card title={getItemContextTitle(detail.item.type)}>
           <dl className="course-map-stat-list">
             <div>
               <dt>Unit</dt>
@@ -919,7 +930,7 @@ export function ContentDetailPage() {
               <dd>{detailView.estimatedMinutesLabel}</dd>
             </div>
             <div>
-              <dt>Asset tracking</dt>
+              <dt>Content type</dt>
               <dd>
                 {detail.asset === null
                   ? 'Not applicable'
@@ -934,29 +945,20 @@ export function ContentDetailPage() {
               </p>
               <p>{detail.longFormDetail.progress.summaryLine}</p>
             </div>
-          ) : (
-            <div className="course-detail-note">
-              <p className="course-detail-note__label">Current boundary</p>
-              <p>
-                This item has no granular asset timeline yet, so the local
-                progress record above is the only mutable surface in this
-                module.
-              </p>
-            </div>
-          )}
+          ) : null}
         </Card>
       </div>
       {detail.asset !== null && detail.longFormDetail !== null ? (
         <Card
-          description="This timeline reflects only saved local ranges. It does not guess unwatched minutes."
-          title="Slice timeline"
+          description="This shows only the video time you saved. It does not guess what you watched."
+          title="Video segments"
         >
           <SliceProgressBar
             helperText={
               detail.longFormDetail.progress?.summaryLine ??
-              'No watched ranges saved yet.'
+              'No video progress saved yet.'
             }
-            label="Saved slice progress"
+            label="Video progress"
             segments={detail.longFormDetail.slices.map((slice) => ({
               completion: slice.completionPercent / 100,
               id: slice.id,
@@ -974,7 +976,7 @@ export function ContentDetailPage() {
             </Badge>
             {detail.longFormDetail.lastLoggedRangeLabel ? (
               <Badge tone="neutral">
-                Last range {detail.longFormDetail.lastLoggedRangeLabel}
+                Last watched {detail.longFormDetail.lastLoggedRangeLabel}
               </Badge>
             ) : null}
             {detail.longFormDetail.lastStopReasonLabel ? (
@@ -1013,8 +1015,8 @@ export function ContentDetailPage() {
       detail.longFormDetail !== null &&
       logForm !== null ? (
         <Card
-          description="Enter exact watched ranges. Duplicate exact ranges are blocked, and overlapping ranges are merged honestly later."
-          title="Log watched range"
+          description="Enter the video timestamps you watched. Duplicate exact ranges are blocked, and overlapping ranges are merged."
+          title={getLogCardTitle(detail.item.type)}
         >
           <form
             className="course-detail-form"
@@ -1053,7 +1055,7 @@ export function ContentDetailPage() {
                 }}
                 variant="secondary"
               >
-                Use next slice
+                Use next segment
               </Button>
               <Button
                 onClick={() => {
@@ -1104,7 +1106,7 @@ export function ContentDetailPage() {
               <FormField
                 controlId="content-log-start"
                 description="Use m:ss or h:mm:ss."
-                label="Start timestamp"
+                label="Started at"
                 required
               >
                 {({ describedBy, inputId, invalid }) => (
@@ -1131,7 +1133,7 @@ export function ContentDetailPage() {
               <FormField
                 controlId="content-log-end"
                 description="The saved range cannot exceed the asset duration."
-                label="End timestamp"
+                label="Stopped at"
                 required
               >
                 {({ describedBy, inputId, invalid }) => (
@@ -1235,7 +1237,7 @@ export function ContentDetailPage() {
             <FormField
               controlId="content-log-notes"
               description="Optional local note for why this stop point mattered."
-              label="Logging note"
+              label="Session Notes"
             >
               {({ describedBy, inputId, invalid }) => (
                 <TextArea
@@ -1258,7 +1260,7 @@ export function ContentDetailPage() {
               )}
             </FormField>
             <div className="course-detail-note">
-              <p className="course-detail-note__label">Watched range preview</p>
+              <p className="course-detail-note__label">Watched</p>
               <p>
                 {watchedRangeSeconds === null
                   ? 'Enter a valid start and end timestamp to preview the range.'
@@ -1272,7 +1274,7 @@ export function ContentDetailPage() {
             ) : null}
             <div className="course-detail-form__actions">
               <Button loading={logForm.isSaving} size="lg" type="submit">
-                Save watched range
+                Save session
               </Button>
             </div>
           </form>

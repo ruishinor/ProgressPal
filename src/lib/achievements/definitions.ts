@@ -45,7 +45,7 @@ const rawAchievementDefinitions: RawAchievementDefinition[] = [
   {
     id: 'first-step',
     title: 'First Step',
-    description: 'Complete your first course item of any kind.',
+    description: 'Complete your first task of any kind.',
     category: 'course_progress',
     ruleType: 'first_item_completed',
     ruleConfig: {},

@@ -24,12 +24,14 @@ async function logWatchedRangeWithNote(page: Page, note: string) {
   await page.goto('/course');
   await page
     .getByTestId('course-item-week-0-lecture')
-    .getByRole('link', { name: 'Open detail' })
+    .getByRole('link', { name: 'Open' })
     .click();
   await expect(page).toHaveURL(/\/course\/week-0-lecture$/);
-  await page.getByLabel('Logging note').fill(note);
-  await page.getByRole('button', { name: 'Save watched range' }).click();
-  await expect(page.getByText('Last range 0:00-20:00 (20 min)')).toBeVisible();
+  await page.getByLabel('Session Notes').fill(note);
+  await page.getByRole('button', { name: 'Save session' }).click();
+  await expect(
+    page.getByText('Last watched 0:00-20:00 (20 min)'),
+  ).toBeVisible();
 }
 
 async function readLedgerCounts(page: Page) {

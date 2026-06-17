@@ -132,7 +132,7 @@ describe('progress feature model', () => {
       nextSliceLabel: '20:00-40:00',
       resumeLabel: 'Resume at 30:00',
       sliceCount: 6,
-      summaryLine: '30 min logged · 1 of 6 slices complete · Resume at 30:00',
+      summaryLine: '30 min logged · 1 of 6 segments complete · Resume at 30:00',
       watchedSeconds: 1800,
     });
   });
@@ -143,7 +143,7 @@ describe('progress feature model', () => {
     expect(progressMap.get('week-0-lecture')).toMatchObject({
       completionPercent: 0,
       hasProgress: false,
-      summaryLine: '6 slices planned',
+      summaryLine: '6 segments planned',
     });
   });
 

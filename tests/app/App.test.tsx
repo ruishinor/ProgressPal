@@ -94,7 +94,7 @@ describe('App', () => {
     const weekZeroUnit = await screen.findByTestId('course-unit-week-0');
 
     expect(
-      within(weekZeroUnit).getByText('1 of 2 required items complete'),
+      within(weekZeroUnit).getByText('1 of 2 required tasks complete'),
     ).toBeInTheDocument();
     expect(
       within(screen.getByTestId('course-item-week-0-lecture')).getByText(
@@ -139,7 +139,7 @@ describe('App', () => {
 
     expect(
       within(lectureRow).getByText(
-        '20 min logged · 1 of 8 slices complete · Resume at 20:00',
+        '20 min logged · 1 of 8 segments complete · Resume at 20:00',
       ),
     ).toBeInTheDocument();
     expect(within(lectureRow).getByText('Started')).toBeInTheDocument();
@@ -183,9 +183,9 @@ describe('App', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/20 min logged/i).length).toBeGreaterThan(0);
-    expect(screen.getByText('Slice timeline')).toBeInTheDocument();
+    expect(screen.getByText('Video segments')).toBeInTheDocument();
     expect(
-      await screen.findByRole('button', { name: 'Save watched range' }),
+      await screen.findByRole('button', { name: 'Save session' }),
     ).toBeInTheDocument();
   });
 
@@ -218,11 +218,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getAllByLabelText('Unit')).toHaveLength(2);
-      expect(screen.getAllByLabelText('Item')).toHaveLength(2);
+      expect(
+        screen.getAllByLabelText('What were you working on?'),
+      ).toHaveLength(2);
     });
 
     const unitSelectors = screen.getAllByLabelText('Unit');
-    const itemSelectors = screen.getAllByLabelText('Item');
+    const itemSelectors = screen.getAllByLabelText('What were you working on?');
 
     for (const unitSelector of unitSelectors) {
       expect(unitSelector).toBeDisabled();
@@ -428,10 +430,10 @@ describe('Dashboard route', () => {
 
     for (const cardTitle of [
       'Course progress',
-      'Continue next',
+      "What's next?",
       'XP',
       'Achievements',
-      'Resume long-form',
+      'Resume lecture',
       'Needs attention',
       'Study sessions',
       'Recent activity',

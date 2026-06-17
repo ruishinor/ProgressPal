@@ -148,7 +148,7 @@ export function ImportBackupControl({
             </p>
             <ul className="detail-list">
               <li>Confirm the dashboard progress looks right.</li>
-              <li>Confirm course item statuses and notes are present.</li>
+              <li>Confirm task statuses and notes are present.</li>
               <li>Confirm XP and achievements look expected.</li>
               <li>Confirm recent sessions and media progress are present.</li>
               <li>Reload once and confirm the restored state remains.</li>

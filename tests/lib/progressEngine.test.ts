@@ -134,7 +134,7 @@ describe('progress engine', () => {
       nextSliceLabel: '20:00-40:00',
       resumeLabel: 'Resume at 20:00',
       sliceCount: 6,
-      summaryLine: '20 min logged · 1 of 6 slices complete · Resume at 20:00',
+      summaryLine: '20 min logged · 1 of 6 segments complete · Resume at 20:00',
       watchedSeconds: 1200,
     });
   });
@@ -166,7 +166,7 @@ describe('progress engine', () => {
       completionSource: 'legacy_progress',
       hasProgress: true,
       isComplete: true,
-      summaryLine: 'Completed before slice logging · 6 of 6 slices complete',
+      summaryLine: 'Completed before slice logging · 6 of 6 segments complete',
       watchedSeconds: 7200,
     });
   });

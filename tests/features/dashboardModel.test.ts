@@ -146,8 +146,8 @@ function longForm(
     resumeLabel: 'Resume at 20:00',
     resumeSecond: 1200,
     sliceCount: 8,
-    sliceProgressLabel: '1 of 8 slices complete',
-    summaryLine: '20 min logged · 1 of 8 slices complete · Resume at 20:00',
+    sliceProgressLabel: '1 of 8 segments complete',
+    summaryLine: '20 min logged · 1 of 8 segments complete · Resume at 20:00',
     watchedSeconds: 1200,
     watchedSummaryLabel: '20 min logged',
     ...overrides,
@@ -643,7 +643,7 @@ describe('buildDashboardModel - resume long-form', () => {
       itemTitle: 'Week 0 Lecture',
       kind: 'resume',
       resumeLabel: 'Resume at 20:00',
-      sliceProgressLabel: '1 of 8 slices complete',
+      sliceProgressLabel: '1 of 8 segments complete',
       unitTitle: 'Week 0: Scratch',
     });
   });

@@ -194,9 +194,9 @@ describe('course model', () => {
           resumeLabel: 'Resume at 20:00',
           resumeSecond: 1200,
           sliceCount: 6,
-          sliceProgressLabel: '1 of 6 slices complete',
+          sliceProgressLabel: '1 of 6 segments complete',
           summaryLine:
-            '20 min logged · 1 of 6 slices complete · Resume at 20:00',
+            '20 min logged · 1 of 6 segments complete · Resume at 20:00',
           watchedSeconds: 1200,
           watchedSummaryLabel: '20 min logged',
         },
@@ -212,7 +212,8 @@ describe('course model', () => {
 
     expect(courseMap.units[0]?.items[0]).toMatchObject({
       longFormProgress: {
-        summaryLine: '20 min logged · 1 of 6 slices complete · Resume at 20:00',
+        summaryLine:
+          '20 min logged · 1 of 6 segments complete · Resume at 20:00',
       },
       status: 'started',
       statusLabel: 'Started',

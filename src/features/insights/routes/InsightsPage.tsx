@@ -156,8 +156,7 @@ export function InsightsPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="This route reads only your local sessions, watched ranges, XP, and achievement records."
-          eyebrow="Local insights"
+          description="This page shows your CS50 study activity."
           title="Insights"
         />
         <ErrorState
@@ -186,12 +185,11 @@ export function InsightsPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is reading your local sessions, watched ranges, XP, and achievement records."
-          eyebrow="Local insights"
+          description="The app is reading your local sessions, XP, and achievement records."
           title="Insights"
         />
         <LoadingState
-          description="Opening local stores and assembling your derived insights."
+          description="Building your insights."
           title="Loading your local data"
         />
       </section>
@@ -210,15 +208,14 @@ export function InsightsPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="A read-only view of how your local CS50 effort has accumulated over time, derived only from your saved sessions, watched ranges, XP ledger, and achievements. Nothing here is synced, fetched, or stored separately. Days and weeks use this device's local time, and weeks start on Monday."
-        eyebrow="Local insights"
+        description="Your CS50 study activity over time. Saved sessions, watched video, and earned XP appear here. Days and weeks use this device's local time."
         title="Insights"
       />
 
       <div className="insights-grid">
         <Card title="Course progress">
           <ProgressBar
-            helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required items complete`}
+            helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
             label="Required course progress (current)"
             tone={
               courseProgress.completionPercent === 100 ? 'success' : 'accent'
@@ -234,8 +231,8 @@ export function InsightsPage() {
         <Card title="Effort over time">
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
-              No study sessions or watched ranges logged yet. Weekly effort will
-              appear here once you save some.
+              No sessions or video logged yet. Weekly effort will appear here
+              once you save some.
             </p>
           ) : (
             <table className="insights-table">
@@ -296,14 +293,13 @@ export function InsightsPage() {
         <Card title="XP over time">
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
-              No XP earned yet. Saving progress or a study session starts the XP
-              ledger.
+              No XP earned yet. Saving progress or a study session starts
+              earning XP.
             </p>
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                XP earned per local week and the running cumulative total, from
-                the XP ledger.
+                XP earned per local week and the running cumulative total.
               </caption>
               <thead>
                 <tr>
@@ -421,16 +417,15 @@ export function InsightsPage() {
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                Counts of completion XP awards per local week, from the XP
-                ledger. These are recorded awards, not a reconstructed
-                item-by-item completion history; item-completion and
-                unit-completion awards are counted separately.
+                Counts of completion XP awards per local week. These are
+                recorded awards; task-completion and unit-completion awards are
+                counted separately.
               </caption>
               <thead>
                 <tr>
                   <th scope="col">Week</th>
                   <th className="insights-table__numeric" scope="col">
-                    Item awards
+                    Task awards
                   </th>
                   <th className="insights-table__numeric" scope="col">
                     Unit awards
