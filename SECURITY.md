@@ -2,20 +2,32 @@
 
 ## Current Stage
 
-- Module 13 complete.
-- Application scaffold now includes a real local IndexedDB persistence layer
-  with runtime validation, schema versioning, migration coverage, a bundled
-  CS50x course catalog, a reusable local-only design system, a first-run
-  onboarding or profile flow, a seeded course-map route, a content-detail
-  write surface, local long-form media-progress persistence, study-session logging,
-  a local XP engine with an immutable transaction ledger, and a local achievement
-  engine that persists immutable unlocks, but backup/reset flows still do not exist.
+- Module 19 complete (security and privacy review). Modules 00-18 are complete.
+- The application is a full local-first MVP: a real IndexedDB persistence layer
+  with runtime validation, schema versioning, and migration coverage; a bundled
+  CS50x catalog; a local-only design system hardened for dark-theme accessibility
+  (Module 18); a first-run onboarding/profile flow; a seeded course-map route; a
+  content-detail write surface; local long-form media-progress persistence;
+  study-session logging; a local XP engine with an immutable transaction ledger;
+  a local achievement engine that persists immutable unlocks; read-only dashboard
+  (Module 14) and insights (Module 15) surfaces; full backup/export, replace-all
+  import, and reset data-control flows (Module 16); and a dependency-free,
+  production-only service worker that provides cold-start offline support
+  (Module 17).
 - Current attack surface is the client bundle, local dev tooling, installed
   dependencies, persisted on-device data, migration logic, bundled catalog
   ingestion, architecture-boundary drift, malformed local-data ingestion, the
-  onboarding and preference surfaces, the course-map plus content-detail
-  and sessions rendering/write surfaces, the local XP transaction ledger, and the
-  local achievement-unlock store plus read-only achievements rendering surface.
+  onboarding and preference surfaces, the course-map plus content-detail and
+  sessions rendering/write surfaces, the local XP transaction ledger, the local
+  achievement-unlock store, the read-only dashboard and insights surfaces, the
+  backup export/import/reset data-control flows (including imported backup files
+  as an untrusted input), and the service-worker cache of same-origin static
+  assets.
+- Module 19 confirmed, by source inspection and a build-output check, that the
+  app makes no runtime network calls beyond same-origin static assets, performs
+  no dynamic code execution, and uses no raw-HTML injection sinks. See the
+  Module 19 Review section and the new `tests/architecture/localOnly.test.ts`
+  guardrail.
 
 ## Security Posture
 
@@ -25,9 +37,18 @@
 - No external APIs.
 - No cloud sync.
 - No backend.
-- User profile, notes, and progress data are now persisted locally in
-  IndexedDB.
-- Study-session notes and blockers are now persisted locally in IndexedDB.
+- No telemetry, tracking, or usage reporting.
+- No AI tutor/coaching and no social/comparison features.
+- User profile, notes, and progress data are persisted locally in IndexedDB.
+- Study-session notes and blockers are persisted locally in IndexedDB.
+- Local data is not encrypted at rest; local-device trust is an explicit
+  assumption (see Open Risks).
+- Backup/export produces an ordinary user-held local JSON file; import is
+  replace-all and never executes file content; reset clears the local database
+  and re-bootstraps defaults (Module 16).
+- Cold-start offline is provided by a production-only service worker that caches
+  only same-origin static app assets and never reads or transmits stored data
+  (Module 17).
 
 ## Module 01 Controls
 
@@ -236,6 +257,92 @@
 - Added repository and app tests proving achievement evaluation leaves source
   stores unmutated and writes zero XP transactions.
 
+## Module 14 Controls
+
+- Built the `/dashboard` route as a read-only, derived-only projection over
+  existing stores and read models; opening or reloading it mutates no store,
+  awards no XP, and unlocks no achievement (verified by a full-snapshot
+  no-mutation test).
+- Made the derived long-form slice sync idempotent so a repeated bootstrap no
+  longer churns `content_slices`, keeping reads side-effect free.
+- Split stable third-party deps into manual vendor chunks for cache separation
+  without adding any dependency or insecure dynamic code loading.
+- Rendered all dashboard content as plain text; no HTML rendering, rich-text
+  parsing, or remote content was introduced.
+
+## Module 15 Controls
+
+- Built the `/insights` route as a read-only, derived-only trend surface over
+  the immutable ledgers; opening or reloading it mutates no store, awards no XP,
+  and unlocks no achievement (verified by a full-snapshot no-mutation test).
+- Added no new dependency and no new repository surface; `recharts` and
+  `date-fns` stayed unimported (see Reserved Dependencies under Open Risks).
+- Kept bucketing device-local and rendered all insights as plain-text tables
+  with decorative token CSS bars; no charts, no remote content, no HTML sinks.
+
+## Module 16 Controls
+
+- Added the pure backup contract in `src/lib/backup/` with a versioned
+  `progresspal-backup` envelope and strict Zod validation. `parseBackupFile`
+  rejects malformed JSON, oversized input (25 MB guard), wrong format/format
+  version, mismatched schema version, unknown top-level/nested fields, malformed
+  rows, and per-store duplicate IDs, and it never executes file content.
+- Treated an imported backup as untrusted input: validation runs fully before
+  any mutation, then restore is atomic clear+restore followed by seed reconcile
+  and exactly one `import` audit record. An invalid payload writes nothing.
+- Surfaced learner-safe error messages (`BackupValidationError.message`) while
+  keeping schema detail in a separate `issues` field for diagnostics, avoiding
+  leaking internal structure into the primary user-facing message.
+- Gated destructive reset behind an explicit typed `RESET` confirmation and kept
+  backup import reachable from onboarding after a reset for recovery.
+- Added no new dependency and no Dexie schema change (the `backups` store
+  already existed); verified an injected `<script>` note never executes.
+
+## Module 17 Controls
+
+- Added a dependency-free, production-only service worker (`public/sw.js`) that
+  registers only when `import.meta.env.PROD` and the browser supports it, so the
+  dev server and unit tests never register a worker.
+- Scoped the fetch handler to same-origin `GET` only; cross-origin requests
+  return early and are never cached. Navigation is network-first with a cached
+  shell fallback; assets are cache-first. The worker never touches IndexedDB.
+- Cached only the app shell and the build's hashed boot assets via install-time
+  discovery, failing closed (no activation on a partial cache) and cleaning up
+  old versioned caches on activate.
+- Added no manifest, no new dependency, and no Dexie schema change; proved
+  cold-start offline and Module 16 recovery under an active worker via a
+  dedicated production-preview Playwright project.
+
+## Module 18 Controls
+
+- Hardened dark-theme accessibility at the design-system CSS layer only
+  (contrast for card/status surfaces, invalid fields, button hovers, warning
+  badges; visible custom-checkbox keyboard focus; in-app reduced-motion keyframe
+  suppression). No markup, route, persistence, schema, dependency, or
+  service-worker change.
+- Added computed-style contrast E2E checks for surfaces axe cannot evaluate, plus
+  component contract tests pinning the fixture-tested classes to real components
+  so accessibility tests cannot drift onto fake markup.
+
+## Module 19 Controls
+
+- Reviewed the app for local-only security and privacy risks using source
+  inspection, a production build-output check, and dependency-posture review.
+- Confirmed runtime source under `src/` introduces no network-request primitive,
+  no dynamic code execution, and no raw-HTML injection sink, and that the only
+  absolute URL in source is the SVG XML namespace identifier.
+- Added `tests/architecture/localOnly.test.ts`, a narrow regression guard that
+  scans runtime `src/` source (excluding test files, with comments stripped and
+  an XML-namespace URL allowlist) for those forbidden primitives. It is a
+  regression guard for known sinks, not proof of comprehensive security.
+- Added `PRIVACY.md` documenting the local-only privacy boundary, user-controlled
+  backup/export/import/reset, and explicit non-guarantees (not encrypted,
+  not tamper-proof, not safe against device access).
+- Refreshed this baseline to current reality (Modules 14-18) and recorded the
+  reserved-dependency and embedded-`package.json` findings under Open Risks.
+- Made no runtime source change, no dependency change (`package.json` /
+  `package-lock.json` untouched), no schema change, and no service-worker change.
+
 ## Threat Model Baseline
 
 - Dependency vulnerabilities are now relevant because the scaffold and lockfile
@@ -264,7 +371,29 @@
 - Local persistence makes device compromise, browser-profile theft, and unsafe
   reset or import flows concrete risks now rather than hypothetical future
   ones.
-- Missing git history still weakens security audit traceability.
+- Imported backup files are now an untrusted input that can reach persistence.
+  This is bounded by strict pre-mutation Zod validation, a size guard, format and
+  version gates, duplicate-ID rejection, and never executing file content. A
+  validated-but-hostile-by-construction backup could still seed local state (for
+  example values that unlock achievements on the next explicit save); this is
+  acceptable for a single-user, local-only app where the learner controls their
+  own data, but it is the reason import remains schema-validated and replace-all.
+- The service worker persists a cache of same-origin static app assets in the
+  browser. It never caches or transmits stored learner data, but a registered
+  worker outlives file deletion and must be cleared via site-data reset or a
+  tombstone worker (see Module 17 decision).
+- The production bundle currently inlines the full `package.json` (all
+  dependencies, devDependencies, and npm scripts) because `src/lib/db/constants.ts`
+  imports the whole JSON to read `version`. This discloses the dependency
+  manifest in shipped client code. It is low severity for a local-only app (the
+  manifest is not secret and never leaves the device) but is needless surface;
+  see Open Risks for the recommended follow-up.
+- Route loaders and `AppStateProvider` log raw error objects via `console.error`.
+  The console is local-only with no telemetry, so leakage risk is low, but error
+  payloads could surface local detail in developer tools.
+- Git history now exists (branch `master`), so per-module commit traceability is
+  available; security audit traceability is no longer blocked by missing VCS
+  metadata.
 
 ## Required Security Checks For Later Modules
 
@@ -278,13 +407,21 @@
 - Add backup tamper-handling, reset confirmation, and migration tests once
   persistence exists.
 - Re-run dependency audit after each dependency change.
+- `tests/architecture/localOnly.test.ts` now enforces the source-level checks
+  automatically: it fails CI when runtime `src/` source introduces a
+  network-request primitive, dynamic code execution, a raw-HTML injection sink,
+  or a non-allowlisted external URL. Keep it as a regression guard and widen the
+  URL allowlist only with a justified inline comment.
 
 ## Open Risks
 
-- Full cold-start offline behavior is not present yet; only in-session offline
-  navigation after initial load was validated in Module 01.
-- README.md and PRIVACY.md are still missing, so user-facing security and
-  privacy expectations are not yet documented.
+- Cold-start offline now exists (Module 17) via a production-only service worker
+  that caches the app shell and hashed boot assets. Forward risk: a later module
+  that adds lazy route chunks must revisit install-time discovery, and a
+  registered worker persists beyond file deletion.
+- PRIVACY.md now exists (Module 19) and documents the local-only privacy
+  boundary. README.md is still intentionally deferred to Module 20 (packaging and
+  submission docs), so end-user setup/demo documentation is not yet present.
 - The first broad formatter run touched bundled support directories before
   ignore rules were corrected; with no git metadata, exact collateral change
   tracking is limited.
@@ -292,8 +429,11 @@
   do not prevent deliberate misuse.
 - Offline-only does not protect data on a compromised device; local-device
   trust remains an assumption, and IndexedDB data is not encrypted.
-- No user-facing export, import, reset, or corruption-recovery flow exists yet,
-  so local-data repair is still developer-mediated.
+- User-facing export, import, and reset now exist (Module 16), so local-data
+  recovery is no longer developer-mediated. Residual risk: import is replace-all
+  (no merge), and there is still no per-field undo or granular repair flow, so a
+  mistaken import or reset overwrites current state (mitigated by exporting a
+  backup first and by the typed `RESET` confirmation).
 - Bundled `estimatedMinutes` values are local planning heuristics rather than
   authoritative CS50 timings. Module 09 now derives long-form slice timing from
   those heuristics, so later asset-level modules must avoid silently treating
@@ -319,5 +459,23 @@
 - Achievement unlocks are immutable and append-only with no user-facing reset,
   revoke, or repair flow. Because evaluation runs over all accumulated history on
   each explicit save, deliberately seeded or imported local source data could
-  unlock achievements; this is bounded today by the absence of any import flow
-  but must be revisited when backup/import lands.
+  unlock achievements. Backup/import has now landed (Module 16), so this is real
+  rather than hypothetical; it is accepted for a single-user, local-only app
+  where the learner owns their own data, and import remains schema-validated and
+  replace-all to bound it.
+- Reserved dependencies: `recharts` and `date-fns` are declared runtime
+  dependencies but are not imported by application source, and the build confirms
+  their library code is not bundled (no recharts/date-fns chunk and no library
+  identifiers in the built output). They appear reserved for the retained future
+  Charts feature, so Module 19 documents rather than removes them. They remain
+  part of the install/audit supply-chain surface; removal should be a separate
+  dependency-pruning decision if Charts is dropped or re-scoped.
+- Embedded build manifest: the production bundle inlines the entire
+  `package.json` (dependencies, devDependencies, and npm scripts) as a string
+  because `src/lib/db/constants.ts` imports the whole JSON to read `version`.
+  This is why the `recharts`/`date-fns` names appear in built output even though
+  their code does not. Low severity for an offline, local-only app, but a
+  recommended follow-up is to read only the version (a named import or a
+  build-time define) so the manifest is not shipped. This is a runtime-source
+  change and was intentionally left out of the documentation-only Module 19
+  scope.

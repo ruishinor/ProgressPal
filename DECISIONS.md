@@ -687,3 +687,43 @@
   - Module 16 recovery and Module 17 offline behavior remain required regression
     checks because global CSS and motion behavior can affect those flows even
     without schema or service-worker changes.
+
+## D-0041 - Module 19 Is A Documentation-Only Security/Privacy Review With One Guardrail Test
+
+- Date: 2026-06-17
+- Status: accepted
+- Decision: Module 19 audits the app for local-only security and privacy risks
+  and ships only documentation plus one narrow test. It refreshes `SECURITY.md`
+  to current reality (Modules 14-18), adds `PRIVACY.md`, and adds
+  `tests/architecture/localOnly.test.ts`. It makes no runtime source change, no
+  dependency change (`package.json` / `package-lock.json` untouched), no Dexie
+  schema change, no route change, and no service-worker change.
+- Why: the roadmap defines Module 19 as a security and privacy review, not a
+  feature module. Inspection confirmed the offline-only/local-first posture holds
+  (no network/exec/injection primitives in source, no external resources in
+  `index.html`, same-origin-only service-worker caching, strict backup
+  validation), so the right work is to make the security baseline honest and to
+  lock the verified invariant with a regression guard - not to add security
+  features such as encryption, auth, or telemetry.
+- Dependency decision: `recharts` and `date-fns` are declared but unimported.
+  The build output was checked: their library code is not bundled (no
+  recharts/date-fns chunk, no library identifiers), so they are documented as
+  reserved for the future Charts feature rather than removed. Removing them is a
+  dependency/lockfile change deferred to a separate decision if Charts is dropped
+  or re-scoped. The claim is phrased narrowly as "not present as library code in
+  the current built output", not as a permanent guarantee.
+- Finding deferred to a follow-up: `src/lib/db/constants.ts` imports the whole
+  `package.json` to read `version`, so the production bundle inlines the entire
+  manifest (deps, devDeps, scripts). This is why the dependency names appear in
+  built output. It is low severity for a local-only app but is needless shipped
+  surface; the recommended fix (read only `version` via a named import or a
+  build-time define) is a runtime-source change intentionally left out of this
+  documentation-only module.
+- Consequences:
+  - `SECURITY.md` now reflects Modules 14-19, with corrected open risks (the
+    stale "no data control" and "no cold-start offline" claims are removed).
+  - `PRIVACY.md` documents the local-only boundary and explicit non-guarantees;
+    README/demo stay Module 20.
+  - The guardrail scans only runtime `src/` source, strips comments, and
+    allowlists XML-namespace URLs, so it stays a boring regression guard rather
+    than a brittle scanner. It is not a claim of comprehensive security.

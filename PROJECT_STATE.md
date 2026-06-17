@@ -1,9 +1,10 @@
 # Project State
 
-Current module: Module 18 - Accessibility and UX hardening (complete)
-Last completed module: Module 18 - Accessibility and UX hardening (complete)
+Current module: Module 19 - Security and privacy review (complete, not yet
+committed)
+Last completed module: Module 19 - Security and privacy review (complete)
 Current branch: master
-Last committed module: Module 17 - Offline hardening (commit ffe15fa).
+Last committed module: Module 18 - Accessibility hardening (commit c734b13).
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
@@ -100,11 +101,20 @@ Known risks:
 - The current `StudySessionSchema` requires both `unitId` and `itemId`, so
   Module 11 cannot support general-study or unit-only saved sessions without a
   later deliberate schema change.
+- Module 19 review finding (not yet fixed): `src/lib/db/constants.ts` imports the
+  whole `package.json` to read `version`, so the production bundle inlines the
+  entire manifest (dependencies, devDependencies, npm scripts) as a string. This
+  is why `recharts`/`date-fns` names appear in built output even though their
+  library code is not bundled. Low severity for a local-only app; recommended
+  follow-up is a named `version` import or a build-time define. `recharts` and
+  `date-fns` remain declared-but-unimported, reserved for the future Charts
+  feature (documented, not removed, per D-0041).
 
-Last Triple-Zero-equivalent pass: 2026-06-17 - Module 18 manual full-suite pass
-3 of 3 (exact `npm run validate` blocked by Playwright teardown hang; see
-VALIDATION_LOG.md)
-Next module: Module 19 - Security and privacy review (not started)
+Last Triple-Zero-equivalent pass: 2026-06-17 - Module 19 managed-server
+full-suite pass 3 of 3 (197 unit tests, 24 E2E incl. offline, 0 audit findings;
+exact `npm run validate` intentionally not used to avoid the documented
+Playwright teardown hang; see VALIDATION_LOG.md)
+Next module: Module 20 - Final CS50 project packaging (not started)
 
 Do not change:
 
@@ -177,6 +187,12 @@ Do not change:
   versioned cache name with activate cleanup, and keep offline behavior verified by
   the dedicated production-preview Playwright `offline` project while the dev-based
   suite stays unchanged. No manifest, no new dependency, no Dexie schema change.
+- Preserve the Module 19 local-only invariant guarded by
+  `tests/architecture/localOnly.test.ts`: runtime `src/` source must stay free of
+  network-request primitives, dynamic code execution, raw-HTML injection sinks,
+  and non-allowlisted external URLs. Widen the URL allowlist only with a justified
+  inline comment; do not weaken the primitive checks. Keep `SECURITY.md` and
+  `PRIVACY.md` honest and free of guarantees beyond evidence.
 - Do not introduce backup/import/export/reset UI before its assigned module.
 - Preserve future backwards compatibility now that persistence exists.
 
@@ -298,6 +314,11 @@ Current repo inventory:
   Playwright project (production preview) in `playwright.config.ts` and a
   serviceworker-globals ESLint override for `public/sw.js`. No Dexie schema change,
   no new dependency, no manifest.
+- Module 19 adds the local-only source-safety guardrail
+  `tests/architecture/localOnly.test.ts`, the new `PRIVACY.md` boundary document,
+  and `docs/modules/module-19-plan.md`, and refreshes `SECURITY.md` to Modules
+  14-19. It changes no runtime source, no dependency, no schema, no route, and no
+  service worker.
 - Module 18 adds CSS-only accessibility/UX hardening in `tokens.css`,
   `design-system.css`, and `base.css`: dark-theme contrast fixes for card/status
   surfaces, invalid fields, button hovers, warning badges, checkbox focus-visible,

@@ -785,6 +785,52 @@ npm run check:circular
 npm audit --audit-level=moderate
 ```
 
+## Module 19 Scope
+
+- Validation covers the security and privacy review artifacts: the refreshed
+  `SECURITY.md`, the new `PRIVACY.md`, and the new local-only source-safety
+  guardrail test. No runtime source, dependency, schema, route, or service-worker
+  change is in scope.
+- Triple-Zero for Module 19 means three consecutive clean runs of the full suite
+  with zero errors, zero warnings, zero accessibility violations in the tested
+  flows, zero circular dependencies, and zero dependency-audit findings.
+
+## Module 19 Validation Protocol
+
+### Pass checks
+
+- Confirm `tests/architecture/localOnly.test.ts` scans a non-empty set of runtime
+  `src/` files and passes, and that it would fail on an introduced
+  network-request primitive, dynamic code execution, raw-HTML injection sink, or
+  non-allowlisted external URL (comments stripped; XML-namespace URLs allowlisted;
+  test files excluded; `public/sw.js` intentionally out of scope).
+- Confirm `SECURITY.md` reflects Modules 14-19 and no longer claims that data
+  control or cold-start offline are missing.
+- Confirm `PRIVACY.md` states the local-only boundary and the explicit
+  non-guarantees (not encrypted, not tamper-proof, not safe against device
+  access).
+- Confirm the reserved-dependency claim matches build output (no recharts/date-fns
+  library code in the built assets) and that the embedded-`package.json` finding
+  is recorded as a follow-up.
+- Confirm no runtime source change, no `package.json` / `package-lock.json`
+  change, no Dexie schema change (stays version 2, migration fixture green), no
+  route change, and no service-worker/PWA change.
+- Confirm Module 16 reset/onboarding-import recovery, Module 17 cold-start
+  offline, and Module 18 accessibility behavior still pass.
+
+### Commands for Module 19
+
+```powershell
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npm run test:e2e
+npm run check:circular
+npm audit --audit-level=moderate
+```
+
 ## Future Validation Strategy
 
 ### Module 02 and later

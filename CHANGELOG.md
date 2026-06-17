@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-06-17 - Module 19
+
+### Added
+
+- `PRIVACY.md`: a plain, accurate local-only privacy boundary covering what is
+  stored, where it lives (IndexedDB), user-controlled backup/export/import/reset,
+  and explicit non-guarantees (not encrypted, not tamper-proof, not safe against
+  device access). README/demo remain Module 20.
+- `tests/architecture/localOnly.test.ts`: a narrow source-safety guardrail that
+  fails when runtime `src/` source introduces a network-request primitive,
+  dynamic code execution, a raw-HTML injection sink, or a non-allowlisted
+  external URL. Comments are stripped and XML-namespace URLs are allowlisted to
+  keep it false-positive-free.
+- `docs/modules/module-19-plan.md` with the review scope, findings, and
+  validation protocol.
+
+### Changed
+
+- Refreshed `SECURITY.md` to current reality: it had drifted to a "Module 13
+  complete" snapshot. Added Module 14-19 controls, corrected the threat-model
+  baseline, and corrected open risks that wrongly claimed export/import/reset and
+  cold-start offline did not exist (both shipped in Modules 16-17).
+
+### Findings (documented, not changed)
+
+- `recharts` and `date-fns` are declared but unimported; their library code is
+  not bundled (verified against build output). Documented as reserved for the
+  future Charts feature rather than removed, per decision D-0041.
+- The production bundle inlines the full `package.json` (deps, devDeps, scripts)
+  because `src/lib/db/constants.ts` imports the whole JSON for `version`; this is
+  why dependency names appear in built output. Recorded as a low-severity
+  bundle-hygiene follow-up, intentionally out of this documentation-only module.
+
+### Boundaries
+
+- Documentation plus one new test only: no runtime application source change, no
+  dependency change (`package.json` / `package-lock.json` untouched), no Dexie
+  schema/store/index change, no route change, no service-worker/PWA change, and
+  no Module 20 packaging work.
+
 ## 2026-06-17 - Module 18
 
 ### Added
