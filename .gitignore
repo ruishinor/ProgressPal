@@ -4,3 +4,10 @@ coverage/
 playwright-report/
 test-results/
 
+# Local AI / agent support folders
+.agent/
+.agents/
+.claude/
+_bmad/
+_bmad-output/
+design-artifacts/
