@@ -37,7 +37,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
         </div>
       </Card>
       <Card
-        description="The course route now exposes the seeded catalog directly from local data instead of a placeholder."
+        description="The CS50x 2026 tracker catalog is seeded locally and ready to track."
         title="Catalog"
       >
         <dl className="course-map-stat-list">
@@ -56,7 +56,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
         </dl>
       </Card>
       <Card
-        description="Item detail, watched-range logging, and later dashboard logic all hang off this stable ordered catalog."
+        description="Item detail and watched-range logging use this ordered catalog, while dashboard and insights derive from your saved local records."
         title="Current focus"
       >
         <div className="course-map-focus-card">
@@ -70,8 +70,8 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
           </p>
           <p className="course-map-focus-card__description">
             {courseMap.blockedItemCount > 0
-              ? 'A saved blocked status already exists in the local data, so the course map highlights it instead of pretending progress is clean.'
-              : 'The next unfinished required unit is surfaced here so the route works as an operational map, not a decorative catalog.'}
+              ? 'At least one item is marked blocked. Resolve it before moving the required rollup forward.'
+              : 'The next unfinished required unit is shown here so you always know where to pick up.'}
           </p>
         </div>
       </Card>

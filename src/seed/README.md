@@ -17,8 +17,10 @@ Editing rules:
 - update `dataVersion` and `sourceCheckedDate` whenever the bundled payload is
   revised deliberately
 
-Still deferred to later modules:
+Still deferred to later modules or future content work:
 
-- user-facing import and export of seed or backup data
 - explicit asset-level source URLs and verified official media durations
-- any course-map UI, dashboard rollups, or destructive catalog reset flow
+- fuller locally-authored CS50 topic summaries and assignment guidance beyond
+  tracker titles
+- any schema-backed in-app content layer for richer course notes or resource
+  metadata

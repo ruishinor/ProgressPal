@@ -47,7 +47,7 @@ export function AppShell({
           <p className="shell-summary">{summary}</p>
         </div>
         {statusItems?.length ? (
-          <Card className="shell-status" title="Current foundation" titleAs="p">
+          <Card className="shell-status" title="Current status" titleAs="p">
             <dl className="shell-status__list">
               {statusItems.map((item) => (
                 <div className="shell-status__item" key={item.label}>

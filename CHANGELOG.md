@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-06-17 - Surface CS50 course content in tracker
+
+### Changed
+
+- Updated all generic item titles in the seed to CS50-specific names
+  (e.g. "Lecture 1: C", "Problem Set 3: Algorithms", "Shorts: Python").
+- Fixed "Week 10" unit title to "Week 10: The End".
+- Bumped seed `dataVersion` to `20260617`; seed sync propagates title changes
+  to the local database on next app initialization.
+- Renamed AppShell header card from "Current foundation" to "Current status".
+- Replaced stale dev-phase descriptions in `CourseMapSummary` ("placeholder",
+  "pretending progress is clean", "decorative catalog") with plain present-tense
+  copy.
+- Fixed stale "later-module" language in the `ContentDetailPage` progress record
+  card description.
+
+### Added
+
+- `src/features/course/cs50Links.ts`: static lookup module returning
+  `Cs50Link | null` for unit and item IDs — maps week units to
+  `cs50.harvard.edu/x/weeks/N/`, problem sets to `.../psets/N/`,
+  AI week and final project to their respective pages. No fetching; purely
+  static string maps.
+- CS50 source link on each week card in the Course Map (unit-level link).
+- CS50 source card on each Content Detail page (item link if available,
+  otherwise unit-level fallback). External anchors use
+  `target="_blank" rel="noopener noreferrer"`.
+- `tests/features/cs50Links.test.ts`: unit tests covering all week units,
+  all problem set items, AI/practice/final-project units, unknown ID null
+  returns, and HTTPS enforcement.
+- `tests/seed/bundledCourseSeed.test.ts`: new test asserting CS50-specific
+  item titles and "Week 10: The End" unit title; updated `dataVersion`
+  assertion to `20260617`.
+
+### Boundaries
+
+- No route, schema, persistence, dependency, or service-worker change.
+- No external API calls; all CS50 links are static string constants.
+- No CS50 affiliation claimed; links open the public course website.
+- No problem-set solution content included.
+
+---
+
 ## 2026-06-17 - Post-Module-20 UI copy polish
 
 ### Changed

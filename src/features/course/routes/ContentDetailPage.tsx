@@ -14,6 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
+import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
   buildCourseDetailView,
@@ -696,6 +697,9 @@ export function ContentDetailPage() {
           return endSecond - startSecond;
         })();
 
+  const cs50Link =
+    getCs50ItemLink(detail.item.id) ?? getCs50UnitLink(detail.unit.id);
+
   return (
     <section className="page-section">
       <PageHeader
@@ -731,9 +735,24 @@ export function ContentDetailPage() {
         }
         title={`${detailView.unitTitle} - ${detailView.title}`}
       />
+      {cs50Link !== null ? (
+        <Card
+          description="Opens the official source page for this material on CS50.harvard.edu. No login or account needed."
+          title="CS50 source"
+        >
+          <a
+            className="button button--secondary button--md"
+            href={cs50Link.url}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {cs50Link.label}
+          </a>
+        </Card>
+      ) : null}
       <div className="course-detail-grid">
         <Card
-          description="This stays local. It drives the course-map rollups without introducing later-module dashboard or XP behavior."
+          description="Saved here. Updates the course map, dashboard, XP ledger, achievements, and insights through local derived state."
           title="Progress record"
           variant="accent"
         >

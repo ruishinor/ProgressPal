@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { getCourseItemDetailPath } from '@/features/course/paths';
+import { getCs50UnitLink } from '@/features/course/cs50Links';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -13,6 +14,8 @@ type CourseUnitCardProps = {
 };
 
 export function CourseUnitCard({ unit }: CourseUnitCardProps) {
+  const cs50Link = getCs50UnitLink(unit.id);
+
   return (
     <Card
       className="course-unit-card"
@@ -78,6 +81,18 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
           </li>
         ))}
       </ol>
+      {cs50Link !== null ? (
+        <div className="course-unit-card__cs50-link">
+          <a
+            className="button button--quiet button--md"
+            href={cs50Link.url}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {cs50Link.label}
+          </a>
+        </div>
+      ) : null}
     </Card>
   );
 }

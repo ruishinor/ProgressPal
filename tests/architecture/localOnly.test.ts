@@ -63,6 +63,10 @@ const FORBIDDEN_PATTERNS: ReadonlyArray<{ label: string; pattern: RegExp }> = [
 const ALLOWED_URL_PREFIXES: ReadonlyArray<string> = [
   'http://www.w3.org/',
   'https://www.w3.org/',
+  // cs50Links.ts holds static string constants for <a href> anchors that let
+  // the learner navigate to the official CS50 course pages. No fetch, XHR, or
+  // WebSocket is involved; the browser navigates on click, not the app.
+  'https://cs50.harvard.edu/',
 ];
 
 const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;

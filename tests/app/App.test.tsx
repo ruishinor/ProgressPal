@@ -178,7 +178,9 @@ describe('App', () => {
     await renderAppAtRoute('/course/week-0-lecture');
 
     expect(
-      await screen.findByRole('heading', { name: 'Week 0: Scratch - Lecture' }),
+      await screen.findByRole('heading', {
+        name: 'Week 0: Scratch - Lecture 0: Scratch',
+      }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/20 min logged/i).length).toBeGreaterThan(0);
     expect(screen.getByText('Slice timeline')).toBeInTheDocument();

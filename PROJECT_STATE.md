@@ -14,7 +14,7 @@ bundle-hygiene fix (commit eb12b01, D-0042), both pushed to `origin/master`.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
-`dataVersion` 20260611 and `sourceCheckedDate` 2026-06-11
+`dataVersion` 20260617 and `sourceCheckedDate` 2026-06-17
 
 Next module: none - Module 20 is the final module in `ROADMAP.md`. Once the
 Module 20 packaging docs are committed, the offline CS50 MVP endpoint is reached.

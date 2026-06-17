@@ -6,8 +6,8 @@ describe('bundledCourseSeed', () => {
   it('ships the validated CS50x 2026 catalog expected by Module 05', () => {
     expect(bundledCourseSeed.courseId).toBe('cs50x-2026');
     expect(bundledCourseSeed.title).toBe('CS50x 2026');
-    expect(bundledCourseSeed.dataVersion).toBe(20260611);
-    expect(bundledCourseSeed.sourceCheckedDate).toBe('2026-06-11');
+    expect(bundledCourseSeed.dataVersion).toBe(20260617);
+    expect(bundledCourseSeed.sourceCheckedDate).toBe('2026-06-17');
     expect(bundledCourseSeed.units).toHaveLength(14);
     expect(
       bundledCourseSeed.units.reduce(
@@ -31,6 +31,44 @@ describe('bundledCourseSeed', () => {
       'additional-practice',
       'final-project',
     ]);
+  });
+
+  it('uses CS50-specific item titles', () => {
+    const week0 = bundledCourseSeed.units.find((u) => u.id === 'week-0');
+    expect(week0?.items.find((i) => i.id === 'week-0-lecture')?.title).toBe(
+      'Lecture 0: Scratch',
+    );
+    expect(week0?.items.find((i) => i.id === 'week-0-problem-set')?.title).toBe(
+      'Problem Set 0: Scratch',
+    );
+
+    const week1 = bundledCourseSeed.units.find((u) => u.id === 'week-1');
+    expect(week1?.items.find((i) => i.id === 'week-1-lecture')?.title).toBe(
+      'Lecture 1: C',
+    );
+    expect(week1?.items.find((i) => i.id === 'week-1-shorts')?.title).toBe(
+      'Shorts: C',
+    );
+    expect(week1?.items.find((i) => i.id === 'week-1-section')?.title).toBe(
+      'Section: C',
+    );
+    expect(week1?.items.find((i) => i.id === 'week-1-problem-set')?.title).toBe(
+      'Problem Set 1: C',
+    );
+
+    const aiUnit = bundledCourseSeed.units.find(
+      (u) => u.id === 'artificial-intelligence',
+    );
+    expect(
+      aiUnit?.items.find((i) => i.id === 'artificial-intelligence-lecture')
+        ?.title,
+    ).toBe('Lecture: Artificial Intelligence');
+
+    const week10 = bundledCourseSeed.units.find((u) => u.id === 'week-10');
+    expect(week10?.title).toBe('Week 10: The End');
+    expect(week10?.items.find((i) => i.id === 'week-10-lecture')?.title).toBe(
+      'Lecture 10: The End',
+    );
   });
 
   it('keeps optional enrichment separate from required course milestones', () => {

@@ -319,7 +319,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
       displayName: 'Alex',
       learnerProfile: 1,
       onboardingCompletedAt: expect.any(String),
-      seedVersion: 20260611,
+      seedVersion: 20260617,
     });
 
   // The /onboarding -> /dashboard redirect re-loads the dashboard's local data;

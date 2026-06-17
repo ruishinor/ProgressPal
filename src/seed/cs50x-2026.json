@@ -1,8 +1,8 @@
 {
   "courseId": "cs50x-2026",
   "title": "CS50x 2026",
-  "dataVersion": 20260611,
-  "sourceCheckedDate": "2026-06-11",
+  "dataVersion": 20260617,
+  "sourceCheckedDate": "2026-06-17",
   "units": [
     {
       "id": "week-0",
@@ -15,7 +15,7 @@
         {
           "id": "week-0-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 0: Scratch",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -23,7 +23,7 @@
         {
           "id": "week-0-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 0",
+          "title": "Problem Set 0: Scratch",
           "required": true,
           "estimatedMinutes": 240,
           "order": 1
@@ -41,7 +41,7 @@
         {
           "id": "week-1-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 1: C",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -49,7 +49,7 @@
         {
           "id": "week-1-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: C",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -57,7 +57,7 @@
         {
           "id": "week-1-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: C",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -65,7 +65,7 @@
         {
           "id": "week-1-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 1",
+          "title": "Problem Set 1: C",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -83,7 +83,7 @@
         {
           "id": "week-2-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 2: Arrays",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -91,7 +91,7 @@
         {
           "id": "week-2-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Arrays",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -99,7 +99,7 @@
         {
           "id": "week-2-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Arrays",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -107,7 +107,7 @@
         {
           "id": "week-2-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 2",
+          "title": "Problem Set 2: Arrays",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -125,7 +125,7 @@
         {
           "id": "week-3-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 3: Algorithms",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -133,7 +133,7 @@
         {
           "id": "week-3-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Algorithms",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -141,7 +141,7 @@
         {
           "id": "week-3-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Algorithms",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -149,7 +149,7 @@
         {
           "id": "week-3-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 3",
+          "title": "Problem Set 3: Algorithms",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -167,7 +167,7 @@
         {
           "id": "week-4-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 4: Memory",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -175,7 +175,7 @@
         {
           "id": "week-4-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Memory",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -183,7 +183,7 @@
         {
           "id": "week-4-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Memory",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -191,7 +191,7 @@
         {
           "id": "week-4-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 4",
+          "title": "Problem Set 4: Memory",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -209,7 +209,7 @@
         {
           "id": "week-5-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 5: Data Structures",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -217,7 +217,7 @@
         {
           "id": "week-5-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Data Structures",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -225,7 +225,7 @@
         {
           "id": "week-5-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Data Structures",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -233,7 +233,7 @@
         {
           "id": "week-5-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 5",
+          "title": "Problem Set 5: Data Structures",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -251,7 +251,7 @@
         {
           "id": "week-6-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 6: Python",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -259,7 +259,7 @@
         {
           "id": "week-6-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Python",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -267,7 +267,7 @@
         {
           "id": "week-6-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Python",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -275,7 +275,7 @@
         {
           "id": "week-6-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 6",
+          "title": "Problem Set 6: Python",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -293,7 +293,7 @@
         {
           "id": "week-7-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 7: SQL",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -301,7 +301,7 @@
         {
           "id": "week-7-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: SQL",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -309,7 +309,7 @@
         {
           "id": "week-7-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: SQL",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -317,7 +317,7 @@
         {
           "id": "week-7-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 7",
+          "title": "Problem Set 7: SQL",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -335,7 +335,7 @@
         {
           "id": "artificial-intelligence-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture: Artificial Intelligence",
           "required": false,
           "estimatedMinutes": 120,
           "order": 0
@@ -353,7 +353,7 @@
         {
           "id": "week-8-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 8: HTML, CSS, JavaScript",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -361,7 +361,7 @@
         {
           "id": "week-8-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: HTML, CSS, JavaScript",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -369,7 +369,7 @@
         {
           "id": "week-8-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: HTML, CSS, JavaScript",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -377,7 +377,7 @@
         {
           "id": "week-8-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 8",
+          "title": "Problem Set 8: HTML, CSS, JavaScript",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -395,7 +395,7 @@
         {
           "id": "week-9-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 9: Flask",
           "required": true,
           "estimatedMinutes": 150,
           "order": 0
@@ -403,7 +403,7 @@
         {
           "id": "week-9-shorts",
           "type": "shorts",
-          "title": "Shorts",
+          "title": "Shorts: Flask",
           "required": false,
           "estimatedMinutes": 60,
           "order": 1
@@ -411,7 +411,7 @@
         {
           "id": "week-9-section",
           "type": "section",
-          "title": "Section",
+          "title": "Section: Flask",
           "required": false,
           "estimatedMinutes": 90,
           "order": 2
@@ -419,7 +419,7 @@
         {
           "id": "week-9-problem-set",
           "type": "problem_set",
-          "title": "Problem Set 9",
+          "title": "Problem Set 9: Flask",
           "required": true,
           "estimatedMinutes": 360,
           "order": 3
@@ -429,7 +429,7 @@
     {
       "id": "week-10",
       "order": 100,
-      "title": "Week 10",
+      "title": "Week 10: The End",
       "type": "week",
       "sourceYear": 2026,
       "required": true,
@@ -437,7 +437,7 @@
         {
           "id": "week-10-lecture",
           "type": "lecture",
-          "title": "Lecture",
+          "title": "Lecture 10: The End",
           "required": true,
           "estimatedMinutes": 120,
           "order": 0
