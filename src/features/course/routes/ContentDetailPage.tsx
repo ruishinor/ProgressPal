@@ -14,6 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
+import { achievementDefinitionsById } from '@/lib/achievements';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
@@ -44,6 +45,7 @@ import type {
   ContentAsset,
   CourseItem,
   CourseUnit,
+  MediaProgressEvent,
   MediaStopReason,
   ProgressEntry,
   ResumePoint,
@@ -55,6 +57,7 @@ type ContentDetailPageStatus = 'error' | 'loading' | 'ready';
 
 type ContentDetailData = {
   asset: ContentAsset | null;
+  events: MediaProgressEvent[];
   item: CourseItem;
   longFormDetail: LongFormDetailView | null;
   progressEntry: ProgressEntry | null;
@@ -92,6 +95,12 @@ type ToastState = {
   title: string;
   tone: 'danger' | 'success';
 } | null;
+
+type SaveResult = {
+  achievementNames: string[];
+  minutesWatched: number;
+  xpAdded: number;
+};
 
 const initialPageState: ContentDetailPageState = {
   detail: null,
@@ -268,6 +277,7 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
   if (asset === null) {
     return {
       asset: null,
+      events: [],
       item,
       longFormDetail: null,
       progressEntry,
@@ -284,6 +294,7 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
 
   return {
     asset,
+    events,
     item,
     longFormDetail: buildLongFormDetailView(
       asset,
@@ -298,6 +309,47 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
   };
 }
 
+function PreviousSessionNotes({
+  events,
+  itemId,
+}: {
+  events: MediaProgressEvent[];
+  itemId: string;
+}) {
+  const notedEvents = [...events]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .filter((event) => Boolean(event.notes));
+
+  return (
+    <Card title="Previous notes from this lecture">
+      {notedEvents.length === 0 ? (
+        <p>No notes yet. Save your first session to start a history.</p>
+      ) : (
+        <ol className="lecture-previous-notes">
+          {notedEvents.map((event) => (
+            <li className="lecture-previous-notes__item" key={event.id}>
+              <p className="lecture-previous-notes__meta">
+                {formatMediaTimestamp(event.startSecond)}
+                {'–'}
+                {formatMediaTimestamp(event.endSecond)}
+                {' · '}
+                {new Date(event.createdAt).toLocaleDateString()}
+              </p>
+              <p>{event.notes}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+      <Link
+        className="button button--secondary button--md"
+        to={getStudySessionsPath(itemId)}
+      >
+        View all saved sessions
+      </Link>
+    </Card>
+  );
+}
+
 export function ContentDetailPage() {
   const params = useParams<{ itemId: string }>();
   const [progressForm, setProgressForm] = useState<ProgressFormState | null>(
@@ -308,7 +360,15 @@ export function ContentDetailPage() {
     useState<ContentDetailPageState>(initialPageState);
   const [reloadToken, setReloadToken] = useState(0);
   const [toast, setToast] = useState<ToastState>(null);
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
+  const [isSegmentsOpen, setIsSegmentsOpen] = useState(false);
   const itemId = params.itemId ?? '';
+
+  useEffect(() => {
+    setSaveResult(null);
+    setToast(null);
+    setIsSegmentsOpen(false);
+  }, [itemId]);
 
   useEffect(() => {
     let isActive = true;
@@ -349,7 +409,7 @@ export function ContentDetailPage() {
             error:
               loadError instanceof Error
                 ? loadError.message
-                : 'The content detail route could not read local data.',
+                : 'This page could not read your local progress.',
             status: 'error',
           });
         });
@@ -455,6 +515,13 @@ export function ContentDetailPage() {
     longFormProgress: detail.longFormDetail?.progress ?? null,
     required: detail.item.required,
   });
+
+  const isLecture =
+    detail.item.type === 'lecture' || detail.item.type === 'shorts';
+
+  const cs50Link =
+    getCs50ItemLink(detail.item.id) ?? getCs50UnitLink(detail.unit.id);
+
   async function handleProgressSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -640,17 +707,43 @@ export function ContentDetailPage() {
         (sum, tx) => sum + tx.xp,
         0,
       );
-      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
+      const achievementNames = xpResult.unlockedAchievements
+        .map(
+          (unlock) =>
+            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+        )
+        .filter(Boolean);
       const watchedMin = Math.round((endSecond - startSecond) / 60);
+      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
       const minutesSuffix =
         watchedMin > 0 ? ` · ${watchedMin} min watched` : '';
 
+      setSaveResult({ achievementNames, minutesWatched: watchedMin, xpAdded });
       setToast({
         description: `Session saved${minutesSuffix}.${xpToastSuffix}`,
         title: 'Session saved',
         tone: 'success',
       });
-      setReloadToken((currentToken) => currentToken + 1);
+      setLogForm((currentForm) =>
+        currentForm === null
+          ? currentForm
+          : {
+              ...currentForm,
+              isSaving: false,
+            },
+      );
+
+      void (async () => {
+        try {
+          const newDetail = await loadContentDetail(itemId);
+
+          startTransition(() => {
+            setPageState({ detail: newDetail, error: null, status: 'ready' });
+          });
+        } catch {
+          // stale data is acceptable; confirmation is already showing
+        }
+      })();
     } catch (saveError) {
       setLogForm((currentForm) =>
         currentForm === null
@@ -711,8 +804,674 @@ export function ContentDetailPage() {
           return endSecond - startSecond;
         })();
 
-  const cs50Link =
-    getCs50ItemLink(detail.item.id) ?? getCs50UnitLink(detail.unit.id);
+  const nextSegment =
+    detail.longFormDetail?.slices.find((s) => s.isNext) ?? null;
+  const completedSegmentCount =
+    detail.longFormDetail?.slices.filter((s) => s.status === 'completed')
+      .length ?? 0;
+  const totalSegmentCount = detail.longFormDetail?.slices.length ?? 0;
+
+  const logFormSection =
+    detail.asset !== null &&
+    detail.longFormDetail !== null &&
+    logForm !== null ? (
+      <Card
+        description="Enter the video timestamps you watched. Duplicate exact ranges are blocked, and overlapping ranges are merged."
+        title={getLogCardTitle(detail.item.type)}
+        variant={isLecture ? 'accent' : 'default'}
+      >
+        <form
+          className="course-detail-form"
+          noValidate
+          onSubmit={(event) => {
+            void handleLogSubmit(event);
+          }}
+        >
+          {detail.longFormDetail.progress?.summaryLine ? (
+            <div className="course-detail-note">
+              <p className="course-detail-note__label">Video progress</p>
+              <p>{detail.longFormDetail.progress.summaryLine}</p>
+            </div>
+          ) : null}
+          <div className="inline-actions">
+            <Button
+              onClick={() => {
+                const nextSlice =
+                  detail.longFormDetail?.slices.find((slice) => slice.isNext) ??
+                  null;
+
+                if (nextSlice === null) {
+                  return;
+                }
+
+                setLogForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        endTimestamp: formatTimestampInput(nextSlice.endSecond),
+                        error: null,
+                        startTimestamp: formatTimestampInput(
+                          detail.longFormDetail?.progress?.resumeSecond ??
+                            nextSlice.startSecond,
+                        ),
+                      },
+                );
+              }}
+              variant="secondary"
+            >
+              Use next segment
+            </Button>
+            <Button
+              onClick={() => {
+                const startSecond =
+                  parseTimestampInput(logForm.startTimestamp) ??
+                  detail.longFormDetail?.progress?.resumeSecond ??
+                  0;
+
+                setLogForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        error: null,
+                        startTimestamp: formatTimestampInput(startSecond),
+                      },
+                );
+                setQuickRange(startSecond + 600);
+              }}
+              variant="quiet"
+            >
+              +10 min
+            </Button>
+            <Button
+              onClick={() => {
+                const startSecond =
+                  parseTimestampInput(logForm.startTimestamp) ??
+                  detail.longFormDetail?.progress?.resumeSecond ??
+                  0;
+
+                setLogForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        error: null,
+                        startTimestamp: formatTimestampInput(startSecond),
+                      },
+                );
+                setQuickRange(startSecond + 1200);
+              }}
+              variant="quiet"
+            >
+              +20 min
+            </Button>
+          </div>
+          <div className="form-grid">
+            <FormField
+              controlId="content-log-start"
+              description="Use m:ss or h:mm:ss."
+              label="Started at"
+              required
+            >
+              {({ describedBy, inputId, invalid }) => (
+                <TextInput
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid || undefined}
+                  id={inputId}
+                  onChange={(event) =>
+                    setLogForm((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            error: null,
+                            startTimestamp: event.target.value,
+                          },
+                    )
+                  }
+                  placeholder="0:00"
+                  value={logForm.startTimestamp}
+                />
+              )}
+            </FormField>
+            <FormField
+              controlId="content-log-end"
+              description="The saved range cannot exceed the asset duration."
+              label="Stopped at"
+              required
+            >
+              {({ describedBy, inputId, invalid }) => (
+                <TextInput
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid || undefined}
+                  id={inputId}
+                  onChange={(event) =>
+                    setLogForm((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            endTimestamp: event.target.value,
+                            error: null,
+                          },
+                    )
+                  }
+                  placeholder="20:00"
+                  value={logForm.endTimestamp}
+                />
+              )}
+            </FormField>
+          </div>
+          <FormField
+            controlId="content-log-notes"
+            description="Optional note for this session."
+            label="Session Notes"
+          >
+            {({ describedBy, inputId, invalid }) => (
+              <TextArea
+                aria-describedby={describedBy}
+                aria-invalid={invalid || undefined}
+                id={inputId}
+                onChange={(event) =>
+                  setLogForm((currentForm) =>
+                    currentForm === null
+                      ? currentForm
+                      : {
+                          ...currentForm,
+                          notes: event.target.value,
+                        },
+                  )
+                }
+                placeholder="What clicked, what confused you, or where you left off."
+                value={logForm.notes}
+              />
+            )}
+          </FormField>
+          <div className="course-detail-note">
+            <p className="course-detail-note__label">Watched</p>
+            <p>
+              {watchedRangeSeconds === null
+                ? 'Enter a valid start and end timestamp to preview the range.'
+                : `${formatLoggedMinutes(watchedRangeSeconds)} will be logged.`}
+            </p>
+          </div>
+          <details className="form-details">
+            <summary>More details (energy, stop reason)</summary>
+            <div className="form-details__content">
+              <div className="form-grid">
+                <FormField
+                  controlId="content-log-energy-before"
+                  label="Energy before"
+                  required
+                >
+                  {({ describedBy, inputId, invalid }) => (
+                    <Select
+                      aria-describedby={describedBy}
+                      aria-invalid={invalid || undefined}
+                      id={inputId}
+                      onChange={(event) =>
+                        setLogForm((currentForm) =>
+                          currentForm === null
+                            ? currentForm
+                            : {
+                                ...currentForm,
+                                energyBefore: event.target.value,
+                              },
+                        )
+                      }
+                      options={energyOptions}
+                      value={logForm.energyBefore}
+                    />
+                  )}
+                </FormField>
+                <FormField
+                  controlId="content-log-energy-after"
+                  label="Energy after"
+                  required
+                >
+                  {({ describedBy, inputId, invalid }) => (
+                    <Select
+                      aria-describedby={describedBy}
+                      aria-invalid={invalid || undefined}
+                      id={inputId}
+                      onChange={(event) =>
+                        setLogForm((currentForm) =>
+                          currentForm === null
+                            ? currentForm
+                            : {
+                                ...currentForm,
+                                energyAfter: event.target.value,
+                              },
+                        )
+                      }
+                      options={energyOptions}
+                      value={logForm.energyAfter}
+                    />
+                  )}
+                </FormField>
+              </div>
+              <FormField
+                controlId="content-log-stop-reason"
+                label="Why did you stop?"
+                required
+              >
+                {({ describedBy, inputId, invalid }) => (
+                  <Select
+                    aria-describedby={describedBy}
+                    aria-invalid={invalid || undefined}
+                    id={inputId}
+                    onChange={(event) =>
+                      setLogForm((currentForm) =>
+                        currentForm === null
+                          ? currentForm
+                          : {
+                              ...currentForm,
+                              stoppedBecause: event.target
+                                .value as LogFormState['stoppedBecause'],
+                            },
+                      )
+                    }
+                    options={mediaStopReasonOptions}
+                    value={logForm.stoppedBecause}
+                  />
+                )}
+              </FormField>
+            </div>
+          </details>
+          {logForm.error ? (
+            <p className="form-field__error" role="alert">
+              {logForm.error}
+            </p>
+          ) : null}
+          <div className="course-detail-form__actions">
+            <Button loading={logForm.isSaving} size="lg" type="submit">
+              Save session
+            </Button>
+          </div>
+        </form>
+      </Card>
+    ) : null;
+
+  const videoSegmentsSection =
+    detail.asset !== null && detail.longFormDetail !== null ? (
+      <Card
+        description="This shows only the video time you saved. It does not guess what you watched."
+        title="Video segments"
+      >
+        {isLecture ? (
+          <div className="course-detail-note">
+            <p className="course-detail-note__label">Progress</p>
+            <p>
+              {nextSegment !== null
+                ? `Next: ${nextSegment.label}`
+                : 'All segments logged'}
+              {totalSegmentCount > 0
+                ? ` · ${completedSegmentCount} of ${totalSegmentCount} complete`
+                : null}
+            </p>
+          </div>
+        ) : null}
+        <SliceProgressBar
+          helperText={
+            detail.longFormDetail.progress?.summaryLine ??
+            'No video progress saved yet.'
+          }
+          label="Video progress"
+          segments={detail.longFormDetail.slices.map((slice) => ({
+            completion: slice.completionPercent / 100,
+            id: slice.id,
+            label: slice.label,
+            status: slice.status,
+          }))}
+        />
+        <div className="course-detail-meta-cluster">
+          <Badge tone="neutral">
+            {formatMediaTimestamp(detail.asset.durationSeconds ?? 0)} total
+          </Badge>
+          <Badge tone="accent">
+            {detail.longFormDetail.eventCount} saved event
+            {detail.longFormDetail.eventCount === 1 ? '' : 's'}
+          </Badge>
+          {detail.longFormDetail.lastLoggedRangeLabel ? (
+            <Badge tone="neutral">
+              Last watched {detail.longFormDetail.lastLoggedRangeLabel}
+            </Badge>
+          ) : null}
+          {detail.longFormDetail.lastStopReasonLabel ? (
+            <Badge tone="warning">
+              {detail.longFormDetail.lastStopReasonLabel}
+            </Badge>
+          ) : null}
+        </div>
+        {isLecture ? (
+          <div>
+            <Button
+              onClick={() => {
+                setIsSegmentsOpen((open) => !open);
+              }}
+              variant="quiet"
+            >
+              {isSegmentsOpen ? 'Hide all segments' : 'Show all segments'}
+            </Button>
+          </div>
+        ) : null}
+        {!isLecture || isSegmentsOpen ? (
+          <ol className="slice-detail-list">
+            {detail.longFormDetail.slices.map((slice) => (
+              <li className="slice-detail-list__item" key={slice.id}>
+                <div className="slice-detail-list__copy">
+                  <div className="slice-detail-list__title-row">
+                    <p className="slice-detail-list__title">{slice.label}</p>
+                    {slice.isNext ? <Badge tone="accent">Next</Badge> : null}
+                  </div>
+                  <p className="course-item-row__eyebrow">
+                    {formatMediaTimestamp(slice.startSecond)}-
+                    {formatMediaTimestamp(slice.endSecond)}
+                  </p>
+                </div>
+                <div className="slice-detail-list__meta">
+                  <Badge tone={getSliceTone(slice.status)}>
+                    {slice.statusLabel}
+                  </Badge>
+                  <Badge tone="neutral">
+                    {slice.completionPercent}% logged
+                  </Badge>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+      </Card>
+    ) : null;
+
+  const progressFormSection = (
+    <Card
+      description="Saved here. Updates your progress, XP, achievements, and dashboard."
+      title="Your progress"
+    >
+      <form
+        className="course-detail-form"
+        noValidate
+        onSubmit={(event) => {
+          void handleProgressSubmit(event);
+        }}
+      >
+        <div className="form-grid">
+          <FormField
+            controlId="course-detail-status"
+            error={progressForm?.errors.status}
+            label="Status"
+            required
+          >
+            {({ describedBy, inputId, invalid }) => (
+              <Select
+                aria-describedby={describedBy}
+                aria-invalid={invalid || undefined}
+                id={inputId}
+                onChange={(event) =>
+                  setProgressForm((currentForm) =>
+                    currentForm === null
+                      ? currentForm
+                      : {
+                          ...currentForm,
+                          values: {
+                            ...currentForm.values,
+                            status: event.target
+                              .value as CourseDetailProgressFormValues['status'],
+                          },
+                        },
+                  )
+                }
+                options={progressStatusOptions}
+                value={
+                  progressForm?.values.status ?? progressStatusOptions[0]?.value
+                }
+              />
+            )}
+          </FormField>
+          {!isLecture ? (
+            <FormField
+              controlId="course-detail-confidence"
+              description="0 means unset. 5 means very sure."
+              error={progressForm?.errors.confidence}
+              label="How sure are you?"
+              required
+            >
+              {({ describedBy, inputId, invalid }) => (
+                <Select
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid || undefined}
+                  id={inputId}
+                  onChange={(event) =>
+                    setProgressForm((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            values: {
+                              ...currentForm.values,
+                              confidence: event.target.value,
+                            },
+                          },
+                    )
+                  }
+                  options={confidenceOptions}
+                  value={progressForm?.values.confidence ?? '0'}
+                />
+              )}
+            </FormField>
+          ) : null}
+        </div>
+        <FormField
+          controlId="course-detail-notes"
+          description="Use notes for friction, blockers, or what changed."
+          label="Notes"
+        >
+          {({ describedBy, inputId, invalid }) => (
+            <TextArea
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
+              id={inputId}
+              onChange={(event) =>
+                setProgressForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        values: {
+                          ...currentForm.values,
+                          notes: event.target.value,
+                        },
+                      },
+                )
+              }
+              placeholder="Local notes about this task."
+              value={progressForm?.values.notes ?? ''}
+            />
+          )}
+        </FormField>
+        {!isLecture ? (
+          <FormField
+            controlId="course-detail-evidence"
+            description="Required when a problem set or lab is marked accepted."
+            error={progressForm?.errors.evidenceText}
+            label="Submission note"
+          >
+            {({ describedBy, inputId, invalid }) => (
+              <TextArea
+                aria-describedby={describedBy}
+                aria-invalid={invalid || undefined}
+                id={inputId}
+                onChange={(event) =>
+                  setProgressForm((currentForm) =>
+                    currentForm === null
+                      ? currentForm
+                      : {
+                          ...currentForm,
+                          values: {
+                            ...currentForm.values,
+                            evidenceText: event.target.value,
+                          },
+                        },
+                  )
+                }
+                placeholder="Example: submitted with submit50, or completed in the gradebook."
+                value={progressForm?.values.evidenceText ?? ''}
+              />
+            )}
+          </FormField>
+        ) : null}
+        {progressForm?.errors.submit ? (
+          <p className="form-field__error" role="alert">
+            {progressForm.errors.submit}
+          </p>
+        ) : null}
+        <div className="course-detail-form__actions">
+          <Button
+            loading={progressForm?.isSaving ?? false}
+            size="lg"
+            type="submit"
+          >
+            Save progress
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+
+  const aboutSection = (
+    <Card title={getItemContextTitle(detail.item.type)}>
+      <dl className="course-map-stat-list">
+        <div>
+          <dt>Unit</dt>
+          <dd>{detail.unit.title}</dd>
+        </div>
+        <div>
+          <dt>Type</dt>
+          <dd>{detailView.typeLabel}</dd>
+        </div>
+        <div>
+          <dt>Planned time</dt>
+          <dd>{detailView.estimatedMinutesLabel}</dd>
+        </div>
+        {!isLecture ? (
+          <div>
+            <dt>Content type</dt>
+            <dd>
+              {detail.asset === null
+                ? 'Not applicable'
+                : getAssetSummaryDescription(detail.asset)}
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+      {detail.longFormDetail?.progress?.summaryLine && !isLecture ? (
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">Saved progress summary</p>
+          <p>{detail.longFormDetail.progress.summaryLine}</p>
+        </div>
+      ) : null}
+      {isLecture && cs50Link !== null ? (
+        <a
+          className="button button--secondary button--md"
+          href={cs50Link.url}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {cs50Link.label}
+        </a>
+      ) : null}
+    </Card>
+  );
+
+  if (isLecture) {
+    return (
+      <section className="page-section">
+        <PageHeader
+          actions={
+            <div className="action-row">
+              <Link
+                className="button button--secondary button--md"
+                to={courseMapPath}
+              >
+                Back to course map
+              </Link>
+              <Link
+                className="button button--secondary button--md"
+                to={getStudySessionsPath(detail.item.id)}
+              >
+                Log a study session
+              </Link>
+            </div>
+          }
+          description="Save your progress here. Updates your course map, dashboard, XP, and achievements."
+          eyebrow={detailView.typeLabel}
+          meta={
+            <>
+              <StatusPill variant={detailView.statusVariant}>
+                {detailView.statusLabel}
+              </StatusPill>
+              <Badge tone="accent">{detailView.typeLabel}</Badge>
+              <Badge tone={detailView.required ? 'accent' : 'neutral'}>
+                {detailView.required ? 'Required' : 'Optional'}
+              </Badge>
+              <Badge tone="neutral">{detailView.estimatedMinutesLabel}</Badge>
+            </>
+          }
+          title={`${detailView.unitTitle} - ${detailView.title}`}
+        />
+        {logFormSection}
+        {saveResult !== null ? (
+          <Card
+            aria-live="polite"
+            role="status"
+            title="Session saved"
+            variant="accent"
+          >
+            <div className="course-detail-note">
+              <p className="course-detail-note__label">What was logged</p>
+              <p>
+                {saveResult.minutesWatched > 0
+                  ? `${saveResult.minutesWatched} min added`
+                  : 'Session recorded'}
+                {saveResult.xpAdded > 0 ? ` · +${saveResult.xpAdded} XP` : ''}
+                {saveResult.achievementNames.length > 0
+                  ? ` · Achievement unlocked: ${saveResult.achievementNames.join(', ')}`
+                  : ''}
+              </p>
+            </div>
+            <p>
+              Ready to log your next session, or update your progress status
+              below.
+            </p>
+            <Button
+              onClick={() => {
+                setSaveResult(null);
+              }}
+              variant="quiet"
+            >
+              Dismiss
+            </Button>
+          </Card>
+        ) : null}
+        <PreviousSessionNotes events={detail.events} itemId={detail.item.id} />
+        {videoSegmentsSection}
+        {progressFormSection}
+        {aboutSection}
+        {toast ? (
+          <ToastStack>
+            <Toast
+              description={toast.description}
+              onDismiss={() => setToast(null)}
+              title={toast.title}
+              tone={toast.tone}
+            />
+          </ToastStack>
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <section className="page-section">
@@ -865,7 +1624,7 @@ export function ContentDetailPage() {
                           },
                     )
                   }
-                  placeholder="Local notes about this item."
+                  placeholder="Local notes about this task."
                   value={progressForm?.values.notes ?? ''}
                 />
               )}
@@ -948,338 +1707,8 @@ export function ContentDetailPage() {
           ) : null}
         </Card>
       </div>
-      {detail.asset !== null && detail.longFormDetail !== null ? (
-        <Card
-          description="This shows only the video time you saved. It does not guess what you watched."
-          title="Video segments"
-        >
-          <SliceProgressBar
-            helperText={
-              detail.longFormDetail.progress?.summaryLine ??
-              'No video progress saved yet.'
-            }
-            label="Video progress"
-            segments={detail.longFormDetail.slices.map((slice) => ({
-              completion: slice.completionPercent / 100,
-              id: slice.id,
-              label: slice.label,
-              status: slice.status,
-            }))}
-          />
-          <div className="course-detail-meta-cluster">
-            <Badge tone="neutral">
-              {formatMediaTimestamp(detail.asset.durationSeconds ?? 0)} total
-            </Badge>
-            <Badge tone="accent">
-              {detail.longFormDetail.eventCount} saved event
-              {detail.longFormDetail.eventCount === 1 ? '' : 's'}
-            </Badge>
-            {detail.longFormDetail.lastLoggedRangeLabel ? (
-              <Badge tone="neutral">
-                Last watched {detail.longFormDetail.lastLoggedRangeLabel}
-              </Badge>
-            ) : null}
-            {detail.longFormDetail.lastStopReasonLabel ? (
-              <Badge tone="warning">
-                {detail.longFormDetail.lastStopReasonLabel}
-              </Badge>
-            ) : null}
-          </div>
-          <ol className="slice-detail-list">
-            {detail.longFormDetail.slices.map((slice) => (
-              <li className="slice-detail-list__item" key={slice.id}>
-                <div className="slice-detail-list__copy">
-                  <div className="slice-detail-list__title-row">
-                    <p className="slice-detail-list__title">{slice.label}</p>
-                    {slice.isNext ? <Badge tone="accent">Next</Badge> : null}
-                  </div>
-                  <p className="course-item-row__eyebrow">
-                    {formatMediaTimestamp(slice.startSecond)}-
-                    {formatMediaTimestamp(slice.endSecond)}
-                  </p>
-                </div>
-                <div className="slice-detail-list__meta">
-                  <Badge tone={getSliceTone(slice.status)}>
-                    {slice.statusLabel}
-                  </Badge>
-                  <Badge tone="neutral">
-                    {slice.completionPercent}% logged
-                  </Badge>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Card>
-      ) : null}
-      {detail.asset !== null &&
-      detail.longFormDetail !== null &&
-      logForm !== null ? (
-        <Card
-          description="Enter the video timestamps you watched. Duplicate exact ranges are blocked, and overlapping ranges are merged."
-          title={getLogCardTitle(detail.item.type)}
-        >
-          <form
-            className="course-detail-form"
-            noValidate
-            onSubmit={(event) => {
-              void handleLogSubmit(event);
-            }}
-          >
-            <div className="inline-actions">
-              <Button
-                onClick={() => {
-                  const nextSlice =
-                    detail.longFormDetail?.slices.find(
-                      (slice) => slice.isNext,
-                    ) ?? null;
-
-                  if (nextSlice === null) {
-                    return;
-                  }
-
-                  setLogForm((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          endTimestamp: formatTimestampInput(
-                            nextSlice.endSecond,
-                          ),
-                          error: null,
-                          startTimestamp: formatTimestampInput(
-                            detail.longFormDetail?.progress?.resumeSecond ??
-                              nextSlice.startSecond,
-                          ),
-                        },
-                  );
-                }}
-                variant="secondary"
-              >
-                Use next segment
-              </Button>
-              <Button
-                onClick={() => {
-                  const startSecond =
-                    parseTimestampInput(logForm.startTimestamp) ??
-                    detail.longFormDetail?.progress?.resumeSecond ??
-                    0;
-
-                  setLogForm((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          error: null,
-                          startTimestamp: formatTimestampInput(startSecond),
-                        },
-                  );
-                  setQuickRange(startSecond + 600);
-                }}
-                variant="quiet"
-              >
-                +10 min
-              </Button>
-              <Button
-                onClick={() => {
-                  const startSecond =
-                    parseTimestampInput(logForm.startTimestamp) ??
-                    detail.longFormDetail?.progress?.resumeSecond ??
-                    0;
-
-                  setLogForm((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          error: null,
-                          startTimestamp: formatTimestampInput(startSecond),
-                        },
-                  );
-                  setQuickRange(startSecond + 1200);
-                }}
-                variant="quiet"
-              >
-                +20 min
-              </Button>
-            </div>
-            <div className="form-grid">
-              <FormField
-                controlId="content-log-start"
-                description="Use m:ss or h:mm:ss."
-                label="Started at"
-                required
-              >
-                {({ describedBy, inputId, invalid }) => (
-                  <TextInput
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    id={inputId}
-                    onChange={(event) =>
-                      setLogForm((currentForm) =>
-                        currentForm === null
-                          ? currentForm
-                          : {
-                              ...currentForm,
-                              error: null,
-                              startTimestamp: event.target.value,
-                            },
-                      )
-                    }
-                    placeholder="0:00"
-                    value={logForm.startTimestamp}
-                  />
-                )}
-              </FormField>
-              <FormField
-                controlId="content-log-end"
-                description="The saved range cannot exceed the asset duration."
-                label="Stopped at"
-                required
-              >
-                {({ describedBy, inputId, invalid }) => (
-                  <TextInput
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    id={inputId}
-                    onChange={(event) =>
-                      setLogForm((currentForm) =>
-                        currentForm === null
-                          ? currentForm
-                          : {
-                              ...currentForm,
-                              endTimestamp: event.target.value,
-                              error: null,
-                            },
-                      )
-                    }
-                    placeholder="20:00"
-                    value={logForm.endTimestamp}
-                  />
-                )}
-              </FormField>
-              <FormField
-                controlId="content-log-energy-before"
-                label="Energy before"
-                required
-              >
-                {({ describedBy, inputId, invalid }) => (
-                  <Select
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    id={inputId}
-                    onChange={(event) =>
-                      setLogForm((currentForm) =>
-                        currentForm === null
-                          ? currentForm
-                          : {
-                              ...currentForm,
-                              energyBefore: event.target.value,
-                            },
-                      )
-                    }
-                    options={energyOptions}
-                    value={logForm.energyBefore}
-                  />
-                )}
-              </FormField>
-              <FormField
-                controlId="content-log-energy-after"
-                label="Energy after"
-                required
-              >
-                {({ describedBy, inputId, invalid }) => (
-                  <Select
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    id={inputId}
-                    onChange={(event) =>
-                      setLogForm((currentForm) =>
-                        currentForm === null
-                          ? currentForm
-                          : {
-                              ...currentForm,
-                              energyAfter: event.target.value,
-                            },
-                      )
-                    }
-                    options={energyOptions}
-                    value={logForm.energyAfter}
-                  />
-                )}
-              </FormField>
-            </div>
-            <FormField
-              controlId="content-log-stop-reason"
-              label="Stop reason"
-              required
-            >
-              {({ describedBy, inputId, invalid }) => (
-                <Select
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setLogForm((currentForm) =>
-                      currentForm === null
-                        ? currentForm
-                        : {
-                            ...currentForm,
-                            stoppedBecause: event.target
-                              .value as LogFormState['stoppedBecause'],
-                          },
-                    )
-                  }
-                  options={mediaStopReasonOptions}
-                  value={logForm.stoppedBecause}
-                />
-              )}
-            </FormField>
-            <FormField
-              controlId="content-log-notes"
-              description="Optional local note for why this stop point mattered."
-              label="Session Notes"
-            >
-              {({ describedBy, inputId, invalid }) => (
-                <TextArea
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setLogForm((currentForm) =>
-                      currentForm === null
-                        ? currentForm
-                        : {
-                            ...currentForm,
-                            notes: event.target.value,
-                          },
-                    )
-                  }
-                  placeholder="Reached a clean limit, got interrupted, or hit confusion."
-                  value={logForm.notes}
-                />
-              )}
-            </FormField>
-            <div className="course-detail-note">
-              <p className="course-detail-note__label">Watched</p>
-              <p>
-                {watchedRangeSeconds === null
-                  ? 'Enter a valid start and end timestamp to preview the range.'
-                  : `${formatLoggedMinutes(watchedRangeSeconds)} will be logged.`}
-              </p>
-            </div>
-            {logForm.error ? (
-              <p className="form-field__error" role="alert">
-                {logForm.error}
-              </p>
-            ) : null}
-            <div className="course-detail-form__actions">
-              <Button loading={logForm.isSaving} size="lg" type="submit">
-                Save session
-              </Button>
-            </div>
-          </form>
-        </Card>
-      ) : null}
+      {videoSegmentsSection}
+      {logFormSection}
       {toast ? (
         <ToastStack>
           <Toast

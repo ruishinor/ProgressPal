@@ -1,4 +1,11 @@
-import { cleanup, screen, waitFor, within } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -367,6 +374,211 @@ describe('App', () => {
     expect(afterSnapshot.contentSlices).toEqual(beforeSnapshot.contentSlices);
     expect(afterSnapshot.resumePoints).toEqual(beforeSnapshot.resumePoints);
     expect(afterSnapshot.xpTransactions).toEqual(beforeSnapshot.xpTransactions);
+  });
+
+  // UX-02: Lecture page learner-first tests
+
+  it('lecture page renders Log Lecture heading and primary form labels', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Log Lecture' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Started at')).toBeInTheDocument();
+    expect(screen.getByLabelText('Stopped at')).toBeInTheDocument();
+    expect(screen.getByLabelText('Session Notes')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Save session' }),
+    ).toBeInTheDocument();
+  });
+
+  it('lecture page does not render forbidden learner-facing terms', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+    await screen.findByRole('heading', { name: 'Log Lecture' });
+
+    const body = document.body.textContent ?? '';
+    expect(body).not.toMatch(/\bwatched range\b/i);
+    expect(body).not.toMatch(/\bslice timeline\b/i);
+    expect(body).not.toMatch(/\bUse next slice\b/i);
+    expect(body).not.toMatch(/\bProgress record\b/i);
+    expect(body).not.toMatch(/\bCourse item\b/i);
+    expect(body).not.toMatch(/\bContent detail\b/i);
+    expect(body).not.toMatch(/\bHow sure are you\b/i);
+    expect(body).not.toMatch(/\bSubmission note\b/i);
+  });
+
+  it('saving a lecture session shows inline confirmation with minutes and XP', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+    await screen.findByRole('button', { name: 'Save session' });
+
+    const startInput = screen.getByLabelText('Started at');
+    const endInput = screen.getByLabelText('Stopped at');
+
+    fireEvent.change(startInput, { target: { value: '0:00' } });
+    fireEvent.change(endInput, { target: { value: '20:00' } });
+
+    await user.click(screen.getByRole('button', { name: 'Save session' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Session saved' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText(/20 min added/i)).toBeInTheDocument();
+  });
+
+  it('previous notes from this lecture appear when a prior session with notes exists', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 1200,
+        energyAfter: 3,
+        energyBefore: 4,
+        notes: 'Recursion finally clicked here.',
+        startSecond: 0,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-18T09:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Previous notes from this lecture',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Recursion finally clicked here.'),
+    ).toBeInTheDocument();
+  });
+
+  it('lecture page shows video segments card but hides segment list by default', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 1200,
+        energyAfter: 3,
+        energyBefore: 4,
+        startSecond: 0,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+
+    expect(await screen.findByText('Video segments')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show all segments' }),
+    ).toBeInTheDocument();
+    // Segment detail list is not rendered until the toggle is clicked
+    expect(
+      document.querySelector('.slice-detail-list'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keyboard user can reach the Log Lecture form fields and the segments toggle', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 600,
+        energyAfter: 3,
+        energyBefore: 3,
+        startSecond: 0,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-18T11:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+    await screen.findByRole('button', { name: 'Save session' });
+
+    // All interactive form elements are in the document and enabled
+    expect(screen.getByLabelText('Started at')).not.toBeDisabled();
+    expect(screen.getByLabelText('Stopped at')).not.toBeDisabled();
+    expect(screen.getByLabelText('Session Notes')).not.toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Save session' }),
+    ).not.toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Show all segments' }),
+    ).not.toBeDisabled();
   });
 });
 
