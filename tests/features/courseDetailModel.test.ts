@@ -96,7 +96,7 @@ describe('course detail model', () => {
     );
 
     expect(validation.errors.evidenceText).toMatch(
-      /needs a short evidence note/i,
+      /where you submitted this work/i,
     );
   });
 

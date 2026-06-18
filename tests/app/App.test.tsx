@@ -580,6 +580,395 @@ describe('App', () => {
       screen.getByRole('button', { name: 'Show all segments' }),
     ).not.toBeDisabled();
   });
+
+  // UX-03: Problem set page learner-first tests
+
+  it('problem set page renders Problem Set Progress heading and primary form labels', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Problem Set Progress' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Progress')).toBeInTheDocument();
+    expect(screen.getByLabelText('Notes')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Save progress' }),
+    ).toBeInTheDocument();
+  });
+
+  it('problem set page does not render forbidden learner-facing terms', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    const body = document.body.textContent ?? '';
+    expect(body).not.toMatch(/\bEvidence\b/);
+    expect(body).not.toMatch(/\bProgress record\b/i);
+    expect(body).not.toMatch(/\bCourse item\b/i);
+    expect(body).not.toMatch(/\bContent detail\b/i);
+  });
+
+  it('problem set page hides submission field when status is started', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    // Default status is Started; submission field must not appear
+    expect(
+      screen.queryByLabelText('Where did you submit it?'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('problem set page shows submission field when saved status is submitted', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'submitted',
+        confidence: 3,
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    // Status is submitted; submission field must appear
+    expect(
+      screen.getByLabelText('Where did you submit it?'),
+    ).toBeInTheDocument();
+  });
+
+  it('saving problem set progress shows inline Progress saved confirmation with What is next', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Progress saved' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/What'?s next/i)).toBeInTheDocument();
+    // problem_set_started milestone awards +20 XP on first save
+    expect(screen.getAllByText(/\+20 XP/).length).toBeGreaterThan(0);
+  });
+
+  it('problem set previous notes appear when saved progress has notes', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'started',
+        confidence: 2,
+        notes: 'Got stuck on the sprite animation.',
+      },
+      { now: () => '2026-06-18T12:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+
+    const previousNotesHeading = await screen.findByRole('heading', {
+      name: 'Previous notes',
+    });
+    expect(previousNotesHeading).toBeInTheDocument();
+    const previousNotesCard = previousNotesHeading.closest('section');
+    expect(
+      within(previousNotesCard!).getByText(
+        'Got stuck on the sprite animation.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('keyboard user can reach progress selector, notes, submission field, save button, and official link', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    // Pre-seed submitted so the Submission card is visible for keyboard access check
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'submitted',
+        confidence: 3,
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    expect(screen.getByLabelText('Progress')).not.toBeDisabled();
+    expect(screen.getByLabelText('Notes')).not.toBeDisabled();
+    expect(
+      screen.getByLabelText('Where did you submit it?'),
+    ).not.toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Save progress' }),
+    ).not.toBeDisabled();
+    expect(
+      screen.getByRole('link', { name: 'Problem Set 0 on CS50.harvard.edu' }),
+    ).toBeInTheDocument();
+  });
+
+  it('problem set page shows submission card when saved status is accepted', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'accepted',
+        confidence: 4,
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    expect(
+      screen.getByRole('heading', { name: 'Submission' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Where did you submit it?'),
+    ).toBeInTheDocument();
+  });
+
+  it('problem set submission card shows when live selector changes to submitted or accepted', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    // Pre-seed completed so status options include submitted/accepted
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'completed',
+        confidence: 3,
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    // Initial status 'completed' — Submission card is hidden
+    expect(
+      screen.queryByRole('heading', { name: 'Submission' }),
+    ).not.toBeInTheDocument();
+
+    // Change live selector to 'submitted' — Submission card appears
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'submitted' },
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Submission' }),
+    ).toBeInTheDocument();
+
+    // Change live selector to 'accepted' — Submission card remains visible
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'accepted' },
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Submission' }),
+    ).toBeInTheDocument();
+  });
+
+  it('problem set submission card hides when live selector changes away from submitted', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'completed',
+        confidence: 3,
+      },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set Progress' });
+
+    // Change to submitted — card appears
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'submitted' },
+    });
+    expect(
+      screen.getByRole('heading', { name: 'Submission' }),
+    ).toBeInTheDocument();
+
+    // Change back to completed — card hides
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'completed' },
+    });
+    expect(
+      screen.queryByRole('heading', { name: 'Submission' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('problem set progress save shows achievement unlock when awarded', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    // Select 'completed' — triggers the First Step achievement (first task completed)
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'completed' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    await screen.findByRole('heading', { name: 'Progress saved' });
+    expect(screen.getByText(/First Step/)).toBeInTheDocument();
+  });
+
+  it('lecture page log form and save feedback are unaffected by UX-03', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+
+    await screen.findByRole('heading', {
+      name: 'Week 0: Scratch - Lecture 0: Scratch',
+    });
+    // Lectures keep "Status" label — UX-03 only renamed this to "Progress" for problem sets
+    expect(screen.getByLabelText('Status')).toBeInTheDocument();
+    // Submission card is problem-set-only; must not appear on lecture pages
+    expect(
+      screen.queryByRole('heading', { name: 'Submission' }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe('Dashboard route', () => {

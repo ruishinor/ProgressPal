@@ -68,7 +68,8 @@ test.describe('Achievement engine E2E tests', () => {
     await expect(
       page.getByRole('heading', { name: 'Problem Set 0' }),
     ).toBeVisible();
-    await page.getByLabel('Status').selectOption('completed');
+    await page.getByLabel('Progress').selectOption('completed');
+    await page.getByText('More details').click();
     await page.getByLabel('How sure are you?').selectOption('5');
     await page.getByRole('button', { name: 'Save progress' }).click();
     await expect(page.locator('.toast__title').first()).toBeVisible();

@@ -202,7 +202,7 @@ export function validateCourseDetailProgressForm(
 
   if (values.status === 'accepted' && values.evidenceText.trim().length === 0) {
     errors.evidenceText =
-      'Accepted work needs a short evidence note so the saved state stays traceable.';
+      'Add a note about where you submitted this work before saving as Accepted.';
   }
 
   if (

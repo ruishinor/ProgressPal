@@ -6,14 +6,61 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| Branch                 | `ux/02-lecture-page-learner-first`                                                        |
-| Baseline commit        | `a2e0cec Replace technical course-detail language`                                        |
-| Current module         | UX-02 — Rebuild lecture page around the learner's next action                             |
-| Last completed subtask | Three full clean validation passes; forbidden-term search clean; awaiting commit approval |
-| Next file to edit      | None — all files complete                                                                 |
-| Status                 | Validation complete; awaiting commit approval                                             |
+| Field                  | Value                                                                |
+| ---------------------- | -------------------------------------------------------------------- |
+| Branch                 | `ux/03-problem-set-learner-first`                                    |
+| Baseline commit        | `794fe06 Make lecture logging learner-first`                         |
+| Current module         | UX-03 — Rebuild problem set pages around work, notes, and submission |
+| Last completed subtask | Three-pass validation complete; awaiting commit approval             |
+| Next file to edit      | None — ready to commit                                               |
+| Status                 | Implementation complete; not yet committed                           |
+
+---
+
+## UX-03 rollback instructions
+
+If anything goes wrong before commit:
+
+```powershell
+git status -sb
+git restore src/ tests/ docs/
+```
+
+UX-03 changes: layout, copy, and minor behavioral additions (inline save confirmation, conditional submission field, confidence moved to `<details>`, previous notes section). No schema, DB, route, XP rule, achievement rule, or dependency change. Rolling back is safe at any point before commit.
+
+If already committed and rollback is needed:
+
+```powershell
+git revert HEAD
+```
+
+## UX-03 validation plan
+
+Three full clean passes required (module touches save flow and XP-facing behavior):
+
+```powershell
+git status -sb
+npm run lint
+npm run format:check
+npm run typecheck
+npm run build
+npm run test
+npx playwright test --workers=2
+npm run check:circular
+npm run audit
+```
+
+## UX-03 stop conditions
+
+Stop and request review if any of these is required:
+
+- Schema, DB store, or index change
+- XP rule change
+- Achievement rule change
+- New package dependency
+- Service-worker change
+- Backup/import/reset contract change
+- External network fetch
 
 ---
 
@@ -181,18 +228,18 @@ Replace technical course-detail language
 
 ## Module status tracker
 
-| Module | Goal                               | Status                              | Commit  |
-| ------ | ---------------------------------- | ----------------------------------- | ------- |
-| UX-00  | Audit and baseline lock            | Complete                            | 5364aae |
-| UX-01  | Plain-language terminology cleanup | Complete                            | a2e0cec |
-| UX-02  | Learner-first lecture page         | Validation complete; pending commit | —       |
-| UX-03  | Learner-first problem set page     | Not started                         | —       |
-| UX-04  | Stronger XP/achievement/level loop | Not started                         | —       |
-| UX-05  | Save history and repair path       | Not started                         | —       |
-| UX-06  | Onboarding simplification          | Not started                         | —       |
-| UX-07  | Local CS50 guide content           | Not started                         | —       |
-| UX-08  | Visual hierarchy polish            | Not started                         | —       |
-| UX-09  | Final acceptance review            | Not started                         | —       |
+| Module | Goal                               | Status                    | Commit  |
+| ------ | ---------------------------------- | ------------------------- | ------- |
+| UX-00  | Audit and baseline lock            | Complete                  | 5364aae |
+| UX-01  | Plain-language terminology cleanup | Complete                  | a2e0cec |
+| UX-02  | Learner-first lecture page         | Complete                  | 794fe06 |
+| UX-03  | Learner-first problem set page     | Ready to commit (not yet) | —       |
+| UX-04  | Stronger XP/achievement/level loop | Not started               | —       |
+| UX-05  | Save history and repair path       | Not started               | —       |
+| UX-06  | Onboarding simplification          | Not started               | —       |
+| UX-07  | Local CS50 guide content           | Not started               | —       |
+| UX-08  | Visual hierarchy polish            | Not started               | —       |
+| UX-09  | Final acceptance review            | Not started               | —       |
 
 ---
 
@@ -444,4 +491,91 @@ The save confirmation approach: after `logMediaProgressAndAwardXp` resolves, `se
 
 ```
 Make lecture logging learner-first
+```
+
+---
+
+### UX-03 — 2026-06-18
+
+E2E method: `npx playwright test --workers=2` (managed-server; `npm run test:e2e` has known teardown limitation).
+
+Three full clean passes required (module touches save flow and XP-facing behavior).
+
+#### Pass 1
+
+| Command                  | Result | Notes                                                                                                                                                                          |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run lint`           | PASS   | Zero warnings                                                                                                                                                                  |
+| `npm run format:check`   | PASS   | `prettier --write .` needed on 29 pre-existing unformatted files; all clean after                                                                                              |
+| `npm run typecheck`      | PASS   | Zero errors                                                                                                                                                                    |
+| `npm run build`          | PASS   | 195 modules; all chunks under 600 kB                                                                                                                                           |
+| `npm run test`           | PASS   | 32 test files / 221 tests (7 new UX-03 tests added). Three test fixes needed: validation error regex; `within()` scoping for previous-notes card; `<details>` expansion in E2E |
+| E2E `--workers=2`        | PASS   | 24/24. Two E2E fixes needed: expand `<details>` before confidence select; use `getByRole('heading')` to avoid strict-mode violation with duplicate "Progress saved" text       |
+| `npm run check:circular` | PASS   | No circular dependencies                                                                                                                                                       |
+| `npm run audit`          | PASS   | 0 vulnerabilities                                                                                                                                                              |
+
+#### Pass 2
+
+| Command                  | Result | Notes                    |
+| ------------------------ | ------ | ------------------------ |
+| `npm run lint`           | PASS   | Zero warnings            |
+| `npm run format:check`   | PASS   | All clean                |
+| `npm run typecheck`      | PASS   | Zero errors              |
+| `npm run build`          | PASS   | 195 modules; clean       |
+| `npm run test`           | PASS   | 32 files / 221 tests     |
+| E2E `--workers=2`        | PASS   | 24/24                    |
+| `npm run check:circular` | PASS   | No circular dependencies |
+| `npm run audit`          | PASS   | 0 vulnerabilities        |
+
+#### Pass 3
+
+| Command                  | Result | Notes                                                                                |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------ |
+| `npm run lint`           | PASS   | Zero warnings                                                                        |
+| `npm run format:check`   | PASS   | All clean                                                                            |
+| `npm run typecheck`      | PASS   | Zero errors                                                                          |
+| `npm run build`          | PASS   | 195 modules; clean                                                                   |
+| `npm run test`           | PASS   | 32 files / 221 tests (one isolated flake on first attempt; immediate retry: 221/221) |
+| E2E `--workers=2`        | PASS   | 24/24                                                                                |
+| `npm run check:circular` | PASS   | No circular dependencies                                                             |
+| `npm run audit`          | PASS   | 0 vulnerabilities                                                                    |
+
+#### Forbidden-term analysis (UX-03)
+
+- No new forbidden terms introduced in user-facing strings
+- `Evidence` / `Confidence` appear only as internal TypeScript variable names (`evidenceText`, `parsedConfidence`) — not UI labels
+- Submission field label is `"Where did you submit it?"` — not `"Evidence"`
+- `Content detail` in `ContentDetailPage.tsx:414` is a `console.error` message — not shown in UI
+- All new user-facing copy uses learner-first language: "Problem Set Progress", "Lab Progress", "Save your progress here", "Progress saved", "What's next?", "Previous notes", "Where did you submit it?"
+- Confidence field moved to `<details>` collapse with summary "More details (confidence)" — word appears as supplementary context in summary text only, not as a primary label
+
+#### Test fixes required during pass 1
+
+| File                                       | Fix                                                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `tests/features/courseDetailModel.test.ts` | Updated `evidenceText` error regex from `/needs a short evidence note/i` to `/where you submitted this work/i`                 |
+| `tests/app/App.test.tsx`                   | Scoped notes assertion with `within(card)` — notes text appeared in both textarea and "Previous notes" card                    |
+| `e2e/xp.spec.ts`                           | Click `<details>` summary before confidence select; use `getByRole('heading')` to avoid strict-mode "Progress saved" duplicate |
+| `e2e/achievements.spec.ts`                 | Click `<details>` summary before confidence select                                                                             |
+
+#### Files changed in UX-03
+
+| File                                               | Type      | Change summary                                                                                                                                                                                                                                                     |
+| -------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/features/course/routes/ContentDetailPage.tsx` | Source    | Full learner-first rewrite of non-lecture path; new `ProgressSaveResult` type and `getProgressCardTitle` helper; inline save confirmation; conditional submission field; confidence in `<details>`; previous notes section; CS50 link moved to page header actions |
+| `src/features/course/detailModel.ts`               | Source    | Updated `evidenceText` validation message from jargon to plain English ("Add a note about where you submitted this work")                                                                                                                                          |
+| `tests/app/App.test.tsx`                           | Unit test | 7 new tests: heading/labels, forbidden-term check, submission field visibility, save confirmation, previous notes, keyboard access                                                                                                                                 |
+| `tests/features/courseDetailModel.test.ts`         | Unit test | Updated `evidenceText` error assertion regex to match new validation message                                                                                                                                                                                       |
+| `e2e/xp.spec.ts`                                   | E2E test  | Expand confidence `<details>` before select; use `getByRole('heading')` for "Progress saved" assertion                                                                                                                                                             |
+| `e2e/achievements.spec.ts`                         | E2E test  | Expand confidence `<details>` before confidence select                                                                                                                                                                                                             |
+| `docs/remediation/ux-remediation-checklist.md`     | Doc       | Updated current state, module tracker, added this validation log                                                                                                                                                                                                   |
+
+#### Scope risk assessment
+
+No schema, database, route, XP rule, achievement rule, service-worker, or dependency change. Save confirmation reads `xpResult.awardedTransactions` and `xpResult.unlockedAchievements` from the existing `upsertProgressAndAwardXp` return value — no new DB calls. Inline reload uses existing `loadContentDetail` function — no new data path. Confidence field default `'0'` preserved in form state so validation passes even when `<details>` is collapsed. Safe to commit.
+
+#### Proposed commit message (UX-03)
+
+```
+Make problem set progress learner-first
 ```
