@@ -1,4 +1,10 @@
-import { startTransition, useEffect, useState, type FormEvent } from 'react';
+import {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -425,6 +431,7 @@ export function ContentDetailPage() {
   const [progressSaveResult, setProgressSaveResult] =
     useState<ProgressSaveResult | null>(null);
   const [isSegmentsOpen, setIsSegmentsOpen] = useState(false);
+  const formInitializedItemRef = useRef<string | null>(null);
   const itemId = params.itemId ?? '';
 
   useEffect(() => {
@@ -490,12 +497,22 @@ export function ContentDetailPage() {
       return;
     }
 
-    setProgressForm(
-      createEmptyProgressFormState(
-        pageState.detail.progressEntry,
-        pageState.detail.longFormDetail,
-      ),
-    );
+    // Initialize the progress form only when the underlying item changes (a
+    // fresh page load or navigation). A save triggers a background reload that
+    // re-creates `pageState.detail`; without this guard that reload would
+    // overwrite a status the learner has already changed in the meantime,
+    // silently discarding their selection (and the milestone it would award).
+    // Save handlers update the form state themselves, so skipping
+    // re-initialization here keeps the saved record and the form in sync.
+    if (formInitializedItemRef.current !== pageState.detail.item.id) {
+      formInitializedItemRef.current = pageState.detail.item.id;
+      setProgressForm(
+        createEmptyProgressFormState(
+          pageState.detail.progressEntry,
+          pageState.detail.longFormDetail,
+        ),
+      );
+    }
 
     if (
       pageState.detail.asset !== null &&

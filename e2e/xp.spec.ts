@@ -33,6 +33,41 @@ async function getXpTransactions(
   `)) as Record<string, unknown>[];
 }
 
+async function getProgressEntryStatus(
+  page: Page,
+  itemId: string,
+): Promise<string | null> {
+  return (await page.evaluate(`
+    new Promise((resolve, reject) => {
+      const request = indexedDB.open('progresspal-cs50-edition');
+
+      request.onerror = () => {
+        reject(new Error('Failed to open IndexedDB.'));
+      };
+
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction(['progress_entries'], 'readonly');
+        const store = transaction.objectStore('progress_entries');
+        const getRequest = store.getAll();
+
+        transaction.oncomplete = () => {
+          const match = getRequest.result.find(
+            (row) => row.itemId === ${JSON.stringify(itemId)},
+          );
+          resolve(match ? match.status : null);
+          database.close();
+        };
+
+        transaction.onerror = () => {
+          database.close();
+          reject(new Error('Failed to read progress_entries.'));
+        };
+      };
+    });
+  `)) as string | null;
+}
+
 test.describe('XP Engine E2E Tests', () => {
   test('saves a study session and awards XP with UI feedback', async ({
     page,
@@ -85,15 +120,29 @@ test.describe('XP Engine E2E Tests', () => {
     // Verify toast notification (+20 XP!)
     await expect(page.getByText(/\+20 XP!/)).toBeVisible();
 
-    let txs = await getXpTransactions(page);
-    expect(txs.map((t) => t.sourceType)).toContain('problem_set_started');
+    // Wait for the save to be durably persisted. Polling the persisted record
+    // (rather than only checking the transient toast) also guarantees the
+    // post-save background reload has fully settled before the next status is
+    // selected, so the selection cannot race with a reload.
+    await expect
+      .poll(async () =>
+        (await getXpTransactions(page)).map((t) => t.sourceType),
+      )
+      .toContain('problem_set_started');
+    await expect
+      .poll(() => getProgressEntryStatus(page, 'week-0-problem-set'))
+      .toBe('started');
 
     // 3. Select 'completed' status first, because submitted/accepted are only transitionable from completed status
     await page.getByLabel('Progress').selectOption('completed');
     await page.getByRole('button', { name: 'Save progress' }).click();
     await expect(
-      page.getByRole('heading', { name: 'Progress saved' }),
+      page.getByRole('heading', { name: /Progress (saved|updated)/ }),
     ).toBeVisible();
+    // Wait for the completed save + reload to settle before changing status.
+    await expect
+      .poll(() => getProgressEntryStatus(page, 'week-0-problem-set'))
+      .toBe('completed');
 
     // 4. Select 'submitted' status and save (awards problem_set_submitted milestone: +75 XP)
     await page.getByLabel('Progress').selectOption('submitted');
@@ -102,8 +151,14 @@ test.describe('XP Engine E2E Tests', () => {
     // Verify toast notification (+75 XP!)
     await expect(page.getByText(/\+75 XP!/)).toBeVisible();
 
-    txs = await getXpTransactions(page);
-    expect(txs.map((t) => t.sourceType)).toContain('problem_set_submitted');
+    await expect
+      .poll(async () =>
+        (await getXpTransactions(page)).map((t) => t.sourceType),
+      )
+      .toContain('problem_set_submitted');
+    await expect
+      .poll(() => getProgressEntryStatus(page, 'week-0-problem-set'))
+      .toBe('submitted');
 
     // 5. Reload page to verify that reloading doesn't duplicate XP or create extra transactions
     await page.reload();
