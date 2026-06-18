@@ -16,6 +16,7 @@ import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { achievementDefinitionsById } from '@/lib/achievements';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
+import { getItemGuide, type ItemGuide } from '@/features/course/guideContent';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
   buildCourseDetailView,
@@ -362,6 +363,54 @@ function PreviousSessionNotes({
   );
 }
 
+function ItemGuideCard({ guide }: { guide: ItemGuide }) {
+  return (
+    <Card
+      data-testid="item-guide-card"
+      description="A short, local guide for this task. Reading it does not change your progress."
+      title="How to approach this"
+    >
+      <p>{guide.summary}</p>
+      {guide.whatToDo && guide.whatToDo.length > 0 ? (
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">What to do</p>
+          <ul className="course-guide-list">
+            {guide.whatToDo.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {guide.doneLooksLike && guide.doneLooksLike.length > 0 ? (
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">Done looks like</p>
+          <ul className="course-guide-list">
+            {guide.doneLooksLike.map((mark) => (
+              <li key={mark}>{mark}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {guide.checklist && guide.checklist.length > 0 ? (
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">Checklist</p>
+          <ul className="course-guide-list">
+            {guide.checklist.map((entry) => (
+              <li key={entry}>{entry}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {guide.reflectionPrompt ? (
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">Reflect</p>
+          <p>{guide.reflectionPrompt}</p>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
 export function ContentDetailPage() {
   const params = useParams<{ itemId: string }>();
   const [progressForm, setProgressForm] = useState<ProgressFormState | null>(
@@ -544,6 +593,10 @@ export function ContentDetailPage() {
 
   const cs50Link =
     getCs50ItemLink(detail.item.id) ?? getCs50UnitLink(detail.unit.id);
+
+  const itemGuide = getItemGuide(detail.item.id);
+  const guideCardSection =
+    itemGuide !== null ? <ItemGuideCard guide={itemGuide} /> : null;
 
   async function handleProgressSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1468,6 +1521,7 @@ export function ContentDetailPage() {
           }
           title={`${detailView.unitTitle} - ${detailView.title}`}
         />
+        {guideCardSection}
         {logFormSection}
         {saveResult !== null ? (
           <Card
@@ -1577,6 +1631,7 @@ export function ContentDetailPage() {
         }
         title={`${detailView.unitTitle} - ${detailView.title}`}
       />
+      {guideCardSection}
       {detail.progressEntry !== null && progressSaveResult === null ? (
         <Card title="Saved progress">
           <div className="course-detail-note">

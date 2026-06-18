@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { getCourseItemDetailPath } from '@/features/course/paths';
 import { getCs50UnitLink } from '@/features/course/cs50Links';
+import { getUnitGuide } from '@/features/course/guideContent';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -15,6 +16,7 @@ type CourseUnitCardProps = {
 
 export function CourseUnitCard({ unit }: CourseUnitCardProps) {
   const cs50Link = getCs50UnitLink(unit.id);
+  const guide = getUnitGuide(unit.id);
 
   return (
     <Card
@@ -43,6 +45,14 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
           ) : null}
         </div>
       </div>
+      {guide !== null ? (
+        <p
+          className="course-unit-card__guide"
+          data-testid={`course-unit-guide-${unit.id}`}
+        >
+          {guide.summary}
+        </p>
+      ) : null}
       <ol className="course-item-list">
         {unit.items.map((item) => (
           <li

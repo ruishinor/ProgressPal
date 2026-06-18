@@ -8,12 +8,64 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 | Field                  | Value                                                     |
 | ---------------------- | --------------------------------------------------------- |
-| Branch                 | `ux/05-save-history-repair-path`                          |
-| Baseline commit        | `62d8d03 Strengthen XP and achievement feedback`          |
-| Current module         | UX-05 — Save history and repair path                      |
-| Last completed subtask | Second-pass validation complete; awaiting commit approval |
-| Next file to edit      | None — ready to commit                                    |
-| Status                 | Validation complete; not yet committed                    |
+| Branch                 | `ux/07-local-cs50-guide-content`                          |
+| Baseline commit        | `803503e Simplify first-run onboarding`                   |
+| Current module         | UX-07 — Local CS50 guide content                          |
+| Last completed subtask | Week 0 / Week 1 guide content, tests, and rendering wired |
+| Next file to edit      | None — ready for validation and commit                    |
+| Status                 | Representative first pass complete; pending commit        |
+
+---
+
+## UX-07 rollback instructions
+
+If anything goes wrong before commit:
+
+```powershell
+git status -sb
+git restore src/ tests/ docs/
+```
+
+UX-07 changes: added a static, import-only guide module
+(`src/features/course/guideContent.ts`) with `getUnitGuide` / `getItemGuide`
+accessors returning `null` for unknown IDs; rendered a short guide summary on
+Week 0 / Week 1 course-map cards and a read-only "How to approach this" card on
+the lecture/problem-set detail flow (both gated on a guide entry existing);
+added module and rendering tests plus two small CSS rules. Representative first
+pass: Week 0 and Week 1 only. No seed, schema, DB, backup, route,
+service-worker, XP rule, achievement rule, or dependency change.
+
+If already committed and rollback is needed:
+
+```powershell
+git revert HEAD
+```
+
+## UX-07 stop conditions
+
+Stop and request review if any of these is required:
+
+- Use of `src/seed/` for guide content, or any seed/schema/DB/backup change
+- Route, service-worker, XP rule, or achievement rule change
+- New package dependency
+- External network fetch or learner-progress mutation from guide rendering
+- Introducing any term from the forbidden-terms list into learner-facing copy
+
+## UX-07 files changed
+
+| File                                                | Change                                                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `src/features/course/guideContent.ts`               | New static guide module: `UnitGuide` / `ItemGuide` types, `getUnitGuide` / `getItemGuide` (Week 0/1)   |
+| `src/features/course/components/CourseUnitCard.tsx` | Render local guide summary near unit metadata when a guide entry exists                                |
+| `src/features/course/routes/ContentDetailPage.tsx`  | Read-only `ItemGuideCard` rendered before logging/saving controls when a guide entry exists            |
+| `src/styles/design-system.css`                      | Two small presentational rules: `.course-unit-card__guide`, `.course-guide-list`                       |
+| `tests/features/guideContent.test.ts`               | Accessor resolution, null returns, seed-ID integrity, non-empty strings, forbidden-term / URL guards   |
+| `tests/features/courseGuideRendering.test.tsx`      | Course-map summary and detail-page guide card render; no-guide page does not crash; no forbidden terms |
+| `docs/remediation/ux-remediation-roadmap.md`        | Updated UX-07 status and recorded the as-built static-module approach                                  |
+| `docs/remediation/ux-remediation-checklist.md`      | Updated current state, module tracker, added UX-07 sections                                            |
+
+No seed, schema, DB, backup, route, service-worker, XP, achievement, or
+dependency change.
 
 ---
 
@@ -362,8 +414,8 @@ Replace technical course-detail language
 | UX-03  | Learner-first problem set page     | Complete    | 683a10b |
 | UX-04  | Stronger XP/achievement/level loop | Complete    | 62d8d03 |
 | UX-05  | Save history and repair path       | Complete    | e109d8f |
-| UX-06  | Onboarding simplification          | In progress | —       |
-| UX-07  | Local CS50 guide content           | Not started | —       |
+| UX-06  | Onboarding simplification          | Complete    | 803503e |
+| UX-07  | Local CS50 guide content           | In progress | —       |
 | UX-08  | Visual hierarchy polish            | Not started | —       |
 | UX-09  | Final acceptance review            | Not started | —       |
 

@@ -355,7 +355,7 @@ Proposed commit: `Simplify first-run onboarding`
 
 ### UX-07 — Add local CS50 guide content
 
-**Status:** Pending
+**Status:** In progress — representative first pass (Week 0 and Week 1 only)
 
 Goal: Add plain-language week summaries, "what to do," "done looks like," checklists, and reflection prompts to make the app feel like a CS50 companion.
 
@@ -365,18 +365,23 @@ Content rules:
 - No solutions
 - No affiliation claim
 - Locally authored summaries only
-- Official CS50 links as static external links only
+- Official CS50 links continue to use existing `cs50Links` handling
 - App remains useful offline after first load
 
-Data approach:
+Data approach (as built):
 
-- New guide-data file: `src/seed/cs50x-2026-guide.json`
-- Parser and tests
-- Read-only guide data
-- Linked to existing stable unit/task IDs
-- No learner progress mutation from guide-content changes
+- Static, import-only module: `src/features/course/guideContent.ts`
+  (not under `src/seed/`; no JSON data file, parser, schema, or persistence).
+- Read-only `UnitGuide` / `ItemGuide` data keyed to existing stable unit/item
+  IDs, with `getUnitGuide(unitId)` / `getItemGuide(itemId)` accessors that
+  return `null` for unknown or not-yet-authored IDs.
+- This pass covers Week 0 and Week 1 only (their unit, lecture, and
+  problem-set entries). Later weeks/items are intentionally absent and resolve
+  to `null` gracefully; the guide-content architecture is ready to expand.
+- No learner progress mutation from guide-content rendering.
 
-Validation: One full technical pass + three content review passes. Three full technical passes if new persistence or schema is added.
+Validation: One full technical pass + content review. (No new persistence or
+schema is added, so the three-technical-pass rule does not apply.)
 
 Proposed commit: `Add local CS50 guide content`
 
