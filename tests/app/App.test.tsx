@@ -716,7 +716,7 @@ describe('App', () => {
     expect(screen.getAllByText(/\+20 XP/).length).toBeGreaterThan(0);
   });
 
-  it('problem set previous notes appear when saved progress has notes', async () => {
+  it('problem set saved progress card shows saved note above the editing form', async () => {
     await initializeDatabase({ seed: bundledCourseSeed });
     await saveLearnerProfile(
       {
@@ -741,16 +741,261 @@ describe('App', () => {
 
     await renderAppAtRoute('/course/week-0-problem-set');
 
-    const previousNotesHeading = await screen.findByRole('heading', {
-      name: 'Previous notes',
+    const savedProgressHeading = await screen.findByRole('heading', {
+      name: 'Saved progress',
     });
-    expect(previousNotesHeading).toBeInTheDocument();
-    const previousNotesCard = previousNotesHeading.closest('section');
+    expect(savedProgressHeading).toBeInTheDocument();
+    const savedProgressCard = savedProgressHeading.closest('section');
     expect(
-      within(previousNotesCard!).getByText(
+      within(savedProgressCard!).getByText(
         'Got stuck on the sprite animation.',
       ),
     ).toBeInTheDocument();
+  });
+
+  it('problem set saved progress card shows current status alongside saved note', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgress(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'started',
+        confidence: 3,
+        notes: 'Finished scratch task 1.',
+      },
+      { now: () => '2026-06-18T12:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+
+    const savedProgressHeading = await screen.findByRole('heading', {
+      name: 'Saved progress',
+    });
+    const savedProgressCard = savedProgressHeading.closest('section');
+    expect(within(savedProgressCard!).getByText('Started')).toBeInTheDocument();
+    expect(
+      within(savedProgressCard!).getByText('Finished scratch task 1.'),
+    ).toBeInTheDocument();
+  });
+
+  it('saving a correction to existing problem set progress shows Progress updated', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgressAndAwardXp(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'started',
+        confidence: 2,
+        notes: 'Initial save.',
+      },
+      { now: () => '2026-06-18T11:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Progress updated' }),
+    ).toBeInTheDocument();
+  });
+
+  it('saving problem set progress a second time does not add duplicate XP or achievements', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgressAndAwardXp(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'started',
+        confidence: 2,
+        notes: 'First save.',
+      },
+      { now: () => '2026-06-18T11:00:00.000Z' },
+    );
+    const snapshotAfterFirst = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+    await screen.findByRole('heading', { name: 'Progress updated' });
+
+    const snapshotAfterSecond = await getDatabaseSnapshot();
+    expect(snapshotAfterSecond.xpTransactions).toEqual(
+      snapshotAfterFirst.xpTransactions,
+    );
+    expect(snapshotAfterSecond.achievementUnlocks).toEqual(
+      snapshotAfterFirst.achievementUnlocks,
+    );
+  });
+
+  it('passive render of problem set detail page does not mutate any store', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgressAndAwardXp(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'started',
+        confidence: 2,
+        notes: 'Setup note.',
+      },
+      { now: () => '2026-06-18T11:00:00.000Z' },
+    );
+    const before = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Saved progress' });
+    const afterRender = await getDatabaseSnapshot();
+
+    // Simulate a reload: unmount then remount at the same route.
+    // Store contents must be byte-for-byte identical on both the first render
+    // and the reload — a delete-and-reinsert mutation would change updatedAt
+    // and fail here.
+    cleanup();
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Saved progress' });
+    const afterReload = await getDatabaseSnapshot();
+
+    const trackedStores = [
+      'xpTransactions',
+      'achievementUnlocks',
+      'progressEntries',
+      'studySessions',
+      'mediaProgressEvents',
+      'contentAssets',
+      'contentSlices',
+      'resumePoints',
+      'learnerProfile',
+      'appMeta',
+      'courseUnits',
+      'courseItems',
+    ] as const;
+
+    for (const store of trackedStores) {
+      expect(afterRender[store]).toEqual(before[store]);
+      expect(afterReload[store]).toEqual(before[store]);
+    }
+  });
+
+  it('editing a correction to a submitted problem set updates the record without duplicating XP or achievements', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    await upsertProgressAndAwardXp(
+      {
+        itemId: 'week-0-problem-set',
+        status: 'submitted',
+        confidence: 3,
+        notes: 'Submitted first attempt.',
+        evidenceText: 'submit50 run.',
+      },
+      { now: () => '2026-06-18T11:00:00.000Z' },
+    );
+    const snapshotBeforeEdit = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('heading', { name: 'Saved progress' });
+
+    // The page-load uses startTransition, so the heading appears after the
+    // first render commit while the form-initialization useEffect fires in a
+    // second pass. We must wait for that second pass before asserting or
+    // changing form values, otherwise the notes field still shows '' (its
+    // initial controlled-component default). waitFor retries until the
+    // form pre-fill render completes.
+    //
+    // fireEvent.change sets event.target.value to the full replacement string,
+    // so the post-assertion proving the new value ≠ original + new is
+    // sufficient evidence of replacement, not append.
+    const notesField = screen.getByLabelText('Notes');
+    await waitFor(() =>
+      expect(notesField).toHaveValue('Submitted first attempt.'),
+    ); // confirms seed and form pre-fill completed
+    fireEvent.change(notesField, { target: { value: 'Corrected attempt.' } });
+    expect(notesField).toHaveValue('Corrected attempt.'); // proves replacement, not append
+
+    const submissionField = screen.getByLabelText('Where did you submit it?');
+    await waitFor(() => expect(submissionField).toHaveValue('submit50 run.')); // confirms seed and form pre-fill completed
+    fireEvent.change(submissionField, { target: { value: 'submit50 final.' } });
+    expect(submissionField).toHaveValue('submit50 final.'); // proves replacement, not append
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Progress updated' }),
+    ).toBeInTheDocument();
+
+    const snapshotAfterEdit = await getDatabaseSnapshot();
+
+    // Record was updated in-place — not duplicated
+    expect(snapshotAfterEdit.progressEntries).toHaveLength(
+      snapshotBeforeEdit.progressEntries.length,
+    );
+    const correctedEntry = snapshotAfterEdit.progressEntries.find(
+      (e) => e.itemId === 'week-0-problem-set',
+    );
+    expect(correctedEntry?.notes).toBe('Corrected attempt.');
+    expect(correctedEntry?.evidenceText).toBe('submit50 final.');
+
+    // No new XP or achievements from a correction to the same status
+    expect(snapshotAfterEdit.xpTransactions).toEqual(
+      snapshotBeforeEdit.xpTransactions,
+    );
+    expect(snapshotAfterEdit.achievementUnlocks).toEqual(
+      snapshotBeforeEdit.achievementUnlocks,
+    );
   });
 
   it('keyboard user can reach progress selector, notes, submission field, save button, and official link', async () => {

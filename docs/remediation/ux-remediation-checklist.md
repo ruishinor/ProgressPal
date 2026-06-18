@@ -6,14 +6,71 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                                                |
-| ---------------------- | -------------------------------------------------------------------- |
-| Branch                 | `ux/04-gamified-progress-loop`                                       |
-| Baseline commit        | `683a10b Make problem set progress learner-first`                    |
-| Current module         | UX-04 — Strengthen the gamified progress loop                        |
-| Last completed subtask | Three-pass validation complete (235 tests); awaiting commit approval |
-| Next file to edit      | None — ready to commit                                               |
-| Status                 | Implementation complete; not yet committed                           |
+| Field                  | Value                                                     |
+| ---------------------- | --------------------------------------------------------- |
+| Branch                 | `ux/05-save-history-repair-path`                          |
+| Baseline commit        | `62d8d03 Strengthen XP and achievement feedback`          |
+| Current module         | UX-05 — Save history and repair path                      |
+| Last completed subtask | Second-pass validation complete; awaiting commit approval |
+| Next file to edit      | None — ready to commit                                    |
+| Status                 | Validation complete; not yet committed                    |
+
+---
+
+## UX-05 rollback instructions
+
+If anything goes wrong before commit:
+
+```powershell
+git status -sb
+git restore src/ tests/ docs/
+```
+
+UX-05 changes: `ContentDetailPage.tsx` non-lecture path only — added `isUpdate` field to `ProgressSaveResult`, removed "Previous notes" card (which displayed current-record notes as if they were browseable history), added honest "Saved progress" reference card above the editing form (shows saved date, status label, notes, and submission note from the single current `ProgressEntry`), updated confirmation card title/content to show "Progress updated" vs "Progress saved" based on `isUpdate`. No schema, DB, route, XP rule, achievement rule, or dependency change.
+
+If already committed and rollback is needed:
+
+```powershell
+git revert HEAD
+```
+
+## UX-05 stop conditions
+
+Stop and request review if any of these is required:
+
+- Schema, DB store, or index change
+- XP rule change
+- Achievement rule change
+- New package dependency
+- Service-worker change
+- Backup/import/export/reset contract change
+- External network fetch
+- Introducing any term from the forbidden-terms list
+
+## UX-05 files changed
+
+| File                                               | Change                                                                                                                                                                    |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/features/course/routes/ContentDetailPage.tsx` | Added `isUpdate: boolean` to `ProgressSaveResult`; set it on save; added "Saved progress" card above form; updated confirmation title/copy; removed "Previous notes" card |
+| `tests/app/App.test.tsx`                           | Renamed UX-03 "previous notes" test to "saved progress card shows saved note above the editing form"; 5 new UX-05 tests                                                   |
+| `docs/remediation/ux-remediation-checklist.md`     | Updated current state, module tracker, added UX-05 sections                                                                                                               |
+
+No engine, schema, dependency, route, service-worker, backup/import/export/reset contract change.
+
+## UX-05 validation plan
+
+Three full clean passes required (module touches save flow and XP-facing behavior):
+
+```powershell
+npm run lint
+npx prettier --check src/features/course/routes/ContentDetailPage.tsx tests/app/App.test.tsx docs/remediation/ux-remediation-checklist.md
+npm run typecheck
+npm run build
+npm run test
+npx playwright test --workers=2
+npm run check:circular
+npm run audit
+```
 
 ---
 
@@ -297,18 +354,18 @@ Replace technical course-detail language
 
 ## Module status tracker
 
-| Module | Goal                               | Status                    | Commit  |
-| ------ | ---------------------------------- | ------------------------- | ------- |
-| UX-00  | Audit and baseline lock            | Complete                  | 5364aae |
-| UX-01  | Plain-language terminology cleanup | Complete                  | a2e0cec |
-| UX-02  | Learner-first lecture page         | Complete                  | 794fe06 |
-| UX-03  | Learner-first problem set page     | Complete                  | 683a10b |
-| UX-04  | Stronger XP/achievement/level loop | Ready to commit (not yet) | —       |
-| UX-05  | Save history and repair path       | Not started               | —       |
-| UX-06  | Onboarding simplification          | Not started               | —       |
-| UX-07  | Local CS50 guide content           | Not started               | —       |
-| UX-08  | Visual hierarchy polish            | Not started               | —       |
-| UX-09  | Final acceptance review            | Not started               | —       |
+| Module | Goal                               | Status      | Commit  |
+| ------ | ---------------------------------- | ----------- | ------- |
+| UX-00  | Audit and baseline lock            | Complete    | 5364aae |
+| UX-01  | Plain-language terminology cleanup | Complete    | a2e0cec |
+| UX-02  | Learner-first lecture page         | Complete    | 794fe06 |
+| UX-03  | Learner-first problem set page     | Complete    | 683a10b |
+| UX-04  | Stronger XP/achievement/level loop | Complete    | 62d8d03 |
+| UX-05  | Save history and repair path       | In progress | —       |
+| UX-06  | Onboarding simplification          | Not started | —       |
+| UX-07  | Local CS50 guide content           | Not started | —       |
+| UX-08  | Visual hierarchy polish            | Not started | —       |
+| UX-09  | Final acceptance review            | Not started | —       |
 
 ---
 

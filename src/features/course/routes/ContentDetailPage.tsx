@@ -104,6 +104,7 @@ type SaveResult = {
 
 type ProgressSaveResult = {
   achievementNames: string[];
+  isUpdate: boolean;
   xpAdded: number;
 };
 
@@ -630,16 +631,17 @@ export function ContentDetailPage() {
         )
         .filter(Boolean);
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
+      const isUpdate = detail.progressEntry !== null;
 
-      setProgressSaveResult({ achievementNames, xpAdded });
+      setProgressSaveResult({ achievementNames, isUpdate, xpAdded });
       setProgressForm((currentForm) =>
         currentForm === null
           ? currentForm
           : { ...currentForm, errors: {}, isSaving: false },
       );
       setToast({
-        description: `Progress saved.${xpToastSuffix}`,
-        title: 'Progress saved',
+        description: `${isUpdate ? 'Progress updated' : 'Progress saved'}.${xpToastSuffix}`,
+        title: isUpdate ? 'Progress updated' : 'Progress saved',
         tone: 'success',
       });
 
@@ -1575,6 +1577,27 @@ export function ContentDetailPage() {
         }
         title={`${detailView.unitTitle} - ${detailView.title}`}
       />
+      {detail.progressEntry !== null && progressSaveResult === null ? (
+        <Card title="Saved progress">
+          <div className="course-detail-note">
+            <p className="course-detail-note__label">
+              {'Saved '}
+              {new Date(detail.progressEntry.updatedAt).toLocaleDateString()}
+            </p>
+            <p>{detailView.statusLabel}</p>
+            {detail.progressEntry.notes ? (
+              <p>{detail.progressEntry.notes}</p>
+            ) : null}
+            {detail.progressEntry.evidenceText ? (
+              <p>
+                <strong>Submission note:</strong>{' '}
+                {detail.progressEntry.evidenceText}
+              </p>
+            ) : null}
+          </div>
+          <p>Edit the fields below to save a correction.</p>
+        </Card>
+      ) : null}
       <Card
         description="Saved here. Updates your progress, XP, achievements, and dashboard."
         title={getProgressCardTitle(detail.item.type)}
@@ -1734,12 +1757,18 @@ export function ContentDetailPage() {
         <Card
           aria-live="polite"
           role="status"
-          title="Progress saved"
+          title={
+            progressSaveResult.isUpdate ? 'Progress updated' : 'Progress saved'
+          }
           variant="accent"
         >
           <div className="course-detail-note">
             <p className="course-detail-note__label">What was saved</p>
-            <p>Progress saved</p>
+            <p>
+              {progressSaveResult.isUpdate
+                ? 'Progress updated'
+                : 'Progress saved'}
+            </p>
             {progressSaveResult.xpAdded > 0 ? (
               <p>
                 <strong>{`+${progressSaveResult.xpAdded} XP earned`}</strong>
@@ -1768,17 +1797,6 @@ export function ContentDetailPage() {
             >
               Dismiss
             </Button>
-          </div>
-        </Card>
-      ) : null}
-      {detail.progressEntry?.notes ? (
-        <Card title="Previous notes">
-          <div className="course-detail-note">
-            <p className="course-detail-note__label">
-              Last saved{' '}
-              {new Date(detail.progressEntry.updatedAt).toLocaleDateString()}
-            </p>
-            <p>{detail.progressEntry.notes}</p>
           </div>
         </Card>
       ) : null}
