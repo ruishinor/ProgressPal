@@ -1,6 +1,7 @@
 import {
   startTransition,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
@@ -492,7 +493,12 @@ export function ContentDetailPage() {
     };
   }, [itemId, reloadToken]);
 
-  useEffect(() => {
+  // Runs as a layout effect so the progress form is populated in the same
+  // commit that first renders the (interactive) form controls. With a passive
+  // effect there is a brief window where the detail is ready and the status
+  // <select> is on screen but `progressForm` is still null, during which the
+  // control's onChange is a no-op and a status change is silently dropped.
+  useLayoutEffect(() => {
     if (pageState.detail === null) {
       return;
     }
