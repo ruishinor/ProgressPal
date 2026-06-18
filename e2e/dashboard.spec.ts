@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { completeOnboarding as enterAppViaOnboarding } from './support/onboarding';
+
 async function readDatabaseSingletons(page: Page) {
   return (await page.evaluate(`
     new Promise((resolve, reject) => {
@@ -168,22 +170,7 @@ async function writeMediaProgressEvent(
 }
 
 async function completeOnboarding(page: Page) {
-  await page.goto('/');
-
-  await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
-  ).toBeVisible();
-
-  await page.getByLabel('Display name').fill('Alex');
-  await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
-  await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await enterAppViaOnboarding(page);
   // The dashboard loads its local data asynchronously. Wait for a stable
   // ready-state card heading so callers act on fully-loaded dashboard content.
   await expect(
@@ -206,7 +193,7 @@ test('redirects a fresh run to onboarding without console issues', async ({
 
   await expect(page).toHaveURL(/\/onboarding$/);
   await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
+    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Setup' })).toBeVisible();
 
@@ -290,7 +277,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
 
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
+    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
   ).toHaveCount(0);
 
   await page.goto('/onboarding');

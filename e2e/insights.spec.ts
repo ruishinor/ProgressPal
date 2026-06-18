@@ -1,23 +1,12 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { completeOnboarding as enterAppViaOnboarding } from './support/onboarding';
+
 async function completeOnboarding(page: Page) {
-  await page.goto('/');
-
-  await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
-  ).toBeVisible();
-
-  await page.getByLabel('Display name').fill('Alex');
-  await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
-  await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await enterAppViaOnboarding(page);
+  // The dashboard loads its local data asynchronously. Wait for a stable
+  // ready-state card heading so callers act on fully-loaded content.
   await expect(
     page.getByRole('heading', { name: 'Course progress' }),
   ).toBeVisible();

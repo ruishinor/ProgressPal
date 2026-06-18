@@ -1,19 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-async function completeOnboarding(page: Page) {
-  await page.goto('/');
-
-  await page.getByLabel('Display name').fill('Alex');
-  await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
-  await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-}
+import { completeOnboarding } from './support/onboarding';
 
 async function getXpTransactions(
   page: Page,

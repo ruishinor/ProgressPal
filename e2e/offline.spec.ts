@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { completeOnboarding } from './support/onboarding';
+
 const CACHE_VERSION = 'progresspal-cache-v1';
 
 // e2e specs are type-checked under tsconfig.node.json (lib: ES2022, no DOM), so
@@ -24,25 +26,6 @@ interface OfflineBrowserScope {
       ready: Promise<unknown>;
     };
   };
-}
-
-async function completeOnboarding(page: Page) {
-  await page.goto('/');
-
-  await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
-  ).toBeVisible();
-
-  await page.getByLabel('Display name').fill('Alex');
-  await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
-  await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 }
 
 // Wait until the service worker is not just active (`ready`) but actually
@@ -210,7 +193,7 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
   await page.getByLabel('Confirmation phrase').fill('RESET');
   await page.getByRole('button', { name: 'Reset all local data' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
+    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
   ).toBeVisible();
 
   // Restore from the reachable onboarding recovery control.

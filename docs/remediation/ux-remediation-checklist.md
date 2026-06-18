@@ -361,8 +361,8 @@ Replace technical course-detail language
 | UX-02  | Learner-first lecture page         | Complete    | 794fe06 |
 | UX-03  | Learner-first problem set page     | Complete    | 683a10b |
 | UX-04  | Stronger XP/achievement/level loop | Complete    | 62d8d03 |
-| UX-05  | Save history and repair path       | In progress | —       |
-| UX-06  | Onboarding simplification          | Not started | —       |
+| UX-05  | Save history and repair path       | Complete    | e109d8f |
+| UX-06  | Onboarding simplification          | In progress | —       |
 | UX-07  | Local CS50 guide content           | Not started | —       |
 | UX-08  | Visual hierarchy polish            | Not started | —       |
 | UX-09  | Final acceptance review            | Not started | —       |

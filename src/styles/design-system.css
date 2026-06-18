@@ -840,6 +840,33 @@
   justify-content: flex-end;
 }
 
+.onboarding-quick {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.onboarding-quick > p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.onboarding-customize {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.onboarding-customize__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.onboarding-customize__title {
+  margin: 0;
+}
+
 .profile-fieldset {
   border: 1px solid var(--color-border-muted);
   border-radius: var(--radius-md);

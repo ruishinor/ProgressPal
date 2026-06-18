@@ -144,13 +144,6 @@ export function ProfileForm({
     await submitValues(values);
   }
 
-  async function handleUseDefaults() {
-    const defaultValues = createProfileFormValues(null);
-
-    setValues(defaultValues);
-    await submitValues(defaultValues);
-  }
-
   return (
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
       <div className="profile-page-grid">
@@ -376,17 +369,6 @@ export function ProfileForm({
         </p>
       ) : null}
       <div className="profile-form__actions">
-        {mode === 'onboarding' ? (
-          <Button
-            disabled={isSubmitting}
-            onClick={() => {
-              void handleUseDefaults();
-            }}
-            variant="secondary"
-          >
-            Use defaults
-          </Button>
-        ) : null}
         <Button loading={isSubmitting} size="lg" type="submit">
           {submitLabel}
         </Button>

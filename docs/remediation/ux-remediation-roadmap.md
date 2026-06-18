@@ -335,7 +335,7 @@ Proposed commit: `Add saved-work review and repair path`
 
 ### UX-06 — Improve onboarding and evaluator first-run path
 
-**Status:** Pending
+**Status:** In progress
 
 Goal: Let a new user or evaluator reach the product in one click.
 

@@ -28,10 +28,134 @@ describe('App', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Create your local learner profile',
+        name: 'Start tracking CS50 locally',
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Setup' })).toBeInTheDocument();
+  });
+
+  it('shows the quick-start first run with local-first copy and actions', async () => {
+    await renderAppAtRoute('/');
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Start tracking CS50 locally',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Everything stays in this browser. No account, no cloud sync, no analytics. You can export, import, or reset it later.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Use default learner' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Customize first' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Already have a backup?' }),
+    ).toBeInTheDocument();
+  });
+
+  it('creates a default local profile and opens the dashboard from quick start', async () => {
+    const user = userEvent.setup();
+    await renderAppAtRoute('/');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Use default learner' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeInTheDocument();
+
+    const snapshot = await getDatabaseSnapshot();
+
+    expect(snapshot.appMeta?.onboardingCompletedAt).toEqual(expect.any(String));
+    expect(snapshot.learnerProfile?.displayName).toBe('Learner');
+    expect(snapshot.learnerProfile?.targetMinutesPerWeek).toBe(300);
+  });
+
+  it('reveals the detailed form from customize first and saves a custom profile', async () => {
+    const user = userEvent.setup();
+    await renderAppAtRoute('/');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Customize first' }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Create your local learner profile',
+      }),
+    ).toBeInTheDocument();
+
+    const displayName = screen.getByLabelText('Display name');
+
+    await user.clear(displayName);
+    await user.type(displayName, 'Casey');
+    await user.click(
+      screen.getByRole('button', { name: 'Save and open dashboard' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeInTheDocument();
+
+    const snapshot = await getDatabaseSnapshot();
+
+    expect(snapshot.learnerProfile?.displayName).toBe('Casey');
+  });
+
+  it('does not render forbidden learner-facing terms during onboarding', async () => {
+    const user = userEvent.setup();
+    await renderAppAtRoute('/');
+
+    await screen.findByRole('heading', {
+      name: 'Start tracking CS50 locally',
+    });
+    await user.click(screen.getByRole('button', { name: 'Customize first' }));
+    await screen.findByRole('heading', {
+      name: 'Create your local learner profile',
+    });
+
+    const body = document.body.textContent ?? '';
+
+    expect(body).not.toMatch(/\bledger\b/i);
+    expect(body).not.toMatch(/\baudit\b/i);
+    expect(body).not.toMatch(/\bschema-backed\b/i);
+    expect(body).not.toMatch(/\bevidence\b/i);
+    expect(body).not.toMatch(/\bConfidence\b/);
+    expect(body).not.toMatch(/\bwatched range\b/i);
+    expect(body).not.toMatch(/\bProgress record\b/i);
+    expect(body).not.toMatch(/\bCourse item\b/i);
+    expect(body).not.toMatch(/\bContent detail\b/i);
+    expect(body).not.toMatch(/\bmutable surface\b/i);
+    expect(body).not.toMatch(/\bgranular asset timeline\b/i);
+    expect(body).not.toMatch(/\bdemo\b/i);
+  });
+
+  it('exposes the primary quick-start action to keyboard users', async () => {
+    const user = userEvent.setup();
+    await renderAppAtRoute('/');
+
+    await screen.findByRole('heading', {
+      name: 'Start tracking CS50 locally',
+    });
+
+    const useDefault = screen.getByRole('button', {
+      name: 'Use default learner',
+    });
+
+    useDefault.focus();
+    expect(useDefault).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard' }),
+    ).toBeInTheDocument();
   });
 
   it('renders the saved profile route after onboarding is complete', async () => {

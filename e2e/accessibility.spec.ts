@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { completeOnboarding } from './support/onboarding';
+
 type BrowserElement = {
   appendChild(child: BrowserElement): void;
   body?: BrowserElement;
@@ -163,22 +165,8 @@ async function measureContrast(page: Page, selector: string) {
 }
 
 async function completeOnboardingDark(page: Page) {
-  await page.goto('/');
+  await completeOnboarding(page);
 
-  await expect(
-    page.getByRole('heading', { name: 'Create your local learner profile' }),
-  ).toBeVisible();
-
-  await page.getByLabel('Display name').fill('Alex');
-  await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
-  await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
 }

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ImportBackupControl } from '@/components/ui/ImportBackupControl';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -12,18 +13,50 @@ import type { BackupEnvelope } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
 import {
   currentDatabaseSchemaVersion,
+  defaultLearnerProfileValues,
   restoreDatabaseFromBackup,
 } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
 
+type OnboardingMode = 'quick' | 'customize';
+
 export function OnboardingPage() {
   const navigate = useNavigate();
   const { profile, refresh, saveProfile } = useAppState();
+  const [mode, setMode] = useState<OnboardingMode>('quick');
+  const [startingDefault, setStartingDefault] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState(false);
+  const customizeTitleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (mode === 'customize') {
+      customizeTitleRef.current?.focus();
+    }
+  }, [mode]);
 
   if (profile === null) {
     return null;
+  }
+
+  async function handleUseDefaultLearner() {
+    setStartingDefault(true);
+
+    try {
+      // Reuse the canonical defaults and the existing onboarding-completion
+      // mechanism. Clone the mutable study-days array so the stored profile is
+      // independent of the shared default constant.
+      await saveProfile(
+        {
+          ...defaultLearnerProfileValues,
+          targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+        },
+        { completeOnboarding: true },
+      );
+      navigate('/dashboard', { replace: true });
+    } catch {
+      setStartingDefault(false);
+    }
   }
 
   async function handleImport(envelope: BackupEnvelope) {
@@ -47,7 +80,7 @@ export function OnboardingPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="Create the first local learner profile before the rest of ProgressPal opens. Nothing is uploaded, synced, or shared."
+        description="Track CS50 work, sessions, XP, achievements, notes, and progress on this device."
         eyebrow="Setup"
         meta={
           <>
@@ -55,33 +88,61 @@ export function OnboardingPage() {
             <Badge tone="accent">Stored only on this device</Badge>
           </>
         }
-        title="Create your local learner profile"
+        title="Start tracking CS50 locally"
       />
-      <Card
-        description="The profile starts with safe defaults, so you can continue immediately without inventing a perfect setup."
-        title="Why this gate exists"
-      >
-        <ul className="detail-list">
-          <li>
-            The app needs one local learner record before progress becomes
-            meaningful.
-          </li>
-          <li>The avatar is plain JSON config, not a fetched image.</li>
-          <li>
-            Theme and motion preferences apply only inside this app shell.
-          </li>
-        </ul>
-      </Card>
-      <ProfileForm
-        key={profile.updatedAt}
-        mode="onboarding"
-        onSubmit={async (input) => {
-          await saveProfile(input, { completeOnboarding: true });
-          navigate('/dashboard', { replace: true });
-        }}
-        profile={profile}
-        submitLabel="Save and open dashboard"
-      />
+      {mode === 'quick' ? (
+        <Card
+          description="Everything stays in this browser. No account, no cloud sync, no analytics. You can export, import, or reset it later."
+          title="Start now"
+        >
+          <div className="onboarding-quick">
+            <p>Start now with a local profile you can change later.</p>
+            <div className="action-row">
+              <Button
+                loading={startingDefault}
+                onClick={() => {
+                  void handleUseDefaultLearner();
+                }}
+                size="lg"
+              >
+                Use default learner
+              </Button>
+              <Button
+                disabled={startingDefault}
+                onClick={() => setMode('customize')}
+                variant="secondary"
+              >
+                Customize first
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <div className="onboarding-customize">
+          <div className="onboarding-customize__header">
+            <h3
+              className="onboarding-customize__title"
+              ref={customizeTitleRef}
+              tabIndex={-1}
+            >
+              Create your local learner profile
+            </h3>
+            <Button onClick={() => setMode('quick')} variant="quiet">
+              Back to quick start
+            </Button>
+          </div>
+          <ProfileForm
+            key={profile.updatedAt}
+            mode="onboarding"
+            onSubmit={async (input) => {
+              await saveProfile(input, { completeOnboarding: true });
+              navigate('/dashboard', { replace: true });
+            }}
+            profile={profile}
+            submitLabel="Save and open dashboard"
+          />
+        </div>
+      )}
       <ImportBackupControl
         busy={importing}
         confirmLabel="Restore this backup"
