@@ -1480,24 +1480,36 @@ export function ContentDetailPage() {
                 {saveResult.minutesWatched > 0
                   ? `${saveResult.minutesWatched} min added`
                   : 'Session recorded'}
-                {saveResult.xpAdded > 0 ? ` · +${saveResult.xpAdded} XP` : ''}
-                {saveResult.achievementNames.length > 0
-                  ? ` · Achievement unlocked: ${saveResult.achievementNames.join(', ')}`
-                  : ''}
               </p>
+              {saveResult.xpAdded > 0 ? (
+                <p>
+                  <strong>{`+${saveResult.xpAdded} XP earned`}</strong>
+                </p>
+              ) : null}
+              {saveResult.achievementNames.length > 0 ? (
+                <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
+              ) : null}
             </div>
             <p>
-              Ready to log your next session, or update your progress status
+              Ready to log your next segment, or save your overall progress
               below.
             </p>
-            <Button
-              onClick={() => {
-                setSaveResult(null);
-              }}
-              variant="quiet"
-            >
-              Dismiss
-            </Button>
+            <div className="inline-actions">
+              <Link
+                className="button button--secondary button--md"
+                to={courseMapPath}
+              >
+                Course map
+              </Link>
+              <Button
+                onClick={() => {
+                  setSaveResult(null);
+                }}
+                variant="quiet"
+              >
+                Dismiss
+              </Button>
+            </div>
           </Card>
         ) : null}
         <PreviousSessionNotes events={detail.events} itemId={detail.item.id} />
@@ -1727,15 +1739,15 @@ export function ContentDetailPage() {
         >
           <div className="course-detail-note">
             <p className="course-detail-note__label">What was saved</p>
-            <p>
-              Progress saved
-              {progressSaveResult.xpAdded > 0
-                ? ` · +${progressSaveResult.xpAdded} XP`
-                : ''}
-              {progressSaveResult.achievementNames.length > 0
-                ? ` · Achievement unlocked: ${progressSaveResult.achievementNames.join(', ')}`
-                : ''}
-            </p>
+            <p>Progress saved</p>
+            {progressSaveResult.xpAdded > 0 ? (
+              <p>
+                <strong>{`+${progressSaveResult.xpAdded} XP earned`}</strong>
+              </p>
+            ) : null}
+            {progressSaveResult.achievementNames.length > 0 ? (
+              <p>{`Achievement unlocked: ${progressSaveResult.achievementNames.join(', ')}`}</p>
+            ) : null}
           </div>
           <p>
             <strong>What&apos;s next?</strong> Check your course map to see what

@@ -329,10 +329,30 @@ export function DashboardPage() {
             value={xpSummary.levelProgressPercent}
           />
           {xpSummary.isEmpty ? (
-            <p className="card__description">
-              No XP earned yet. Saving progress or a study session starts
-              earning it.
-            </p>
+            <>
+              <p className="card__description">
+                No XP earned yet. Save progress on a task to start earning.
+              </p>
+              <div className="action-row">
+                <Link
+                  className="button button--secondary button--sm"
+                  to="/course"
+                >
+                  Open course map
+                </Link>
+              </div>
+            </>
+          ) : achievements.unlockedCount > 0 ? (
+            <div className="action-row">
+              <Link
+                className="button button--secondary button--sm"
+                to="/achievements"
+              >
+                {achievements.unlockedCount === 1
+                  ? '1 achievement unlocked'
+                  : `${achievements.unlockedCount} achievements unlocked`}
+              </Link>
+            </div>
           ) : null}
         </Card>
 

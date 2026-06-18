@@ -8,12 +8,81 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 | Field                  | Value                                                                |
 | ---------------------- | -------------------------------------------------------------------- |
-| Branch                 | `ux/03-problem-set-learner-first`                                    |
-| Baseline commit        | `794fe06 Make lecture logging learner-first`                         |
-| Current module         | UX-03 — Rebuild problem set pages around work, notes, and submission |
-| Last completed subtask | Three-pass validation complete; awaiting commit approval             |
+| Branch                 | `ux/04-gamified-progress-loop`                                       |
+| Baseline commit        | `683a10b Make problem set progress learner-first`                    |
+| Current module         | UX-04 — Strengthen the gamified progress loop                        |
+| Last completed subtask | Three-pass validation complete (235 tests); awaiting commit approval |
 | Next file to edit      | None — ready to commit                                               |
 | Status                 | Implementation complete; not yet committed                           |
+
+---
+
+## UX-04 rollback instructions
+
+If anything goes wrong before commit:
+
+```powershell
+git status -sb
+git restore src/ tests/ docs/
+```
+
+UX-04 changes: page-header meta on AchievementsPage and CoursePage (added Level badge), save-confirmation cards on ContentDetailPage (XP/achievement text promoted to separate `<p>` elements; "Course map" link added to lecture confirmation), DashboardPage XP card (empty-state CTA link to course map; achievements-unlocked link when XP and achievements exist). No schema, DB, route, XP rule, achievement rule, or dependency change. Rolling back is safe at any point before commit.
+
+If already committed and rollback is needed:
+
+```powershell
+git revert HEAD
+```
+
+## UX-04 validation log
+
+Three full clean passes completed on 2026-06-18.
+
+| Command            | Pass 1                                                    | Pass 2  | Pass 3  |
+| ------------------ | --------------------------------------------------------- | ------- | ------- |
+| `lint`             | ✅                                                        | ✅      | ✅      |
+| `format:check`     | ⚠️ pre-existing CRLF noise (33 files, all pre-date UX-04) | ⚠️ same | ⚠️ same |
+| `typecheck`        | ✅                                                        | ✅      | ✅      |
+| `build`            | ✅                                                        | ✅      | ✅      |
+| `test` (235 tests) | ✅                                                        | ✅      | ✅      |
+| `playwright` (24)  | ✅                                                        | ✅      | ✅      |
+| `check:circular`   | ✅                                                        | ✅      | ✅      |
+| `audit`            | ✅                                                        | ✅      | ✅      |
+
+`format:check` failures are pre-existing Windows CRLF/LF noise (confirmed by `git stash` test: same 33 files failed on the baseline commit before any UX-04 edits). The 6 UX-04 files also show the same CRLF mismatch for the same reason. This is a repo-wide baseline blocker unrelated to UX-04 content.
+
+## UX-04 files changed
+
+| File                                                    | Change                                                                                                                                                         |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/features/course/routes/ContentDetailPage.tsx`      | Lecture confirmation: XP and achievement into separate `<p>`; added "Course map" link                                                                          |
+| `src/features/course/routes/ContentDetailPage.tsx`      | Problem-set confirmation: XP and achievement promoted to separate `<p>` elements                                                                               |
+| `src/features/achievements/routes/AchievementsPage.tsx` | Added `getXpSummary()` fetch; shows "Level N" Badge in page header meta                                                                                        |
+| `src/features/course/routes/CoursePage.tsx`             | Added `getXpSummary()` fetch; shows "Level N" Badge in page header meta                                                                                        |
+| `src/features/dashboard/routes/DashboardPage.tsx`       | XP card: empty state adds CTA link to `/course`; non-empty with achievements adds link to `/achievements`                                                      |
+| `tests/app/App.test.tsx`                                | 9 new UX-04 tests: lecture Course map link, lecture XP line, achievements level, course level, 2 problem-set confirmation tests, 3 dashboard reward-loop tests |
+| `docs/remediation/ux-remediation-checklist.md`          | Updated state, module tracker, added UX-04 sections                                                                                                            |
+
+No engine, schema, dependency, route, service-worker, backup/import/export/reset contract change.
+
+## UX-04 stop conditions (all satisfied)
+
+- [x] `lint` passes (zero warnings)
+- [x] `typecheck` passes (zero errors)
+- [x] `build` produces a clean bundle
+- [x] `test` passes (235 tests, including 9 new UX-04 tests)
+- [x] `playwright` passes (24 E2E tests)
+- [x] `check:circular` passes
+- [x] `audit` passes (zero vulnerabilities)
+- [x] No new package dependencies added
+- [x] No Dexie schema/store/index/migration changes
+- [x] No XP rule amount changes
+- [x] No achievement unlock rule changes
+- [x] No service-worker/offline behavior changes
+- [x] No route structure changes
+- [x] No backup/import/export/reset contract changes
+- [x] No external network fetches added
+- [x] No forbidden learner-facing terms introduced
 
 ---
 
@@ -233,8 +302,8 @@ Replace technical course-detail language
 | UX-00  | Audit and baseline lock            | Complete                  | 5364aae |
 | UX-01  | Plain-language terminology cleanup | Complete                  | a2e0cec |
 | UX-02  | Learner-first lecture page         | Complete                  | 794fe06 |
-| UX-03  | Learner-first problem set page     | Ready to commit (not yet) | —       |
-| UX-04  | Stronger XP/achievement/level loop | Not started               | —       |
+| UX-03  | Learner-first problem set page     | Complete                  | 683a10b |
+| UX-04  | Stronger XP/achievement/level loop | Ready to commit (not yet) | —       |
 | UX-05  | Save history and repair path       | Not started               | —       |
 | UX-06  | Onboarding simplification          | Not started               | —       |
 | UX-07  | Local CS50 guide content           | Not started               | —       |

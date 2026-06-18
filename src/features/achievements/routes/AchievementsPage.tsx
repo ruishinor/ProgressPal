@@ -16,7 +16,11 @@ import {
   type AchievementCategoryFilter,
   type AchievementStatusFilter,
 } from '@/features/achievements/model';
-import { getAchievementsView, type AchievementsView } from '@/lib/db';
+import {
+  getAchievementsView,
+  getXpSummary,
+  type AchievementsView,
+} from '@/lib/db';
 
 type AchievementsPageStatus = 'error' | 'loading' | 'ready';
 
@@ -24,12 +28,14 @@ type AchievementsPageState = {
   error: string | null;
   status: AchievementsPageStatus;
   view: AchievementsView | null;
+  xpLevel: number | null;
 };
 
 const initialState: AchievementsPageState = {
   error: null,
   status: 'loading',
   view: null,
+  xpLevel: null,
 };
 
 const statusOptions: { label: string; value: AchievementStatusFilter }[] = [
@@ -64,14 +70,22 @@ export function AchievementsPage() {
       try {
         // Read-only: this merges code definitions with persisted unlocks. It
         // never evaluates rules and never creates unlocks.
-        const view = await getAchievementsView();
+        const [view, xpSummary] = await Promise.all([
+          getAchievementsView(),
+          getXpSummary(),
+        ]);
 
         if (!isActive) {
           return;
         }
 
         startTransition(() => {
-          setState({ error: null, status: 'ready', view });
+          setState({
+            error: null,
+            status: 'ready',
+            view,
+            xpLevel: xpSummary.level,
+          });
         });
       } catch (loadError) {
         console.error('Achievements loading failed.', loadError);
@@ -85,6 +99,7 @@ export function AchievementsPage() {
             error: 'The local achievements could not be loaded.',
             status: 'error',
             view: null,
+            xpLevel: null,
           });
         });
       }
@@ -161,9 +176,14 @@ export function AchievementsPage() {
       <PageHeader
         description="Achievements unlock when you save progress and complete work. Everything is stored on this device."
         meta={
-          <StatusPill
-            variant={unlockedCount > 0 ? 'completed' : 'notStarted'}
-          >{`${unlockedCount} of ${totalCount} unlocked`}</StatusPill>
+          <>
+            {state.xpLevel !== null ? (
+              <Badge tone="accent">{`Level ${state.xpLevel}`}</Badge>
+            ) : null}
+            <StatusPill
+              variant={unlockedCount > 0 ? 'completed' : 'notStarted'}
+            >{`${unlockedCount} of ${totalCount} unlocked`}</StatusPill>
+          </>
         }
         title="Achievements"
       />

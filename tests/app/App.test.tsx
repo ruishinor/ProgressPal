@@ -860,8 +860,9 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Progress'), {
       target: { value: 'submitted' },
     });
+    // Use findByRole so React has time to flush the state update
     expect(
-      screen.getByRole('heading', { name: 'Submission' }),
+      await screen.findByRole('heading', { name: 'Submission' }),
     ).toBeInTheDocument();
 
     // Change live selector to 'accepted' — Submission card remains visible
@@ -869,7 +870,7 @@ describe('App', () => {
       target: { value: 'accepted' },
     });
     expect(
-      screen.getByRole('heading', { name: 'Submission' }),
+      await screen.findByRole('heading', { name: 'Submission' }),
     ).toBeInTheDocument();
   });
 
@@ -898,21 +899,21 @@ describe('App', () => {
     await renderAppAtRoute('/course/week-0-problem-set');
     await screen.findByRole('heading', { name: 'Problem Set Progress' });
 
-    // Change to submitted — card appears
+    // Change to submitted — await the card appearing
     fireEvent.change(screen.getByLabelText('Progress'), {
       target: { value: 'submitted' },
     });
-    expect(
-      screen.getByRole('heading', { name: 'Submission' }),
-    ).toBeInTheDocument();
+    await screen.findByRole('heading', { name: 'Submission' });
 
-    // Change back to completed — card hides
+    // Change back to completed — await the card disappearing
     fireEvent.change(screen.getByLabelText('Progress'), {
       target: { value: 'completed' },
     });
-    expect(
-      screen.queryByRole('heading', { name: 'Submission' }),
-    ).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: 'Submission' }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it('problem set progress save shows achievement unlock when awarded', async () => {
@@ -968,6 +969,180 @@ describe('App', () => {
     expect(
       screen.queryByRole('heading', { name: 'Submission' }),
     ).not.toBeInTheDocument();
+  });
+
+  // UX-04: Strengthen the gamified progress loop
+
+  it('lecture save confirmation shows Course map link', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+    await screen.findByRole('button', { name: 'Save session' });
+
+    fireEvent.change(screen.getByLabelText('Started at'), {
+      target: { value: '0:00' },
+    });
+    fireEvent.change(screen.getByLabelText('Stopped at'), {
+      target: { value: '20:00' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Save session' }));
+
+    await screen.findByRole('heading', { name: 'Session saved' });
+    expect(
+      screen.getByRole('link', { name: 'Course map' }),
+    ).toBeInTheDocument();
+  });
+
+  it('lecture save confirmation shows XP earned on its own line when awarded', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-lecture');
+    await screen.findByRole('button', { name: 'Save session' });
+
+    fireEvent.change(screen.getByLabelText('Started at'), {
+      target: { value: '0:00' },
+    });
+    fireEvent.change(screen.getByLabelText('Stopped at'), {
+      target: { value: '20:00' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Save session' }));
+
+    await screen.findByRole('heading', { name: 'Session saved' });
+    // 20 min triggers media_clean_stop (5 XP) + 2 unique 10-min blocks (8 XP) = 13 XP
+    expect(screen.getByText(/\+\d+ XP earned/)).toBeInTheDocument();
+  });
+
+  it('achievements page shows level badge alongside unlock count', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    // Seed some XP so a level is established
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/achievements');
+
+    // Wait for the ready state: Level badge only appears after the async load resolves
+    expect(await screen.findByText(/Level \d+/)).toBeInTheDocument();
+  });
+
+  it('course map page shows level badge from XP summary', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+    // Seed some XP so a level is established
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
+      { now: () => '2026-06-18T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/course');
+
+    // Wait for the ready state: Level badge only appears after the async load resolves
+    expect(await screen.findByText(/Level \d+/)).toBeInTheDocument();
+  });
+
+  it('problem set save confirmation shows XP on its own line with "earned" wording', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    await screen.findByRole('heading', { name: 'Progress saved' });
+    // problem_set_started awards +20 XP; confirm it uses the new "earned" wording
+    expect(screen.getByText(/\+20 XP earned/)).toBeInTheDocument();
+  });
+
+  it('problem set save confirmation shows achievement name on its own line', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/course/week-0-problem-set');
+    await screen.findByRole('button', { name: 'Save progress' });
+
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'completed' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    await screen.findByRole('heading', { name: 'Progress saved' });
+    // First Step achievement unlocked; text should appear as "Achievement unlocked: First Step"
+    expect(
+      screen.getByText(/Achievement unlocked:.*First Step/),
+    ).toBeInTheDocument();
   });
 });
 
@@ -1098,6 +1273,50 @@ describe('Dashboard route', () => {
     expect(afterRender.achievementUnlocks).toEqual(before.achievementUnlocks);
     expect(afterReload.xpTransactions).toEqual(before.xpTransactions);
     expect(afterReload.achievementUnlocks).toEqual(before.achievementUnlocks);
+  });
+
+  // UX-04: Dashboard reward-loop visibility
+
+  it('dashboard XP card shows level and progress-to-next-level when XP exists', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'XP' });
+
+    // Level badge in card metric
+    expect(screen.getAllByText(/Level \d+/).length).toBeGreaterThan(0);
+    // Progress bar helper text
+    expect(screen.getByText(/XP to level \d+/)).toBeInTheDocument();
+  });
+
+  it('dashboard XP card empty state offers a course map link', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(learnerProfileInput, {
+      completeOnboarding: true,
+    });
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'XP' });
+
+    expect(screen.getByText(/No XP earned yet/)).toBeInTheDocument();
+    // Should have a link to the course map so learner knows where to earn XP
+    expect(
+      screen.getByRole('link', { name: 'Open course map' }),
+    ).toBeInTheDocument();
+  });
+
+  it('dashboard XP card shows achievements-unlocked link when XP and achievements exist', async () => {
+    await seedOnboardedLearnerWithHistory();
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'XP' });
+
+    // seedOnboardedLearnerWithHistory creates XP (so !isEmpty) and at least one
+    // achievement unlock (immutability test confirms achievementUnlocks.length > 0).
+    // The XP card must show a link with text matching "achievement(s) unlocked".
+    expect(
+      await screen.findByRole('link', { name: /achievements? unlocked/ }),
+    ).toBeInTheDocument();
   });
 });
 

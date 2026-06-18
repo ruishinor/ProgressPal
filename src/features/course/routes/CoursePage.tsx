@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Badge } from '@/components/ui/Badge';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -10,6 +11,7 @@ import { CourseUnitCard } from '@/features/course/components/CourseUnitCard';
 import { buildCourseMap, type CourseMapView } from '@/features/course/model';
 import { buildLongFormProgressMap } from '@/features/progress';
 import {
+  getXpSummary,
   listContentAssets,
   listContentSlices,
   listCourseItems,
@@ -25,12 +27,14 @@ type CoursePageState = {
   courseMap: CourseMapView | null;
   error: string | null;
   status: CoursePageStatus;
+  xpLevel: number | null;
 };
 
 const initialState: CoursePageState = {
   courseMap: null,
   error: null,
   status: 'loading',
+  xpLevel: null,
 };
 
 export function CoursePage() {
@@ -58,6 +62,7 @@ export function CoursePage() {
           contentSlices,
           mediaProgressEvents,
           resumePoints,
+          xpSummary,
         ] = await Promise.all([
           listCourseUnits(),
           listCourseItems(),
@@ -66,6 +71,7 @@ export function CoursePage() {
           listContentSlices(),
           listMediaProgressEvents(),
           listResumePoints(),
+          getXpSummary(),
         ]);
 
         if (!isActive) {
@@ -90,6 +96,7 @@ export function CoursePage() {
             courseMap,
             error: null,
             status: 'ready',
+            xpLevel: xpSummary.level,
           });
         });
       } catch (loadError) {
@@ -104,6 +111,7 @@ export function CoursePage() {
             courseMap: null,
             error: 'The local course catalog could not be loaded.',
             status: 'error',
+            xpLevel: null,
           });
         });
       }
@@ -179,6 +187,9 @@ export function CoursePage() {
         eyebrow="CS50 course map"
         meta={
           <>
+            {state.xpLevel !== null ? (
+              <Badge tone="accent">{`Level ${state.xpLevel}`}</Badge>
+            ) : null}
             <StatusPill
               variant={
                 state.courseMap.blockedItemCount > 0
