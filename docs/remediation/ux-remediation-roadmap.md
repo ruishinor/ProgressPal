@@ -141,7 +141,7 @@ Content/UX review pass checklist (run three times):
 
 ### UX-00 — Adversarial UX audit and baseline lock (documentation only)
 
-**Status:** In progress on branch `ux/00-remediation-roadmap`
+**Status:** Complete
 
 Goal: Create a clear baseline of what is wrong before changing anything. No runtime code changes.
 
@@ -160,7 +160,7 @@ Proposed commit: `Document ProgressPal UX remediation roadmap`
 
 ### UX-01 — Plain-language terminology cleanup
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Remove the most visible learner-facing technical language. Copy and labels only. No persistence, schema, route, or service-worker changes.
 
@@ -224,7 +224,7 @@ Proposed commit: `Replace technical course-detail language`
 
 ### UX-02 — Rebuild lecture page around the learner's next action
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Make `/course/week-0-lecture` feel like a lecture companion, not a database form.
 
@@ -261,7 +261,7 @@ Proposed commit: `Make lecture logging learner-first`
 
 ### UX-03 — Rebuild problem set pages around work, notes, and submission
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Make problem set pages feel like a coding/work companion.
 
@@ -282,7 +282,7 @@ Proposed commit: `Make problem set progress learner-first`
 
 ### UX-04 — Strengthen the gamified progress loop
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Make XP, levels, achievements, and next-step visible as driving forces throughout the app.
 
@@ -309,7 +309,7 @@ Proposed commit: `Strengthen XP and achievement feedback`
 
 ### UX-05 — Add visible save history and repair path
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Give the learner confidence that saved actions can be reviewed and corrected.
 
@@ -335,7 +335,7 @@ Proposed commit: `Add saved-work review and repair path`
 
 ### UX-06 — Improve onboarding and evaluator first-run path
 
-**Status:** In progress
+**Status:** Complete
 
 Goal: Let a new user or evaluator reach the product in one click.
 
@@ -355,7 +355,7 @@ Proposed commit: `Simplify first-run onboarding`
 
 ### UX-07 — Add local CS50 guide content
 
-**Status:** In progress — representative first pass (Week 0 and Week 1 only)
+**Status:** Complete
 
 Goal: Add plain-language week summaries, "what to do," "done looks like," checklists, and reflection prompts to make the app feel like a CS50 companion.
 
@@ -429,7 +429,7 @@ Final commit: `fc6b293 Polish UX-08 visual hierarchy`
 
 ### UX-09 — Final acceptance and release-readiness review
 
-**Status:** Pending
+**Status:** Complete (with documented known exceptions)
 
 Goal: Confirm the full remediation is complete and the app matches the CS50 companion standard.
 
@@ -438,6 +438,43 @@ Full acceptance test:
 - Non-technical 18-year-old can enter, navigate, save, earn XP, understand level, view achievements, write notes, find previous notes, correct a mistake, find problem set progress, open official links, export/reset data, use offline, understand data is local.
 
 Final validation: Three full clean passes. Manual UX review across all routes. Update README, DEMO.md, PROJECT_STATE.md, CHANGELOG.md, VALIDATION_LOG.md, MODULE_CHECKLIST.md.
+
+As implemented (complete):
+
+- Code: `8360c5c Remove forbidden settings copy terms` removed the last two
+  forbidden/jargon strings rendered by the Settings page ("evidence and
+  blockers" → "notes and saved blockers"; "backups audit log" → "backup
+  history"). Settings copy only; no schema, route, service-worker, XP,
+  achievement, dependency, or backup/import/export/reset contract change.
+- Documentation: realigned the stale UX-00–UX-07 status headers above and the
+  checklist current-state table / module tracker; corrected stale
+  learner/evaluator-facing wording in `README.md` and `docs/DEMO.md` (dropped
+  "confidence", "evidence", "watched range", and "slice timeline" from the
+  feature bullet, walkthrough step 4, and the video script; internal/architecture
+  terms left as accurate technical documentation); recorded validation evidence
+  and known exceptions in `VALIDATION_LOG.md`, `CHANGELOG.md`, `PROJECT_STATE.md`,
+  and `MODULE_CHECKLIST.md`.
+- Targeted validation passed: prettier (the edited files), lint, typecheck,
+  build, vitest (34 files / 261 tests), Playwright (24 tests), circular check.
+- Known exceptions, not remediated: `npm run format:check` fails on pre-existing
+  repo formatting noise (only the files edited in UX-09 were formatted
+  individually; the repo was not normalized, and the repo-wide count fell from 41
+  to 39 still-failing files); `npm run validate` stops at that step; `npm run
+audit` fails on a transitive `undici@7.27.2` advisory via the test-only
+  `jsdom@29.1.1` devDependency. No dependency change.
+- Manual cross-route acceptance walkthrough (2026-06-19): performed and passed.
+  Every route was inspected (`/`, `/dashboard`, `/course`, a lecture and a
+  problem-set detail page, `/sessions`, `/achievements`, `/insights`,
+  `/settings`, and the not-found path); `npm run build` passed and `npx
+playwright test --workers=2` passed 24 tests. All eight acceptance criteria
+  were met (learner-first "what's next", Settings renders "notes and saved
+  blockers" / "backup history", README/DEMO wording corrected, destructive
+  backup/import/reset clear, official CS50 links only with no affiliation claim,
+  no network/auth/sync/AI/analytics, sensible navigation and not-found, local-
+  first/offline-first/single-user intact).
+- UX-09 is therefore Complete with the documented known exceptions above. No
+  production-readiness, security, or clean-validation claim is made while those
+  exceptions remain.
 
 Proposed commit: `Finalize CS50 companion UX remediation`
 

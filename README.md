@@ -40,11 +40,13 @@ Every feature below maps to a real route in the app
   preferences). The home route is the saved-profile summary.
 - **Course map** (`/course`) — a read-only view of the bundled CS50x catalog
   (weeks/units and items) with honest required-progress rollups.
-- **Content detail** (`/course/:itemId`) — log item status, confidence, notes,
-  and evidence. Long-form material uses **partial-progress tracking**: watched
-  ranges, interval union, resume points, and slice timelines instead of a single
-  binary checkbox. Manual `m:ss` / `h:mm:ss` timestamp entry is supported, and
-  partial watched history cannot be silently overridden to "completed".
+- **Lecture and task detail** (`/course/:itemId`) — set your progress status,
+  add notes, and (for a problem set) record where you submitted your work.
+  Long-form material such as lectures uses **partial-progress tracking**: you
+  log the video segments you actually watched (entered as `m:ss` / `h:mm:ss`
+  times), overlapping times are merged via interval union, and a resume point is
+  kept — instead of a single binary checkbox. Partial watched history cannot be
+  silently flipped to "Done".
 - **Study sessions** (`/sessions`) — an append-only ledger of study effort with
   a live timer (in-memory only) and manual entry, plus session notes and
   blockers.
