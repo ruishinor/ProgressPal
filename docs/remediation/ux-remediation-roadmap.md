@@ -391,11 +391,11 @@ Final commits: `f934ef5 Add local CS50 guide content foundation`, `86c055e Stabi
 
 ### UX-08 — Visual hierarchy and interaction polish
 
-**Status:** Pending
+**Status:** Complete
 
 Goal: Make the app visually guide the student through primary actions.
 
-Key changes:
+Key changes (planned):
 
 - Define card roles: primary action / progress-reward / notes / details / history / optional-collapsed
 - Primary card has clearer heading and action area
@@ -411,9 +411,19 @@ Accessibility rules:
 - Reduced motion respected
 - No color-only meaning
 
-Validation: One full technical pass + Playwright screenshots + axe checks.
+As implemented (scope narrowed to confirmed should-fix items only):
 
-Proposed commit: `Improve learner-facing visual hierarchy`
+- Added `.button--sm` CSS rule — the class was used in 7 places across DashboardPage and InsightsPage but had no CSS definition; all seven usages now render at the intended compact scale.
+- Added `.course-unit-card__cs50-link` CSS rule — the class was applied in CourseUnitCard but had no layout definition; a top border and padding now separate the official CS50 link from the item list below it.
+- Moved `videoSegmentsSection` above `PreviousSessionNotes` in the lecture detail path — segment orientation (where am I in the video) now appears before historical session notes.
+- Changed the dashboard "Resume lecture" button from `button--primary` to `button--secondary` — reduces two simultaneously active primary-weighted actions when both "What's next?" and "Resume lecture" are populated.
+
+Final commit: `fc6b293 Polish UX-08 visual hierarchy`
+
+- Status: Complete.
+- Implementation: fc6b293 covers all four approved should-fix changes across three files. No component API, schema, DB, backup, route, service-worker, XP, achievement, or dependency change.
+- Validation: prettier passed; lint passed; typecheck passed; build passed; vitest passed 261/261; Playwright passed 24/24 with workers=2; circular dependency check passed; `git diff --check` had no whitespace errors (Windows LF→CRLF warnings only); npm audit reports known pre-existing undici high-severity advisory, package files untouched.
+- Final module head: fc6b293.
 
 ---
 
