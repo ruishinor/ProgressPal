@@ -6,14 +6,57 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                             |
-| ---------------------- | ------------------------------------------------- |
-| Branch                 | `docs/close-ux-07-status`                         |
-| Baseline commit        | `9f8eca3 Stabilize achievement confirmation test` |
-| Current module         | UX-08 — Visual hierarchy and interaction polish   |
-| Last completed subtask | UX-07 merged and pushed to origin/master          |
-| Next file to edit      | None / planning only                              |
-| Status                 | Pending                                           |
+| Field                  | Value                                                 |
+| ---------------------- | ----------------------------------------------------- |
+| Branch                 | `docs/close-ux-08-status`                             |
+| Baseline commit        | `fc6b293 Polish UX-08 visual hierarchy`               |
+| Current module         | UX-09 — Final acceptance and release-readiness review |
+| Last completed subtask | UX-08 merged into master at fc6b293                   |
+| Next file to edit      | None / UX-09 planning required                        |
+| Status                 | Pending                                               |
+
+---
+
+## UX-08 rollback instructions
+
+UX-08 changes: added a `.button--sm` CSS size rule covering 7 existing raw-class
+usages in DashboardPage and InsightsPage; added a `.course-unit-card__cs50-link`
+separator rule (top border + padding) to visually distinguish the official CS50 link
+from the course item list; swapped `videoSegmentsSection` above `PreviousSessionNotes`
+in the lecture detail path only so segment orientation precedes historical notes;
+changed the "Resume lecture" dashboard button from `button--primary` to
+`button--secondary` to remove a competing primary action. No component API, schema,
+DB, backup, route, service-worker, XP, achievement, or dependency change.
+
+If rollback is needed:
+
+```powershell
+git revert fc6b293
+```
+
+## UX-08 files changed
+
+| File                                               | Change                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `src/styles/design-system.css`                     | Added `.button--sm` size rule; added `.course-unit-card__cs50-link` top-border separator rule |
+| `src/features/course/routes/ContentDetailPage.tsx` | Moved `videoSegmentsSection` above `PreviousSessionNotes` in lecture path only                |
+| `src/features/dashboard/routes/DashboardPage.tsx`  | Changed Resume lecture button from `button--primary` to `button--secondary`                   |
+| `docs/remediation/ux-remediation-roadmap.md`       | Updated UX-08 status and recorded as-built scope                                              |
+| `docs/remediation/ux-remediation-checklist.md`     | Updated current state, module tracker, added UX-08 sections                                   |
+
+No seed, schema, DB, backup, route, service-worker, XP, achievement, or dependency change.
+
+## UX-08 validation
+
+- prettier: pass
+- lint: pass
+- typecheck: pass
+- build: pass
+- vitest: pass, 34 files / 261 tests
+- playwright: pass, 24 tests
+- circular dependency check: pass
+- `git diff --check`: no whitespace errors; Windows LF→CRLF warnings only
+- npm audit: known pre-existing undici high-severity advisory; package files untouched
 
 ---
 
@@ -416,7 +459,7 @@ Replace technical course-detail language
 | UX-05  | Save history and repair path       | Complete    | e109d8f |
 | UX-06  | Onboarding simplification          | Complete    | 803503e |
 | UX-07  | Local CS50 guide content           | Complete    | 9f8eca3 |
-| UX-08  | Visual hierarchy polish            | Not started | —       |
+| UX-08  | Visual hierarchy polish            | Complete    | fc6b293 |
 | UX-09  | Final acceptance review            | Not started | —       |
 
 ---
