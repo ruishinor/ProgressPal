@@ -380,10 +380,12 @@ Data approach (as built):
   to `null` gracefully; the guide-content architecture is ready to expand.
 - No learner progress mutation from guide-content rendering.
 
-Validation: One full technical pass + content review. (No new persistence or
-schema is added, so the three-technical-pass rule does not apply.)
+Final commits: `f934ef5 Add local CS50 guide content foundation`, `86c055e Stabilize XP milestone E2E flow`, `9f8eca3 Stabilize achievement confirmation test`
 
-Proposed commit: `Add local CS50 guide content`
+- Status: Complete.
+- Implementation: f934ef5 introduced the local guide foundation. 86c055e and 9f8eca3 stabilized the XP and achievement confirmation flows exposed during validation.
+- Validation: npm run test passed 261/261; Playwright passed 24/24 with workers=2. npm audit remains blocked by the documented pre-existing undici/jsdom issue.
+- Final module head: 9f8eca3.
 
 ---
 

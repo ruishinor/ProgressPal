@@ -6,14 +6,14 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                                     |
-| ---------------------- | --------------------------------------------------------- |
-| Branch                 | `ux/07-local-cs50-guide-content`                          |
-| Baseline commit        | `803503e Simplify first-run onboarding`                   |
-| Current module         | UX-07 — Local CS50 guide content                          |
-| Last completed subtask | Week 0 / Week 1 guide content, tests, and rendering wired |
-| Next file to edit      | None — ready for validation and commit                    |
-| Status                 | Representative first pass complete; pending commit        |
+| Field                  | Value                                             |
+| ---------------------- | ------------------------------------------------- |
+| Branch                 | `docs/close-ux-07-status`                         |
+| Baseline commit        | `9f8eca3 Stabilize achievement confirmation test` |
+| Current module         | UX-08 — Visual hierarchy and interaction polish   |
+| Last completed subtask | UX-07 merged and pushed to origin/master          |
+| Next file to edit      | None / planning only                              |
+| Status                 | Pending                                           |
 
 ---
 
@@ -415,7 +415,7 @@ Replace technical course-detail language
 | UX-04  | Stronger XP/achievement/level loop | Complete    | 62d8d03 |
 | UX-05  | Save history and repair path       | Complete    | e109d8f |
 | UX-06  | Onboarding simplification          | Complete    | 803503e |
-| UX-07  | Local CS50 guide content           | In progress | —       |
+| UX-07  | Local CS50 guide content           | Complete    | 9f8eca3 |
 | UX-08  | Visual hierarchy polish            | Not started | —       |
 | UX-09  | Final acceptance review            | Not started | —       |
 
