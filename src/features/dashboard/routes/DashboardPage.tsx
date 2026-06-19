@@ -387,7 +387,7 @@ export function DashboardPage() {
               </p>
               <div className="action-row">
                 <Link
-                  className="button button--primary button--sm"
+                  className="button button--secondary button--sm"
                   to={getCourseItemDetailPath(resume.itemId)}
                 >
                   Resume
