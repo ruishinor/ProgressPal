@@ -173,8 +173,8 @@ export function SettingsPage() {
       <Card title="Export a backup" titleAs="h3">
         <p className="card__description">
           Download a full local backup as a JSON file. It contains your learning
-          history and progress, notes, evidence and blockers, XP transactions
-          and achievement unlocks, media progress and resume points, and your
+          history and progress, notes and saved blockers, XP transactions and
+          achievement unlocks, media progress and resume points, and your
           settings, profile, and app metadata. Keep exported files somewhere
           private; they are created and stored only by you.
         </p>
@@ -193,8 +193,8 @@ export function SettingsPage() {
         <p className="card__description">
           Permanently delete all local ProgressPal data on this device and start
           fresh. This removes your progress, sessions, XP, achievements, notes,
-          media history, and backups audit log. It is destructive, local-only,
-          and cannot be undone. Type <code>{resetConfirmationPhrase}</code> to
+          media history, and backup history. It is destructive, local-only, and
+          cannot be undone. Type <code>{resetConfirmationPhrase}</code> to
           enable the reset.
         </p>
         <div className="data-action">
