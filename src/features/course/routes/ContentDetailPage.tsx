@@ -1591,8 +1591,8 @@ export function ContentDetailPage() {
             </div>
           </Card>
         ) : null}
-        <PreviousSessionNotes events={detail.events} itemId={detail.item.id} />
         {videoSegmentsSection}
+        <PreviousSessionNotes events={detail.events} itemId={detail.item.id} />
         {progressFormSection}
         {aboutSection}
         {toast ? (
