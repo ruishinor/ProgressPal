@@ -110,3 +110,33 @@ Rollback plan:
 | 18     | Accessibility and UX hardening        | complete |
 | 19     | Security and privacy review           | complete |
 | 20     | Final CS50 project packaging          | complete |
+
+## Post-build UX remediation (UX-00 through UX-09)
+
+A separately scoped, learner-facing copy and UX pass layered on top of the
+completed Module 00-20 build. It is tracked in `docs/remediation/`
+(`ux-remediation-roadmap.md` and `ux-remediation-checklist.md`), not in the
+Module table above. It adds no features and keeps the product definition
+unchanged (offline-first, local-only, single-user, CS50-only, no account,
+backend, cloud sync, analytics, external APIs, AI tutor, or affiliation claim).
+
+| UX module | Name                               | Status   |
+| --------- | ---------------------------------- | -------- |
+| UX-00     | Audit and baseline lock            | complete |
+| UX-01     | Plain-language terminology cleanup | complete |
+| UX-02     | Learner-first lecture page         | complete |
+| UX-03     | Learner-first problem set page     | complete |
+| UX-04     | Stronger XP/achievement/level loop | complete |
+| UX-05     | Save history and repair path       | complete |
+| UX-06     | Onboarding simplification          | complete |
+| UX-07     | Local CS50 guide content           | complete |
+| UX-08     | Visual hierarchy polish            | complete |
+| UX-09     | Final acceptance review            | complete |
+
+UX-09 is complete (with documented known exceptions): Settings copy fix `8360c5c` plus documentation closeout, including corrected learner/evaluator-facing wording in `README.md` and `docs/DEMO.md`. The manual cross-route acceptance walkthrough was performed
+and passed (every route inspected; `npm run build` and `npx playwright test
+--workers=2` (24 tests) passed). Known validation exceptions remain (pre-existing
+`format:check` formatting noise, repo not normalized; `npm run audit` flags a
+transitive `undici@7.27.2` advisory via the test-only `jsdom` devDependency,
+package files untouched). No clean-validation or production-readiness claim is
+made. The documentation closeout records UX-09 as complete with documented known exceptions.

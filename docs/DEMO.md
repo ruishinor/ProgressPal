@@ -51,13 +51,14 @@ follows the natural product loop.
    catalog as weeks/units and items, with required-progress rollups. This view is
    read-only; it reflects your progress but does not edit it.
 
-4. **Log progress on an item.** Open an item to reach its detail page
-   (`/course/:itemId`). Set a status, confidence, notes, and evidence, then save.
-   - For a **long-form** item (e.g. a lecture), log a **watched range** using the
-     `m:ss` / `h:mm:ss` timestamp fields. Note the slice timeline and the resume
-     point. Log a second, overlapping range and observe that the watched time is
-     unioned rather than double-counted, and that partial history blocks a
-     silent jump to "completed".
+4. **Log progress on a lecture or task.** Open an item to reach its detail page
+   (`/course/:itemId`). Set your progress status, add notes, and — for a problem
+   set — record where you submitted your work, then save.
+   - For a **long-form** item (e.g. a lecture), log a session using the
+     `m:ss` / `h:mm:ss` time fields under the video segments. Note the segment
+     progress and the resume point. Log a second, overlapping session and
+     observe that the watched time is merged rather than double-counted, and that
+     partial history blocks a silent jump to "Done".
 
 5. **Earn XP.** Saving qualifying progress awards XP through the deterministic XP
    engine; watch for the XP feedback. Reload the page and confirm your XP and
@@ -120,9 +121,9 @@ saved straight to the browser's local database."
 "Here's the course map: the CS50x weeks and items, with honest progress rollups.
 I'll open a lecture. Instead of one all-or-nothing checkbox, long-form material
 uses partial-progress tracking — I log the time range I actually watched, it
-keeps a resume point, and overlapping ranges are merged, not double-counted. I
-can add my confidence, notes, and evidence too. This is the heart of the project:
-honest, resumable progress for long material."
+keeps a resume point, and overlapping times are merged, not double-counted. I
+can add notes too, and on a problem set I note where I submitted my work. This
+is the heart of the project: honest, resumable progress for long material."
 
 **[1:25–2:05] Gamified feedback.**
 "Saving progress earns XP through a deterministic engine, and levels are derived

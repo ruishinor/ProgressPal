@@ -6,14 +6,115 @@ This file is the persistent recovery and continuity protocol for the ProgressPal
 
 ## Current state
 
-| Field                  | Value                                                 |
-| ---------------------- | ----------------------------------------------------- |
-| Branch                 | `docs/close-ux-08-status`                             |
-| Baseline commit        | `fc6b293 Polish UX-08 visual hierarchy`               |
-| Current module         | UX-09 — Final acceptance and release-readiness review |
-| Last completed subtask | UX-08 merged into master at fc6b293                   |
-| Next file to edit      | None / UX-09 planning required                        |
-| Status                 | Pending                                               |
+| Field                  | Value                                                  |
+| ---------------------- | ------------------------------------------------------ |
+| Branch                 | Not hardcoded; verify with `git status -sb``           |
+| Baseline commit        | `8360c5c Remove forbidden settings copy terms`         |
+| Current module         | UX-09 — Final acceptance and release-readiness review  |
+| Last completed subtask | UX-09 manual cross-route acceptance walkthrough passed |
+| Next file to edit      | None / UX-09 complete                                  |
+| Status                 | Complete (with documented known exceptions)            |
+
+---
+
+## UX-09 final acceptance and release-readiness review
+
+Status: Complete (with documented known exceptions). The manual cross-route
+acceptance walkthrough was performed and passed (see below), the README/DEMO
+stale-wording gap was fixed during UX-09, and the Settings copy fix is committed.
+The known validation exceptions below remain; no production-readiness, security,
+or clean-validation claim is made.
+
+### UX-09 code fix
+
+- Commit `8360c5c Remove forbidden settings copy terms`.
+- `src/features/settings/routes/SettingsPage.tsx` only. The Settings page no
+  longer renders the forbidden/jargon strings:
+  - "evidence and blockers" → "notes and saved blockers"
+  - "backups audit log" → "backup history"
+- Verified absent from `src` afterward by `git grep`.
+- No schema, route, service-worker, XP, achievement, dependency, or
+  backup/import/export/reset contract change.
+
+### UX-09 documentation closeout
+
+- Realigned the stale roadmap per-section status headers (UX-00 through UX-07
+  now read Complete; UX-09 now reads Complete after the passing walkthrough) and
+  this checklist's current-state table and module tracker row.
+- Corrected stale learner/evaluator-facing wording in `README.md` (the feature
+  bullet now reads "Lecture and task detail" and drops "confidence", "evidence",
+  "watched ranges", and "slice timelines") and in `docs/DEMO.md` (walkthrough
+  step 4 and the video script no longer tell evaluators to look for those
+  pre-remediation labels). Internal/architecture terms (e.g. "ledger" for the
+  immutable transaction model, "route" for the router) were left as accurate
+  technical documentation.
+- Recorded the validation evidence in `VALIDATION_LOG.md` and the change in
+  `CHANGELOG.md`; noted post-build UX remediation state in `PROJECT_STATE.md`
+  and `MODULE_CHECKLIST.md`.
+
+### UX-09 passed targeted validation (2026-06-19)
+
+- prettier `--check src/features/settings/routes/SettingsPage.tsx`: pass
+- lint: pass
+- typecheck: pass
+- build: pass
+- vitest: pass, 34 files / 261 tests
+- Playwright `--workers=2`: pass, 24 tests
+- circular dependency check: pass
+- `git diff --check`: no whitespace errors; Windows LF→CRLF warnings only
+
+### UX-09 known validation exceptions (not remediated; out of scope)
+
+- `npm run format:check` fails on pre-existing files (the repo-wide formatting
+  noise documented since UX-04). Only the files edited in UX-09 were formatted
+  individually (the Settings file, the two remediation docs, and the release
+  docs); the repo as a whole was **not** normalized. Formatting the two edited
+  remediation docs lowered the repo-wide count from 41 to 39 still-failing
+  pre-existing files.
+- `npm run validate` fails because `format:check` runs early in the chain and
+  stops it before the later steps; the later steps were therefore run
+  individually (see passed targeted validation above).
+- `npm run audit` fails on a high-severity `undici@7.27.2` advisory pulled in
+  transitively via `jsdom@29.1.1` (a test-only devDependency; the runtime ships
+  no network code). No dependency remediation was performed; `package.json` and
+  `package-lock.json` are untouched.
+- No production-readiness, security, or "clean validation" claim is made while
+  these exceptions remain.
+
+### UX-09 manual cross-route acceptance walkthrough (2026-06-19): passed
+
+Performed against a local dev server with browser inspection of every route;
+`npm run build` passed and `npx playwright test --workers=2` passed 24 tests
+(including the offline cold-start and reset/import recovery specs).
+
+Routes inspected and result:
+
+- `/` → redirects to `/onboarding`: learner-first ("Start tracking CS50
+  locally", "Use default learner"); import flagged "destructive, local-only,
+  and cannot be undone".
+- `/dashboard`: "What's next?" recommends the next step; XP/level prompt; "Your
+  CS50 progress on this device. Nothing is synced or stored remotely."
+- `/course`: learner-first catalog; official CS50 links only (e.g. "Week 0 on
+  CS50.harvard.edu" → `cs50.harvard.edu`); no affiliation claim.
+- `/course/week-0-lecture` (lecture): "Log Lecture", "VIDEO PROGRESS",
+  "Use next segment", "Started at"/"Stopped at", "Save session", "Video
+  segments" — no "watched range"/"slice timeline"/"confidence"/"evidence".
+- `/course/week-0-problem-set` (problem set): clean; no "confidence"/"evidence"
+  labels (the submission and "How sure are you?" fields stay conditional/
+  collapsed by design).
+- `/sessions`: "Study sessions", "What were you working on?"; no "ledger"
+  eyebrows.
+- `/achievements`: plain "How to unlock:" guidance; no "Achievement record".
+- `/insights`: trends only; no streak or remote-analytics language.
+- `/settings`: renders the fixed copy live — "notes and saved blockers" and
+  "backup history"; reset is "destructive, local-only, and cannot be undone"
+  behind a typed RESET confirmation.
+- Unknown path: a clear "Page not found" with a "Go to dashboard" recovery link
+  (the 404 page uses "route"/"address", acceptable for an error page).
+
+All eight walkthrough criteria were met. The earlier README/DEMO stale-wording
+gap is resolved. Only the documented known exceptions above remain, and they do
+not block acceptance.
 
 ---
 
@@ -449,18 +550,18 @@ Replace technical course-detail language
 
 ## Module status tracker
 
-| Module | Goal                               | Status      | Commit  |
-| ------ | ---------------------------------- | ----------- | ------- |
-| UX-00  | Audit and baseline lock            | Complete    | 5364aae |
-| UX-01  | Plain-language terminology cleanup | Complete    | a2e0cec |
-| UX-02  | Learner-first lecture page         | Complete    | 794fe06 |
-| UX-03  | Learner-first problem set page     | Complete    | 683a10b |
-| UX-04  | Stronger XP/achievement/level loop | Complete    | 62d8d03 |
-| UX-05  | Save history and repair path       | Complete    | e109d8f |
-| UX-06  | Onboarding simplification          | Complete    | 803503e |
-| UX-07  | Local CS50 guide content           | Complete    | 9f8eca3 |
-| UX-08  | Visual hierarchy polish            | Complete    | fc6b293 |
-| UX-09  | Final acceptance review            | Not started | —       |
+| Module | Goal                               | Status   | Commit  |
+| ------ | ---------------------------------- | -------- | ------- |
+| UX-00  | Audit and baseline lock            | Complete | 5364aae |
+| UX-01  | Plain-language terminology cleanup | Complete | a2e0cec |
+| UX-02  | Learner-first lecture page         | Complete | 794fe06 |
+| UX-03  | Learner-first problem set page     | Complete | 683a10b |
+| UX-04  | Stronger XP/achievement/level loop | Complete | 62d8d03 |
+| UX-05  | Save history and repair path       | Complete | e109d8f |
+| UX-06  | Onboarding simplification          | Complete | 803503e |
+| UX-07  | Local CS50 guide content           | Complete | 9f8eca3 |
+| UX-08  | Visual hierarchy polish            | Complete | fc6b293 |
+| UX-09  | Final acceptance review            | Complete | 8360c5c |
 
 ---
 

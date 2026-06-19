@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-06-19 - UX-09 final acceptance: settings copy fix and remediation closeout
+
+### Changed
+
+- Settings page copy no longer renders the forbidden/jargon phrases
+  "evidence and blockers" or "backups audit log"; they now read
+  "notes and saved blockers" and "backup history" (commit `8360c5c`,
+  `src/features/settings/routes/SettingsPage.tsx` only).
+- Corrected stale learner/evaluator-facing wording in `README.md` and
+  `docs/DEMO.md`: the feature bullet, walkthrough step 4, and the video script no
+  longer reference "confidence", "evidence", "watched range", or "slice timeline"
+  (labels the remediated UI no longer renders). Internal/architecture terms were
+  left as accurate technical documentation.
+- Marked UX-09 Complete (with documented known exceptions) after performing the
+  manual cross-route acceptance walkthrough on 2026-06-19: every route was
+  inspected, `npm run build` passed, and `npx playwright test --workers=2`
+  passed 24 tests; all eight acceptance criteria were met.
+- Realigned the UX remediation roadmap/checklist status records so UX-00
+  through UX-09 read Complete (documentation coherence only).
+
+### Validation (targeted)
+
+- prettier (the edited Settings file), lint, typecheck, build, vitest
+  (34 files / 261 tests), Playwright (24 tests), and the circular-dependency
+  check all passed. `git diff --check` reported no whitespace errors (only
+  Windows LF→CRLF warnings).
+
+### Known exceptions (not remediated; out of UX-09 scope)
+
+- `npm run format:check` fails on pre-existing repo formatting noise, so
+  `npm run validate` stops at that step before the later checks; those later
+  checks were run individually instead. Only the files edited in UX-09 were
+  formatted individually; the repo was not normalized, and the repo-wide count
+  fell from 41 to 39 still-failing pre-existing files.
+- `npm run audit` fails on a high-severity `undici@7.27.2` advisory pulled in
+  transitively via `jsdom@29.1.1`, a test-only devDependency; the runtime ships
+  no network code. No `package.json` / `package-lock.json` change and no
+  dependency remediation was performed.
+
+### Boundaries
+
+- No schema, route, service-worker, XP rule, achievement rule, or
+  backup/import/export/reset contract change.
+- No production-readiness, security, or clean-validation claim is made while the
+  exceptions above remain.
+
+---
+
 ## 2026-06-17 - Surface CS50 course content in tracker
 
 ### Changed

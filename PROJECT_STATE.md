@@ -1,24 +1,34 @@
 # Project State
 
-Current module: Module 20 - Final CS50 project packaging (docs-only; complete in
-the working tree, not yet committed). HEAD is the post-Module-19 bundle-hygiene
-fix `Fix embedded package manifest in client bundle` (commit eb12b01, D-0042),
-which is committed and pushed to `origin/master`. The Module 20 packaging
-documents are present in the working tree, final validation passed, and the docs
-are pending commit.
-Last completed module: Module 20 - Final CS50 project packaging (complete;
-working tree validated, not yet committed).
-Current branch: master (in sync with `origin/master` before the Module 20 commit).
-Last committed module: Module 19 (commit 011981f) plus its post-Module-19
-bundle-hygiene fix (commit eb12b01, D-0042), both pushed to `origin/master`.
+Current state: Module 20 (Final CS50 project packaging) is complete and its
+packaging documentation passed final validation. The post-build UX remediation
+UX-00 through UX-09 is complete with documented known exceptions (see the
+"Post-build UX remediation" section below). For the exact current Git head,
+branch, and commit history, read `git log` rather than a value hardcoded here.
 Schema version: Dexie persistence schema version 2 with a legacy version-1
 migration fixture
 Seed data version: bundled CS50x 2026 payload loaded at startup with
 `dataVersion` 20260617 and `sourceCheckedDate` 2026-06-17
 
-Next module: none - Module 20 is the final module in `ROADMAP.md`. Once the
-Module 20 packaging docs are committed, the offline CS50 MVP endpoint is reached.
-Any further work would be a new, separately scoped initiative.
+Next module: none - Module 20 is the final module in `ROADMAP.md`, and the
+offline CS50 MVP endpoint has been reached. Any further work would be a new,
+separately scoped initiative.
+
+Post-build UX remediation (UX-00 through UX-09): a separately scoped,
+learner-facing copy and UX pass layered on top of the completed build. It is
+tracked in `docs/remediation/` (roadmap and checklist), not in the Module 00-20
+sequence above. UX-00 through UX-08 are complete and merged to `master`. UX-09 is Complete with documented known exceptions: the Settings copy fix is committed (`8360c5c`),
+stale learner/evaluator-facing wording in `README.md` and `docs/DEMO.md` has been
+corrected, and the manual cross-route acceptance walkthrough was performed and
+passed (every route inspected; `npm run build` and `npx playwright test
+--workers=2` (24 tests) passed). The documentation closeout records UX-09 as
+complete with documented known exceptions. The product definition is unchanged -
+still offline-first, local-only, single-user, CS50-only, with no account,
+backend, cloud sync, analytics, external APIs, AI tutor, or CS50 affiliation
+claim. Known validation exceptions remain (pre-existing `format:check` formatting
+noise, repo not normalized; `npm run audit` flags a transitive `undici@7.27.2`
+advisory via the test-only `jsdom` devDependency, package files untouched), so no
+clean-validation or production-readiness claim is made.
 
 Known blockers:
 

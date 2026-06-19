@@ -2321,3 +2321,72 @@ Decision:
 
 - Module 20 final CS50 project packaging is complete and validated in the working
   tree. Stop before commit/push for final staged-file review.
+
+## UX-09 - Final acceptance and release-readiness review
+
+Date: 2026-06-19
+Branch | Not hardcoded; verify with `git status -sb` |
+Code fix commit: `8360c5c Remove forbidden settings copy terms`
+
+Scope: a single Settings copy fix plus the UX remediation documentation
+closeout. The Settings page no longer renders "evidence and blockers" or
+"backups audit log"; they read "notes and saved blockers" and "backup history".
+`README.md` and `docs/DEMO.md` were also corrected to drop stale
+learner/evaluator-facing labels ("confidence", "evidence", "watched range",
+"slice timeline"); internal/architecture terms were left as accurate technical
+documentation.
+
+Targeted validation (run individually; see exceptions for why the bundled
+`npm run validate` was not used):
+
+- prettier `--check src/features/settings/routes/SettingsPage.tsx`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed; hashed chunks only, no chunk-size warning.
+- `npm run test`: passed, 261 tests across 34 files.
+- Playwright `--workers=2`: passed, 24 tests including the `offline` project.
+- `npm run check:circular`: passed, no circular dependency.
+- `git diff --check`: no whitespace errors; only Windows LF→CRLF warnings.
+
+Known exceptions (pre-existing; deliberately not remediated in UX-09):
+
+- `npm run format:check`: fails on pre-existing repo formatting noise. Only the
+  files edited in UX-09 were formatted individually (the Settings file, the two
+  remediation docs, and the release docs); the repo as a whole was not
+  normalized. Formatting the two edited remediation docs lowered the repo-wide
+  count from 41 to 39 still-failing pre-existing files.
+- `npm run validate`: fails because `format:check` runs early and stops the
+  chain before later steps. This is why the later steps were run individually.
+- `npm run audit`: fails (exit 1) on a high-severity `undici@7.27.2` advisory
+  resolved transitively through `jsdom@29.1.1`, a test-only devDependency. The
+  runtime ships no network code. `package.json` and `package-lock.json` are
+  untouched; no `npm audit fix` or dependency change was performed.
+
+Manual cross-route acceptance walkthrough (2026-06-19): performed and passed.
+
+- Method: `npm run build` passed; `npx playwright test --workers=2` passed 24
+  tests (including the offline cold-start and reset/import recovery specs); then
+  a local dev server was driven in a browser to inspect every route.
+- Routes inspected: `/` (redirects to `/onboarding`), `/dashboard`, `/course`,
+  `/course/week-0-lecture` (lecture), `/course/week-0-problem-set` (problem set),
+  `/sessions`, `/achievements`, `/insights`, `/settings`, and an unknown path.
+- Results against the eight criteria: (1) each route makes the next action clear
+  (dashboard "What's next?", lecture "Log Lecture" / "Save session"); (2)
+  Settings renders "notes and saved blockers" and "backup history" — neither
+  "evidence and blockers" nor "backups audit log" appears; (3) README/DEMO no
+  longer reference confidence/evidence/watched range/slice timeline/content
+  detail; (4) backup/import/reset copy is clear and the reset is gated behind a
+  typed RESET confirmation ("destructive, local-only, and cannot be undone");
+  (5) only official CS50 links appear ("... on CS50.harvard.edu"), no affiliation
+  claim; (6) no network/auth/cloud/sync/AI/analytics behavior (copy disclaims it,
+  "Offline only"); (7) navigation and the "Page not found" recovery link make
+  sense; (8) the local-first/offline-first/single-user definition holds.
+- Minor, non-blocking observation: the not-found page uses "route"/"address",
+  acceptable for an error page.
+
+Decision:
+
+- UX-09 is Complete with the documented known exceptions above. No
+  production-readiness, security, or clean-validation claim is made while those
+  exceptions (format:check / validate / audit) remain. Documentation closeout
+  records this decision.
