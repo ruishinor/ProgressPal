@@ -1,216 +1,135 @@
-# ProgressPal CS50 Edition
+# ProgressPal
 
-An offline-only, single-user, local-first learning companion that helps one
-learner track their CS50 progress in small, persistent, gamified steps.
+ProgressPal is a local-first CS50x study tracker.
 
-> **Not affiliated with CS50.** This is an independent student project for
-> tracking CS50x progress; it is not affiliated with, endorsed by, or maintained
-> by CS50, Harvard, or edX.
+The current stable app is the classic ProgressPal v1 engine: a plain, functional study tracker for local course progress, study sessions, XP, achievements, insights, backup, import, and reset.
 
-Everything you enter stays in your own browser on your own device. There is no
-account, no server, and no network call for your data.
+ProgressPal RPG v2 is planned as a same-origin `/rpg/*` route tree over that existing engine. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
 
-**Video demo:** _to be recorded — the walkthrough and a ~3-minute narration
-script live in [docs/DEMO.md](docs/DEMO.md)._
+## Current product position
 
----
+ProgressPal is:
 
-## What it is
+- a single-user study companion;
+- local-first;
+- browser-based;
+- CS50x-focused;
+- intended to store progress locally in the user’s browser;
+- independent from Harvard, CS50, edX, and OpenCourseWare.
 
-ProgressPal CS50 Edition is the focused, CS50-only result of an earlier, broader
-life-tracking concept that was deliberately scoped down (see `DECISIONS.md`
-D-0001 and `ROADMAP.md`). It answers four questions for one self-directed CS50
-learner with uneven energy and focus:
+ProgressPal is not:
 
-- What is done?
-- What is next?
-- How is effort accumulating?
-- Where do I resume?
+- an official CS50 product;
+- a course submission system;
+- a certification system;
+- a cloud-sync product;
+- a social learning platform;
+- an AI tutor;
+- a media streaming interface.
 
-It runs entirely in the browser, stores progress locally in IndexedDB, and keeps
-working offline after the first successful load.
+## RPG v2 source of truth
 
-## Features
+For RPG v2 work, read these files first:
 
-Every feature below maps to a real route in the app
-(`src/app/router/routeDefinitions.ts`):
+```text
+docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
+docs/rpg-v2/DECISIONS-rpg-v2.md
+docs/rpg-v2/VALIDATION_LOG.md
+docs/rpg-v2/MIGRATION_CONTRACT.md
+docs/rpg-v2/ASSETS.md
+docs/rpg-v2/RISK_REGISTER.md
+docs/rpg-v2/VISUAL_TARGET.md
+docs/rpg-v2/RESTART_PROMPT.md
+```
 
-- **Onboarding / profile** (`/onboarding`, `/`) — create a first-run local
-  profile (display name, avatar, study targets, theme and reduced-motion
-  preferences). The home route is the saved-profile summary.
-- **Course map** (`/course`) — a read-only view of the bundled CS50x catalog
-  (weeks/units and items) with honest required-progress rollups.
-- **Lecture and task detail** (`/course/:itemId`) — set your progress status,
-  add notes, and (for a problem set) record where you submitted your work.
-  Long-form material such as lectures uses **partial-progress tracking**: you
-  log the video segments you actually watched (entered as `m:ss` / `h:mm:ss`
-  times), overlapping times are merged via interval union, and a resume point is
-  kept — instead of a single binary checkbox. Partial watched history cannot be
-  silently flipped to "Done".
-- **Study sessions** (`/sessions`) — an append-only ledger of study effort with
-  a live timer (in-memory only) and manual entry, plus session notes and
-  blockers.
-- **XP and levels** — a deterministic, idempotent, ledger-based XP engine.
-  Levels are derived from an immutable XP transaction ledger, so reloading never
-  double-counts.
-- **Achievements** (`/achievements`) — code-defined achievements unlocked from
-  local progress on explicit save (no passive or duplicated unlocks).
-- **Dashboard** (`/dashboard`) — a read-only operational summary derived from the
-  stored data; opening it mutates nothing.
-- **Insights** (`/insights`) — read-only trends over the immutable ledgers
-  (active days, logged effort, achievement timeline), with no streak branding and
-  no remote analytics.
-- **Settings, backup, and recovery** (`/settings`) — edit the local profile;
-  **export** a full local backup as a JSON file; **import** (replace-all, after
-  strict validation); and **reset** (clear all local data and re-create a fresh
-  profile and seeded catalog). Backup import is also reachable from onboarding for
-  recovery.
-- **Offline support** — a production-only service worker caches the app shell and
-  its hashed boot assets, so after one successful online load the app starts and
-  navigates offline.
-- **Accessibility** — dark-theme contrast hardening, focus-visible handling, and
-  in-app reduced-motion support, with computed-style end-to-end checks.
+Older root-level planning files may describe the completed v1 engine phase and may be archived under:
 
-### Not included (by design)
+```text
+docs/archive/engine-v1/
+```
 
-This is an MVP with a deliberately locked scope. It has **no** login, cloud sync,
-backend, external APIs, analytics/telemetry, AI tutoring, or social/leaderboard
-features, and it tracks a single course family (CS50 / CS50x). Charts are a
-retained-but-deferred idea: `recharts` and `date-fns` are declared in
-`package.json` and reserved for that future work, but no chart feature ships today
-(see `DECISIONS.md` D-0041). See `ROADMAP.md` for the full scope lock.
+Those archived files are historical context, not active RPG v2 implementation guidance.
 
-## Tech stack
+## Architecture summary
 
-- **Build / UI:** Vite, React, TypeScript, React Router.
-- **Persistence:** Dexie over IndexedDB (schema version 2, with a legacy
-  version-1 migration fixture).
-- **Validation:** Zod schemas for domain types and backup envelopes.
-- **Course data:** a bundled, locally editable CS50x 2026 seed catalog
-  (`src/seed/`), loaded at startup.
-- **Testing:** Vitest (unit/integration) and Playwright (end-to-end, including a
-  dedicated production-preview offline project), with axe-core accessibility
-  checks.
-- **Quality:** ESLint and Prettier, plus a circular-dependency check (`dpdm`).
+ProgressPal uses a local-first frontend architecture.
 
-### Project layout
+Expected stack:
 
-- `src/app/` — route composition, router, providers, app shell.
-- `src/features/` — feature folders: `profile`, `course`, `progress`, `sessions`,
-  `xp`, `achievements`, `dashboard`, `insights`, `settings`.
-- `src/lib/` — `db` (Dexie + repositories), `domain` (constants/schemas/types),
-  `backup`, `progress`, `xp`, `achievements`, `appState`, `pwa`, `time`,
-  `validation`.
-- `src/seed/` — the bundled CS50x catalog and its parser.
-- `src/styles/` — design tokens and stylesheets.
-- `public/sw.js` — the production-only service worker.
-- `tests/` — Vitest unit/integration tests; `e2e/` — Playwright specs.
+- Vite
+- React
+- TypeScript
+- React Router
+- Dexie / IndexedDB
+- Zod
+- CSS tokens
+- Vitest
+- Playwright
 
-## Getting started
+The local browser database is the source of truth. There is no account system and no server-side user profile.
 
-### Prerequisites
+## Local data warning
 
-- A current Node.js LTS and npm.
-- A modern browser with IndexedDB and service-worker support.
+ProgressPal stores user data locally in the browser. Browser data can be lost if the user clears site data, changes browser profile, uses aggressive cleanup tools, or if the browser removes storage under pressure.
 
-### Install
+Users should export backups regularly if they want to preserve their study records.
+
+## CS50 / Harvard / edX disclaimer
+
+ProgressPal is an independent local-first study tracker. It is not affiliated with, endorsed by, sponsored by, or maintained by Harvard University, CS50, edX, or OpenCourseWare.
+
+CS50x and related course materials are created and maintained by their respective owners. ProgressPal may link to official course resources, but it stores only local user progress and notes.
+
+## Development
+
+Install dependencies:
 
 ```bash
 npm install
-npx playwright install chromium   # one-time, only needed to run the E2E tests
 ```
 
-### Run in development
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Vite serves the app locally (default `http://localhost:5173`) with hot reload.
-The service worker is production-only and does not register in dev.
-
-### Build and preview a production bundle
+Run the expected validation gate:
 
 ```bash
+npm run lint
+npm run format:check
+npm run typecheck
 npm run build
-npm run preview
+npm run test
+npm run test:e2e
+npm run check:circular
+npm run audit
 ```
 
-`npm run preview` serves the built app (default `http://localhost:4173`). Load it
-once online, then you can reload or reopen it offline.
+If the repo has a combined script such as `npm run validate`, use it only if it runs the full required gate.
 
-## Testing and validation
+## RPG v2 implementation rule
 
-Individual checks:
+Do not scaffold all RPG modules at once.
 
-```bash
-npm run lint           # ESLint, zero warnings allowed
-npm run format:check   # Prettier formatting check
-npm run typecheck      # tsc -b
-npm run build          # production build
-npm run test           # Vitest unit/integration suite
-npm run test:e2e       # Playwright end-to-end suite (needs Chromium installed)
-npm run check:circular # circular-dependency check
-npm run audit          # npm audit --audit-level=moderate
+Start with RPG-00 only:
+
+- install source-of-truth documentation;
+- reconcile repo state;
+- archive misleading old root Markdown files;
+- record validation baseline;
+- make no runtime changes;
+- make no package changes;
+- add no routes;
+- add no assets.
+
+Every implementation module must include a Scope Discipline Check in its handoff file under:
+
+```text
+docs/rpg-v2/modules/
 ```
 
-### Known validation caveat
+## License
 
-`npm run validate` chains all of the above. In this project's environment the
-bare command can **hang on Playwright's web-server teardown after the tests have
-already reported OK**. The validation history therefore uses a **managed-server
-method**: the dev and production-preview servers are started explicitly and
-reused by Playwright, so Playwright never owns (and never hangs tearing down) the
-servers. When you see a "Triple-Zero" / clean-pass claim in `VALIDATION_LOG.md`,
-it was produced with that managed-server method, and the log says so explicitly
-rather than claiming the bare `npm run validate` command passed. See
-`VALIDATION_LOG.md` for the exact commands and the most recent results.
-
-## Privacy and security boundary
-
-ProgressPal is local-only: the app does not transmit your data off the device.
-**Local-only does not mean encrypted, tamper-proof, certified, or safe against
-device access.** IndexedDB data is stored unencrypted, and anyone with access to
-your device or browser profile can read or change it. Exported backup files are
-ordinary personal files once they leave the app — handle them accordingly.
-
-This project makes **no claim** of production-grade security, regulatory or GDPR
-compliance, encryption at rest, or deployment readiness. For the full, honest
-treatment see [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md).
-
-## Limitations and known caveats
-
-- Bundled `estimatedMinutes` values are local planning estimates, not official
-  CS50 durations, so long-form watched-time percentages are only as good as that
-  planning data.
-- Study sessions are append-only: there is no edit, delete, or repair UI yet, and
-  an unfinished live timer is intentionally lost on reload rather than written as
-  a phantom record.
-- Once a long-form asset has saved media events, its derived slice plan is frozen;
-  later seed-estimate edits can make planned minutes diverge from the frozen plan.
-- Import is replace-all only (no merge); selective export is not implemented.
-- A registered service worker persists in a real browser beyond file deletion;
-  future lazy-loaded route chunks would need to revisit install-time asset
-  discovery (see `PROJECT_STATE.md` and `DECISIONS.md` D-0039).
-
-## CS50 final-project notes
-
-ProgressPal CS50 Edition is submitted as a CS50x final project. It is an original
-single-author project; the bundled CS50x catalog is course-structure reference
-data, not CS50 course content. The accompanying demo walkthrough and the
-~3-minute video narration script are in [docs/DEMO.md](docs/DEMO.md).
-
-## Repository map
-
-- `ROADMAP.md` — product scope lock, MVP boundary, and the module delivery
-  sequence.
-- `PROJECT_STATE.md` — current state, schema/seed versions, known risks, and the
-  "do not change" invariants per module.
-- `MODULE_CHECKLIST.md` — per-module objective, expected files, and status.
-- `DECISIONS.md` — the decision log (`D-0001` onward).
-- `TEST_PLAN.md` — the test strategy and coverage map.
-- `VALIDATION_LOG.md` — the validation history (commands, results, retrospectives).
-- `SECURITY.md` / `PRIVACY.md` — the security baseline and the local-only privacy
-  boundary.
-- `docs/modules/` — per-module plans; `docs/decisions/` — architecture decision
-  records; `docs/DEMO.md` — the demo walkthrough and video script.
+See `LICENSE` or `LICENSE.md`.
