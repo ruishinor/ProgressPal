@@ -194,18 +194,18 @@ Required token categories:
 
 Color use:
 
-| Purpose | Direction |
-|---|---|
-| Background | dark navy / near-black, not pure black |
-| Surface | slightly raised dark panels |
-| Borders | low-contrast lines, stronger on focus/active |
-| Accent | restrained gold/amber |
-| Progress | amber/gold or neutral progress fill |
-| Completion | green only for confirmed completion |
-| Warning | amber/orange |
-| Danger | red only for destructive actions |
-| Focus | high-contrast visible ring |
-| Purple/violet | sparing, category-specific only |
+| Purpose       | Direction                                    |
+| ------------- | -------------------------------------------- |
+| Background    | dark navy / near-black, not pure black       |
+| Surface       | slightly raised dark panels                  |
+| Borders       | low-contrast lines, stronger on focus/active |
+| Accent        | restrained gold/amber                        |
+| Progress      | amber/gold or neutral progress fill          |
+| Completion    | green only for confirmed completion          |
+| Warning       | amber/orange                                 |
+| Danger        | red only for destructive actions             |
+| Focus         | high-contrast visible ring                   |
+| Purple/violet | sparing, category-specific only              |
 
 Avoid:
 

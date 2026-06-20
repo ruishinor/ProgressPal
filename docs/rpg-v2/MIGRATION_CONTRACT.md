@@ -67,19 +67,19 @@ The intentionally deleted old root `DECISIONS.md` is not active RPG v2 authority
 
 The following existing engine areas remain authoritative. RPG v2 may read or call existing public functions, but must not duplicate or override their logic.
 
-| Engine surface | RPG v2 relationship | Migration rule |
-|---|---|---|
-| Course seed/catalog | Read and present | Do not invent unsupported courses or course families. |
-| Course units/weeks | Present as modules/map nodes | Do not create fake units. |
-| Course items/tasks | Present as quests/tasks | Do not create fake task rows unless backed by seed/data. |
-| Progress entries | Read/write only through existing behavior | Do not add parallel progress state. |
-| Study sessions | Use existing session save behavior | Do not persist unfinished timers. |
-| XP ledger | Read and award through existing XP engine only | Do not create bonus XP rules. |
-| Level derivation | Use existing XP-derived level | Do not store level separately. |
-| Achievements | Use existing definitions/unlocks | Do not unlock on passive read. |
-| Backup/export/import/reset | Preserve exact semantics | Do not gamify destructive controls. |
-| Local-only guard | Keep as hard blocker | Do not weaken for v2. |
-| Classic routes | Preserve as fallback | Do not alter behavior unless explicitly decided. |
+| Engine surface             | RPG v2 relationship                            | Migration rule                                           |
+| -------------------------- | ---------------------------------------------- | -------------------------------------------------------- |
+| Course seed/catalog        | Read and present                               | Do not invent unsupported courses or course families.    |
+| Course units/weeks         | Present as modules/map nodes                   | Do not create fake units.                                |
+| Course items/tasks         | Present as quests/tasks                        | Do not create fake task rows unless backed by seed/data. |
+| Progress entries           | Read/write only through existing behavior      | Do not add parallel progress state.                      |
+| Study sessions             | Use existing session save behavior             | Do not persist unfinished timers.                        |
+| XP ledger                  | Read and award through existing XP engine only | Do not create bonus XP rules.                            |
+| Level derivation           | Use existing XP-derived level                  | Do not store level separately.                           |
+| Achievements               | Use existing definitions/unlocks               | Do not unlock on passive read.                           |
+| Backup/export/import/reset | Preserve exact semantics                       | Do not gamify destructive controls.                      |
+| Local-only guard           | Keep as hard blocker                           | Do not weaken for v2.                                    |
+| Classic routes             | Preserve as fallback                           | Do not alter behavior unless explicitly decided.         |
 
 ---
 
@@ -264,14 +264,14 @@ rankProgress = completed required items / total required items
 
 Rank ladder:
 
-| Local required progress | Rank |
-|---:|---|
-| 0% | New Learner |
-| 1–19% | Initiate |
-| 20–49% | Apprentice |
-| 50–69% | Builder |
-| 70–99% | Capstone Candidate |
-| 100% | Course Finisher |
+| Local required progress | Rank               |
+| ----------------------: | ------------------ |
+|                      0% | New Learner        |
+|                   1–19% | Initiate           |
+|                  20–49% | Apprentice         |
+|                  50–69% | Builder            |
+|                  70–99% | Capstone Candidate |
+|                    100% | Course Finisher    |
 
 Rank copy must state or imply local ProgressPal progress only. It must not claim official CS50 completion.
 

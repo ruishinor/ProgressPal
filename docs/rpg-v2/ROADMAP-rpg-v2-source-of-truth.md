@@ -351,14 +351,14 @@ It is local ProgressPal progress, not official CS50 completion.
 
 Recommended rank ladder:
 
-| Required local progress | Rank label |
-|---:|---|
-| 0% | New Learner |
-| 1–19% | Initiate |
-| 20–49% | Apprentice |
-| 50–69% | Builder |
-| 70–99% | Capstone Candidate |
-| 100% | Course Finisher |
+| Required local progress | Rank label         |
+| ----------------------: | ------------------ |
+|                      0% | New Learner        |
+|                   1–19% | Initiate           |
+|                  20–49% | Apprentice         |
+|                  50–69% | Builder            |
+|                  70–99% | Capstone Candidate |
+|                    100% | Course Finisher    |
 
 Do not use “Master” for course completion. It overclaims.
 
@@ -720,30 +720,30 @@ Settings is reachable from header/profile. It does not need to be in bottom nav.
 
 Every RPG term must map to a plain product concept and real source. This table is mandatory.
 
-| RPG term | Plain product term | Data source | Persisted? | v2 allowed? | Notes |
-|---|---|---|---:|---:|---|
-| Hero | Learner profile | Existing learner profile | Yes, already | Yes | Presentation only. |
-| Hero name | Learner display name | Existing learner profile | Yes, already | Yes | No fantasy-only generated name unless user sets it. |
-| Level | XP-derived level | Existing XP system | Derived | Yes | Do not store level separately. |
-| XP | XP | Existing XP ledger | Yes, already | Yes | No new XP rules unless separately decided. |
-| Quest | Course item/task | Existing course item | Yes, already | Yes | Keep plain item type visible. |
-| Current quest | Current recommended item | Existing progress/course logic | Derived | Yes | Must be explainable. |
-| Module | Course unit/week | Existing course unit | Yes, already | Yes | “Week 4: Memory” can remain visible. |
-| Adventure | Active course/study track | Existing course family | Derived | Yes | Do not imply multi-course support. |
-| Campaign map | Course map | Existing units/items/progress | Derived | Yes | Must have accessible list fallback. |
-| Badge | Achievement | Existing achievement definitions/unlocks | Yes, already | Yes | No passive unlocks. |
-| Badge gallery | Achievements page | Existing achievement view | Derived | Yes | Locked badges show requirements. |
-| Focus session | Study session | Existing session engine | Yes, already | Yes | Append-only. |
-| Journey Log | Insights/history | Existing sessions/progress/XP/achievements | Derived | Yes | Read-only. |
-| Rank | Course progress milestone | Required item completion percentage | Derived | Yes | Local ProgressPal rank only. |
-| Class/path | Study direction | Active course family | Derived | Limited | v2: CS Foundations / Generalist only. |
-| Guild | Local study identity | Default product copy, future local preference | Not in v2 | Limited | v2 default: Code Knights. |
-| Code Knights | ProgressPal-owned guild label | Static product copy / asset | No | Yes | No CS50 in default guild name. |
-| Streak | Active day count if already supported | Existing active-day/streak logic | Derived | Only if existing | Use neutral wording if uncertain. |
-| Energy | Session capacity | None reliable in v2 | No | No | Do not implement. |
-| Inventory | Cosmetic collection | None | No | No | Do not implement. |
-| Party/guild members | Social feature | None | No | No | Do not implement. |
-| Certificate | Official completion document | Outside app | No | No | Do not imply official status. |
+| RPG term            | Plain product term                    | Data source                                   |   Persisted? |      v2 allowed? | Notes                                               |
+| ------------------- | ------------------------------------- | --------------------------------------------- | -----------: | ---------------: | --------------------------------------------------- |
+| Hero                | Learner profile                       | Existing learner profile                      | Yes, already |              Yes | Presentation only.                                  |
+| Hero name           | Learner display name                  | Existing learner profile                      | Yes, already |              Yes | No fantasy-only generated name unless user sets it. |
+| Level               | XP-derived level                      | Existing XP system                            |      Derived |              Yes | Do not store level separately.                      |
+| XP                  | XP                                    | Existing XP ledger                            | Yes, already |              Yes | No new XP rules unless separately decided.          |
+| Quest               | Course item/task                      | Existing course item                          | Yes, already |              Yes | Keep plain item type visible.                       |
+| Current quest       | Current recommended item              | Existing progress/course logic                |      Derived |              Yes | Must be explainable.                                |
+| Module              | Course unit/week                      | Existing course unit                          | Yes, already |              Yes | “Week 4: Memory” can remain visible.                |
+| Adventure           | Active course/study track             | Existing course family                        |      Derived |              Yes | Do not imply multi-course support.                  |
+| Campaign map        | Course map                            | Existing units/items/progress                 |      Derived |              Yes | Must have accessible list fallback.                 |
+| Badge               | Achievement                           | Existing achievement definitions/unlocks      | Yes, already |              Yes | No passive unlocks.                                 |
+| Badge gallery       | Achievements page                     | Existing achievement view                     |      Derived |              Yes | Locked badges show requirements.                    |
+| Focus session       | Study session                         | Existing session engine                       | Yes, already |              Yes | Append-only.                                        |
+| Journey Log         | Insights/history                      | Existing sessions/progress/XP/achievements    |      Derived |              Yes | Read-only.                                          |
+| Rank                | Course progress milestone             | Required item completion percentage           |      Derived |              Yes | Local ProgressPal rank only.                        |
+| Class/path          | Study direction                       | Active course family                          |      Derived |          Limited | v2: CS Foundations / Generalist only.               |
+| Guild               | Local study identity                  | Default product copy, future local preference |    Not in v2 |          Limited | v2 default: Code Knights.                           |
+| Code Knights        | ProgressPal-owned guild label         | Static product copy / asset                   |           No |              Yes | No CS50 in default guild name.                      |
+| Streak              | Active day count if already supported | Existing active-day/streak logic              |      Derived | Only if existing | Use neutral wording if uncertain.                   |
+| Energy              | Session capacity                      | None reliable in v2                           |           No |               No | Do not implement.                                   |
+| Inventory           | Cosmetic collection                   | None                                          |           No |               No | Do not implement.                                   |
+| Party/guild members | Social feature                        | None                                          |           No |               No | Do not implement.                                   |
+| Certificate         | Official completion document          | Outside app                                   |           No |               No | Do not imply official status.                       |
 
 ---
 
@@ -761,14 +761,14 @@ rankProgress = completed required items / total required items
 
 Rank ladder:
 
-| Local required progress | Rank |
-|---:|---|
-| 0% | New Learner |
-| 1–19% | Initiate |
-| 20–49% | Apprentice |
-| 50–69% | Builder |
-| 70–99% | Capstone Candidate |
-| 100% | Course Finisher |
+| Local required progress | Rank               |
+| ----------------------: | ------------------ |
+|                      0% | New Learner        |
+|                   1–19% | Initiate           |
+|                  20–49% | Apprentice         |
+|                  50–69% | Builder            |
+|                  70–99% | Capstone Candidate |
+|                    100% | Course Finisher    |
 
 Copy rule:
 
@@ -999,23 +999,23 @@ The provided asset library is useful as a candidate source, but it is large and 
 
 Observed library summary:
 
-| Category | Files | Approx. uncompressed size | Roadmap interpretation |
-|---|---:|---:|---|
-| achievements | 51 | 71.7 MB | Candidate badge art. Too many and too large to import wholesale. |
-| banners | 2 | 2.2 MB | Candidate hero/banner art. Use sparingly. |
-| buttons | 9 | 7.8 MB | Likely avoid as raster UI buttons; prefer CSS buttons. |
-| card-backgrounds | 31 | 36.7 MB | Candidate Study Resource/module stills; must be curated. |
-| character-imagery | 8 | 5.1 MB | Candidate avatar/hero art. Optional. |
-| example-usage | 38 | 51.2 MB | Reference only. Do not import into app. |
-| icons | 65 | 63.0 MB | Candidate icon art, but likely oversized PNG. Prefer inline SVG if possible. |
-| levels | 20 | 17.5 MB | Candidate rank/level medallions. Curate heavily. |
-| lock | 2 | 2.6 MB | Candidate locked-state art. Likely one generic lock is enough. |
-| maps | 2 | 5.1 MB | Candidate campaign map art. Optional after accessible map works. |
-| numbered-week-icons | 20 | 19.6 MB | Candidate week/module icons. Use only if they map to real units. |
-| paths | 12 | 6.4 MB | Candidate future path art. Mostly defer; v2 has only CS Foundations. |
-| progress-bar | 3 | 2.0 MB | Likely avoid as raster UI; build progress bars in CSS. |
-| scene-backgrounds | 9 | 16.1 MB | Candidate backgrounds; use at most one subtle optimized background. |
-| shield-badges | 4 | 4.6 MB | Candidate Code Knights emblem or shield identity. Review branding carefully. |
+| Category            | Files | Approx. uncompressed size | Roadmap interpretation                                                       |
+| ------------------- | ----: | ------------------------: | ---------------------------------------------------------------------------- |
+| achievements        |    51 |                   71.7 MB | Candidate badge art. Too many and too large to import wholesale.             |
+| banners             |     2 |                    2.2 MB | Candidate hero/banner art. Use sparingly.                                    |
+| buttons             |     9 |                    7.8 MB | Likely avoid as raster UI buttons; prefer CSS buttons.                       |
+| card-backgrounds    |    31 |                   36.7 MB | Candidate Study Resource/module stills; must be curated.                     |
+| character-imagery   |     8 |                    5.1 MB | Candidate avatar/hero art. Optional.                                         |
+| example-usage       |    38 |                   51.2 MB | Reference only. Do not import into app.                                      |
+| icons               |    65 |                   63.0 MB | Candidate icon art, but likely oversized PNG. Prefer inline SVG if possible. |
+| levels              |    20 |                   17.5 MB | Candidate rank/level medallions. Curate heavily.                             |
+| lock                |     2 |                    2.6 MB | Candidate locked-state art. Likely one generic lock is enough.               |
+| maps                |     2 |                    5.1 MB | Candidate campaign map art. Optional after accessible map works.             |
+| numbered-week-icons |    20 |                   19.6 MB | Candidate week/module icons. Use only if they map to real units.             |
+| paths               |    12 |                    6.4 MB | Candidate future path art. Mostly defer; v2 has only CS Foundations.         |
+| progress-bar        |     3 |                    2.0 MB | Likely avoid as raster UI; build progress bars in CSS.                       |
+| scene-backgrounds   |     9 |                   16.1 MB | Candidate backgrounds; use at most one subtle optimized background.          |
+| shield-badges       |     4 |                    4.6 MB | Candidate Code Knights emblem or shield identity. Review branding carefully. |
 
 Total observed library size is more than 300 MB uncompressed. Do not bulk import it. The v2 MVP asset budget is far smaller.
 
@@ -1093,23 +1093,23 @@ cs50-knights-final.png
 
 ### 14.3 Expected asset types and use
 
-| Asset | What it looks like | Source library candidate | Repo path | In-app placement | Required? | Notes |
-|---|---|---|---|---|---:|---|
-| Code Knights emblem | Navy/gold shield with sword/circuit motif, no CS50/Harvard marks | `shield-badges/` | `src/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.svg` or `.webp` | Hero/Profile, small Hub identity, optional Settings/About | Yes | Use only after provenance review. |
-| ProgressPal RPG emblem | Small ProgressPal-owned shield/letter mark | `shield-badges/` or `icons/` | `src/features/rpg/assets/emblems/rpg-emblem-progresspal-rpg.svg` | Header/favicon candidate later | Optional | Avoid official-looking course marks. |
-| Subtle background | Dark, low-contrast, non-distracting | `scene-backgrounds/` or CSS | `src/features/rpg/assets/backgrounds/rpg-background-starfield-subtle.svg` | RPG shell background | Optional | CSS may be better. Must not harm readability. |
-| CS Foundations map | Abstract learning path/map, no official course art | `maps/` | `src/features/rpg/assets/map/rpg-map-cs-foundations-overview.webp` | Campaign Map | Optional after map works | HTML/SVG nodes and list fallback remain primary. |
-| Week 4 Memory still | Abstract memory/computer-card visual, not lecture screenshot | `card-backgrounds/` or `scene-backgrounds/` | `src/features/rpg/assets/modules/rpg-module-memory-still.webp` | Study Resource, Module Detail header | Optional before RPG-14 | Use CSS placeholder until asset pass unless needed. |
-| Generic module stills | Abstract visuals for real CS50x weeks | `card-backgrounds/` | `src/features/rpg/assets/modules/rpg-module-<slug>-still.webp` | Study Resource per module | Later | Add only as modules need them. |
-| Badge icons | Medallions for existing achievements | `achievements/` | `src/features/rpg/assets/badges/rpg-badge-<achievement-id>-unlocked.svg` or `.webp` | Badge Gallery | Later | Must match existing achievement IDs. |
-| Locked badge frame | Muted generic medallion/lock | `lock/` or `achievements/` | `src/features/rpg/assets/badges/rpg-badge-locked-generic.svg` | Badge Gallery locked state | Later | One generic locked state may be enough. |
-| Rank medallions | New Learner, Initiate, Apprentice, Builder, Capstone Candidate, Course Finisher | `levels/` | `src/features/rpg/assets/ranks/rpg-rank-<rank>.svg` or `.webp` | Hero/Profile, Hub | Optional | Text remains DOM text. |
-| Avatar generalist | Default learner character, civilian/non-military | `character-imagery/` | `src/features/rpg/assets/avatars/rpg-avatar-generalist-default.webp` | Hero/Profile, Hub | Optional | Existing profile avatar may be enough. |
-| Bottom-nav icons | Hub/map/quest/hero/badge icons | `icons/` | Prefer inline SVG components or `src/features/rpg/assets/ui/rpg-nav-<name>.svg` | Bottom nav | Optional | Avoid oversized PNG icons. |
-| Panel corner ornaments | Tiny border/corner accent | `icons/` or CSS | `src/features/rpg/assets/ui/rpg-ui-panel-corner-gold.svg` | Panels | Optional | Avoid overuse. |
-| Raster buttons | Button-looking images | `buttons/` | Do not import by default | None | No | Build buttons in CSS/HTML. |
-| Raster progress bars | Progress bar images | `progress-bar/` | Do not import by default | None | No | Build progress bars in CSS/HTML. |
-| Example usage images | Mock/demo compositions | `example-usage/` | Do not import | None | No | Reference only. |
+| Asset                  | What it looks like                                                              | Source library candidate                    | Repo path                                                                           | In-app placement                                          |                Required? | Notes                                               |
+| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------- | -----------------------: | --------------------------------------------------- |
+| Code Knights emblem    | Navy/gold shield with sword/circuit motif, no CS50/Harvard marks                | `shield-badges/`                            | `src/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.svg` or `.webp`    | Hero/Profile, small Hub identity, optional Settings/About |                      Yes | Use only after provenance review.                   |
+| ProgressPal RPG emblem | Small ProgressPal-owned shield/letter mark                                      | `shield-badges/` or `icons/`                | `src/features/rpg/assets/emblems/rpg-emblem-progresspal-rpg.svg`                    | Header/favicon candidate later                            |                 Optional | Avoid official-looking course marks.                |
+| Subtle background      | Dark, low-contrast, non-distracting                                             | `scene-backgrounds/` or CSS                 | `src/features/rpg/assets/backgrounds/rpg-background-starfield-subtle.svg`           | RPG shell background                                      |                 Optional | CSS may be better. Must not harm readability.       |
+| CS Foundations map     | Abstract learning path/map, no official course art                              | `maps/`                                     | `src/features/rpg/assets/map/rpg-map-cs-foundations-overview.webp`                  | Campaign Map                                              | Optional after map works | HTML/SVG nodes and list fallback remain primary.    |
+| Week 4 Memory still    | Abstract memory/computer-card visual, not lecture screenshot                    | `card-backgrounds/` or `scene-backgrounds/` | `src/features/rpg/assets/modules/rpg-module-memory-still.webp`                      | Study Resource, Module Detail header                      |   Optional before RPG-14 | Use CSS placeholder until asset pass unless needed. |
+| Generic module stills  | Abstract visuals for real CS50x weeks                                           | `card-backgrounds/`                         | `src/features/rpg/assets/modules/rpg-module-<slug>-still.webp`                      | Study Resource per module                                 |                    Later | Add only as modules need them.                      |
+| Badge icons            | Medallions for existing achievements                                            | `achievements/`                             | `src/features/rpg/assets/badges/rpg-badge-<achievement-id>-unlocked.svg` or `.webp` | Badge Gallery                                             |                    Later | Must match existing achievement IDs.                |
+| Locked badge frame     | Muted generic medallion/lock                                                    | `lock/` or `achievements/`                  | `src/features/rpg/assets/badges/rpg-badge-locked-generic.svg`                       | Badge Gallery locked state                                |                    Later | One generic locked state may be enough.             |
+| Rank medallions        | New Learner, Initiate, Apprentice, Builder, Capstone Candidate, Course Finisher | `levels/`                                   | `src/features/rpg/assets/ranks/rpg-rank-<rank>.svg` or `.webp`                      | Hero/Profile, Hub                                         |                 Optional | Text remains DOM text.                              |
+| Avatar generalist      | Default learner character, civilian/non-military                                | `character-imagery/`                        | `src/features/rpg/assets/avatars/rpg-avatar-generalist-default.webp`                | Hero/Profile, Hub                                         |                 Optional | Existing profile avatar may be enough.              |
+| Bottom-nav icons       | Hub/map/quest/hero/badge icons                                                  | `icons/`                                    | Prefer inline SVG components or `src/features/rpg/assets/ui/rpg-nav-<name>.svg`     | Bottom nav                                                |                 Optional | Avoid oversized PNG icons.                          |
+| Panel corner ornaments | Tiny border/corner accent                                                       | `icons/` or CSS                             | `src/features/rpg/assets/ui/rpg-ui-panel-corner-gold.svg`                           | Panels                                                    |                 Optional | Avoid overuse.                                      |
+| Raster buttons         | Button-looking images                                                           | `buttons/`                                  | Do not import by default                                                            | None                                                      |                       No | Build buttons in CSS/HTML.                          |
+| Raster progress bars   | Progress bar images                                                             | `progress-bar/`                             | Do not import by default                                                            | None                                                      |                       No | Build progress bars in CSS/HTML.                    |
+| Example usage images   | Mock/demo compositions                                                          | `example-usage/`                            | Do not import                                                                       | None                                                      |                       No | Reference only.                                     |
 
 ### 14.4 Asset rules
 
@@ -1227,9 +1227,9 @@ Template:
 
 Every RPG asset used in the app must be recorded here before implementation.
 
-| ID | File | Repo path | In-app use | Source/origin | Rights/usage basis | Contains text? | Decorative? | Alt text / aria decision | Size | Optimized? | Reviewer/date | Notes |
-|---|---|---|---|---|---|---:|---:|---|---:|---:|---|---|
-| asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/ | Hero/Profile, Hub | First-party generated asset based on ProgressPal-owned concept | First-party use; no CS50/Harvard marks | No | No | alt="Code Knights emblem" | TBD | TBD | TBD | Sword/circuit/shield motif. |
+| ID        | File                                | Repo path                        | In-app use        | Source/origin                                                  | Rights/usage basis                     | Contains text? | Decorative? | Alt text / aria decision  | Size | Optimized? | Reviewer/date | Notes                       |
+| --------- | ----------------------------------- | -------------------------------- | ----------------- | -------------------------------------------------------------- | -------------------------------------- | -------------: | ----------: | ------------------------- | ---: | ---------: | ------------- | --------------------------- |
+| asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/ | Hero/Profile, Hub | First-party generated asset based on ProgressPal-owned concept | First-party use; no CS50/Harvard marks |             No |          No | alt="Code Knights emblem" |  TBD |        TBD | TBD           | Sword/circuit/shield motif. |
 ```
 
 ---
@@ -1452,22 +1452,22 @@ Starter table:
 ```markdown
 # RPG v2 Risk Register
 
-| ID | Risk | Trigger | Impact | Mitigation | Owner/module | Status |
-|---|---|---|---|---|---|---|
-| R-001 | Existing IndexedDB data is corrupted by RPG writes | RPG layer bypasses existing domain commands | Severe user data loss | No direct DB access; tests for read-only screens; backup before release | RPG-01 onward | Open |
-| R-002 | Classic UI breaks while adding RPG routes | Shared router/styles accidentally affect classic routes | v1 fallback becomes unreliable | Classic route regression tests and manual visual pass | RPG-02 onward | Open |
-| R-003 | RPG assets bloat bundle | Too many large images added eagerly | Slow load, poor offline behavior | Asset budget; optimize; route-load; asset ledger | RPG-14 | Open |
-| R-004 | CS50/Harvard branding misuse | App uses official-looking names, badges, or marks | Legal/trust risk | D-0048; asset review; copy review | All modules | Open |
-| R-005 | Fake RPG mechanics creep in | Energy/class/guild/rank added without source data | Product dishonesty | RPG term map; formula registry; review gate | All modules | Open |
-| R-006 | Local-only boundary is weakened | External scripts/assets/network calls introduced | Privacy/offline regression | Local-only architecture test remains hard blocker | All modules | Open |
-| R-007 | User loses data from browser storage clearing | Browser clears site data | User loses local records | Backup UI/FAQ; later optional sync decision | RPG-13 | Accepted v2 risk |
-| R-008 | Study Resource looks like fake media player | Still image mimics embedded player too closely | Misleading UX | Use resource-card design, no fake scrubber/play UI | RPG-07 | Open |
-| R-009 | Route split causes offline chunk failure | RPG routes/assets not available after offline load | Broken offline UX | Offline E2E after first load; conservative code-splitting | RPG-02 onward | Open |
-| R-010 | Rank is confused with official course status | Rank copy omits “local progress” | Misleading claim | Plain copy and FAQ disclaimer | RPG-10/RPG-13 | Open |
-| R-011 | AI/code agent overbuilds beyond the module | Agent adds unrequested dependencies, abstractions, assets, routes, refactors, or future features | Scope creep, larger bundle, broken classic UI, weaker trust boundary | D-0059; Scope Discipline Check; revert unrelated changes | All modules | Open |
-| R-012 | Old root docs mislead implementers | Older v1 docs remain in root with authoritative names | Wrong plan followed | Archive stale docs under docs/archive/engine-v1 during RPG-00 | RPG-00 | Open |
-| R-013 | Asset library is imported wholesale | Developer treats provided ZIP as production assets | Massive bundle, slow app, visual inconsistency | Candidate-only rule; asset ledger; budget | RPG-14 | Open |
-| R-014 | BMAD folder expectations cause false blockers | Empty BMAD artifact folders are treated as required | Process confusion | Roadmap is accepted planning artifact unless BMAD governance is explicitly chosen | RPG-00 | Open |
+| ID    | Risk                                               | Trigger                                                                                          | Impact                                                               | Mitigation                                                                        | Owner/module  | Status           |
+| ----- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ---------------- |
+| R-001 | Existing IndexedDB data is corrupted by RPG writes | RPG layer bypasses existing domain commands                                                      | Severe user data loss                                                | No direct DB access; tests for read-only screens; backup before release           | RPG-01 onward | Open             |
+| R-002 | Classic UI breaks while adding RPG routes          | Shared router/styles accidentally affect classic routes                                          | v1 fallback becomes unreliable                                       | Classic route regression tests and manual visual pass                             | RPG-02 onward | Open             |
+| R-003 | RPG assets bloat bundle                            | Too many large images added eagerly                                                              | Slow load, poor offline behavior                                     | Asset budget; optimize; route-load; asset ledger                                  | RPG-14        | Open             |
+| R-004 | CS50/Harvard branding misuse                       | App uses official-looking names, badges, or marks                                                | Legal/trust risk                                                     | D-0048; asset review; copy review                                                 | All modules   | Open             |
+| R-005 | Fake RPG mechanics creep in                        | Energy/class/guild/rank added without source data                                                | Product dishonesty                                                   | RPG term map; formula registry; review gate                                       | All modules   | Open             |
+| R-006 | Local-only boundary is weakened                    | External scripts/assets/network calls introduced                                                 | Privacy/offline regression                                           | Local-only architecture test remains hard blocker                                 | All modules   | Open             |
+| R-007 | User loses data from browser storage clearing      | Browser clears site data                                                                         | User loses local records                                             | Backup UI/FAQ; later optional sync decision                                       | RPG-13        | Accepted v2 risk |
+| R-008 | Study Resource looks like fake media player        | Still image mimics embedded player too closely                                                   | Misleading UX                                                        | Use resource-card design, no fake scrubber/play UI                                | RPG-07        | Open             |
+| R-009 | Route split causes offline chunk failure           | RPG routes/assets not available after offline load                                               | Broken offline UX                                                    | Offline E2E after first load; conservative code-splitting                         | RPG-02 onward | Open             |
+| R-010 | Rank is confused with official course status       | Rank copy omits “local progress”                                                                 | Misleading claim                                                     | Plain copy and FAQ disclaimer                                                     | RPG-10/RPG-13 | Open             |
+| R-011 | AI/code agent overbuilds beyond the module         | Agent adds unrequested dependencies, abstractions, assets, routes, refactors, or future features | Scope creep, larger bundle, broken classic UI, weaker trust boundary | D-0059; Scope Discipline Check; revert unrelated changes                          | All modules   | Open             |
+| R-012 | Old root docs mislead implementers                 | Older v1 docs remain in root with authoritative names                                            | Wrong plan followed                                                  | Archive stale docs under docs/archive/engine-v1 during RPG-00                     | RPG-00        | Open             |
+| R-013 | Asset library is imported wholesale                | Developer treats provided ZIP as production assets                                               | Massive bundle, slow app, visual inconsistency                       | Candidate-only rule; asset ledger; budget                                         | RPG-14        | Open             |
+| R-014 | BMAD folder expectations cause false blockers      | Empty BMAD artifact folders are treated as required                                              | Process confusion                                                    | Roadmap is accepted planning artifact unless BMAD governance is explicitly chosen | RPG-00        | Open             |
 ```
 
 ---
@@ -1498,24 +1498,24 @@ Modules are sequential.
 
 Do not start the next module until the current one passes.
 
-| Module | Name | Runtime changes? | Package changes? | Main purpose |
-|---|---|---:|---:|---|
-| RPG-00 | Baseline, source-of-truth, and doc hygiene | No | No | Establish source of truth and clean baseline. |
-| RPG-01 | Minimum architecture boundary and slice read models | Yes/tests | No | Add RPG feature folder and only the adapters needed for the first slice. |
-| RPG-02 | RPG routes and shell | Yes | No | Add `/rpg/*`, shell, bottom nav, route stubs. |
-| RPG-03 | Visual tokens and primitives | Yes | No | Add restrained RPG styling and reusable components. |
-| RPG-04 | Quest Hub slice | Yes | No | Build main RPG dashboard from real data. |
-| RPG-05 | Campaign Map slice | Yes | No | Build accessible map/list from course units. |
-| RPG-06 | Week 4 Module Detail slice | Yes | No | Build module/week task list from real items. |
-| RPG-07 | Study Resource slice | Yes | No | Build resource detail with outbound link and local progress. |
-| RPG-08 | Focus Session slice | Yes | No | Build RPG focus timer over existing session engine. |
-| RPG-09 | Week-4 integration gate | Tests/docs | No | Prove end-to-end vertical slice. |
-| RPG-10 | Hero/Profile, rank, class, guild | Yes | No | Add honest derived identity layer. |
-| RPG-11 | Badge Gallery | Yes | No | Re-skin existing achievements. |
-| RPG-12 | Journey Log | Yes | No | Reframe insights as read-only log. |
-| RPG-13 | Settings/FAQ/backup trust surface | Yes | No | Add local-data and disclaimer clarity. |
-| RPG-14 | Asset pass and visual polish | Yes | No by default | Add approved assets and responsive polish. |
-| RPG-15 | Classic regression and release candidate | Tests/docs | No | Final validation and release decision. |
+| Module | Name                                                | Runtime changes? | Package changes? | Main purpose                                                             |
+| ------ | --------------------------------------------------- | ---------------: | ---------------: | ------------------------------------------------------------------------ |
+| RPG-00 | Baseline, source-of-truth, and doc hygiene          |               No |               No | Establish source of truth and clean baseline.                            |
+| RPG-01 | Minimum architecture boundary and slice read models |        Yes/tests |               No | Add RPG feature folder and only the adapters needed for the first slice. |
+| RPG-02 | RPG routes and shell                                |              Yes |               No | Add `/rpg/*`, shell, bottom nav, route stubs.                            |
+| RPG-03 | Visual tokens and primitives                        |              Yes |               No | Add restrained RPG styling and reusable components.                      |
+| RPG-04 | Quest Hub slice                                     |              Yes |               No | Build main RPG dashboard from real data.                                 |
+| RPG-05 | Campaign Map slice                                  |              Yes |               No | Build accessible map/list from course units.                             |
+| RPG-06 | Week 4 Module Detail slice                          |              Yes |               No | Build module/week task list from real items.                             |
+| RPG-07 | Study Resource slice                                |              Yes |               No | Build resource detail with outbound link and local progress.             |
+| RPG-08 | Focus Session slice                                 |              Yes |               No | Build RPG focus timer over existing session engine.                      |
+| RPG-09 | Week-4 integration gate                             |       Tests/docs |               No | Prove end-to-end vertical slice.                                         |
+| RPG-10 | Hero/Profile, rank, class, guild                    |              Yes |               No | Add honest derived identity layer.                                       |
+| RPG-11 | Badge Gallery                                       |              Yes |               No | Re-skin existing achievements.                                           |
+| RPG-12 | Journey Log                                         |              Yes |               No | Reframe insights as read-only log.                                       |
+| RPG-13 | Settings/FAQ/backup trust surface                   |              Yes |               No | Add local-data and disclaimer clarity.                                   |
+| RPG-14 | Asset pass and visual polish                        |              Yes |    No by default | Add approved assets and responsive polish.                               |
+| RPG-15 | Classic regression and release candidate            |       Tests/docs |               No | Final validation and release decision.                                   |
 
 No package changes are expected in v2. If a module appears to require one, stop and justify it with a decision record before installing anything.
 
@@ -2321,13 +2321,13 @@ If using stat bars, define formula before implementation.
 
 Possible v2 stat bars:
 
-| Stat | Formula idea | Use? |
-|---|---|---|
-| Focus | recent study minutes vs target | Allowed if target exists |
+| Stat        | Formula idea                       | Use?                                 |
+| ----------- | ---------------------------------- | ------------------------------------ |
+| Focus       | recent study minutes vs target     | Allowed if target exists             |
 | Consistency | active days vs expected study days | Allowed if existing data supports it |
-| Practice | practice/problem-set progress | Allowed if item types support it |
-| Foundations | required-course progress | Allowed |
-| Debugging | debugging-mode sessions | Only if session mode exists |
+| Practice    | practice/problem-set progress      | Allowed if item types support it     |
+| Foundations | required-course progress           | Allowed                              |
+| Debugging   | debugging-mode sessions            | Only if session mode exists          |
 
 If not reliable, show:
 
