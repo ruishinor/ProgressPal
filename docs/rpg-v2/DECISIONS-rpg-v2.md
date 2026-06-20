@@ -4,7 +4,7 @@ Status: active RPG v2 decision log
 Created: 2026-06-20  
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/DECISIONS-rpg-v2.md`  
-Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived  
+Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived
 
 ## 0. Authority and use
 
@@ -42,31 +42,31 @@ revisit-later = future possibility; not allowed in v2 unless accepted later
 
 ## 2. Decision index
 
-| ID | Status | Decision |
-|---|---|---|
-| D-0044 | accepted | RPG v2 is a route-based RPG shell over the frozen v1 engine, not a rewrite. |
-| D-0045 | accepted | RPG v2 uses same-origin `/rpg/*` routes and the same IndexedDB as v1. |
-| D-0046 | accepted | RPG mechanics must be honest derived presentation over real local data only. |
-| D-0047 | accepted | Embedded video is out of scope for v2. Use official outbound links only. |
-| D-0048 | accepted | Use proportionate CS50/Harvard branding restraint. No affiliation claim or protected marks. |
+| ID     | Status   | Decision                                                                                                                          |
+| ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| D-0044 | accepted | RPG v2 is a route-based RPG shell over the frozen v1 engine, not a rewrite.                                                       |
+| D-0045 | accepted | RPG v2 uses same-origin `/rpg/*` routes and the same IndexedDB as v1.                                                             |
+| D-0046 | accepted | RPG mechanics must be honest derived presentation over real local data only.                                                      |
+| D-0047 | accepted | Embedded video is out of scope for v2. Use official outbound links only.                                                          |
+| D-0048 | accepted | Use proportionate CS50/Harvard branding restraint. No affiliation claim or protected marks.                                       |
 | D-0049 | accepted | Skin preference is route-scoped for v2; no persistent skin preference unless existing metadata supports it without schema change. |
-| D-0050 | accepted | Classic routes require behavioral and visual regression protection, not byte-for-byte identity. |
-| D-0051 | accepted | Every RPG visual asset must pass the asset provenance gate before entering the repo. |
-| D-0052 | accepted | CS50 links are limited to existing allowlisted official outbound links unless reviewed. |
-| D-0053 | accepted | Every RPG term must map to a plain product term. |
-| D-0054 | accepted | RPG v2 is not a permanent dual-skin architecture; it is a parallel `/rpg/*` route tree during v2 development. |
-| D-0055 | accepted | Rank is a non-persisted derived label from local required-course progress. |
-| D-0056 | accepted | Class/path is deferred beyond CS50x; v2 uses CS Foundations / Generalist derived from the active course. |
-| D-0057 | accepted | Default guild identity is Code Knights, not CS50 Knights. |
-| D-0058 | accepted | v2 is Level 1 local-first: outbound official links only; no runtime network features. |
-| D-0059 | accepted | Anti-overbuild and scope-discipline gate applies to every module, output, and handoff. |
-| D-0060 | accepted | Root `DECISIONS.md` is not an active RPG v2 authority if intentionally deleted; use this file instead. |
-| D-0061 | accepted | RPG-01 must build only minimum slice adapters/read models; broad read-model scaffolding is deferred. |
-| D-0062 | accepted | The first Week-4 vertical slice integration gate happens early, before profile/badges/log expansion. |
-| D-0063 | accepted | Durable handoff evidence must be stored in `docs/rpg-v2/modules/`, not only chat. |
-| D-0064 | accepted | IndexedDB snapshot/backup evidence is required before and during read-only route validation. |
-| D-0065 | accepted | `npm audit` network limitations must be recorded honestly; unavailable audit is not a clean pass. |
-| D-0066 | accepted | Early real image assets are forbidden unless the current module requires them and the asset ledger is completed first. |
+| D-0050 | accepted | Classic routes require behavioral and visual regression protection, not byte-for-byte identity.                                   |
+| D-0051 | accepted | Every RPG visual asset must pass the asset provenance gate before entering the repo.                                              |
+| D-0052 | accepted | CS50 links are limited to existing allowlisted official outbound links unless reviewed.                                           |
+| D-0053 | accepted | Every RPG term must map to a plain product term.                                                                                  |
+| D-0054 | accepted | RPG v2 is not a permanent dual-skin architecture; it is a parallel `/rpg/*` route tree during v2 development.                     |
+| D-0055 | accepted | Rank is a non-persisted derived label from local required-course progress.                                                        |
+| D-0056 | accepted | Class/path is deferred beyond CS50x; v2 uses CS Foundations / Generalist derived from the active course.                          |
+| D-0057 | accepted | Default guild identity is Code Knights, not CS50 Knights.                                                                         |
+| D-0058 | accepted | v2 is Level 1 local-first: outbound official links only; no runtime network features.                                             |
+| D-0059 | accepted | Anti-overbuild and scope-discipline gate applies to every module, output, and handoff.                                            |
+| D-0060 | accepted | Root `DECISIONS.md` is not an active RPG v2 authority if intentionally deleted; use this file instead.                            |
+| D-0061 | accepted | RPG-01 must build only minimum slice adapters/read models; broad read-model scaffolding is deferred.                              |
+| D-0062 | accepted | The first Week-4 vertical slice integration gate happens early, before profile/badges/log expansion.                              |
+| D-0063 | accepted | Durable handoff evidence must be stored in `docs/rpg-v2/modules/`, not only chat.                                                 |
+| D-0064 | accepted | IndexedDB snapshot/backup evidence is required before and during read-only route validation.                                      |
+| D-0065 | accepted | `npm audit` network limitations must be recorded honestly; unavailable audit is not a clean pass.                                 |
+| D-0066 | accepted | Early real image assets are forbidden unless the current module requires them and the asset ledger is completed first.            |
 
 ---
 
@@ -494,22 +494,22 @@ Every RPG term must map to a plain product term. If a term cannot be mapped, it 
 
 Required mapping:
 
-| RPG term | Plain product term | v2 rule |
-|---|---|---|
-| Hero | Learner profile | Allowed |
-| Quest | Course item / task | Allowed |
-| Campaign node | Course unit / week | Allowed |
-| Campaign map | Course map | Allowed |
-| Study Resource / Lesson Guide | Course item detail / official resource launcher | Allowed |
-| Focus Session | Study session | Allowed |
-| Badge | Achievement unlock | Allowed |
-| Hero level | XP-derived level | Allowed |
-| Rank | Derived local required-course progress label | Allowed |
-| Path / Class | Active course direction label | Allowed only as CS Foundations / Generalist in v2 |
-| Guild | Local product-owned group identity | Allowed as Code Knights default |
-| Energy | Session capacity / motivation metaphor | Forbidden in v2 unless derived and justified later |
-| Inventory | Cosmetic/collectible storage | Forbidden in v2 |
-| Official completion | CS50/Harvard completion status | Forbidden |
+| RPG term                      | Plain product term                              | v2 rule                                            |
+| ----------------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| Hero                          | Learner profile                                 | Allowed                                            |
+| Quest                         | Course item / task                              | Allowed                                            |
+| Campaign node                 | Course unit / week                              | Allowed                                            |
+| Campaign map                  | Course map                                      | Allowed                                            |
+| Study Resource / Lesson Guide | Course item detail / official resource launcher | Allowed                                            |
+| Focus Session                 | Study session                                   | Allowed                                            |
+| Badge                         | Achievement unlock                              | Allowed                                            |
+| Hero level                    | XP-derived level                                | Allowed                                            |
+| Rank                          | Derived local required-course progress label    | Allowed                                            |
+| Path / Class                  | Active course direction label                   | Allowed only as CS Foundations / Generalist in v2  |
+| Guild                         | Local product-owned group identity              | Allowed as Code Knights default                    |
+| Energy                        | Session capacity / motivation metaphor          | Forbidden in v2 unless derived and justified later |
+| Inventory                     | Cosmetic/collectible storage                    | Forbidden in v2                                    |
+| Official completion           | CS50/Harvard completion status                  | Forbidden                                          |
 
 ### Why
 

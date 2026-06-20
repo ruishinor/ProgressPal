@@ -54,23 +54,23 @@ The categorized visual asset library is a candidate source pool only. It is not 
 
 Observed category summary:
 
-| Category | Files | Approx. uncompressed size | Decision |
-|---|---:|---:|---|
-| achievements | 51 | 71.7 MB | Candidate badge art. Curate heavily. |
-| banners | 2 | 2.2 MB | Candidate banner art. Use sparingly. |
-| buttons | 9 | 7.8 MB | Avoid by default. Use CSS/HTML buttons. |
-| card-backgrounds | 31 | 36.7 MB | Candidate module/resource stills. Curate. |
-| character-imagery | 8 | 5.1 MB | Candidate avatar art. Optional. |
-| example-usage | 38 | 51.2 MB | Reference only. Do not import. |
-| icons | 65 | 63.0 MB | Candidate icons, likely oversized. Prefer inline SVG. |
-| levels | 20 | 17.5 MB | Candidate rank medallions. Curate heavily. |
-| lock | 2 | 2.6 MB | Candidate generic locked-state art. One is enough. |
-| maps | 2 | 5.1 MB | Candidate map art. Optional after accessible map works. |
-| numbered-week-icons | 20 | 19.6 MB | Candidate module icons. Use only for real units. |
-| paths | 12 | 6.4 MB | Mostly defer. v2 has only CS Foundations. |
-| progress-bar | 3 | 2.0 MB | Avoid by default. Use CSS/HTML progress bars. |
-| scene-backgrounds | 9 | 16.1 MB | Candidate backgrounds. Use at most one subtle optimized background. |
-| shield-badges | 4 | 4.6 MB | Candidate Code Knights emblem. Review carefully. |
+| Category            | Files | Approx. uncompressed size | Decision                                                            |
+| ------------------- | ----: | ------------------------: | ------------------------------------------------------------------- |
+| achievements        |    51 |                   71.7 MB | Candidate badge art. Curate heavily.                                |
+| banners             |     2 |                    2.2 MB | Candidate banner art. Use sparingly.                                |
+| buttons             |     9 |                    7.8 MB | Avoid by default. Use CSS/HTML buttons.                             |
+| card-backgrounds    |    31 |                   36.7 MB | Candidate module/resource stills. Curate.                           |
+| character-imagery   |     8 |                    5.1 MB | Candidate avatar art. Optional.                                     |
+| example-usage       |    38 |                   51.2 MB | Reference only. Do not import.                                      |
+| icons               |    65 |                   63.0 MB | Candidate icons, likely oversized. Prefer inline SVG.               |
+| levels              |    20 |                   17.5 MB | Candidate rank medallions. Curate heavily.                          |
+| lock                |     2 |                    2.6 MB | Candidate generic locked-state art. One is enough.                  |
+| maps                |     2 |                    5.1 MB | Candidate map art. Optional after accessible map works.             |
+| numbered-week-icons |    20 |                   19.6 MB | Candidate module icons. Use only for real units.                    |
+| paths               |    12 |                    6.4 MB | Mostly defer. v2 has only CS Foundations.                           |
+| progress-bar        |     3 |                    2.0 MB | Avoid by default. Use CSS/HTML progress bars.                       |
+| scene-backgrounds   |     9 |                   16.1 MB | Candidate backgrounds. Use at most one subtle optimized background. |
+| shield-badges       |     4 |                    4.6 MB | Candidate Code Knights emblem. Review carefully.                    |
 
 Do not bulk-import the library. Do not import `example-usage/`. Do not import raster buttons or progress bars unless a later decision explicitly justifies it.
 
@@ -197,20 +197,20 @@ For each asset:
 
 ## 9. Expected asset plan
 
-| Planned asset | What it should look like | Source library candidate | Intended repo path | In-app placement | Required for v2? | Notes |
-|---|---|---|---|---|---:|---|
-| Code Knights emblem | Navy/gold shield with sword/circuit motif; no CS50/Harvard marks | `shield-badges/` | `src/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.svg` or `.webp` | Hub, Hero/Profile, optional Settings/About | Yes | Must be visually distinct from official marks. |
-| ProgressPal RPG emblem | Small ProgressPal-owned mark; not course-branded | `shield-badges/` or `icons/` | `src/features/rpg/assets/emblems/rpg-emblem-progresspal-rpg.svg` | Header candidate | Optional | Avoid official-looking course marks. |
-| Subtle RPG background | Dark, low-contrast, non-distracting | `scene-backgrounds/` or CSS | `src/features/rpg/assets/backgrounds/rpg-background-starfield-subtle.svg` | RPG shell | Optional | CSS may be better. |
-| CS Foundations map | Abstract learning path/map; no official course art | `maps/` | `src/features/rpg/assets/map/rpg-map-cs-foundations-overview.webp` | Campaign Map | Optional | Accessible HTML/SVG/list remains primary. |
-| Week 4 Memory still | Abstract memory/computer-card visual; not lecture screenshot | `card-backgrounds/` | `src/features/rpg/assets/modules/rpg-module-memory-still.webp` | Study Resource / Module Detail | Optional before asset pass | Use CSS placeholder first if possible. |
-| Generic module stills | Abstract visuals for real CS50x weeks | `card-backgrounds/` | `src/features/rpg/assets/modules/rpg-module-<slug>-still.webp` | Study Resource per module | Later | Add only as modules need them. |
-| Achievement badge art | Medallions mapped to existing achievement IDs | `achievements/` | `src/features/rpg/assets/badges/rpg-badge-<achievement-id>-unlocked.svg` or `.webp` | Badge Gallery | Later | Must match real achievements. |
-| Generic locked badge | Muted locked medallion | `lock/` or `achievements/` | `src/features/rpg/assets/badges/rpg-badge-locked-generic.svg` | Badge Gallery locked state | Later | One generic asset may be enough. |
-| Rank medallions | New Learner, Initiate, Apprentice, Builder, Capstone Candidate, Course Finisher | `levels/` | `src/features/rpg/assets/ranks/rpg-rank-<rank>.svg` or `.webp` | Hub / Hero | Optional | Rank text remains DOM text. |
-| Generalist avatar | Civilian/non-military learner avatar | `character-imagery/` | `src/features/rpg/assets/avatars/rpg-avatar-generalist-default.webp` | Hero/Profile | Optional | Existing profile may be enough. |
-| Bottom nav icons | Hub/map/quest/hero/badge symbols | `icons/` or inline SVG | `src/features/rpg/assets/ui/rpg-nav-<name>.svg` | Bottom nav | Optional | Prefer inline SVG if possible. |
-| Panel ornaments | Small corner/border accents | `icons/` or CSS | `src/features/rpg/assets/ui/rpg-ui-panel-corner-gold.svg` | Panels | Optional | Avoid overuse. |
+| Planned asset          | What it should look like                                                        | Source library candidate     | Intended repo path                                                                  | In-app placement                           |           Required for v2? | Notes                                          |
+| ---------------------- | ------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------: | ---------------------------------------------- |
+| Code Knights emblem    | Navy/gold shield with sword/circuit motif; no CS50/Harvard marks                | `shield-badges/`             | `src/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.svg` or `.webp`    | Hub, Hero/Profile, optional Settings/About |                        Yes | Must be visually distinct from official marks. |
+| ProgressPal RPG emblem | Small ProgressPal-owned mark; not course-branded                                | `shield-badges/` or `icons/` | `src/features/rpg/assets/emblems/rpg-emblem-progresspal-rpg.svg`                    | Header candidate                           |                   Optional | Avoid official-looking course marks.           |
+| Subtle RPG background  | Dark, low-contrast, non-distracting                                             | `scene-backgrounds/` or CSS  | `src/features/rpg/assets/backgrounds/rpg-background-starfield-subtle.svg`           | RPG shell                                  |                   Optional | CSS may be better.                             |
+| CS Foundations map     | Abstract learning path/map; no official course art                              | `maps/`                      | `src/features/rpg/assets/map/rpg-map-cs-foundations-overview.webp`                  | Campaign Map                               |                   Optional | Accessible HTML/SVG/list remains primary.      |
+| Week 4 Memory still    | Abstract memory/computer-card visual; not lecture screenshot                    | `card-backgrounds/`          | `src/features/rpg/assets/modules/rpg-module-memory-still.webp`                      | Study Resource / Module Detail             | Optional before asset pass | Use CSS placeholder first if possible.         |
+| Generic module stills  | Abstract visuals for real CS50x weeks                                           | `card-backgrounds/`          | `src/features/rpg/assets/modules/rpg-module-<slug>-still.webp`                      | Study Resource per module                  |                      Later | Add only as modules need them.                 |
+| Achievement badge art  | Medallions mapped to existing achievement IDs                                   | `achievements/`              | `src/features/rpg/assets/badges/rpg-badge-<achievement-id>-unlocked.svg` or `.webp` | Badge Gallery                              |                      Later | Must match real achievements.                  |
+| Generic locked badge   | Muted locked medallion                                                          | `lock/` or `achievements/`   | `src/features/rpg/assets/badges/rpg-badge-locked-generic.svg`                       | Badge Gallery locked state                 |                      Later | One generic asset may be enough.               |
+| Rank medallions        | New Learner, Initiate, Apprentice, Builder, Capstone Candidate, Course Finisher | `levels/`                    | `src/features/rpg/assets/ranks/rpg-rank-<rank>.svg` or `.webp`                      | Hub / Hero                                 |                   Optional | Rank text remains DOM text.                    |
+| Generalist avatar      | Civilian/non-military learner avatar                                            | `character-imagery/`         | `src/features/rpg/assets/avatars/rpg-avatar-generalist-default.webp`                | Hero/Profile                               |                   Optional | Existing profile may be enough.                |
+| Bottom nav icons       | Hub/map/quest/hero/badge symbols                                                | `icons/` or inline SVG       | `src/features/rpg/assets/ui/rpg-nav-<name>.svg`                                     | Bottom nav                                 |                   Optional | Prefer inline SVG if possible.                 |
+| Panel ornaments        | Small corner/border accents                                                     | `icons/` or CSS              | `src/features/rpg/assets/ui/rpg-ui-panel-corner-gold.svg`                           | Panels                                     |                   Optional | Avoid overuse.                                 |
 
 ---
 
@@ -218,12 +218,12 @@ For each asset:
 
 Fill this table before any asset is used in code.
 
-| ID | File | Repo path | In-app use | Source/origin | Rights/usage basis | Contains text? | Decorative? | Alt text / aria decision | Size | Optimized? | Reviewer/date | Status | Notes |
-|---|---|---|---|---|---|---:|---:|---|---:|---:|---|---|---|
-| asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/ | Hub, Hero/Profile, optional Settings/About | Candidate from shield-badges or first-party generated replacement | Must be first-party/owned; no CS50/Harvard marks | No | No | alt="Code Knights emblem" | TBD | TBD | TBD | Planned | Sword/circuit/shield motif. |
-| asset-002 | rpg-background-starfield-subtle.svg | src/features/rpg/assets/backgrounds/ | RPG shell background | Candidate from scene-backgrounds or CSS-created replacement | Must be first-party/owned | No | Yes | aria-hidden="true" | TBD | TBD | TBD | Planned optional | Use only if it does not hurt readability. |
-| asset-003 | rpg-module-memory-still.webp | src/features/rpg/assets/modules/ | Week 4 Study Resource / Module Detail | Candidate from card-backgrounds or first-party generated replacement | Must be first-party/owned; no lecture screenshot | No | Usually yes | aria-hidden="true" unless meaningful | TBD | TBD | TBD | Planned optional | Must not look like fake embedded media. |
-| asset-004 | rpg-badge-locked-generic.svg | src/features/rpg/assets/badges/ | Locked badge state | Candidate from lock or generated replacement | Must be first-party/owned | No | No | alt="Locked badge" or hidden if adjacent text explains state | TBD | TBD | TBD | Planned optional | One generic locked asset preferred. |
+| ID        | File                                | Repo path                            | In-app use                                 | Source/origin                                                        | Rights/usage basis                               | Contains text? | Decorative? | Alt text / aria decision                                     | Size | Optimized? | Reviewer/date | Status           | Notes                                     |
+| --------- | ----------------------------------- | ------------------------------------ | ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------ | -------------: | ----------: | ------------------------------------------------------------ | ---: | ---------: | ------------- | ---------------- | ----------------------------------------- |
+| asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/     | Hub, Hero/Profile, optional Settings/About | Candidate from shield-badges or first-party generated replacement    | Must be first-party/owned; no CS50/Harvard marks |             No |          No | alt="Code Knights emblem"                                    |  TBD |        TBD | TBD           | Planned          | Sword/circuit/shield motif.               |
+| asset-002 | rpg-background-starfield-subtle.svg | src/features/rpg/assets/backgrounds/ | RPG shell background                       | Candidate from scene-backgrounds or CSS-created replacement          | Must be first-party/owned                        |             No |         Yes | aria-hidden="true"                                           |  TBD |        TBD | TBD           | Planned optional | Use only if it does not hurt readability. |
+| asset-003 | rpg-module-memory-still.webp        | src/features/rpg/assets/modules/     | Week 4 Study Resource / Module Detail      | Candidate from card-backgrounds or first-party generated replacement | Must be first-party/owned; no lecture screenshot |             No | Usually yes | aria-hidden="true" unless meaningful                         |  TBD |        TBD | TBD           | Planned optional | Must not look like fake embedded media.   |
+| asset-004 | rpg-badge-locked-generic.svg        | src/features/rpg/assets/badges/      | Locked badge state                         | Candidate from lock or generated replacement                         | Must be first-party/owned                        |             No |          No | alt="Locked badge" or hidden if adjacent text explains state |  TBD |        TBD | TBD           | Planned optional | One generic locked asset preferred.       |
 
 ---
 
@@ -231,11 +231,11 @@ Fill this table before any asset is used in code.
 
 Use this section to record assets that were reviewed and rejected.
 
-| Candidate | Source category | Reason rejected | Reviewer/date |
-|---|---|---|---|
-| Example usage composites | `example-usage/` | Reference only; not app assets | TBD |
-| Raster progress bars | `progress-bar/` | CSS/HTML progress bars are better and accessible | TBD |
-| Raster buttons | `buttons/` | CSS/HTML buttons are better and accessible | TBD |
+| Candidate                | Source category  | Reason rejected                                  | Reviewer/date |
+| ------------------------ | ---------------- | ------------------------------------------------ | ------------- |
+| Example usage composites | `example-usage/` | Reference only; not app assets                   | TBD           |
+| Raster progress bars     | `progress-bar/`  | CSS/HTML progress bars are better and accessible | TBD           |
+| Raster buttons           | `buttons/`       | CSS/HTML buttons are better and accessible       | TBD           |
 
 ---
 

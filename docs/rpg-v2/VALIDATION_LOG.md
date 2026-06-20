@@ -186,30 +186,30 @@ Required triage:
 
 RPG-00 must complete this before RPG-01 starts.
 
-| Check | Status | Evidence / notes |
-|---|---:|---|
-| `docs/rpg-v2/` exists | not-run |  |
-| Roadmap installed at `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md` | not-run |  |
-| RPG v2 decisions installed at `docs/rpg-v2/DECISIONS-rpg-v2.md` | not-run |  |
-| Validation log installed at `docs/rpg-v2/VALIDATION_LOG.md` | not-run |  |
-| Asset ledger created at `docs/rpg-v2/ASSETS.md` | not-run |  |
-| Risk register created at `docs/rpg-v2/RISK_REGISTER.md` | not-run |  |
-| Module handoff directory created at `docs/rpg-v2/modules/` | not-run |  |
-| Root `DECISIONS.md` deletion reconciled intentionally | not-run | Do not restore blindly. Commit deletion or document replacement. |
-| Older roadmap drafts archived or marked superseded | not-run |  |
-| BMAD artifacts role defined | not-run | Decide: formal BMAD folders required, or roadmap is accepted planning artifact. |
+| Check                                                                |  Status | Evidence / notes                                                                |
+| -------------------------------------------------------------------- | ------: | ------------------------------------------------------------------------------- |
+| `docs/rpg-v2/` exists                                                | not-run |                                                                                 |
+| Roadmap installed at `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md` | not-run |                                                                                 |
+| RPG v2 decisions installed at `docs/rpg-v2/DECISIONS-rpg-v2.md`      | not-run |                                                                                 |
+| Validation log installed at `docs/rpg-v2/VALIDATION_LOG.md`          | not-run |                                                                                 |
+| Asset ledger created at `docs/rpg-v2/ASSETS.md`                      | not-run |                                                                                 |
+| Risk register created at `docs/rpg-v2/RISK_REGISTER.md`              | not-run |                                                                                 |
+| Module handoff directory created at `docs/rpg-v2/modules/`           | not-run |                                                                                 |
+| Root `DECISIONS.md` deletion reconciled intentionally                | not-run | Do not restore blindly. Commit deletion or document replacement.                |
+| Older roadmap drafts archived or marked superseded                   | not-run |                                                                                 |
+| BMAD artifacts role defined                                          | not-run | Decide: formal BMAD folders required, or roadmap is accepted planning artifact. |
 
 ## 6. Branch and git baseline checklist
 
-| Check | Status | Evidence / notes |
-|---|---:|---|
-| Current branch identified | not-run |  |
-| Freeze tag `v0.21.0-ux-complete` exists | not-run |  |
-| `HEAD` relation to freeze tag recorded | not-run |  |
-| `rpg/v2` branch exists or creation plan recorded | not-run |  |
-| `v1-maintenance` branch exists or deferral recorded | not-run |  |
-| Working tree clean or intentional changes listed | not-run |  |
-| Git permission warnings checked | not-run | External audit previously reported warning for `C:\Users\alex_/.config/git/ignore`; verify locally. |
+| Check                                               |  Status | Evidence / notes                                                                                    |
+| --------------------------------------------------- | ------: | --------------------------------------------------------------------------------------------------- |
+| Current branch identified                           | not-run |                                                                                                     |
+| Freeze tag `v0.21.0-ux-complete` exists             | not-run |                                                                                                     |
+| `HEAD` relation to freeze tag recorded              | not-run |                                                                                                     |
+| `rpg/v2` branch exists or creation plan recorded    | not-run |                                                                                                     |
+| `v1-maintenance` branch exists or deferral recorded | not-run |                                                                                                     |
+| Working tree clean or intentional changes listed    | not-run |                                                                                                     |
+| Git permission warnings checked                     | not-run | External audit previously reported warning for `C:\Users\alex_/.config/git/ignore`; verify locally. |
 
 ## 7. Baseline validation pass log
 
@@ -223,18 +223,18 @@ Use this section for RPG-00 baseline passes.
 - Operator/agent:
 - Status: not-run
 
-| Command | Status | Output summary / failure |
-|---|---:|---|
-| `git status -sb` | not-run |  |
-| `git log --oneline --decorate -10` | not-run |  |
-| `npm run lint` | not-run |  |
-| `npm run format:check` | not-run |  |
-| `npm run typecheck` | not-run |  |
-| `npm run build` | not-run |  |
-| `npm run test` | not-run |  |
-| `npm run test:e2e` | not-run |  |
-| `npm run check:circular` | not-run |  |
-| `npm run audit` | not-run |  |
+| Command                            |  Status | Output summary / failure |
+| ---------------------------------- | ------: | ------------------------ |
+| `git status -sb`                   | not-run |                          |
+| `git log --oneline --decorate -10` | not-run |                          |
+| `npm run lint`                     | not-run |                          |
+| `npm run format:check`             | not-run |                          |
+| `npm run typecheck`                | not-run |                          |
+| `npm run build`                    | not-run |                          |
+| `npm run test`                     | not-run |                          |
+| `npm run test:e2e`                 | not-run |                          |
+| `npm run check:circular`           | not-run |                          |
+| `npm run audit`                    | not-run |                          |
 
 Notes:
 
@@ -250,18 +250,18 @@ Notes:
 - Operator/agent:
 - Status: not-run
 
-| Command | Status | Output summary / failure |
-|---|---:|---|
-| `git status -sb` | not-run |  |
-| `git log --oneline --decorate -10` | not-run |  |
-| `npm run lint` | not-run |  |
-| `npm run format:check` | not-run |  |
-| `npm run typecheck` | not-run |  |
-| `npm run build` | not-run |  |
-| `npm run test` | not-run |  |
-| `npm run test:e2e` | not-run |  |
-| `npm run check:circular` | not-run |  |
-| `npm run audit` | not-run |  |
+| Command                            |  Status | Output summary / failure |
+| ---------------------------------- | ------: | ------------------------ |
+| `git status -sb`                   | not-run |                          |
+| `git log --oneline --decorate -10` | not-run |                          |
+| `npm run lint`                     | not-run |                          |
+| `npm run format:check`             | not-run |                          |
+| `npm run typecheck`                | not-run |                          |
+| `npm run build`                    | not-run |                          |
+| `npm run test`                     | not-run |                          |
+| `npm run test:e2e`                 | not-run |                          |
+| `npm run check:circular`           | not-run |                          |
+| `npm run audit`                    | not-run |                          |
 
 Notes:
 
@@ -277,18 +277,18 @@ Notes:
 - Operator/agent:
 - Status: not-run
 
-| Command | Status | Output summary / failure |
-|---|---:|---|
-| `git status -sb` | not-run |  |
-| `git log --oneline --decorate -10` | not-run |  |
-| `npm run lint` | not-run |  |
-| `npm run format:check` | not-run |  |
-| `npm run typecheck` | not-run |  |
-| `npm run build` | not-run |  |
-| `npm run test` | not-run |  |
-| `npm run test:e2e` | not-run |  |
-| `npm run check:circular` | not-run |  |
-| `npm run audit` | not-run |  |
+| Command                            |  Status | Output summary / failure |
+| ---------------------------------- | ------: | ------------------------ |
+| `git status -sb`                   | not-run |                          |
+| `git log --oneline --decorate -10` | not-run |                          |
+| `npm run lint`                     | not-run |                          |
+| `npm run format:check`             | not-run |                          |
+| `npm run typecheck`                | not-run |                          |
+| `npm run build`                    | not-run |                          |
+| `npm run test`                     | not-run |                          |
+| `npm run test:e2e`                 | not-run |                          |
+| `npm run check:circular`           | not-run |                          |
+| `npm run audit`                    | not-run |                          |
 
 Notes:
 
@@ -336,12 +336,12 @@ Because RPG v2 shares the same origin and database as v1, read-only screens must
 
 Use for read-only routes.
 
-| Module | Route/screen | Pre-state method | Post-state method | Mutation expected | Result | Notes |
-|---|---|---|---|---:|---:|---|
-| RPG-03 | `/rpg` Hub | not-run | not-run | no | not-run |  |
-| RPG-04 | `/rpg/map` Campaign Map | not-run | not-run | no | not-run |  |
-| RPG-09 | `/rpg/badges` Badge Gallery | not-run | not-run | no | not-run |  |
-| RPG-10 | `/rpg/log` Journey Log | not-run | not-run | no | not-run |  |
+| Module | Route/screen                | Pre-state method | Post-state method | Mutation expected |  Result | Notes |
+| ------ | --------------------------- | ---------------- | ----------------- | ----------------: | ------: | ----- |
+| RPG-03 | `/rpg` Hub                  | not-run          | not-run           |                no | not-run |       |
+| RPG-04 | `/rpg/map` Campaign Map     | not-run          | not-run           |                no | not-run |       |
+| RPG-09 | `/rpg/badges` Badge Gallery | not-run          | not-run           |                no | not-run |       |
+| RPG-10 | `/rpg/log` Journey Log      | not-run          | not-run           |                no | not-run |       |
 
 ## 9. Classic route regression evidence
 
@@ -379,28 +379,28 @@ backup/import/reset semantics unchanged
 offline cold boot unchanged
 ```
 
-| Module | Route | 390px | 768px | 1280px | Result | Notes |
-|---|---|---:|---:|---:|---:|---|
-| Baseline | `/dashboard` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/course` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/course/:itemId` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/sessions` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/achievements` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/insights` | not-run | not-run | not-run | not-run |  |
-| Baseline | `/settings` | not-run | not-run | not-run | not-run |  |
+| Module   | Route             |   390px |   768px |  1280px |  Result | Notes |
+| -------- | ----------------- | ------: | ------: | ------: | ------: | ----- |
+| Baseline | `/dashboard`      | not-run | not-run | not-run | not-run |       |
+| Baseline | `/course`         | not-run | not-run | not-run | not-run |       |
+| Baseline | `/course/:itemId` | not-run | not-run | not-run | not-run |       |
+| Baseline | `/sessions`       | not-run | not-run | not-run | not-run |       |
+| Baseline | `/achievements`   | not-run | not-run | not-run | not-run |       |
+| Baseline | `/insights`       | not-run | not-run | not-run | not-run |       |
+| Baseline | `/settings`       | not-run | not-run | not-run | not-run |       |
 
 ## 10. RPG route validation evidence
 
-| Module | Route | Expected status | Result | Notes |
-|---|---|---|---:|---|
-| RPG-02 | `/rpg` | shell renders | not-run |  |
-| RPG-02 | `/rpg/map` | shell renders | not-run |  |
-| RPG-02 | `/rpg/week/:unitId` | shell renders or valid empty state | not-run |  |
-| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state | not-run |  |
-| RPG-02 | `/rpg/focus` | shell renders | not-run |  |
-| RPG-02 | `/rpg/hero` | shell renders | not-run |  |
-| RPG-02 | `/rpg/badges` | shell renders | not-run |  |
-| RPG-02 | `/rpg/log` | shell renders | not-run |  |
+| Module | Route                   | Expected status                    |  Result | Notes |
+| ------ | ----------------------- | ---------------------------------- | ------: | ----- |
+| RPG-02 | `/rpg`                  | shell renders                      | not-run |       |
+| RPG-02 | `/rpg/map`              | shell renders                      | not-run |       |
+| RPG-02 | `/rpg/week/:unitId`     | shell renders or valid empty state | not-run |       |
+| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state | not-run |       |
+| RPG-02 | `/rpg/focus`            | shell renders                      | not-run |       |
+| RPG-02 | `/rpg/hero`             | shell renders                      | not-run |       |
+| RPG-02 | `/rpg/badges`           | shell renders                      | not-run |       |
+| RPG-02 | `/rpg/log`              | shell renders                      | not-run |       |
 
 ## 11. Week-4 vertical slice gate
 
@@ -452,23 +452,23 @@ Hub -> Map -> Week 4 -> Study Resource -> save local progress -> Focus Session -
 
 Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 
-| Module | Handoff path | Status | Notes |
-|---|---|---:|---|
-| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |  |
-| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |  |
-| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` | not-run |  |
-| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` | not-run |  |
-| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |  |
-| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |  |
-| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |  |
-| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` | not-run |  |
-| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` | not-run |  |
-| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` | not-run |  |
-| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` | not-run |  |
-| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` | not-run |  |
-| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` | not-run |  |
-| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |  |
-| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |  |
+| Module | Handoff path                            |  Status | Notes |
+| ------ | --------------------------------------- | ------: | ----- |
+| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |       |
+| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |       |
+| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` | not-run |       |
+| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` | not-run |       |
+| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |       |
+| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |       |
+| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |       |
+| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` | not-run |       |
+| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` | not-run |       |
+| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` | not-run |       |
+| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` | not-run |       |
+| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` | not-run |       |
+| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` | not-run |       |
+| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |       |
+| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |       |
 
 ## 13. Scope Discipline Check template
 
@@ -502,15 +502,15 @@ Anti-overbuild questions answered:
 
 These are not accepted facts until verified in the repo. They come from an external AI audit and must be checked during RPG-00.
 
-| Observation | Status | Required action |
-|---|---:|---|
-| Canonical roadmap was outside repo in Downloads | not-run | Install roadmap at `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md`. |
-| `docs/rpg-v2/` reportedly did not exist | not-run | Create and verify. |
-| `git status -sb` reportedly showed `D DECISIONS.md` | not-run | Confirm deletion is intentional and reconcile git state. |
-| Git emitted permission warning for user git ignore | not-run | Verify whether still present and whether it affects validation. |
-| `_bmad-output/planning-artifacts` reportedly empty | not-run | Decide whether BMAD folders are required or roadmap is accepted planning artifact. |
-| `_bmad-output/implementation-artifacts` reportedly empty | not-run | Not blocker unless formal BMAD governance is chosen. |
-| `package.json` reportedly contains validation scripts including `validate` | not-run | Verify exact scripts. |
+| Observation                                                                |  Status | Required action                                                                    |
+| -------------------------------------------------------------------------- | ------: | ---------------------------------------------------------------------------------- |
+| Canonical roadmap was outside repo in Downloads                            | not-run | Install roadmap at `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md`.                |
+| `docs/rpg-v2/` reportedly did not exist                                    | not-run | Create and verify.                                                                 |
+| `git status -sb` reportedly showed `D DECISIONS.md`                        | not-run | Confirm deletion is intentional and reconcile git state.                           |
+| Git emitted permission warning for user git ignore                         | not-run | Verify whether still present and whether it affects validation.                    |
+| `_bmad-output/planning-artifacts` reportedly empty                         | not-run | Decide whether BMAD folders are required or roadmap is accepted planning artifact. |
+| `_bmad-output/implementation-artifacts` reportedly empty                   | not-run | Not blocker unless formal BMAD governance is chosen.                               |
+| `package.json` reportedly contains validation scripts including `validate` | not-run | Verify exact scripts.                                                              |
 
 ## 15. RPG-00 readiness verdict
 
