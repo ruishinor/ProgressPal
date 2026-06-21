@@ -1,16 +1,21 @@
 import { startTransition, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 
-import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { StatusPill } from '@/components/ui/StatusPill';
 import { formatMinutes } from '@/features/course/model';
+import {
+  RpgButton,
+  RpgEmptyState,
+  RpgPanel,
+  RpgProgressBar,
+  RpgStatusPill,
+  type RpgStatusTone,
+} from '@/features/rpg/components';
 import { loadRpgCourseMapSummary } from '@/features/rpg/model/readModels';
-import type { RpgCourseMapSummary } from '@/features/rpg/model/types';
+import type {
+  RpgCourseMapSummary,
+  RpgModuleSummary,
+} from '@/features/rpg/model/types';
 import { getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
 
 type RpgMapPageStatus = 'error' | 'loading' | 'ready';
@@ -26,6 +31,60 @@ const initialState: RpgMapPageState = {
   status: 'loading',
   summary: null,
 };
+
+function getStatusTone(statusVariant: RpgModuleSummary['statusVariant']) {
+  const tones: Record<RpgModuleSummary['statusVariant'], RpgStatusTone> = {
+    blocked: 'danger',
+    completed: 'success',
+    inProgress: 'progress',
+    notStarted: 'neutral',
+    optional: 'neutral',
+  };
+
+  return tones[statusVariant];
+}
+
+function getAvailabilityLabel(module: RpgModuleSummary) {
+  return module.statusVariant === 'blocked' ? 'Needs attention' : 'Available';
+}
+
+function getCurrentLabel(
+  module: RpgModuleSummary,
+  currentModule: RpgModuleSummary | null,
+) {
+  return currentModule?.id === module.id ? 'Current module' : null;
+}
+
+function getMapNodeAriaLabel(
+  module: RpgModuleSummary,
+  currentModule: RpgModuleSummary | null,
+) {
+  const currentLabel = getCurrentLabel(module, currentModule);
+  const parts = [
+    `Open ${module.title}`,
+    `status ${module.statusLabel}`,
+    `${module.completionPercent}% complete`,
+    `${module.completedRequiredItemCount} of ${module.requiredItemCount} required complete`,
+    currentLabel,
+  ].filter(Boolean);
+
+  return parts.join(', ');
+}
+
+function RpgMapLoadingState() {
+  return (
+    <section className="page-section rpg-map">
+      <div className="rpg-map__header">
+        <p className="rpg-map__eyebrow">RPG</p>
+        <h1>Campaign Map</h1>
+      </div>
+      <LoadingState
+        description="Building the campaign map from local course progress."
+        title="Loading campaign map"
+      />
+    </section>
+  );
+}
 
 export function RpgMapPage() {
   const [state, setState] = useState<RpgMapPageState>(initialState);
@@ -66,7 +125,7 @@ export function RpgMapPage() {
 
         startTransition(() => {
           setState({
-            error: 'The RPG course map could not be loaded from local data.',
+            error: 'The RPG campaign map could not be loaded from local data.',
             status: 'error',
             summary: null,
           });
@@ -84,113 +143,187 @@ export function RpgMapPage() {
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
       return (
-        <section className="page-section">
-          <PageHeader
-            description="This read-only route uses the RPG course map model."
-            eyebrow="RPG"
-            title="RPG Map"
-          />
+        <section className="page-section rpg-map">
+          <div className="rpg-map__header">
+            <p className="rpg-map__eyebrow">RPG</p>
+            <h1>Campaign Map</h1>
+          </div>
           <ErrorState
             action={
-              <button
-                className="button button--secondary button--md"
+              <RpgButton
                 onClick={() => {
                   startTransition(() => {
                     setState(initialState);
                   });
                   setReloadToken((currentToken) => currentToken + 1);
                 }}
-                type="button"
+                variant="secondary"
               >
                 Try again
-              </button>
+              </RpgButton>
             }
-            description={state.error ?? 'Unknown RPG map error.'}
-            title="RPG map could not be read"
+            description={state.error ?? 'Unknown RPG campaign map error.'}
+            title="Campaign map could not be read"
           />
         </section>
       );
     }
 
-    return (
-      <section className="page-section">
-        <PageHeader
-          description="The app is reading the local RPG course map."
-          eyebrow="RPG"
-          title="RPG Map"
-        />
-        <LoadingState
-          description="Building the RPG map from local progress."
-          title="Loading RPG map"
-        />
-      </section>
-    );
+    return <RpgMapLoadingState />;
   }
 
   const { summary } = state;
 
   return (
-    <section className="page-section">
-      <PageHeader
-        description="Read-only route shell for RPG week navigation."
-        eyebrow="RPG"
-        meta={
-          <>
-            <Badge tone="neutral">{`${summary.unitCount} units`}</Badge>
-            <Badge tone="accent">
-              {`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}
-            </Badge>
-          </>
-        }
-        title="RPG Map"
-      />
-      <Card
-        description={`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required tasks complete`}
-        title="Required completion"
-      >
-        <ProgressBar
-          helperText="Required CS50 work only"
-          label="Required completion"
-          value={summary.completionPercent}
-        />
-      </Card>
-      <div className="course-unit-list">
-        {summary.modules.map((module) => (
-          <Card
-            data-testid={`rpg-module-${module.id}`}
-            description={`${module.typeLabel} - ${formatMinutes(
-              module.estimatedMinutes,
-            )} planned`}
-            key={module.id}
-            title={module.title}
-          >
-            <div className="course-unit-card__header">
-              <ProgressBar
-                helperText={`${module.completedRequiredItemCount} of ${module.requiredItemCount} required quests complete`}
-                label={`${module.title} progress`}
-                showValue={module.requiredItemCount > 0}
-                tone={module.statusVariant === 'blocked' ? 'warning' : 'accent'}
-                value={module.completionPercent}
-              />
-              <div className="course-unit-card__meta">
-                <StatusPill variant={module.statusVariant}>
-                  {module.statusLabel}
-                </StatusPill>
-                <Badge tone="neutral">{`${module.itemCount} quests`}</Badge>
-                <Badge tone="accent">
-                  {formatMinutes(module.estimatedMinutes)}
-                </Badge>
-              </div>
-              <Link
-                className="button button--quiet button--md"
-                to={getRpgWeekPath(module.id)}
-              >
-                Open week
-              </Link>
-            </div>
-          </Card>
-        ))}
+    <section className="page-section rpg-map">
+      <div className="rpg-map__header">
+        <div>
+          <p className="rpg-map__eyebrow">RPG</p>
+          <h1>Campaign Map</h1>
+          <p className="rpg-map__lede">
+            CS50x course weeks from the local seed, linked to RPG week pages.
+          </p>
+        </div>
+        <div className="rpg-map__summary" aria-label="Campaign map summary">
+          <span>{`${summary.unitCount} modules`}</span>
+          <span>{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</span>
+        </div>
       </div>
+
+      {summary.modules.length === 0 ? (
+        <RpgEmptyState
+          description="No local course units were found in the current seed."
+          eyebrow="No modules"
+          title="Campaign map is empty"
+        />
+      ) : (
+        <>
+          <RpgPanel
+            className="rpg-map__overview"
+            title="Course progress"
+            titleAs="h2"
+          >
+            <RpgProgressBar
+              helperText={`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required tasks complete`}
+              label="Required CS50x progress"
+              showValue={summary.requiredItemCount > 0}
+              value={summary.completionPercent}
+            />
+            {summary.currentModule !== null ? (
+              <p className="rpg-map__note">
+                Current module: {summary.currentModule.title}
+              </p>
+            ) : (
+              <p className="rpg-map__note">
+                No current module can be selected from local progress.
+              </p>
+            )}
+          </RpgPanel>
+
+          <RpgPanel
+            className="rpg-map__visual-panel"
+            description="Each node is a normal link with visible status and progress text."
+            title="Module route"
+            titleAs="h2"
+          >
+            <ol className="rpg-map__node-list" aria-label="Campaign map nodes">
+              {summary.modules.map((module) => {
+                const currentLabel = getCurrentLabel(
+                  module,
+                  summary.currentModule,
+                );
+                const availabilityLabel = getAvailabilityLabel(module);
+
+                return (
+                  <li
+                    className="rpg-map__node-item"
+                    data-testid={`rpg-module-${module.id}`}
+                    key={module.id}
+                  >
+                    <a
+                      aria-label={getMapNodeAriaLabel(
+                        module,
+                        summary.currentModule,
+                      )}
+                      className="rpg-map__node"
+                      data-current={currentLabel !== null ? 'true' : undefined}
+                      href={getRpgWeekPath(module.id)}
+                    >
+                      <span className="rpg-map__node-index" aria-hidden="true">
+                        {module.typeLabel}
+                      </span>
+                      <span className="rpg-map__node-copy">
+                        <span className="rpg-map__node-title">
+                          {module.title}
+                        </span>
+                        <span className="rpg-map__node-meta">
+                          {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                            module.estimatedMinutes,
+                          )}`}
+                        </span>
+                      </span>
+                      <span className="rpg-map__node-status">
+                        {currentLabel ? (
+                          <RpgStatusPill tone="progress">
+                            {currentLabel}
+                          </RpgStatusPill>
+                        ) : null}
+                        <RpgStatusPill
+                          tone={getStatusTone(module.statusVariant)}
+                        >
+                          {module.statusLabel}
+                        </RpgStatusPill>
+                        <span>{`${module.completionPercent}%`}</span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
+          </RpgPanel>
+
+          <RpgPanel
+            className="rpg-map__fallback"
+            description="Plain list fallback for scanning the same modules without relying on the visual route layout."
+            title="Plain module list"
+            titleAs="h2"
+          >
+            <ol className="rpg-map__plain-list">
+              {summary.modules.map((module) => {
+                const currentLabel = getCurrentLabel(
+                  module,
+                  summary.currentModule,
+                );
+
+                return (
+                  <li key={module.id}>
+                    <div>
+                      <a
+                        className="rpg-map__plain-link"
+                        href={getRpgWeekPath(module.id)}
+                      >
+                        {module.title}
+                      </a>
+                      {currentLabel ? (
+                        <span className="rpg-map__plain-current">
+                          {currentLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p>
+                      {`Status: ${module.statusLabel}. Availability: ${getAvailabilityLabel(
+                        module,
+                      )}. Progress: ${module.completedRequiredItemCount} of ${
+                        module.requiredItemCount
+                      } required complete (${module.completionPercent}%).`}
+                    </p>
+                  </li>
+                );
+              })}
+            </ol>
+          </RpgPanel>
+        </>
+      )}
     </section>
   );
 }

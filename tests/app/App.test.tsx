@@ -1571,6 +1571,50 @@ describe('RPG routes', () => {
     });
   }
 
+  async function seedOnboardedLearnerWithRpgMapProgress() {
+    const completedAt = '2026-06-21T10:00:00.000Z';
+    const startedAt = '2026-06-21T09:00:00.000Z';
+    const weekZero = bundledCourseSeed.units.find(
+      (unit) => unit.id === 'week-0',
+    );
+
+    await seedOnboardedLearner();
+
+    if (weekZero === undefined) {
+      throw new Error('Week 0 seed unit is required for RPG map tests.');
+    }
+
+    for (const item of weekZero.items.filter(
+      (candidate) => candidate.required,
+    )) {
+      await upsertProgress({
+        completedAt,
+        confidence: 3,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: item.id,
+        notes: 'Completed from the RPG map fixture.',
+        startedAt,
+        status: 'completed',
+      });
+    }
+
+    await upsertProgress({
+      completedAt: undefined,
+      confidence: 2,
+      evidenceText: undefined,
+      evidenceType: undefined,
+      itemId: 'week-4-lecture',
+      notes: 'Current RPG map fixture.',
+      startedAt: '2026-06-21T11:00:00.000Z',
+      status: 'started',
+    });
+  }
+
+  function escapeRegExp(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   async function waitForRpgRouteReady(route: string) {
     if (route === '/rpg') {
       await screen.findByRole('link', { name: 'Open RPG map' });
@@ -1716,7 +1760,7 @@ describe('RPG routes', () => {
     ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   });
 
-  it('renders the RPG map shell', async () => {
+  it('renders the RPG campaign map from all current CS50x seed units', async () => {
     await seedOnboardedLearner();
 
     await renderAppAtRoute('/rpg/map');
@@ -1724,13 +1768,105 @@ describe('RPG routes', () => {
     const weekFourModule = await screen.findByTestId('rpg-module-week-4');
 
     expect(
-      screen.getByRole('heading', { name: 'RPG Map' }),
+      screen.getByRole('heading', { name: 'Campaign Map' }),
     ).toBeInTheDocument();
     expect(weekFourModule).toBeInTheDocument();
-    expect(screen.getAllByRole('link', { name: 'Open week' }).length).toBe(
-      bundledCourseSeed.units.length,
-    );
+    expect(
+      screen.getByRole('heading', { name: 'Plain module list' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(`${bundledCourseSeed.units.length} modules`),
+    ).toBeInTheDocument();
+
+    for (const unit of bundledCourseSeed.units) {
+      const module = screen.getByTestId(`rpg-module-${unit.id}`);
+
+      expect(within(module).getByText(unit.title)).toBeInTheDocument();
+      expect(
+        within(module).getByRole('link', {
+          name: new RegExp(`^Open ${escapeRegExp(unit.title)},`),
+        }),
+      ).toHaveAttribute('href', `/rpg/week/${unit.id}`);
+      expect(screen.getByRole('link', { name: unit.title })).toHaveAttribute(
+        'href',
+        `/rpg/week/${unit.id}`,
+      );
+    }
+
     expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders RPG campaign map progress, current module, completed modules, and available modules as text', async () => {
+    await seedOnboardedLearnerWithRpgMapProgress();
+
+    await renderAppAtRoute('/rpg/map');
+
+    await screen.findByTestId('rpg-module-week-4');
+
+    expect(
+      screen.getByText('Current module: Week 4: Memory'),
+    ).toBeInTheDocument();
+
+    const weekZeroModule = screen.getByTestId('rpg-module-week-0');
+    expect(within(weekZeroModule).getByText('Completed')).toBeInTheDocument();
+    expect(within(weekZeroModule).getByText('100%')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Status: Completed. Availability: Available. Progress: 2 of 2 required complete (100%).',
+      ),
+    ).toBeInTheDocument();
+
+    const weekFourModule = screen.getByTestId('rpg-module-week-4');
+    expect(
+      within(weekFourModule).getByText('Current module'),
+    ).toBeInTheDocument();
+    expect(within(weekFourModule).getByText('In progress')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Status: In progress. Availability: Available. Progress: 0 of 2 required complete (0%).',
+      ),
+    ).toBeInTheDocument();
+
+    const weekOneModule = screen.getByTestId('rpg-module-week-1');
+    expect(
+      within(weekOneModule).getByText('Available - 4 quests - 11h'),
+    ).toBeInTheDocument();
+    expect(within(weekOneModule).getByText('Not started')).toBeInTheDocument();
+  });
+
+  it('keeps the RPG campaign map semantic and free of fake future course support', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/map');
+
+    await screen.findByTestId('rpg-module-week-4');
+
+    const campaignNodes = screen.getByRole('list', {
+      name: 'Campaign map nodes',
+    });
+    const nodeLinks = within(campaignNodes).getAllByRole('link');
+
+    expect(nodeLinks).toHaveLength(bundledCourseSeed.units.length);
+
+    for (const link of nodeLinks) {
+      expect(link).toHaveAccessibleName();
+      expect(link.getAttribute('href')).toMatch(/^\/rpg\/week\//);
+    }
+
+    const forbiddenCopy = [
+      /CS50P/i,
+      /CS50AI/i,
+      /CS50W/i,
+      /CS50SQL/i,
+      /locked adventure/i,
+      /official CS50 campaign/i,
+      /Harvard campaign/i,
+      /course art/i,
+    ];
+
+    for (const pattern of forbiddenCopy) {
+      expect(screen.queryByText(pattern)).not.toBeInTheDocument();
+    }
   });
 
   it('renders the RPG week shell', async () => {
