@@ -1,9 +1,8 @@
 import type { HTMLAttributes } from 'react';
 
 import { classNames } from '@/components/ui/utils';
-import type { LearnerAvatarConfig } from '@/lib/domain';
-
 import { CHARACTER_PROFILE_ASSET } from '@/features/profile/components/characterProfileAsset';
+import type { LearnerAvatarConfig } from '@/lib/domain';
 
 export type ProfileAvatarProps = HTMLAttributes<HTMLDivElement> & {
   avatarConfig: LearnerAvatarConfig | undefined;
@@ -16,6 +15,7 @@ export function ProfileAvatar({
   className,
   label = 'Character profile avatar',
   size = 'lg',
+  style,
   ...rest
 }: ProfileAvatarProps) {
   const avatarSource = avatarConfig === undefined ? 'default' : 'configured';
@@ -31,6 +31,11 @@ export function ProfileAvatar({
       )}
       data-avatar-source={avatarSource}
       role="img"
+      style={{
+        borderRadius: '999px',
+        overflow: 'hidden',
+        ...style,
+      }}
       {...rest}
     >
       <img
@@ -43,7 +48,7 @@ export function ProfileAvatar({
           objectFit: 'cover',
           width: '100%',
         }}
-      />
+      />{' '}
     </div>
   );
 }
