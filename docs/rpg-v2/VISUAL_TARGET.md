@@ -614,3 +614,16 @@ Hide local-only reality.
 Invent mechanics the engine does not support.
 Require large assets to compensate for weak information design.
 ```
+
+## Profile avatar visual target
+
+The profile/settings avatar preview should use an RPG-style character portrait inside a rounded medallion/profile frame.
+
+Current implementation:
+
+- Bundled local character portrait.
+- Rounded avatar frame.
+- No remote image.
+- No dynamic character customization yet.
+
+Do not treat the v1 generated SVG face as the visual target for RPG v2.
