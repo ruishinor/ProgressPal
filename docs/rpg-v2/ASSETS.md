@@ -285,3 +285,33 @@ Makes text harder to read.
 Creates fake mechanics.
 Requires explanation to justify why it exists.
 ```
+
+## Profile character preview asset
+
+Status: Introduced in RPG-01b.
+
+Files:
+
+- `public/assets/character-profile.png`
+- `src/features/profile/components/characterProfileAsset.ts`
+- `src/features/profile/components/ProfileAvatar.tsx`
+
+Purpose:
+
+- Replaces the v1 generated SVG learner avatar preview with a bundled RPG-style character portrait.
+- Used in the existing profile/settings avatar preview.
+
+Implementation notes:
+
+- The source PNG is stored under `public/assets/character-profile.png`.
+- A generated inline data URL module is stored at `src/features/profile/components/characterProfileAsset.ts`.
+- `ProfileAvatar.tsx` imports the generated inline asset so `/settings` does not trigger a new image request during offline navigation.
+- The PNG was resized before generating the inline module to avoid excessive bundle growth.
+
+Constraints:
+
+- No remote image loading.
+- No user-uploaded avatar support.
+- No schema change.
+- No IndexedDB storage change.
+- No service worker change.

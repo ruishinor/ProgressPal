@@ -579,3 +579,29 @@ Paste completed check.
 RPG-01 may begin: yes/no
 Reason:
 ```
+
+## RPG-01b avatar asset patch validation
+
+Branch: `rpg/01b-character-avatar-asset`
+
+Summary:
+
+- Replaced generated SVG learner avatar preview with bundled RPG-style profile portrait.
+- Added resized local PNG.
+- Added generated inline data URL module to avoid offline image-request failures.
+- Rounded the avatar frame so the portrait behaves like a profile medallion.
+
+Validation:
+
+- `npm run build`: pass.
+- Targeted offline E2E: `npx playwright test e2e/dashboard.spec.ts -g "survives local storage reset"`: pass.
+- `npm run validate`: pass.
+- Unit/integration tests: 36 files, 266 tests passed.
+- E2E tests: 24 passed.
+- Circular dependency check: pass.
+- Audit: 0 vulnerabilities.
+
+Notes:
+
+- The public image-path version failed offline navigation with `net::ERR_INTERNET_DISCONNECTED` for `/assets/character-profile.png`.
+- Final implementation avoids that runtime request by importing `CHARACTER_PROFILE_ASSET` from `characterProfileAsset.ts`.

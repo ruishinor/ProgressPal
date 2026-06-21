@@ -146,3 +146,43 @@ Future consideration:
 | Date       | Module          | Update                         |
 | ---------- | --------------- | ------------------------------ |
 | 2026-06-20 | RPG-00 planning | Initial risk register created. |
+
+## Risk: avatar preview controls no longer affect visual output
+
+Status: Accepted temporary debt.
+
+Context:
+
+RPG-01b replaced the generated SVG avatar with a bundled character portrait. The existing profile form still exposes face shape, hair, and top color controls, but those controls no longer change the visible avatar preview.
+
+Risk:
+
+Users may assume those controls customize the character portrait when they currently only persist local profile configuration.
+
+Mitigation:
+
+- Copy now says the character preview uses a bundled local asset.
+- No schema/storage changes were made.
+- A later profile/character module should either remove these controls, relabel them as saved character preferences, or reintroduce real character customization.
+
+Owner/follow-up:
+
+RPG profile/character customization module, not RPG-02 route shell.
+
+## Risk: inline avatar asset increases main bundle size
+
+Status: Mitigated for now.
+
+Context:
+
+The avatar is embedded as a generated data URL to preserve offline navigation without adding service-worker complexity.
+
+Mitigation:
+
+- Source PNG was resized before generating `characterProfileAsset.ts`.
+- Full validation passed after the change.
+- Build output should be monitored if additional inline assets are introduced.
+
+Rule:
+
+Do not inline additional large visual assets without explicit size review.
