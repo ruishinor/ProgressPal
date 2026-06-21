@@ -67,6 +67,10 @@ revisit-later = future possibility; not allowed in v2 unless accepted later
 | D-0064 | accepted | IndexedDB snapshot/backup evidence is required before and during read-only route validation.                                      |
 | D-0065 | accepted | `npm audit` network limitations must be recorded honestly; unavailable audit is not a clean pass.                                 |
 | D-0066 | accepted | Early real image assets are forbidden unless the current module requires them and the asset ledger is completed first.            |
+| D-0067 | accepted | Validation cadence is proportional to gate type; three full passes are not the default for normal modules.                        |
+| D-0068 | accepted | Agent work mode must be explicit: acceptance audit, corrective patch, or next-module implementation.                              |
+| D-0069 | accepted | Formal BMAD governance is opt-in; adversarial review thinking must not be represented as completed BMAD workflow.                 |
+| D-0070 | accepted | Module completion requires source reconciliation, warning classification, committed evidence, and clean final state.              |
 
 ---
 
@@ -144,6 +148,7 @@ RPG routes:
 /rpg/hero
 /rpg/badges
 /rpg/log
+/rpg/settings
 ```
 
 Query-state variant, not separate route:
@@ -989,3 +994,165 @@ Asset dumps are a major overbuild and bundle-size risk.
 - Use CSS placeholders or inline SVG where possible in early modules.
 - Do not import the whole visual asset library.
 - Asset pass must curate, not dump.
+
+---
+
+## D-0067 — Proportional validation cadence
+
+- Date: 2026-06-21
+- Status: accepted
+
+### Decision
+
+Validation cadence is proportional to the risk and gate type. Three full validation passes are not the default for ordinary module work.
+
+Default cadence:
+
+```text
+Normal module:
+- run targeted tests during development;
+- run one full `npm run validate` after final changes.
+
+Corrective patch after a failed or partial module:
+- run targeted tests for the corrected gap;
+- run one full `npm run validate` after final changes;
+- optionally run two additional full validation passes only if the prior failure was flaky, environment-sensitive, or repeatedly reproduced.
+
+Major gates:
+- RPG-00 baseline: three consecutive clean full-validation passes if the environment supports them.
+- RPG-09 Week-4 vertical slice: three consecutive clean full-validation passes if the environment supports them.
+- RPG-15 release candidate: three consecutive clean full-validation passes if the environment supports them.
+```
+
+Repeated validation is evidence only when the final file state is unchanged between passes. If any file changes after a validation pass, that pass no longer validates the final state.
+
+### Why
+
+Overusing three full validation passes for every normal module wastes time and can hide process confusion. Underusing validation at major gates weakens confidence. The cadence should match risk.
+
+### Consequences
+
+- Normal modules need one clean full validation after final changes.
+- Corrective patches need targeted evidence for the corrected acceptance gap plus one clean full validation.
+- Extra passes are reserved for baseline, integration, release, flaky behavior, or environment-sensitive failures.
+- Handoffs must record which validation cadence was used and why.
+
+---
+
+## D-0068 — Explicit agent work mode
+
+- Date: 2026-06-21
+- Status: accepted
+
+### Decision
+
+Before implementation or review, the agent must identify one work mode:
+
+```text
+Mode A — Acceptance audit only
+No code changes. Compare current repo state against roadmap, decisions, validation log, migration contract, risk register, and relevant handoff.
+
+Mode B — Corrective patch
+Fix only acceptance gaps in the current module. No next-module work. No broad polish. No unrelated cleanup.
+
+Mode C — Next-module implementation
+Begin only after the previous module is committed, handoff evidence is committed, validation is clean for the required gate, and known source-of-truth inconsistencies are resolved or explicitly accepted.
+```
+
+### Why
+
+The most likely process failure is mixing audit, corrective patching, and next-module implementation. Naming the mode prevents accidental scope expansion and makes handoff review easier.
+
+### Consequences
+
+- A module prompt should ask the agent to state the work mode before coding.
+- Mode B must not turn into Mode C.
+- Mode C is blocked by unresolved acceptance gaps in the prior module.
+- A report must distinguish `implemented locally`, `ready to commit`, and `complete`.
+
+---
+
+## D-0069 — BMAD governance is opt-in
+
+- Date: 2026-06-21
+- Status: accepted
+
+### Decision
+
+Formal BMAD governance is used only when explicitly chosen by the project owner.
+
+Allowed without formal BMAD governance:
+
+```text
+adversarial review thinking
+acceptance-audit lens
+risk-focused code review
+roadmap/decision compliance review
+```
+
+Not allowed unless formal BMAD governance is explicitly invoked and completed:
+
+```text
+claiming BMAD activation as the controlling workflow
+claiming BMAD readiness
+claiming BMAD handoff completeness
+treating empty BMAD output folders as blockers
+partially invoking BMAD step files while skipping their required checkpoints
+```
+
+If an agent uses review ideas inspired by BMAD, it must describe the work as a roadmap acceptance audit or adversarial review, not as completed BMAD workflow.
+
+### Why
+
+BMAD can be useful, but half-invoked workflow creates false authority and process confusion. The RPG v2 source-of-truth documents are controlling unless formal BMAD governance is explicitly selected.
+
+### Consequences
+
+- `_bmad-output/` emptiness is not a blocker by itself.
+- BMAD artifacts are not required for RPG v2 unless separately accepted.
+- Agents must not mix formal BMAD claims with non-BMAD execution.
+
+---
+
+## D-0070 — Completion requires reconciled, committed evidence
+
+- Date: 2026-06-21
+- Status: accepted
+
+### Decision
+
+A module is not complete until final repo evidence is reconciled and committed.
+
+Completion requires:
+
+```text
+source-of-truth reconciliation completed
+warnings and anomalies classified
+module handoff updated
+validation log updated if evidence changed
+risk register updated if risk changed
+final validation cadence satisfied
+implementation and evidence committed together
+working tree clean except expected branch-ahead state
+```
+
+Uncommitted work may be described only as:
+
+```text
+implemented locally
+ready for review
+ready to commit
+```
+
+It must not be described as module complete.
+
+### Why
+
+Chat reports are not durable project evidence. The repository must contain the implementation, handoff, validation evidence, and any decision/risk updates needed to understand the module later.
+
+### Consequences
+
+- `git status -sb` must be part of final reporting.
+- Any warning, including environment warnings, must be classified as blocker / environment warning / harmless but noted.
+- Source-of-truth conflicts must be resolved, not left for the next module by default.
+- A clean validation claim applies only to the final committed or commit-ready file state.

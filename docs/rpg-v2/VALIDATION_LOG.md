@@ -78,21 +78,70 @@ docs/rpg-v2/RISK_REGISTER.md
 docs/rpg-v2/modules/RPG-00-HANDOFF.md
 ```
 
-### 2.2 Normal module gate
+### 2.2 Validation cadence by work type
+
+Do not use three full validation passes as the default for every module. Validation cadence is proportional to risk.
+
+```text
+Normal module:
+- targeted tests during development;
+- one clean full `npm run validate` after final changes.
+
+Corrective patch after a failed or partial module:
+- targeted tests for the corrected gap;
+- one clean full `npm run validate` after final changes;
+- optionally two additional full validation passes only if the prior failure was flaky, environment-sensitive, or repeatedly reproduced.
+
+Major gates:
+- RPG-00 baseline: three consecutive clean full-validation passes, if the environment supports them.
+- RPG-09 Week-4 vertical slice: three consecutive clean full-validation passes, if the environment supports them.
+- RPG-15 release candidate: three consecutive clean full-validation passes, if the environment supports them.
+```
+
+A validation pass only validates the file state that existed when it ran. If files change after validation, rerun the required cadence for the final state.
+
+### 2.3 Normal module gate
 
 Normal implementation modules require:
 
 ```text
-one clean full-validation pass
+targeted tests for changed behavior during development
+one clean full-validation pass after final changes
 no ignored warnings
 no unresolved audit issues
 no missing handoff file
 no missing Scope Discipline Check
+source-of-truth reconciliation completed
+warnings and anomalies classified
 ```
 
 Flaky tests are defects. If a test is flaky, record it, investigate it, and rerun only after the cause is understood. Do not treat repeated reruns until green as evidence of correctness.
 
-### 2.3 Week-4 vertical slice integration gate
+### 2.4 Corrective patch gate
+
+Corrective patches after a failed, partial, or over-scoped module require:
+
+```text
+targeted tests for the corrected acceptance gap
+one clean full-validation pass after final changes
+updated handoff explaining what was corrected
+updated validation log if evidence changed
+updated risk register if risk changed
+```
+
+Run two additional full validation passes only when there is a concrete reason:
+
+```text
+prior failure was flaky
+prior failure was environment-sensitive
+prior failure was repeatedly reproduced
+major gate confidence is being established
+project owner explicitly requests extra confirmation
+```
+
+Do not use extra validation passes to compensate for unclear acceptance criteria, unclassified warnings, or uncommitted work.
+
+### 2.5 Week-4 vertical slice integration gate
 
 The first vertical slice gate requires:
 
@@ -108,7 +157,7 @@ Hub -> Map -> Week 4 -> Study Resource -> save local progress -> Focus Session -
 
 The slice gate must happen before profile, badge gallery, journey log, broad visual polish, or large asset work expands the surface.
 
-### 2.4 Release candidate gate
+### 2.6 Release candidate gate
 
 The release candidate gate requires:
 
@@ -182,7 +231,39 @@ Required triage:
 - decision or validation note
 ```
 
-## 5. Source-of-truth reconciliation checklist
+## 5. Warning and anomaly classification
+
+Warnings must be classified. Do not call a gate clean if a relevant warning is ignored.
+
+Use this template whenever a command emits a warning or non-fatal anomaly:
+
+```text
+Warning/anomaly:
+- Command:
+- Exact warning:
+- Classification: code blocker / environment warning / harmless but noted
+- Action taken:
+- Does it affect clean validation claim: yes/no
+- Reason:
+```
+
+Examples:
+
+```text
+Git global ignore permission warning:
+- likely environment warning if repo-local git behavior and validation are unaffected;
+- still record it in the validation log or handoff.
+
+Build-size warning:
+- not automatically a blocker;
+- classify against asset/bundle-size risk and record follow-up if needed.
+
+Network failure during `npm audit`:
+- not clean;
+- status is partial until audit runs or a decision records accepted deferral.
+```
+
+## 6. Source-of-truth reconciliation checklist
 
 RPG-00 must complete this before RPG-01 starts.
 
@@ -199,7 +280,7 @@ RPG-00 must complete this before RPG-01 starts.
 | Older roadmap drafts archived or marked superseded                   | not-run |                                                                                 |
 | BMAD artifacts role defined                                          | not-run | Decide: formal BMAD folders required, or roadmap is accepted planning artifact. |
 
-## 6. Branch and git baseline checklist
+## 7. Branch and git baseline checklist
 
 | Check                                               |  Status | Evidence / notes                                                                                    |
 | --------------------------------------------------- | ------: | --------------------------------------------------------------------------------------------------- |
@@ -211,7 +292,7 @@ RPG-00 must complete this before RPG-01 starts.
 | Working tree clean or intentional changes listed    | not-run |                                                                                                     |
 | Git permission warnings checked                     | not-run | External audit previously reported warning for `C:\Users\alex_/.config/git/ignore`; verify locally. |
 
-## 7. Baseline validation pass log
+## 8. Baseline validation pass log
 
 Use this section for RPG-00 baseline passes.
 
@@ -296,7 +377,7 @@ Notes:
 
 ```
 
-## 8. IndexedDB and backup evidence
+## 9. IndexedDB and backup evidence
 
 Because RPG v2 shares the same origin and database as v1, read-only screens must prove they do not mutate data.
 
@@ -336,14 +417,15 @@ Because RPG v2 shares the same origin and database as v1, read-only screens must
 
 Use for read-only routes.
 
-| Module | Route/screen                | Pre-state method | Post-state method | Mutation expected |  Result | Notes |
-| ------ | --------------------------- | ---------------- | ----------------- | ----------------: | ------: | ----- |
-| RPG-03 | `/rpg` Hub                  | not-run          | not-run           |                no | not-run |       |
-| RPG-04 | `/rpg/map` Campaign Map     | not-run          | not-run           |                no | not-run |       |
-| RPG-09 | `/rpg/badges` Badge Gallery | not-run          | not-run           |                no | not-run |       |
-| RPG-10 | `/rpg/log` Journey Log      | not-run          | not-run           |                no | not-run |       |
+| Module | Route/screen                | Pre-state method                                 | Post-state method                                       | Mutation expected |  Result | Notes                                                                                                                                                                          |
+| ------ | --------------------------- | ------------------------------------------------ | ------------------------------------------------------- | ----------------: | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RPG-02 | `/rpg` shell routes         | `getDatabaseSnapshot()` before route render loop | `getDatabaseSnapshot()` after each passive route render |                no |    pass | `tests/app/App.test.tsx` covers `/rpg`, `/rpg/map`, `/rpg/week/week-4`, `/rpg/resource/week-0-lecture`, `/rpg/focus`, `/rpg/hero`, `/rpg/badges`, `/rpg/log`, `/rpg/settings`. |
+| RPG-03 | `/rpg` Hub                  | not-run                                          | not-run                                                 |                no | not-run | Future full hub implementation module.                                                                                                                                         |
+| RPG-04 | `/rpg/map` Campaign Map     | not-run                                          | not-run                                                 |                no | not-run | Future full map implementation module.                                                                                                                                         |
+| RPG-09 | `/rpg/badges` Badge Gallery | not-run                                          | not-run                                                 |                no | not-run |                                                                                                                                                                                |
+| RPG-10 | `/rpg/log` Journey Log      | not-run                                          | not-run                                                 |                no | not-run |                                                                                                                                                                                |
 
-## 9. Classic route regression evidence
+## 10. Classic route regression evidence
 
 Classic routes must remain behaviorally and visually stable while RPG routes are added.
 
@@ -389,20 +471,21 @@ offline cold boot unchanged
 | Baseline | `/insights`       | not-run | not-run | not-run | not-run |       |
 | Baseline | `/settings`       | not-run | not-run | not-run | not-run |       |
 
-## 10. RPG route validation evidence
+## 11. RPG route validation evidence
 
-| Module | Route                   | Expected status                    |  Result | Notes |
-| ------ | ----------------------- | ---------------------------------- | ------: | ----- |
-| RPG-02 | `/rpg`                  | shell renders                      | not-run |       |
-| RPG-02 | `/rpg/map`              | shell renders                      | not-run |       |
-| RPG-02 | `/rpg/week/:unitId`     | shell renders or valid empty state | not-run |       |
-| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state | not-run |       |
-| RPG-02 | `/rpg/focus`            | shell renders                      | not-run |       |
-| RPG-02 | `/rpg/hero`             | shell renders                      | not-run |       |
-| RPG-02 | `/rpg/badges`           | shell renders                      | not-run |       |
-| RPG-02 | `/rpg/log`              | shell renders                      | not-run |       |
+| Module | Route                   | Expected status                    | Result | Notes                                                                                        |
+| ------ | ----------------------- | ---------------------------------- | -----: | -------------------------------------------------------------------------------------------- |
+| RPG-02 | `/rpg`                  | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                  |
+| RPG-02 | `/rpg/map`              | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                  |
+| RPG-02 | `/rpg/week/:unitId`     | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/week/week-4` and not-found state.             |
+| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/resource/week-0-lecture` and not-found state. |
+| RPG-02 | `/rpg/focus`            | shell renders                      |   pass | Stub shell route only.                                                                       |
+| RPG-02 | `/rpg/hero`             | shell renders                      |   pass | Stub shell route only.                                                                       |
+| RPG-02 | `/rpg/badges`           | shell renders                      |   pass | Stub shell route only.                                                                       |
+| RPG-02 | `/rpg/log`              | shell renders                      |   pass | Stub shell route only.                                                                       |
+| RPG-02 | `/rpg/settings`         | shell renders                      |   pass | Stub shell route only.                                                                       |
 
-## 11. Week-4 vertical slice gate
+## 12. Week-4 vertical slice gate
 
 Do not expand into profile, badge gallery, journey log, broad visual polish, or large asset work before this gate passes.
 
@@ -448,35 +531,36 @@ Hub -> Map -> Week 4 -> Study Resource -> save local progress -> Focus Session -
 
 ```
 
-## 12. Module handoff index
+## 13. Module handoff index
 
 Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 
-| Module | Handoff path                            |  Status | Notes |
-| ------ | --------------------------------------- | ------: | ----- |
-| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |       |
-| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |       |
-| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` | not-run |       |
-| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` | not-run |       |
-| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |       |
-| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |       |
-| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |       |
-| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` | not-run |       |
-| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` | not-run |       |
-| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` | not-run |       |
-| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` | not-run |       |
-| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` | not-run |       |
-| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` | not-run |       |
-| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |       |
-| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |       |
+| Module | Handoff path                            |  Status | Notes                            |
+| ------ | --------------------------------------- | ------: | -------------------------------- |
+| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                  |
+| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                  |
+| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
+| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` | not-run |                                  |
+| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |                                  |
+| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |                                  |
+| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |                                  |
+| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` | not-run |                                  |
+| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` | not-run |                                  |
+| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` | not-run |                                  |
+| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` | not-run |                                  |
+| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` | not-run |                                  |
+| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` | not-run |                                  |
+| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |                                  |
+| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |                                  |
 
-## 13. Scope Discipline Check template
+## 14. Scope Discipline Check template
 
 Every module handoff must include this.
 
 ```text
 Scope Discipline Check
 - Intended module:
+- Work mode: Acceptance audit only / Corrective patch / Next-module implementation:
 - Files changed:
 - Why each changed file was necessary:
 - What was deliberately not added:
@@ -485,6 +569,10 @@ Scope Discipline Check
 - New storage/schema: none / decision ID:
 - Runtime network behavior changed: no / decision ID:
 - Classic route behavior changed: no / explain and cite decision:
+- Source-of-truth reconciliation: no conflicts / list resolved conflicts:
+- Warnings and anomalies: none / list classifications:
+- Validation cadence used: normal / corrective / major gate:
+- Commit status: committed / uncommitted local work:
 - Any deferred tempting work:
 
 Anti-overbuild questions answered:
@@ -498,7 +586,7 @@ Anti-overbuild questions answered:
 8. Would a future maintainer understand why this was necessary from the module acceptance criteria alone?
 ```
 
-## 14. Known external audit observations to verify locally
+## 15. Known external audit observations to verify locally
 
 These are not accepted facts until verified in the repo. They come from an external AI audit and must be checked during RPG-00.
 
@@ -512,7 +600,7 @@ These are not accepted facts until verified in the repo. They come from an exter
 | `_bmad-output/implementation-artifacts` reportedly empty                   | not-run | Not blocker unless formal BMAD governance is chosen.                               |
 | `package.json` reportedly contains validation scripts including `validate` | not-run | Verify exact scripts.                                                              |
 
-## 15. RPG-00 readiness verdict
+## 16. RPG-00 readiness verdict
 
 Current status: not-run
 
@@ -529,7 +617,7 @@ RPG-01 may not begin until:
 8. RPG-00-HANDOFF.md exists.
 ```
 
-## 16. RPG-00 handoff starter
+## 17. RPG-00 handoff starter
 
 Create this file after RPG-00 work:
 
@@ -600,6 +688,11 @@ Validation:
 - E2E tests: 24 passed.
 - Circular dependency check: pass.
 - Audit: 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git diff --check` emitted LF-to-CRLF normalization warnings on Windows. Classification: environment/line-ending warning, non-blocking. No whitespace errors after Prettier.
+- `npm run test` emitted transient Dexie `DatabaseClosedError` stderr during `tests/app/App.test.tsx`, while all tests passed. Classification: test-environment/teardown warning, non-blocking for RPG-02. Monitor if it becomes reproducible failure or affects new RPG route tests.
 
 Notes:
 

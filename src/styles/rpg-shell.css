@@ -1,0 +1,95 @@
+.rpg-shell {
+  --rpg-bottom-nav-height: 4.75rem;
+}
+
+.rpg-shell__skip-link {
+  background: var(--color-heading);
+  border-radius: var(--radius-pill);
+  color: var(--color-canvas-strong);
+  left: var(--space-4);
+  padding: 0.75rem 1rem;
+  position: absolute;
+  top: -3rem;
+  z-index: 30;
+}
+
+.rpg-shell__skip-link:focus {
+  top: var(--space-4);
+}
+
+.rpg-shell__frame {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.rpg-shell__main {
+  display: grid;
+  gap: var(--space-4);
+  padding-bottom: calc(
+    var(--rpg-bottom-nav-height) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.rpg-bottom-nav {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2);
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  position: sticky;
+  z-index: 10;
+}
+
+.rpg-bottom-nav__list {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.rpg-bottom-nav__link {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding: 0.65rem 0.45rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.rpg-bottom-nav__link:hover,
+.rpg-bottom-nav__link:focus-visible {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+  color: var(--color-heading);
+}
+
+.rpg-bottom-nav__link--active {
+  background: var(--color-heading);
+  border-color: var(--color-heading);
+  color: var(--color-canvas-strong);
+}
+
+@media (max-width: 42rem) {
+  .rpg-bottom-nav {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    bottom: 0;
+    margin-inline: calc(var(--space-4) * -1);
+  }
+
+  .rpg-bottom-nav__list {
+    gap: 0.25rem;
+  }
+
+  .rpg-bottom-nav__link {
+    font-size: 0.78rem;
+    padding-inline: 0.25rem;
+  }
+}
