@@ -1,0 +1,16 @@
+.rpg-shell {
+  --rpg-bg: #111923;
+  --rpg-surface: #172331;
+  --rpg-surface-raised: #203041;
+  --rpg-border: #405064;
+  --rpg-border-strong: #8b7951;
+  --rpg-text: #f4f1e8;
+  --rpg-text-muted: #c7d0d6;
+  --rpg-accent: #d6ad5c;
+  --rpg-accent-strong: #f1d28b;
+  --rpg-progress: #c9943e;
+  --rpg-success: #78b98c;
+  --rpg-warning: #d8a84f;
+  --rpg-danger: #d8897e;
+  --rpg-focus-ring: #f3cf7d;
+}
