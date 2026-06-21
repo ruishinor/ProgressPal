@@ -1,17 +1,27 @@
 import { startTransition, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import { StatusPill } from '@/components/ui/StatusPill';
 import { formatMinutes } from '@/features/course/model';
+import {
+  RpgButton,
+  RpgPanel,
+  RpgProgressBar,
+  RpgQuestRow,
+  RpgStatusPill,
+  type RpgStatusTone,
+} from '@/features/rpg/components';
 import { loadRpgModuleSummary } from '@/features/rpg/model/readModels';
-import type { RpgModuleSummary } from '@/features/rpg/model/types';
-import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import type {
+  RpgModuleSummary,
+  RpgQuestSummary,
+} from '@/features/rpg/model/types';
+import {
+  getRpgFocusPath,
+  getRpgResourcePath,
+  rpgMapPath,
+} from '@/lib/routing/rpgRoutePaths';
 
 type RpgModulePageStatus = 'error' | 'loading' | 'ready';
 
@@ -26,6 +36,57 @@ const initialState: RpgModulePageState = {
   status: 'loading',
   summary: null,
 };
+
+function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
+  const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
+    blocked: 'danger',
+    completed: 'success',
+    inProgress: 'progress',
+    notStarted: 'neutral',
+    optional: 'neutral',
+  };
+
+  return tones[statusVariant];
+}
+
+function getProgressTone(statusVariant: RpgModuleSummary['statusVariant']) {
+  if (statusVariant === 'blocked') {
+    return 'warning';
+  }
+
+  if (statusVariant === 'completed') {
+    return 'success';
+  }
+
+  return 'progress';
+}
+
+function getResourceActionLabel(quest: RpgQuestSummary) {
+  if (quest.statusVariant === 'completed') {
+    return 'Review resource';
+  }
+
+  if (quest.statusVariant === 'inProgress') {
+    return 'Resume resource';
+  }
+
+  return 'Open resource';
+}
+
+function RpgWeekLoadingState() {
+  return (
+    <section className="page-section rpg-week">
+      <div className="rpg-week__header">
+        <p className="rpg-week__eyebrow">RPG week</p>
+        <h1>RPG Week</h1>
+      </div>
+      <LoadingState
+        description="Building the RPG week from local progress."
+        title="Loading RPG week"
+      />
+    </section>
+  );
+}
 
 export function RpgModulePage() {
   const { unitId } = useParams();
@@ -107,35 +168,30 @@ export function RpgModulePage() {
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
       return (
-        <section className="page-section">
-          <PageHeader
-            actions={
-              <Link
-                className="button button--secondary button--md"
-                to={rpgMapPath}
-              >
-                Back to RPG map
-              </Link>
-            }
-            description="This read-only route uses the RPG module summary model."
-            eyebrow="RPG week"
-            title="RPG Week"
-          />
+        <section className="page-section rpg-week">
+          <div className="rpg-week__header">
+            <div>
+              <p className="rpg-week__eyebrow">RPG week</p>
+              <h1>RPG Week</h1>
+            </div>
+            <RpgButton href={rpgMapPath} variant="secondary">
+              Back to RPG map
+            </RpgButton>
+          </div>
           <ErrorState
             action={
               unitId !== undefined && unitId.trim().length > 0 ? (
-                <button
-                  className="button button--secondary button--md"
+                <RpgButton
                   onClick={() => {
                     startTransition(() => {
                       setState(initialState);
                     });
                     setReloadToken((currentToken) => currentToken + 1);
                   }}
-                  type="button"
+                  variant="secondary"
                 >
                   Try again
-                </button>
+                </RpgButton>
               ) : null
             }
             description={state.error ?? 'Unknown RPG week error.'}
@@ -145,112 +201,112 @@ export function RpgModulePage() {
       );
     }
 
-    return (
-      <section className="page-section">
-        <PageHeader
-          description="The app is reading the local RPG week summary."
-          eyebrow="RPG week"
-          title="RPG Week"
-        />
-        <LoadingState
-          description="Building the RPG week from local progress."
-          title="Loading RPG week"
-        />
-      </section>
-    );
+    return <RpgWeekLoadingState />;
   }
 
   const { summary } = state;
 
   return (
-    <section className="page-section">
-      <PageHeader
-        actions={
-          <div className="action-row">
-            <Link
-              className="button button--secondary button--md"
-              to={rpgMapPath}
+    <section className="page-section rpg-week">
+      <div className="rpg-week__header">
+        <div>
+          <p className="rpg-week__eyebrow">RPG week</p>
+          <h1>{summary.title}</h1>
+          <p className="rpg-week__lede">
+            {`${summary.typeLabel} - ${formatMinutes(
+              summary.estimatedMinutes,
+            )} planned from real local course data.`}
+          </p>
+        </div>
+        <div className="rpg-week__actions">
+          <RpgButton href={rpgMapPath} variant="secondary">
+            Back to RPG map
+          </RpgButton>
+          {summary.officialLink !== null ? (
+            <RpgButton
+              href={summary.officialLink.url}
+              rel="noopener noreferrer"
+              target="_blank"
+              variant="quiet"
             >
-              Back to RPG map
-            </Link>
-            {summary.officialLink !== null ? (
-              <a
-                className="button button--quiet button--md"
-                href={summary.officialLink.url}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {summary.officialLink.label}
-              </a>
-            ) : null}
-          </div>
-        }
-        description={`${summary.typeLabel} - ${formatMinutes(
-          summary.estimatedMinutes,
-        )} planned`}
-        eyebrow="RPG week"
-        meta={
-          <>
-            <StatusPill variant={summary.statusVariant}>
+              {summary.officialLink.label}
+            </RpgButton>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="rpg-week__grid">
+        <RpgPanel
+          className="rpg-week__progress-panel"
+          title="Module progress"
+          titleAs="h2"
+          variant="raised"
+        >
+          <div className="rpg-week__status-row">
+            <RpgStatusPill tone={getStatusTone(summary.statusVariant)}>
               {summary.statusLabel}
-            </StatusPill>
-            <Badge tone="accent">{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</Badge>
-          </>
-        }
-        title={summary.title}
-      />
-      <Card
-        description={`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required quests complete`}
-        title="Module completion"
-      >
-        <ProgressBar
-          helperText="Required quests only"
-          label="Module completion"
-          showValue={summary.requiredItemCount > 0}
-          tone={summary.statusVariant === 'blocked' ? 'warning' : 'accent'}
-          value={summary.completionPercent}
-        />
-      </Card>
-      <Card title="Quests and resources">
-        <ol className="course-item-list">
-          {summary.quests.map((quest) => (
-            <li
-              className="course-item-row"
-              data-testid={`rpg-resource-${quest.id}`}
-              key={quest.id}
-            >
-              <div className="course-item-row__copy">
-                <div className="course-item-row__title-row">
-                  <p className="course-item-row__title">{quest.title}</p>
-                  <Badge tone={quest.required ? 'accent' : 'neutral'}>
-                    {quest.required ? 'Required' : 'Optional'}
-                  </Badge>
-                </div>
-                <p className="course-item-row__eyebrow">
-                  {quest.typeLabel} - {formatMinutes(quest.estimatedMinutes)}
-                </p>
-                {quest.longFormProgress !== null &&
-                quest.longFormProgress.hasProgress ? (
-                  <p className="course-item-row__detail">
-                    {quest.longFormProgress.summaryLine}
-                  </p>
-                ) : null}
-              </div>
-              <div className="course-item-row__aside">
-                <StatusPill variant={quest.statusVariant}>
-                  {quest.statusLabel}
-                </StatusPill>
-                <Link
-                  className="button button--quiet button--md"
-                  to={getRpgResourcePath(quest.id)}
-                >
-                  Open resource
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </Card>
+            </RpgStatusPill>
+            <span>{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</span>
+          </div>
+          <RpgProgressBar
+            helperText="Required tasks only"
+            label={`${summary.title} progress`}
+            showValue={summary.requiredItemCount > 0}
+            tone={getProgressTone(summary.statusVariant)}
+            value={summary.completionPercent}
+          />
+        </RpgPanel>
+
+        <RpgPanel
+          className="rpg-week__task-panel"
+          description="Rows come from the current CS50x seed and local ProgressPal progress."
+          title="Tasks and resources"
+          titleAs="h2"
+        >
+          <ol className="rpg-week__task-list">
+            {summary.quests.map((quest) => (
+              <RpgQuestRow
+                action={
+                  <div className="rpg-week__task-actions">
+                    <RpgButton
+                      href={getRpgResourcePath(quest.id)}
+                      size="sm"
+                      variant="quiet"
+                    >
+                      {getResourceActionLabel(quest)}
+                    </RpgButton>
+                    <RpgButton
+                      href={getRpgFocusPath(quest.id)}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      Start focus session
+                    </RpgButton>
+                  </div>
+                }
+                data-testid={`rpg-resource-${quest.id}`}
+                key={quest.id}
+                meta={`${quest.typeLabel} - ${formatMinutes(
+                  quest.estimatedMinutes,
+                )}`}
+                requiredLabel={quest.required ? 'Required' : 'Optional'}
+                status={
+                  <RpgStatusPill tone={getStatusTone(quest.statusVariant)}>
+                    {quest.statusLabel}
+                  </RpgStatusPill>
+                }
+                summary={
+                  quest.longFormProgress !== null &&
+                  quest.longFormProgress.hasProgress
+                    ? quest.longFormProgress.summaryLine
+                    : undefined
+                }
+                title={quest.title}
+              />
+            ))}
+          </ol>
+        </RpgPanel>
+      </div>
     </section>
   );
 }

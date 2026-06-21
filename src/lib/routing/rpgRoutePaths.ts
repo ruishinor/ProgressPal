@@ -27,3 +27,7 @@ export function getRpgWeekPath(unitId: string) {
 export function getRpgResourcePath(itemId: string) {
   return rpgResourcePathPattern.replace(':itemId', itemId);
 }
+
+export function getRpgFocusPath(itemId: string) {
+  return `${rpgFocusPath}?itemId=${encodeURIComponent(itemId)}`;
+}

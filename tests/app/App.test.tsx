@@ -1636,6 +1636,11 @@ describe('RPG routes', () => {
       return;
     }
 
+    if (route.startsWith('/rpg/focus')) {
+      await screen.findByRole('heading', { name: 'Focus' });
+      return;
+    }
+
     const stubHeadings: Record<string, string> = {
       '/rpg/badges': 'Badges',
       '/rpg/focus': 'Focus',
@@ -1869,8 +1874,16 @@ describe('RPG routes', () => {
     }
   });
 
-  it('renders the RPG week shell', async () => {
-    await seedOnboardedLearner();
+  it('renders the RPG Week 4 detail slice from real task data', async () => {
+    const weekFourSeed = bundledCourseSeed.units.find(
+      (unit) => unit.id === 'week-4',
+    );
+
+    if (weekFourSeed === undefined) {
+      throw new Error('Week 4 seed unit is required for RPG week tests.');
+    }
+
+    await seedOnboardedLearnerWithRpgHistory();
 
     await renderAppAtRoute('/rpg/week/week-4');
 
@@ -1878,11 +1891,40 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Week 4: Memory' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId('rpg-resource-week-4-lecture'),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('link', { name: 'Back to RPG map' }),
     ).toHaveAttribute('href', '/rpg/map');
+    expect(screen.getByText('In progress')).toBeInTheDocument();
+    expect(screen.getByText('0 of 2 required complete')).toBeInTheDocument();
+
+    for (const item of weekFourSeed.items) {
+      const row = screen.getByTestId(`rpg-resource-${item.id}`);
+      const resourceLinkName =
+        item.id === 'week-4-lecture' ? 'Resume resource' : 'Open resource';
+
+      expect(within(row).getByText(item.title)).toBeInTheDocument();
+      if (item.required) {
+        expect(within(row).getByText('Required')).toBeInTheDocument();
+      } else {
+        expect(within(row).getAllByText('Optional').length).toBeGreaterThan(0);
+      }
+      expect(
+        within(row).getByRole('link', { name: resourceLinkName }),
+      ).toHaveAttribute('href', `/rpg/resource/${item.id}`);
+      expect(
+        within(row).getByRole('link', { name: 'Start focus session' }),
+      ).toHaveAttribute('href', `/rpg/focus?itemId=${item.id}`);
+    }
+
+    expect(
+      within(screen.getByTestId('rpg-resource-week-4-lecture')).getByText(
+        'Started',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId('rpg-resource-week-4-problem-set')).getByText(
+        'Not started',
+      ),
+    ).toBeInTheDocument();
     expectRpgShellWithBottomNav('Map');
   });
 
@@ -1984,6 +2026,7 @@ describe('RPG routes', () => {
       '/rpg/week/week-4',
       '/rpg/resource/week-0-lecture',
       '/rpg/focus',
+      '/rpg/focus?itemId=week-4-lecture',
       '/rpg/hero',
       '/rpg/badges',
       '/rpg/log',
