@@ -8,6 +8,120 @@
   color: var(--rpg-text);
 }
 
+.rpg-shell .rpg-hub {
+  color: var(--rpg-text);
+}
+
+.rpg-shell .rpg-hub__header {
+  align-items: start;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
+.rpg-shell .rpg-hub__header h1 {
+  color: var(--rpg-text);
+  margin: 0;
+}
+
+.rpg-shell .rpg-hub__eyebrow,
+.rpg-shell .rpg-hub__subheading {
+  color: var(--rpg-accent-strong);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.rpg-shell .rpg-hub__lede,
+.rpg-shell .rpg-hub__note {
+  color: var(--rpg-text-muted);
+  margin: 0;
+}
+
+.rpg-shell .rpg-hub__actions,
+.rpg-shell .rpg-hub__identity-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rpg-shell .rpg-hub__grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rpg-shell .rpg-hub__quest-panel,
+.rpg-shell .rpg-hub__identity {
+  grid-column: span 2;
+}
+
+.rpg-shell .rpg-hub__details {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+
+.rpg-shell .rpg-hub__details--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rpg-shell .rpg-hub__details div {
+  border-left: 2px solid var(--rpg-border);
+  display: grid;
+  gap: var(--space-1);
+  padding-left: var(--space-3);
+}
+
+.rpg-shell .rpg-hub__details dt {
+  color: var(--rpg-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.rpg-shell .rpg-hub__details dd {
+  color: var(--rpg-text);
+  font-weight: 700;
+  margin: 0;
+}
+
+.rpg-shell .rpg-hub__quest-list,
+.rpg-shell .rpg-hub__activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rpg-shell .rpg-hub__activity-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.rpg-shell .rpg-hub__activity-list li {
+  border-bottom: 1px solid var(--rpg-border);
+  display: grid;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+}
+
+.rpg-shell .rpg-hub__activity-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rpg-shell .rpg-hub__activity-list span:first-child {
+  color: var(--rpg-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.rpg-shell .rpg-hub__activity-list span:last-child {
+  color: var(--rpg-text);
+}
+
 .rpg-shell .rpg-panel {
   display: grid;
   gap: var(--space-4);
@@ -278,6 +392,21 @@
 }
 
 @media (max-width: 720px) {
+  .rpg-shell .rpg-hub__header {
+    display: grid;
+  }
+
+  .rpg-shell .rpg-hub__grid,
+  .rpg-shell .rpg-hub__details,
+  .rpg-shell .rpg-hub__details--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .rpg-shell .rpg-hub__quest-panel,
+  .rpg-shell .rpg-hub__identity {
+    grid-column: auto;
+  }
+
   .rpg-shell .rpg-progress-bar__header,
   .rpg-shell .rpg-quest-row {
     align-items: start;

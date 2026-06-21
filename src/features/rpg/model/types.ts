@@ -13,6 +13,30 @@ export type RpgCourseProgressSummary = {
   requiredItemCount: number;
 };
 
+export type RpgHubIdentity = {
+  classLabel: 'Generalist';
+  guildLabel: 'Code Knights';
+  pathLabel: 'CS Foundations';
+  rankLabel: string;
+};
+
+export type RpgHubRecentActivity = {
+  date: string;
+  id: string;
+  label: string;
+  timestamp: string;
+};
+
+export type RpgHubWeeklyProgress = {
+  completedRequiredItemCount: number;
+  savedProgressCount: number;
+  sessionCount: number;
+  totalMinutes: number;
+  weekEndDate: string;
+  weekStartDate: string;
+  xpEarned: number;
+};
+
 export type RpgQuestSummary = {
   estimatedMinutes: number;
   id: string;
@@ -47,11 +71,15 @@ export type RpgModuleSummary = {
 export type RpgHubSummary = {
   continueQuest: RpgQuestSummary | null;
   courseProgress: RpgCourseProgressSummary;
+  currentModule: RpgModuleSummary | null;
+  identity: RpgHubIdentity;
   learnerName: string;
+  recentActivity: RpgHubRecentActivity[];
   studySummary: {
     sessionCount: number;
     totalMinutes: number;
   };
+  weeklyProgress: RpgHubWeeklyProgress;
   weekFour: RpgModuleSummary | null;
   xpSummary: {
     level: number;

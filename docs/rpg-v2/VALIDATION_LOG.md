@@ -420,8 +420,8 @@ Use for read-only routes.
 | Module | Route/screen                | Pre-state method                                 | Post-state method                                       | Mutation expected |  Result | Notes                                                                                                                                                                          |
 | ------ | --------------------------- | ------------------------------------------------ | ------------------------------------------------------- | ----------------: | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | RPG-02 | `/rpg` shell routes         | `getDatabaseSnapshot()` before route render loop | `getDatabaseSnapshot()` after each passive route render |                no |    pass | `tests/app/App.test.tsx` covers `/rpg`, `/rpg/map`, `/rpg/week/week-4`, `/rpg/resource/week-0-lecture`, `/rpg/focus`, `/rpg/hero`, `/rpg/badges`, `/rpg/log`, `/rpg/settings`. |
-| RPG-03 | `/rpg` Hub                  | not-run                                          | not-run                                                 |                no | not-run | Future full hub implementation module.                                                                                                                                         |
-| RPG-04 | `/rpg/map` Campaign Map     | not-run                                          | not-run                                                 |                no | not-run | Future full map implementation module.                                                                                                                                         |
+| RPG-04 | `/rpg` Quest Hub            | `getDatabaseSnapshot()` before route render      | `getDatabaseSnapshot()` after passive route render      |                no |    pass | `tests/app/App.test.tsx` covers Hub render from real local data, new-user empty state, and passive route no-mutation.                                                          |
+| RPG-05 | `/rpg/map` Campaign Map     | not-run                                          | not-run                                                 |                no | not-run | Future full map implementation module.                                                                                                                                         |
 | RPG-09 | `/rpg/badges` Badge Gallery | not-run                                          | not-run                                                 |                no | not-run |                                                                                                                                                                                |
 | RPG-10 | `/rpg/log` Journey Log      | not-run                                          | not-run                                                 |                no | not-run |                                                                                                                                                                                |
 
@@ -473,17 +473,18 @@ offline cold boot unchanged
 
 ## 11. RPG route validation evidence
 
-| Module | Route                   | Expected status                    | Result | Notes                                                                                        |
-| ------ | ----------------------- | ---------------------------------- | -----: | -------------------------------------------------------------------------------------------- |
-| RPG-02 | `/rpg`                  | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                  |
-| RPG-02 | `/rpg/map`              | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                  |
-| RPG-02 | `/rpg/week/:unitId`     | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/week/week-4` and not-found state.             |
-| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/resource/week-0-lecture` and not-found state. |
-| RPG-02 | `/rpg/focus`            | shell renders                      |   pass | Stub shell route only.                                                                       |
-| RPG-02 | `/rpg/hero`             | shell renders                      |   pass | Stub shell route only.                                                                       |
-| RPG-02 | `/rpg/badges`           | shell renders                      |   pass | Stub shell route only.                                                                       |
-| RPG-02 | `/rpg/log`              | shell renders                      |   pass | Stub shell route only.                                                                       |
-| RPG-02 | `/rpg/settings`         | shell renders                      |   pass | Stub shell route only.                                                                       |
+| Module | Route                   | Expected status                    | Result | Notes                                                                                                                                                                                                                       |
+| ------ | ----------------------- | ---------------------------------- | -----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RPG-02 | `/rpg`                  | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                                                                                                                                                 |
+| RPG-02 | `/rpg/map`              | shell renders                      |   pass | Covered by `tests/app/App.test.tsx`; renders in `RpgShell` with bottom nav.                                                                                                                                                 |
+| RPG-02 | `/rpg/week/:unitId`     | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/week/week-4` and not-found state.                                                                                                                                            |
+| RPG-02 | `/rpg/resource/:itemId` | shell renders or valid empty state |   pass | Covered by `tests/app/App.test.tsx` with `/rpg/resource/week-0-lecture` and not-found state.                                                                                                                                |
+| RPG-02 | `/rpg/focus`            | shell renders                      |   pass | Stub shell route only.                                                                                                                                                                                                      |
+| RPG-02 | `/rpg/hero`             | shell renders                      |   pass | Stub shell route only.                                                                                                                                                                                                      |
+| RPG-02 | `/rpg/badges`           | shell renders                      |   pass | Stub shell route only.                                                                                                                                                                                                      |
+| RPG-02 | `/rpg/log`              | shell renders                      |   pass | Stub shell route only.                                                                                                                                                                                                      |
+| RPG-02 | `/rpg/settings`         | shell renders                      |   pass | Stub shell route only.                                                                                                                                                                                                      |
+| RPG-04 | `/rpg`                  | real Quest Hub renders             |   pass | Covered by `tests/app/App.test.tsx`; renders learner identity, XP/level, rank/path/guild, current module, recommended item, weekly progress, recent activity, empty state, real continue route, and forbidden-copy absence. |
 
 ## 12. Week-4 vertical slice gate
 
@@ -541,7 +542,7 @@ Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 | RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                  |
 | RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |                                  |
+| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |                                  |
 | RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |                                  |
 | RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` | not-run |                                  |
@@ -743,3 +744,44 @@ Notes:
 - No schema/storage changes.
 - No runtime network behavior.
 - No direct Dexie/database access from RPG UI components.
+
+## RPG-04 Quest Hub validation
+
+Branch: `rpg/04-rpg-hub`
+
+Summary:
+
+- Replaced the `/rpg` stub with a real Quest Hub.
+- Extended the Hub read model with derived identity, current module, weekly progress, and recent activity from existing local data.
+- Added scoped `.rpg-hub*` layout styles under `.rpg-shell`.
+- Added tests for real-data rendering, useful empty state, real continue route, passive no-mutation, and forbidden fake RPG copy.
+
+Validation:
+
+- `npm run test -- tests/features/rpg/readModels.test.ts tests/app/App.test.tsx`: pass; 2 files, 69 tests.
+- `npm run validate`: pass.
+  - `npm run lint`: pass.
+  - `npm run format:check`: pass.
+  - `npm run typecheck`: pass.
+  - `npm run build`: pass.
+  - `npm run test`: pass; 37 files, 286 tests.
+  - `npm run test:e2e`: pass; 24 tests.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: pass; 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diff remained readable.
+- Initial targeted Vitest run could not write Vite temp config under `node_modules/.vite-temp`. Classification: environment/sandbox warning. Reran with elevated filesystem access and passed.
+- First targeted route test found a fixture bug: the test session omitted `startedAt`. Classification: test fixture bug. Fixed the fixture and reran targeted tests.
+- Second targeted route test showed the recent-activity cap hid the saved study session. Classification: implementation/test expectation mismatch. Widened the Hub recent-activity cap to 5 and reran targeted tests.
+- Final `npm run validate` initially failed at `format:check` after unrelated line-ending-only touches were restored. Classification: validation blocker until formatter reconciliation. Ran Prettier on the exact RPG-03 primitive/docs files flagged by the formatter; `git diff --stat` showed no substantive changes for those files.
+- Git diff commands emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. `git diff --check` remains required before commit.
+
+Notes:
+
+- No new dependencies.
+- No new assets.
+- No schema/storage changes.
+- No runtime network behavior.
+- No direct database table imports in RPG UI components.
