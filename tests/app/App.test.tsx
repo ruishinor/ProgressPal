@@ -1534,6 +1534,43 @@ describe('RPG routes', () => {
     await saveLearnerProfile(learnerProfileInput, { completeOnboarding: true });
   }
 
+  async function seedOnboardedLearnerWithRpgHistory() {
+    const now = new Date();
+    const startedAt = new Date(now.getTime() - 35 * 60_000).toISOString();
+    const endedAt = new Date(now.getTime() - 5 * 60_000).toISOString();
+
+    await seedOnboardedLearner();
+    await upsertProgressAndAwardXp({
+      completedAt: now.toISOString(),
+      confidence: 3,
+      evidenceText: undefined,
+      evidenceType: undefined,
+      itemId: 'week-0-lecture',
+      notes: 'Completed from the RPG route fixture.',
+      startedAt,
+      status: 'completed',
+    });
+    await upsertProgress({
+      completedAt: undefined,
+      confidence: 2,
+      evidenceText: undefined,
+      evidenceType: undefined,
+      itemId: 'week-4-lecture',
+      notes: 'Current RPG hub fixture.',
+      startedAt,
+      status: 'started',
+    });
+    await addStudySessionAndAwardXp({
+      durationMinutes: 30,
+      endedAt,
+      itemId: 'week-4-lecture',
+      mode: 'watching',
+      notes: 'Hub fixture session.',
+      startedAt,
+      unitId: 'week-4',
+    });
+  }
+
   async function waitForRpgRouteReady(route: string) {
     if (route === '/rpg') {
       await screen.findByRole('link', { name: 'Open RPG map' });
@@ -1613,6 +1650,70 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(mapLink).toHaveAttribute('href', '/rpg/map');
     expectRpgShellWithBottomNav('Hub');
+  });
+
+  it('renders the RPG quest hub from real local data', async () => {
+    await seedOnboardedLearnerWithRpgHistory();
+
+    await renderAppAtRoute('/rpg');
+
+    const continueLink = await screen.findByRole('link', {
+      name: 'Continue current quest',
+    });
+
+    expect(continueLink).toHaveAttribute(
+      'href',
+      '/rpg/resource/week-4-lecture',
+    );
+    expect(screen.getByText("Alex's status")).toBeInTheDocument();
+    expect(screen.getByText('Rank:')).toBeInTheDocument();
+    expect(screen.getByText('Initiate')).toBeInTheDocument();
+    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
+    expect(screen.getByText('Generalist')).toBeInTheDocument();
+    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
+    expect(screen.getByText('Week 4: Memory')).toBeInTheDocument();
+    expect(screen.getByText('Lecture 4: Memory')).toBeInTheDocument();
+    expect(screen.getByText("This week's local progress")).toBeInTheDocument();
+    expect(screen.getByText('Recent saved activity')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Saved study session - Lecture 4: Memory/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Saved progress - Lecture 4: Memory/),
+    ).toBeInTheDocument();
+
+    const forbiddenCopy = [
+      /daily reward/i,
+      /energy/i,
+      /streak/i,
+      /locked adventure/i,
+      /official cs50 completion/i,
+      /customize guild/i,
+      /choose your path/i,
+      /CS50 Knights/i,
+    ];
+
+    for (const pattern of forbiddenCopy) {
+      expect(screen.queryByText(pattern)).not.toBeInTheDocument();
+    }
+  });
+
+  it('renders a useful empty RPG hub state for a new local user', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+
+    expect(
+      await screen.findByRole('heading', { name: 'No saved RPG activity yet' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'No recent saved activity yet. Saved progress, study sessions, and XP events will appear here after you record them locally.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Continue current quest' }),
+    ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   });
 
   it('renders the RPG map shell', async () => {

@@ -40,6 +40,23 @@ describe('RPG read models', () => {
 
     await upsertProgress(
       {
+        completedAt: '2026-06-21T08:30:00.000Z',
+        confidence: 3,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-0-lecture',
+        notes: 'Completed before the current memory work.',
+        startedAt: '2026-06-21T08:00:00.000Z',
+        status: 'completed',
+      },
+      {
+        db: testDatabase.db,
+        now: createClock('2026-06-21T08:35:00.000Z'),
+      },
+    );
+
+    await upsertProgress(
+      {
         completedAt: undefined,
         confidence: 2,
         evidenceText: undefined,
@@ -104,15 +121,45 @@ describe('RPG read models', () => {
   it('loads a hub summary from real progress, sessions, XP, and course data without mutation', async () => {
     const db = await createSeededRpgDatabase();
 
-    const hub = await expectReadOnly(() => loadRpgHubSummary({ db }));
+    const hub = await expectReadOnly(() =>
+      loadRpgHubSummary({
+        db,
+        now: createClock('2026-06-21T12:00:00.000Z'),
+      }),
+    );
 
     expect(hub.learnerName).toBe('Learner');
+    expect(hub.identity).toEqual({
+      classLabel: 'Generalist',
+      guildLabel: 'Code Knights',
+      pathLabel: 'CS Foundations',
+      rankLabel: 'Initiate',
+    });
     expect(hub.xpSummary.totalXp).toBe(10);
     expect(hub.xpSummary.level).toBe(1);
+    expect(hub.currentModule).toMatchObject({
+      id: RPG_WEEK_FOUR_UNIT_ID,
+      title: 'Week 4: Memory',
+    });
     expect(hub.studySummary).toEqual({
       sessionCount: 1,
       totalMinutes: 35,
     });
+    expect(hub.weeklyProgress).toEqual({
+      completedRequiredItemCount: 1,
+      savedProgressCount: 2,
+      sessionCount: 1,
+      totalMinutes: 35,
+      weekEndDate: '2026-06-21',
+      weekStartDate: '2026-06-15',
+      xpEarned: 10,
+    });
+    expect(hub.recentActivity.map((activity) => activity.label)).toEqual([
+      'Earned 10 XP - Fixture XP from an existing source event.',
+      'Saved progress - Lecture 4: Memory (started)',
+      'Saved study session - Lecture 4: Memory',
+      'Saved progress - Lecture 0: Scratch (completed)',
+    ]);
     expect(hub.courseProgress.requiredItemCount).toBeGreaterThan(0);
     expect(hub.continueQuest).toMatchObject({
       id: 'week-4-lecture',
