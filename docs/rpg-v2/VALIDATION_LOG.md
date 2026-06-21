@@ -540,7 +540,7 @@ Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 | RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                  |
 | RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                  |
 | RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` | not-run |                                  |
+| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` | not-run |                                  |
 | RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` | not-run |                                  |
 | RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` | not-run |                                  |
@@ -698,3 +698,48 @@ Notes:
 
 - The public image-path version failed offline navigation with `net::ERR_INTERNET_DISCONNECTED` for `/assets/character-profile.png`.
 - Final implementation avoids that runtime request by importing `CHARACTER_PROFILE_ASSET` from `characterProfileAsset.ts`.
+
+## RPG-03 visual primitives validation
+
+Branch: `rpg/03-rpg-visual-primitives`
+
+Summary:
+
+- Added `.rpg-shell`-scoped RPG visual tokens.
+- Added scoped RPG primitive CSS.
+- Added presentation-only RPG primitives for the near-term Week-4 slice.
+- Added tests for semantic rendering, progress ARIA, DOM text, no image dependency, scoped token definitions, and no CSS remote/image asset references.
+
+Validation:
+
+- `npm run lint`: pass.
+- `npm run typecheck`: pass after elevated rerun for TypeScript tsbuildinfo write access.
+- `npm run test -- tests/features/rpg/components.test.tsx`: pass; 1 file, 7 tests.
+- `npm run test -- tests/features/rpg/components.test.tsx tests/app/App.test.tsx tests/architecture/routeDefinitions.test.ts`: pass; 3 files, 75 tests.
+- `npm run format:check`: pass after formatting Prettier-flagged committed RPG v2 files.
+- `git diff --check`: pass; emitted LF-to-CRLF environment warnings only.
+- `npm run validate`: pass.
+  - `npm run lint`: pass.
+  - `npm run format:check`: pass.
+  - `npm run typecheck`: pass.
+  - `npm run build`: pass.
+  - `npm run test`: pass; 37 files, 284 tests.
+  - `npm run test:e2e`: pass; 24 tests.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: pass; 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. It does not affect repo-local diff/status readability.
+- Initial `npm run typecheck` could not write `node_modules/.tmp/tsconfig.app.tsbuildinfo` in sandbox. Classification: environment/sandbox warning. Reran with elevated filesystem access and passed.
+- Initial targeted Vitest run could not write Vite temp config under `node_modules/.vite-temp` in sandbox. Classification: environment/sandbox warning. Reran with elevated filesystem access and passed.
+- First `npm run format:check` found existing Prettier failures in committed RPG v2 docs/route-shell files. Classification: validation blocker until reconciled. Formatted the exact flagged files; subsequent `npm run format:check` passed.
+- Final `git diff --check` emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. The command exited 0 with no whitespace errors.
+
+Notes:
+
+- No new dependencies.
+- No new assets.
+- No schema/storage changes.
+- No runtime network behavior.
+- No direct Dexie/database access from RPG UI components.
