@@ -91,6 +91,7 @@ export type RpgHubSummary = {
 export type RpgCourseMapSummary = {
   completedRequiredItemCount: number;
   completionPercent: number;
+  currentModule: RpgModuleSummary | null;
   modules: RpgModuleSummary[];
   requiredItemCount: number;
   unitCount: number;

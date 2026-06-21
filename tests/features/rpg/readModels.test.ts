@@ -189,6 +189,10 @@ describe('RPG read models', () => {
       id: RPG_WEEK_FOUR_UNIT_ID,
       title: 'Week 4: Memory',
     });
+    expect(courseMap.currentModule).toMatchObject({
+      id: RPG_WEEK_FOUR_UNIT_ID,
+      title: 'Week 4: Memory',
+    });
     expect(weekFour).toMatchObject({
       completionPercent: 0,
       id: RPG_WEEK_FOUR_UNIT_ID,

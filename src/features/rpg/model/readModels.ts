@@ -306,10 +306,12 @@ export function buildRpgCourseMapSummary(
 ): RpgCourseMapSummary {
   const { courseMap } = buildCourseMapContext(snapshot);
   const modules = courseMap.units.map((unit) => buildModuleSummary(unit));
+  const continueQuest = selectContinueQuest(modules);
 
   return {
     completedRequiredItemCount: courseMap.completedRequiredItemCount,
     completionPercent: courseMap.completionPercent,
+    currentModule: selectCurrentModule(modules, continueQuest),
     modules,
     requiredItemCount: courseMap.requiredItemCount,
     unitCount: courseMap.unitCount,
