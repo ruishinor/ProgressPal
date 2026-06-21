@@ -9,6 +9,18 @@ import { ContentDetailPage, CoursePage } from '@/features/course';
 import { DashboardPage } from '@/features/dashboard';
 import { InsightsPage } from '@/features/insights';
 import { OnboardingPage } from '@/features/profile';
+import {
+  RpgBadgesPage,
+  RpgFocusPage,
+  RpgHeroPage,
+  RpgHomePage,
+  RpgLogPage,
+  RpgMapPage,
+  RpgModulePage,
+  RpgResourcePage,
+  RpgSettingsPage,
+  RpgShell,
+} from '@/features/rpg';
 import { SessionsPage } from '@/features/sessions';
 import { SettingsPage } from '@/features/settings';
 
@@ -16,6 +28,15 @@ const onboardingRoute = getRouteDefinition('onboarding');
 const dashboardRoute = getRouteDefinition('dashboard');
 const courseRoute = getRouteDefinition('course');
 const courseDetailRoute = getRouteDefinition('courseDetail');
+const rpgRoute = getRouteDefinition('rpg');
+const rpgMapRoute = getRouteDefinition('rpgMap');
+const rpgWeekRoute = getRouteDefinition('rpgWeek');
+const rpgResourceRoute = getRouteDefinition('rpgResource');
+const rpgFocusRoute = getRouteDefinition('rpgFocus');
+const rpgHeroRoute = getRouteDefinition('rpgHero');
+const rpgBadgesRoute = getRouteDefinition('rpgBadges');
+const rpgLogRoute = getRouteDefinition('rpgLog');
+const rpgSettingsRoute = getRouteDefinition('rpgSettings');
 const sessionsRoute = getRouteDefinition('sessions');
 const achievementsRoute = getRouteDefinition('achievements');
 const insightsRoute = getRouteDefinition('insights');
@@ -47,6 +68,48 @@ export const router = createBrowserRouter([
       {
         path: courseDetailRoute.segment,
         element: <ContentDetailPage />,
+      },
+      {
+        path: rpgRoute.segment,
+        element: <RpgShell />,
+        children: [
+          {
+            index: true,
+            element: <RpgHomePage />,
+          },
+          {
+            path: rpgMapRoute.segment,
+            element: <RpgMapPage />,
+          },
+          {
+            path: rpgWeekRoute.segment,
+            element: <RpgModulePage />,
+          },
+          {
+            path: rpgResourceRoute.segment,
+            element: <RpgResourcePage />,
+          },
+          {
+            path: rpgFocusRoute.segment,
+            element: <RpgFocusPage />,
+          },
+          {
+            path: rpgHeroRoute.segment,
+            element: <RpgHeroPage />,
+          },
+          {
+            path: rpgBadgesRoute.segment,
+            element: <RpgBadgesPage />,
+          },
+          {
+            path: rpgLogRoute.segment,
+            element: <RpgLogPage />,
+          },
+          {
+            path: rpgSettingsRoute.segment,
+            element: <RpgSettingsPage />,
+          },
+        ],
       },
       {
         path: sessionsRoute.segment,

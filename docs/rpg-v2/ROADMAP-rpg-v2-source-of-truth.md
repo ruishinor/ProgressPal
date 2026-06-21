@@ -100,6 +100,7 @@ Each module handoff must include a Scope Discipline Check:
 ```text
 Scope Discipline Check
 - Intended module:
+- Work mode: Acceptance audit only / Corrective patch / Next-module implementation:
 - Files changed:
 - Why each changed file was necessary:
 - What was deliberately not added:
@@ -108,6 +109,10 @@ Scope Discipline Check
 - New storage/schema: none / decision ID:
 - Runtime network behavior changed: no / decision ID:
 - Classic route behavior changed: no / explain and cite decision:
+- Source-of-truth reconciliation: no conflicts / list resolved conflicts:
+- Warnings and anomalies: none / list classifications:
+- Validation cadence used: normal / corrective / major gate:
+- Commit status: committed / uncommitted local work:
 - Any deferred tempting work:
 ```
 
@@ -133,6 +138,54 @@ When documents disagree, follow this order:
 The visual mockup is a direction reference, not a literal specification.
 
 The categorized visual asset library is a candidate source library, not app-ready production assets. No asset from that library is considered approved until it has been renamed, optimized, reviewed, recorded in `ASSETS.md`, and intentionally placed under the RPG asset folder.
+
+---
+
+### 2.1 Agent work modes and process gates
+
+Before any implementation or review, the agent must state one work mode.
+
+```text
+Mode A — Acceptance audit only
+No code changes. Compare current repo state against the roadmap, decisions, validation log, migration contract, risk register, current code/tests, and relevant handoff.
+
+Mode B — Corrective patch
+Fix only acceptance gaps in the current module. Do not start the next module. Do not polish broadly. Do not perform unrelated cleanup.
+
+Mode C — Next-module implementation
+Start only after the previous module is committed, the handoff evidence is committed, required validation is clean, source-of-truth inconsistencies are reconciled or explicitly accepted, and no blocker remains.
+```
+
+Mode rules:
+
+- Mode A may recommend changes but must not edit files.
+- Mode B may edit only files required to close the current acceptance gap.
+- Mode C must cite the current module acceptance criteria before coding.
+- A module may be `implemented locally` or `ready to commit` before commit, but it is not complete until the implementation and evidence are committed together.
+- Chat claims are not durable evidence. Repo files, tests, validation logs, risk updates, and commits are evidence.
+
+Before any commit, complete this reconciliation check:
+
+```text
+Source-of-truth reconciliation:
+- Roadmap conflicts found: none / list
+- Decision-log conflicts found: none / list
+- Validation-log stale entries found: none / list
+- Handoff inconsistencies found: none / list
+- Risk-register updates needed: none / list
+- Any unresolved inconsistency before commit: none / explicitly accepted by project owner
+```
+
+Warnings must be classified, not ignored:
+
+```text
+Warnings and anomalies:
+- Command:
+- Warning:
+- Classification: code blocker / environment warning / harmless but noted
+- Action taken:
+- Does it affect clean validation claim: yes/no and why
+```
 
 ---
 
@@ -1295,7 +1348,29 @@ npm run audit
 
 If the repo has a combined script such as `npm run validate`, use it only if it runs all required checks above.
 
-### 17.2 Baseline rule
+### 17.2 Proportional validation cadence
+
+Do not use three full validation passes as the default for every module. Validation cadence must match the gate type and the risk profile.
+
+```text
+Normal module:
+- targeted tests during development;
+- one clean full `npm run validate` after final changes.
+
+Corrective patch after a failed or partial module:
+- targeted tests for the corrected gap;
+- one clean full `npm run validate` after final changes;
+- optionally two additional full validation passes only if the prior failure was flaky, environment-sensitive, or repeatedly reproduced.
+
+Major gates:
+- RPG-00 baseline: three consecutive clean validation passes if the environment supports them.
+- RPG-09 Week-4 vertical slice: three consecutive clean validation passes if the environment supports them.
+- RPG-15 release candidate: three consecutive clean validation passes if the environment supports them.
+```
+
+A validation pass applies only to the file state that existed when it ran. If files change after validation, rerun the required cadence for the final state.
+
+### 17.3 Baseline rule
 
 RPG-00 must not change runtime code or packages.
 
@@ -1309,21 +1384,51 @@ If baseline validation fails and fixing it requires runtime/package changes, sto
 
 Do not hide baseline problems inside RPG modules.
 
-### 17.3 Normal module completion rule
+### 17.4 Normal module completion rule
 
 A normal implementation module is not complete until:
 
 - module-specific acceptance criteria pass;
-- full validation passes once cleanly;
+- targeted tests for changed behavior have passed during development;
+- full validation passes once cleanly after final changes;
 - no new warning is ignored;
+- warnings and anomalies are classified;
+- source-of-truth reconciliation is complete;
 - any warning/blocker is documented and fixed or formally deferred;
 - git diff contains only module-relevant changes;
 - the module handoff includes a Scope Discipline Check;
 - every changed file is justified as necessary for the module;
 - unrelated improvements are absent or explicitly reverted;
+- implementation and evidence are committed together;
+- working tree is clean except expected branch-ahead state;
 - commit message matches the module.
 
-### 17.4 High-confidence gates
+Uncommitted work may be described as `implemented locally`, `ready for review`, or `ready to commit`. It must not be described as complete.
+
+### 17.5 Corrective patch rule
+
+A corrective patch after a failed, partial, or over-scoped module must stay in Mode B.
+
+It requires:
+
+- targeted tests for the corrected acceptance gap;
+- one clean full validation pass after final changes;
+- updated module handoff explaining the correction;
+- updated validation log if evidence changed;
+- updated risk register if risk changed;
+- source-of-truth reconciliation before commit.
+
+Run two additional full validation passes only when there is a concrete reason:
+
+- prior failure was flaky;
+- prior failure was environment-sensitive;
+- prior failure was repeatedly reproduced;
+- project owner explicitly requests extra confirmation;
+- the patch is being used to close a major gate.
+
+Do not use repeated validation to compensate for unclear scope, ignored warnings, or uncommitted work.
+
+### 17.6 High-confidence gates
 
 These gates require extra validation confidence:
 
@@ -1340,13 +1445,13 @@ RPG-15 release candidate:
 
 If the environment prevents repeated validation, record the exact reason in `VALIDATION_LOG.md` and do not falsely claim the gate was completed.
 
-### 17.5 Flaky test rule
+### 17.7 Flaky test rule
 
 If a test fails once and passes once, do not ignore it. Find the cause.
 
 Flakiness is a defect unless there is a documented external reason.
 
-### 17.6 Audit fallback rule
+### 17.8 Audit fallback rule
 
 If `npm run audit` cannot run because the environment has no network:
 
@@ -1360,7 +1465,7 @@ If audit reports moderate/high/critical:
 - classify whether production or dev/test-only;
 - fix or document accepted deferral.
 
-### 17.7 IndexedDB snapshot rule
+### 17.9 IndexedDB snapshot rule
 
 Because RPG v2 shares the same IndexedDB as v1, read-only route safety must be proven.
 
@@ -1385,7 +1490,7 @@ Read-only screens include at minimum:
 
 Any read-only route that changes data fails the module.
 
-### 17.8 Classic visual regression rule
+### 17.10 Classic visual regression rule
 
 Classic route regression must be concrete, not “looks fine.”
 
@@ -1418,19 +1523,23 @@ Pass standard:
 - no visual breakage introduced by RPG CSS;
 - no RPG styling leaking into classic routes.
 
-### 17.9 Anti-overbuild validation rule
+### 17.11 Anti-overbuild validation rule
 
 At the end of every module, before validation is considered complete, the implementer must answer:
 
 ```text
-1. Did this module implement only the current module's accepted tasks?
-2. Did any file change outside the module's expected area? If yes, why was it required?
-3. Did this module add a dependency? If yes, where is the decision record?
-4. Did this module add an asset? If yes, where is the ASSETS.md ledger entry?
-5. Did this module add storage, schema, app metadata, or preferences? If yes, where is the compatibility decision?
-6. Did this module alter classic route behavior? If yes, where is the accepted decision?
-7. Did this module introduce runtime network behavior? If yes, it is a v2 blocker unless already approved by decision record.
-8. Is there any "nice to have" work hidden in the diff? If yes, remove it or split it into a future proposal.
+1. What work mode was used: acceptance audit, corrective patch, or next-module implementation?
+2. Did this module implement only the current module's accepted tasks?
+3. Did any file change outside the module's expected area? If yes, why was it required?
+4. Did this module add a dependency? If yes, where is the decision record?
+5. Did this module add an asset? If yes, where is the ASSETS.md ledger entry?
+6. Did this module add storage, schema, app metadata, or preferences? If yes, where is the compatibility decision?
+7. Did this module alter classic route behavior? If yes, where is the accepted decision?
+8. Did this module introduce runtime network behavior? If yes, it is a v2 blocker unless already approved by decision record.
+9. Were roadmap/decision/validation/handoff inconsistencies found and reconciled?
+10. Were warnings or anomalies emitted, and how were they classified?
+11. Is the implementation committed, or only implemented locally?
+12. Is there any "nice to have" work hidden in the diff? If yes, remove it or split it into a future proposal.
 ```
 
 The answer must be recorded in the module handoff.
@@ -1452,22 +1561,33 @@ Starter table:
 ```markdown
 # RPG v2 Risk Register
 
-| ID    | Risk                                               | Trigger                                                                                          | Impact                                                               | Mitigation                                                                        | Owner/module  | Status           |
-| ----- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------- | ---------------- |
-| R-001 | Existing IndexedDB data is corrupted by RPG writes | RPG layer bypasses existing domain commands                                                      | Severe user data loss                                                | No direct DB access; tests for read-only screens; backup before release           | RPG-01 onward | Open             |
-| R-002 | Classic UI breaks while adding RPG routes          | Shared router/styles accidentally affect classic routes                                          | v1 fallback becomes unreliable                                       | Classic route regression tests and manual visual pass                             | RPG-02 onward | Open             |
-| R-003 | RPG assets bloat bundle                            | Too many large images added eagerly                                                              | Slow load, poor offline behavior                                     | Asset budget; optimize; route-load; asset ledger                                  | RPG-14        | Open             |
-| R-004 | CS50/Harvard branding misuse                       | App uses official-looking names, badges, or marks                                                | Legal/trust risk                                                     | D-0048; asset review; copy review                                                 | All modules   | Open             |
-| R-005 | Fake RPG mechanics creep in                        | Energy/class/guild/rank added without source data                                                | Product dishonesty                                                   | RPG term map; formula registry; review gate                                       | All modules   | Open             |
-| R-006 | Local-only boundary is weakened                    | External scripts/assets/network calls introduced                                                 | Privacy/offline regression                                           | Local-only architecture test remains hard blocker                                 | All modules   | Open             |
-| R-007 | User loses data from browser storage clearing      | Browser clears site data                                                                         | User loses local records                                             | Backup UI/FAQ; later optional sync decision                                       | RPG-13        | Accepted v2 risk |
-| R-008 | Study Resource looks like fake media player        | Still image mimics embedded player too closely                                                   | Misleading UX                                                        | Use resource-card design, no fake scrubber/play UI                                | RPG-07        | Open             |
-| R-009 | Route split causes offline chunk failure           | RPG routes/assets not available after offline load                                               | Broken offline UX                                                    | Offline E2E after first load; conservative code-splitting                         | RPG-02 onward | Open             |
-| R-010 | Rank is confused with official course status       | Rank copy omits “local progress”                                                                 | Misleading claim                                                     | Plain copy and FAQ disclaimer                                                     | RPG-10/RPG-13 | Open             |
-| R-011 | AI/code agent overbuilds beyond the module         | Agent adds unrequested dependencies, abstractions, assets, routes, refactors, or future features | Scope creep, larger bundle, broken classic UI, weaker trust boundary | D-0059; Scope Discipline Check; revert unrelated changes                          | All modules   | Open             |
-| R-012 | Old root docs mislead implementers                 | Older v1 docs remain in root with authoritative names                                            | Wrong plan followed                                                  | Archive stale docs under docs/archive/engine-v1 during RPG-00                     | RPG-00        | Open             |
-| R-013 | Asset library is imported wholesale                | Developer treats provided ZIP as production assets                                               | Massive bundle, slow app, visual inconsistency                       | Candidate-only rule; asset ledger; budget                                         | RPG-14        | Open             |
-| R-014 | BMAD folder expectations cause false blockers      | Empty BMAD artifact folders are treated as required                                              | Process confusion                                                    | Roadmap is accepted planning artifact unless BMAD governance is explicitly chosen | RPG-00        | Open             |
+| ID    | Risk                                                  | Trigger                                                                         | Impact                                        | Mitigation                                                                         | Owner/module  | Status           |
+| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- | ---------------- |
+| R-001 | Existing IndexedDB data is corrupted by RPG writes    | RPG layer bypasses existing domain commands                                     | User data loss; trust failure                 | No direct DB access; pre/post DB snapshot tests; use existing domain commands only | RPG-01 onward | Open             |
+| R-002 | Classic UI breaks while adding RPG routes             | Shared router/styles accidentally affect classic routes                         | v1 fallback becomes unreliable                | Classic route smoke tests; visual regression pass; scoped RPG styles               | RPG-02 onward | Open             |
+| R-003 | RPG assets bloat bundle                               | Too many large images added eagerly                                             | Slow load; worse offline behavior             | Asset budget; optimize; route-load; ledger gate                                    | RPG-14        | Open             |
+| R-004 | CS50/Harvard branding misuse                          | App uses official-looking names, marks, badges, or visual identity              | Legal/trust risk                              | D-0048; copy review; asset review; no official marks                               | All modules   | Open             |
+| R-005 | Fake RPG mechanics creep in                           | Energy/class/guild/rank added without source data                               | Product dishonesty                            | RPG term map; formula registry; Scope Discipline Check                             | All modules   | Open             |
+| R-006 | Local-first boundary is weakened                      | External scripts/assets/background requests introduced                          | Privacy/offline regression                    | Local-only guard remains hard blocker; user-clicked links only                     | All modules   | Open             |
+| R-007 | User loses data from browser storage clearing         | Browser clears site data/storage pressure/manual deletion                       | Local records lost                            | Backup UI/FAQ; encourage export; future optional sync decision                     | RPG-13        | Accepted v2 risk |
+| R-008 | Study Resource looks like fake embedded media         | Still image mimics player UI too closely                                        | Misleading UX                                 | Resource-card design; no fake play/scrubber/transcript UI                          | RPG-07        | Open             |
+| R-009 | Route splitting causes offline chunk failure          | RPG route code/assets unavailable after cached load                             | Broken offline UX                             | Offline E2E; conservative code-splitting; verify after build                       | RPG-02 onward | Open             |
+| R-010 | Rank is confused with official course status          | Rank copy omits local-progress framing                                          | Misleading claim                              | “Local ProgressPal progress” copy; FAQ disclaimer                                  | RPG-10/RPG-13 | Open             |
+| R-011 | AI/code agent overbuilds beyond the module            | Agent adds unrequested dependencies, abstractions, routes, assets, or refactors | Scope creep; larger bundle; broken classic UI | D-0059; Scope Discipline Check; revert unrelated changes                           | All modules   | Open             |
+| R-012 | Old root docs mislead implementers                    | Older v1 docs remain in root with authoritative names                           | Wrong plan followed                           | Archive stale docs under `docs/archive/engine-v1/` during RPG-00                   | RPG-00        | Open             |
+| R-013 | Asset library is imported wholesale                   | Developer treats ZIP as app-ready production assets                             | Massive bundle; visual inconsistency          | Candidate-only rule; `ASSETS.md`; budget                                           | RPG-14        | Open             |
+| R-014 | BMAD artifact expectations cause false blockers       | Empty BMAD folders treated as required governance                               | Process confusion                             | Roadmap is accepted planning artifact unless BMAD governance is explicitly chosen  | RPG-00        | Open             |
+| R-015 | Validation baseline is unclear                        | RPG work starts before clean baseline                                           | Later bugs cannot be attributed               | RPG-00 baseline gate; record exact outputs                                         | RPG-00        | Open             |
+| R-016 | Root `DECISIONS.md` deletion is mishandled            | Agent restores or depends on deleted file                                       | Source-of-truth drift                         | Use `docs/rpg-v2/DECISIONS-rpg-v2.md`; document deletion reconciliation            | RPG-00        | Open             |
+| R-017 | Study Resource link behavior weakens local-only guard | Link implementation loads external content silently                             | Privacy/offline regression                    | Normal user-clicked links only; no remote embeds/assets/scripts                    | RPG-07        | Open             |
+| R-018 | Accessibility degrades due to RPG visuals             | Low contrast, glow, tiny text, color-only status                                | Usability failure                             | Axe checks; contrast checks; visible focus; DOM text                               | RPG-03 onward | Open             |
+| R-019 | Read-only routes mutate data                          | Page render triggers XP, achievement, progress, or metadata writes              | Data trust failure                            | Pre/post DB snapshot tests; explicit-write rule                                    | RPG-01 onward | Open             |
+| R-020 | Excessive abstraction before slice proof              | Broad RPG services/models built before Week-4 path                              | Complexity and drift                          | Minimum slice read models only; defer broad models                                 | RPG-01        | Open             |
+| R-021 | Formal workflow is half-invoked                       | Agent starts BMAD or another formal process, then skips required checkpoints    | False governance evidence; process confusion  | Explicit work mode; formal BMAD only if project owner opts in                      | All modules   | Open             |
+| R-022 | Source-of-truth inconsistency is carried forward      | Roadmap, decisions, validation log, or handoff disagree and are not reconciled  | Wrong route/API/workflow followed             | Source-of-truth reconciliation gate before commit                                  | All modules   | Open             |
+| R-023 | Uncommitted work is reported as complete              | Agent says module is complete while changes remain only in working tree         | Lost evidence; bad handoff; hard-to-review PR | Completion requires committed implementation, handoff, validation, and clean state | All modules   | Open             |
+| R-024 | Excess validation becomes default ritual              | Agent runs three full validation passes for every normal module                 | Wasted time; hides real acceptance criteria   | Proportional validation cadence in D-0067 and VALIDATION_LOG                       | All modules   | Open             |
+| R-025 | Warnings are seen but not classified                  | Command emits warning and agent calls state clean without triage                | False clean state; missed environment issue   | Warning/anomaly classification template in VALIDATION_LOG                          | All modules   | Open             |
 ```
 
 ---
@@ -1488,7 +1608,28 @@ docs/rpg-v2/ASSETS.md
 docs/rpg-v2/RISK_REGISTER.md
 ```
 
-Do not claim a formal BMAD readiness workflow is complete unless the required BMAD artifacts actually exist and the workflow actually completed.
+Formal BMAD rule:
+
+```text
+Do not invoke BMAD as the controlling workflow unless the project owner explicitly requests formal BMAD governance.
+```
+
+Allowed without formal BMAD:
+
+- adversarial review thinking;
+- acceptance-audit lens;
+- risk-focused code review;
+- roadmap/decision compliance review.
+
+Not allowed without formal BMAD:
+
+- claiming BMAD activation as the governing workflow;
+- claiming BMAD readiness;
+- claiming BMAD handoff completeness;
+- treating empty BMAD output folders as blockers;
+- partially invoking BMAD step files while skipping required checkpoints.
+
+If an agent uses BMAD-inspired review thinking, describe it as a roadmap acceptance audit or adversarial review. Do not claim a formal BMAD readiness workflow is complete unless the required BMAD artifacts actually exist and the workflow actually completed.
 
 ---
 

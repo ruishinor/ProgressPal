@@ -1,9 +1,33 @@
+import {
+  getRpgResourcePath as buildRpgResourcePath,
+  getRpgWeekPath as buildRpgWeekPath,
+  rpgBadgesPath,
+  rpgFocusPath,
+  rpgHeroPath,
+  rpgLogPath,
+  rpgMapPath,
+  rpgResourcePathPattern,
+  rpgRoutePath,
+  rpgRouteSegments,
+  rpgSettingsPath,
+  rpgWeekPathPattern,
+} from '@/lib/routing/rpgRoutePaths';
+
 export type AppRouteId =
   | 'home'
   | 'onboarding'
   | 'dashboard'
   | 'course'
   | 'courseDetail'
+  | 'rpg'
+  | 'rpgMap'
+  | 'rpgWeek'
+  | 'rpgResource'
+  | 'rpgFocus'
+  | 'rpgHero'
+  | 'rpgBadges'
+  | 'rpgLog'
+  | 'rpgSettings'
   | 'sessions'
   | 'achievements'
   | 'insights'
@@ -58,6 +82,61 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'courseDetail',
     segment: 'course/:itemId',
     to: '/course/:itemId',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpg',
+    segment: rpgRouteSegments.root,
+    to: rpgRoutePath,
+    label: 'RPG',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgMap',
+    segment: rpgRouteSegments.map,
+    to: rpgMapPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgWeek',
+    segment: rpgRouteSegments.week,
+    to: rpgWeekPathPattern,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgResource',
+    segment: rpgRouteSegments.resource,
+    to: rpgResourcePathPattern,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgFocus',
+    segment: rpgRouteSegments.focus,
+    to: rpgFocusPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgHero',
+    segment: rpgRouteSegments.hero,
+    to: rpgHeroPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgBadges',
+    segment: rpgRouteSegments.badges,
+    to: rpgBadgesPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgLog',
+    segment: rpgRouteSegments.log,
+    to: rpgLogPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgSettings',
+    segment: rpgRouteSegments.settings,
+    to: rpgSettingsPath,
     includeInPrimaryNavigation: false,
   },
   {
@@ -132,6 +211,26 @@ export function getCourseItemDetailPath(itemId: string) {
   }
 
   return detailPath.replace(':itemId', itemId);
+}
+
+export function getRpgWeekPath(unitId: string) {
+  const weekPath = getRouteDefinition('rpgWeek').to;
+
+  if (weekPath === undefined) {
+    throw new Error('RPG week path is not configured.');
+  }
+
+  return buildRpgWeekPath(unitId);
+}
+
+export function getRpgResourcePath(itemId: string) {
+  const resourcePath = getRouteDefinition('rpgResource').to;
+
+  if (resourcePath === undefined) {
+    throw new Error('RPG resource path is not configured.');
+  }
+
+  return buildRpgResourcePath(itemId);
 }
 
 export function getStudySessionsPath(itemId?: string) {

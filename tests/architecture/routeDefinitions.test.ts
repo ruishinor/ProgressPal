@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getCourseItemDetailPath,
+  getRpgResourcePath,
+  getRpgWeekPath,
   getStudySessionsPath,
   knownRoutePaths,
   primaryNavigationItems,
@@ -16,6 +18,15 @@ describe('routeDefinitions', () => {
       '/dashboard',
       '/course',
       '/course/:itemId',
+      '/rpg',
+      '/rpg/map',
+      '/rpg/week/:unitId',
+      '/rpg/resource/:itemId',
+      '/rpg/focus',
+      '/rpg/hero',
+      '/rpg/badges',
+      '/rpg/log',
+      '/rpg/settings',
       '/sessions',
       '/achievements',
       '/insights',
@@ -50,6 +61,13 @@ describe('routeDefinitions', () => {
   it('builds a stable content-detail path for one course item', () => {
     expect(getCourseItemDetailPath('week-0-lecture')).toBe(
       '/course/week-0-lecture',
+    );
+  });
+
+  it('builds stable RPG route paths', () => {
+    expect(getRpgWeekPath('week-4')).toBe('/rpg/week/week-4');
+    expect(getRpgResourcePath('week-0-lecture')).toBe(
+      '/rpg/resource/week-0-lecture',
     );
   });
 

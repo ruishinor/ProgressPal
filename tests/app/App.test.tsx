@@ -1515,6 +1515,271 @@ describe('App', () => {
   });
 });
 
+describe('RPG routes', () => {
+  const learnerProfileInput: SaveLearnerProfileInput = {
+    avatarConfig: {
+      face: 'square',
+      hair: 'parted',
+      topColor: 'ocean',
+    },
+    displayName: 'Alex',
+    preferredTheme: 'dark',
+    reducedMotion: true,
+    targetMinutesPerWeek: 360,
+    targetStudyDays: ['monday', 'thursday'],
+  };
+
+  async function seedOnboardedLearner() {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(learnerProfileInput, { completeOnboarding: true });
+  }
+
+  async function waitForRpgRouteReady(route: string) {
+    if (route === '/rpg') {
+      await screen.findByRole('link', { name: 'Open RPG map' });
+      return;
+    }
+
+    if (route === '/rpg/map') {
+      await screen.findByTestId('rpg-module-week-4');
+      return;
+    }
+
+    if (route === '/rpg/week/week-4') {
+      await screen.findByTestId('rpg-resource-week-4-lecture');
+      return;
+    }
+
+    if (route === '/rpg/resource/week-0-lecture') {
+      await screen.findByRole('link', { name: 'Back to parent week' });
+      return;
+    }
+
+    const stubHeadings: Record<string, string> = {
+      '/rpg/badges': 'Badges',
+      '/rpg/focus': 'Focus',
+      '/rpg/hero': 'Hero',
+      '/rpg/log': 'Log',
+      '/rpg/settings': 'RPG Settings',
+    };
+
+    await screen.findByRole('heading', { name: stubHeadings[route] });
+  }
+
+  function expectRpgShellWithBottomNav(activeLabel: string) {
+    const rpgShell = screen.getByTestId('rpg-shell');
+    expect(rpgShell).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Skip to RPG content' }),
+    ).toHaveAttribute('href', '#rpg-main-content');
+    expect(within(rpgShell).getByRole('main')).toHaveAttribute(
+      'id',
+      'rpg-main-content',
+    );
+
+    const bottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
+    const expectedItems = [
+      ['Hub', '/rpg'],
+      ['Map', '/rpg/map'],
+      ['Focus', '/rpg/focus'],
+      ['Hero', '/rpg/hero'],
+      ['Badges', '/rpg/badges'],
+      ['Log', '/rpg/log'],
+      ['Settings', '/rpg/settings'],
+    ];
+
+    for (const [label, href] of expectedItems) {
+      expect(
+        within(bottomNav).getByRole('link', { name: label }),
+      ).toHaveAttribute('href', href);
+    }
+
+    expect(
+      within(bottomNav).getByRole('link', { name: activeLabel }),
+    ).toHaveAttribute('aria-current', 'page');
+  }
+
+  it('renders the RPG hub shell', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+
+    const mapLink = await screen.findByRole('link', { name: 'Open RPG map' });
+
+    expect(
+      screen.getByRole('heading', { name: 'RPG Hub' }),
+    ).toBeInTheDocument();
+    expect(mapLink).toHaveAttribute('href', '/rpg/map');
+    expectRpgShellWithBottomNav('Hub');
+  });
+
+  it('renders the RPG map shell', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/map');
+
+    const weekFourModule = await screen.findByTestId('rpg-module-week-4');
+
+    expect(
+      screen.getByRole('heading', { name: 'RPG Map' }),
+    ).toBeInTheDocument();
+    expect(weekFourModule).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Open week' }).length).toBe(
+      bundledCourseSeed.units.length,
+    );
+    expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders the RPG week shell', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/week/week-4');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Week 4: Memory' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('rpg-resource-week-4-lecture'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Back to RPG map' }),
+    ).toHaveAttribute('href', '/rpg/map');
+    expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders an RPG week not-found state', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/week/not-a-real-unit');
+
+    expect(
+      await screen.findByRole('heading', { name: 'RPG week not found' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('No RPG week was found for "not-a-real-unit".'),
+    ).toBeInTheDocument();
+    expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders the RPG resource shell', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/week-0-lecture');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Lecture 0: Scratch' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Week 0: Scratch').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('link', { name: 'Back to parent week' }),
+    ).toHaveAttribute('href', '/rpg/week/week-0');
+    expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders an RPG resource not-found state', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/not-a-real-item');
+
+    expect(
+      await screen.findByRole('heading', { name: 'RPG resource not found' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('No RPG resource was found for "not-a-real-item".'),
+    ).toBeInTheDocument();
+    expectRpgShellWithBottomNav('Map');
+  });
+
+  it('renders the RPG shell stub routes', async () => {
+    await seedOnboardedLearner();
+
+    const routes = [
+      ['/rpg/focus', 'Focus', 'Focus'],
+      ['/rpg/hero', 'Hero', 'Hero'],
+      ['/rpg/badges', 'Badges', 'Badges'],
+      ['/rpg/log', 'Log', 'Log'],
+      ['/rpg/settings', 'RPG Settings', 'Settings'],
+    ] as const;
+
+    for (const [route, heading, activeLabel] of routes) {
+      cleanup();
+      await renderAppAtRoute(route);
+      expect(
+        await screen.findByRole('heading', { name: heading }),
+      ).toBeInTheDocument();
+      expectRpgShellWithBottomNav(activeLabel);
+    }
+  });
+
+  it('supports keyboard navigation through the RPG bottom nav', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByRole('link', { name: 'Open RPG map' });
+
+    const bottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
+    const hubLink = within(bottomNav).getByRole('link', { name: 'Hub' });
+    const mapLink = within(bottomNav).getByRole('link', { name: 'Map' });
+
+    hubLink.focus();
+    expect(hubLink).toHaveFocus();
+
+    await user.keyboard('{Tab}');
+    expect(mapLink).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+    expect(await screen.findByTestId('rpg-module-week-4')).toBeInTheDocument();
+    expect(mapLink).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('does not mutate local stores during passive RPG route navigation', async () => {
+    await seedOnboardedLearner();
+
+    const beforeSnapshot = await getDatabaseSnapshot();
+    const readOnlyRoutes = [
+      '/rpg',
+      '/rpg/map',
+      '/rpg/week/week-4',
+      '/rpg/resource/week-0-lecture',
+      '/rpg/focus',
+      '/rpg/hero',
+      '/rpg/badges',
+      '/rpg/log',
+      '/rpg/settings',
+    ];
+
+    for (const route of readOnlyRoutes) {
+      cleanup();
+      await renderAppAtRoute(route);
+      await waitForRpgRouteReady(route);
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+    }
+  });
+
+  it('keeps RPG hidden from primary navigation', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByRole('heading', { name: 'RPG Hub' });
+
+    const primaryNavigation = screen.getByRole('navigation', {
+      name: 'Primary',
+    });
+
+    expect(
+      within(primaryNavigation).queryByRole('link', { name: 'RPG' }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(primaryNavigation).getByRole('link', { name: 'Dashboard' }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe('Dashboard route', () => {
   const learnerProfileInput: SaveLearnerProfileInput = {
     avatarConfig: {
