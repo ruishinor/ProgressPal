@@ -16,6 +16,10 @@
   color: var(--rpg-text);
 }
 
+.rpg-shell .rpg-week {
+  color: var(--rpg-text);
+}
+
 .rpg-shell .rpg-hub__header {
   align-items: start;
   display: flex;
@@ -24,6 +28,13 @@
 }
 
 .rpg-shell .rpg-map__header {
+  align-items: start;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
+.rpg-shell .rpg-week__header {
   align-items: start;
   display: flex;
   gap: var(--space-4);
@@ -40,8 +51,14 @@
   margin: 0;
 }
 
+.rpg-shell .rpg-week__header h1 {
+  color: var(--rpg-text);
+  margin: 0;
+}
+
 .rpg-shell .rpg-hub__eyebrow,
 .rpg-shell .rpg-map__eyebrow,
+.rpg-shell .rpg-week__eyebrow,
 .rpg-shell .rpg-hub__subheading {
   color: var(--rpg-accent-strong);
   font-size: var(--text-sm);
@@ -53,6 +70,7 @@
 .rpg-shell .rpg-hub__lede,
 .rpg-shell .rpg-map__lede,
 .rpg-shell .rpg-map__note,
+.rpg-shell .rpg-week__lede,
 .rpg-shell .rpg-hub__note {
   color: var(--rpg-text-muted);
   margin: 0;
@@ -74,6 +92,7 @@
 }
 
 .rpg-shell .rpg-hub__actions,
+.rpg-shell .rpg-week__actions,
 .rpg-shell .rpg-hub__identity-row {
   align-items: center;
   display: flex;
@@ -154,6 +173,30 @@
 
 .rpg-shell .rpg-hub__activity-list span:last-child {
   color: var(--rpg-text);
+}
+
+.rpg-shell .rpg-week__grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.rpg-shell .rpg-week__status-row,
+.rpg-shell .rpg-week__task-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rpg-shell .rpg-week__status-row span:last-child {
+  color: var(--rpg-text-muted);
+  font-weight: 700;
+}
+
+.rpg-shell .rpg-week__task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .rpg-shell .rpg-map__node-list,
@@ -546,7 +589,8 @@
 
 @media (max-width: 720px) {
   .rpg-shell .rpg-hub__header,
-  .rpg-shell .rpg-map__header {
+  .rpg-shell .rpg-map__header,
+  .rpg-shell .rpg-week__header {
     display: grid;
   }
 
@@ -567,6 +611,12 @@
 
   .rpg-shell .rpg-map__node-status {
     justify-content: start;
+  }
+
+  .rpg-shell .rpg-week__actions,
+  .rpg-shell .rpg-week__task-actions {
+    align-items: stretch;
+    display: grid;
   }
 
   .rpg-shell .rpg-hub__quest-panel,
