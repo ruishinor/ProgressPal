@@ -1,10 +1,12 @@
 export {
   RPG_WEEK_FOUR_UNIT_ID,
+  buildRpgFocusSessionSummary,
   buildRpgCourseMapSummary,
   buildRpgHubSummary,
   buildRpgModuleSummary,
   buildRpgStudyResourceSummary,
   loadRpgCourseMapSummary,
+  loadRpgFocusSessionSummary,
   loadRpgHubSummary,
   loadRpgModuleSummary,
   loadRpgStudyResourceSummary,
@@ -43,6 +45,7 @@ export { RpgShell } from './shell/RpgShell';
 export type {
   RpgCourseMapSummary,
   RpgCourseProgressSummary,
+  RpgFocusSessionSummary,
   RpgHubSummary,
   RpgModuleSummary,
   RpgOfficialLink,

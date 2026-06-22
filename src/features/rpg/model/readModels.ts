@@ -24,6 +24,7 @@ import { calculateXpSummary } from '@/lib/xp/engine';
 
 import type {
   RpgCourseMapSummary,
+  RpgFocusSessionSummary,
   RpgHubSummary,
   RpgHubWeeklyProgress,
   RpgModuleSummary,
@@ -455,6 +456,35 @@ export function buildRpgStudyResourceSummary(
   return buildStudyResourceFromDetail(detail, item, progressEntry, unit.id);
 }
 
+export function buildRpgFocusSessionSummary(
+  snapshot: DatabaseSnapshot,
+  itemId: string | null,
+): RpgFocusSessionSummary {
+  return {
+    items: snapshot.courseItems.map((item) => ({
+      estimatedMinutes: item.estimatedMinutes,
+      id: item.id,
+      order: item.order,
+      required: item.required,
+      title: item.title,
+      type: item.type,
+      unitId: item.unitId,
+    })),
+    requestedItemId: itemId,
+    selectedResource:
+      itemId === null ? null : buildRpgStudyResourceSummary(snapshot, itemId),
+    units: snapshot.courseUnits.map((unit) => ({
+      courseId: unit.courseId,
+      id: unit.id,
+      order: unit.order,
+      required: unit.required,
+      sourceYear: unit.sourceYear,
+      title: unit.title,
+      type: unit.type,
+    })),
+  };
+}
+
 async function readSnapshot(options: RpgReadModelOptions = {}) {
   return getDatabaseSnapshot(options);
 }
@@ -486,4 +516,11 @@ export async function loadRpgStudyResourceSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgStudyResourceSummary | null> {
   return buildRpgStudyResourceSummary(await readSnapshot(options), itemId);
+}
+
+export async function loadRpgFocusSessionSummary(
+  itemId: string | null,
+  options: RpgReadModelOptions = {},
+): Promise<RpgFocusSessionSummary> {
+  return buildRpgFocusSessionSummary(await readSnapshot(options), itemId);
 }

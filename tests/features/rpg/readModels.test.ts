@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   loadRpgCourseMapSummary,
+  loadRpgFocusSessionSummary,
   loadRpgHubSummary,
   loadRpgModuleSummary,
   loadRpgStudyResourceSummary,
@@ -264,6 +265,34 @@ describe('RPG read models', () => {
       title: 'Lecture 4: Memory',
       unitId: RPG_WEEK_FOUR_UNIT_ID,
     });
+  });
+
+  it('loads focus session setup for selected and manual focus states without mutation', async () => {
+    const db = await createSeededRpgDatabase();
+
+    const selectedFocus = await expectReadOnly(() =>
+      loadRpgFocusSessionSummary('week-4-lecture', { db }),
+    );
+    const manualFocus = await expectReadOnly(() =>
+      loadRpgFocusSessionSummary(null, { db }),
+    );
+
+    expect(selectedFocus.selectedResource).toMatchObject({
+      itemId: 'week-4-lecture',
+      title: 'Lecture 4: Memory',
+      unitId: RPG_WEEK_FOUR_UNIT_ID,
+      unitTitle: 'Week 4: Memory',
+    });
+    expect(selectedFocus.items.map((item) => item.id)).toContain(
+      'week-4-lecture',
+    );
+    expect(selectedFocus.units.map((unit) => unit.id)).toContain(
+      RPG_WEEK_FOUR_UNIT_ID,
+    );
+    expect(manualFocus.requestedItemId).toBeNull();
+    expect(manualFocus.selectedResource).toBeNull();
+    expect(manualFocus.items.length).toBeGreaterThan(0);
+    expect(manualFocus.units.length).toBeGreaterThan(0);
   });
 
   it('returns null for missing module and resource IDs without mutation', async () => {
