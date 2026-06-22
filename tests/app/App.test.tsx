@@ -2127,6 +2127,204 @@ describe('RPG routes', () => {
     expectRpgShellWithBottomNav('Map');
   });
 
+  it('renders the RPG Focus Session with selected real Week 4 task context', async () => {
+    await seedOnboardedLearnerWithRpgHistory();
+
+    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Started').length).toBeGreaterThan(0);
+    expect(screen.getByText('Required')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Current task: Week 4: Memory - Lecture 4: Memory/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
+      'href',
+      '/rpg/week/week-4',
+    );
+    expect(screen.getByRole('link', { name: 'Cancel focus' })).toHaveAttribute(
+      'href',
+      '/rpg',
+    );
+    expect(screen.getByLabelText('Mode')).toHaveValue('watching');
+    expect(screen.getByLabelText('Unit')).toBeDisabled();
+    expect(screen.getByLabelText('Unit')).toHaveValue('week-4');
+    expect(screen.getByLabelText('Task')).toBeDisabled();
+    expect(screen.getByLabelText('Task')).toHaveValue('week-4-lecture');
+    expectRpgShellWithBottomNav('Focus');
+  });
+
+  it('renders a useful non-mutating RPG Focus Session state without itemId', async () => {
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/focus');
+
+    expect(
+      await screen.findByRole('heading', { name: 'No task selected' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Choose a real local course task below, then start the in-memory focus timer.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Choose from map' }),
+    ).toHaveAttribute('href', '/rpg/map');
+    expect(screen.getByLabelText('Mode')).not.toBeDisabled();
+    expect(screen.getByLabelText('Unit')).not.toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Start timer' }),
+    ).toBeInTheDocument();
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
+  it('keeps RPG Focus start, pause, resume, and unmount in memory only', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
+
+    try {
+      await seedOnboardedLearner();
+      await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+      const beforeSnapshot = await getDatabaseSnapshot();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+
+      expect(screen.getByText(/Status:/)).toBeInTheDocument();
+      expect(screen.getByText('Running')).toBeInTheDocument();
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+      nowSpy.mockReturnValue(1_090_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+
+      expect(screen.getByRole('timer')).toHaveAccessibleName(
+        'Elapsed focus time 01:30',
+      );
+      expect(screen.getByText('Paused')).toBeInTheDocument();
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Resume' }));
+
+      expect(screen.getByText('Running')).toBeInTheDocument();
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+      cleanup();
+
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('discards an RPG Focus timer without writing a study session', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(2_000_000);
+
+    try {
+      await seedOnboardedLearner();
+      await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+      const beforeSnapshot = await getDatabaseSnapshot();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+      nowSpy.mockReturnValue(2_120_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Discard session' }));
+
+      expect(
+        screen.getByRole('button', { name: 'Start timer' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('Ready')).toBeInTheDocument();
+      expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('finishes one RPG Focus session once and awards XP through the existing engine once', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(3_000_000);
+
+    try {
+      await seedOnboardedLearner();
+      await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+      const beforeSnapshot = await getDatabaseSnapshot();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+      fireEvent.change(screen.getByLabelText('Local note'), {
+        target: { value: 'Focused on pointer diagrams.' },
+      });
+      fireEvent.change(screen.getByLabelText('Blockers'), {
+        target: { value: 'Need to review malloc.' },
+      });
+
+      nowSpy.mockReturnValue(3_000_000 + 25 * 60_000);
+
+      const finishButton = screen.getByRole('button', {
+        name: 'Finish session',
+      });
+
+      fireEvent.click(finishButton);
+      fireEvent.click(finishButton);
+
+      expect(
+        await screen.findByRole('heading', { name: 'Session saved' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('25 min')).toBeInTheDocument();
+      expect(screen.getByText('Watching')).toBeInTheDocument();
+      expect(screen.getByText('10')).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: 'Back to RPG Hub' }),
+      ).toHaveAttribute('href', '/rpg');
+      expect(
+        screen.getByRole('link', { name: 'Back to resource' }),
+      ).toHaveAttribute('href', '/rpg/resource/week-4-lecture');
+      expect(screen.getAllByRole('link', { name: 'Back to week' })).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            href: expect.stringContaining('/rpg/week/week-4'),
+          }),
+        ]),
+      );
+
+      const afterSnapshot = await getDatabaseSnapshot();
+      const savedSessions = afterSnapshot.studySessions.filter(
+        (session) => session.itemId === 'week-4-lecture',
+      );
+      const studySessionXp = afterSnapshot.xpTransactions.filter(
+        (transaction) => transaction.sourceType === 'study_session',
+      );
+
+      expect(afterSnapshot.studySessions).toHaveLength(
+        beforeSnapshot.studySessions.length + 1,
+      );
+      expect(savedSessions).toHaveLength(1);
+      expect(savedSessions[0]).toMatchObject({
+        blockers: ['Need to review malloc.'],
+        durationMinutes: 25,
+        itemId: 'week-4-lecture',
+        mode: 'watching',
+        notes: 'Focused on pointer diagrams.',
+        unitId: 'week-4',
+      });
+      expect(studySessionXp).toHaveLength(1);
+      expect(studySessionXp[0]).toMatchObject({
+        sourceId: savedSessions[0]?.id,
+        sourceType: 'study_session',
+        xp: 10,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it('renders the RPG shell stub routes', async () => {
     await seedOnboardedLearner();
 

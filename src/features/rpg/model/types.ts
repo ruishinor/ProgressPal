@@ -1,6 +1,11 @@
 import type { CourseStatusVariant } from '@/features/course/model';
 import type { CourseLongFormProgress } from '@/features/progress';
-import type { CourseItemType, ProgressStatus } from '@/lib/domain';
+import type {
+  CourseItem,
+  CourseItemType,
+  CourseUnit,
+  ProgressStatus,
+} from '@/lib/domain';
 
 export type RpgOfficialLink = {
   label: string;
@@ -121,4 +126,23 @@ export type RpgStudyResourceSummary = {
   typeLabel: string;
   unitId: string;
   unitTitle: string;
+};
+
+export type RpgFocusSessionSummary = {
+  items: Pick<
+    CourseItem,
+    | 'estimatedMinutes'
+    | 'id'
+    | 'order'
+    | 'required'
+    | 'title'
+    | 'type'
+    | 'unitId'
+  >[];
+  requestedItemId: string | null;
+  selectedResource: RpgStudyResourceSummary | null;
+  units: Pick<
+    CourseUnit,
+    'courseId' | 'id' | 'order' | 'required' | 'sourceYear' | 'title' | 'type'
+  >[];
 };
