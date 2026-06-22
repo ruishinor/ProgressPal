@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  loadRpgBadgeGallerySummary,
   loadRpgCourseMapSummary,
   loadRpgFocusSessionSummary,
   loadRpgHubSummary,
@@ -15,7 +16,9 @@ import {
   getDatabaseSnapshot,
   initializeDatabase,
   upsertProgress,
+  upsertProgressAndAwardXp,
 } from '@/lib/db';
+import { achievementDefinitions } from '@/lib/achievements';
 import { bundledCourseSeed } from '@/seed';
 import {
   createClock,
@@ -354,6 +357,63 @@ describe('RPG read models', () => {
         label: 'Open week',
       },
     ]);
+  });
+
+  it('loads Badge Gallery definitions and persisted unlocks without mutation', async () => {
+    const db = await createSeededRpgDatabase();
+
+    await upsertProgressAndAwardXp(
+      {
+        completedAt: '2026-06-21T10:00:00.000Z',
+        confidence: 4,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-0-problem-set',
+        notes: 'Completes Week 0 from the badge fixture.',
+        startedAt: '2026-06-21T09:00:00.000Z',
+        status: 'completed',
+      },
+      {
+        db,
+        now: createClock('2026-06-21T10:05:00.000Z'),
+      },
+    );
+
+    const badgeGallery = await expectReadOnly(() =>
+      loadRpgBadgeGallerySummary({ db }),
+    );
+
+    expect(badgeGallery.totalBadgeCount).toBe(achievementDefinitions.length);
+    expect(badgeGallery.earnedBadgeCount).toBeGreaterThan(0);
+    expect(badgeGallery.lockedBadgeCount).toBe(
+      achievementDefinitions.length - badgeGallery.earnedBadgeCount,
+    );
+
+    const firstStep = badgeGallery.badges.find(
+      (badge) => badge.id === 'first-step',
+    );
+    expect(firstStep).toMatchObject({
+      categoryLabel: 'Course progress',
+      earned: true,
+      earnedAt: '2026-06-21T10:05:00.000Z',
+      requirementText: 'Complete your first task of any kind.',
+      status: 'earned',
+      statusLabel: 'Earned',
+      title: 'First Step',
+    });
+
+    const courseComplete = badgeGallery.badges.find(
+      (badge) => badge.id === 'course-complete',
+    );
+    expect(courseComplete).toMatchObject({
+      earned: false,
+      earnedAt: null,
+      requirementText:
+        'Complete every required item of every required unit in the course.',
+      status: 'locked',
+      statusLabel: 'Locked',
+      title: 'Course Complete',
+    });
   });
 
   it('returns null for missing module and resource IDs without mutation', async () => {

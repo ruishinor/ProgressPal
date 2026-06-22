@@ -1134,3 +1134,73 @@ Notes:
 - No Hero/Profile or Badge Gallery implementation was started.
 - No scoring behavior was added or changed.
 - RPG-10 is implemented and locally validated; commit remains pending final validation rerun against evidence-updated file state and staged diff review.
+
+## RPG-11 Badge Gallery validation
+
+Branch: `rpg/11-rpg-badge-gallery`
+
+Summary:
+
+- Replaced the `/rpg/badges` stub with a real read-only Badge Gallery route.
+- Added a narrow RPG Badge Gallery read model over `getDatabaseSnapshot()`, existing achievement definitions, and persisted achievement unlock records.
+- Shows earned, locked, and total badge counts.
+- Shows all existing achievement names, category labels, status labels, requirement text, and earned dates when unlock records provide them.
+- Provides a useful new-user state while still rendering locked badges and visible requirements.
+- Links back to Hub and Map.
+- Uses CSS-only placeholder markers; no new assets were added.
+- Did not add achievements, criteria, XP rules, passive unlock behavior, Hero/Profile, Journey Log, network behavior, schema changes, or classic route changes.
+
+Validation:
+
+- Required initial evidence:
+  - `git status -sb`: branch `rpg/11-rpg-badge-gallery`; clean at inspection; emitted global-ignore permission warning.
+  - `git log --oneline --decorate -5`: `9028900 (HEAD -> rpg/11-rpg-badge-gallery, origin/rpg/v2, rpg/v2) Merge pull request #18 from ruishinor/rpg/10-rpg-journey-log`; `f1024bc rpg-10: build RPG journey log`; `9aa3984 Merge pull request #16 from ruishinor/rpg/09-rpg-week4-vertical-slice`; `cffbe33 rpg-09: validate Week 4 vertical slice`; `ac5c03d Merge pull request #15 from ruishinor/rpg/08-rpg-focus-session`.
+  - `git diff --name-status`: no output.
+  - `git diff --stat`: no output.
+  - `git diff --check`: no output.
+- Initial targeted test attempt: `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts` failed before tests ran because Vite could not write `node_modules/.vite-temp/...` in the sandbox.
+- Escalated targeted test attempt: failed one new read-model assertion because the fixture used `week-0-pset`; the actual seed id is `week-0-problem-set`.
+- Targeted validation after fixture repair:
+  - `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts`: pass.
+  - Result: 2 files passed, 88 tests passed.
+- `npm run format:check`: pass after running Prettier on the exact flagged files.
+- `npm run validate`: pass.
+  - `npm run lint`: pass.
+  - `npm run format:check`: pass.
+  - `npm run typecheck`: pass.
+  - `npm run build`: pass.
+  - `npm run test`: pass; 37 files passed, 305 tests passed.
+  - `npm run test:e2e`: pass; 24 tests passed.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: pass; 0 vulnerabilities.
+- Final evidence-update rerun:
+  - `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts`: pass; 2 files passed, 88 tests passed.
+  - `npm run validate`: pass.
+  - `npm run lint`: pass.
+  - `npm run format:check`: pass.
+  - `npm run typecheck`: pass.
+  - `npm run build`: pass.
+  - `npm run test`: pass; 37 files passed, 305 tests passed.
+  - `npm run test:e2e`: pass; 24 tests passed.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: pass; 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diff remained readable.
+- Sandboxed targeted Vitest failed at Vite config loading with `EPERM` on `node_modules/.vite-temp`. Classification: environment/sandbox warning. Action: reran with filesystem escalation and reached tests.
+- First escalated targeted test run failed one new Badge Gallery read-model assertion. Classification: test fixture issue. Action: corrected the fixture seed id and reran targeted tests successfully.
+- Git diff commands emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. `git diff --check` exited with no whitespace errors.
+- First `npm run format:check` after implementation flagged RPG-11 files plus two previously committed RPG-10 files. Classification: validation blocker until formatter reconciliation. Action: ran Prettier on the exact flagged files; `docs/rpg-v2/modules/RPG-10-HANDOFF.md` and `src/features/rpg/routes/RpgLogPage.tsx` showed no substantive diff afterward, only line-ending warnings.
+- Source-of-truth mismatch: checked-in roadmap still labels RPG-10 as Hero/Profile and RPG-12 as Journey Log, while merged project history has RPG-10 as Journey Log. Classification: documentation/source-of-truth mismatch. Resolution: followed the attached RPG-11 Badge Gallery directive; Hero/Profile remains unbuilt/deferred and Journey Log was not duplicated.
+
+Notes:
+
+- No new dependencies.
+- No new assets.
+- No schema/storage changes.
+- No runtime network behavior.
+- No direct database table imports in RPG route components.
+- No Hero/Profile implementation was started.
+- No Journey Log implementation was duplicated.
+- No scoring behavior was added or changed.

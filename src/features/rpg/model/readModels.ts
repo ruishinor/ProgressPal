@@ -2,6 +2,7 @@ import {
   buildCourseDetailView,
   type CourseDetailView,
 } from '@/features/course/detailModel';
+import { achievementCategoryLabels } from '@/features/achievements/model';
 import {
   buildCourseMap,
   type CourseMapItem,
@@ -14,6 +15,7 @@ import {
   type Cs50Link,
 } from '@/features/course/cs50Links';
 import { buildLongFormProgressMap } from '@/features/progress/model';
+import { achievementDefinitions } from '@/lib/achievements';
 import {
   getDatabaseSnapshot,
   type DatabaseSnapshot,
@@ -28,6 +30,7 @@ import {
 } from '@/lib/routing/rpgRoutePaths';
 
 import type {
+  RpgBadgeGallerySummary,
   RpgCourseMapSummary,
   RpgFocusSessionSummary,
   RpgHubSummary,
@@ -548,6 +551,41 @@ export function buildRpgJourneyLogSummary(
   };
 }
 
+export function buildRpgBadgeGallerySummary(
+  snapshot: DatabaseSnapshot,
+): RpgBadgeGallerySummary {
+  const unlockByAchievementId = new Map(
+    snapshot.achievementUnlocks.map((unlock) => [unlock.achievementId, unlock]),
+  );
+  const badges = achievementDefinitions.map((definition, index) => {
+    const unlock = unlockByAchievementId.get(definition.id) ?? null;
+    const earned = unlock !== null;
+
+    return {
+      category: definition.category,
+      categoryLabel: achievementCategoryLabels[definition.category],
+      description: definition.description,
+      earned,
+      earnedAt: unlock?.unlockedAt ?? null,
+      id: definition.id,
+      order: index,
+      requirementText: definition.description,
+      status: earned ? ('earned' as const) : ('locked' as const),
+      statusLabel: earned ? ('Earned' as const) : ('Locked' as const),
+      title: definition.title,
+      triggerSourceId: unlock?.triggerSourceId ?? null,
+    };
+  });
+  const earnedBadgeCount = badges.filter((badge) => badge.earned).length;
+
+  return {
+    badges,
+    earnedBadgeCount,
+    lockedBadgeCount: badges.length - earnedBadgeCount,
+    totalBadgeCount: badges.length,
+  };
+}
+
 export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
 ): RpgCourseMapSummary {
@@ -775,4 +813,10 @@ export async function loadRpgJourneyLogSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgJourneyLogSummary> {
   return buildRpgJourneyLogSummary(await readSnapshot(options));
+}
+
+export async function loadRpgBadgeGallerySummary(
+  options: RpgReadModelOptions = {},
+): Promise<RpgBadgeGallerySummary> {
+  return buildRpgBadgeGallerySummary(await readSnapshot(options));
 }

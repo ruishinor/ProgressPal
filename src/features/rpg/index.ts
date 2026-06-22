@@ -1,11 +1,13 @@
 export {
   RPG_WEEK_FOUR_UNIT_ID,
+  buildRpgBadgeGallerySummary,
   buildRpgFocusSessionSummary,
   buildRpgCourseMapSummary,
   buildRpgHubSummary,
   buildRpgJourneyLogSummary,
   buildRpgModuleSummary,
   buildRpgStudyResourceSummary,
+  loadRpgBadgeGallerySummary,
   loadRpgCourseMapSummary,
   loadRpgFocusSessionSummary,
   loadRpgHubSummary,
@@ -45,6 +47,9 @@ export { RpgResourcePage } from './routes/RpgResourcePage';
 export { RpgSettingsPage } from './routes/RpgSettingsPage';
 export { RpgShell } from './shell/RpgShell';
 export type {
+  RpgBadgeGallerySummary,
+  RpgBadgeStatus,
+  RpgBadgeSummary,
   RpgCourseMapSummary,
   RpgCourseProgressSummary,
   RpgFocusSessionSummary,
