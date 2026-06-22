@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  buildRpgHeroProfileSummary,
   loadRpgBadgeGallerySummary,
   loadRpgCourseMapSummary,
   loadRpgFocusSessionSummary,
+  loadRpgHeroProfileSummary,
   loadRpgHubSummary,
   loadRpgJourneyLogSummary,
   loadRpgModuleSummary,
@@ -414,6 +416,73 @@ describe('RPG read models', () => {
       statusLabel: 'Locked',
       title: 'Course Complete',
     });
+  });
+
+  it('loads Hero Profile from local progress, XP, sessions, and badges without mutation', async () => {
+    const db = await createSeededRpgDatabase();
+
+    await upsertProgressAndAwardXp(
+      {
+        completedAt: '2026-06-21T10:00:00.000Z',
+        confidence: 4,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-0-problem-set',
+        notes: 'Completes Week 0 from the hero fixture.',
+        startedAt: '2026-06-21T09:00:00.000Z',
+        status: 'completed',
+      },
+      {
+        db,
+        now: createClock('2026-06-21T10:05:00.000Z'),
+      },
+    );
+
+    const hero = await expectReadOnly(() =>
+      loadRpgHeroProfileSummary({
+        db,
+        now: createClock('2026-06-21T12:00:00.000Z'),
+      }),
+    );
+
+    expect(hero.learnerName).toBe('Learner');
+    expect(hero.identity).toEqual({
+      classLabel: 'Generalist',
+      guildLabel: 'Code Knights',
+      pathLabel: 'CS Foundations',
+      rankLabel: 'Initiate',
+    });
+    expect(hero.courseProgress.completedRequiredItemCount).toBe(2);
+    expect(hero.courseProgress.requiredItemCount).toBeGreaterThan(0);
+    expect(hero.studySummary).toEqual({
+      sessionCount: 1,
+      totalMinutes: 35,
+    });
+    expect(hero.xpSummary.totalXp).toBeGreaterThan(10);
+    expect(hero.xpSummary.level).toBeGreaterThanOrEqual(1);
+    expect(hero.badges.earnedBadgeCount).toBeGreaterThan(0);
+    expect(hero.badges.totalBadgeCount).toBe(achievementDefinitions.length);
+    expect(hero.hasLocalActivity).toBe(true);
+    expect(hero.recentActivity.length).toBeGreaterThan(0);
+  });
+
+  it('builds Hero Profile with a safe learner fallback when profile is missing', async () => {
+    await createSeededRpgDatabase();
+
+    if (testDatabase === null) {
+      throw new Error('Test database was not created.');
+    }
+
+    const snapshot = await getDatabaseSnapshot({ db: testDatabase.db });
+    const summary = buildRpgHeroProfileSummary({
+      ...snapshot,
+      learnerProfile: null,
+    });
+
+    expect(summary.learnerName).toBe('Learner');
+    expect(summary.identity.pathLabel).toBe('CS Foundations');
+    expect(summary.identity.classLabel).toBe('Generalist');
+    expect(summary.identity.guildLabel).toBe('Code Knights');
   });
 
   it('returns null for missing module and resource IDs without mutation', async () => {

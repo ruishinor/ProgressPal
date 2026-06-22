@@ -556,8 +556,8 @@ Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 | RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` | not-run |                                  |
-| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` | not-run |                                  |
+| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
+| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |                                  |
 | RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |                                  |
 
@@ -1204,3 +1204,99 @@ Notes:
 - No Hero/Profile implementation was started.
 - No Journey Log implementation was duplicated.
 - No scoring behavior was added or changed.
+
+## RPG-12 Hero Profile validation
+
+Branch: `rpg/12-rpg-hero-profile`
+
+Summary:
+
+- Replaced the `/rpg/hero` stub with a real read-only Hero/Profile route.
+- Added a narrow RPG Hero/Profile read model composed from existing Hub and Badge Gallery projections over one database snapshot.
+- Shows learner name, rank, path, class, guild, XP, required progress, study totals, badge count, and recent saved activity.
+- Provides a useful new-user state.
+- Links to Hub, Map, Badge Gallery, and Journey Log.
+- Uses a CSS-only initials marker; no new assets were added.
+- Did not add profile storage, avatar editor, XP behavior, achievements, passive unlock behavior, Journey Log redesign, Badge Gallery redesign, network behavior, schema changes, or classic route changes.
+
+Validation:
+
+- Required initial evidence:
+  - `git status -sb`: branch `rpg/12-rpg-hero-profile`; clean at inspection; emitted global-ignore permission warning.
+  - `git log --oneline --decorate -5`: `1c1390d (HEAD -> rpg/12-rpg-hero-profile, origin/rpg/v2, rpg/v2) Merge pull request #19 from ruishinor/rpg/11-rpg-badge-gallery`; `486b756 rpg-11: build RPG badge gallery`; `9028900 Merge pull request #18 from ruishinor/rpg/10-rpg-journey-log`; `f1024bc rpg-10: build RPG journey log`; `9aa3984 Merge pull request #16 from ruishinor/rpg/09-rpg-week4-vertical-slice`.
+  - `git diff --name-status`: no output.
+  - `git diff --stat`: no output.
+  - `git diff --check`: no output.
+- Initial targeted test attempt: `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts` failed before tests ran because Vite could not write `node_modules/.vite-temp/...` in the sandbox.
+- Escalated targeted test attempt: failed one new Hero/Profile route assertion because the test asserted loaded content after the always-present page heading while the route was still loading.
+- Targeted validation after assertion repair:
+  - `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts`: pass.
+  - Result: 2 files passed, 92 tests passed.
+- First `npm run validate`: failed only at `npm audit` after lint, format, typecheck, build, Vitest, E2E, and circular checks passed.
+  - `npm run test`: pass; 37 files passed, 309 tests passed.
+  - `npm run test:e2e`: pass; 24 tests passed.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: failed with `getaddrinfo ENOTFOUND registry.npmjs.org`.
+- Audit retry:
+  - `npm run audit`: pass; 0 vulnerabilities.
+- `npm run validate`: pass.
+  - `npm run lint`: pass.
+  - `npm run format:check`: pass.
+  - `npm run typecheck`: pass.
+  - `npm run build`: pass.
+  - `npm run test`: pass; 37 files passed, 309 tests passed.
+  - `npm run test:e2e`: pass; 24 tests passed.
+  - `npm run check:circular`: pass; no circular dependencies.
+  - `npm run audit`: pass; 0 vulnerabilities.
+- Final evidence-update validation:
+  - `npx prettier --write docs/rpg-v2/modules/RPG-12-HANDOFF.md docs/rpg-v2/VALIDATION_LOG.md`: pass; files unchanged.
+  - `npm run test -- tests/app/App.test.tsx tests/features/rpg/readModels.test.ts`: pass; 2 files passed, 92 tests passed.
+  - `npm run validate` pass 1: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 309 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 2: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 309 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 3: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 309 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diff remained readable.
+- Sandboxed targeted Vitest failed at Vite config loading with `EPERM` on `node_modules/.vite-temp`. Classification: environment/sandbox warning. Action: reran with filesystem escalation and reached tests.
+- First escalated targeted test run failed one new Hero/Profile route assertion. Classification: test synchronization issue. Action: waited for loaded profile content and reran targeted tests successfully.
+- Git diff commands emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. `git diff --check` exited with no whitespace errors.
+- First full `npm run validate` failed at `npm audit` with `getaddrinfo ENOTFOUND registry.npmjs.org`. Classification: transient network/DNS warning, validation blocker until rerun. Action: reran `npm run audit` successfully, then reran full `npm run validate` successfully.
+- First `npm run format:check` after implementation flagged RPG-12 files plus previously committed RPG-10/RPG-11 files. Classification: validation blocker until formatter reconciliation. Action: ran Prettier on the exact flagged files plus the new RPG-12 handoff. Previously committed RPG-10/RPG-11 files showed no substantive diff afterward, only line-ending warnings.
+- Source-of-truth mismatch: checked-in roadmap ordering may still be stale, while merged project history has RPG-10 as Journey Log, RPG-11 as Badge Gallery, and RPG-12 as Hero/Profile. Classification: documentation/source-of-truth mismatch. Resolution: followed the attached RPG-12 directive and merged history; Journey Log and Badge Gallery were not reimplemented.
+
+Notes:
+
+- No new dependencies.
+- No new assets.
+- No schema/storage changes.
+- No runtime network behavior.
+- No direct database table imports in RPG route components.
+- No Journey Log implementation or redesign was started.
+- No Badge Gallery implementation or redesign was started.
+- No scoring behavior was added or changed.
+- RPG-12 is implemented and locally validated; commit remains pending staged diff review.
