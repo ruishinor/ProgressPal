@@ -1611,6 +1611,36 @@ describe('RPG routes', () => {
     });
   }
 
+  async function seedOnboardedLearnerWithJourneyLogActivity() {
+    await seedOnboardedLearner();
+
+    await upsertProgressAndAwardXp(
+      {
+        completedAt: undefined,
+        confidence: 2,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-4-problem-set',
+        notes: 'Journey Log progress fixture.',
+        startedAt: '2026-06-21T10:00:00.000Z',
+        status: 'started',
+      },
+      { now: () => '2026-06-21T10:05:00.000Z' },
+    );
+    await addStudySessionAndAwardXp(
+      {
+        durationMinutes: 25,
+        endedAt: '2026-06-21T10:30:00.000Z',
+        itemId: 'week-4-lecture',
+        mode: 'watching',
+        notes: 'Journey Log focus fixture.',
+        startedAt: '2026-06-21T10:05:00.000Z',
+        unitId: 'week-4',
+      },
+      { now: () => '2026-06-21T10:31:00.000Z' },
+    );
+  }
+
   function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
@@ -1646,11 +1676,15 @@ describe('RPG routes', () => {
       return;
     }
 
+    if (route === '/rpg/log') {
+      await screen.findByRole('heading', { name: 'Journey Log' });
+      return;
+    }
+
     const stubHeadings: Record<string, string> = {
       '/rpg/badges': 'Badges',
       '/rpg/focus': 'Focus',
       '/rpg/hero': 'Hero',
-      '/rpg/log': 'Log',
       '/rpg/settings': 'RPG Settings',
     };
 
@@ -2478,14 +2512,14 @@ describe('RPG routes', () => {
     }
   });
 
-  it('renders the RPG shell stub routes', async () => {
+  it('renders the remaining RPG shell placeholder routes and Journey Log route', async () => {
     await seedOnboardedLearner();
 
     const routes = [
       ['/rpg/focus', 'Focus', 'Focus'],
       ['/rpg/hero', 'Hero', 'Hero'],
       ['/rpg/badges', 'Badges', 'Badges'],
-      ['/rpg/log', 'Log', 'Log'],
+      ['/rpg/log', 'Journey Log', 'Log'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
     ] as const;
 
@@ -2497,6 +2531,107 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
     }
+  });
+
+  it('renders a useful empty Journey Log state without mutating local stores', async () => {
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/log');
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'No saved RPG activity in Journey Log',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Save progress on a Study Resource or finish a Focus Session. Those saved local records will appear here without creating new activity on page load.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/map';
+      }),
+    ).toBe(true);
+
+    expect(
+      screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
+        return link.getAttribute('href') === '/rpg';
+      }),
+    ).toBe(true);
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
+  it('renders Journey Log from real progress, study-session, and XP records without mutation', async () => {
+    await seedOnboardedLearnerWithJourneyLogActivity();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/log');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Journey Log' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Local activity totals'),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Saved local activity')).toBeInTheDocument();
+    expect(screen.getByText('Finished sessions')).toBeInTheDocument();
+    expect(screen.getByText('Study time')).toBeInTheDocument();
+    expect(screen.getByText('XP transactions')).toBeInTheDocument();
+    expect(screen.getByText('Total XP')).toBeInTheDocument();
+    expect(screen.getByText('25 min')).toBeInTheDocument();
+    expect(screen.getByText('30')).toBeInTheDocument();
+
+    expect(screen.getAllByText('Progress saved').length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText('Study session finished').length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText('XP awarded').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText('Problem Set 4: Memory saved as Started'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('25 min watching')).toBeInTheDocument();
+    expect(
+      screen.getByText('20 XP - Started problem set: Problem Set 4: Memory'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '10 XP - Logged 25+ minute study session for: Lecture 4: Memory',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Week 4: Memory - Lecture 4: Memory').length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText('Week 4: Memory - Problem Set 4: Memory').length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByText('Journey Log progress fixture.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Journey Log focus fixture.')).toBeInTheDocument();
+
+    expect(
+      screen.getAllByRole('link', { name: 'Open resource' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/resource/week-4-lecture';
+      }),
+    ).toBe(true);
+    expect(
+      screen.getAllByRole('link', { name: 'Open resource' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/resource/week-4-problem-set';
+      }),
+    ).toBe(true);
+    expect(
+      screen.getAllByRole('link', { name: 'Focus' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/focus?itemId=week-4-lecture';
+      }),
+    ).toBe(true);
+    expect(
+      screen.getAllByRole('link', { name: 'Open week' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/week/week-4';
+      }),
+    ).toBe(true);
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
   it('supports keyboard navigation through the RPG bottom nav', async () => {
