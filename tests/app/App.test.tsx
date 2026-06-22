@@ -1705,9 +1705,15 @@ describe('RPG routes', () => {
       return;
     }
 
+    if (route === '/rpg/hero') {
+      await screen.findByText(
+        'Read-only profile derived from local ProgressPal records.',
+      );
+      return;
+    }
+
     const stubHeadings: Record<string, string> = {
       '/rpg/focus': 'Focus',
-      '/rpg/hero': 'Hero',
       '/rpg/settings': 'RPG Settings',
     };
 
@@ -2540,7 +2546,7 @@ describe('RPG routes', () => {
 
     const routes = [
       ['/rpg/focus', 'Focus', 'Focus'],
-      ['/rpg/hero', 'Hero', 'Hero'],
+      ['/rpg/hero', 'Hero Profile', 'Hero'],
       ['/rpg/badges', 'Badge Gallery', 'Badges'],
       ['/rpg/log', 'Journey Log', 'Log'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
@@ -2554,6 +2560,76 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
     }
+  });
+
+  it('renders a useful empty Hero Profile state without mutating local stores', async () => {
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/hero');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Hero Profile' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', {
+        name: 'No saved Hero activity yet',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Alex's profile")).toBeInTheDocument();
+    expect(screen.getByText('Rank:')).toBeInTheDocument();
+    expect(screen.getByText('New Learner')).toBeInTheDocument();
+    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
+    expect(screen.getByText('Generalist')).toBeInTheDocument();
+    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
+    expect(
+      screen.getByText(`0 of ${achievementDefinitions.length}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/map';
+      }),
+    ).toBe(true);
+    expect(
+      screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
+        return link.getAttribute('href') === '/rpg';
+      }),
+    ).toBe(true);
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
+  it('renders Hero Profile from real local progress, sessions, XP, and badges without mutation', async () => {
+    await seedOnboardedLearnerWithRpgHistory();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/hero');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Hero Profile' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Alex's profile")).toBeInTheDocument();
+    expect(screen.getByText('Initiate')).toBeInTheDocument();
+    expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('XP').length).toBeGreaterThan(0);
+    expect(screen.getByText('Required course progress')).toBeInTheDocument();
+    expect(screen.getByText('Local activity totals')).toBeInTheDocument();
+    expect(screen.getByText('Study sessions')).toBeInTheDocument();
+    expect(screen.getByText('Study time')).toBeInTheDocument();
+    expect(screen.getByText('30 min')).toBeInTheDocument();
+    expect(
+      screen.getByText(`1 of ${achievementDefinitions.length}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Recent saved activity')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Saved study session - Lecture 4: Memory/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Open Badge Gallery' }),
+    ).toHaveAttribute('href', '/rpg/badges');
+    expect(
+      screen.getByRole('link', { name: 'Open Journey Log' }),
+    ).toHaveAttribute('href', '/rpg/log');
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
   it('renders a useful locked Badge Gallery state without mutating local stores', async () => {

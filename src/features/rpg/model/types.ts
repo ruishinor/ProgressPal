@@ -128,6 +128,27 @@ export type RpgBadgeGallerySummary = {
   totalBadgeCount: number;
 };
 
+export type RpgHeroProfileSummary = {
+  badges: {
+    earnedBadgeCount: number;
+    totalBadgeCount: number;
+  };
+  courseProgress: RpgCourseProgressSummary;
+  hasLocalActivity: boolean;
+  identity: RpgHubIdentity;
+  learnerName: string;
+  recentActivity: RpgHubRecentActivity[];
+  studySummary: {
+    sessionCount: number;
+    totalMinutes: number;
+  };
+  xpSummary: {
+    level: number;
+    totalXp: number;
+    xpToNextLevel: number;
+  };
+};
+
 export type RpgStudyResourceSummary = {
   estimatedMinutesLabel: string;
   itemId: string;

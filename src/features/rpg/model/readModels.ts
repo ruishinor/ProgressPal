@@ -33,6 +33,7 @@ import type {
   RpgBadgeGallerySummary,
   RpgCourseMapSummary,
   RpgFocusSessionSummary,
+  RpgHeroProfileSummary,
   RpgHubSummary,
   RpgJourneyLogActivity,
   RpgJourneyLogActivityLink,
@@ -586,6 +587,33 @@ export function buildRpgBadgeGallerySummary(
   };
 }
 
+export function buildRpgHeroProfileSummary(
+  snapshot: DatabaseSnapshot,
+  nowIso = new Date().toISOString(),
+): RpgHeroProfileSummary {
+  const hubSummary = buildRpgHubSummary(snapshot, nowIso);
+  const badgeGallery = buildRpgBadgeGallerySummary(snapshot);
+
+  return {
+    badges: {
+      earnedBadgeCount: badgeGallery.earnedBadgeCount,
+      totalBadgeCount: badgeGallery.totalBadgeCount,
+    },
+    courseProgress: hubSummary.courseProgress,
+    hasLocalActivity:
+      hubSummary.courseProgress.completedRequiredItemCount > 0 ||
+      hubSummary.recentActivity.length > 0 ||
+      hubSummary.studySummary.sessionCount > 0 ||
+      hubSummary.xpSummary.totalXp > 0 ||
+      badgeGallery.earnedBadgeCount > 0,
+    identity: hubSummary.identity,
+    learnerName: hubSummary.learnerName,
+    recentActivity: hubSummary.recentActivity,
+    studySummary: hubSummary.studySummary,
+    xpSummary: hubSummary.xpSummary,
+  };
+}
+
 export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
 ): RpgCourseMapSummary {
@@ -819,4 +847,13 @@ export async function loadRpgBadgeGallerySummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgBadgeGallerySummary> {
   return buildRpgBadgeGallerySummary(await readSnapshot(options));
+}
+
+export async function loadRpgHeroProfileSummary(
+  options: RpgReadModelOptions = {},
+): Promise<RpgHeroProfileSummary> {
+  return buildRpgHeroProfileSummary(
+    await readSnapshot(options),
+    options.now?.() ?? new Date().toISOString(),
+  );
 }
