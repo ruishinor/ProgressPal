@@ -1615,6 +1615,11 @@ describe('RPG routes', () => {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
+  function expectHref(element: HTMLElement, href: string) {
+    expect(element).toHaveAttribute('href', href);
+    return href;
+  }
+
   async function waitForRpgRouteReady(route: string) {
     if (route === '/rpg') {
       await screen.findByRole('link', { name: 'Open RPG map' });
@@ -2320,6 +2325,154 @@ describe('RPG routes', () => {
         sourceType: 'study_session',
         xp: 10,
       });
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
+  it('completes the RPG Week 4 vertical slice from Hub to Focus and back to Hub', async () => {
+    const user = userEvent.setup();
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(4_000_000);
+
+    try {
+      await seedOnboardedLearner();
+
+      await renderAppAtRoute('/rpg');
+      const mapPath = expectHref(
+        await screen.findByRole('link', { name: 'Open RPG map' }),
+        '/rpg/map',
+      );
+
+      cleanup();
+      await renderAppAtRoute(mapPath);
+      const weekFourNode = await screen.findByTestId('rpg-module-week-4');
+      const weekPath = expectHref(
+        within(weekFourNode).getByRole('link', {
+          name: /^Open Week 4: Memory,/,
+        }),
+        '/rpg/week/week-4',
+      );
+
+      cleanup();
+      await renderAppAtRoute(weekPath);
+      const weekFourLectureRow = await screen.findByTestId(
+        'rpg-resource-week-4-lecture',
+      );
+      const resourcePath = expectHref(
+        within(weekFourLectureRow).getByRole('link', {
+          name: 'Open resource',
+        }),
+        '/rpg/resource/week-4-lecture',
+      );
+
+      cleanup();
+      await renderAppAtRoute(resourcePath);
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+      const beforeSaveSnapshot = await getDatabaseSnapshot();
+
+      expect(
+        beforeSaveSnapshot.progressEntries.some(
+          (entry) => entry.itemId === 'week-4-lecture',
+        ),
+      ).toBe(false);
+      expect(
+        beforeSaveSnapshot.studySessions.some(
+          (session) => session.itemId === 'week-4-lecture',
+        ),
+      ).toBe(false);
+
+      fireEvent.change(screen.getByLabelText('Add study note'), {
+        target: { value: 'RPG-09 vertical slice progress note.' },
+      });
+      await user.click(
+        screen.getByRole('button', { name: 'Save local progress' }),
+      );
+
+      expect(
+        await screen.findByRole('heading', { name: 'Progress saved' }),
+      ).toBeInTheDocument();
+
+      const afterProgressSnapshot = await getDatabaseSnapshot();
+      const savedProgress = afterProgressSnapshot.progressEntries.find(
+        (entry) => entry.itemId === 'week-4-lecture',
+      );
+
+      expect(savedProgress).toMatchObject({
+        itemId: 'week-4-lecture',
+        notes: 'RPG-09 vertical slice progress note.',
+        status: 'started',
+      });
+      expect(afterProgressSnapshot.studySessions).toEqual(
+        beforeSaveSnapshot.studySessions,
+      );
+
+      const focusPath = expectHref(
+        screen.getAllByRole('link', { name: 'Start focus session' })[0],
+        '/rpg/focus?itemId=week-4-lecture',
+      );
+
+      cleanup();
+      await renderAppAtRoute(focusPath);
+      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+      const beforeFocusSnapshot = await getDatabaseSnapshot();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+      fireEvent.change(screen.getByLabelText('Local note'), {
+        target: { value: 'RPG-09 focus session note.' },
+      });
+      nowSpy.mockReturnValue(4_000_000 + 25 * 60_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Finish session' }));
+
+      expect(
+        await screen.findByRole('heading', { name: 'Session saved' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('25 min')).toBeInTheDocument();
+
+      const afterFocusSnapshot = await getDatabaseSnapshot();
+      const savedWeekFourSessions = afterFocusSnapshot.studySessions.filter(
+        (session) => session.itemId === 'week-4-lecture',
+      );
+      const savedSessionXp = afterFocusSnapshot.xpTransactions.filter(
+        (transaction) =>
+          transaction.sourceType === 'study_session' &&
+          transaction.sourceId === savedWeekFourSessions[0]?.id,
+      );
+
+      expect(afterFocusSnapshot.studySessions).toHaveLength(
+        beforeFocusSnapshot.studySessions.length + 1,
+      );
+      expect(savedWeekFourSessions).toHaveLength(1);
+      expect(savedWeekFourSessions[0]).toMatchObject({
+        durationMinutes: 25,
+        itemId: 'week-4-lecture',
+        mode: 'watching',
+        notes: 'RPG-09 focus session note.',
+        unitId: 'week-4',
+      });
+      expect(savedSessionXp).toHaveLength(1);
+
+      const hubPath = expectHref(
+        screen.getByRole('link', { name: 'Back to RPG Hub' }),
+        '/rpg',
+      );
+
+      cleanup();
+      await renderAppAtRoute(hubPath);
+      await screen.findByRole('heading', { name: 'RPG Hub' });
+
+      expect(await screen.findByText('Lecture 4: Memory')).toBeInTheDocument();
+      expect(
+        await screen.findByText(
+          /Saved progress - Lecture 4: Memory \(started\)/,
+        ),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(/Saved study session - Lecture 4: Memory/),
+      ).toBeInTheDocument();
+      expect(screen.getAllByText('25 min').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('10').length).toBeGreaterThan(0);
     } finally {
       nowSpy.mockRestore();
     }
