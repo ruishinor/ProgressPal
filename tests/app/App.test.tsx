@@ -19,6 +19,7 @@ import {
   upsertProgressAndAwardXp,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
+import { achievementDefinitions } from '@/lib/achievements';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { bundledCourseSeed } from '@/seed';
 
@@ -1641,6 +1642,24 @@ describe('RPG routes', () => {
     );
   }
 
+  async function seedOnboardedLearnerWithBadgeUnlock() {
+    await seedOnboardedLearner();
+
+    await upsertProgressAndAwardXp(
+      {
+        completedAt: '2026-06-12T12:00:00.000Z',
+        confidence: 5,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-0-lecture',
+        notes: 'Badge Gallery fixture.',
+        startedAt: '2026-06-12T11:00:00.000Z',
+        status: 'completed',
+      },
+      { now: () => '2026-06-12T12:00:00.000Z' },
+    );
+  }
+
   function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
@@ -1681,8 +1700,12 @@ describe('RPG routes', () => {
       return;
     }
 
+    if (route === '/rpg/badges') {
+      await screen.findByText(/\d+ of \d+ badges earned/);
+      return;
+    }
+
     const stubHeadings: Record<string, string> = {
-      '/rpg/badges': 'Badges',
       '/rpg/focus': 'Focus',
       '/rpg/hero': 'Hero',
       '/rpg/settings': 'RPG Settings',
@@ -2512,13 +2535,13 @@ describe('RPG routes', () => {
     }
   });
 
-  it('renders the remaining RPG shell placeholder routes and Journey Log route', async () => {
+  it('renders the remaining RPG shell placeholder routes plus read-only RPG routes', async () => {
     await seedOnboardedLearner();
 
     const routes = [
       ['/rpg/focus', 'Focus', 'Focus'],
       ['/rpg/hero', 'Hero', 'Hero'],
-      ['/rpg/badges', 'Badges', 'Badges'],
+      ['/rpg/badges', 'Badge Gallery', 'Badges'],
       ['/rpg/log', 'Journey Log', 'Log'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
     ] as const;
@@ -2531,6 +2554,83 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
     }
+  });
+
+  it('renders a useful locked Badge Gallery state without mutating local stores', async () => {
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/badges');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Badge Gallery' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Badge Gallery is ready' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(`0 of ${achievementDefinitions.length} badges earned`),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Earned badges')).toBeInTheDocument();
+    expect(screen.getByText('Locked badges')).toBeInTheDocument();
+    expect(screen.getByText('Total available')).toBeInTheDocument();
+
+    const firstStep = screen.getByRole('article', { name: 'First Step' });
+    expect(within(firstStep).getAllByText('Locked').length).toBeGreaterThan(0);
+    expect(within(firstStep).getByText('Requirement')).toBeInTheDocument();
+    expect(
+      within(firstStep).getByText('Complete your first task of any kind.'),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
+        return link.getAttribute('href') === '/rpg/map';
+      }),
+    ).toBe(true);
+    expect(
+      screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
+        return link.getAttribute('href') === '/rpg';
+      }),
+    ).toBe(true);
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
+  it('renders earned Badge Gallery records with earned dates without mutation', async () => {
+    await seedOnboardedLearnerWithBadgeUnlock();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/badges');
+
+    expect(
+      await screen.findByRole('heading', { name: 'Badge Gallery' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        `1 of ${achievementDefinitions.length} badges earned`,
+      ),
+    ).toBeInTheDocument();
+
+    const firstStep = screen.getByRole('article', { name: 'First Step' });
+    expect(within(firstStep).getAllByText('Earned').length).toBeGreaterThan(0);
+    expect(
+      within(firstStep).getByText('Earned 2026-06-12'),
+    ).toBeInTheDocument();
+    expect(
+      within(firstStep).getByText('Complete your first task of any kind.'),
+    ).toBeInTheDocument();
+
+    const courseComplete = screen.getByRole('article', {
+      name: 'Course Complete',
+    });
+    expect(
+      within(courseComplete).getAllByText('Locked').length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(courseComplete).getByText(
+        'Complete every required item of every required unit in the course.',
+      ),
+    ).toBeInTheDocument();
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
   it('renders a useful empty Journey Log state without mutating local stores', async () => {

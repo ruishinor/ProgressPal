@@ -1,6 +1,7 @@
 import type { CourseStatusVariant } from '@/features/course/model';
 import type { CourseLongFormProgress } from '@/features/progress';
 import type {
+  AchievementCategory,
   CourseItem,
   CourseItemType,
   CourseUnit,
@@ -101,6 +102,30 @@ export type RpgCourseMapSummary = {
   requiredItemCount: number;
   unitCount: number;
   weekFour: RpgModuleSummary | null;
+};
+
+export type RpgBadgeStatus = 'earned' | 'locked';
+
+export type RpgBadgeSummary = {
+  category: AchievementCategory;
+  categoryLabel: string;
+  description: string;
+  earned: boolean;
+  earnedAt: string | null;
+  id: string;
+  order: number;
+  requirementText: string;
+  status: RpgBadgeStatus;
+  statusLabel: 'Earned' | 'Locked';
+  title: string;
+  triggerSourceId: string | null;
+};
+
+export type RpgBadgeGallerySummary = {
+  badges: RpgBadgeSummary[];
+  earnedBadgeCount: number;
+  lockedBadgeCount: number;
+  totalBadgeCount: number;
 };
 
 export type RpgStudyResourceSummary = {
