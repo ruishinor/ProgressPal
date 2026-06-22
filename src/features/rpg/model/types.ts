@@ -101,10 +101,20 @@ export type RpgCourseMapSummary = {
 export type RpgStudyResourceSummary = {
   estimatedMinutesLabel: string;
   itemId: string;
+  itemType: CourseItemType;
   longFormProgress: CourseLongFormProgress | null;
   officialLink: RpgOfficialLink | null;
   progressStatus: ProgressStatus | 'not_started';
   required: boolean;
+  savedProgress: {
+    completedAt: string | null;
+    confidence: number;
+    evidenceText: string | null;
+    notes: string | null;
+    startedAt: string | null;
+    status: ProgressStatus;
+    updatedAt: string;
+  } | null;
   statusLabel: string;
   statusVariant: CourseStatusVariant;
   title: string;
