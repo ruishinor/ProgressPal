@@ -225,6 +225,7 @@ describe('RPG read models', () => {
     expect(resource).toMatchObject({
       estimatedMinutesLabel: '6h',
       itemId: 'week-4-problem-set',
+      itemType: 'problem_set',
       officialLink: {
         label: 'Problem Set 4 on CS50.harvard.edu',
         url: 'https://cs50.harvard.edu/x/psets/4/',
@@ -236,6 +237,32 @@ describe('RPG read models', () => {
       typeLabel: 'Problem set',
       unitId: RPG_WEEK_FOUR_UNIT_ID,
       unitTitle: 'Week 4: Memory',
+    });
+    expect(resource?.savedProgress).toBeNull();
+  });
+
+  it('loads saved study resource progress notes without mutation', async () => {
+    const db = await createSeededRpgDatabase();
+
+    const resource = await expectReadOnly(() =>
+      loadRpgStudyResourceSummary('week-4-lecture', { db }),
+    );
+
+    expect(resource).toMatchObject({
+      itemId: 'week-4-lecture',
+      itemType: 'lecture',
+      progressStatus: 'started',
+      savedProgress: {
+        completedAt: null,
+        confidence: 2,
+        evidenceText: null,
+        notes: 'Working through memory.',
+        startedAt: '2026-06-21T09:00:00.000Z',
+        status: 'started',
+      },
+      statusLabel: 'Started',
+      title: 'Lecture 4: Memory',
+      unitId: RPG_WEEK_FOUR_UNIT_ID,
     });
   });
 

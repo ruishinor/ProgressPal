@@ -392,17 +392,32 @@ function getLongFormProgressForItem(
 
 function buildStudyResourceFromDetail(
   detail: CourseDetailView,
+  item: CourseItem,
+  progressEntry: ProgressEntry | null,
   unitId: string,
 ): RpgStudyResourceSummary {
   return {
     estimatedMinutesLabel: detail.estimatedMinutesLabel,
     itemId: detail.itemId,
+    itemType: item.type,
     longFormProgress: detail.longFormProgress,
     officialLink: toRpgOfficialLink(
       getCs50ItemLink(detail.itemId) ?? getCs50UnitLink(unitId),
     ),
     progressStatus: detail.progressStatus,
     required: detail.required,
+    savedProgress:
+      progressEntry === null
+        ? null
+        : {
+            completedAt: progressEntry.completedAt ?? null,
+            confidence: progressEntry.confidence,
+            evidenceText: progressEntry.evidenceText ?? null,
+            notes: progressEntry.notes ?? null,
+            startedAt: progressEntry.startedAt ?? null,
+            status: progressEntry.status,
+            updatedAt: progressEntry.updatedAt,
+          },
     statusLabel: detail.statusLabel,
     statusVariant: detail.statusVariant,
     title: detail.title,
@@ -429,14 +444,15 @@ export function buildRpgStudyResourceSummary(
     return null;
   }
 
+  const progressEntry = context.progressByItemId.get(item.id) ?? null;
   const detail = buildCourseDetailView(
     unit,
     item,
-    context.progressByItemId.get(item.id) ?? null,
+    progressEntry,
     getLongFormProgressForItem(snapshot, item.id),
   );
 
-  return buildStudyResourceFromDetail(detail, unit.id);
+  return buildStudyResourceFromDetail(detail, item, progressEntry, unit.id);
 }
 
 async function readSnapshot(options: RpgReadModelOptions = {}) {

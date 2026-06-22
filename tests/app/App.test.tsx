@@ -6,7 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   addStudySessionAndAwardXp,
@@ -1632,7 +1632,7 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/resource/week-0-lecture') {
-      await screen.findByRole('link', { name: 'Back to parent week' });
+      await screen.findByRole('link', { name: 'Back to week' });
       return;
     }
 
@@ -1942,19 +1942,175 @@ describe('RPG routes', () => {
     expectRpgShellWithBottomNav('Map');
   });
 
-  it('renders the RPG resource shell', async () => {
+  it('renders the RPG Study Resource from real Week 4 data without embedded content', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    try {
+      await seedOnboardedLearnerWithRpgHistory();
+
+      await renderAppAtRoute('/rpg/resource/week-4-lecture');
+
+      expect(
+        await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
+      ).toBeInTheDocument();
+      expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Lecture').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Started').length).toBeGreaterThan(0);
+      expect(
+        screen.getByRole('link', { name: 'Back to week' }),
+      ).toHaveAttribute('href', '/rpg/week/week-4');
+      expect(
+        screen.getAllByRole('link', { name: 'Start focus session' })[0],
+      ).toHaveAttribute('href', '/rpg/focus?itemId=week-4-lecture');
+
+      const officialLink = screen.getByRole('link', {
+        name: 'Open official CS50x resource',
+      });
+
+      expect(officialLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('cs50'),
+      );
+      expect(officialLink).toHaveAttribute('target', '_blank');
+      expect(openSpy).not.toHaveBeenCalled();
+      expect(document.querySelector('iframe')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /play/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('tab', { name: /transcript/i }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/timeline scrubber/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/fake transcript/i)).not.toBeInTheDocument();
+      expectRpgShellWithBottomNav('Map');
+    } finally {
+      openSpy.mockRestore();
+    }
+  });
+
+  it('saves partial RPG resource progress only after explicit user action', async () => {
+    const user = userEvent.setup();
     await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    expect(
+      beforeSnapshot.progressEntries.some(
+        (entry) => entry.itemId === 'week-4-problem-set',
+      ),
+    ).toBe(false);
+
+    fireEvent.change(screen.getByLabelText('Add study note'), {
+      target: { value: 'Started from RPG Study Resource.' },
+    });
+
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Save local progress' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Progress saved' }),
+    ).toBeInTheDocument();
+
+    const afterSnapshot = await getDatabaseSnapshot();
+    const savedProgress = afterSnapshot.progressEntries.find(
+      (entry) => entry.itemId === 'week-4-problem-set',
+    );
+
+    expect(savedProgress).toMatchObject({
+      itemId: 'week-4-problem-set',
+      notes: 'Started from RPG Study Resource.',
+      status: 'started',
+    });
+    expect(savedProgress?.completedAt).toBeUndefined();
+  });
+
+  it('does not force a partially logged RPG long-form resource to complete', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 1200,
+        energyAfter: 3,
+        energyBefore: 4,
+        notes: 'Partial RPG Study Resource guard fixture.',
+        startSecond: 0,
+        stoppedBecause: 'reached_limit',
+      },
+      { now: () => '2026-06-12T12:00:00.000Z' },
+    );
 
     await renderAppAtRoute('/rpg/resource/week-0-lecture');
 
+    await screen.findByRole('heading', { name: 'Lecture 0: Scratch' });
+
+    const beforeSnapshot = await getDatabaseSnapshot();
+    const beforeProgress = beforeSnapshot.progressEntries.find(
+      (entry) => entry.itemId === 'week-0-lecture',
+    );
+
+    expect(beforeProgress).toMatchObject({
+      itemId: 'week-0-lecture',
+      status: 'started',
+    });
+    expect(beforeProgress?.completedAt).toBeUndefined();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Mark locally complete' }),
+    );
+
     expect(
-      await screen.findByRole('heading', { name: 'Lecture 0: Scratch' }),
+      await screen.findByText(
+        'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
+      ),
     ).toBeInTheDocument();
-    expect(screen.getAllByText('Week 0: Scratch').length).toBeGreaterThan(0);
+
+    const afterProgress = (await getDatabaseSnapshot()).progressEntries.find(
+      (entry) => entry.itemId === 'week-0-lecture',
+    );
+
+    expect(afterProgress).toEqual(beforeProgress);
+  });
+
+  it('marks an RPG resource locally complete only after explicit user action', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
     expect(
-      screen.getByRole('link', { name: 'Back to parent week' }),
-    ).toHaveAttribute('href', '/rpg/week/week-0');
-    expectRpgShellWithBottomNav('Map');
+      (await getDatabaseSnapshot()).progressEntries.some(
+        (entry) =>
+          entry.itemId === 'week-4-problem-set' && entry.status === 'completed',
+      ),
+    ).toBe(false);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Mark locally complete' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Progress saved' }),
+    ).toBeInTheDocument();
+
+    const savedProgress = (await getDatabaseSnapshot()).progressEntries.find(
+      (entry) => entry.itemId === 'week-4-problem-set',
+    );
+
+    expect(savedProgress).toMatchObject({
+      itemId: 'week-4-problem-set',
+      status: 'completed',
+    });
+    expect(savedProgress?.completedAt).toEqual(expect.any(String));
   });
 
   it('renders an RPG resource not-found state', async () => {
