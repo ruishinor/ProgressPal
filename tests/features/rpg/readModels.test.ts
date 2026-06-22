@@ -4,6 +4,7 @@ import {
   loadRpgCourseMapSummary,
   loadRpgFocusSessionSummary,
   loadRpgHubSummary,
+  loadRpgJourneyLogSummary,
   loadRpgModuleSummary,
   loadRpgStudyResourceSummary,
   RPG_WEEK_FOUR_UNIT_ID,
@@ -293,6 +294,66 @@ describe('RPG read models', () => {
     expect(manualFocus.selectedResource).toBeNull();
     expect(manualFocus.items.length).toBeGreaterThan(0);
     expect(manualFocus.units.length).toBeGreaterThan(0);
+  });
+
+  it('loads Journey Log activity from progress, sessions, and XP without mutation', async () => {
+    const db = await createSeededRpgDatabase();
+
+    const log = await expectReadOnly(() => loadRpgJourneyLogSummary({ db }));
+
+    expect(log.totals).toEqual({
+      activityCount: 4,
+      progressCount: 2,
+      sessionCount: 1,
+      totalMinutes: 35,
+      totalXp: 10,
+      xpTransactionCount: 1,
+    });
+    expect(log.activities.map((activity) => activity.typeLabel)).toEqual([
+      'Study session finished',
+      'XP awarded',
+      'Progress saved',
+      'Progress saved',
+    ]);
+    expect(log.activities[0]).toMatchObject({
+      contextLabel: 'Week 4: Memory - Lecture 4: Memory',
+      detail: '35 min watching',
+      note: null,
+      title: 'Study session finished',
+      type: 'study_session',
+    });
+    expect(log.activities[1]).toMatchObject({
+      contextLabel: null,
+      detail: '10 XP - Fixture XP from an existing source event.',
+      note: null,
+      title: 'XP awarded',
+      type: 'xp',
+    });
+    expect(log.activities[2]).toMatchObject({
+      contextLabel: 'Week 4: Memory - Lecture 4: Memory',
+      detail: 'Lecture 4: Memory saved as Started',
+      itemId: 'week-4-lecture',
+      itemTitle: 'Lecture 4: Memory',
+      note: 'Working through memory.',
+      title: 'Progress saved',
+      type: 'progress',
+      unitId: RPG_WEEK_FOUR_UNIT_ID,
+      unitTitle: 'Week 4: Memory',
+    });
+    expect(log.activities[2].links).toEqual([
+      {
+        href: '/rpg/resource/week-4-lecture',
+        label: 'Open resource',
+      },
+      {
+        href: '/rpg/focus?itemId=week-4-lecture',
+        label: 'Focus',
+      },
+      {
+        href: '/rpg/week/week-4',
+        label: 'Open week',
+      },
+    ]);
   });
 
   it('returns null for missing module and resource IDs without mutation', async () => {
