@@ -2,9 +2,11 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The current stable app is the classic ProgressPal v1 engine: a plain, functional study tracker for local course progress, study sessions, XP, achievements, insights, backup, import, and reset.
+The current freeze target is **ProgressPal CS50 Edition v1.2**: a polished local-first CS50 tracker proof with gamified elements for course progress, study sessions, XP, achievements, insights, backup, import, reset, and limited/manual avatar use.
 
-ProgressPal RPG v2 is planned as a same-origin `/rpg/*` route tree over that existing engine. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
+This current build is **not** the fully realized RPG v2 shell. ProgressPal RPG v2 remains the intended future character-led CS50 campaign shell powered by the same local-first engine.
+
+The next RPG implementation phase should start from the `v1.2.0-local-first-proof` freeze and focus on shell transformation: persistent Hero HUD, collapsed/detail panels, a quest-first loop, reward feedback, asset foundation, and campaign-map redesign. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
 
 ## Current product position
 
@@ -26,12 +28,40 @@ ProgressPal is not:
 - a social learning platform;
 - an AI tutor;
 - a media streaming interface.
+- a completed RPG v2 campaign shell.
+
+## Release freeze status
+
+Current release classification:
+
+```text
+ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+```
+
+Recommended release tag:
+
+```text
+v1.2.0-local-first-proof
+```
+
+Strategic planning/reference document:
+
+```text
+docs/ProgressPal CS50 RPG v2 - 26-06-23.md
+```
+
+Release note:
+
+```text
+docs/releases/v1.2.0-local-first-proof.md
+```
 
 ## RPG v2 source of truth
 
 For RPG v2 work, read these files first:
 
 ```text
+docs/ProgressPal CS50 RPG v2 - 26-06-23.md
 docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
 docs/rpg-v2/DECISIONS-rpg-v2.md
 docs/rpg-v2/VALIDATION_LOG.md
@@ -41,6 +71,8 @@ docs/rpg-v2/RISK_REGISTER.md
 docs/rpg-v2/VISUAL_TARGET.md
 docs/rpg-v2/RESTART_PROMPT.md
 ```
+
+The June 23 planning document reclassifies the current app as the v1.2 local-first tracker proof. Older RPG v2 docs remain useful implementation history, but the current build should not be described as completed RPG v2.
 
 Older root-level planning files may describe the completed v1 engine phase and may be archived under:
 
@@ -109,22 +141,20 @@ npm run audit
 
 If the repo has a combined script such as `npm run validate`, use it only if it runs the full required gate.
 
-## RPG v2 implementation rule
+## RPG shell transformation rule
 
-Do not scaffold all RPG modules at once.
+Do not start the RPG shell transformation from more tracker panels. Start from the frozen v1.2 proof and change the main loop.
 
-Start with RPG-00 only:
+The next implementation branch should prioritize:
 
-- install source-of-truth documentation;
-- reconcile repo state;
-- archive misleading old root Markdown files;
-- record validation baseline;
-- make no runtime changes;
-- make no package changes;
-- add no routes;
-- add no assets.
+- persistent Hero HUD;
+- collapsed/detail panels;
+- quest-first resource flow;
+- reward feedback after explicit saves;
+- minimal, approved asset foundation;
+- campaign-map redesign.
 
-Every implementation module must include a Scope Discipline Check in its handoff file under:
+Every future implementation module must still include a Scope Discipline Check in its handoff file under:
 
 ```text
 docs/rpg-v2/modules/

@@ -2,11 +2,39 @@
 
 Status: source-of-truth implementation roadmap  
 Created: 2026-06-20  
-Updated: 2026-06-20  
+Updated: 2026-06-23
 Scope: ProgressPal RPG v2, implemented as a same-origin `/rpg/*` route tree over the existing ProgressPal CS50x local-first engine  
 Audience: junior/vibe-coding implementer working under strict module gates  
 Supersedes: all earlier RPG v2 roadmap drafts and interim consolidated plans  
 Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.md`, `docs/rpg-v2/ASSETS.md`, `docs/rpg-v2/RISK_REGISTER.md`
+
+---
+
+## 2026-06-23 freeze update
+
+The current checked-in app should be frozen and released as:
+
+```text
+ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+```
+
+Recommended tag:
+
+```text
+v1.2.0-local-first-proof
+```
+
+This current app is valuable, but it is not the fully realized RPG v2 shell described by this roadmap. Treat the existing RPG-flavored routes, visual polish, and release-candidate validation as proof that the local-first engine can carry a gamified CS50 tracker. Do not treat them as completion of the character-led campaign shell.
+
+The next RPG v2 phase should begin after this freeze from a clean branch, recommended:
+
+```text
+rpg/real-shell-v2
+```
+
+The next phase is shell transformation, not more tracker panels. The first priorities are persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+
+Historical note: some module documents and validation entries reflect a stale RPG module ordering mismatch. Preserve them as implementation history, but use the June 23 freeze classification above for current product framing.
 
 ---
 

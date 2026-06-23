@@ -1,5 +1,11 @@
 # RPG-15 Handoff - Release Candidate
 
+## 2026-06-23 Classification Note
+
+RPG-15 remains useful release-candidate evidence, but it should not be read as proof that the fully realized RPG v2 shell is complete. The current app is now classified for release as `ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements`, with recommended tag `v1.2.0-local-first-proof`.
+
+The next implementation phase should begin after this freeze from a clean branch and focus on shell transformation: persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+
 ## Module and Goal
 
 RPG-15 - Classic regression and release candidate.

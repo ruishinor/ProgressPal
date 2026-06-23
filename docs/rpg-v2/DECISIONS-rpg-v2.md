@@ -2,6 +2,7 @@
 
 Status: active RPG v2 decision log  
 Created: 2026-06-20  
+Updated: 2026-06-23
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/DECISIONS-rpg-v2.md`  
 Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived
@@ -27,6 +28,24 @@ Active RPG v2 source hierarchy:
 ```
 
 If this file conflicts with the source-of-truth roadmap, stop and reconcile the conflict before implementation. Do not guess.
+
+## 0.1 Current freeze classification
+
+As of 2026-06-23, the current checked-in app is classified as:
+
+```text
+ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+```
+
+Recommended release tag:
+
+```text
+v1.2.0-local-first-proof
+```
+
+This classification supersedes any reading of RPG-15 as completed RPG v2. RPG-15 validated a release-candidate state for the tracker proof and coexistence of classic/RPG-flavored routes. The fully realized RPG shell remains future work.
+
+Future RPG shell transformation should start from a clean branch after this freeze and focus on persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
 
 ## 1. Decision status labels
 
@@ -71,6 +90,7 @@ revisit-later = future possibility; not allowed in v2 unless accepted later
 | D-0068 | accepted | Agent work mode must be explicit: acceptance audit, corrective patch, or next-module implementation.                              |
 | D-0069 | accepted | Formal BMAD governance is opt-in; adversarial review thinking must not be represented as completed BMAD workflow.                 |
 | D-0070 | accepted | Module completion requires source reconciliation, warning classification, committed evidence, and clean final state.              |
+| D-0071 | accepted | Current app is v1.2 local-first tracker proof, not completed RPG v2.                                                              |
 
 ---
 
@@ -1156,3 +1176,34 @@ Chat reports are not durable project evidence. The repository must contain the i
 - Any warning, including environment warnings, must be classified as blocker / environment warning / harmless but noted.
 - Source-of-truth conflicts must be resolved, not left for the next module by default.
 - A clean validation claim applies only to the final committed or commit-ready file state.
+
+---
+
+## D-0071 - Current app freezes as v1.2 local-first tracker proof
+
+- Date: 2026-06-23
+- Status: accepted
+
+### Decision
+
+The current application state is reclassified as:
+
+```text
+ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+```
+
+The recommended release tag is:
+
+```text
+v1.2.0-local-first-proof
+```
+
+The current app must not be described as completed RPG v2. It is the polished local-first tracker proof and the baseline for future RPG shell transformation.
+
+### Consequences
+
+- Release documentation should clearly state what this release is and is not.
+- The future RPG shell should start from a clean branch after this freeze.
+- No backend, auth, cloud sync, analytics, AI APIs, telemetry, schema change, or new engine work is introduced by this freeze.
+- Visual assets remain incomplete; limited/manual avatar use is the honest current state.
+- The next implementation phase is shell transformation: persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.

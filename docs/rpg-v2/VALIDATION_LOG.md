@@ -2,9 +2,71 @@
 
 Status: active validation and evidence log  
 Created: 2026-06-20  
+Updated: 2026-06-23
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/VALIDATION_LOG.md`  
 Related files: `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md`, `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/modules/*.md`, `docs/rpg-v2/ASSETS.md`, `docs/rpg-v2/RISK_REGISTER.md`
+
+## 2026-06-23 Phase 0 freeze classification
+
+The current app is being frozen as:
+
+```text
+ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+```
+
+Recommended tag:
+
+```text
+v1.2.0-local-first-proof
+```
+
+This validation log contains historical RPG module evidence, including RPG-15 release-candidate validation. That evidence should not be read as proof that the full RPG v2 shell is complete. For this freeze, the current build is the local-first CS50 tracker proof. The future RPG shell transformation should start after this release from a clean branch.
+
+Release note:
+
+```text
+docs/releases/v1.2.0-local-first-proof.md
+```
+
+### Phase 0 freeze validation - 2026-06-23
+
+Branch: `rpg/v2`
+Head at inspection: `8254ae2 Merge pull request #24 from ruishinor/rpg/15-release-candidate`
+
+Results:
+
+| Command                           | Status            | Output summary / failure                                                                                                                |
+| --------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `git status -sb`                  | pass with warning | Branch `rpg/v2...origin/rpg/v2`; new roadmap doc initially untracked; Git emitted the existing global-ignore permission warning.        |
+| `git branch --show-current`       | pass              | `rpg/v2`.                                                                                                                               |
+| `git log --oneline --decorate -8` | pass              | Head was RPG-15 merge `8254ae2`; recent history included RPG-14 and RPG-13 merges.                                                      |
+| `git diff --check`                | pass after fix    | Initial check flagged trailing whitespace on new `Updated:` metadata lines; after correction, no whitespace errors remained.            |
+| `npm run lint`                    | pass              | ESLint completed with `--max-warnings 0`.                                                                                               |
+| `npm run typecheck`               | pass after rerun  | Initial sandbox run failed with `EPERM` writing `node_modules/.tmp/tsconfig.node.tsbuildinfo`; rerun with filesystem escalation passed. |
+| `npm run build`                   | pass after rerun  | Initial sandbox run failed with `EPERM` writing `node_modules/.vite-temp/...`; rerun with filesystem escalation passed.                 |
+| `npm run format:check`            | pass              | Prettier reported all matched files use Prettier code style.                                                                            |
+| `npm run check:circular`          | pass              | `dpdm` found no circular dependencies across 161 analyzed files.                                                                        |
+| `npm run audit`                   | pass              | Rerun with network escalation; `npm audit --audit-level=moderate` found 0 vulnerabilities.                                              |
+| `npm run test`                    | pass              | Rerun with filesystem escalation; 37 test files passed, 311 tests passed.                                                               |
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diffs remained readable.
+- Git diff/status commands emitted LF/CRLF replacement notices. Classification: environment/line-ending notice. `git diff --check` passed after the metadata whitespace fix.
+- Initial sandboxed `npm run typecheck` and `npm run build` attempts failed on writes under `node_modules`. Classification: sandbox filesystem limitation. Action: reran with filesystem escalation; both commands passed.
+- `npm run audit` required network escalation. Classification: expected network requirement for npm advisory lookup. Result: 0 vulnerabilities.
+
+Adversarial review:
+
+- The main product risk was false classification: treating the current app as completed RPG v2 would likely drive the next phase toward more tracker-panel expansion instead of the missing shell transformation.
+- The freeze docs now identify the current state as `v1.2.0-local-first-proof` and explicitly defer Hero HUD, collapsed panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+- No runtime, package, schema, backend, sync, telemetry, analytics, AI, or asset changes were introduced.
+
+Retrospective:
+
+- RPG-15 evidence is still useful, but its wording could be overread as RPG v2 completion. The correct interpretation is narrower: it validated coexistence and local-first release readiness for the tracker proof.
+- The highest-leverage Phase 0 change was not more validation or feature work; it was correcting the source-of-truth framing before the next branch starts.
 
 ## 0. Purpose
 
