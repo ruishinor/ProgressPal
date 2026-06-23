@@ -144,6 +144,7 @@ describe('RPG read models', () => {
     });
     expect(hub.xpSummary.totalXp).toBe(10);
     expect(hub.xpSummary.level).toBe(1);
+    expect(hub.xpSummary.levelProgressPercent).toBe(10);
     expect(hub.currentModule).toMatchObject({
       id: RPG_WEEK_FOUR_UNIT_ID,
       title: 'Week 4: Memory',

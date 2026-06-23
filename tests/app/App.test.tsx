@@ -1753,6 +1753,40 @@ describe('RPG routes', () => {
     ).toHaveAttribute('aria-current', 'page');
   }
 
+  async function expectPersistentHeroHud({
+    currentQuestHref,
+    routeContext,
+  }: {
+    currentQuestHref: string;
+    routeContext: string;
+  }) {
+    await waitFor(() => {
+      expect(
+        within(
+          screen.getByRole('region', { name: 'Persistent hero HUD' }),
+        ).getByText('Alex'),
+      ).toBeInTheDocument();
+    });
+
+    const heroHud = screen.getByRole('region', {
+      name: 'Persistent hero HUD',
+    });
+
+    expect(within(heroHud).getByText('Hero HUD')).toBeInTheDocument();
+    expect(within(heroHud).getByText('Level')).toBeInTheDocument();
+    expect(
+      within(heroHud).getByRole('progressbar', {
+        name: /XP progress to level/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(heroHud).getByText(`Route: ${routeContext}`),
+    ).toBeInTheDocument();
+    expect(
+      within(heroHud).getByRole('link', { name: 'Continue quest' }),
+    ).toHaveAttribute('href', currentQuestHref);
+  }
+
   it('renders the RPG hub shell', async () => {
     await seedOnboardedLearner();
 
@@ -1765,6 +1799,10 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(mapLink).toHaveAttribute('href', '/rpg/map');
     expectRpgShellWithBottomNav('Hub');
+    await expectPersistentHeroHud({
+      currentQuestHref: '/rpg/resource/week-0-lecture',
+      routeContext: 'Hub',
+    });
   });
 
   it('renders the RPG quest hub from real local data', async () => {
@@ -2557,6 +2595,19 @@ describe('RPG routes', () => {
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
+      await expectPersistentHeroHud({
+        currentQuestHref: '/rpg/resource/week-0-lecture',
+        routeContext:
+          route === '/rpg/focus'
+            ? 'Focus'
+            : route === '/rpg/hero'
+              ? 'Hero Profile'
+              : route === '/rpg/badges'
+                ? 'Badge Gallery'
+                : route === '/rpg/log'
+                  ? 'Journey Log'
+                  : 'Settings',
+      });
     }
   });
 

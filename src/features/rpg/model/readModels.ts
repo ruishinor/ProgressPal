@@ -255,6 +255,32 @@ function getRankLabel({
   return 'Initiate';
 }
 
+function roundToSingleDecimal(value: number) {
+  return Math.round(value * 10) / 10;
+}
+
+function clampPercent(value: number) {
+  return Math.min(100, Math.max(0, roundToSingleDecimal(value)));
+}
+
+function getLevelProgressPercent({
+  currentLevelFloorXp,
+  nextLevelXp,
+  totalXp,
+}: {
+  currentLevelFloorXp: number;
+  nextLevelXp: number;
+  totalXp: number;
+}) {
+  const span = nextLevelXp - currentLevelFloorXp;
+
+  if (span <= 0) {
+    return 0;
+  }
+
+  return clampPercent(((totalXp - currentLevelFloorXp) / span) * 100);
+}
+
 function buildWeeklyProgress(
   snapshot: DatabaseSnapshot,
   nowIso: string,
@@ -682,6 +708,7 @@ export function buildRpgHubSummary(
     weekFour: courseMapSummary.weekFour,
     xpSummary: {
       level: xpSummary.level,
+      levelProgressPercent: getLevelProgressPercent(xpSummary),
       totalXp: xpSummary.totalXp,
       xpToNextLevel: xpSummary.xpToNextLevel,
     },
