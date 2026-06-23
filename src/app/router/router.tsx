@@ -4,6 +4,7 @@ import { HomePage } from '@/app/routes/HomePage';
 import { NotFoundPage } from '@/app/routes/NotFoundPage';
 import { getRouteDefinition } from '@/app/router/routeDefinitions';
 import { AppShell } from '@/app/shell/AppShell';
+import { RpgRouteShell } from '@/app/shell/RpgRouteShell';
 import { AchievementsPage } from '@/features/achievements';
 import { ContentDetailPage, CoursePage } from '@/features/course';
 import { DashboardPage } from '@/features/dashboard';
@@ -70,7 +71,32 @@ export const router = createBrowserRouter([
         element: <ContentDetailPage />,
       },
       {
-        path: rpgRoute.segment,
+        path: sessionsRoute.segment,
+        element: <SessionsPage />,
+      },
+      {
+        path: achievementsRoute.segment,
+        element: <AchievementsPage />,
+      },
+      {
+        path: insightsRoute.segment,
+        element: <InsightsPage />,
+      },
+      {
+        path: settingsRoute.segment,
+        element: <SettingsPage />,
+      },
+      {
+        path: notFoundRoute.segment,
+        element: <NotFoundPage />,
+      },
+    ],
+  },
+  {
+    path: rpgRoute.segment,
+    element: <RpgRouteShell />,
+    children: [
+      {
         element: <RpgShell />,
         children: [
           {
@@ -110,26 +136,6 @@ export const router = createBrowserRouter([
             element: <RpgSettingsPage />,
           },
         ],
-      },
-      {
-        path: sessionsRoute.segment,
-        element: <SessionsPage />,
-      },
-      {
-        path: achievementsRoute.segment,
-        element: <AchievementsPage />,
-      },
-      {
-        path: insightsRoute.segment,
-        element: <InsightsPage />,
-      },
-      {
-        path: settingsRoute.segment,
-        element: <SettingsPage />,
-      },
-      {
-        path: notFoundRoute.segment,
-        element: <NotFoundPage />,
       },
     ],
   },

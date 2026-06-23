@@ -1753,12 +1753,22 @@ describe('RPG routes', () => {
     ).toHaveAttribute('aria-current', 'page');
   }
 
+  function expectClassicShellAbsent() {
+    expect(
+      screen.queryByRole('navigation', { name: 'Primary' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'ProgressPal CS50 Edition',
+      }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Current status')).not.toBeInTheDocument();
+  }
+
   async function expectPersistentHeroHud({
     currentQuestHref,
-    routeContext,
   }: {
     currentQuestHref: string;
-    routeContext: string;
   }) {
     await waitFor(() => {
       expect(
@@ -1773,15 +1783,16 @@ describe('RPG routes', () => {
     });
 
     expect(within(heroHud).getByText('Hero HUD')).toBeInTheDocument();
+    expect(
+      within(heroHud).getByRole('img', { name: 'Alex hero avatar' }),
+    ).toHaveAttribute('data-avatar-source', 'configured');
     expect(within(heroHud).getByText('Level')).toBeInTheDocument();
     expect(
       within(heroHud).getByRole('progressbar', {
         name: /XP progress to level/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      within(heroHud).getByText(`Route: ${routeContext}`),
-    ).toBeInTheDocument();
+    expect(within(heroHud).queryByText(/Route:/i)).not.toBeInTheDocument();
     expect(
       within(heroHud).getByRole('link', { name: 'Continue quest' }),
     ).toHaveAttribute('href', currentQuestHref);
@@ -1799,9 +1810,9 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(mapLink).toHaveAttribute('href', '/rpg/map');
     expectRpgShellWithBottomNav('Hub');
+    expectClassicShellAbsent();
     await expectPersistentHeroHud({
       currentQuestHref: '/rpg/resource/week-0-lecture',
-      routeContext: 'Hub',
     });
   });
 
@@ -2595,18 +2606,9 @@ describe('RPG routes', () => {
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
+      expectClassicShellAbsent();
       await expectPersistentHeroHud({
         currentQuestHref: '/rpg/resource/week-0-lecture',
-        routeContext:
-          route === '/rpg/focus'
-            ? 'Focus'
-            : route === '/rpg/hero'
-              ? 'Hero Profile'
-              : route === '/rpg/badges'
-                ? 'Badge Gallery'
-                : route === '/rpg/log'
-                  ? 'Journey Log'
-                  : 'Settings',
       });
     }
   });
@@ -2955,22 +2957,29 @@ describe('RPG routes', () => {
     }
   });
 
-  it('keeps RPG hidden from primary navigation', async () => {
+  it('renders RPG routes outside the classic primary navigation chrome', async () => {
     await seedOnboardedLearner();
 
     await renderAppAtRoute('/rpg');
     await screen.findByRole('heading', { name: 'RPG Hub' });
+
+    expectClassicShellAbsent();
+  });
+
+  it('preserves classic chrome on classic routes', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'Dashboard' });
 
     const primaryNavigation = screen.getByRole('navigation', {
       name: 'Primary',
     });
 
     expect(
-      within(primaryNavigation).queryByRole('link', { name: 'RPG' }),
-    ).not.toBeInTheDocument();
-    expect(
       within(primaryNavigation).getByRole('link', { name: 'Dashboard' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('Current status')).toBeInTheDocument();
   });
 });
 

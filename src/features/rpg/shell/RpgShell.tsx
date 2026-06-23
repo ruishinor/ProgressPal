@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
+import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
 import { RpgProgressBar } from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
@@ -32,53 +33,11 @@ function getHeroInitials(name: string) {
   return initials || 'L';
 }
 
-function getRpgRouteContext(pathname: string) {
-  if (pathname === '/rpg') {
-    return 'Hub';
-  }
-
-  if (pathname.startsWith('/rpg/map')) {
-    return 'Campaign Map';
-  }
-
-  if (pathname.startsWith('/rpg/week/')) {
-    return 'Week Detail';
-  }
-
-  if (pathname.startsWith('/rpg/resource/')) {
-    return 'Study Resource';
-  }
-
-  if (pathname.startsWith('/rpg/focus')) {
-    return 'Focus';
-  }
-
-  if (pathname.startsWith('/rpg/hero')) {
-    return 'Hero Profile';
-  }
-
-  if (pathname.startsWith('/rpg/badges')) {
-    return 'Badge Gallery';
-  }
-
-  if (pathname.startsWith('/rpg/log')) {
-    return 'Journey Log';
-  }
-
-  if (pathname.startsWith('/rpg/settings')) {
-    return 'Settings';
-  }
-
-  return 'RPG';
-}
-
 function RpgHeroHud({
   onRetry,
-  routeContext,
   state,
 }: {
   onRetry: () => void;
-  routeContext: string;
   state: RpgShellHudState;
 }) {
   if (state.status === 'loading' || state.summary === null) {
@@ -98,10 +57,6 @@ function RpgHeroHud({
               {state.error ??
                 'Local RPG summary could not be loaded from this browser.'}
             </p>
-          </div>
-          <div className="rpg-hero-hud__route">
-            <span>Route</span>
-            <strong>{routeContext}</strong>
           </div>
           <button
             className="rpg-hero-hud__quest-link"
@@ -129,10 +84,6 @@ function RpgHeroHud({
             Reading the existing local RPG summary.
           </p>
         </div>
-        <div className="rpg-hero-hud__route">
-          <span>Route</span>
-          <strong>{routeContext}</strong>
-        </div>
       </section>
     );
   }
@@ -148,9 +99,18 @@ function RpgHeroHud({
 
   return (
     <section aria-label="Persistent hero HUD" className="rpg-hero-hud">
-      <div aria-hidden="true" className="rpg-hero-hud__avatar">
-        {getHeroInitials(summary.learnerName)}
-      </div>
+      {summary.learnerAvatarConfig === null ? (
+        <div aria-hidden="true" className="rpg-hero-hud__avatar">
+          {getHeroInitials(summary.learnerName)}
+        </div>
+      ) : (
+        <ProfileAvatar
+          avatarConfig={summary.learnerAvatarConfig}
+          className="rpg-hero-hud__avatar rpg-hero-hud__avatar--profile"
+          label={`${summary.learnerName} hero avatar`}
+          size="sm"
+        />
+      )}
 
       <div className="rpg-hero-hud__identity">
         <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
@@ -175,7 +135,6 @@ function RpgHeroHud({
       <div className="rpg-hero-hud__quest">
         <span>Current quest</span>
         <strong>{currentQuestLabel}</strong>
-        <span>{`Route: ${routeContext}`}</span>
         <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
           {currentQuest === null ? 'Open map' : 'Continue quest'}
         </Link>
@@ -185,10 +144,8 @@ function RpgHeroHud({
 }
 
 export function RpgShell() {
-  const location = useLocation();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
-  const routeContext = getRpgRouteContext(location.pathname);
 
   useEffect(() => {
     let isActive = true;
@@ -253,7 +210,6 @@ export function RpgShell() {
             });
             setReloadToken((currentToken) => currentToken + 1);
           }}
-          routeContext={routeContext}
           state={hudState}
         />
         <main className="rpg-shell__main" id="rpg-main-content">

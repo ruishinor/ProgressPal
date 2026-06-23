@@ -5,6 +5,7 @@ import type {
   CourseItem,
   CourseItemType,
   CourseUnit,
+  LearnerAvatarConfig,
   ProgressStatus,
 } from '@/lib/domain';
 
@@ -79,6 +80,7 @@ export type RpgHubSummary = {
   courseProgress: RpgCourseProgressSummary;
   currentModule: RpgModuleSummary | null;
   identity: RpgHubIdentity;
+  learnerAvatarConfig: LearnerAvatarConfig | null;
   learnerName: string;
   recentActivity: RpgHubRecentActivity[];
   studySummary: {
@@ -137,6 +139,7 @@ export type RpgHeroProfileSummary = {
   courseProgress: RpgCourseProgressSummary;
   hasLocalActivity: boolean;
   identity: RpgHubIdentity;
+  learnerAvatarConfig: LearnerAvatarConfig | null;
   learnerName: string;
   recentActivity: RpgHubRecentActivity[];
   studySummary: {
