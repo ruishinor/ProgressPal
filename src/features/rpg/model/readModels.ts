@@ -633,6 +633,7 @@ export function buildRpgHeroProfileSummary(
       hubSummary.xpSummary.totalXp > 0 ||
       badgeGallery.earnedBadgeCount > 0,
     identity: hubSummary.identity,
+    learnerAvatarConfig: hubSummary.learnerAvatarConfig,
     learnerName: hubSummary.learnerName,
     recentActivity: hubSummary.recentActivity,
     studySummary: hubSummary.studySummary,
@@ -698,6 +699,7 @@ export function buildRpgHubSummary(
       pathLabel: 'CS Foundations',
       rankLabel: getRankLabel(courseMapSummary),
     },
+    learnerAvatarConfig: snapshot.learnerProfile?.avatarConfig ?? null,
     learnerName: snapshot.learnerProfile?.displayName ?? 'Learner',
     recentActivity: buildRecentActivity(snapshot),
     studySummary: {
