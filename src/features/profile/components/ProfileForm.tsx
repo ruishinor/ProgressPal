@@ -245,7 +245,7 @@ export function ProfileForm({
           </fieldset>
         </Card>
         <Card
-          description="The avatar is stored as local JSON config rather than a remote image."
+          description="The character preview uses a bundled local asset. Profile preferences stay local to this app."
           title="Avatar and preferences"
         >
           <div className="profile-preview-card">
