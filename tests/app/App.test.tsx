@@ -1712,12 +1712,10 @@ describe('RPG routes', () => {
       return;
     }
 
-    const stubHeadings: Record<string, string> = {
-      '/rpg/focus': 'Focus',
-      '/rpg/settings': 'RPG Settings',
-    };
-
-    await screen.findByRole('heading', { name: stubHeadings[route] });
+    if (route === '/rpg/settings') {
+      await screen.findByRole('heading', { name: 'Official course boundary' });
+      return;
+    }
   }
 
   function expectRpgShellWithBottomNav(activeLabel: string) {
@@ -2541,7 +2539,7 @@ describe('RPG routes', () => {
     }
   });
 
-  it('renders the remaining RPG shell placeholder routes plus read-only RPG routes', async () => {
+  it('renders the remaining RPG shell routes and read-only RPG routes', async () => {
     await seedOnboardedLearner();
 
     const routes = [
@@ -2560,6 +2558,53 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
       expectRpgShellWithBottomNav(activeLabel);
     }
+  });
+
+  it('renders RPG Settings trust and backup FAQ without mutating local stores', async () => {
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/settings');
+
+    expect(
+      await screen.findByRole('heading', { name: 'RPG Settings' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Local data' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Backup and restore' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Reset local data' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'FAQ' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Official course boundary' }),
+    ).toBeInTheDocument();
+
+    const bodyText = document.body.textContent ?? '';
+
+    expect(bodyText).toMatch(/browser on this device/i);
+    expect(bodyText).toMatch(/no ProgressPal account, no cloud sync/i);
+    expect(bodyText).toMatch(/no hidden analytics/i);
+    expect(bodyText).toMatch(/Exporting a backup/i);
+    expect(bodyText).toMatch(/import a ProgressPal backup/i);
+    expect(bodyText).toMatch(/Reset local data deletes/i);
+    expect(bodyText).toMatch(/same local ProgressPal data/i);
+    expect(bodyText).toMatch(/does not change official CS50/i);
+    expect(bodyText).toMatch(
+      /not CS50, Harvard, edX, or OpenCourseWare status/i,
+    );
+    expect(
+      screen.getByRole('link', { name: 'Open classic Settings' }),
+    ).toHaveAttribute('href', '/settings');
+    expect(screen.getByRole('link', { name: 'Back to Hub' })).toHaveAttribute(
+      'href',
+      '/rpg',
+    );
+
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
   it('renders a useful empty Hero Profile state without mutating local stores', async () => {

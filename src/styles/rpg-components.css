@@ -40,6 +40,10 @@
   color: var(--rpg-text);
 }
 
+.rpg-shell .rpg-settings {
+  color: var(--rpg-text);
+}
+
 .rpg-shell .rpg-hub__header {
   align-items: start;
   display: flex;
@@ -96,6 +100,13 @@
   justify-content: space-between;
 }
 
+.rpg-shell .rpg-settings__header {
+  align-items: start;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
 .rpg-shell .rpg-hub__header h1 {
   color: var(--rpg-text);
   margin: 0;
@@ -136,6 +147,11 @@
   margin: 0;
 }
 
+.rpg-shell .rpg-settings__header h1 {
+  color: var(--rpg-text);
+  margin: 0;
+}
+
 .rpg-shell .rpg-hub__eyebrow,
 .rpg-shell .rpg-map__eyebrow,
 .rpg-shell .rpg-week__eyebrow,
@@ -145,6 +161,7 @@
 .rpg-shell .rpg-badges__eyebrow,
 .rpg-shell .rpg-badges__category,
 .rpg-shell .rpg-hero__eyebrow,
+.rpg-shell .rpg-settings__eyebrow,
 .rpg-shell .rpg-focus__subheading,
 .rpg-shell .rpg-hub__subheading {
   color: var(--rpg-accent-strong);
@@ -167,6 +184,7 @@
 .rpg-shell .rpg-badges__note,
 .rpg-shell .rpg-hero__lede,
 .rpg-shell .rpg-hero__note,
+.rpg-shell .rpg-settings__lede,
 .rpg-shell .rpg-study-resource__note,
 .rpg-shell .rpg-hub__note {
   color: var(--rpg-text-muted);
@@ -195,11 +213,65 @@
 .rpg-shell .rpg-log__actions,
 .rpg-shell .rpg-badges__actions,
 .rpg-shell .rpg-hero__actions,
+.rpg-shell .rpg-settings__actions,
 .rpg-shell .rpg-hub__identity-row {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.rpg-shell .rpg-settings__grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rpg-shell .rpg-settings__panel,
+.rpg-shell .rpg-settings__faq,
+.rpg-shell .rpg-settings__official-boundary {
+  align-content: start;
+}
+
+.rpg-shell .rpg-settings__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.rpg-shell .rpg-settings__copy {
+  margin: 0;
+}
+
+.rpg-shell .rpg-settings__control-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rpg-shell .rpg-settings__faq-list {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.rpg-shell .rpg-settings__faq-list div {
+  border-left: 2px solid var(--rpg-border);
+  display: grid;
+  gap: var(--space-1);
+  padding-left: var(--space-3);
+}
+
+.rpg-shell .rpg-settings__faq-list dt {
+  color: var(--rpg-text);
+  font-weight: 700;
+}
+
+.rpg-shell .rpg-settings__faq-list dd {
+  color: var(--rpg-text-muted);
+  margin: 0;
 }
 
 .rpg-shell .rpg-hub__grid {
@@ -1205,7 +1277,8 @@
   .rpg-shell .rpg-study-resource__header,
   .rpg-shell .rpg-focus__header,
   .rpg-shell .rpg-badges__header,
-  .rpg-shell .rpg-hero__header {
+  .rpg-shell .rpg-hero__header,
+  .rpg-shell .rpg-settings__header {
     display: grid;
   }
 
@@ -1224,7 +1297,8 @@
   .rpg-shell .rpg-hero__details,
   .rpg-shell .rpg-hero__details--compact,
   .rpg-shell .rpg-hero__identity-layout,
-  .rpg-shell .rpg-hero__activity-list li {
+  .rpg-shell .rpg-hero__activity-list li,
+  .rpg-shell .rpg-settings__grid {
     grid-template-columns: 1fr;
   }
 
@@ -1245,6 +1319,7 @@
   .rpg-shell .rpg-focus__button-row,
   .rpg-shell .rpg-badges__actions,
   .rpg-shell .rpg-hero__actions,
+  .rpg-shell .rpg-settings__actions,
   .rpg-shell .rpg-focus__selected-task {
     align-items: stretch;
     display: grid;
