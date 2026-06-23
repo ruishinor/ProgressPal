@@ -81,7 +81,7 @@
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     bottom: 0;
-    margin-inline: calc(var(--space-4) * -1);
+    margin-inline: calc(var(--space-3) * -1);
   }
 
   .rpg-bottom-nav__list {
