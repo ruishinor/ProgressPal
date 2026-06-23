@@ -89,6 +89,7 @@ export type RpgHubSummary = {
   weekFour: RpgModuleSummary | null;
   xpSummary: {
     level: number;
+    levelProgressPercent: number;
     totalXp: number;
     xpToNextLevel: number;
   };
@@ -144,6 +145,7 @@ export type RpgHeroProfileSummary = {
   };
   xpSummary: {
     level: number;
+    levelProgressPercent: number;
     totalXp: number;
     xpToNextLevel: number;
   };
