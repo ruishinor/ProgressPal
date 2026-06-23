@@ -560,7 +560,7 @@ Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 | RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |                                  |
+| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 
 ## 14. Scope Discipline Check template
 
@@ -1412,3 +1412,89 @@ Notes:
 - No XP, achievement, Journey Log, Badge Gallery, or Hero/Profile behavior changes.
 - No direct database table imports in the RPG Settings route.
 - Source-of-truth mismatch: checked-in roadmap ordering may still be stale, while merged project history has RPG-10 Journey Log, RPG-11 Badge Gallery, RPG-12 Hero/Profile, and RPG-13 Settings/FAQ. Resolution: followed the attached RPG-13 directive and merged history.
+
+## RPG-14 Asset Pass and Visual Polish validation
+
+Branch: `rpg/14-asset-pass-visual-polish`
+
+Summary:
+
+- Performed a CSS-only RPG visual polish pass because the RPG asset ledger contained planned assets but no approved production RPG assets.
+- Added scoped RPG panel, map node, resource placeholder, status pill, progress bar, button, bottom-nav, and reduced-motion polish in `src/styles/rpg-components.css`.
+- Added an architecture guard that scans `src/styles/rpg-*.css` for CSS imports, remote CSS asset URLs, and inline data-URL blobs.
+- Did not add asset files, dependencies, route component changes, storage/schema changes, network behavior, XP behavior, rank changes, achievement changes, backup behavior, or classic route changes.
+
+Validation:
+
+- Required initial evidence:
+  - `git status -sb`: branch `rpg/14-asset-pass-visual-polish`; clean at inspection; emitted global-ignore permission warning.
+  - `git log --oneline --decorate -5`: `62fcd02 (HEAD -> rpg/14-asset-pass-visual-polish, origin/rpg/v2, rpg/v2) Merge pull request #21 from ruishinor/rpg/13-rpg-settings-faq-backup-trust`; `d8319f5 rpg-13: add RPG settings FAQ and backup trust copy`; `1d082ce Merge pull request #20 from ruishinor/rpg/12-rpg-hero-profile`; `2d603cd rpg-12: build RPG hero profile`; `1c1390d Merge pull request #19 from ruishinor/rpg/11-rpg-badge-gallery`.
+  - `git diff --name-status`: no output.
+  - `git diff --stat`: no output.
+  - `git diff --check`: no output.
+- Asset-ledger inspection:
+  - `docs/rpg-v2/ASSETS.md`: RPG-14 is listed as the main asset pass, but concrete production asset rows remained `Planned`.
+  - `src/features/rpg/assets/`: directory absent at inspection.
+  - Decision: no assets were imported, created, or referenced.
+- Formatting before targeted tests:
+  - `npx prettier --write src/styles/rpg-components.css tests/architecture/rpgFeature.test.ts docs/rpg-v2/modules/RPG-14-HANDOFF.md`: pass.
+- Targeted validation:
+  - `npm run test -- tests/app/App.test.tsx tests/architecture/rpgFeature.test.ts`: pass.
+  - Result: 2 files passed, 85 tests passed.
+- First full `npm run validate` attempt: failed at `format:check`.
+  - `npm run lint`: pass.
+  - `npm run format:check`: failed; Prettier flagged previously committed RPG-13/App files plus `docs/rpg-v2/VALIDATION_LOG.md`.
+- Formatter reconciliation:
+  - `npx prettier --write docs/rpg-v2/modules/RPG-13-HANDOFF.md docs/rpg-v2/VALIDATION_LOG.md src/features/rpg/routes/RpgSettingsPage.tsx tests/app/App.test.tsx`: pass.
+  - The previously committed flagged files produced no substantive tracked diff after index refresh; only LF-to-CRLF warnings remained.
+- Restarted three-pass full validation cadence after formatter reconciliation:
+  - `npm run validate` pass 1: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass; production CSS bundle `dist/assets/index-D3nZquNS.css` was 57.29 kB / 9.30 kB gzip.
+    - `npm run test`: pass; 37 files passed, 311 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 2: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass; production CSS bundle `dist/assets/index-D3nZquNS.css` was 57.29 kB / 9.30 kB gzip.
+    - `npm run test`: pass; 37 files passed, 311 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 3: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass; production CSS bundle `dist/assets/index-D3nZquNS.css` was 57.29 kB / 9.30 kB gzip.
+    - `npm run test`: pass; 37 files passed, 311 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+- Final evidence-update validation:
+  - `npx prettier --write docs/rpg-v2/modules/RPG-14-HANDOFF.md docs/rpg-v2/VALIDATION_LOG.md`: pass.
+  - `npm run test -- tests/app/App.test.tsx tests/architecture/rpgFeature.test.ts`: pass; 2 files passed, 85 tests passed.
+  - `npm run validate` final pass 1: pass; lint, format, typecheck, build, 37 files / 311 unit tests, 24 E2E tests, circular check, and audit all passed.
+  - `npm run validate` final pass 2: pass; lint, format, typecheck, build, 37 files / 311 unit tests, 24 E2E tests, circular check, and audit all passed.
+  - `npm run validate` final pass 3: pass; lint, format, typecheck, build, 37 files / 311 unit tests, 24 E2E tests, circular check, and audit all passed.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diff remained readable.
+- Git diff commands emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. `git diff --check` exited with no whitespace errors.
+- First full `npm run validate` failed at `format:check` because Prettier flagged existing RPG-13/App files plus the validation log. Classification: validation blocker until formatter reconciliation. Action: ran Prettier on the exact flagged files and refreshed the git index for no-content-diff files; no unrelated substantive diff was retained.
+
+Notes:
+
+- No package or dependency changes.
+- No new assets and no `docs/rpg-v2/ASSETS.md` change.
+- No schema/storage changes.
+- No runtime network behavior or external CSS asset behavior.
+- No backup/export/import/reset behavior changes.
+- No XP, rank, achievement, Journey Log, Badge Gallery, Hero/Profile, Settings, or classic route behavior changes.
+- No direct database table imports in RPG UI files.
+- Source-of-truth mismatch: checked-in roadmap ordering may still be stale, while merged project history has RPG-10 Journey Log, RPG-11 Badge Gallery, RPG-12 Hero/Profile, RPG-13 Settings/FAQ, and RPG-14 Asset pass. Resolution: followed the attached RPG-14 directive and merged history.
