@@ -544,23 +544,24 @@ Hub -> Map -> Week 4 -> Study Resource -> save local progress -> Focus Session -
 
 Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 
-| Module | Handoff path                            |  Status | Notes                            |
-| ------ | --------------------------------------- | ------: | -------------------------------- |
-| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                  |
-| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                  |
-| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
+| Module | Handoff path                            |  Status | Notes                                                           |
+| ------ | --------------------------------------- | ------: | --------------------------------------------------------------- |
+| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                                                 |
+| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                                                 |
+| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
+| RPG-15 | `docs/rpg-v2/modules/RPG-15-HANDOFF.md` |    pass | Includes Scope Discipline Check; release-candidate gate passed. |
 
 ## 14. Scope Discipline Check template
 
@@ -637,7 +638,7 @@ docs/rpg-v2/modules/RPG-00-HANDOFF.md
 Suggested content:
 
 ```markdown
-# RPG-00 Handoff — Baseline Reconciliation
+# RPG-00 Handoff â€” Baseline Reconciliation
 
 ## Goal
 
@@ -1498,3 +1499,82 @@ Notes:
 - No XP, rank, achievement, Journey Log, Badge Gallery, Hero/Profile, Settings, or classic route behavior changes.
 - No direct database table imports in RPG UI files.
 - Source-of-truth mismatch: checked-in roadmap ordering may still be stale, while merged project history has RPG-10 Journey Log, RPG-11 Badge Gallery, RPG-12 Hero/Profile, RPG-13 Settings/FAQ, and RPG-14 Asset pass. Resolution: followed the attached RPG-14 directive and merged history.
+
+## RPG-15 Release Candidate validation
+
+Branch: `rpg/15-release-candidate`
+
+Summary:
+
+- Ran release-candidate validation for classic/RPG coexistence.
+- Found one real layout blocker: `/rpg` overflowed by 4px at a 390px mobile viewport.
+- Corrected the mobile RPG bottom-nav margin in `src/styles/rpg-shell.css`.
+- Added `e2e/release-candidate.spec.ts` to check required classic and RPG routes across mobile, tablet, and desktop viewports.
+- Did not change package files, dependencies, schema/storage, XP/rank/achievement behavior, backup/export/import/reset behavior, routes, assets, network behavior, or classic route behavior.
+
+Required initial evidence:
+
+- `git status -sb`: branch `rpg/15-release-candidate`; clean at inspection; emitted global-ignore permission warning.
+- `git log --oneline --decorate -5`: `f6552fc (HEAD -> rpg/15-release-candidate, origin/rpg/v2, rpg/v2) Merge pull request #22 from ruishinor/rpg/14-asset-pass-visual-polish`; `cfe4ee2 rpg-14: polish RPG visuals and approved assets`; `62fcd02 Merge pull request #21 from ruishinor/rpg/13-rpg-settings-faq-backup-trust`; `d8319f5 rpg-13: add RPG settings FAQ and backup trust copy`; `1d082ce Merge pull request #20 from ruishinor/rpg/12-rpg-hero-profile`.
+- `git diff --name-status`: no output.
+- `git diff --stat`: no output.
+- `git diff --check`: no output.
+
+Release-candidate checks:
+
+- Classic route regression:
+  - Routes checked: `/`, `/dashboard`, `/course`, `/course/week-0-lecture`, `/sessions`, `/achievements`, `/insights`, `/settings`.
+  - Evidence: App tests, route-definition tests, and new RC viewport Playwright spec passed after the corrective patch.
+- RPG route regression:
+  - Routes checked: `/rpg`, `/rpg/map`, `/rpg/week/week-4`, `/rpg/resource/week-0-lecture`, `/rpg/focus`, `/rpg/hero`, `/rpg/badges`, `/rpg/log`, `/rpg/settings`.
+  - Evidence: App tests cover route rendering/passive no-mutation; new RC viewport Playwright spec passed after the corrective patch.
+- Data checks:
+  - Evidence: backup unit tests passed; settings E2E passed export/reset/onboarding restore/settings import/invalid import; offline E2E passed backup export/reset/import with service worker active.
+  - Backup/export/import/reset semantics were unchanged.
+- Local-first/privacy checks:
+  - Evidence: `tests/architecture/localOnly.test.ts`, `tests/architecture/rpgFeature.test.ts`, source inspection, offline E2E, and full validation passed.
+  - No backend, account/auth, cloud sync, analytics/telemetry, runtime external assets, embedded external media, or non-click network behavior found.
+- Asset/brand checks:
+  - Evidence: `docs/rpg-v2/ASSETS.md`, `tests/architecture/rpgFeature.test.ts`, source inspection, and full validation.
+  - No new assets; no wholesale asset import; no official-looking CS50/Harvard/edX/OpenCourseWare/shield/trophy/institutional marks added.
+- Accessibility/layout checks:
+  - Evidence: `e2e/accessibility.spec.ts` and `e2e/release-candidate.spec.ts`.
+  - Keyboard focus, reduced motion, and mobile/tablet/desktop layout checks passed after correction.
+
+Validation:
+
+- Initial targeted Vitest release set:
+  - `npm run test -- tests/app/App.test.tsx tests/architecture/routeDefinitions.test.ts tests/architecture/localOnly.test.ts tests/architecture/rpgFeature.test.ts tests/lib/backup.test.ts`: pass; 5 files passed, 111 tests passed.
+- Initial targeted Playwright release set:
+  - `npx playwright test e2e/settings.spec.ts e2e/accessibility.spec.ts e2e/offline.spec.ts`: pass; 10 tests passed.
+- Corrective layout validation:
+  - `npx prettier --write src/styles/rpg-shell.css e2e/release-candidate.spec.ts`: pass.
+  - `npx playwright test e2e/release-candidate.spec.ts`: pass; 1 test passed.
+- Post-fix targeted release validation:
+  - `npm run test -- tests/app/App.test.tsx tests/architecture/routeDefinitions.test.ts tests/architecture/localOnly.test.ts tests/architecture/rpgFeature.test.ts tests/lib/backup.test.ts`: pass; 5 files passed, 111 tests passed.
+  - `npx playwright test e2e/release-candidate.spec.ts e2e/settings.spec.ts e2e/accessibility.spec.ts e2e/offline.spec.ts`: pass; 11 tests passed.
+- Final documentation/update validation:
+- Initial validation blocked by Prettier on committed RPG-14 files.
+- Formatter reconciliation was performed on the exact flagged files.
+- One later full validation passed, then a subsequent run failed in Playwright.
+- Failure was traced to the new RC test being too broad as one 51-route-navigation test.
+- RC test was split into one test per viewport.
+- Targeted RC/settings/XP tests passed.
+- Full E2E passed with 27 tests.
+- Three consecutive full npm run validate passes then passed.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diffs remained readable.
+- First ad hoc viewport smoke failed with `spawn EINVAL`. Classification: tooling command-launch issue. Action: retried with Windows shell invocation. No product conclusion drawn.
+- Second ad hoc viewport smoke timed out during onboarding setup. Classification: test-script synchronization issue. Action: retried with explicit onboarding navigation/waiting. No product conclusion drawn.
+- Adjusted viewport smoke found `mobile horizontal overflow 4 at /rpg`. Classification: real release-candidate layout blocker. Action: corrected mobile RPG bottom-nav margin and added an automated RC route/layout guard.
+- One diagnostic smoke timed out before printing overflow details. Classification: tooling/server lifecycle issue in the one-off script. Action: replaced ad hoc smoke with normal Playwright spec.
+- Combined `npx prettier ... && npx playwright ...` command failed because this PowerShell version does not support `&&`. Classification: shell syntax issue. Action: reran commands separately.
+- Early versions of `e2e/release-candidate.spec.ts` failed due route-readiness selector issues and parallel memory pressure. Classification: new-test implementation issues. Action: exact heading matching, corrected `/rpg/focus` ready state, longer async wait, and sequential viewport checks.
+
+Notes:
+
+- `docs/rpg-v2/RISK_REGISTER.md` was inspected and not changed. No standing risk status changed; the discovered layout blocker was corrected inside RPG-15.
+- Release decision: pass after targeted checks, full E2E, and three consecutive local full `npm run validate` passes completed.
+- Scope discipline: see `docs/rpg-v2/modules/RPG-15-HANDOFF.md`.
