@@ -427,6 +427,7 @@ Use for read-only routes.
 | RPG-08 | `/rpg/focus` and `/rpg/focus?itemId=week-4-lecture` Focus Session                                                                                   | `getDatabaseSnapshot()` before passive route render and timer-control tests | `getDatabaseSnapshot()` after passive render/start/pause/resume/unmount/discard |                                         no |   pass | `tests/app/App.test.tsx` covers selected-item render, manual empty state, passive no-mutation, start/pause/resume no-write behavior, unmount no-write behavior, discard no-write behavior, finish once, XP once, and duplicate-finish protection.    |
 | RPG-09 | Week 4 vertical slice: `/rpg` -> `/rpg/map` -> `/rpg/week/week-4` -> `/rpg/resource/week-4-lecture` -> `/rpg/focus?itemId=week-4-lecture` -> `/rpg` | `getDatabaseSnapshot()` before explicit Study Resource and Focus actions    | `getDatabaseSnapshot()` after progress save, Focus finish, and Hub return       | yes, explicit progress/session writes only |   pass | `tests/app/App.test.tsx` covers the full Week 4 gate path. Passive navigation remains covered by the RPG-08 no-mutation route loop; RPG-09 explicit writes are progress save and finished focus session only.                                        |
 | RPG-10 | `/rpg/log` Journey Log                                                                                                                              | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after loaded empty/populated route render               |                                         no |   pass | `tests/app/App.test.tsx` covers empty and populated Journey Log route rendering and no mutation; `tests/features/rpg/readModels.test.ts` covers read-model aggregation and no mutation. Targeted and full validation passed after route-test repair. |
+| RPG-13 | `/rpg/settings` Settings/FAQ                                                                                                                        | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after trust/FAQ route render                            |                                         no |   pass | `tests/app/App.test.tsx` covers local-first trust copy, classic Settings backup/reset links, official-course boundary copy, and no mutation.                                                                                                         |
 
 ## 10. Classic route regression evidence
 
@@ -558,7 +559,7 @@ Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 | RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
-| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` | not-run |                                  |
+| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check. |
 | RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` | not-run |                                  |
 
 ## 14. Scope Discipline Check template
@@ -1300,3 +1301,114 @@ Notes:
 - No Badge Gallery implementation or redesign was started.
 - No scoring behavior was added or changed.
 - RPG-12 is implemented and locally validated; commit remains pending staged diff review.
+
+## RPG-13 Settings/FAQ/Backup Trust validation
+
+Branch: `rpg/13-rpg-settings-faq-backup-trust`
+
+Summary:
+
+- Replaced the `/rpg/settings` stub with a real read-only Settings/FAQ/trust route.
+- Explains local browser/device storage, no ProgressPal account, no cloud sync, no hidden analytics, and browser-storage loss risk.
+- Links to classic `/settings` for existing export/import/reset controls instead of duplicating write behavior.
+- Explains backups are the user's responsibility and export/import is the recovery path.
+- Explains reset local data as destructive and local-only.
+- Explains RPG routes are an alternate interface over the same local ProgressPal records.
+- Explains RPG rank, badges, profile, and activity summaries are local ProgressPal interpretations, not official CS50/Harvard/edX/OpenCourseWare status.
+- Did not add dependencies, assets, storage, schema, network behavior, XP behavior, achievements, or backup/import/reset behavior changes.
+
+Validation:
+
+- Required initial evidence:
+  - `git status -sb`: branch `rpg/13-rpg-settings-faq-backup-trust`; clean at inspection; emitted global-ignore permission warning.
+  - `git log --oneline --decorate -5`: `1d082ce (HEAD -> rpg/13-rpg-settings-faq-backup-trust, origin/rpg/v2, rpg/v2) Merge pull request #20 from ruishinor/rpg/12-rpg-hero-profile`; `2d603cd rpg-12: build RPG hero profile`; `1c1390d Merge pull request #19 from ruishinor/rpg/11-rpg-badge-gallery`; `486b756 rpg-11: build RPG badge gallery`; `9028900 Merge pull request #18 from ruishinor/rpg/10-rpg-journey-log`.
+  - `git diff --name-status`: no output.
+  - `git diff --stat`: no output.
+  - `git diff --check`: no output.
+- Formatting before targeted test:
+  - `npx prettier --write src/features/rpg/routes/RpgSettingsPage.tsx src/styles/rpg-components.css tests/app/App.test.tsx`: pass.
+- Sandboxed targeted test attempt:
+  - `npm run test -- tests/app/App.test.tsx`: failed before tests ran because Vite could not write `node_modules/.vite-temp/...`.
+- Escalated targeted validation:
+  - `npm run test -- tests/app/App.test.tsx`: pass.
+  - Result: 1 file passed, 83 tests passed.
+- First full `npm run validate` attempt: failed at `format:check`.
+  - `npm run lint`: pass.
+  - `npm run format:check`: failed; Prettier flagged previously committed RPG-10/RPG-12 files plus `docs/rpg-v2/VALIDATION_LOG.md`.
+- Formatter reconciliation:
+  - `npx prettier --write` on the exact flagged files: pass.
+  - The previously committed flagged files produced no substantive tracked diff after index refresh; only LF-to-CRLF warnings remained.
+- Full validation after formatter reconciliation:
+  - `npm run validate` pass 1: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 310 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 2: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 310 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` pass 3: failed during `npm run test`.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: failed; `tests/app/App.test.tsx > App > redirects a fresh run to onboarding` stayed on the loading shell until timeout.
+  - Targeted reproducibility check after failed full pass:
+    - `npm run test -- tests/app/App.test.tsx`: pass; 1 file passed, 83 tests passed.
+- Restarted three-pass full validation cadence after the non-reproducible full-suite failure:
+  - `npm run validate` restarted pass 1: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 310 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` restarted pass 2: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 310 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+  - `npm run validate` restarted pass 3: pass.
+    - `npm run lint`: pass.
+    - `npm run format:check`: pass.
+    - `npm run typecheck`: pass.
+    - `npm run build`: pass.
+    - `npm run test`: pass; 37 files passed, 310 tests passed.
+    - `npm run test:e2e`: pass; 24 tests passed.
+    - `npm run check:circular`: pass; no circular dependencies.
+    - `npm run audit`: pass; 0 vulnerabilities.
+
+Warnings and anomalies:
+
+- `git status -sb` emitted `unable to access 'C:\Users\alex_/.config/git/ignore': Permission denied`. Classification: environment warning. Repo-local status and diff remained readable.
+- Sandboxed targeted Vitest failed at Vite config loading with `EPERM` on `node_modules/.vite-temp`. Classification: environment/sandbox warning. Action: reran with filesystem escalation and reached tests.
+- Git diff commands emitted LF-to-CRLF warnings. Classification: environment/line-ending warning. `git diff --check` exited with no whitespace errors.
+- First full `npm run validate` failed at `format:check` because Prettier flagged existing files from earlier RPG modules. Classification: validation blocker until formatter reconciliation. Action: ran Prettier on the exact flagged files and refreshed the git index for no-content-diff files; unrelated files were not left in `git diff --name-status`.
+- Third full `npm run validate` attempt after two clean passes failed one existing App onboarding test because the app stayed on the loading shell until the test timeout. Classification: non-reproducible full-suite initialization race. Action: reran `npm run test -- tests/app/App.test.tsx` successfully, then restarted the full validation cadence. Clean validation impact: no clean validation claim was made from the interrupted streak; three subsequent consecutive full validation passes completed cleanly.
+
+Notes:
+
+- No new dependencies.
+- No new assets.
+- No schema/storage changes.
+- No runtime network behavior.
+- No backup/export/import/reset behavior changes.
+- No XP, achievement, Journey Log, Badge Gallery, or Hero/Profile behavior changes.
+- No direct database table imports in the RPG Settings route.
+- Source-of-truth mismatch: checked-in roadmap ordering may still be stale, while merged project history has RPG-10 Journey Log, RPG-11 Badge Gallery, RPG-12 Hero/Profile, and RPG-13 Settings/FAQ. Resolution: followed the attached RPG-13 directive and merged history.
