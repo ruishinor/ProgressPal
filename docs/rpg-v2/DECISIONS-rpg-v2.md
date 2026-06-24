@@ -2,7 +2,7 @@
 
 Status: active RPG v2 decision log  
 Created: 2026-06-20  
-Updated: 2026-06-23
+Updated: 2026-06-24
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/DECISIONS-rpg-v2.md`  
 Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived
@@ -43,9 +43,33 @@ Recommended release tag:
 v1.2.0-local-first-proof
 ```
 
-This classification supersedes any reading of RPG-15 as completed RPG v2. RPG-15 validated a release-candidate state for the tracker proof and coexistence of classic/RPG-flavored routes. The fully realized RPG shell remains future work.
+This classification supersedes any reading of RPG-15 as completed RPG v2. RPG-15 validated a release-candidate state for the tracker proof and coexistence of classic/RPG-flavored routes as of that point in history. The fully realized RPG shell remains future work.
 
-Future RPG shell transformation should start from a clean branch after this freeze and focus on persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+The broad future shell-transformation wording above is historical freeze context. After that freeze, RPG Shell Phase 2A-2G remediation was performed.
+
+## 0.2 Current state after RPG Shell Phase 2G
+
+As of 2026-06-24, current master is:
+
+```text
+e3246e7 Merge pull request #37 from ruishinor/rpg/shell-02g-insights-cleanup
+```
+
+The following wrapper remediation phases are merged:
+
+- 2C Focus wrapper;
+- 2D Achievements wrapper;
+- 2E Insights wrapper;
+- 2F Settings wrapper;
+- 2G stale Journey Log cleanup.
+
+Decision impact:
+
+- No existing decision is changed by this status note.
+- D-0071 still prevents describing the app as completed full RPG v2.
+- Phase 2C-2G must not be described as pending.
+- The next operational step is release-candidate validation against the post-2G state, or a narrowly scoped blocker fix if that validation finds a blocker.
+- No backend, auth, cloud sync, analytics, telemetry, AI, schema, asset-import, or new-feature decision is introduced by this status update.
 
 ## 1. Decision status labels
 
@@ -1203,7 +1227,7 @@ The current app must not be described as completed RPG v2. It is the polished lo
 ### Consequences
 
 - Release documentation should clearly state what this release is and is not.
-- The future RPG shell should start from a clean branch after this freeze.
+- Historical freeze note: after this decision, RPG Shell Phase 2A-2G wrapper remediation ran and Phase 2C-2G are now merged.
 - No backend, auth, cloud sync, analytics, AI APIs, telemetry, schema change, or new engine work is introduced by this freeze.
 - Visual assets remain incomplete; limited/manual avatar use is the honest current state.
-- The next implementation phase is shell transformation: persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+- Current post-2G next step is release-candidate validation, not a broad new shell-transformation feature phase.

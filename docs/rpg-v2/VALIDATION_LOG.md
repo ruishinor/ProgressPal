@@ -2,7 +2,7 @@
 
 Status: active validation and evidence log  
 Created: 2026-06-20  
-Updated: 2026-06-23
+Updated: 2026-06-24
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/VALIDATION_LOG.md`  
 Related files: `docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md`, `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/modules/*.md`, `docs/rpg-v2/ASSETS.md`, `docs/rpg-v2/RISK_REGISTER.md`
@@ -21,13 +21,40 @@ Recommended tag:
 v1.2.0-local-first-proof
 ```
 
-This validation log contains historical RPG module evidence, including RPG-15 release-candidate validation. That evidence should not be read as proof that the full RPG v2 shell is complete. For this freeze, the current build is the local-first CS50 tracker proof. The future RPG shell transformation should start after this release from a clean branch.
+This validation log contains historical RPG module evidence, including RPG-15 release-candidate validation. That evidence should not be read as proof that the full RPG v2 shell is complete. For this freeze, the current build is the local-first CS50 tracker proof. The future RPG shell transformation sentence was June 23 freeze framing; for current post-2G work, use the June 24 current-state section below.
 
 Release note:
 
 ```text
 docs/releases/v1.2.0-local-first-proof.md
 ```
+
+## 2026-06-24 current state after RPG Shell Phase 2G
+
+Audit mode: Mode B - documentation/status audit only.
+
+Current master evidence observed for this audit:
+
+- `git log -1 --oneline`: `e3246e7 Merge pull request #37 from ruishinor/rpg/shell-02g-insights-cleanup`
+- Audit branch: `docs/rpg-v2-status-audit`
+- `git diff --name-status` before documentation edits: no output
+
+Wrapper remediation evidence from phase handoffs:
+
+| Phase | Route/capability          | Status supported by handoff                                                                                 | Handoff evidence                               |
+| ----- | ------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 2C    | `/rpg/focus`              | Complete and merged as a classic-wrapped Focus/session capability.                                          | `docs/rpg-v2/modules/RPG-SHELL-02C-HANDOFF.md` |
+| 2D    | `/rpg/badges`             | Complete and merged as a classic-wrapped Achievements capability.                                           | `docs/rpg-v2/modules/RPG-SHELL-02D-HANDOFF.md` |
+| 2E    | `/rpg/log`                | Complete and merged as a classic-wrapped Insights capability.                                               | `docs/rpg-v2/modules/RPG-SHELL-02E-HANDOFF.md` |
+| 2F    | `/rpg/settings`           | Complete and merged as a classic-wrapped Settings/data-controls capability.                                 | `docs/rpg-v2/modules/RPG-SHELL-02F-HANDOFF.md` |
+| 2G    | stale Journey Log cleanup | Complete and merged; no production route/component should consume the removed Journey Log read model/types. | `docs/rpg-v2/modules/RPG-SHELL-02G-HANDOFF.md` |
+
+Validation interpretation:
+
+- The Phase 2C-2G handoffs record targeted validation for each corrective patch. They are accepted as evidence that the wrapper remediation phases were completed and merged.
+- The earlier RPG-15 release-candidate evidence predates Phase 2C-2G and must not be treated as final release-candidate evidence for current master `e3246e7`.
+- No current source-of-truth status should describe 2C, 2D, 2E, 2F, or 2G as pending.
+- The next validation gate is release-candidate validation against the post-2G state. If that gate finds a concrete blocker, the next work should be a narrowly scoped blocker fix.
 
 ### Phase 0 freeze validation - 2026-06-23
 
@@ -479,17 +506,17 @@ Because RPG v2 shares the same origin and database as v1, read-only screens must
 
 Use for read-only routes.
 
-| Module | Route/screen                                                                                                                                        | Pre-state method                                                            | Post-state method                                                               |                          Mutation expected | Result | Notes                                                                                                                                                                                                                                                |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -----------------------------------------: | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RPG-02 | `/rpg` shell routes                                                                                                                                 | `getDatabaseSnapshot()` before route render loop                            | `getDatabaseSnapshot()` after each passive route render                         |                                         no |   pass | `tests/app/App.test.tsx` covers `/rpg`, `/rpg/map`, `/rpg/week/week-4`, `/rpg/resource/week-0-lecture`, `/rpg/focus`, `/rpg/hero`, `/rpg/badges`, `/rpg/log`, `/rpg/settings`.                                                                       |
-| RPG-04 | `/rpg` Quest Hub                                                                                                                                    | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers Hub render from real local data, new-user empty state, and passive route no-mutation.                                                                                                                                |
-| RPG-05 | `/rpg/map` Campaign Map                                                                                                                             | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers all seed units, semantic map links, readable status/progress text, plain list fallback, forbidden fake course copy absence, and passive no-mutation.                                                                 |
-| RPG-06 | `/rpg/week/week-4` Week Detail                                                                                                                      | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers Week 4 detail rendering from real seed data, real resource/focus links, visible status/requirement text, and passive no-mutation.                                                                                    |
-| RPG-07 | `/rpg/resource/week-4-lecture` Study Resource                                                                                                       | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers real resource render, official outbound link, forbidden embedded/player UI absence, explicit progress save behavior, and passive no-mutation.                                                                        |
-| RPG-08 | `/rpg/focus` and `/rpg/focus?itemId=week-4-lecture` Focus Session                                                                                   | `getDatabaseSnapshot()` before passive route render and timer-control tests | `getDatabaseSnapshot()` after passive render/start/pause/resume/unmount/discard |                                         no |   pass | `tests/app/App.test.tsx` covers selected-item render, manual empty state, passive no-mutation, start/pause/resume no-write behavior, unmount no-write behavior, discard no-write behavior, finish once, XP once, and duplicate-finish protection.    |
-| RPG-09 | Week 4 vertical slice: `/rpg` -> `/rpg/map` -> `/rpg/week/week-4` -> `/rpg/resource/week-4-lecture` -> `/rpg/focus?itemId=week-4-lecture` -> `/rpg` | `getDatabaseSnapshot()` before explicit Study Resource and Focus actions    | `getDatabaseSnapshot()` after progress save, Focus finish, and Hub return       | yes, explicit progress/session writes only |   pass | `tests/app/App.test.tsx` covers the full Week 4 gate path. Passive navigation remains covered by the RPG-08 no-mutation route loop; RPG-09 explicit writes are progress save and finished focus session only.                                        |
-| RPG-10 | `/rpg/log` Journey Log                                                                                                                              | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after loaded empty/populated route render               |                                         no |   pass | `tests/app/App.test.tsx` covers empty and populated Journey Log route rendering and no mutation; `tests/features/rpg/readModels.test.ts` covers read-model aggregation and no mutation. Targeted and full validation passed after route-test repair. |
-| RPG-13 | `/rpg/settings` Settings/FAQ                                                                                                                        | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after trust/FAQ route render                            |                                         no |   pass | `tests/app/App.test.tsx` covers local-first trust copy, classic Settings backup/reset links, official-course boundary copy, and no mutation.                                                                                                         |
+| Module               | Route/screen                                                                                                                                        | Pre-state method                                                            | Post-state method                                                               |                          Mutation expected | Result | Notes                                                                                                                                                                                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -----------------------------------------: | -----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RPG-02               | `/rpg` shell routes                                                                                                                                 | `getDatabaseSnapshot()` before route render loop                            | `getDatabaseSnapshot()` after each passive route render                         |                                         no |   pass | `tests/app/App.test.tsx` covers `/rpg`, `/rpg/map`, `/rpg/week/week-4`, `/rpg/resource/week-0-lecture`, `/rpg/focus`, `/rpg/hero`, `/rpg/badges`, `/rpg/log`, `/rpg/settings`.                                                                                            |
+| RPG-04               | `/rpg` Quest Hub                                                                                                                                    | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers Hub render from real local data, new-user empty state, and passive route no-mutation.                                                                                                                                                     |
+| RPG-05               | `/rpg/map` Campaign Map                                                                                                                             | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers all seed units, semantic map links, readable status/progress text, plain list fallback, forbidden fake course copy absence, and passive no-mutation.                                                                                      |
+| RPG-06               | `/rpg/week/week-4` Week Detail                                                                                                                      | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers Week 4 detail rendering from real seed data, real resource/focus links, visible status/requirement text, and passive no-mutation.                                                                                                         |
+| RPG-07               | `/rpg/resource/week-4-lecture` Study Resource                                                                                                       | `getDatabaseSnapshot()` before passive route render                         | `getDatabaseSnapshot()` after passive route render                              |                                         no |   pass | `tests/app/App.test.tsx` covers real resource render, official outbound link, forbidden embedded/player UI absence, explicit progress save behavior, and passive no-mutation.                                                                                             |
+| RPG-08               | `/rpg/focus` and `/rpg/focus?itemId=week-4-lecture` Focus Session                                                                                   | `getDatabaseSnapshot()` before passive route render and timer-control tests | `getDatabaseSnapshot()` after passive render/start/pause/resume/unmount/discard |                                         no |   pass | `tests/app/App.test.tsx` covers selected-item render, manual empty state, passive no-mutation, start/pause/resume no-write behavior, unmount no-write behavior, discard no-write behavior, finish once, XP once, and duplicate-finish protection.                         |
+| RPG-09               | Week 4 vertical slice: `/rpg` -> `/rpg/map` -> `/rpg/week/week-4` -> `/rpg/resource/week-4-lecture` -> `/rpg/focus?itemId=week-4-lecture` -> `/rpg` | `getDatabaseSnapshot()` before explicit Study Resource and Focus actions    | `getDatabaseSnapshot()` after progress save, Focus finish, and Hub return       | yes, explicit progress/session writes only |   pass | `tests/app/App.test.tsx` covers the full Week 4 gate path. Passive navigation remains covered by the RPG-08 no-mutation route loop; RPG-09 explicit writes are progress save and finished focus session only.                                                             |
+| RPG-10 / Shell 2E-2G | `/rpg/log` Insights                                                                                                                                 | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after loaded empty/populated route render               |                                         no |   pass | Historical RPG-10 evidence covered the earlier Journey Log route. Shell 2E replaced `/rpg/log` with the classic-wrapped Insights surface; Shell 2G removed stale production Journey Log model/types and relabeled the remaining user-facing Hero link to "Open Insights". |
+| RPG-13 / Shell 2F    | `/rpg/settings` Settings                                                                                                                            | `getDatabaseSnapshot()` before route render                                 | `getDatabaseSnapshot()` after Settings route render                             |                                         no |   pass | Historical RPG-13 evidence covered the earlier Settings/FAQ trust surface. Shell 2F replaced it with the classic-wrapped Settings/data-controls surface while preserving no-passive-write behavior and existing export/import/reset safeguards.                           |
 
 ## 10. Classic route regression evidence
 
@@ -606,24 +633,36 @@ Hub -> Map -> Week 4 -> Study Resource -> save local progress -> Focus Session -
 
 Every module must create a durable handoff file in `docs/rpg-v2/modules/`.
 
-| Module | Handoff path                            |  Status | Notes                                                           |
-| ------ | --------------------------------------- | ------: | --------------------------------------------------------------- |
-| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                                                 |
-| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                                                 |
-| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                |
-| RPG-15 | `docs/rpg-v2/modules/RPG-15-HANDOFF.md` |    pass | Includes Scope Discipline Check; release-candidate gate passed. |
+| Module | Handoff path                            |  Status | Notes                                                                                               |
+| ------ | --------------------------------------- | ------: | --------------------------------------------------------------------------------------------------- |
+| RPG-00 | `docs/rpg-v2/modules/RPG-00-HANDOFF.md` | not-run |                                                                                                     |
+| RPG-01 | `docs/rpg-v2/modules/RPG-01-HANDOFF.md` | not-run |                                                                                                     |
+| RPG-02 | `docs/rpg-v2/modules/RPG-02-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-03 | `docs/rpg-v2/modules/RPG-03-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-04 | `docs/rpg-v2/modules/RPG-04-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-05 | `docs/rpg-v2/modules/RPG-05-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-06 | `docs/rpg-v2/modules/RPG-06-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-07 | `docs/rpg-v2/modules/RPG-07-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-08 | `docs/rpg-v2/modules/RPG-08-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-09 | `docs/rpg-v2/modules/RPG-09-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-10 | `docs/rpg-v2/modules/RPG-10-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-11 | `docs/rpg-v2/modules/RPG-11-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-12 | `docs/rpg-v2/modules/RPG-12-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-13 | `docs/rpg-v2/modules/RPG-13-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-14 | `docs/rpg-v2/modules/RPG-14-HANDOFF.md` |    pass | Includes Scope Discipline Check.                                                                    |
+| RPG-15 | `docs/rpg-v2/modules/RPG-15-HANDOFF.md` |    pass | Includes Scope Discipline Check; historical release-candidate gate passed before 2C–2G remediation. |
+
+### RPG Shell Phase 2 remediation handoff index
+
+| Phase | Handoff path                                            | Status | Notes                                                                                         |
+| ----- | ------------------------------------------------------- | -----: | --------------------------------------------------------------------------------------------- |
+| 2A    | `docs/rpg-v2/modules/RPG-SHELL-02A-WRAPPER-CONTRACT.md` |   pass | Wrapper contract and page parity audit; documentation only.                                   |
+| 2B    | `docs/rpg-v2/modules/RPG-SHELL-02B-HANDOFF.md`          |   pass | Navigation and shell hygiene corrective patch.                                                |
+| 2C    | `docs/rpg-v2/modules/RPG-SHELL-02C-HANDOFF.md`          |   pass | Focus/session classic wrapper complete.                                                       |
+| 2D    | `docs/rpg-v2/modules/RPG-SHELL-02D-HANDOFF.md`          |   pass | Achievements classic wrapper complete.                                                        |
+| 2E    | `docs/rpg-v2/modules/RPG-SHELL-02E-HANDOFF.md`          |   pass | Insights classic wrapper complete.                                                            |
+| 2F    | `docs/rpg-v2/modules/RPG-SHELL-02F-HANDOFF.md`          |   pass | Settings/data-controls classic wrapper complete.                                              |
+| 2G    | `docs/rpg-v2/modules/RPG-SHELL-02G-HANDOFF.md`          |   pass | Stale Journey Log production remnants removed; remaining references are historical docs only. |
 
 ## 14. Scope Discipline Check template
 
@@ -1197,7 +1236,7 @@ Notes:
 - No direct database table imports in RPG route components.
 - No Hero/Profile or Badge Gallery implementation was started.
 - No scoring behavior was added or changed.
-- RPG-10 is implemented and locally validated; commit remains pending final validation rerun against evidence-updated file state and staged diff review.
+- Historical note: this entry was written before the RPG-10 work was merged. It is not a current pending-commit status.
 
 ## RPG-11 Badge Gallery validation
 
@@ -1363,7 +1402,7 @@ Notes:
 - No Journey Log implementation or redesign was started.
 - No Badge Gallery implementation or redesign was started.
 - No scoring behavior was added or changed.
-- RPG-12 is implemented and locally validated; commit remains pending staged diff review.
+- Historical note: this entry was written before the RPG-12 work was merged. It is not a current pending-commit status.
 
 ## RPG-13 Settings/FAQ/Backup Trust validation
 

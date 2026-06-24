@@ -4,6 +4,26 @@ Use this prompt when starting a new AI/code-agent chat for RPG v2 implementation
 
 ---
 
+## Current status note
+
+As of 2026-06-24, current master is:
+
+```text
+e3246e7 Merge pull request #37 from ruishinor/rpg/shell-02g-insights-cleanup
+```
+
+RPG Shell Phase 2C-2G remediation is merged:
+
+- 2C Focus wrapper;
+- 2D Achievements wrapper;
+- 2E Insights wrapper;
+- 2F Settings wrapper;
+- 2G stale Journey Log cleanup.
+
+Do not restart from RPG-00 or treat 2C-2G as pending for the checked-in post-2G state. The next recommended step is release-candidate validation against current master, or a narrowly scoped blocker fix if that validation finds a blocker.
+
+---
+
 ## Prompt
 
 ```text
@@ -19,7 +39,7 @@ Current product reality:
 ProgressPal v1 is a working local-first CS50x study tracker using Vite, React, TypeScript, React Router, Dexie/IndexedDB, Zod, local CSS tokens, Vitest, Playwright, and existing validation scripts. v1 is the engine and fallback UI.
 
 Branching:
-Work on branch rpg/v2 from freeze tag v0.21.0-ux-complete. Keep main/master stable. Do not create a new repo unless explicitly instructed.
+For current post-2G work, branch from current master unless the project owner gives a different base. Historical RPG-00/RPG-15 implementation work used rpg/v2 from freeze tag v0.21.0-ux-complete; do not use that historical line to reopen completed 2C-2G remediation. Keep main/master stable. Do not create a new repo unless explicitly instructed.
 
 Active source of truth:
 1. docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
@@ -78,6 +98,8 @@ Do not create dead files.
 Do not create broad abstractions before two real use cases exist.
 Do not edit unrelated files.
 Do not silently fix unrelated issues.
+
+If the current task is post-2G release-candidate validation, run validation and record evidence. Do not start a broad new shell-transformation feature phase first.
 
 RPG-00 rules, if this is the first module:
 - Create docs/rpg-v2/ if missing.
