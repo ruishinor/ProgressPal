@@ -138,6 +138,52 @@
   justify-content: space-between;
 }
 
+.rpg-shell
+  :where(
+    .rpg-hub__header,
+    .rpg-map__header,
+    .rpg-week__header,
+    .rpg-study-resource__header,
+    .rpg-focus__header,
+    .rpg-log__header,
+    .rpg-badges__header,
+    .rpg-hero__header,
+    .rpg-settings__header
+  ) {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--rpg-surface-raised) 30%, transparent),
+      transparent 8rem
+    ),
+    var(--rpg-surface);
+  border: 1px solid var(--rpg-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 28px rgba(5, 9, 14, 0.18);
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--space-5);
+  width: 100%;
+}
+
+.rpg-shell
+  :where(
+    .rpg-hub__header,
+    .rpg-map__header,
+    .rpg-week__header,
+    .rpg-study-resource__header,
+    .rpg-focus__header,
+    .rpg-log__header,
+    .rpg-badges__header,
+    .rpg-hero__header,
+    .rpg-settings__header
+  )
+  > * {
+  max-width: 100%;
+  min-width: 0;
+}
+
 .rpg-shell .rpg-hub__header h1 {
   color: var(--rpg-text);
   margin: 0;
@@ -183,6 +229,23 @@
   margin: 0;
 }
 
+.rpg-shell
+  :where(
+    .rpg-hub__header,
+    .rpg-map__header,
+    .rpg-week__header,
+    .rpg-study-resource__header,
+    .rpg-focus__header,
+    .rpg-log__header,
+    .rpg-badges__header,
+    .rpg-hero__header,
+    .rpg-settings__header
+  )
+  h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .rpg-shell .rpg-hub__eyebrow,
 .rpg-shell .rpg-map__eyebrow,
 .rpg-shell .rpg-week__eyebrow,
@@ -220,6 +283,8 @@
 .rpg-shell .rpg-hub__note {
   color: var(--rpg-text-muted);
   margin: 0;
+  max-width: 70ch;
+  overflow-wrap: anywhere;
 }
 
 .rpg-shell .rpg-map__summary {
@@ -250,6 +315,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .rpg-shell .rpg-settings__grid {
@@ -1357,10 +1424,12 @@
   .rpg-shell .rpg-week__header,
   .rpg-shell .rpg-study-resource__header,
   .rpg-shell .rpg-focus__header,
+  .rpg-shell .rpg-log__header,
   .rpg-shell .rpg-badges__header,
   .rpg-shell .rpg-hero__header,
   .rpg-shell .rpg-settings__header {
     display: grid;
+    padding: var(--space-4);
   }
 
   .rpg-shell .rpg-map__summary {
