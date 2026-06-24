@@ -2,11 +2,11 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The current freeze target is **ProgressPal CS50 Edition v1.2**: a polished local-first CS50 tracker proof with gamified elements for course progress, study sessions, XP, achievements, insights, backup, import, reset, and limited/manual avatar use.
+The current release classification is **ProgressPal CS50 Edition v1.2**: a polished local-first CS50 tracker proof with gamified elements for course progress, study sessions, XP, achievements, insights, backup, import, reset, and limited/manual avatar use.
 
 This current build is **not** the fully realized RPG v2 shell. ProgressPal RPG v2 remains the intended future character-led CS50 campaign shell powered by the same local-first engine.
 
-The next RPG implementation phase should start from the `v1.2.0-local-first-proof` freeze and focus on shell transformation: persistent Hero HUD, collapsed/detail panels, a quest-first loop, reward feedback, asset foundation, and campaign-map redesign. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
+After the post-freeze RPG Shell Phase 2C-2G remediation, Focus, Achievements, Insights, Settings, and stale Journey Log cleanup are merged into master. The next RPG step is release-candidate validation against the current post-2G state, not a broad new feature phase. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
 
 ## Current product position
 
@@ -143,9 +143,9 @@ If the repo has a combined script such as `npm run validate`, use it only if it 
 
 ## RPG shell transformation rule
 
-Do not start the RPG shell transformation from more tracker panels. Start from the frozen v1.2 proof and change the main loop.
+Do not start broad RPG shell transformation work from more tracker panels. The current post-2G state needs release-candidate validation first.
 
-The next implementation branch should prioritize:
+Only after post-2G validation is recorded should any future feature plan reconsider:
 
 - persistent Hero HUD;
 - collapsed/detail panels;

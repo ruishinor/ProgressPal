@@ -2,11 +2,47 @@
 
 Status: source-of-truth implementation roadmap  
 Created: 2026-06-20  
-Updated: 2026-06-23
+Updated: 2026-06-24
 Scope: ProgressPal RPG v2, implemented as a same-origin `/rpg/*` route tree over the existing ProgressPal CS50x local-first engine  
 Audience: junior/vibe-coding implementer working under strict module gates  
 Supersedes: all earlier RPG v2 roadmap drafts and interim consolidated plans  
 Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.md`, `docs/rpg-v2/ASSETS.md`, `docs/rpg-v2/RISK_REGISTER.md`
+
+---
+
+## 2026-06-24 current state after RPG Shell Phase 2G
+
+Current master at audit start:
+
+```text
+e3246e7 Merge pull request #37 from ruishinor/rpg/shell-02g-insights-cleanup
+```
+
+The post-freeze RPG Shell wrapper remediation is now merged through Phase 2G:
+
+| Phase | Capability                | Current status                                                                             | Evidence                                       |
+| ----- | ------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| 2C    | `/rpg/focus`              | Complete and merged as a classic-wrapped Focus/session capability.                         | `docs/rpg-v2/modules/RPG-SHELL-02C-HANDOFF.md` |
+| 2D    | `/rpg/badges`             | Complete and merged as a classic-wrapped Achievements capability.                          | `docs/rpg-v2/modules/RPG-SHELL-02D-HANDOFF.md` |
+| 2E    | `/rpg/log`                | Complete and merged as a classic-wrapped Insights capability.                              | `docs/rpg-v2/modules/RPG-SHELL-02E-HANDOFF.md` |
+| 2F    | `/rpg/settings`           | Complete and merged as a classic-wrapped Settings/data-controls capability.                | `docs/rpg-v2/modules/RPG-SHELL-02F-HANDOFF.md` |
+| 2G    | stale Journey Log cleanup | Complete and merged; remaining "Journey Log" references are historical documentation only. | `docs/rpg-v2/modules/RPG-SHELL-02G-HANDOFF.md` |
+
+Current interpretation:
+
+- Do not describe Phase 2C, 2D, 2E, 2F, or 2G as pending.
+- The older RPG-00 through RPG-15 plan below remains implementation history and still explains constraints, but its module order and "next action" language are not current operational guidance for the checked-in post-2G state.
+- The earlier RPG-15 release-candidate validation predates the 2C-2G wrapper changes. It remains useful historical evidence, not final release-candidate evidence for `e3246e7`.
+- Wrapper remediation can be treated as complete for Focus, Achievements, Insights, Settings, and stale Journey Log cleanup based on the phase handoffs.
+
+Remaining work before a release decision:
+
+- Run release-candidate validation against the current post-2G state.
+- Recheck classic/RPG route regression, backup/export/import/reset behavior, local-first/offline behavior, accessibility/layout, and stale user-facing "Journey Log" copy.
+- If validation finds a concrete blocker, fix that blocker only and rerun the appropriate validation.
+- If validation passes, record the post-2G release-candidate result and release decision.
+
+The next recommended step is release-candidate validation for the post-2G state, not a broad new feature phase.
 
 ---
 
@@ -26,13 +62,13 @@ v1.2.0-local-first-proof
 
 This current app is valuable, but it is not the fully realized RPG v2 shell described by this roadmap. Treat the existing RPG-flavored routes, visual polish, and release-candidate validation as proof that the local-first engine can carry a gamified CS50 tracker. Do not treat them as completion of the character-led campaign shell.
 
-The next RPG v2 phase should begin after this freeze from a clean branch, recommended:
+At the June 23 freeze point, the next RPG v2 phase was expected to begin after this freeze from a clean branch, recommended:
 
 ```text
 rpg/real-shell-v2
 ```
 
-The next phase is shell transformation, not more tracker panels. The first priorities are persistent Hero HUD, collapsed/detail panels, quest-first loop, reward feedback, asset foundation, and campaign-map redesign.
+That recommendation is historical context. After the subsequent RPG Shell Phase 2A-2G remediation, the current next step is the post-2G release-candidate validation described above.
 
 Historical note: some module documents and validation entries reflect a stale RPG module ordering mismatch. Preserve them as implementation history, but use the June 23 freeze classification above for current product framing.
 
@@ -79,7 +115,7 @@ The hard constraints are:
 - Every implementation handoff must include a Scope Discipline Check.
 - RPG-00 starts with baseline reconciliation and documentation only: no runtime code changes, no package changes, no route changes, no asset imports.
 
-The best next action is **not to code**. The best next action is RPG-00: install the source-of-truth documents inside the repo, reconcile the intentional deletion of the old root `DECISIONS.md`, clean up misleading root documentation safely, confirm the freeze point, run validation, record the baseline, and stop if the baseline is not clean.
+At roadmap creation, the best next action was **not to code**. The best next action was RPG-00: install the source-of-truth documents inside the repo, reconcile the intentional deletion of the old root `DECISIONS.md`, clean up misleading root documentation safely, confirm the freeze point, run validation, record the baseline, and stop if the baseline is not clean. That instruction is historical for the original RPG v2 start; for the checked-in post-2G state, use the June 24 current-state section above.
 
 ---
 
@@ -2928,7 +2964,7 @@ rpg-15: prepare RPG v2 release candidate
 - Locked requirements visible.
 - Page read does not unlock.
 
-### Journey Log
+### Insights (`/rpg/log`; historical checklist formerly called Journey Log)
 
 - Read-only.
 - Values trace to saved records.
@@ -2987,7 +3023,7 @@ These do not block writing the roadmap. They should be checked before or during 
 
 ## 39. Restart prompt for a new AI/code-agent window
 
-Copy this into a new coding assistant chat when starting implementation:
+Historical RPG-00 start prompt retained for implementation history. For current post-2G work, use `docs/rpg-v2/RESTART_PROMPT.md`; do not copy the block below without updating its current-state and branching instructions.
 
 ```text
 You are working on ProgressPal RPG v2.
