@@ -2736,9 +2736,10 @@ describe('RPG routes', () => {
     expect(
       screen.getByRole('link', { name: 'Open Badge Gallery' }),
     ).toHaveAttribute('href', '/rpg/badges');
-    expect(
-      screen.getByRole('link', { name: 'Open Journey Log' }),
-    ).toHaveAttribute('href', '/rpg/log');
+    expect(screen.getByRole('link', { name: 'Open Insights' })).toHaveAttribute(
+      'href',
+      '/rpg/log',
+    );
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 

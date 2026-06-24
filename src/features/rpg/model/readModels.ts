@@ -23,11 +23,6 @@ import {
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
 import { calculateXpSummary } from '@/lib/xp/engine';
-import {
-  getRpgFocusPath,
-  getRpgResourcePath,
-  getRpgWeekPath,
-} from '@/lib/routing/rpgRoutePaths';
 
 import type {
   RpgBadgeGallerySummary,
@@ -35,9 +30,6 @@ import type {
   RpgFocusSessionSummary,
   RpgHeroProfileSummary,
   RpgHubSummary,
-  RpgJourneyLogActivity,
-  RpgJourneyLogActivityLink,
-  RpgJourneyLogSummary,
   RpgHubWeeklyProgress,
   RpgModuleSummary,
   RpgOfficialLink,
@@ -63,20 +55,6 @@ const rpgHubRecentActivityLimit = 5;
 
 function toDateOnly(isoTimestamp: string) {
   return isoTimestamp.slice(0, 10);
-}
-
-function toProgressStatusLabel(status: ProgressEntry['status']) {
-  const labels: Record<ProgressEntry['status'], string> = {
-    accepted: 'Accepted',
-    blocked: 'Blocked',
-    completed: 'Completed',
-    not_started: 'Not started',
-    skipped_optional: 'Skipped optional',
-    started: 'Started',
-    submitted: 'Submitted',
-  };
-
-  return labels[status];
 }
 
 function toIsoDate(date: Date) {
@@ -352,230 +330,6 @@ function buildRecentActivity(snapshot: DatabaseSnapshot) {
   );
 
   return entries.slice(0, rpgHubRecentActivityLimit);
-}
-
-function buildJourneyContext(
-  itemId: string | null,
-  unitId: string | null,
-  itemById: ReadonlyMap<string, CourseItem>,
-  unitById: ReadonlyMap<string, CourseUnit>,
-) {
-  const item = itemId === null ? null : (itemById.get(itemId) ?? null);
-  const unit =
-    unitId === null
-      ? item === null
-        ? null
-        : (unitById.get(item.unitId) ?? null)
-      : (unitById.get(unitId) ?? null);
-  const resolvedUnitId = unit?.id ?? item?.unitId ?? unitId;
-  const resolvedItemId = item?.id ?? itemId;
-  const links: RpgJourneyLogActivityLink[] = [];
-
-  if (resolvedItemId !== null && item !== null) {
-    links.push({
-      href: getRpgResourcePath(resolvedItemId),
-      label: 'Open resource',
-    });
-    links.push({
-      href: getRpgFocusPath(resolvedItemId),
-      label: 'Focus',
-    });
-  }
-
-  if (resolvedUnitId !== null && unit !== null) {
-    links.push({
-      href: getRpgWeekPath(resolvedUnitId),
-      label: 'Open week',
-    });
-  }
-
-  return {
-    contextLabel:
-      unit !== null && item !== null
-        ? `${unit.title} - ${item.title}`
-        : (item?.title ?? unit?.title ?? null),
-    itemId: resolvedItemId,
-    itemTitle: item?.title ?? null,
-    links,
-    unitId: resolvedUnitId,
-    unitTitle: unit?.title ?? null,
-  };
-}
-
-function resolveXpSourceContext(
-  snapshot: DatabaseSnapshot,
-  sourceType: string,
-  sourceId: string,
-) {
-  const session = snapshot.studySessions.find(
-    (candidate) => sourceType === 'study_session' && candidate.id === sourceId,
-  );
-
-  if (session !== undefined) {
-    return {
-      itemId: session.itemId,
-      unitId: session.unitId,
-    };
-  }
-
-  const mediaEvent = snapshot.mediaProgressEvents.find(
-    (candidate) => candidate.id === sourceId,
-  );
-
-  if (mediaEvent !== undefined) {
-    return {
-      itemId: mediaEvent.itemId,
-      unitId: null,
-    };
-  }
-
-  const mediaAssetId = sourceId.replace(/-block-\d+$/, '');
-  const mediaAsset = snapshot.contentAssets.find(
-    (candidate) => candidate.id === mediaAssetId,
-  );
-
-  if (mediaAsset !== undefined) {
-    return {
-      itemId: mediaAsset.itemId,
-      unitId: null,
-    };
-  }
-
-  if (sourceType === 'week_completed') {
-    return {
-      itemId: null,
-      unitId: sourceId,
-    };
-  }
-
-  const progressSourceSuffixes = [
-    '-accepted',
-    '-completed',
-    '-started',
-    '-submitted',
-  ];
-  const matchedSuffix = progressSourceSuffixes.find((suffix) =>
-    sourceId.endsWith(suffix),
-  );
-
-  if (matchedSuffix !== undefined) {
-    return {
-      itemId: sourceId.slice(0, -matchedSuffix.length),
-      unitId: null,
-    };
-  }
-
-  if (sourceType === 'final_project_readme_demo_completed') {
-    return {
-      itemId: null,
-      unitId: 'final-project',
-    };
-  }
-
-  return {
-    itemId: null,
-    unitId: null,
-  };
-}
-
-export function buildRpgJourneyLogSummary(
-  snapshot: DatabaseSnapshot,
-): RpgJourneyLogSummary {
-  const itemById = new Map(snapshot.courseItems.map((item) => [item.id, item]));
-  const unitById = new Map(snapshot.courseUnits.map((unit) => [unit.id, unit]));
-  const activities: RpgJourneyLogActivity[] = [
-    ...snapshot.progressEntries.map((entry) => {
-      const context = buildJourneyContext(
-        entry.itemId,
-        null,
-        itemById,
-        unitById,
-      );
-      const statusLabel = toProgressStatusLabel(entry.status);
-
-      return {
-        ...context,
-        date: toDateOnly(entry.updatedAt),
-        detail: `${context.itemTitle ?? entry.itemId} saved as ${statusLabel}`,
-        id: `progress:${entry.id}`,
-        note: entry.notes ?? null,
-        timestamp: entry.updatedAt,
-        title: 'Progress saved',
-        type: 'progress' as const,
-        typeLabel: 'Progress saved',
-      };
-    }),
-    ...snapshot.studySessions.map((session) => {
-      const context = buildJourneyContext(
-        session.itemId,
-        session.unitId,
-        itemById,
-        unitById,
-      );
-
-      return {
-        ...context,
-        date: toDateOnly(session.endedAt),
-        detail: `${session.durationMinutes} min ${session.mode}`,
-        id: `study_session:${session.id}`,
-        note: session.notes ?? null,
-        timestamp: session.endedAt,
-        title: 'Study session finished',
-        type: 'study_session' as const,
-        typeLabel: 'Study session finished',
-      };
-    }),
-    ...snapshot.xpTransactions.map((transaction) => {
-      const sourceContext = resolveXpSourceContext(
-        snapshot,
-        transaction.sourceType,
-        transaction.sourceId,
-      );
-      const context = buildJourneyContext(
-        sourceContext.itemId,
-        sourceContext.unitId,
-        itemById,
-        unitById,
-      );
-
-      return {
-        ...context,
-        date: toDateOnly(transaction.awardedAt),
-        detail: `${transaction.xp} XP - ${transaction.reason}`,
-        id: `xp:${transaction.id}`,
-        note: null,
-        timestamp: transaction.awardedAt,
-        title: 'XP awarded',
-        type: 'xp' as const,
-        typeLabel: 'XP awarded',
-      };
-    }),
-  ];
-
-  activities.sort(
-    (left, right) =>
-      right.timestamp.localeCompare(left.timestamp) ||
-      left.type.localeCompare(right.type) ||
-      left.id.localeCompare(right.id),
-  );
-
-  return {
-    activities,
-    totals: {
-      activityCount: activities.length,
-      progressCount: snapshot.progressEntries.length,
-      sessionCount: snapshot.studySessions.length,
-      totalMinutes: snapshot.studySessions.reduce(
-        (total, session) => total + session.durationMinutes,
-        0,
-      ),
-      totalXp: snapshot.xpTransactions.reduce(
-        (total, transaction) => total + transaction.xp,
-        0,
-      ),
-      xpTransactionCount: snapshot.xpTransactions.length,
-    },
-  };
 }
 
 export function buildRpgBadgeGallerySummary(
@@ -864,12 +618,6 @@ export async function loadRpgFocusSessionSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgFocusSessionSummary> {
   return buildRpgFocusSessionSummary(await readSnapshot(options), itemId);
-}
-
-export async function loadRpgJourneyLogSummary(
-  options: RpgReadModelOptions = {},
-): Promise<RpgJourneyLogSummary> {
-  return buildRpgJourneyLogSummary(await readSnapshot(options));
 }
 
 export async function loadRpgBadgeGallerySummary(
