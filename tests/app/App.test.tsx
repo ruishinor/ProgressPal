@@ -1701,7 +1701,7 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/badges') {
-      await screen.findByText(/\d+ of \d+ badges earned/);
+      await screen.findByText(/\d+ of \d+ unlocked/);
       return;
     }
 
@@ -2601,7 +2601,7 @@ describe('RPG routes', () => {
     const routes = [
       ['/rpg/focus', 'Focus', 'Focus'],
       ['/rpg/hero', 'Hero Profile', 'Hero'],
-      ['/rpg/badges', 'Badge Gallery', 'Awards'],
+      ['/rpg/badges', 'Achievements', 'Awards'],
       ['/rpg/log', 'Journey Log', 'Insights'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
     ] as const;
@@ -2739,28 +2739,26 @@ describe('RPG routes', () => {
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
-  it('renders a useful locked Badge Gallery state without mutating local stores', async () => {
+  it('wraps the classic achievements surface at /rpg/badges with a locked state without mutating local stores', async () => {
     await seedOnboardedLearner();
     const beforeSnapshot = await getDatabaseSnapshot();
 
     await renderAppAtRoute('/rpg/badges');
 
     expect(
-      await screen.findByRole('heading', { name: 'Badge Gallery' }),
+      await screen.findByRole('heading', { name: 'Achievements' }),
     ).toBeInTheDocument();
+    // Same achievement truth as classic: a clean profile has nothing unlocked.
     expect(
-      await screen.findByRole('heading', { name: 'Badge Gallery is ready' }),
+      await screen.findByText(`0 of ${achievementDefinitions.length} unlocked`),
     ).toBeInTheDocument();
+    // The classic filter + achievement-card surface renders inside the RPG shell.
     expect(
-      screen.getByText(`0 of ${achievementDefinitions.length} badges earned`),
+      screen.getByRole('heading', { name: 'Filter achievements' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Earned badges')).toBeInTheDocument();
-    expect(screen.getByText('Locked badges')).toBeInTheDocument();
-    expect(screen.getByText('Total available')).toBeInTheDocument();
 
-    const firstStep = screen.getByRole('article', { name: 'First Step' });
-    expect(within(firstStep).getAllByText('Locked').length).toBeGreaterThan(0);
-    expect(within(firstStep).getByText('Requirement')).toBeInTheDocument();
+    const firstStep = await screen.findByTestId('achievement-first-step');
+    expect(within(firstStep).getByText('Locked')).toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
@@ -2780,36 +2778,30 @@ describe('RPG routes', () => {
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
-  it('renders earned Badge Gallery records with earned dates without mutation', async () => {
+  it('shows earned achievements with unlock dates at /rpg/badges without mutation', async () => {
     await seedOnboardedLearnerWithBadgeUnlock();
     const beforeSnapshot = await getDatabaseSnapshot();
 
     await renderAppAtRoute('/rpg/badges');
 
     expect(
-      await screen.findByRole('heading', { name: 'Badge Gallery' }),
+      await screen.findByRole('heading', { name: 'Achievements' }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(
-        `1 of ${achievementDefinitions.length} badges earned`,
-      ),
+      await screen.findByText(`1 of ${achievementDefinitions.length} unlocked`),
     ).toBeInTheDocument();
 
-    const firstStep = screen.getByRole('article', { name: 'First Step' });
-    expect(within(firstStep).getAllByText('Earned').length).toBeGreaterThan(0);
+    const firstStep = await screen.findByTestId('achievement-first-step');
+    expect(within(firstStep).getByText('Unlocked')).toBeInTheDocument();
     expect(
-      within(firstStep).getByText('Earned 2026-06-12'),
+      within(firstStep).getByText('Unlocked 2026-06-12'),
     ).toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
 
-    const courseComplete = screen.getByRole('article', {
-      name: 'Course Complete',
-    });
-    expect(
-      within(courseComplete).getAllByText('Locked').length,
-    ).toBeGreaterThan(0);
+    const courseComplete = screen.getByTestId('achievement-course-complete');
+    expect(within(courseComplete).getByText('Locked')).toBeInTheDocument();
     expect(
       within(courseComplete).getByText(
         'Complete every required item of every required unit in the course.',
