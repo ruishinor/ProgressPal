@@ -20,17 +20,23 @@ describe('achievements engine boundaries', () => {
     expect(combinedSource).not.toMatch(/from ['"]@\/lib\/db/);
   });
 
-  it('keeps the achievements page read-only (no evaluation or write APIs)', () => {
+  it('keeps the achievements page and shared surface read-only (no evaluation or write APIs)', () => {
+    // The classic page and the RPG route both render the shared surface, so the
+    // read-only guarantee must hold across both the route file and the surface.
     const pageSource = readWorkspaceFile(
       'src/features/achievements/routes/AchievementsPage.tsx',
     );
+    const surfaceSource = readWorkspaceFile(
+      'src/features/achievements/components/AchievementsSurface.tsx',
+    );
+    const combinedSource = `${pageSource}\n${surfaceSource}`;
 
-    // The page may only read via getAchievementsView; it must never evaluate or
-    // run any XP-aware save wrapper that could create unlocks.
-    expect(pageSource).not.toMatch(/evaluateAchievements/);
-    expect(pageSource).not.toMatch(/AndAwardXp/);
-    expect(pageSource).not.toMatch(/upsertProgress\b/);
-    expect(pageSource).not.toMatch(/addStudySession\b/);
-    expect(pageSource).not.toMatch(/logMediaProgress\b/);
+    // The surface may only read via getAchievementsView; it must never evaluate
+    // or run any XP-aware save wrapper that could create unlocks.
+    expect(combinedSource).not.toMatch(/evaluateAchievements/);
+    expect(combinedSource).not.toMatch(/AndAwardXp/);
+    expect(combinedSource).not.toMatch(/upsertProgress\b/);
+    expect(combinedSource).not.toMatch(/addStudySession\b/);
+    expect(combinedSource).not.toMatch(/logMediaProgress\b/);
   });
 });

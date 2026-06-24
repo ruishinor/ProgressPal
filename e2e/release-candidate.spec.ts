@@ -17,7 +17,7 @@ const routeChecks = [
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
   { heading: 'No task selected', path: '/rpg/focus' },
   { heading: 'Hero Profile', path: '/rpg/hero' },
-  { heading: 'Badge Gallery', path: '/rpg/badges' },
+  { heading: 'Achievements', path: '/rpg/badges' },
   { heading: 'Journey Log', path: '/rpg/log' },
   { heading: 'RPG Settings', path: '/rpg/settings' },
 ] as const;

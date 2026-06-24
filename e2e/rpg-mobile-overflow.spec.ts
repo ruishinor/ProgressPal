@@ -20,7 +20,7 @@ const rpgRoutes = [
     path: '/rpg/hero',
   },
   {
-    heading: 'Badge Gallery',
+    heading: 'Achievements',
     headerSelector: '.rpg-badges__header',
     path: '/rpg/badges',
   },
