@@ -2253,27 +2253,31 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Focus' }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
+      await screen.findByRole('button', { name: 'Start live session' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Started').length).toBeGreaterThan(0);
-    expect(screen.getByText('Required')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Current task: Week 4: Memory - Lecture 4: Memory/),
-    ).toBeInTheDocument();
+
+    // Prefill from itemId locks both the live and manual unit selectors to the
+    // task's unit, exactly like the classic study-session surface.
+    const unitSelectors = screen.getAllByLabelText('Unit');
+    const itemSelectors = screen.getAllByLabelText('What were you working on?');
+
+    expect(unitSelectors.length).toBeGreaterThan(0);
+    for (const unitSelector of unitSelectors) {
+      expect(unitSelector).toBeDisabled();
+      expect(unitSelector).toHaveValue('week-4');
+    }
+    for (const itemSelector of itemSelectors) {
+      expect(itemSelector).toHaveValue('week-4-lecture');
+    }
+
     expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
       'href',
       '/rpg/week/week-4',
     );
-    expect(screen.getByRole('link', { name: 'Cancel focus' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Back to Hub' })).toHaveAttribute(
       'href',
       '/rpg',
     );
-    expect(screen.getByLabelText('Mode')).toHaveValue('watching');
-    expect(screen.getByLabelText('Unit')).toBeDisabled();
-    expect(screen.getByLabelText('Unit')).toHaveValue('week-4');
-    expect(screen.getByLabelText('Task')).toBeDisabled();
-    expect(screen.getByLabelText('Task')).toHaveValue('week-4-lecture');
     expectRpgShellWithBottomNav('Focus');
   });
 
@@ -2284,21 +2288,17 @@ describe('RPG routes', () => {
     await renderAppAtRoute('/rpg/focus');
 
     expect(
-      await screen.findByRole('heading', { name: 'No task selected' }),
+      await screen.findByRole('heading', { name: 'Focus' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'Choose a real local course task below, then start the in-memory focus timer.',
-      ),
+      await screen.findByRole('button', { name: 'Start live session' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Choose from map' }),
-    ).toHaveAttribute('href', '/rpg/map');
-    expect(screen.getByLabelText('Mode')).not.toBeDisabled();
-    expect(screen.getByLabelText('Unit')).not.toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: 'Start timer' }),
-    ).toBeInTheDocument();
+    for (const unitSelector of screen.getAllByLabelText('Unit')) {
+      expect(unitSelector).not.toBeDisabled();
+    }
+    for (const modeSelector of screen.getAllByLabelText('Mode')) {
+      expect(modeSelector).not.toBeDisabled();
+    }
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
@@ -2308,22 +2308,25 @@ describe('RPG routes', () => {
     try {
       await seedOnboardedLearner();
       await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
-      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+      await screen.findByRole('button', { name: 'Start live session' });
 
       const beforeSnapshot = await getDatabaseSnapshot();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+      fireEvent.change(screen.getAllByLabelText('Mode')[0], {
+        target: { value: 'watching' },
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Start live session' }),
+      );
 
-      expect(screen.getByText(/Status:/)).toBeInTheDocument();
+      expect(screen.getByText('Active timer')).toBeInTheDocument();
       expect(screen.getByText('Running')).toBeInTheDocument();
       expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
 
       nowSpy.mockReturnValue(1_090_000);
       fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
 
-      expect(screen.getByRole('timer')).toHaveAccessibleName(
-        'Elapsed focus time 01:30',
-      );
+      expect(screen.getByText('01:30')).toBeInTheDocument();
       expect(screen.getByText('Paused')).toBeInTheDocument();
       expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
 
@@ -2346,18 +2349,23 @@ describe('RPG routes', () => {
     try {
       await seedOnboardedLearner();
       await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
-      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+      await screen.findByRole('button', { name: 'Start live session' });
 
       const beforeSnapshot = await getDatabaseSnapshot();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
+      fireEvent.change(screen.getAllByLabelText('Mode')[0], {
+        target: { value: 'watching' },
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Start live session' }),
+      );
       nowSpy.mockReturnValue(2_120_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
       fireEvent.click(screen.getByRole('button', { name: 'Discard session' }));
 
       expect(
-        screen.getByRole('button', { name: 'Start timer' }),
+        await screen.findByRole('button', { name: 'Start live session' }),
       ).toBeInTheDocument();
-      expect(screen.getByText('Ready')).toBeInTheDocument();
       expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
     } finally {
       nowSpy.mockRestore();
@@ -2370,46 +2378,36 @@ describe('RPG routes', () => {
     try {
       await seedOnboardedLearner();
       await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture');
-      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+      await screen.findByRole('button', { name: 'Start live session' });
 
       const beforeSnapshot = await getDatabaseSnapshot();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
-      fireEvent.change(screen.getByLabelText('Local note'), {
+      fireEvent.change(screen.getAllByLabelText('Mode')[0], {
+        target: { value: 'watching' },
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Start live session' }),
+      );
+
+      nowSpy.mockReturnValue(3_000_000 + 25 * 60_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+
+      fireEvent.change(screen.getAllByLabelText('Notes')[0], {
         target: { value: 'Focused on pointer diagrams.' },
       });
-      fireEvent.change(screen.getByLabelText('Blockers'), {
+      fireEvent.change(screen.getAllByLabelText('Blockers')[0], {
         target: { value: 'Need to review malloc.' },
       });
 
-      nowSpy.mockReturnValue(3_000_000 + 25 * 60_000);
-
-      const finishButton = screen.getByRole('button', {
-        name: 'Finish session',
-      });
-
-      fireEvent.click(finishButton);
-      fireEvent.click(finishButton);
-
-      expect(
-        await screen.findByRole('heading', { name: 'Session saved' }),
-      ).toBeInTheDocument();
-      expect(screen.getByText('25 min')).toBeInTheDocument();
-      expect(screen.getByText('Watching')).toBeInTheDocument();
-      expect(screen.getByText('10')).toBeInTheDocument();
-      expect(
-        screen.getByRole('link', { name: 'Back to RPG Hub' }),
-      ).toHaveAttribute('href', '/rpg');
-      expect(
-        screen.getByRole('link', { name: 'Back to resource' }),
-      ).toHaveAttribute('href', '/rpg/resource/week-4-lecture');
-      expect(screen.getAllByRole('link', { name: 'Back to week' })).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            href: expect.stringContaining('/rpg/week/week-4'),
-          }),
-        ]),
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Save study session' }),
       );
+
+      // The classic surface reloads after a save, so re-query for the success
+      // toast until it settles rather than holding a possibly-detached node.
+      await waitFor(() => {
+        expect(screen.getByText('Session saved')).toBeInTheDocument();
+      });
 
       const afterSnapshot = await getDatabaseSnapshot();
       const savedSessions = afterSnapshot.studySessions.filter(
@@ -2526,21 +2524,28 @@ describe('RPG routes', () => {
 
       cleanup();
       await renderAppAtRoute(focusPath);
-      await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+      await screen.findByRole('button', { name: 'Start live session' });
 
       const beforeFocusSnapshot = await getDatabaseSnapshot();
 
-      fireEvent.click(screen.getByRole('button', { name: 'Start timer' }));
-      fireEvent.change(screen.getByLabelText('Local note'), {
+      fireEvent.change(screen.getAllByLabelText('Mode')[0], {
+        target: { value: 'watching' },
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Start live session' }),
+      );
+      nowSpy.mockReturnValue(4_000_000 + 25 * 60_000);
+      fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+      fireEvent.change(screen.getAllByLabelText('Notes')[0], {
         target: { value: 'RPG-09 focus session note.' },
       });
-      nowSpy.mockReturnValue(4_000_000 + 25 * 60_000);
-      fireEvent.click(screen.getByRole('button', { name: 'Finish session' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Save study session' }),
+      );
 
-      expect(
-        await screen.findByRole('heading', { name: 'Session saved' }),
-      ).toBeInTheDocument();
-      expect(screen.getByText('25 min')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Session saved')).toBeInTheDocument();
+      });
 
       const afterFocusSnapshot = await getDatabaseSnapshot();
       const savedWeekFourSessions = afterFocusSnapshot.studySessions.filter(
@@ -2566,7 +2571,7 @@ describe('RPG routes', () => {
       expect(savedSessionXp).toHaveLength(1);
 
       const hubPath = expectHref(
-        screen.getByRole('link', { name: 'Back to RPG Hub' }),
+        await screen.findByRole('link', { name: 'Back to Hub' }),
         '/rpg',
       );
 
