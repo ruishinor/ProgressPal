@@ -25,8 +25,8 @@ const rpgBottomNavItems = [
   },
   { activePaths: [rpgFocusPath], label: 'Focus', to: rpgFocusPath },
   { activePaths: [rpgHeroPath], label: 'Hero', to: rpgHeroPath },
-  { activePaths: [rpgBadgesPath], label: 'Badges', to: rpgBadgesPath },
-  { activePaths: [rpgLogPath], label: 'Log', to: rpgLogPath },
+  { activePaths: [rpgBadgesPath], label: 'Awards', to: rpgBadgesPath },
+  { activePaths: [rpgLogPath], label: 'Insights', to: rpgLogPath },
   { activePaths: [rpgSettingsPath], label: 'Settings', to: rpgSettingsPath },
 ] as const;
 

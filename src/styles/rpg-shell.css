@@ -1,3 +1,12 @@
+/* While any /rpg route is mounted, RpgShell adds this class to <body> so the
+   dark RPG canvas covers the full viewport. This stops the light app
+   background from flashing through during internal RPG route transitions.
+   The literal matches --rpg-bg in rpg-tokens.css; that token is scoped to
+   .rpg-shell (a descendant of <body>), so it cannot cascade up to here. */
+body.rpg-route-active {
+  background: #111923;
+}
+
 .rpg-shell {
   --rpg-bottom-nav-height: 4.75rem;
   margin: 0 auto;
@@ -44,6 +53,13 @@
   :where(.page-section, .rpg-panel, .rpg-empty-state, .rpg-resource-card) {
   max-width: 100%;
   min-width: 0;
+}
+
+/* Suppress the mobile tap-highlight flash on RPG controls. Keyboard focus is
+   unaffected: the global :focus-visible outline in base.css still applies. */
+.rpg-shell a,
+.rpg-shell button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .rpg-hero-hud {
@@ -130,15 +146,16 @@
 }
 
 .rpg-hero-hud__level {
-  align-items: center;
+  align-items: baseline;
   background: color-mix(in srgb, var(--rpg-surface-raised) 70%, transparent);
   border: 1px solid var(--rpg-border);
-  border-radius: var(--radius-sm);
-  display: grid;
-  gap: var(--space-1);
-  justify-items: center;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  gap: var(--space-2);
+  justify-self: start;
   min-width: 0;
-  padding: var(--space-3);
+  padding: 0.35rem 0.75rem;
+  width: fit-content;
 }
 
 .rpg-hero-hud__level span {
@@ -149,7 +166,7 @@
 
 .rpg-hero-hud__level strong {
   color: var(--rpg-text);
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
   line-height: 1;
 }
 
@@ -248,10 +265,6 @@
   .rpg-hero-hud__quest-link {
     grid-column: 1 / -1;
   }
-
-  .rpg-hero-hud__level {
-    justify-items: start;
-  }
 }
 
 @media (max-width: 42rem) {
@@ -290,14 +303,9 @@
   }
 
   .rpg-hero-hud__level {
-    align-self: stretch;
+    align-self: center;
     grid-column: auto;
-    min-width: 3.75rem;
-    padding: var(--space-2);
-  }
-
-  .rpg-hero-hud__level strong {
-    font-size: var(--text-lg);
+    padding: 0.3rem 0.6rem;
   }
 
   .rpg-hero-hud__xp {

@@ -186,7 +186,7 @@ export function RpgHomePage() {
         <div className="rpg-hub__actions">
           <RpgButton href={continueHref}>Continue current quest</RpgButton>
           <RpgButton href={rpgMapPath} variant="secondary">
-            Open RPG map
+            Open Campaign Map
           </RpgButton>
         </div>
       </div>

@@ -175,7 +175,7 @@ export function RpgModulePage() {
               <h1>RPG Week</h1>
             </div>
             <RpgButton href={rpgMapPath} variant="secondary">
-              Back to RPG map
+              Back to Campaign Map
             </RpgButton>
           </div>
           <ErrorState
@@ -220,7 +220,7 @@ export function RpgModulePage() {
         </div>
         <div className="rpg-week__actions">
           <RpgButton href={rpgMapPath} variant="secondary">
-            Back to RPG map
+            Back to Campaign Map
           </RpgButton>
           {summary.officialLink !== null ? (
             <RpgButton
