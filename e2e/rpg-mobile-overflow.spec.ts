@@ -30,7 +30,7 @@ const rpgRoutes = [
     path: '/rpg/log',
   },
   {
-    heading: 'RPG Settings',
+    heading: 'Settings',
     headerSelector: '.rpg-settings__header',
     path: '/rpg/settings',
   },

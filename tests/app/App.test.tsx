@@ -1713,7 +1713,7 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/settings') {
-      await screen.findByRole('heading', { name: 'Official course boundary' });
+      await screen.findByRole('heading', { name: 'Export a backup' });
       return;
     }
   }
@@ -2603,7 +2603,7 @@ describe('RPG routes', () => {
       ['/rpg/hero', 'Hero Profile', 'Hero'],
       ['/rpg/badges', 'Achievements', 'Awards'],
       ['/rpg/log', 'Insights', 'Insights'],
-      ['/rpg/settings', 'RPG Settings', 'Settings'],
+      ['/rpg/settings', 'Settings', 'Settings'],
     ] as const;
 
     for (const [route, heading, activeLabel] of routes) {
@@ -2620,45 +2620,48 @@ describe('RPG routes', () => {
     }
   });
 
-  it('renders RPG Settings trust and backup FAQ without mutating local stores', async () => {
+  it('exposes the authoritative settings controls at /rpg/settings without mutating local stores', async () => {
     await seedOnboardedLearner();
     const beforeSnapshot = await getDatabaseSnapshot();
 
     await renderAppAtRoute('/rpg/settings');
 
     expect(
-      await screen.findByRole('heading', { name: 'RPG Settings' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Local data' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Backup and restore' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Reset local data' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'FAQ' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Official course boundary' }),
+      await screen.findByRole('heading', { name: 'Settings' }),
     ).toBeInTheDocument();
 
+    // The same authoritative data controls as classic Settings, rendered inside
+    // the RPG shell — not a hand-off link to a separate settings screen.
+    for (const cardTitle of [
+      'Export a backup',
+      'Import a backup',
+      'Reset local data',
+    ]) {
+      expect(
+        screen.getByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+    expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Export local backup' }),
+    ).toBeInTheDocument();
+    // The destructive reset keeps the same confirmation-phrase safeguard.
+    expect(
+      screen.getByRole('button', { name: 'Reset all local data' }),
+    ).toBeDisabled();
+
+    // The collapsed local-first + course-boundary disclaimer is preserved.
     const bodyText = document.body.textContent ?? '';
 
-    expect(bodyText).toMatch(/browser on this device/i);
-    expect(bodyText).toMatch(/no ProgressPal account, no cloud sync/i);
-    expect(bodyText).toMatch(/no hidden analytics/i);
-    expect(bodyText).toMatch(/Exporting a backup/i);
-    expect(bodyText).toMatch(/import a ProgressPal backup/i);
-    expect(bodyText).toMatch(/Reset local data deletes/i);
-    expect(bodyText).toMatch(/same local ProgressPal data/i);
-    expect(bodyText).toMatch(/does not change official CS50/i);
+    expect(bodyText).toMatch(/no account, no cloud sync, and no analytics/i);
     expect(bodyText).toMatch(
       /not CS50, Harvard, edX, or OpenCourseWare status/i,
     );
+
+    // "Open classic Settings" is gone now that the real controls live here.
     expect(
-      screen.getByRole('link', { name: 'Open classic Settings' }),
-    ).toHaveAttribute('href', '/settings');
+      screen.queryByRole('link', { name: 'Open classic Settings' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to Hub' })).toHaveAttribute(
       'href',
       '/rpg',
