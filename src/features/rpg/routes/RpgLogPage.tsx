@@ -164,7 +164,7 @@ export function RpgLogPage() {
         <div className="rpg-log__actions">
           <RpgButton href={rpgRoutePath}>Back to Hub</RpgButton>
           <RpgButton href={rpgMapPath} variant="secondary">
-            Open RPG map
+            Open Campaign Map
           </RpgButton>
         </div>
       </div>
@@ -245,7 +245,7 @@ export function RpgLogPage() {
         <RpgEmptyState
           action={
             <div className="rpg-log__actions">
-              <RpgButton href={rpgMapPath}>Open RPG map</RpgButton>
+              <RpgButton href={rpgMapPath}>Open Campaign Map</RpgButton>
               <RpgButton href={rpgRoutePath} variant="secondary">
                 Back to Hub
               </RpgButton>

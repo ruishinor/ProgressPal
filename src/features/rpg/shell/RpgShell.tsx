@@ -1,5 +1,5 @@
 import { startTransition, useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
 import { RpgProgressBar } from '@/features/rpg/components';
@@ -146,6 +146,23 @@ function RpgHeroHud({
 export function RpgShell() {
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
+  const location = useLocation();
+
+  // RPG-only shell hygiene: keep the dark RPG canvas applied to <body> for the
+  // whole time an /rpg route is mounted so internal route transitions never
+  // flash the light app background.
+  useEffect(() => {
+    document.body.classList.add('rpg-route-active');
+
+    return () => {
+      document.body.classList.remove('rpg-route-active');
+    };
+  }, []);
+
+  // Reset scroll to the top of the page on every internal RPG route change.
+  useEffect(() => {
+    window.scrollTo({ left: 0, top: 0 });
+  }, [location.pathname]);
 
   useEffect(() => {
     let isActive = true;

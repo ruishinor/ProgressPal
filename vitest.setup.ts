@@ -20,6 +20,13 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+// jsdom does not implement scrollTo; the RPG shell calls it on route change.
+Object.defineProperty(window, 'scrollTo', {
+  configurable: true,
+  writable: true,
+  value: () => undefined,
+});
+
 afterEach(async () => {
   cleanup();
 

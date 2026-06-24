@@ -1671,7 +1671,7 @@ describe('RPG routes', () => {
 
   async function waitForRpgRouteReady(route: string) {
     if (route === '/rpg') {
-      await screen.findByRole('link', { name: 'Open RPG map' });
+      await screen.findByRole('link', { name: 'Open Campaign Map' });
       return;
     }
 
@@ -1737,8 +1737,8 @@ describe('RPG routes', () => {
       ['Map', '/rpg/map'],
       ['Focus', '/rpg/focus'],
       ['Hero', '/rpg/hero'],
-      ['Badges', '/rpg/badges'],
-      ['Log', '/rpg/log'],
+      ['Awards', '/rpg/badges'],
+      ['Insights', '/rpg/log'],
       ['Settings', '/rpg/settings'],
     ];
 
@@ -1803,7 +1803,9 @@ describe('RPG routes', () => {
 
     await renderAppAtRoute('/rpg');
 
-    const mapLink = await screen.findByRole('link', { name: 'Open RPG map' });
+    const mapLink = await screen.findByRole('link', {
+      name: 'Open Campaign Map',
+    });
 
     expect(
       screen.getByRole('heading', { name: 'RPG Hub' }),
@@ -2006,7 +2008,7 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Week 4: Memory' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Back to RPG map' }),
+      screen.getByRole('link', { name: 'Back to Campaign Map' }),
     ).toHaveAttribute('href', '/rpg/map');
     expect(screen.getByText('In progress')).toBeInTheDocument();
     expect(screen.getByText('0 of 2 required complete')).toBeInTheDocument();
@@ -2449,7 +2451,7 @@ describe('RPG routes', () => {
 
       await renderAppAtRoute('/rpg');
       const mapPath = expectHref(
-        await screen.findByRole('link', { name: 'Open RPG map' }),
+        await screen.findByRole('link', { name: 'Open Campaign Map' }),
         '/rpg/map',
       );
 
@@ -2594,8 +2596,8 @@ describe('RPG routes', () => {
     const routes = [
       ['/rpg/focus', 'Focus', 'Focus'],
       ['/rpg/hero', 'Hero Profile', 'Hero'],
-      ['/rpg/badges', 'Badge Gallery', 'Badges'],
-      ['/rpg/log', 'Journey Log', 'Log'],
+      ['/rpg/badges', 'Badge Gallery', 'Awards'],
+      ['/rpg/log', 'Journey Log', 'Insights'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
     ] as const;
 
@@ -2684,9 +2686,11 @@ describe('RPG routes', () => {
       screen.getByText(`0 of ${achievementDefinitions.length}`),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/map';
-      }),
+      screen
+        .getAllByRole('link', { name: 'Open Campaign Map' })
+        .some((link) => {
+          return link.getAttribute('href') === '/rpg/map';
+        }),
     ).toBe(true);
     expect(
       screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
@@ -2757,9 +2761,11 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/map';
-      }),
+      screen
+        .getAllByRole('link', { name: 'Open Campaign Map' })
+        .some((link) => {
+          return link.getAttribute('href') === '/rpg/map';
+        }),
     ).toBe(true);
     expect(
       screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
@@ -2824,9 +2830,11 @@ describe('RPG routes', () => {
       ),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByRole('link', { name: 'Open RPG map' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/map';
-      }),
+      screen
+        .getAllByRole('link', { name: 'Open Campaign Map' })
+        .some((link) => {
+          return link.getAttribute('href') === '/rpg/map';
+        }),
     ).toBe(true);
 
     expect(
@@ -2913,7 +2921,7 @@ describe('RPG routes', () => {
     await seedOnboardedLearner();
 
     await renderAppAtRoute('/rpg');
-    await screen.findByRole('link', { name: 'Open RPG map' });
+    await screen.findByRole('link', { name: 'Open Campaign Map' });
 
     const bottomNav = screen.getByRole('navigation', {
       name: 'RPG bottom navigation',
