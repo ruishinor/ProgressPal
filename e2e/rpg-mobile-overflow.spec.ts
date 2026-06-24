@@ -25,7 +25,7 @@ const rpgRoutes = [
     path: '/rpg/badges',
   },
   {
-    heading: 'Journey Log',
+    heading: 'Insights',
     headerSelector: '.rpg-log__header',
     path: '/rpg/log',
   },

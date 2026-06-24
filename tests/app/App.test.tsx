@@ -1612,7 +1612,7 @@ describe('RPG routes', () => {
     });
   }
 
-  async function seedOnboardedLearnerWithJourneyLogActivity() {
+  async function seedOnboardedLearnerWithInsightsActivity() {
     await seedOnboardedLearner();
 
     await upsertProgressAndAwardXp(
@@ -1622,7 +1622,7 @@ describe('RPG routes', () => {
         evidenceText: undefined,
         evidenceType: undefined,
         itemId: 'week-4-problem-set',
-        notes: 'Journey Log progress fixture.',
+        notes: 'Insights progress fixture.',
         startedAt: '2026-06-21T10:00:00.000Z',
         status: 'started',
       },
@@ -1634,7 +1634,7 @@ describe('RPG routes', () => {
         endedAt: '2026-06-21T10:30:00.000Z',
         itemId: 'week-4-lecture',
         mode: 'watching',
-        notes: 'Journey Log focus fixture.',
+        notes: 'Insights focus fixture.',
         startedAt: '2026-06-21T10:05:00.000Z',
         unitId: 'week-4',
       },
@@ -1696,7 +1696,7 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/log') {
-      await screen.findByRole('heading', { name: 'Journey Log' });
+      await screen.findByRole('heading', { name: 'Effort over time' });
       return;
     }
 
@@ -2602,7 +2602,7 @@ describe('RPG routes', () => {
       ['/rpg/focus', 'Focus', 'Focus'],
       ['/rpg/hero', 'Hero Profile', 'Hero'],
       ['/rpg/badges', 'Achievements', 'Awards'],
-      ['/rpg/log', 'Journey Log', 'Insights'],
+      ['/rpg/log', 'Insights', 'Insights'],
       ['/rpg/settings', 'RPG Settings', 'Settings'],
     ] as const;
 
@@ -2810,22 +2810,47 @@ describe('RPG routes', () => {
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
-  it('renders a useful empty Journey Log state without mutating local stores', async () => {
+  it('renders a useful empty Insights surface at /rpg/log without mutating local stores', async () => {
     await seedOnboardedLearner();
     const beforeSnapshot = await getDatabaseSnapshot();
 
     await renderAppAtRoute('/rpg/log');
 
     expect(
-      await screen.findByRole('heading', {
-        name: 'No saved RPG activity in Journey Log',
-      }),
+      await screen.findByRole('heading', { name: 'Insights' }),
+    ).toBeInTheDocument();
+    // Wait for the ready state (the "Insights" heading also renders while
+    // loading); the card grid only appears once the read completes.
+    expect(
+      await screen.findByRole('heading', { name: 'Effort over time' }),
+    ).toBeInTheDocument();
+
+    for (const cardTitle of [
+      'Course progress',
+      'XP over time',
+      'Study mode breakdown',
+      'Active days',
+      'Recorded completion awards',
+      'Achievement timeline',
+    ]) {
+      expect(
+        screen.getByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+
+    // The empty state is the classic per-card copy, not a bespoke RPG empty
+    // panel and never a fake journey entry.
+    expect(
+      screen.getByText(
+        'No sessions or video logged yet. Weekly effort will appear here once you save some.',
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Save progress on a Study Resource or finish a Focus Session. Those saved local records will appear here without creating new activity on page load.',
+        'No achievements unlocked yet. Unlocks will appear here in the order you earned them.',
       ),
     ).toBeInTheDocument();
+
     expect(
       screen
         .getAllByRole('link', { name: 'Open Campaign Map' })
@@ -2833,7 +2858,6 @@ describe('RPG routes', () => {
           return link.getAttribute('href') === '/rpg/map';
         }),
     ).toBe(true);
-
     expect(
       screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
         return link.getAttribute('href') === '/rpg';
@@ -2842,74 +2866,46 @@ describe('RPG routes', () => {
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
-  it('renders Journey Log from real progress, study-session, and XP records without mutation', async () => {
-    await seedOnboardedLearnerWithJourneyLogActivity();
+  it('renders the Insights surface at /rpg/log from real local records without mutation', async () => {
+    await seedOnboardedLearnerWithInsightsActivity();
     const beforeSnapshot = await getDatabaseSnapshot();
 
     await renderAppAtRoute('/rpg/log');
 
     expect(
-      await screen.findByRole('heading', { name: 'Journey Log' }),
+      await screen.findByRole('heading', { name: 'Insights' }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText('Local activity totals'),
+      await screen.findByRole('heading', { name: 'Effort over time' }),
     ).toBeInTheDocument();
-    expect(await screen.findByText('Saved local activity')).toBeInTheDocument();
-    expect(screen.getByText('Finished sessions')).toBeInTheDocument();
-    expect(screen.getByText('Study time')).toBeInTheDocument();
-    expect(screen.getByText('XP transactions')).toBeInTheDocument();
-    expect(screen.getByText('Total XP')).toBeInTheDocument();
-    expect(screen.getByText('25 min')).toBeInTheDocument();
-    expect(screen.getByText('30')).toBeInTheDocument();
 
-    expect(screen.getAllByText('Progress saved').length).toBeGreaterThan(0);
+    for (const cardTitle of [
+      'Course progress',
+      'XP over time',
+      'Study mode breakdown',
+      'Active days',
+      'Recorded completion awards',
+      'Achievement timeline',
+    ]) {
+      expect(
+        screen.getByRole('heading', { name: cardTitle }),
+      ).toBeInTheDocument();
+    }
+
+    // Real saved records replace the per-card empty states with the classic
+    // derived metrics; this is the same insight truth as classic Insights.
     expect(
-      screen.getAllByText('Study session finished').length,
-    ).toBeGreaterThan(0);
-    expect(screen.getAllByText('XP awarded').length).toBeGreaterThan(0);
-    expect(
-      screen.getByText('Problem Set 4: Memory saved as Started'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('25 min watching')).toBeInTheDocument();
-    expect(
-      screen.getByText('20 XP - Started problem set: Problem Set 4: Memory'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        '10 XP - Logged 25+ minute study session for: Lecture 4: Memory',
+      screen.queryByText(
+        'No sessions or video logged yet. Weekly effort will appear here once you save some.',
       ),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     expect(
-      screen.getAllByText('Week 4: Memory - Lecture 4: Memory').length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText('Week 4: Memory - Problem Set 4: Memory').length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getByText('Journey Log progress fixture.'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Journey Log focus fixture.')).toBeInTheDocument();
+      screen.queryByText(
+        'No study sessions logged yet. Your effort by mode will appear here.',
+      ),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText('25 min').length).toBeGreaterThan(0);
 
-    expect(
-      screen.getAllByRole('link', { name: 'Open resource' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/resource/week-4-lecture';
-      }),
-    ).toBe(true);
-    expect(
-      screen.getAllByRole('link', { name: 'Open resource' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/resource/week-4-problem-set';
-      }),
-    ).toBe(true);
-    expect(
-      screen.getAllByRole('link', { name: 'Focus' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/focus?itemId=week-4-lecture';
-      }),
-    ).toBe(true);
-    expect(
-      screen.getAllByRole('link', { name: 'Open week' }).some((link) => {
-        return link.getAttribute('href') === '/rpg/week/week-4';
-      }),
-    ).toBe(true);
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 

@@ -18,7 +18,7 @@ const routeChecks = [
   { heading: 'No task selected', path: '/rpg/focus' },
   { heading: 'Hero Profile', path: '/rpg/hero' },
   { heading: 'Achievements', path: '/rpg/badges' },
-  { heading: 'Journey Log', path: '/rpg/log' },
+  { heading: 'Insights', path: '/rpg/log' },
   { heading: 'RPG Settings', path: '/rpg/settings' },
 ] as const;
 
