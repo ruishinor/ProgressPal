@@ -19,7 +19,7 @@ const routeChecks = [
   { heading: 'Hero Profile', path: '/rpg/hero' },
   { heading: 'Achievements', path: '/rpg/badges' },
   { heading: 'Insights', path: '/rpg/log' },
-  { heading: 'RPG Settings', path: '/rpg/settings' },
+  { heading: 'Settings', path: '/rpg/settings' },
 ] as const;
 
 const viewportChecks = [

@@ -150,12 +150,12 @@ only the component, so the boundary is preserved (verified by
   `npm run test -- tests/architecture/rpgFeature.test.ts tests/architecture/achievementsFeature.test.ts tests/features/insightsModel.test.ts tests/features/rpg/readModels.test.ts`
   (5 files, 111 tests, all passing alongside `App.test.tsx`).
 
-
 ## Manual QA
 
 No live browser/manual visual QA was performed in this phase.
 
 Code-supported checks covered:
+
 - `/insights` renders the shared Insights surface with the classic header and seven derived cards.
 - `/rpg/log` renders the same derived insight truth inside the RPG shell, under an "Insights" header.
 - The empty state uses the classic per-card copy, not a fake journey entry.

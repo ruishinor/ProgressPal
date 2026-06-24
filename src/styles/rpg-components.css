@@ -314,59 +314,6 @@
   min-width: 0;
 }
 
-.rpg-shell .rpg-settings__grid {
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.rpg-shell .rpg-settings__panel,
-.rpg-shell .rpg-settings__faq,
-.rpg-shell .rpg-settings__official-boundary {
-  align-content: start;
-}
-
-.rpg-shell .rpg-settings__list {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding-left: var(--space-5);
-}
-
-.rpg-shell .rpg-settings__copy {
-  margin: 0;
-}
-
-.rpg-shell .rpg-settings__control-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rpg-shell .rpg-settings__faq-list {
-  display: grid;
-  gap: var(--space-4);
-  margin: 0;
-}
-
-.rpg-shell .rpg-settings__faq-list div {
-  border-left: 2px solid var(--rpg-border);
-  display: grid;
-  gap: var(--space-1);
-  padding-left: var(--space-3);
-}
-
-.rpg-shell .rpg-settings__faq-list dt {
-  color: var(--rpg-text);
-  font-weight: 700;
-}
-
-.rpg-shell .rpg-settings__faq-list dd {
-  color: var(--rpg-text-muted);
-  margin: 0;
-}
-
 .rpg-shell .rpg-hub__grid {
   display: grid;
   gap: var(--space-4);
@@ -1136,8 +1083,7 @@
   .rpg-shell .rpg-hero__details,
   .rpg-shell .rpg-hero__details--compact,
   .rpg-shell .rpg-hero__identity-layout,
-  .rpg-shell .rpg-hero__activity-list li,
-  .rpg-shell .rpg-settings__grid {
+  .rpg-shell .rpg-hero__activity-list li {
     grid-template-columns: 1fr;
   }
 
