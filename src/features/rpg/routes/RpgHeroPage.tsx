@@ -255,7 +255,7 @@ export function RpgHeroPage() {
               Open Badge Gallery
             </RpgButton>
             <RpgButton href={rpgLogPath} size="sm" variant="quiet">
-              Open Journey Log
+              Open Insights
             </RpgButton>
           </div>
         </RpgPanel>

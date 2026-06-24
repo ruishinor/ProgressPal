@@ -197,39 +197,3 @@ export type RpgFocusSessionSummary = {
     'courseId' | 'id' | 'order' | 'required' | 'sourceYear' | 'title' | 'type'
   >[];
 };
-
-export type RpgJourneyLogActivityType = 'progress' | 'study_session' | 'xp';
-
-export type RpgJourneyLogActivityLink = {
-  href: string;
-  label: string;
-};
-
-export type RpgJourneyLogActivity = {
-  contextLabel: string | null;
-  date: string;
-  detail: string;
-  id: string;
-  itemId: string | null;
-  itemTitle: string | null;
-  links: RpgJourneyLogActivityLink[];
-  note: string | null;
-  timestamp: string;
-  title: string;
-  type: RpgJourneyLogActivityType;
-  typeLabel: string;
-  unitId: string | null;
-  unitTitle: string | null;
-};
-
-export type RpgJourneyLogSummary = {
-  activities: RpgJourneyLogActivity[];
-  totals: {
-    activityCount: number;
-    progressCount: number;
-    sessionCount: number;
-    totalMinutes: number;
-    totalXp: number;
-    xpTransactionCount: number;
-  };
-};
