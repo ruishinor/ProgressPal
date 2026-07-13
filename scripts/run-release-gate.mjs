@@ -61,7 +61,6 @@ async function run(executable, commandArgs, label, validate) {
     env: {
       ...process.env,
       CI: 'true',
-      FORCE_COLOR: '0',
       NO_COLOR: '1',
     },
     shell: false,
