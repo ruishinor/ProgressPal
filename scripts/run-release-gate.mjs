@@ -5,6 +5,8 @@ import { platform, release } from 'node:os';
 import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { diagnosticLines, sanitizeEnvironment } from './release-gate-utils.mjs';
+
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const ARTIFACT_ROOT = resolve(ROOT, 'artifacts', 'release-evidence');
 const npmCli = process.env.npm_execpath;
@@ -45,22 +47,9 @@ function cleanOutput(value) {
   return value.replaceAll('\u001b', '').trim();
 }
 
-function warningLines(stdout, stderr) {
-  return [
-    ...stderr.split(/\r?\n/).filter((line) => line.trim().length > 0),
-    ...stdout
-      .split(/\r?\n/)
-      .filter((line) => /^\s*(warning|warn)\b/i.test(line)),
-  ];
-}
-
 async function run(executable, commandArgs, label, validate) {
   const commandStartedAt = new Date();
-  const inheritedEnvironment = Object.fromEntries(
-    Object.entries(process.env).filter(
-      ([key]) => !['FORCE_COLOR', 'NO_COLOR'].includes(key.toUpperCase()),
-    ),
-  );
+  const inheritedEnvironment = sanitizeEnvironment(process.env);
   const child = spawn(executable, commandArgs, {
     cwd: ROOT,
     env: {
@@ -93,7 +82,7 @@ async function run(executable, commandArgs, label, validate) {
     });
   });
 
-  const warnings = warningLines(stdout, stderr);
+  const warnings = diagnosticLines(stdout, stderr);
   const record = {
     label,
     executable,
@@ -268,6 +257,11 @@ try {
       executable: 'git',
       args: ['-c', 'core.excludesFile=' + repositoryExclude, 'diff', '--check'],
       label: 'diff check',
+    },
+    {
+      executable: process.execPath,
+      args: ['--test', 'scripts/release-gate-utils.test.mjs'],
+      label: 'release gate unit tests',
     },
     {
       executable: process.execPath,
