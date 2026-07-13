@@ -56,13 +56,17 @@ function warningLines(stdout, stderr) {
 
 async function run(executable, commandArgs, label, validate) {
   const commandStartedAt = new Date();
+  const inheritedEnvironment = Object.fromEntries(
+    Object.entries(process.env).filter(
+      ([key]) => !['FORCE_COLOR', 'NO_COLOR'].includes(key.toUpperCase()),
+    ),
+  );
   const child = spawn(executable, commandArgs, {
     cwd: ROOT,
     env: {
-      ...process.env,
+      ...inheritedEnvironment,
       CI: 'true',
       NPM_CONFIG_UPDATE_NOTIFIER: 'false',
-      NO_COLOR: '1',
     },
     shell: false,
     windowsHide: true,
