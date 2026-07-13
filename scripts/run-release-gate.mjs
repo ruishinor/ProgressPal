@@ -61,6 +61,7 @@ async function run(executable, commandArgs, label, validate) {
     env: {
       ...process.env,
       CI: 'true',
+      NPM_CONFIG_UPDATE_NOTIFIER: 'false',
       NO_COLOR: '1',
     },
     shell: false,
