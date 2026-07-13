@@ -4,11 +4,11 @@
 
 ProgressPal is currently a local-first single-user project. Security review applies to the current active branch and the current release candidate.
 
-| Version / branch                   |                          Supported |
-| ---------------------------------- | ---------------------------------: |
-| `main` / stable v1                 |                                Yes |
-| `rpg/v2` during active development | Yes, for active development review |
-| old archived branches              |                                 No |
+| Version / branch                         |                          Supported |
+| ---------------------------------------- | ---------------------------------: |
+| `master` / current stable history        |                                Yes |
+| `cx/release-1.3.0-remediation` candidate | Yes, for active development review |
+| old archived branches                    |                                 No |
 
 ## Security model
 

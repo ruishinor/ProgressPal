@@ -16,6 +16,7 @@ import {
   StudySessionSchema,
   XpTransactionSchema,
 } from '@/lib/domain';
+import { singletonIds } from '@/lib/db/constants';
 import { formatZodIssues, getDuplicateValues } from '@/lib/validation';
 
 /**
@@ -121,6 +122,10 @@ export type ParseBackupOptions = {
   maxTextLength?: number;
 };
 
+export type ValidateBackupDataOptions = {
+  expectedSchemaVersion: number;
+};
+
 /**
  * Thrown for every rejected backup. `message` is safe to show to the learner;
  * `issues` carries optional schema detail for diagnostics.
@@ -162,6 +167,240 @@ function assertNoDuplicateIds(data: BackupData) {
       throw new BackupValidationError(
         `This backup contains duplicate ${key} IDs and cannot be imported.`,
         duplicates,
+      );
+    }
+  }
+}
+
+function assertNoDuplicateUniqueValues(
+  values: readonly string[],
+  label: string,
+) {
+  const duplicates = getDuplicateValues(values);
+
+  if (duplicates.length > 0) {
+    throw new BackupValidationError(
+      `This backup contains duplicate ${label} values and cannot be imported.`,
+      duplicates,
+    );
+  }
+}
+
+function assertRelationship(
+  condition: boolean,
+  issue: string,
+): asserts condition {
+  if (!condition) {
+    throw new BackupValidationError(
+      'This backup contains inconsistent related records and cannot be imported.',
+      [issue],
+    );
+  }
+}
+
+/**
+ * Validate invariants enforced by singleton lookups, explicit unique indexes,
+ * and repository read models. Pure and shared by file preview and direct
+ * restore callers so every rejection happens before destructive writes.
+ */
+export function assertBackupDataInvariants(
+  data: BackupData,
+  options: ValidateBackupDataOptions,
+) {
+  assertNoDuplicateIds(data);
+
+  if (data.appMeta !== null) {
+    if (data.appMeta.id !== singletonIds.appMeta) {
+      throw new BackupValidationError(
+        'This backup contains invalid app metadata and cannot be imported.',
+        [`Expected app metadata id "${singletonIds.appMeta}".`],
+      );
+    }
+
+    if (data.appMeta.schemaVersion !== options.expectedSchemaVersion) {
+      throw new BackupValidationError(
+        'This backup contains app metadata for a different data version.',
+        [
+          `Expected app metadata schema version ${options.expectedSchemaVersion}.`,
+        ],
+      );
+    }
+  }
+
+  if (
+    data.learnerProfile !== null &&
+    data.learnerProfile.id !== singletonIds.learnerProfile
+  ) {
+    throw new BackupValidationError(
+      'This backup contains an invalid learner profile and cannot be imported.',
+      [`Expected learner profile id "${singletonIds.learnerProfile}".`],
+    );
+  }
+
+  assertNoDuplicateUniqueValues(
+    data.progressEntries.map((entry) => entry.itemId),
+    'progress entry item IDs',
+  );
+  assertNoDuplicateUniqueValues(
+    data.achievementUnlocks.map((unlock) => unlock.achievementId),
+    'achievement unlock achievement IDs',
+  );
+  assertNoDuplicateUniqueValues(
+    data.resumePoints.map((resumePoint) => resumePoint.assetId),
+    'resume point asset IDs',
+  );
+
+  const unitsById = new Map(data.courseUnits.map((unit) => [unit.id, unit]));
+  const itemsById = new Map(data.courseItems.map((item) => [item.id, item]));
+  const assetsById = new Map(
+    data.contentAssets.map((asset) => [asset.id, asset]),
+  );
+  const slicesById = new Map(
+    data.contentSlices.map((slice) => [slice.id, slice]),
+  );
+  const eventsById = new Map(
+    data.mediaProgressEvents.map((event) => [event.id, event]),
+  );
+  const sessionsById = new Map(
+    data.studySessions.map((session) => [session.id, session]),
+  );
+
+  for (const item of data.courseItems) {
+    assertRelationship(
+      unitsById.has(item.unitId),
+      `Course item "${item.id}" references missing unit "${item.unitId}".`,
+    );
+  }
+
+  for (const entry of data.progressEntries) {
+    assertRelationship(
+      itemsById.has(entry.itemId),
+      `Progress entry "${entry.id}" references missing item "${entry.itemId}".`,
+    );
+  }
+
+  for (const asset of data.contentAssets) {
+    assertRelationship(
+      itemsById.has(asset.itemId),
+      `Content asset "${asset.id}" references missing item "${asset.itemId}".`,
+    );
+  }
+
+  for (const slice of data.contentSlices) {
+    const asset = assetsById.get(slice.assetId);
+
+    assertRelationship(
+      asset !== undefined,
+      `Content slice "${slice.id}" references missing asset "${slice.assetId}".`,
+    );
+    assertRelationship(
+      itemsById.has(slice.itemId),
+      `Content slice "${slice.id}" references missing item "${slice.itemId}".`,
+    );
+    assertRelationship(
+      asset.itemId === slice.itemId,
+      `Content slice "${slice.id}" does not belong to the asset's item.`,
+    );
+  }
+
+  for (const session of data.studySessions) {
+    const item = itemsById.get(session.itemId);
+
+    assertRelationship(
+      unitsById.has(session.unitId),
+      `Study session "${session.id}" references missing unit "${session.unitId}".`,
+    );
+    assertRelationship(
+      item !== undefined,
+      `Study session "${session.id}" references missing item "${session.itemId}".`,
+    );
+    assertRelationship(
+      item.unitId === session.unitId,
+      `Study session "${session.id}" does not use the item's unit.`,
+    );
+  }
+
+  for (const event of data.mediaProgressEvents) {
+    const asset = assetsById.get(event.assetId);
+
+    assertRelationship(
+      itemsById.has(event.itemId),
+      `Media progress event "${event.id}" references missing item "${event.itemId}".`,
+    );
+    assertRelationship(
+      asset !== undefined,
+      `Media progress event "${event.id}" references missing asset "${event.assetId}".`,
+    );
+    assertRelationship(
+      asset.itemId === event.itemId,
+      `Media progress event "${event.id}" does not belong to the asset's item.`,
+    );
+
+    if (event.sliceId !== undefined) {
+      const slice = slicesById.get(event.sliceId);
+
+      assertRelationship(
+        slice !== undefined,
+        `Media progress event "${event.id}" references missing slice "${event.sliceId}".`,
+      );
+      assertRelationship(
+        slice.assetId === event.assetId && slice.itemId === event.itemId,
+        `Media progress event "${event.id}" does not match its slice.`,
+      );
+    }
+
+    if (event.sessionId !== undefined) {
+      const session = sessionsById.get(event.sessionId);
+
+      // Early schema-v2 writers accepted an optional session id without
+      // enforcing that the session row still existed. Preserve those backups,
+      // but reject contradictory records when the referenced row is present.
+      if (session !== undefined) {
+        assertRelationship(
+          session.itemId === event.itemId,
+          `Media progress event "${event.id}" does not match its session.`,
+        );
+      }
+    }
+  }
+
+  for (const resumePoint of data.resumePoints) {
+    const asset = assetsById.get(resumePoint.assetId);
+    const event = eventsById.get(resumePoint.updatedFromEventId);
+
+    assertRelationship(
+      itemsById.has(resumePoint.itemId),
+      `Resume point "${resumePoint.id}" references missing item "${resumePoint.itemId}".`,
+    );
+    assertRelationship(
+      asset !== undefined,
+      `Resume point "${resumePoint.id}" references missing asset "${resumePoint.assetId}".`,
+    );
+    assertRelationship(
+      asset.itemId === resumePoint.itemId,
+      `Resume point "${resumePoint.id}" does not belong to the asset's item.`,
+    );
+    assertRelationship(
+      event !== undefined,
+      `Resume point "${resumePoint.id}" references missing event "${resumePoint.updatedFromEventId}".`,
+    );
+    assertRelationship(
+      event.assetId === resumePoint.assetId &&
+        event.itemId === resumePoint.itemId,
+      `Resume point "${resumePoint.id}" does not match its source event.`,
+    );
+
+    if (resumePoint.nextSliceId !== undefined) {
+      const slice = slicesById.get(resumePoint.nextSliceId);
+
+      assertRelationship(
+        slice !== undefined,
+        `Resume point "${resumePoint.id}" references missing slice "${resumePoint.nextSliceId}".`,
+      );
+      assertRelationship(
+        slice.assetId === resumePoint.assetId &&
+          slice.itemId === resumePoint.itemId,
+        `Resume point "${resumePoint.id}" does not match its next slice.`,
       );
     }
   }
@@ -225,7 +464,9 @@ export function parseBackupFile(
     );
   }
 
-  assertNoDuplicateIds(result.data.data);
+  assertBackupDataInvariants(result.data.data, {
+    expectedSchemaVersion: options.expectedSchemaVersion,
+  });
 
   return result.data;
 }

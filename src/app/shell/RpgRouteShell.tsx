@@ -1,10 +1,11 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
 
 export function RpgRouteShell() {
+  const location = useLocation();
   const { error, requiresOnboarding, status } = useAppState();
 
   if (status === 'loading') {
@@ -38,7 +39,15 @@ export function RpgRouteShell() {
   }
 
   if (requiresOnboarding) {
-    return <Navigate replace to="/onboarding" />;
+    return (
+      <Navigate
+        replace
+        state={{
+          returnTo: `${location.pathname}${location.search}${location.hash}`,
+        }}
+        to="/onboarding"
+      />
+    );
   }
 
   return <Outlet />;

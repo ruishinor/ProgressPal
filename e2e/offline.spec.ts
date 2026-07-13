@@ -168,6 +168,26 @@ test('cold-starts offline after one online production load', async ({
   await page.getByRole('link', { name: 'Insights' }).click();
   await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible();
 
+  // 6. Direct offline boots cover each routed RPG shell shape. Success-only
+  // content avoids false passes on the route loading headings.
+  await page.goto('/rpg');
+  await expect(
+    page.getByRole('link', { name: 'Open Campaign Map' }).first(),
+  ).toBeVisible({ timeout: 15000 });
+  await expect(page).toHaveURL(/\/rpg$/);
+
+  await page.goto('/rpg/resource/week-0-lecture');
+  await expect(
+    page.getByRole('heading', { name: 'Lecture 0: Scratch' }),
+  ).toBeVisible({ timeout: 15000 });
+  await expect(page).toHaveURL(/\/rpg\/resource\/week-0-lecture$/);
+
+  await page.goto('/rpg/focus?itemId=week-0-lecture');
+  await expect(
+    page.getByRole('heading', { name: 'Live focus session' }),
+  ).toBeVisible({ timeout: 15000 });
+  await expect(page).toHaveURL(/\/rpg\/focus\?itemId=week-0-lecture$/);
+
   await page.context().setOffline(false);
   expect(consoleIssues).toEqual([]);
 });
@@ -196,8 +216,10 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
     page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
   ).toBeVisible();
 
-  // Restore from the reachable onboarding recovery control.
+  // Restore from the reachable onboarding recovery control. The protected
+  // route intent survives the reset/onboarding round trip.
   await page.getByLabel('Backup file').setInputFiles(backupPath);
   await page.getByRole('button', { name: 'Restore this backup' }).click();
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(page).toHaveURL(/\/settings$/);
 });

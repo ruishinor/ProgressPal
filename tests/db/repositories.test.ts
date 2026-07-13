@@ -667,6 +667,58 @@ describe('database repositories', () => {
     });
   });
 
+  it('rejects new media events with missing or mismatched study sessions', async () => {
+    testDatabase = createTestDatabase('media-progress-session-reference');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-12T09:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+    await addStudySession(
+      {
+        id: 'final-project-session',
+        unitId: 'final-project',
+        itemId: 'final-project-plan',
+        startedAt: '2026-06-12T09:00:00.000Z',
+        endedAt: '2026-06-12T09:30:00.000Z',
+        durationMinutes: 30,
+        mode: 'final_project',
+      },
+      {
+        db: testDatabase.db,
+        now: createClock('2026-06-12T09:30:00.000Z'),
+      },
+    );
+    const input = {
+      assetId: 'week-0-lecture-asset',
+      endSecond: 300,
+      energyAfter: 3,
+      energyBefore: 3,
+      startSecond: 0,
+      stoppedBecause: 'reached_limit' as const,
+    };
+
+    await expect(
+      logMediaProgress(
+        { ...input, sessionId: 'missing-session' },
+        { db: testDatabase.db },
+      ),
+    ).rejects.toThrow(/was not found/i);
+    await expect(
+      logMediaProgress(
+        { ...input, sessionId: 'final-project-session' },
+        { db: testDatabase.db },
+      ),
+    ).rejects.toThrow(/does not belong/i);
+
+    expect(
+      await listMediaProgressEvents('week-0-lecture-asset', {
+        db: testDatabase.db,
+      }),
+    ).toEqual([]);
+  });
+
   it('marks the parent item complete when every generated slice is completed', async () => {
     testDatabase = createTestDatabase('media-progress-complete');
 
@@ -1476,11 +1528,17 @@ describe('backup, restore, and reset', () => {
     expect(dataStores(restored)).toEqual(dataStores(exported));
 
     // `backups` equals the backup's records plus exactly one import record.
-    expect(restored.backups).toHaveLength(exported.backups.length + 1);
-    const importRecords = restored.backups.filter(
-      (entry) => entry.type === 'import',
+    const exportedBackupIds = new Set(
+      exported.backups.map((entry) => entry.id),
     );
-    expect(importRecords).toHaveLength(1);
+    const appendedRecords = restored.backups.filter(
+      (entry) => !exportedBackupIds.has(entry.id),
+    );
+    expect(appendedRecords).toHaveLength(1);
+    expect(appendedRecords[0]).toMatchObject({
+      type: 'import',
+      fileName: 'progresspal-backup-2026-06-12.json',
+    });
 
     // Replace-all never duplicates XP, achievements, or sessions.
     expect(restored.xpTransactions).toHaveLength(
@@ -1494,6 +1552,28 @@ describe('backup, restore, and reset', () => {
     // A reload reads the same restored state from disk.
     const reread = await getDatabaseSnapshot({ db: testDatabase.db });
     expect(dataStores(reread)).toEqual(dataStores(exported));
+  });
+
+  it('re-bootstraps nullable singleton rows during restore', async () => {
+    sourceDatabase = createTestDatabase('backup-null-singleton-source');
+    await seedRealActivity(sourceDatabase);
+    const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+
+    testDatabase = createTestDatabase('backup-null-singleton-target');
+    const restored = await restoreDatabaseFromBackup(
+      { ...exported, appMeta: null, learnerProfile: null },
+      {
+        db: testDatabase.db,
+        seed: sampleCourseSeed,
+        fileName: 'progresspal-backup-null-singletons.json',
+        now: createClock('2026-06-16T12:30:00.000Z'),
+      },
+    );
+
+    expect(restored.appMeta?.id).toBe('app-meta');
+    expect(restored.learnerProfile?.id).toBe('learner-profile');
+    expect(restored.courseUnits).toEqual(exported.courseUnits);
+    expect(restored.courseItems).toEqual(exported.courseItems);
   });
 
   it('resets all data and re-bootstraps fresh defaults', async () => {
@@ -1529,6 +1609,121 @@ describe('backup, restore, and reset', () => {
     expect(after.courseItems.length).toBeGreaterThan(0);
   });
 
+  it('rolls back reset exactly when seed initialization fails after clear', async () => {
+    testDatabase = createTestDatabase('backup-reset-seed-failure');
+    await seedRealActivity(testDatabase);
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    await expect(
+      resetAllData({
+        db: testDatabase.db,
+        seed: { ...sampleCourseSeed, dataVersion: 0 } as never,
+        now: createClock('2026-06-16T13:30:00.000Z'),
+      }),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
+  });
+
+  it('rolls back restore exactly when base initialization fails after writes', async () => {
+    sourceDatabase = createTestDatabase('backup-init-failure-source');
+    await seedRealActivity(sourceDatabase);
+    const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+
+    testDatabase = createTestDatabase('backup-init-failure-target');
+    await initializeDatabase({
+      db: testDatabase.db,
+      seed: sampleCourseSeed,
+      now: createClock('2026-06-15T08:00:00.000Z'),
+    });
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    await expect(
+      restoreDatabaseFromBackup(
+        { ...exported, appMeta: null },
+        {
+          appVersion: '',
+          db: testDatabase.db,
+          seed: sampleCourseSeed,
+          fileName: 'progresspal-backup-init-failure.json',
+          now: createClock('2026-06-16T14:00:00.000Z'),
+        },
+      ),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
+  });
+
+  it('rolls back restore exactly when import audit validation fails', async () => {
+    sourceDatabase = createTestDatabase('backup-audit-failure-source');
+    await seedRealActivity(sourceDatabase);
+    const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+
+    testDatabase = createTestDatabase('backup-audit-failure-target');
+    await initializeDatabase({
+      db: testDatabase.db,
+      seed: sampleCourseSeed,
+      now: createClock('2026-06-15T08:00:00.000Z'),
+    });
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    await expect(
+      restoreDatabaseFromBackup(exported, {
+        db: testDatabase.db,
+        seed: sampleCourseSeed,
+        fileName: '',
+        now: createClock('2026-06-16T14:30:00.000Z'),
+      }),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
+  });
+
+  it('rolls back restore when seed reconciliation breaks a restored relationship', async () => {
+    sourceDatabase = createTestDatabase('backup-seed-relation-source');
+    await seedRealActivity(sourceDatabase);
+    const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+
+    testDatabase = createTestDatabase('backup-seed-relation-target');
+    await initializeDatabase({
+      db: testDatabase.db,
+      seed: sampleCourseSeed,
+      now: createClock('2026-06-15T08:00:00.000Z'),
+    });
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+    const movedItem = sampleCourseSeed.units[0]!.items[0]!;
+    const movedSeed = {
+      ...sampleCourseSeed,
+      dataVersion: 2,
+      units: sampleCourseSeed.units.map((unit) =>
+        unit.id === 'week-0'
+          ? {
+              ...unit,
+              items: unit.items.filter((item) => item.id !== movedItem.id),
+            }
+          : {
+              ...unit,
+              items: [...unit.items, { ...movedItem, order: 1 }],
+            },
+      ),
+    };
+
+    await expect(
+      restoreDatabaseFromBackup(exported, {
+        db: testDatabase.db,
+        seed: movedSeed,
+        fileName: 'progresspal-backup-moved-item.json',
+        now: createClock('2026-06-16T14:45:00.000Z'),
+      }),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
+  });
+
   it('writes nothing when a restore payload is invalid', async () => {
     testDatabase = createTestDatabase('backup-invalid');
     await seedRealActivity(testDatabase);
@@ -1538,6 +1733,29 @@ describe('backup, restore, and reset', () => {
       ...before,
       studySessions: [{ ...before.studySessions[0]!, mode: 'not-a-mode' }],
     } as unknown as DatabaseSnapshot;
+
+    await expect(
+      restoreDatabaseFromBackup(invalid, {
+        db: testDatabase.db,
+        seed: sampleCourseSeed,
+      }),
+    ).rejects.toThrow();
+
+    const after = await getDatabaseSnapshot({ db: testDatabase.db });
+    expect(after).toEqual(before);
+  });
+
+  it('writes nothing when a direct restore violates a relationship invariant', async () => {
+    testDatabase = createTestDatabase('backup-invalid-relationship');
+    await seedRealActivity(testDatabase);
+
+    const before = await getDatabaseSnapshot({ db: testDatabase.db });
+    const invalid: DatabaseSnapshot = {
+      ...before,
+      studySessions: [
+        { ...before.studySessions[0]!, itemId: 'missing-course-item' },
+      ],
+    };
 
     await expect(
       restoreDatabaseFromBackup(invalid, {

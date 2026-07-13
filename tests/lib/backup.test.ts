@@ -36,13 +36,104 @@ function makeValidData(): BackupData {
       preferredTheme: 'system',
       reducedMotion: false,
     },
-    courseUnits: [],
-    courseItems: [],
-    progressEntries: [],
-    contentAssets: [],
-    contentSlices: [],
-    mediaProgressEvents: [],
-    resumePoints: [],
+    courseUnits: [
+      {
+        id: 'unit-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        courseId: 'course-1',
+        title: 'Unit 1',
+        order: 0,
+        type: 'week',
+        sourceYear: 2026,
+        required: true,
+      },
+    ],
+    courseItems: [
+      {
+        id: 'item-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        unitId: 'unit-1',
+        type: 'lecture',
+        title: 'Item 1',
+        required: true,
+        estimatedMinutes: 20,
+        order: 0,
+      },
+    ],
+    progressEntries: [
+      {
+        id: 'progress-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        itemId: 'item-1',
+        status: 'started',
+        startedAt: '2026-06-16T10:00:00.000Z',
+        confidence: 3,
+      },
+    ],
+    contentAssets: [
+      {
+        id: 'asset-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        itemId: 'item-1',
+        assetType: 'video',
+        title: 'Item 1 video',
+        sourceLabel: 'Course video',
+        estimatedMinutes: 20,
+        durationSeconds: 1_200,
+        defaultSliceMinutes: 20,
+        order: 0,
+        required: true,
+      },
+    ],
+    contentSlices: [
+      {
+        id: 'slice-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        assetId: 'asset-1',
+        itemId: 'item-1',
+        order: 0,
+        label: 'Part 1',
+        startSecond: 0,
+        endSecond: 600,
+        plannedMinutes: 10,
+        status: 'active',
+      },
+    ],
+    mediaProgressEvents: [
+      {
+        id: 'event-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        itemId: 'item-1',
+        assetId: 'asset-1',
+        sliceId: 'slice-1',
+        sessionId: 'study-session-1',
+        startSecond: 0,
+        endSecond: 300,
+        watchedSeconds: 300,
+        completedSlice: false,
+        stoppedBecause: 'reached_limit',
+        energyBefore: 3,
+        energyAfter: 3,
+      },
+    ],
+    resumePoints: [
+      {
+        id: 'resume-1',
+        createdAt: '2026-06-16T10:00:00.000Z',
+        updatedAt: '2026-06-16T10:00:00.000Z',
+        itemId: 'item-1',
+        assetId: 'asset-1',
+        lastSecond: 300,
+        nextSliceId: 'slice-1',
+        updatedFromEventId: 'event-1',
+      },
+    ],
     studySessions: [
       {
         id: 'study-session-1',
@@ -97,6 +188,29 @@ function parse(envelope: unknown): BackupEnvelope {
   return parseBackupFile(JSON.stringify(envelope), { expectedSchemaVersion });
 }
 
+function addSecondItem(data: BackupData) {
+  data.courseItems.push({
+    ...data.courseItems[0]!,
+    id: 'item-2',
+    title: 'Item 2',
+    order: 1,
+  });
+}
+
+function addSecondAssetAndSlice(data: BackupData) {
+  data.contentAssets.push({
+    ...data.contentAssets[0]!,
+    id: 'asset-2',
+    title: 'Item 1 video 2',
+    order: 1,
+  });
+  data.contentSlices.push({
+    ...data.contentSlices[0]!,
+    id: 'slice-2',
+    assetId: 'asset-2',
+  });
+}
+
 describe('backup envelope', () => {
   it('builds an envelope with the expected format metadata', () => {
     const envelope = makeEnvelope();
@@ -125,6 +239,23 @@ describe('backup envelope', () => {
     expect(result.data.learnerProfile).toBeNull();
   });
 
+  it('accepts unlocks whose definitions are supplied by application code', () => {
+    const result = parse(makeEnvelope());
+
+    expect(result.data.achievementDefinitions).toEqual([]);
+    expect(result.data.achievementUnlocks).toHaveLength(1);
+  });
+
+  it('accepts a historical optional media session id whose row is absent', () => {
+    const data = makeValidData();
+    data.mediaProgressEvents[0] = {
+      ...data.mediaProgressEvents[0]!,
+      sessionId: 'historical-missing-session',
+    };
+
+    expect(() => parse(makeEnvelope(data))).not.toThrow();
+  });
+
   it('preserves a script-like note as an inert string', () => {
     const result = parse(makeEnvelope());
 
@@ -144,7 +275,7 @@ describe('summarizeBackup', () => {
     expect(summary.counts.studySessions).toBe(1);
     expect(summary.counts.xpTransactions).toBe(1);
     expect(summary.counts.achievementUnlocks).toBe(1);
-    expect(summary.counts.courseUnits).toBe(0);
+    expect(summary.counts.courseUnits).toBe(1);
   });
 
   it('reports a missing profile honestly', () => {
@@ -233,6 +364,284 @@ describe('parseBackupFile rejections', () => {
     expect(() => parse(makeEnvelope(data))).toThrow(/malformed/i);
   });
 
+  it.each<[string, (data: BackupData) => void]>([
+    [
+      'a non-canonical app metadata singleton ID',
+      (data: BackupData) => {
+        data.appMeta = { ...data.appMeta!, id: 'other-app-meta' };
+      },
+    ],
+    [
+      'a non-canonical learner profile singleton ID',
+      (data: BackupData) => {
+        data.learnerProfile = {
+          ...data.learnerProfile!,
+          id: 'other-learner-profile',
+        };
+      },
+    ],
+    [
+      'an app metadata schema version mismatch',
+      (data: BackupData) => {
+        data.appMeta = { ...data.appMeta!, schemaVersion: 3 };
+      },
+    ],
+    [
+      'duplicate progress entry item IDs',
+      (data: BackupData) => {
+        data.progressEntries.push({
+          ...data.progressEntries[0]!,
+          id: 'progress-2',
+        });
+      },
+    ],
+    [
+      'duplicate achievement unlock achievement IDs',
+      (data: BackupData) => {
+        data.achievementUnlocks.push({
+          ...data.achievementUnlocks[0]!,
+          id: 'unlock-first-session-2',
+        });
+      },
+    ],
+    [
+      'duplicate resume point asset IDs',
+      (data: BackupData) => {
+        data.resumePoints.push({
+          ...data.resumePoints[0]!,
+          id: 'resume-2',
+        });
+      },
+    ],
+    [
+      'a course item with a missing unit',
+      (data: BackupData) => {
+        data.courseItems[0] = {
+          ...data.courseItems[0]!,
+          unitId: 'missing-unit',
+        };
+      },
+    ],
+    [
+      'a progress entry with a missing item',
+      (data: BackupData) => {
+        data.progressEntries[0] = {
+          ...data.progressEntries[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      'a content asset with a missing item',
+      (data: BackupData) => {
+        data.contentAssets[0] = {
+          ...data.contentAssets[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      'a content slice with a missing asset',
+      (data: BackupData) => {
+        data.contentSlices[0] = {
+          ...data.contentSlices[0]!,
+          assetId: 'missing-asset',
+        };
+      },
+    ],
+    [
+      'a content slice with a missing item',
+      (data: BackupData) => {
+        data.contentSlices[0] = {
+          ...data.contentSlices[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      'a content slice whose item does not match its asset',
+      (data: BackupData) => {
+        addSecondItem(data);
+        data.contentSlices[0] = {
+          ...data.contentSlices[0]!,
+          itemId: 'item-2',
+        };
+      },
+    ],
+    [
+      'a study session with a missing unit',
+      (data: BackupData) => {
+        data.studySessions[0] = {
+          ...data.studySessions[0]!,
+          unitId: 'missing-unit',
+        };
+      },
+    ],
+    [
+      'a study session with a missing item',
+      (data: BackupData) => {
+        data.studySessions[0] = {
+          ...data.studySessions[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      "a study session whose unit does not match its item's unit",
+      (data: BackupData) => {
+        data.courseUnits.push({
+          ...data.courseUnits[0]!,
+          id: 'unit-2',
+          title: 'Unit 2',
+          order: 1,
+        });
+        data.studySessions[0] = {
+          ...data.studySessions[0]!,
+          unitId: 'unit-2',
+        };
+      },
+    ],
+    [
+      'a media event with a missing item',
+      (data: BackupData) => {
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      'a media event with a missing asset',
+      (data: BackupData) => {
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          assetId: 'missing-asset',
+        };
+      },
+    ],
+    [
+      "a media event whose item does not match its asset's item",
+      (data: BackupData) => {
+        addSecondItem(data);
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          itemId: 'item-2',
+        };
+      },
+    ],
+    [
+      'a media event with a missing slice',
+      (data: BackupData) => {
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          sliceId: 'missing-slice',
+        };
+      },
+    ],
+    [
+      'a media event whose slice does not match its asset',
+      (data: BackupData) => {
+        addSecondAssetAndSlice(data);
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          sliceId: 'slice-2',
+        };
+      },
+    ],
+    [
+      'a media event whose session does not match its item',
+      (data: BackupData) => {
+        addSecondItem(data);
+        data.studySessions.push({
+          ...data.studySessions[0]!,
+          id: 'study-session-2',
+          itemId: 'item-2',
+        });
+        data.mediaProgressEvents[0] = {
+          ...data.mediaProgressEvents[0]!,
+          sessionId: 'study-session-2',
+        };
+      },
+    ],
+    [
+      'a resume point with a missing item',
+      (data: BackupData) => {
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          itemId: 'missing-item',
+        };
+      },
+    ],
+    [
+      'a resume point with a missing asset',
+      (data: BackupData) => {
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          assetId: 'missing-asset',
+        };
+      },
+    ],
+    [
+      "a resume point whose item does not match its asset's item",
+      (data: BackupData) => {
+        addSecondItem(data);
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          itemId: 'item-2',
+        };
+      },
+    ],
+    [
+      'a resume point with a missing source event',
+      (data: BackupData) => {
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          updatedFromEventId: 'missing-event',
+        };
+      },
+    ],
+    [
+      'a resume point whose source event does not match its asset',
+      (data: BackupData) => {
+        addSecondAssetAndSlice(data);
+        data.mediaProgressEvents.push({
+          ...data.mediaProgressEvents[0]!,
+          id: 'event-2',
+          assetId: 'asset-2',
+          sliceId: 'slice-2',
+        });
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          updatedFromEventId: 'event-2',
+        };
+      },
+    ],
+    [
+      'a resume point with a missing next slice',
+      (data: BackupData) => {
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          nextSliceId: 'missing-slice',
+        };
+      },
+    ],
+    [
+      'a resume point whose next slice does not match its asset',
+      (data: BackupData) => {
+        addSecondAssetAndSlice(data);
+        data.resumePoints[0] = {
+          ...data.resumePoints[0]!,
+          nextSliceId: 'slice-2',
+        };
+      },
+    ],
+  ])('rejects %s', (_label, mutate) => {
+    const data = makeValidData();
+    mutate(data);
+
+    expect(() => parse(makeEnvelope(data))).toThrow(BackupValidationError);
+  });
+
   it('rejects duplicate IDs within a single store', () => {
     const data = makeValidData();
     const session = data.studySessions[0]!;
@@ -244,6 +653,10 @@ describe('parseBackupFile rejections', () => {
   it('allows the same ID to appear in two unrelated stores', () => {
     const data = makeValidData();
     data.studySessions[0] = { ...data.studySessions[0]!, id: 'shared-1' };
+    data.mediaProgressEvents[0] = {
+      ...data.mediaProgressEvents[0]!,
+      sessionId: 'shared-1',
+    };
     data.xpTransactions[0] = { ...data.xpTransactions[0]!, id: 'shared-1' };
 
     expect(() => parse(makeEnvelope(data))).not.toThrow();

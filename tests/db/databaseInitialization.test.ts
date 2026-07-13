@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  currentApplicationVersion,
   currentDatabaseSchemaVersion,
   getAppMeta,
   getProfile,
@@ -21,6 +22,10 @@ describe('database initialization', () => {
   afterEach(async () => {
     await testDatabase?.cleanup();
     testDatabase = null;
+  });
+
+  it('uses the selected executable release version', () => {
+    expect(currentApplicationVersion).toBe('1.3.0');
   });
 
   it('creates app metadata and a default learner profile in a fresh database', async () => {

@@ -1,3 +1,6 @@
+import { useOutletContext } from 'react-router-dom';
+
+import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { StudySessionsSurface } from '@/features/sessions';
 
 // /rpg/focus wraps the classic study-session/focus surface in the RPG shell.
@@ -5,5 +8,7 @@ import { StudySessionsSurface } from '@/features/sessions';
 // only the surrounding RPG header and shell styling differ. See the Phase 2C
 // wrapper contract: "color it and leave it".
 export function RpgFocusPage() {
-  return <StudySessionsSurface variant="rpg" />;
+  const { refreshHud } = useOutletContext<RpgShellOutletContext>();
+
+  return <StudySessionsSurface onProgressSaved={refreshHud} variant="rpg" />;
 }

@@ -8,12 +8,15 @@ import {
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildBackupEnvelope } from '@/lib/backup';
 import {
   addStudySessionAndAwardXp,
+  defaultLearnerProfileValues,
   getDatabaseSnapshot,
   initializeDatabase,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  resetAllData,
   saveLearnerProfile,
   upsertProgress,
   upsertProgressAndAwardXp,
@@ -96,9 +99,7 @@ describe('App', () => {
 
     await user.clear(displayName);
     await user.type(displayName, 'Casey');
-    await user.click(
-      screen.getByRole('button', { name: 'Save and open dashboard' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save and continue' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Dashboard' }),
@@ -107,6 +108,103 @@ describe('App', () => {
     const snapshot = await getDatabaseSnapshot();
 
     expect(snapshot.learnerProfile?.displayName).toBe('Casey');
+  });
+
+  it('returns a quick-start learner to the requested RPG deep link', async () => {
+    const user = userEvent.setup();
+
+    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#live-session');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Use default learner' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#live-session');
+  });
+
+  it('returns a customized learner to the requested classic deep link', async () => {
+    const user = userEvent.setup();
+
+    await renderAppAtRoute('/course/week-4-lecture?panel=notes#saved-note');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Customize first' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Save and continue' }));
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Week 4: Memory - Lecture 4: Memory',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/course/week-4-lecture?panel=notes#saved-note');
+  });
+
+  it('forwards an already-onboarded learner from onboarding to validated state', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/onboarding', {
+      returnTo: '/rpg/focus?itemId=week-4-lecture#resume',
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#resume');
+  });
+
+  it('returns an imported onboarded learner to the requested deep link', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+
+    const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
+      appVersion: '1.2.0',
+      exportedAt: '2026-07-12T10:00:00.000Z',
+      schemaVersion: 2,
+    });
+
+    await resetAllData({ seed: bundledCourseSeed });
+    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#imported-session');
+
+    await user.upload(
+      await screen.findByLabelText('Backup file'),
+      new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
+        type: 'application/json',
+      }),
+    );
+    await user.click(
+      await screen.findByRole('button', { name: 'Restore this backup' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#imported-session');
   });
 
   it('does not render forbidden learner-facing terms during onboarding', async () => {
@@ -2146,6 +2244,30 @@ describe('RPG routes', () => {
       status: 'started',
     });
     expect(savedProgress?.completedAt).toBeUndefined();
+    expect(afterSnapshot.progressEntries).toHaveLength(
+      beforeSnapshot.progressEntries.length + 1,
+    );
+    expect(afterSnapshot.xpTransactions).toHaveLength(
+      beforeSnapshot.xpTransactions.length + 1,
+    );
+
+    const totalXp = afterSnapshot.xpTransactions.reduce(
+      (total, transaction) => total + transaction.xp,
+      0,
+    );
+
+    await waitFor(() => {
+      const heroHud = within(
+        screen.getByRole('region', { name: 'Persistent hero HUD' }),
+      );
+
+      expect(
+        heroHud.getByText(new RegExp(`^${totalXp} XP total`)),
+      ).toBeInTheDocument();
+      expect(
+        heroHud.getByRole('link', { name: 'Continue quest' }),
+      ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+    });
   });
 
   it('does not force a partially logged RPG long-form resource to complete', async () => {
@@ -2183,17 +2305,80 @@ describe('RPG routes', () => {
       screen.getByRole('button', { name: 'Mark locally complete' }),
     );
 
-    expect(
-      await screen.findByText(
-        'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
-      ),
-    ).toBeInTheDocument();
+    const statusError = await screen.findByText(
+      'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
+    );
+    const statusControl = screen.getByLabelText('Progress');
+
+    expect(statusError).toHaveAttribute('id', 'rpg-resource-status-error');
+    expect(statusControl).toHaveAttribute('aria-invalid', 'true');
+    expect(statusControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-status-error',
+    );
+    expect(statusControl).toHaveAccessibleDescription(
+      statusError.textContent ?? '',
+    );
 
     const afterProgress = (await getDatabaseSnapshot()).progressEntries.find(
       (entry) => entry.itemId === 'week-0-lecture',
     );
 
     expect(afterProgress).toEqual(beforeProgress);
+  });
+
+  it('associates RPG submission and confidence errors with their controls', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+    await upsertProgress(
+      {
+        confidence: 3,
+        itemId: 'week-4-problem-set',
+        status: 'submitted',
+      },
+      { now: () => '2026-07-12T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'accepted' },
+    });
+
+    const evidenceControl = await screen.findByLabelText('Submission note');
+    const confidenceControl = screen.getByLabelText('Confidence');
+
+    fireEvent.change(confidenceControl, { target: { value: '' } });
+    await user.click(
+      screen.getByRole('button', { name: 'Save local progress' }),
+    );
+
+    const evidenceError = document.getElementById(
+      'rpg-resource-evidence-error',
+    );
+    const confidenceError = document.getElementById(
+      'rpg-resource-confidence-error',
+    );
+
+    expect(evidenceError).toBeInTheDocument();
+    expect(confidenceError).toBeInTheDocument();
+    expect(evidenceControl).toHaveAttribute('aria-invalid', 'true');
+    expect(evidenceControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-evidence-error',
+    );
+    expect(evidenceControl).toHaveAccessibleDescription(
+      evidenceError?.textContent ?? '',
+    );
+    expect(confidenceControl).toHaveAttribute('aria-invalid', 'true');
+    expect(confidenceControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-confidence-error',
+    );
+    expect(confidenceControl).toHaveAccessibleDescription(
+      confidenceError?.textContent ?? '',
+    );
   });
 
   it('marks an RPG resource locally complete only after explicit user action', async () => {
@@ -2262,13 +2447,15 @@ describe('RPG routes', () => {
     const itemSelectors = screen.getAllByLabelText('What were you working on?');
 
     expect(unitSelectors.length).toBeGreaterThan(0);
-    for (const unitSelector of unitSelectors) {
-      expect(unitSelector).toBeDisabled();
-      expect(unitSelector).toHaveValue('week-4');
-    }
-    for (const itemSelector of itemSelectors) {
-      expect(itemSelector).toHaveValue('week-4-lecture');
-    }
+    await waitFor(() => {
+      for (const unitSelector of unitSelectors) {
+        expect(unitSelector).toBeDisabled();
+        expect(unitSelector).toHaveValue('week-4');
+      }
+      for (const itemSelector of itemSelectors) {
+        expect(itemSelector).toHaveValue('week-4-lecture');
+      }
+    });
 
     expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
       'href',
@@ -2434,6 +2621,19 @@ describe('RPG routes', () => {
         sourceId: savedSessions[0]?.id,
         sourceType: 'study_session',
         xp: 10,
+      });
+
+      const totalXp = afterSnapshot.xpTransactions.reduce(
+        (total, transaction) => total + transaction.xp,
+        0,
+      );
+
+      await waitFor(() => {
+        expect(
+          within(
+            screen.getByRole('region', { name: 'Persistent hero HUD' }),
+          ).getByText(new RegExp(`^${totalXp} XP total`)),
+        ).toBeInTheDocument();
       });
     } finally {
       nowSpy.mockRestore();

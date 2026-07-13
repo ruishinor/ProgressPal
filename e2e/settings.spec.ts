@@ -113,8 +113,10 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   await page.getByLabel('Backup file').setInputFiles(backupPath);
   await page.getByRole('button', { name: 'Restore this backup' }).click();
 
-  // The restored backup completed onboarding, so the app forwards to dashboard.
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  // The restored backup completed onboarding, so the app returns to the
+  // protected route that initiated the reset/recovery round trip.
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(page).toHaveURL(/\/settings$/);
 
   const afterRestore = await readLedgerCounts(page);
   expect(afterRestore).toEqual(beforeExport);

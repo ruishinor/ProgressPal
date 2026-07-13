@@ -8,6 +8,7 @@ import { AppShell as AppShellLayout } from '@/components/layout/AppShell';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
+import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 
 export function AppShell() {
   const location = useLocation();
@@ -88,11 +89,16 @@ export function AppShell() {
   }
 
   if (requiresOnboarding && location.pathname !== onboardingPath) {
-    return <Navigate replace to={onboardingPath} />;
+    const returnTo =
+      location.pathname === '/'
+        ? '/dashboard'
+        : `${location.pathname}${location.search}${location.hash}`;
+
+    return <Navigate replace state={{ returnTo }} to={onboardingPath} />;
   }
 
   if (!requiresOnboarding && location.pathname === onboardingPath) {
-    return <Navigate replace to="/dashboard" />;
+    return <Navigate replace to={getOnboardingReturnPath(location.state)} />;
   }
 
   const navigationItems = requiresOnboarding

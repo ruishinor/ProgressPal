@@ -1679,3 +1679,26 @@ Notes:
 - `docs/rpg-v2/RISK_REGISTER.md` was inspected and not changed. No standing risk status changed; the discovered layout blocker was corrected inside RPG-15.
 - Release decision: pass after targeted checks, full E2E, and three consecutive local full `npm run validate` passes completed.
 - Scope discipline: see `docs/rpg-v2/modules/RPG-15-HANDOFF.md`.
+
+## v1.3 remediation foundation — 2026-07-13
+
+Branch: `cx/release-1.3.0-remediation`
+
+Baseline: `67ed6af836ec46f136bc5622aa68c8745c8bcf40`
+
+Current status: implementation in progress; no module or release certification claimed.
+
+Evidence:
+
+- Existing dirty stabilization work was preserved and inventoried in `docs/audits/progresspal-1.3.0-remediation-inventory.md`.
+- Historical tags `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` remain unchanged; the next candidate identity is `1.3.0`.
+- Default `npm test` timed out after 120 seconds before a test result and leaked 187 Codex-launched cmd/Node test trees. The leaked trees were contained without terminating direct Codex or unrelated user processes.
+- A single-worker targeted Vitest run passed 10/10 tests.
+- A single-worker full Vitest baseline passed 39/39 files and 367/367 tests.
+- The managed production Playwright baseline passed 31/31 cases.
+
+Interpretation:
+
+- Earlier three-pass results remain historical evidence for their exact prior byte state. They do not certify the current remediation state.
+- Process termination and cleanup are part of release correctness. The unconstrained Vitest command is not an acceptable gate even when assertions previously passed.
+- Final counted passes require Node 24/npm 11, repository LF policy, an immutable commit/tree/lockfile, `npm ci`, the canonical gate, and zero errors, warnings, flags, retries, or skips.

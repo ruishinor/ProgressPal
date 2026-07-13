@@ -490,3 +490,54 @@ test('the in-app reduce-motion setting neutralizes keyframe animations', async (
   expect(durations.bar).toBeLessThanOrEqual(1);
   expect(durations.line).toBeLessThanOrEqual(1);
 });
+
+test('the RPG resource form has a complete keyboard path and clean invalid state', async ({
+  page,
+}) => {
+  await completeOnboardingDark(page);
+  await page.goto('/rpg/resource/week-4-problem-set');
+  await expect(
+    page.getByRole('heading', { name: 'Problem Set 4: Memory' }),
+  ).toBeVisible();
+
+  const resourceFields = page.locator('label.rpg-study-resource__field');
+  const progress = resourceFields
+    .filter({ hasText: /^Progress/ })
+    .locator('select');
+  const note = resourceFields
+    .filter({ hasText: /^Add study note/ })
+    .locator('textarea');
+  const confidence = resourceFields
+    .filter({ hasText: /^Confidence/ })
+    .locator('select');
+
+  await progress.focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await expect(progress).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(note).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(confidence).toBeFocused();
+
+  await progress.selectOption('completed');
+  await page.getByRole('button', { name: 'Save local progress' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Progress saved' }),
+  ).toBeVisible();
+
+  await progress.selectOption('accepted');
+  const evidence = resourceFields
+    .filter({ hasText: /^Submission note/ })
+    .locator('textarea');
+  await expect(evidence).toBeVisible();
+  await page.getByRole('button', { name: 'Save local progress' }).click();
+  await expect(evidence).toHaveAttribute('aria-invalid', 'true');
+  await expect(evidence).toHaveAttribute(
+    'aria-describedby',
+    'rpg-resource-evidence-error',
+  );
+
+  const scan = await new AxeBuilder({ page }).analyze();
+  expect(scan.violations).toEqual([]);
+});

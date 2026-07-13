@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from 'react';
+import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
@@ -14,6 +14,10 @@ type RpgShellHudState = {
   error: string | null;
   status: RpgShellHudStatus;
   summary: RpgHubSummary | null;
+};
+
+export type RpgShellOutletContext = {
+  refreshHud: () => void;
 };
 
 const initialHudState: RpgShellHudState = {
@@ -147,6 +151,9 @@ export function RpgShell() {
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
   const location = useLocation();
+  const refreshHud = useCallback(() => {
+    setReloadToken((currentToken) => currentToken + 1);
+  }, []);
 
   // RPG-only shell hygiene: keep the dark RPG canvas applied to <body> for the
   // whole time an /rpg route is mounted so internal route transitions never
@@ -230,7 +237,7 @@ export function RpgShell() {
           state={hudState}
         />
         <main className="rpg-shell__main" id="rpg-main-content">
-          <Outlet />
+          <Outlet context={{ refreshHud } satisfies RpgShellOutletContext} />
         </main>
         <RpgBottomNav />
       </div>

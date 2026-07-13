@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useOutletContext, useParams } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -19,6 +19,7 @@ import {
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
 import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
+import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import type { ProgressStatus } from '@/lib/domain';
 import { getRpgFocusPath, getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
 
@@ -52,6 +53,12 @@ const confidenceOptions = [
   { label: '4', value: '4' },
   { label: '5 - High', value: '5' },
 ] as const;
+
+const resourceErrorIds = {
+  confidence: 'rpg-resource-confidence-error',
+  evidenceText: 'rpg-resource-evidence-error',
+  status: 'rpg-resource-status-error',
+} as const;
 
 const initialState: RpgResourcePageState = {
   error: null,
@@ -142,6 +149,7 @@ function RpgResourceLoadingState() {
 
 export function RpgResourcePage() {
   const { itemId } = useParams();
+  const { refreshHud } = useOutletContext<RpgShellOutletContext>();
   const [state, setState] = useState<RpgResourcePageState>(initialState);
   const [formState, setFormState] = useState<RpgResourceFormState | null>(null);
   const [saveResult, setSaveResult] = useState<RpgResourceSaveResult | null>(
@@ -309,6 +317,7 @@ export function RpgResourcePage() {
         startedAt: getDefaultStartedAt(summary, nextValues.status, timestamp),
         status: nextValues.status,
       });
+      refreshHud();
       const nextSummary = await loadRpgStudyResourceSummary(summary.itemId);
 
       if (nextSummary === null) {
@@ -505,6 +514,9 @@ export function RpgResourcePage() {
           <label className="rpg-study-resource__field">
             <span>Progress</span>
             <select
+              aria-describedby={
+                formState?.errors.status ? resourceErrorIds.status : undefined
+              }
               aria-invalid={formState?.errors.status ? true : undefined}
               onChange={(event) => {
                 setFormState((currentForm) =>
@@ -531,7 +543,11 @@ export function RpgResourcePage() {
             </select>
           </label>
           {formState?.errors.status ? (
-            <p className="rpg-study-resource__error" role="alert">
+            <p
+              className="rpg-study-resource__error"
+              id={resourceErrorIds.status}
+              role="alert"
+            >
               {formState.errors.status}
             </p>
           ) : null}
@@ -562,6 +578,11 @@ export function RpgResourcePage() {
             <label className="rpg-study-resource__field">
               <span>Submission note</span>
               <textarea
+                aria-describedby={
+                  formState?.errors.evidenceText
+                    ? resourceErrorIds.evidenceText
+                    : undefined
+                }
                 aria-invalid={formState?.errors.evidenceText ? true : undefined}
                 onChange={(event) => {
                   setFormState((currentForm) =>
@@ -584,7 +605,11 @@ export function RpgResourcePage() {
             </label>
           ) : null}
           {formState?.errors.evidenceText ? (
-            <p className="rpg-study-resource__error" role="alert">
+            <p
+              className="rpg-study-resource__error"
+              id={resourceErrorIds.evidenceText}
+              role="alert"
+            >
               {formState.errors.evidenceText}
             </p>
           ) : null}
@@ -592,6 +617,11 @@ export function RpgResourcePage() {
           <label className="rpg-study-resource__field rpg-study-resource__field--short">
             <span>Confidence</span>
             <select
+              aria-describedby={
+                formState?.errors.confidence
+                  ? resourceErrorIds.confidence
+                  : undefined
+              }
               aria-invalid={formState?.errors.confidence ? true : undefined}
               onChange={(event) => {
                 setFormState((currentForm) =>
@@ -618,7 +648,11 @@ export function RpgResourcePage() {
             </select>
           </label>
           {formState?.errors.confidence ? (
-            <p className="rpg-study-resource__error" role="alert">
+            <p
+              className="rpg-study-resource__error"
+              id={resourceErrorIds.confidence}
+              role="alert"
+            >
               {formState.errors.confidence}
             </p>
           ) : null}

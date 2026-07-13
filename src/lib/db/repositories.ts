@@ -33,6 +33,7 @@ import {
   type StudySession,
   type XpTransaction,
 } from '@/lib/domain';
+import { assertBackupDataInvariants } from '@/lib/backup';
 import {
   achievementDefinitions,
   deriveAchievementUnlockId,
@@ -1364,6 +1365,14 @@ export async function logMediaProgress(
     input.endSecond,
     'Media progress endSecond',
   );
+  const validatedSessionId =
+    input.sessionId === undefined
+      ? undefined
+      : parseWithSchema(
+          domainScalarSchemas.entityId,
+          input.sessionId,
+          'Study session id',
+        );
   const assetRecord = await database.contentAssets.get(validatedAssetId);
 
   if (assetRecord === undefined) {
@@ -1469,7 +1478,7 @@ export async function logMediaProgress(
       itemId: asset.itemId,
       assetId: asset.id,
       sliceId: eventSlice?.id,
-      sessionId: input.sessionId,
+      sessionId: validatedSessionId,
       startSecond: validatedStartSecond,
       endSecond: validatedEndSecond,
       watchedSeconds: validatedEndSecond - validatedStartSecond,
@@ -1537,11 +1546,37 @@ export async function logMediaProgress(
 
   await database.transaction(
     'rw',
-    database.contentSlices,
-    database.mediaProgressEvents,
-    database.progressEntries,
-    database.resumePoints,
+    [
+      database.contentSlices,
+      database.mediaProgressEvents,
+      database.progressEntries,
+      database.resumePoints,
+      database.studySessions,
+    ],
     async () => {
+      if (validatedSessionId !== undefined) {
+        const sessionRecord =
+          await database.studySessions.get(validatedSessionId);
+
+        if (sessionRecord === undefined) {
+          throw new SchemaValidationError('Media progress event', [
+            `root: study session "${validatedSessionId}" was not found.`,
+          ]);
+        }
+
+        const session = parseWithSchema(
+          StudySessionSchema,
+          sessionRecord,
+          `Study session "${validatedSessionId}"`,
+        );
+
+        if (session.itemId !== asset.itemId) {
+          throw new SchemaValidationError('Media progress event', [
+            'root: the study session does not belong to the targeted content item.',
+          ]);
+        }
+      }
+
       await database.mediaProgressEvents.add(mediaProgressEvent);
       await database.contentSlices.bulkPut(updatedSlices);
       await database.resumePoints.put(resumePoint);
@@ -2412,7 +2447,7 @@ function allDataTables(database: ProgressPalDatabase) {
  * restore path must never trust unvalidated structured input.
  */
 function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
-  return {
+  const restored = {
     appMeta:
       snapshot.appMeta === null
         ? null
@@ -2490,6 +2525,12 @@ function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
       BackupRecordSchema,
     ),
   };
+
+  assertBackupDataInvariants(restored, {
+    expectedSchemaVersion: currentDatabaseSchemaVersion,
+  });
+
+  return restored;
 }
 
 export type RecordBackupEventInput = {
@@ -2528,7 +2569,7 @@ export async function recordBackupEvent(
 
 /**
  * Destructively clear every store and re-bootstrap a fresh default profile and
- * seeded catalog. The clear is atomic; re-initialization runs afterward.
+ * seeded catalog. Clear and re-initialization share one atomic transaction.
  */
 export async function resetAllData(
   options: InitializeDatabaseOptions = {},
@@ -2536,11 +2577,11 @@ export async function resetAllData(
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = allDataTables(database);
 
-  await database.transaction('rw', tables, async () => {
+  return database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((table) => table.clear()));
-  });
 
-  return initializeDatabase({ ...options, db: database });
+    return initializeDatabase({ ...options, db: database });
+  });
 }
 
 export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
@@ -2549,9 +2590,9 @@ export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
 
 /**
  * Replace-all restore. Validates every row first, then in one atomic
- * transaction clears all stores and writes the validated backup rows. After the
- * transaction commits it reconciles the bundled seed catalog (idempotent on
- * already-current data) and appends exactly one `import` audit record. The
+ * transaction clears all stores, writes the validated rows, re-initializes,
+ * reconciles the bundled seed catalog (idempotent on already-current data),
+ * appends exactly one `import` audit record, and reads the final snapshot. The
  * `backups` store therefore equals the backup's `backups` plus that one record;
  * the other 13 stores match the backup exactly.
  */
@@ -2563,7 +2604,7 @@ export async function restoreDatabaseFromBackup(
   const restored = parseSnapshotForRestore(snapshot);
   const tables = allDataTables(database);
 
-  await database.transaction('rw', tables, async () => {
+  return database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((table) => table.clear()));
 
     if (restored.appMeta !== null) {
@@ -2588,14 +2629,22 @@ export async function restoreDatabaseFromBackup(
       database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
       database.backups.bulkAdd(restored.backups),
     ]);
+
+    await initializeDatabase({ ...options, db: database });
+
+    await recordBackupEvent(
+      { type: 'import', fileName: options.fileName ?? 'imported-backup.json' },
+      { db: database, now: options.now },
+    );
+
+    const finalSnapshot = await getDatabaseSnapshot({ db: database });
+
+    // Seed reconciliation can update catalog ownership after the preflight
+    // check. Re-validate the committed shape while rollback is still possible.
+    assertBackupDataInvariants(finalSnapshot, {
+      expectedSchemaVersion: currentDatabaseSchemaVersion,
+    });
+
+    return finalSnapshot;
   });
-
-  await initializeDatabase({ ...options, db: database });
-
-  await recordBackupEvent(
-    { type: 'import', fileName: options.fileName ?? 'imported-backup.json' },
-    { db: database, now: options.now },
-  );
-
-  return getDatabaseSnapshot({ db: database });
 }

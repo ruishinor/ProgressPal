@@ -2,6 +2,7 @@ export {
   BackupDataSchema,
   BackupEnvelopeSchema,
   BackupValidationError,
+  assertBackupDataInvariants,
   backupFileName,
   backupFormatIdentifier,
   buildBackupEnvelope,
@@ -16,4 +17,5 @@ export {
   type BackupSummary,
   type BuildBackupEnvelopeMeta,
   type ParseBackupOptions,
+  type ValidateBackupDataOptions,
 } from './envelope';

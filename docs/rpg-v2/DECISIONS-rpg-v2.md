@@ -2,7 +2,7 @@
 
 Status: active RPG v2 decision log  
 Created: 2026-06-20  
-Updated: 2026-06-24
+Updated: 2026-07-13
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/DECISIONS-rpg-v2.md`  
 Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived
@@ -85,36 +85,39 @@ revisit-later = future possibility; not allowed in v2 unless accepted later
 
 ## 2. Decision index
 
-| ID     | Status   | Decision                                                                                                                          |
-| ------ | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| D-0044 | accepted | RPG v2 is a route-based RPG shell over the frozen v1 engine, not a rewrite.                                                       |
-| D-0045 | accepted | RPG v2 uses same-origin `/rpg/*` routes and the same IndexedDB as v1.                                                             |
-| D-0046 | accepted | RPG mechanics must be honest derived presentation over real local data only.                                                      |
-| D-0047 | accepted | Embedded video is out of scope for v2. Use official outbound links only.                                                          |
-| D-0048 | accepted | Use proportionate CS50/Harvard branding restraint. No affiliation claim or protected marks.                                       |
-| D-0049 | accepted | Skin preference is route-scoped for v2; no persistent skin preference unless existing metadata supports it without schema change. |
-| D-0050 | accepted | Classic routes require behavioral and visual regression protection, not byte-for-byte identity.                                   |
-| D-0051 | accepted | Every RPG visual asset must pass the asset provenance gate before entering the repo.                                              |
-| D-0052 | accepted | CS50 links are limited to existing allowlisted official outbound links unless reviewed.                                           |
-| D-0053 | accepted | Every RPG term must map to a plain product term.                                                                                  |
-| D-0054 | accepted | RPG v2 is not a permanent dual-skin architecture; it is a parallel `/rpg/*` route tree during v2 development.                     |
-| D-0055 | accepted | Rank is a non-persisted derived label from local required-course progress.                                                        |
-| D-0056 | accepted | Class/path is deferred beyond CS50x; v2 uses CS Foundations / Generalist derived from the active course.                          |
-| D-0057 | accepted | Default guild identity is Code Knights, not CS50 Knights.                                                                         |
-| D-0058 | accepted | v2 is Level 1 local-first: outbound official links only; no runtime network features.                                             |
-| D-0059 | accepted | Anti-overbuild and scope-discipline gate applies to every module, output, and handoff.                                            |
-| D-0060 | accepted | Root `DECISIONS.md` is not an active RPG v2 authority if intentionally deleted; use this file instead.                            |
-| D-0061 | accepted | RPG-01 must build only minimum slice adapters/read models; broad read-model scaffolding is deferred.                              |
-| D-0062 | accepted | The first Week-4 vertical slice integration gate happens early, before profile/badges/log expansion.                              |
-| D-0063 | accepted | Durable handoff evidence must be stored in `docs/rpg-v2/modules/`, not only chat.                                                 |
-| D-0064 | accepted | IndexedDB snapshot/backup evidence is required before and during read-only route validation.                                      |
-| D-0065 | accepted | `npm audit` network limitations must be recorded honestly; unavailable audit is not a clean pass.                                 |
-| D-0066 | accepted | Early real image assets are forbidden unless the current module requires them and the asset ledger is completed first.            |
-| D-0067 | accepted | Validation cadence is proportional to gate type; three full passes are not the default for normal modules.                        |
-| D-0068 | accepted | Agent work mode must be explicit: acceptance audit, corrective patch, or next-module implementation.                              |
-| D-0069 | accepted | Formal BMAD governance is opt-in; adversarial review thinking must not be represented as completed BMAD workflow.                 |
-| D-0070 | accepted | Module completion requires source reconciliation, warning classification, committed evidence, and clean final state.              |
-| D-0071 | accepted | Current app is v1.2 local-first tracker proof, not completed RPG v2.                                                              |
+| ID     | Status     | Decision                                                                                                                          |
+| ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| D-0044 | accepted   | RPG v2 is a route-based RPG shell over the frozen v1 engine, not a rewrite.                                                       |
+| D-0045 | accepted   | RPG v2 uses same-origin `/rpg/*` routes and the same IndexedDB as v1.                                                             |
+| D-0046 | accepted   | RPG mechanics must be honest derived presentation over real local data only.                                                      |
+| D-0047 | accepted   | Embedded video is out of scope for v2. Use official outbound links only.                                                          |
+| D-0048 | accepted   | Use proportionate CS50/Harvard branding restraint. No affiliation claim or protected marks.                                       |
+| D-0049 | accepted   | Skin preference is route-scoped for v2; no persistent skin preference unless existing metadata supports it without schema change. |
+| D-0050 | accepted   | Classic routes require behavioral and visual regression protection, not byte-for-byte identity.                                   |
+| D-0051 | accepted   | Every RPG visual asset must pass the asset provenance gate before entering the repo.                                              |
+| D-0052 | accepted   | CS50 links are limited to existing allowlisted official outbound links unless reviewed.                                           |
+| D-0053 | accepted   | Every RPG term must map to a plain product term.                                                                                  |
+| D-0054 | accepted   | RPG v2 is not a permanent dual-skin architecture; it is a parallel `/rpg/*` route tree during v2 development.                     |
+| D-0055 | accepted   | Rank is a non-persisted derived label from local required-course progress.                                                        |
+| D-0056 | accepted   | Class/path is deferred beyond CS50x; v2 uses CS Foundations / Generalist derived from the active course.                          |
+| D-0057 | accepted   | Default guild identity is Code Knights, not CS50 Knights.                                                                         |
+| D-0058 | accepted   | v2 is Level 1 local-first: outbound official links only; no runtime network features.                                             |
+| D-0059 | accepted   | Anti-overbuild and scope-discipline gate applies to every module, output, and handoff.                                            |
+| D-0060 | accepted   | Root `DECISIONS.md` is not an active RPG v2 authority if intentionally deleted; use this file instead.                            |
+| D-0061 | accepted   | RPG-01 must build only minimum slice adapters/read models; broad read-model scaffolding is deferred.                              |
+| D-0062 | accepted   | The first Week-4 vertical slice integration gate happens early, before profile/badges/log expansion.                              |
+| D-0063 | accepted   | Durable handoff evidence must be stored in `docs/rpg-v2/modules/`, not only chat.                                                 |
+| D-0064 | accepted   | IndexedDB snapshot/backup evidence is required before and during read-only route validation.                                      |
+| D-0065 | accepted   | `npm audit` network limitations must be recorded honestly; unavailable audit is not a clean pass.                                 |
+| D-0066 | accepted   | Early real image assets are forbidden unless the current module requires them and the asset ledger is completed first.            |
+| D-0067 | superseded | Validation cadence was proportional to gate type; D-0073 replaces it for the v1.3 remediation.                                    |
+| D-0068 | accepted   | Agent work mode must be explicit: acceptance audit, corrective patch, or next-module implementation.                              |
+| D-0069 | accepted   | Formal BMAD governance is opt-in; adversarial review thinking must not be represented as completed BMAD workflow.                 |
+| D-0070 | accepted   | Module completion requires source reconciliation, warning classification, committed evidence, and clean final state.              |
+| D-0071 | accepted   | Current app is v1.2 local-first tracker proof, not completed RPG v2.                                                              |
+| D-0072 | accepted   | The post-v1.2.1 backward-compatible release candidate is v1.3.0; historical tags remain immutable.                                |
+| D-0073 | accepted   | Every v1.3 remediation stage requires three consecutive clean targeted and universal passes before acceptance.                    |
+| D-0074 | accepted   | Classic remains the control/default until comparative task evidence supports RPG promotion.                                       |
 
 ---
 
@@ -1044,7 +1047,7 @@ Asset dumps are a major overbuild and bundle-size risk.
 ## D-0067 — Proportional validation cadence
 
 - Date: 2026-06-21
-- Status: accepted
+- Status: superseded by D-0073 for the v1.3 remediation
 
 ### Decision
 
@@ -1080,6 +1083,8 @@ Overusing three full validation passes for every normal module wastes time and c
 - Corrective patches need targeted evidence for the corrected acceptance gap plus one clean full validation.
 - Extra passes are reserved for baseline, integration, release, flaky behavior, or environment-sensitive failures.
 - Handoffs must record which validation cadence was used and why.
+
+This historical cadence remains descriptive for completed RPG modules. It is not the acceptance rule for the v1.3 remediation.
 
 ---
 
@@ -1231,3 +1236,40 @@ The current app must not be described as completed RPG v2. It is the polished lo
 - No backend, auth, cloud sync, analytics, AI APIs, telemetry, schema change, or new engine work is introduced by this freeze.
 - Visual assets remain incomplete; limited/manual avatar use is the honest current state.
 - Current post-2G next step is release-candidate validation, not a broad new shell-transformation feature phase.
+
+---
+
+## D-0072 — v1.3.0 is the next release candidate
+
+- Date: 2026-07-13
+- Status: accepted
+
+### Decision
+
+The backward-compatible user-visible work after the immutable `v1.2.1-local-first-proof` tag is certified as a new `1.3.0` candidate. Historical `v1.2.0` and `v1.2.1` tags are never moved, even though both contain package version `0.1.0`.
+
+Backup compatibility remains envelope 1/schema 2. `appVersion` is provenance metadata and historical `0.1.0` backups remain supported.
+
+---
+
+## D-0073 — Three consecutive passes govern v1.3 remediation
+
+- Date: 2026-07-13
+- Status: accepted
+
+### Decision
+
+Each remediation stage requires three consecutive 100% successful targeted and universal validation passes from the same immutable file state. Any error, warning, flag, retry, skip, flaky result, non-terminating process, cleanup failure, or file change resets the count.
+
+The canonical gate must cover unit, integration, security, UI, accessibility/UX checks that are automatable, E2E flows, dependency integrity, build output, and source cleanliness. Manual and real-user evidence cannot be replaced by automated tests and remains separately required where the story names it.
+
+---
+
+## D-0074 — Classic is the product control
+
+- Date: 2026-07-13
+- Status: accepted
+
+### Decision
+
+Classic remains the default/control until the comparative classic/RPG/task-first/spreadsheet study meets the hard thresholds in the remediation story. RPG may become default, remain optional, or be retired; implementation preference is not evidence.

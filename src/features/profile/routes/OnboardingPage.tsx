@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -16,18 +16,22 @@ import {
   defaultLearnerProfileValues,
   restoreDatabaseFromBackup,
 } from '@/lib/db';
+import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { bundledCourseSeed } from '@/seed';
 
 type OnboardingMode = 'quick' | 'customize';
 
 export function OnboardingPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { profile, refresh, saveProfile } = useAppState();
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
+  const [quickStartError, setQuickStartError] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState(false);
   const customizeTitleRef = useRef<HTMLHeadingElement>(null);
+  const returnTo = getOnboardingReturnPath(location.state);
 
   useEffect(() => {
     if (mode === 'customize') {
@@ -41,6 +45,7 @@ export function OnboardingPage() {
 
   async function handleUseDefaultLearner() {
     setStartingDefault(true);
+    setQuickStartError(false);
 
     try {
       // Reuse the canonical defaults and the existing onboarding-completion
@@ -53,8 +58,9 @@ export function OnboardingPage() {
         },
         { completeOnboarding: true },
       );
-      navigate('/dashboard', { replace: true });
+      navigate(returnTo, { replace: true });
     } catch {
+      setQuickStartError(true);
       setStartingDefault(false);
     }
   }
@@ -115,6 +121,11 @@ export function OnboardingPage() {
                 Customize first
               </Button>
             </div>
+            {quickStartError ? (
+              <p className="form-field__error" role="alert">
+                The default learner could not be saved locally. Try again.
+              </p>
+            ) : null}
           </div>
         </Card>
       ) : (
@@ -136,10 +147,10 @@ export function OnboardingPage() {
             mode="onboarding"
             onSubmit={async (input) => {
               await saveProfile(input, { completeOnboarding: true });
-              navigate('/dashboard', { replace: true });
+              navigate(returnTo, { replace: true });
             }}
             profile={profile}
-            submitLabel="Save and open dashboard"
+            submitLabel="Save and continue"
           />
         </div>
       )}

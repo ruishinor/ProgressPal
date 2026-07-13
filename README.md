@@ -2,11 +2,11 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The current release classification is **ProgressPal CS50 Edition v1.2**: a polished local-first CS50 tracker proof with gamified elements for course progress, study sessions, XP, achievements, insights, backup, import, reset, and limited/manual avatar use.
+The current candidate is **ProgressPal CS50 Edition v1.3.0**: a local-first CS50 tracker proof undergoing release-wide remediation for reproducibility, recovery, offline upgrades, accessibility, and evidence-backed product direction.
 
 This current build is **not** the fully realized RPG v2 shell. ProgressPal RPG v2 remains the intended future character-led CS50 campaign shell powered by the same local-first engine.
 
-After the post-freeze RPG Shell Phase 2C-2G remediation, Focus, Achievements, Insights, Settings, and stale Journey Log cleanup are merged into master. The next RPG step is release-candidate validation against the current post-2G state, not a broad new feature phase. It must not rewrite the engine, add a backend, add accounts, add analytics, change the database schema, or weaken the local-first trust boundary.
+After the post-freeze RPG Shell Phase 2C-2G remediation, Focus, Achievements, Insights, Settings, and stale Journey Log cleanup are merged into `master`. The existing `v1.2.0` and `v1.2.1` tags are historical and will not be moved. The `v1.3.0` candidate is not production-certified until the tracked remediation story and release evidence pass.
 
 ## Current product position
 
@@ -35,13 +35,13 @@ ProgressPal is not:
 Current release classification:
 
 ```text
-ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+ProgressPal CS50 Edition v1.3.0 - local-first CS50 tracker proof candidate
 ```
 
 Recommended release tag:
 
 ```text
-v1.2.0-local-first-proof
+v1.3.0-local-first-proof
 ```
 
 Strategic planning/reference document:
@@ -53,7 +53,7 @@ docs/ProgressPal CS50 RPG v2 - 26-06-23.md
 Release note:
 
 ```text
-docs/releases/v1.2.0-local-first-proof.md
+docs/releases/v1.3.0-local-first-proof.md
 ```
 
 ## RPG v2 source of truth
@@ -72,7 +72,7 @@ docs/rpg-v2/VISUAL_TARGET.md
 docs/rpg-v2/RESTART_PROMPT.md
 ```
 
-The June 23 planning document reclassifies the current app as the v1.2 local-first tracker proof. Older RPG v2 docs remain useful implementation history, but the current build should not be described as completed RPG v2.
+The June 23 planning document and v1.2 release note are historical freeze records. Current implementation authority is the v1.3 remediation story and its accepted decisions. The current build must still not be described as completed RPG v2.
 
 Older root-level planning files may describe the completed v1 engine phase and may be archived under:
 
@@ -114,10 +114,10 @@ CS50x and related course materials are created and maintained by their respectiv
 
 ## Development
 
-Install dependencies:
+Use Node 24 LTS and npm 11. Install the exact locked dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 Run the development server:
@@ -143,7 +143,7 @@ If the repo has a combined script such as `npm run validate`, use it only if it 
 
 ## RPG shell transformation rule
 
-Do not start broad RPG shell transformation work from more tracker panels. The current post-2G state needs release-candidate validation first.
+Do not start broad RPG shell transformation work from more tracker panels. The current post-2G release candidate must retain complete, reproducible validation evidence.
 
 Only after post-2G validation is recorded should any future feature plan reconsider:
 

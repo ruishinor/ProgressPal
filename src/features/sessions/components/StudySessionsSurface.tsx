@@ -57,6 +57,7 @@ import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
 type StudySessionsSurfaceProps = {
+  onProgressSaved?: () => void;
   variant?: StudySessionsSurfaceVariant;
 };
 
@@ -154,6 +155,7 @@ function getNextItemId(
 }
 
 export function StudySessionsSurface({
+  onProgressSaved,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
   const isRpgVariant = variant === 'rpg';
@@ -411,6 +413,7 @@ export function StudySessionsSurface({
         title: 'Session saved',
         tone: 'success',
       });
+      onProgressSaved?.();
       resetPageStateAfterSave();
     } catch (saveError) {
       setManualErrors({
@@ -450,6 +453,7 @@ export function StudySessionsSurface({
         title: 'Session saved',
         tone: 'success',
       });
+      onProgressSaved?.();
       resetPageStateAfterSave();
     } catch (saveError) {
       setLiveErrors({
