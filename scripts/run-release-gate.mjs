@@ -229,11 +229,6 @@ try {
       }
     },
   );
-  manifest.browserVersion = await run(
-    process.execPath,
-    ['./node_modules/@playwright/test/cli.js', '--version'],
-    'Playwright version',
-  );
   manifest.commitSha = await run('git', ['rev-parse', 'HEAD'], 'commit SHA');
   manifest.treeSha = await run('git', ['rev-parse', 'HEAD^{tree}'], 'tree SHA');
 
@@ -257,6 +252,19 @@ try {
       executable: 'git',
       args: ['-c', 'core.excludesFile=' + repositoryExclude, 'diff', '--check'],
       label: 'diff check',
+    },
+    {
+      executable: process.execPath,
+      args: npmArgs(['ci']),
+      label: 'clean dependency install',
+    },
+    {
+      executable: process.execPath,
+      args: ['./node_modules/@playwright/test/cli.js', '--version'],
+      label: 'Playwright version',
+      validate: (record) => {
+        manifest.browserVersion = record.stdout;
+      },
     },
     {
       executable: process.execPath,

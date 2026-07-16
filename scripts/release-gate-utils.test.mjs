@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { diagnosticLines, sanitizeEnvironment } from './release-gate-utils.mjs';
@@ -34,4 +35,19 @@ test('sanitizeEnvironment removes conflicting color controls case-insensitively'
     }),
     { CI: 'true', PATH: 'example' },
   );
+});
+
+test('release gate records a locked clean install before probing Playwright', async () => {
+  const source = await readFile(
+    new URL('./run-release-gate.mjs', import.meta.url),
+    'utf8',
+  );
+  const cleanInstallIndex = source.indexOf("npmArgs(['ci'])");
+  const playwrightProbeIndex = source.indexOf(
+    "['./node_modules/@playwright/test/cli.js', '--version']",
+  );
+
+  assert.notEqual(cleanInstallIndex, -1);
+  assert.notEqual(playwrightProbeIndex, -1);
+  assert.ok(cleanInstallIndex < playwrightProbeIndex);
 });
