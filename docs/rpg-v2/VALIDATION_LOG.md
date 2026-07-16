@@ -1711,3 +1711,15 @@ Interpretation:
 - Each pass included 3 release-runner tests, 367 application unit/integration tests, 31 managed-browser flows, lint, format, typecheck, production build, circular-dependency analysis, dependency audit, and clean-tree checks.
 - Evidence manifests: `2026-07-13T22-03-34-126Z-foundation-pass-1.json`, `2026-07-13T22-06-23-088Z-foundation-pass-2.json`, and `2026-07-13T22-09-11-467Z-foundation-pass-3.json` under the ignored local `artifacts/release-evidence/` directory.
 - Scope limitation: these are local certification passes. GitHub-hosted CI and production deployment evidence are not yet proven.
+
+## Module 3 accepted — 2026-07-16
+
+- Accepted commit: `4f541de930d0a2bef5e260cd86177714e53f2d41`.
+- Accepted tree: `3369e6ea7f1e0f5d1645a96f4b1971472d7e8405`.
+- Implemented envelope-1/schema-2 backup compatibility fixtures and a compatibility matrix, hostile-input and atomic-rollback coverage, browser persistence status/request UX, schema-free cross-tab revision coordination, stale-write prevention, destructive-action blocking, and production bundle budgets.
+- The historical `v1.2.0` fixture is explicitly a deterministic reconstruction of the immutable tagged contract; it is not claimed to be an archived user-generated export.
+- Initial gates on implementation commit `6f141f4f798707af1f400847fba3799479d9507e` passed technically but did not record the story-required clean install. Retrospective review rejected those runs for acceptance and corrected the gate.
+- Restarted clean-install evidence manifests: `2026-07-16T17-54-09-259Z-storage-durability-clean-install-pass-1.json`, `2026-07-16T18-00-41-042Z-storage-durability-clean-install-pass-2.json`, and `2026-07-16T18-06-47-962Z-storage-durability-clean-install-pass-3.json` under ignored local `artifacts/release-evidence/`.
+- Each accepted pass recorded one `npm ci`, 20/20 successful gate commands, 4 release-runner tests, 379 application unit/integration tests, 32 managed Chromium/offline flows, lint, format, typecheck, production build, bundle-budget enforcement, circular-dependency analysis, dependency audit, and initial/final clean-tree checks.
+- All three accepted passes used the same commit/tree and recorded zero warnings, retries, skips, failed commands, dependency vulnerabilities, or bundle-budget violations.
+- Scope limitation: Module 3 is locally accepted. GitHub-hosted execution, Firefox/WebKit coverage, hosted preview, real-device/assistive-technology evidence, and production promotion remain later modules and are not implied by this result.

@@ -56,11 +56,11 @@ so that a learner can use the tool without false release, durability, accessibil
   - [x] Add a single release-gate runner and evidence manifest with commit/tree/lock/runtime/browser/command/result/artifact fields.
   - [x] Retain Playwright trace, screenshot, and video on failure with zero retries.
   - [x] Add GitHub Actions validation plus three sequential certification jobs on the same commit.
-- [ ] Module 3 — durability, compatibility, concurrency, and recovery (AC: 5, 6, 14)
-  - [ ] Add real historical backup fixtures from tagged and current states and a complete compatibility matrix.
-  - [ ] Add hostile-backup and injected failure coverage without changing schema, envelope, store, entity, or XP contracts.
-  - [ ] Add persistent-storage status/request UX while preserving the backup requirement.
-  - [ ] Add a schema-free cross-tab revision protocol that prevents stale writes and blocks destructive actions while a peer tab is active.
+- [x] Module 3 — durability, compatibility, concurrency, and recovery (AC: 5, 6, 14)
+  - [x] Add real historical backup fixtures from tagged and current states and a complete compatibility matrix.
+  - [x] Add hostile-backup and injected failure coverage without changing schema, envelope, store, entity, or XP contracts.
+  - [x] Add persistent-storage status/request UX while preserving the backup requirement.
+  - [x] Add a schema-free cross-tab revision protocol that prevents stale writes and blocks destructive actions while a peer tab is active.
 - [ ] Module 4 — routing and task interaction correctness (AC: 7, 14)
   - [ ] Complete the route matrix for valid/invalid return paths, onboarding variants, history, and idempotency.
   - [ ] Prove passive routes do not mutate storage and explicit actions write once.
@@ -181,18 +181,53 @@ GPT-5 Codex
 - 2026-07-13: managed production Playwright baseline passed 31/31 cases.
 - 2026-07-14: release-runner adversarial testing exposed and corrected contradictory color controls and false classification of benign stderr progress; three runner unit tests now protect those cases.
 - 2026-07-14: foundation passes 1–3 all passed on commit `0da8079007733fd63e5fbbf938f19e7c3d6bc3f4`, tree `f38e21ff20ab621a59cdc0fc253838eb2736ffcb`, with zero classified diagnostics.
+- 2026-07-16: storage, recovery, compatibility, concurrency, persistence UX, and bundle-budget implementation was committed as `6f141f4f798707af1f400847fba3799479d9507e`. Three clean gates passed, but retrospective review found that the manifests did not record the story-required `npm ci`; those runs remain diagnostic and were not counted for acceptance.
+- 2026-07-16: the gate was corrected and guarded on commit `4f541de930d0a2bef5e260cd86177714e53f2d41`, tree `3369e6ea7f1e0f5d1645a96f4b1971472d7e8405`. Restarted passes 1–3 each recorded one clean install, 20/20 successful commands, 4/4 gate tests, 379/379 unit/integration tests, 32/32 managed-browser flows, zero warnings/retries/skips/failures, zero dependency vulnerabilities, and a clean worktree.
 
 ### Completion Notes List
 
 - Ultimate context analysis completed from the approved remediation roadmap, audit, current source, current specs, Git history, and official runtime/CI documentation.
 - Modules 0–2 are accepted after three consecutive complete local release-gate passes on one immutable commit and tree. Hosted CI execution remains a later promotion requirement, not a claim made by this local acceptance.
+- Module 3 is accepted locally on immutable commit `4f541de930d0a2bef5e260cd86177714e53f2d41`. Backup compatibility, hostile-input rollback, persistence disclosure, cross-tab read-only coordination, destructive-action blocking, and bundle budgets are implemented and covered. The historical `v1.2.0` fixture is a deterministic reconstruction of the immutable tagged contract, not falsely represented as an archived user export.
 
 ### File List
 
+- `docs/releases/backup-compatibility-matrix.md`
 - `docs/remediation/3-1-v1-3-release-remediation.md`
+- `docs/rpg-v2/VALIDATION_LOG.md`
+- `docs/storage-safety.md`
+- `e2e/settings.spec.ts`
+- `package.json`
+- `scripts/bundle-budget-utils.mjs`
+- `scripts/bundle-budget-utils.test.mjs`
+- `scripts/check-build-budget.mjs`
+- `scripts/release-gate-utils.test.mjs`
+- `scripts/run-release-gate.mjs`
+- `src/app/shell/AppShell.tsx`
+- `src/components/ui/ImportBackupControl.tsx`
+- `src/features/profile/components/ProfileForm.tsx`
+- `src/features/profile/routes/OnboardingPage.tsx`
+- `src/features/settings/components/SettingsSurface.tsx`
+- `src/lib/appState/AppStateContext.ts`
+- `src/lib/appState/AppStateProvider.tsx`
+- `src/lib/db/README.md`
+- `src/lib/db/repositories.ts`
+- `src/lib/storage/index.ts`
+- `src/lib/storage/localDataCoordination.ts`
+- `src/lib/storage/storagePersistence.ts`
+- `tests/app/App.test.tsx`
+- `tests/db/backupCompatibility.test.ts`
+- `tests/db/localWriteCoordination.test.ts`
+- `tests/features/profile/onboarding.test.tsx`
+- `tests/fixtures/backups/v1.2.0-envelope1-schema2.json`
+- `tests/fixtures/backups/v1.3.0-envelope1-schema2.json`
+- `tests/lib/localDataCoordination.test.ts`
+- `tests/lib/storagePersistence.test.ts`
+- `vite.config.ts`
 
 ### Change Log
 
 - 2026-07-13: Created the comprehensive implementation story and recorded the contained-test baseline.
 - 2026-07-13: Marked the story in progress; kept Module 0 open pending the release-foundation gate.
 - 2026-07-14: Accepted Modules 0–2 after three complete passes; advanced to Module 3.
+- 2026-07-16: Accepted Module 3 only after correcting the clean-install evidence gap and completing three restarted full passes; advanced to Module 4.
