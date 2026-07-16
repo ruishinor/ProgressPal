@@ -67,7 +67,14 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     ? 'page-section rpg-settings'
     : 'page-section';
   const navigate = useNavigate();
-  const { profile, refresh, saveProfile } = useAppState();
+  const {
+    coordination,
+    persistenceStatus,
+    profile,
+    refresh,
+    requestPersistentStorage,
+    saveProfile,
+  } = useAppState();
   const [toast, setToast] = useState<SettingsToast | null>(null);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -107,6 +114,26 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     } finally {
       setExporting(false);
     }
+  }
+
+  async function handleRequestPersistence() {
+    const result = await requestPersistentStorage();
+
+    setToast(
+      result === 'persistent'
+        ? {
+            title: 'Persistent storage granted',
+            description:
+              'The browser reports reduced automatic-eviction risk. Manual deletion, device loss, and browser damage still require a backup.',
+            tone: 'success',
+          }
+        : {
+            title: 'Persistent storage not granted',
+            description:
+              'ProgressPal remains in best-effort browser storage. Export backups regularly.',
+            tone: 'danger',
+          },
+    );
   }
 
   async function handleImport(envelope: BackupEnvelope) {
@@ -196,6 +223,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         />
       )}
       <ProfileForm
+        disabled={!coordination.canWrite}
         key={profile.updatedAt}
         mode="settings"
         onSubmit={async (input) => {
@@ -210,6 +238,38 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         profile={profile}
         submitLabel="Save local settings"
       />
+      <Card title="Browser storage durability" titleAs="h3">
+        <p className="card__description">
+          {persistenceStatus === 'persistent'
+            ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
+            : persistenceStatus === 'best-effort'
+              ? 'This browser currently treats ProgressPal storage as best-effort and may evict it under storage pressure.'
+              : persistenceStatus === 'unsupported'
+                ? 'This browser does not expose a persistent-storage request to ProgressPal.'
+                : persistenceStatus === 'error'
+                  ? 'The browser did not provide a reliable persistent-storage status.'
+                  : 'Checking the browser storage policy…'}
+        </p>
+        <p className="card__description">
+          Persistent permission is not a backup. You, the browser, or device
+          failure can still remove local data, and nothing is synced to another
+          device.
+        </p>
+        {persistenceStatus === 'best-effort' ||
+        persistenceStatus === 'error' ? (
+          <div className="action-row">
+            <Button
+              disabled={!coordination.canWrite}
+              onClick={() => {
+                void handleRequestPersistence();
+              }}
+              variant="secondary"
+            >
+              Request persistent storage
+            </Button>
+          </div>
+        ) : null}
+      </Card>
       <Card title="Export a backup" titleAs="h3">
         <p className="card__description">
           Download a full local backup as a JSON file. It contains your learning
@@ -219,13 +279,19 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           private; they are created and stored only by you.
         </p>
         <div className="action-row">
-          <Button loading={exporting} onClick={handleExport} variant="primary">
+          <Button
+            disabled={!coordination.canWrite}
+            loading={exporting}
+            onClick={handleExport}
+            variant="primary"
+          >
             Export local backup
           </Button>
         </div>
       </Card>
       <ImportBackupControl
         busy={importing}
+        disabled={!coordination.canWrite}
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         onConfirmImport={handleImport}
       />
@@ -251,7 +317,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
         <div className="action-row">
           <Button
-            disabled={!resetReady}
+            disabled={!resetReady || !coordination.canWrite}
             loading={resetting}
             onClick={handleReset}
             variant="danger"

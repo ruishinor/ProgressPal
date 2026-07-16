@@ -20,6 +20,14 @@ import {
 import type { AppMeta, LearnerProfile, PreferredTheme } from '@/lib/domain';
 import { hasCompletedOnboarding } from '@/lib/profile';
 import { bundledCourseSeed } from '@/seed';
+import {
+  getLocalCoordinationStatus,
+  inspectStoragePersistence,
+  markLocalDataSynchronized,
+  requestStoragePersistence,
+  startLocalDataCoordination,
+  type StoragePersistenceStatus,
+} from '@/lib/storage';
 
 type ResolvedAppState = {
   appMeta: AppMeta | null;
@@ -91,7 +99,10 @@ function applyDocumentPreferences(profile: LearnerProfile | null) {
 
 export function AppStateProvider({ children }: PropsWithChildren) {
   const [appMeta, setAppMeta] = useState<AppMeta | null>(null);
+  const [coordination, setCoordination] = useState(getLocalCoordinationStatus);
   const [error, setError] = useState<string | null>(null);
+  const [persistenceStatus, setPersistenceStatus] =
+    useState<StoragePersistenceStatus>('checking');
   const [profile, setProfile] = useState<LearnerProfile | null>(null);
   const [status, setStatus] = useState<AppStateStatus>('loading');
 
@@ -133,8 +144,14 @@ export function AppStateProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let isActive = true;
+    const coordinationSession = startLocalDataCoordination((nextStatus) => {
+      if (isActive) {
+        setCoordination(nextStatus);
+      }
+    });
 
     void (async () => {
+      await coordinationSession.ready;
       const nextState = await resolveApplicationState();
 
       if (!isActive) {
@@ -151,6 +168,21 @@ export function AppStateProvider({ children }: PropsWithChildren) {
 
     return () => {
       isActive = false;
+      coordinationSession.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void inspectStoragePersistence().then((nextStatus) => {
+      if (isActive) {
+        setPersistenceStatus(nextStatus);
+      }
+    });
+
+    return () => {
+      isActive = false;
     };
   }, []);
 
@@ -163,12 +195,23 @@ export function AppStateProvider({ children }: PropsWithChildren) {
 
     const nextState = await resolveApplicationState();
 
+    if (nextState.status === 'ready') {
+      markLocalDataSynchronized();
+    }
+
     startTransition(() => {
       setAppMeta(nextState.appMeta);
       setError(nextState.error);
       setProfile(nextState.profile);
       setStatus(nextState.status);
     });
+  }
+
+  async function requestPersistentStorageForState() {
+    setPersistenceStatus('checking');
+    const nextStatus = await requestStoragePersistence();
+    setPersistenceStatus(nextStatus);
+    return nextStatus;
   }
 
   async function saveProfileToState(
@@ -191,9 +234,12 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     <AppStateContext.Provider
       value={{
         appMeta,
+        coordination,
         error,
+        persistenceStatus,
         profile,
         refresh,
+        requestPersistentStorage: requestPersistentStorageForState,
         requiresOnboarding: !hasCompletedOnboarding(appMeta, profile),
         saveProfile: saveProfileToState,
         status,

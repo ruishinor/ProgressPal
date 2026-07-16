@@ -1702,3 +1702,12 @@ Interpretation:
 - Earlier three-pass results remain historical evidence for their exact prior byte state. They do not certify the current remediation state.
 - Process termination and cleanup are part of release correctness. The unconstrained Vitest command is not an acceptable gate even when assertions previously passed.
 - Final counted passes require Node 24/npm 11, repository LF policy, an immutable commit/tree/lockfile, `npm ci`, the canonical gate, and zero errors, warnings, flags, retries, or skips.
+
+## Modules 0–2 accepted — 2026-07-14
+
+- Certified commit: `0da8079007733fd63e5fbbf938f19e7c3d6bc3f4`.
+- Certified tree: `f38e21ff20ab621a59cdc0fc253838eb2736ffcb`.
+- Three consecutive local release-gate passes succeeded with zero classified warnings, retries, skips, or failed checks.
+- Each pass included 3 release-runner tests, 367 application unit/integration tests, 31 managed-browser flows, lint, format, typecheck, production build, circular-dependency analysis, dependency audit, and clean-tree checks.
+- Evidence manifests: `2026-07-13T22-03-34-126Z-foundation-pass-1.json`, `2026-07-13T22-06-23-088Z-foundation-pass-2.json`, and `2026-07-13T22-09-11-467Z-foundation-pass-3.json` under the ignored local `artifacts/release-evidence/` directory.
+- Scope limitation: these are local certification passes. GitHub-hosted CI and production deployment evidence are not yet proven.

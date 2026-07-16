@@ -25,6 +25,7 @@ import {
 type ProfileFormMode = 'onboarding' | 'settings';
 
 type ProfileFormProps = {
+  disabled?: boolean;
   mode: ProfileFormMode;
   onSubmit: (input: SaveLearnerProfileInput) => Promise<void>;
   profile: LearnerProfile | null;
@@ -97,6 +98,7 @@ function toProfileInput(
 }
 
 export function ProfileForm({
+  disabled = false,
   mode,
   onSubmit,
   profile,
@@ -140,6 +142,10 @@ export function ProfileForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (disabled) {
+      return;
+    }
 
     await submitValues(values);
   }
@@ -369,7 +375,12 @@ export function ProfileForm({
         </p>
       ) : null}
       <div className="profile-form__actions">
-        <Button loading={isSubmitting} size="lg" type="submit">
+        <Button
+          disabled={disabled}
+          loading={isSubmitting}
+          size="lg"
+          type="submit"
+        >
           {submitLabel}
         </Button>
       </div>

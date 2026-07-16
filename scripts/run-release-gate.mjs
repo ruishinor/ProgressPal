@@ -290,6 +290,16 @@ try {
     },
     {
       executable: process.execPath,
+      args: ['--test', 'scripts/bundle-budget-utils.test.mjs'],
+      label: 'bundle budget unit tests',
+    },
+    {
+      executable: process.execPath,
+      args: npmArgs(['run', 'check:bundle']),
+      label: 'bundle budget',
+    },
+    {
+      executable: process.execPath,
       args: npmArgs(['run', 'test']),
       label: 'unit and integration tests',
     },

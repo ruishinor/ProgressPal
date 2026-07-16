@@ -13,6 +13,7 @@ import {
 export type ImportBackupControlProps = {
   busy?: boolean;
   confirmLabel?: string;
+  disabled?: boolean;
   expectedSchemaVersion: number;
   heading?: string;
   onConfirmImport: (envelope: BackupEnvelope) => void | Promise<void>;
@@ -28,6 +29,7 @@ export type ImportBackupControlProps = {
 export function ImportBackupControl({
   busy = false,
   confirmLabel = 'Replace local data with this backup',
+  disabled = false,
   expectedSchemaVersion,
   heading = 'Import a backup',
   onConfirmImport,
@@ -89,6 +91,7 @@ export function ImportBackupControl({
         <input
           accept="application/json,.json"
           className="data-action__file"
+          disabled={disabled || busy}
           id={inputId}
           onChange={handleFileChange}
           type="file"
@@ -155,6 +158,7 @@ export function ImportBackupControl({
             </ul>
           </div>
           <Button
+            disabled={disabled}
             loading={busy}
             onClick={() => {
               if (envelope !== null) {

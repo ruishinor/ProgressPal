@@ -1,3 +1,5 @@
+import Dexie from 'dexie';
+
 import {
   AchievementDefinitionSchema,
   AchievementUnlockSchema,
@@ -52,6 +54,7 @@ import {
   type LongFormProgressView,
 } from '@/lib/progress';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
+import { assertLocalWriteAllowed, recordLocalWrite } from '@/lib/storage';
 import {
   calculateXpSummary,
   deriveXpTransactionId,
@@ -69,6 +72,20 @@ import {
 import { getSharedDatabase, type ProgressPalDatabase } from './database';
 
 export type DatabaseClock = () => string;
+
+function beginCoordinatedWrite(options: { destructive?: boolean } = {}) {
+  const isTopLevelWrite = Dexie.currentTransaction === null;
+
+  if (isTopLevelWrite) {
+    assertLocalWriteAllowed(options);
+  }
+
+  return () => {
+    if (isTopLevelWrite) {
+      recordLocalWrite();
+    }
+  };
+}
 
 export type DatabaseInitializationResult = {
   appMeta: AppMeta;
@@ -829,6 +846,7 @@ export async function saveLearnerProfile(
   input: SaveLearnerProfileInput,
   options: BaseDatabaseOptions & { completeOnboarding?: boolean } = {},
 ) {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -876,6 +894,8 @@ export async function saveLearnerProfile(
     },
   );
 
+  completeCoordinatedWrite();
+
   return {
     appMeta: nextAppMeta,
     learnerProfile,
@@ -886,6 +906,7 @@ export async function updateProfile(
   input: UpdateLearnerProfileInput,
   options: BaseDatabaseOptions = {},
 ) {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -904,6 +925,8 @@ export async function updateProfile(
   );
 
   await database.learnerProfile.put(updatedProfile);
+
+  completeCoordinatedWrite();
 
   return updatedProfile;
 }
@@ -1307,6 +1330,7 @@ export async function upsertProgress(
   input: UpsertProgressInput,
   options: BaseDatabaseOptions = {},
 ) {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -1338,6 +1362,8 @@ export async function upsertProgress(
 
   await database.progressEntries.put(progressEntry);
 
+  completeCoordinatedWrite();
+
   return progressEntry;
 }
 
@@ -1345,6 +1371,7 @@ export async function logMediaProgress(
   input: LogMediaProgressInput,
   options: BaseDatabaseOptions = {},
 ): Promise<LogMediaProgressResult> {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -1584,6 +1611,8 @@ export async function logMediaProgress(
     },
   );
 
+  completeCoordinatedWrite();
+
   return {
     asset,
     event: mediaProgressEvent,
@@ -1604,6 +1633,7 @@ export async function addStudySession(
   input: AddStudySessionInput,
   options: BaseDatabaseOptions = {},
 ) {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -1623,6 +1653,8 @@ export async function addStudySession(
 
   await database.studySessions.add(studySession);
 
+  completeCoordinatedWrite();
+
   return studySession;
 }
 
@@ -1630,6 +1662,7 @@ export async function addXpTransaction(
   input: AddXpTransactionInput,
   options: BaseDatabaseOptions = {},
 ) {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
 
@@ -1648,6 +1681,8 @@ export async function addXpTransaction(
   );
 
   await database.xpTransactions.add(xpTransaction);
+
+  completeCoordinatedWrite();
 
   return xpTransaction;
 }
@@ -1877,6 +1912,7 @@ export async function upsertProgressAndAwardXp(
   input: UpsertProgressInput,
   options: BaseDatabaseOptions = {},
 ): Promise<UpsertProgressWithXpResult> {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
   let progressEntry: ProgressEntry | null = null;
@@ -1978,6 +2014,8 @@ export async function upsertProgressAndAwardXp(
 
   const xpSummary = await getXpSummary({ ...options, db: database });
 
+  completeCoordinatedWrite();
+
   return {
     progressEntry: progressEntry!,
     awardedTransactions,
@@ -1990,6 +2028,7 @@ export async function logMediaProgressAndAwardXp(
   input: LogMediaProgressInput,
   options: BaseDatabaseOptions = {},
 ): Promise<LogMediaProgressWithXpResult> {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
   let result: LogMediaProgressResult | null = null;
@@ -2224,6 +2263,8 @@ export async function logMediaProgressAndAwardXp(
 
   const xpSummary = await getXpSummary({ ...options, db: database });
 
+  completeCoordinatedWrite();
+
   return {
     ...result!,
     awardedTransactions,
@@ -2236,6 +2277,7 @@ export async function addStudySessionAndAwardXp(
   input: AddStudySessionInput,
   options: BaseDatabaseOptions = {},
 ): Promise<AddStudySessionWithXpResult> {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
   let studySession: StudySession | null = null;
@@ -2306,6 +2348,8 @@ export async function addStudySessionAndAwardXp(
   );
 
   const xpSummary = await getXpSummary({ ...options, db: database });
+
+  completeCoordinatedWrite();
 
   return {
     studySession: studySession!,
@@ -2547,6 +2591,7 @@ export async function recordBackupEvent(
   input: RecordBackupEventInput,
   options: BaseDatabaseOptions = {},
 ): Promise<BackupRecord> {
+  const completeCoordinatedWrite = beginCoordinatedWrite();
   const database = await ensureOpen(resolveDatabase(options.db));
   const timestamp = (options.now ?? defaultClock)();
   const record = parseWithSchema(
@@ -2564,6 +2609,8 @@ export async function recordBackupEvent(
 
   await database.backups.add(record);
 
+  completeCoordinatedWrite();
+
   return record;
 }
 
@@ -2574,14 +2621,20 @@ export async function recordBackupEvent(
 export async function resetAllData(
   options: InitializeDatabaseOptions = {},
 ): Promise<DatabaseInitializationResult> {
+  const completeCoordinatedWrite = beginCoordinatedWrite({
+    destructive: true,
+  });
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = allDataTables(database);
 
-  return database.transaction('rw', tables, async () => {
+  const result = await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((table) => table.clear()));
 
     return initializeDatabase({ ...options, db: database });
   });
+
+  completeCoordinatedWrite();
+  return result;
 }
 
 export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
@@ -2600,11 +2653,14 @@ export async function restoreDatabaseFromBackup(
   snapshot: DatabaseSnapshot,
   options: RestoreDatabaseFromBackupOptions = {},
 ): Promise<DatabaseSnapshot> {
+  const completeCoordinatedWrite = beginCoordinatedWrite({
+    destructive: true,
+  });
   const database = await ensureOpen(resolveDatabase(options.db));
   const restored = parseSnapshotForRestore(snapshot);
   const tables = allDataTables(database);
 
-  return database.transaction('rw', tables, async () => {
+  const result = await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((table) => table.clear()));
 
     if (restored.appMeta !== null) {
@@ -2647,4 +2703,7 @@ export async function restoreDatabaseFromBackup(
 
     return finalSnapshot;
   });
+
+  completeCoordinatedWrite();
+  return result;
 }

@@ -2833,6 +2833,7 @@ describe('RPG routes', () => {
     // The same authoritative data controls as classic Settings, rendered inside
     // the RPG shell — not a hand-off link to a separate settings screen.
     for (const cardTitle of [
+      'Browser storage durability',
       'Export a backup',
       'Import a backup',
       'Reset local data',
@@ -2842,6 +2843,9 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
     }
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Persistent permission is not a backup/),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Export local backup' }),
     ).toBeInTheDocument();
@@ -3515,6 +3519,7 @@ describe('Settings route', () => {
     ).toBeInTheDocument();
 
     for (const cardTitle of [
+      'Browser storage durability',
       'Export a backup',
       'Import a backup',
       'Reset local data',
@@ -3525,6 +3530,9 @@ describe('Settings route', () => {
     }
 
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Persistent permission is not a backup/),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();

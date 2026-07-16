@@ -5,6 +5,8 @@ import {
   primaryNavigationItems,
 } from '@/app/router/routeDefinitions';
 import { AppShell as AppShellLayout } from '@/components/layout/AppShell';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
@@ -12,7 +14,8 @@ import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 
 export function AppShell() {
   const location = useLocation();
-  const { error, profile, requiresOnboarding, status } = useAppState();
+  const { coordination, error, profile, refresh, requiresOnboarding, status } =
+    useAppState();
   const onboardingRoute = getRouteDefinition('onboarding');
   const onboardingPath = onboardingRoute.to ?? '/onboarding';
 
@@ -136,6 +139,11 @@ export function AppShell() {
               ? 'Unavailable'
               : `${profile.targetMinutesPerWeek} min/week`,
         },
+        {
+          label: 'Local writes',
+          tone: coordination.canWrite ? 'success' : 'warning',
+          value: coordination.canWrite ? 'Available' : 'Read-only',
+        },
       ]}
       summary={
         requiresOnboarding
@@ -144,6 +152,46 @@ export function AppShell() {
       }
       title="ProgressPal CS50 Edition"
     >
+      {coordination.blockReason === 'peer-active' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="Another ProgressPal tab is open"
+            variant="danger"
+          >
+            <p className="card__description">
+              Local changes, imports, and resets are blocked in every tab while
+              more than one ProgressPal tab is active. Close the other tab, then
+              continue here. This prevents stale screens from silently
+              overwriting the same IndexedDB data.
+            </p>
+          </Card>
+        </section>
+      ) : null}
+      {coordination.blockReason === 'stale' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="This tab has stale local data"
+            variant="danger"
+          >
+            <p className="card__description">
+              Another tab changed ProgressPal data. Close any other tab and
+              reload the local state before making changes here.
+            </p>
+            <div className="action-row">
+              <Button
+                disabled={coordination.peerActive}
+                onClick={() => {
+                  void refresh();
+                }}
+              >
+                Reload local state
+              </Button>
+            </div>
+          </Card>
+        </section>
+      ) : null}
       <Outlet />
     </AppShellLayout>
   );

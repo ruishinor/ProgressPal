@@ -5,21 +5,28 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   build: {
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        // Split stable third-party runtime deps into separate vendor chunks so
-        // no single eager chunk exceeds the 600 kB warning budget. All chunks
-        // stay statically imported (module-preloaded at load), so in-session
-        // offline navigation is unchanged. This does not reduce total shipped
-        // JS; it resolves the per-chunk warning and improves cache separation.
-        // See DECISIONS.md (Module 14 Phase 2b).
+        // Split stable third-party runtime deps and the cross-tab/storage safety
+        // boundary into separate chunks. All remain statically imported and
+        // module-preloaded, so offline route behavior is unchanged. This does
+        // not pretend to reduce total JS; it enforces meaningful ownership and
+        // keeps each raw chunk below the v1.3 500 kB ceiling.
         manualChunks(id) {
-          if (!id.includes('/node_modules/')) {
-            return undefined;
+          const normalizedId = id.replace(/\\/g, '/');
+
+          if (normalizedId.includes('/src/lib/storage/')) {
+            return 'storage-safety';
           }
 
-          const normalizedId = id.replace(/\\/g, '/');
+          if (normalizedId.includes('/src/lib/backup/')) {
+            return 'backup';
+          }
+
+          if (!normalizedId.includes('/node_modules/')) {
+            return undefined;
+          }
 
           if (normalizedId.includes('/node_modules/react-router')) {
             return 'router';

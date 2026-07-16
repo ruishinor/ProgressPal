@@ -24,7 +24,7 @@ type OnboardingMode = 'quick' | 'customize';
 export function OnboardingPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, refresh, saveProfile } = useAppState();
+  const { coordination, profile, refresh, saveProfile } = useAppState();
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
   const [quickStartError, setQuickStartError] = useState(false);
@@ -105,6 +105,7 @@ export function OnboardingPage() {
             <p>Start now with a local profile you can change later.</p>
             <div className="action-row">
               <Button
+                disabled={!coordination.canWrite}
                 loading={startingDefault}
                 onClick={() => {
                   void handleUseDefaultLearner();
@@ -114,7 +115,7 @@ export function OnboardingPage() {
                 Use default learner
               </Button>
               <Button
-                disabled={startingDefault}
+                disabled={startingDefault || !coordination.canWrite}
                 onClick={() => setMode('customize')}
                 variant="secondary"
               >
@@ -143,6 +144,7 @@ export function OnboardingPage() {
             </Button>
           </div>
           <ProfileForm
+            disabled={!coordination.canWrite}
             key={profile.updatedAt}
             mode="onboarding"
             onSubmit={async (input) => {
@@ -156,6 +158,7 @@ export function OnboardingPage() {
       )}
       <ImportBackupControl
         busy={importing}
+        disabled={!coordination.canWrite}
         confirmLabel="Restore this backup"
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         heading="Already have a backup?"

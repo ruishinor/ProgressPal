@@ -41,21 +41,21 @@ so that a learner can use the tool without false release, durability, accessibil
 
 ## Tasks / Subtasks
 
-- [ ] Module 0 — preserve and inventory the starting state (AC: 1, 14)
-  - [ ] Work only on `cx/release-1.3.0-remediation`; never reset, clean, or discard the inherited dirty changes.
-  - [ ] Record commit, tree, tags, lockfile hash, branch, runtime, line-ending configuration, modified files, and untracked files.
-  - [ ] Classify every inherited change by remediation area and record the first adversarial retrospective.
-- [ ] Module 1 — release identity, authority, runtime, and line endings (AC: 1, 2, 14)
-  - [ ] Set package and lockfile application version to `1.3.0`; preserve envelope 1 and schema 2.
-  - [ ] Pin Node 24 and npm 11 in `.nvmrc`, package metadata, documentation, and CI.
-  - [ ] Add LF `.gitattributes`, set Prettier to LF, and isolate mechanical renormalization from semantic edits.
-  - [ ] Replace contradictory active release, branch, contribution, security, roadmap, and validation claims with a single authority hierarchy.
-  - [ ] Document the immutable `v1.2.0`/`v1.2.1` tag versus embedded `0.1.0` package anomaly; never move those tags.
-- [ ] Module 2 — canonical gate and CI evidence (AC: 3, 4, 14)
-  - [ ] Contain Vitest worker count and make timeout cleanup fail closed.
-  - [ ] Add a single release-gate runner and evidence manifest with commit/tree/lock/runtime/browser/command/result/artifact fields.
-  - [ ] Retain Playwright trace, screenshot, and video on failure with zero retries.
-  - [ ] Add GitHub Actions validation plus three sequential certification jobs on the same commit.
+- [x] Module 0 — preserve and inventory the starting state (AC: 1, 14)
+  - [x] Work only on `cx/release-1.3.0-remediation`; never reset, clean, or discard the inherited dirty changes.
+  - [x] Record commit, tree, tags, lockfile hash, branch, runtime, line-ending configuration, modified files, and untracked files.
+  - [x] Classify every inherited change by remediation area and record the first adversarial retrospective.
+- [x] Module 1 — release identity, authority, runtime, and line endings (AC: 1, 2, 14)
+  - [x] Set package and lockfile application version to `1.3.0`; preserve envelope 1 and schema 2.
+  - [x] Pin Node 24 and npm 11 in `.nvmrc`, package metadata, documentation, and CI.
+  - [x] Add LF `.gitattributes`, set Prettier to LF, and isolate mechanical renormalization from semantic edits.
+  - [x] Replace contradictory active release, branch, contribution, security, roadmap, and validation claims with a single authority hierarchy.
+  - [x] Document the immutable `v1.2.0`/`v1.2.1` tag versus embedded `0.1.0` package anomaly; never move those tags.
+- [x] Module 2 — canonical gate and CI evidence (AC: 3, 4, 14)
+  - [x] Contain Vitest worker count and make timeout cleanup fail closed.
+  - [x] Add a single release-gate runner and evidence manifest with commit/tree/lock/runtime/browser/command/result/artifact fields.
+  - [x] Retain Playwright trace, screenshot, and video on failure with zero retries.
+  - [x] Add GitHub Actions validation plus three sequential certification jobs on the same commit.
 - [ ] Module 3 — durability, compatibility, concurrency, and recovery (AC: 5, 6, 14)
   - [ ] Add real historical backup fixtures from tagged and current states and a complete compatibility matrix.
   - [ ] Add hostile-backup and injected failure coverage without changing schema, envelope, store, entity, or XP contracts.
@@ -179,11 +179,13 @@ GPT-5 Codex
 - 2026-07-13: `npx vitest run tests/lib/onboardingReturnPath.test.ts --maxWorkers=1 --no-file-parallelism` passed 10/10.
 - 2026-07-13: full contained Vitest baseline passed 39/39 files and 367/367 tests.
 - 2026-07-13: managed production Playwright baseline passed 31/31 cases.
+- 2026-07-14: release-runner adversarial testing exposed and corrected contradictory color controls and false classification of benign stderr progress; three runner unit tests now protect those cases.
+- 2026-07-14: foundation passes 1–3 all passed on commit `0da8079007733fd63e5fbbf938f19e7c3d6bc3f4`, tree `f38e21ff20ab621a59cdc0fc253838eb2736ffcb`, with zero classified diagnostics.
 
 ### Completion Notes List
 
 - Ultimate context analysis completed from the approved remediation roadmap, audit, current source, current specs, Git history, and official runtime/CI documentation.
-- Work started on the release-foundation stage. No module is marked compliant until the canonical gate exists and all three counted passes succeed.
+- Modules 0–2 are accepted after three consecutive complete local release-gate passes on one immutable commit and tree. Hosted CI execution remains a later promotion requirement, not a claim made by this local acceptance.
 
 ### File List
 
@@ -193,3 +195,4 @@ GPT-5 Codex
 
 - 2026-07-13: Created the comprehensive implementation story and recorded the contained-test baseline.
 - 2026-07-13: Marked the story in progress; kept Module 0 open pending the release-foundation gate.
+- 2026-07-14: Accepted Modules 0–2 after three complete passes; advanced to Module 3.

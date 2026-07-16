@@ -20,7 +20,7 @@ const profile = {
 const completedState = {
   appMeta: {
     id: 'app-meta',
-    appVersion: '1.2.0',
+    appVersion: '1.3.0',
     createdAt: timestamp,
     onboardingCompletedAt: timestamp,
     schemaVersion: 2,
@@ -42,9 +42,19 @@ function renderOnboarding(
 ) {
   const value: AppStateContextValue = {
     appMeta: null,
+    coordination: {
+      blockReason: null,
+      canWrite: true,
+      peerActive: false,
+      phase: 'ready',
+      revision: 0,
+      stale: false,
+    },
     error: null,
+    persistenceStatus: 'best-effort',
     profile,
     refresh: async () => undefined,
+    requestPersistentStorage: async () => 'best-effort',
     requiresOnboarding: true,
     saveProfile,
     status: 'ready',

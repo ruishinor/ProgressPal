@@ -182,3 +182,44 @@ test('rejects an invalid backup file without mutating data', async ({
   ).toHaveCount(0);
   expect(await readLedgerCounts(page)).toEqual(before);
 });
+
+test('makes concurrent tabs read-only and blocks destructive recovery', async ({
+  context,
+  page,
+}) => {
+  await completeOnboarding(page);
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+
+  const peer = await context.newPage();
+  await peer.goto('/settings');
+
+  for (const openPage of [page, peer]) {
+    await expect(
+      openPage.getByRole('heading', {
+        name: 'Another ProgressPal tab is open',
+      }),
+    ).toBeVisible();
+    await expect(
+      openPage.getByRole('button', { name: 'Export local backup' }),
+    ).toBeDisabled();
+    await expect(openPage.getByLabel('Backup file')).toBeDisabled();
+    await openPage.getByLabel('Confirmation phrase').fill('RESET');
+    await expect(
+      openPage.getByRole('button', { name: 'Reset all local data' }),
+    ).toBeDisabled();
+  }
+
+  await peer.close();
+
+  await expect(
+    page.getByRole('heading', { name: 'Another ProgressPal tab is open' }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Export local backup' }),
+  ).toBeEnabled();
+  await expect(page.getByLabel('Backup file')).toBeEnabled();
+  await expect(
+    page.getByRole('button', { name: 'Reset all local data' }),
+  ).toBeEnabled();
+});
