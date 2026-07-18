@@ -1,4 +1,4 @@
-.rpg-shell {
+body.rpg-route-active {
   --rpg-bg: #111923;
   --rpg-surface: #172331;
   --rpg-surface-raised: #203041;

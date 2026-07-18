@@ -1,8 +1,32 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
-const CACHE_VERSION = 'progresspal-cache-v1';
+// Derive the cache version from the service worker source: public/sw.js is the
+// single source of truth, so a version bump there (which purges old caches) is
+// picked up here automatically and this spec never carries a second
+// manual-bump site.
+function readCacheVersionFromServiceWorker(): string {
+  const source = readFileSync(
+    path.resolve(process.cwd(), 'public', 'sw.js'),
+    'utf8',
+  );
+  const match = /const CACHE_VERSION = '([^']+)';/.exec(source);
+
+  if (!match) {
+    throw new Error(
+      'offline.spec could not read CACHE_VERSION from public/sw.js; the spec ' +
+        'derives the versioned cache name from the service worker source.',
+    );
+  }
+
+  return match[1];
+}
+
+const CACHE_VERSION = readCacheVersionFromServiceWorker();
 
 // e2e specs are type-checked under tsconfig.node.json (lib: ES2022, no DOM), so
 // browser globals used inside page.evaluate() are accessed through this typed
@@ -11,7 +35,14 @@ interface OfflineBrowserScope {
   caches: {
     delete(name: string): Promise<boolean>;
     keys(): Promise<string[]>;
-    open(name: string): Promise<{ keys(): Promise<Array<{ url: string }>> }>;
+    open(name: string): Promise<{
+      keys(): Promise<Array<{ url: string }>>;
+      match(
+        url: string,
+        options?: { ignoreSearch?: boolean; ignoreVary?: boolean },
+      ): Promise<{ text(): Promise<string> } | undefined>;
+      put(url: string, response: unknown): Promise<void>;
+    }>;
   };
   localStorage: { clear(): void };
   navigator: {
@@ -222,4 +253,76 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
   await page.getByRole('button', { name: 'Restore this backup' }).click();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(page).toHaveURL(/\/settings$/);
+});
+
+test('cleans only ProgressPal caches and refreshes the cached shell online', async ({
+  page,
+}) => {
+  // First load: the worker registers, installs, activates, and takes control.
+  await page.goto('/');
+  await completeOnboarding(page);
+  await waitForServiceWorkerControl(page);
+
+  // Unregister the worker so the next load runs a genuine install+activate.
+  // Playwright's page.route cannot intercept the service worker's own script
+  // fetch, so gating the first activation is impossible; a re-registration
+  // cycle is the deterministic way to observe the activate-time purge.
+  await page.evaluate(async () => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    const registrations =
+      (await scope.navigator.serviceWorker?.getRegistrations()) ?? [];
+    await Promise.all(
+      registrations.map((registration) => registration.unregister()),
+    );
+  });
+
+  // Seed a foreign same-origin cache and a legacy ProgressPal cache while no
+  // worker is active. Cache Storage persists independently of registration,
+  // so both caches are present when the re-registered worker activates.
+  await page.evaluate(async () => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+
+    const foreign = await scope.caches.open('unrelated-origin-cache');
+    await foreign.put('/foreign', new Response('foreign'));
+
+    const legacy = await scope.caches.open('progresspal-cache-v1');
+    await legacy.put('/legacy', new Response('legacy'));
+  });
+
+  // Reload: boot re-registers the worker; install+activate run the
+  // prefix-guarded purge with the legacy cache present, then take control.
+  await page.reload();
+  await waitForServiceWorkerControl(page);
+
+  const cacheKeys = await page.evaluate(async () => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    return scope.caches.keys();
+  });
+
+  expect(cacheKeys).toContain('unrelated-origin-cache');
+  expect(cacheKeys).toContain(CACHE_VERSION);
+  expect(cacheKeys).not.toContain('progresspal-cache-v1');
+
+  // An online navigation is network-first and refreshes the cached shell, so
+  // the cached /index.html must match a fresh network fetch of the shell.
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+
+  const shells = await page.evaluate(async (cacheVersion) => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    const cache = await scope.caches.open(cacheVersion);
+    const cached = await cache.match('/index.html', {
+      ignoreSearch: true,
+      ignoreVary: true,
+    });
+    const fresh = await fetch('/index.html', { cache: 'no-cache' });
+
+    return {
+      cachedShell: cached ? await cached.text() : null,
+      freshShell: await fresh.text(),
+    };
+  }, CACHE_VERSION);
+
+  expect(shells.cachedShell).not.toBeNull();
+  expect(shells.cachedShell).toBe(shells.freshShell);
 });

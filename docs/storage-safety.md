@@ -16,25 +16,30 @@ or moving to another device. Exported backups remain required.
 
 ## Concurrent tabs
 
-The safe policy is deliberately conservative:
+Write authority comes from the Web Locks API alone:
 
-1. Each tab performs a 250 ms discovery handshake before user writes are
-   enabled.
-2. `BroadcastChannel` is the primary coordination path; a same-origin
-   `storage` event is the fallback.
-3. Heartbeats run every 5 seconds and an unclosed/crashed peer expires after 15
-   seconds.
-4. If another ProgressPal tab is active, every tab becomes read-only. Import
-   and reset are explicitly blocked, as are ordinary repository writes.
-5. Successful writes increment a schema-free revision and announce it. A tab
-   that observes a newer remote revision remains stale and read-only until it
-   rereads IndexedDB.
-6. Closing or navigating away sends a best-effort closing message. The bounded
-   heartbeat timeout is the fallback when the browser cannot deliver it.
+1. Every tab holds the shared presence lock
+   `progresspal:local-data:presence`; exactly one tab at a time holds the
+   writer lock `progresspal:local-data:writer`. Only the writer can mutate
+   IndexedDB.
+2. A tab that cannot obtain the writer lock is read-only. Import, reset, and
+   ordinary repository writes are blocked; export counts as a write because it
+   records a backup event.
+3. Replacing or resetting local data additionally requires exclusive presence:
+   import and reset stay blocked while another ProgressPal tab is open, even
+   in the writer tab.
+4. Ownership transfer always forces a full IndexedDB reread before writes
+   resume; a tab whose stored revision lags a peer-announced revision stays
+   read-only until it rereads.
+5. Browsers without Web Locks fail closed: existing data stays readable, and
+   all writes report unavailable. There is no fallback to advisory authority.
 
-The coordination keys are `progresspal:coordination:message` and
-`progresspal:coordination:revision`; the channel is
-`progresspal-coordination-v1`. They carry tab IDs, timestamps, message kinds,
+The 250 ms discovery window at startup, `BroadcastChannel`
+(`progresspal-coordination-v1`), the storage-event fallback, heartbeats (5 s),
+and the 15 s peer expiry are advisory only: they carry liveness and revision
+notifications and drive the peer-active indicator. They never grant or deny
+write access. The coordination keys `progresspal:coordination:message` and
+`progresspal:coordination:revision` carry tab IDs, timestamps, message kinds,
 and integer revisions only.
 
 ## Known boundary

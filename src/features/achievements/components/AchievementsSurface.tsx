@@ -151,7 +151,7 @@ export function AchievementsSurface({
           <div className="rpg-badges__header">
             <div>
               <p className="rpg-badges__eyebrow">RPG</p>
-              <h1>Achievements</h1>
+              <h2>Achievements</h2>
             </div>
             <div className="rpg-badges__actions">
               <Link
@@ -197,7 +197,7 @@ export function AchievementsSurface({
           <div className="rpg-badges__header">
             <div>
               <p className="rpg-badges__eyebrow">RPG</p>
-              <h1>Achievements</h1>
+              <h2>Achievements</h2>
             </div>
           </div>
         ) : (
@@ -207,7 +207,7 @@ export function AchievementsSurface({
           />
         )}
         <LoadingState
-          description="Opening your achievement records."
+          description="Opening your achievements."
           title="Loading achievements"
         />
       </section>
@@ -235,7 +235,7 @@ export function AchievementsSurface({
         <div className="rpg-badges__header">
           <div>
             <p className="rpg-badges__eyebrow">RPG</p>
-            <h1>Achievements</h1>
+            <h2>Achievements</h2>
             <p className="rpg-badges__lede">{headerDescription}</p>
             <div className="meta-cluster">{headerMeta}</div>
           </div>

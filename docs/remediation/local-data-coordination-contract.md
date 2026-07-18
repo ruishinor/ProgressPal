@@ -183,6 +183,40 @@ transition and remains fail-closed in the public status.
 - No claim is made here about cross-device synchronization or multiple browser
   profiles; the protocol is same-origin and same-browser-profile only.
 
+## Corrupt revision recovery
+
+A corrupt `progresspal:coordination:revision` value makes
+`readBrowserRevision()` report `Number.MAX_SAFE_INTEGER`, which fails every
+write path closed behind `blockReason: 'unavailable'` — permanently, because
+revision metadata is an unbounded localStorage value with no IndexedDB-derived
+epoch to recover from. Recovery is therefore an explicit flow, governed by
+these rules:
+
+- Repair is **user-initiated, never automatic**. No read path, heartbeat, or
+  peer message may rewrite the durable counter; silent repair would hide
+  tampering and put side effects in a read path.
+- Repair requires writer ownership, an available advisory transport, and the
+  same exclusive-presence ceremony that gates destructive reset and restore.
+  A peer holding presence refuses the repair; the UI then tells the user to
+  close every other ProgressPal tab and try again.
+- Repair rewrites only the advisory localStorage counter to `0`. IndexedDB is
+  never opened, read, or mutated by the repair, and the repair grants no write
+  authority by itself — the writer lock still gates every write afterwards.
+- The repairing coordinator never lowers its own in-memory revision
+  (invariant 4: revisions never decrease within a coordinator). The session
+  adopts the repaired durable value by stopping and restarting its
+  coordinator. A BFCache-retained snapshot cannot re-poison the fresh
+  coordinator because poisoned initial revisions are discarded at start.
+- Repair is idempotent and cheap: a durable value that is already valid is
+  left untouched with no lock acquisition, and a value healed externally is
+  adopted without a write. Cascade-poisoned peers (tabs that adopted `MAX`
+  from a bricked tab's heartbeat) therefore repair independently, one click
+  per tab, and a second click is always a harmless no-op.
+- The flow is exposed as `repairLocalCoordinationRevision()`, with
+  `isLocalCoordinationRevisionExhausted(status)` distinguishing a corrupt or
+  exhausted revision from a genuine Web Locks absence so only the former
+  surfaces the repair control.
+
 ## Required regression transitions
 
 - two real pages proving exactly one ordinary writer and one read-only peer;
@@ -200,6 +234,12 @@ transition and remains fail-closed in the public status.
 - pagehide or stop during deferred committed and aborted writes;
 - Web Locks absent, rejected, queued, transferred, and stopped;
 - exclusive-presence success, contention, rejection, restoration, and cleanup;
+- corrupt durable revision repaired under exclusive presence, rewriting only
+  the advisory counter to `0` and restarting the coordinator to adopt it;
+- revision repair refused while a peer holds presence, leaving the durable
+  value untouched;
+- idempotent re-repair leaving a valid revision untouched with no lock
+  acquisition;
 - creation, migration, seed, composite write, restore, and reset preserving
   atomic rollback and one-revision semantics;
 - classic and RPG mutation controls disabled for a contended tab while

@@ -193,7 +193,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         <div className="rpg-settings__header">
           <div>
             <p className="rpg-settings__eyebrow">RPG</p>
-            <h1>Settings</h1>
+            <h2>Settings</h2>
             <p className="rpg-settings__lede">
               Edit your local profile and manage on-device data: export a
               backup, import one, or reset everything. Stored only in this

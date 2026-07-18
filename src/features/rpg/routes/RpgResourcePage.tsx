@@ -515,7 +515,7 @@ export function RpgResourcePage() {
         ) : null}
       </RpgResourceCard>
 
-      <RpgPanel title="Save local progress" titleAs="h2">
+      <RpgPanel title="Save progress" titleAs="h2">
         <form
           className="rpg-study-resource__form"
           noValidate
@@ -624,48 +624,56 @@ export function RpgResourcePage() {
             </p>
           ) : null}
 
-          <label className="rpg-study-resource__field rpg-study-resource__field--short">
-            <span>Confidence</span>
-            <select
-              aria-describedby={
-                formState?.errors.confidence
-                  ? resourceErrorIds.confidence
-                  : undefined
-              }
-              aria-invalid={formState?.errors.confidence ? true : undefined}
-              onChange={(event) => {
-                setFormState((currentForm) =>
-                  currentForm === null
-                    ? currentForm
-                    : {
-                        ...currentForm,
-                        errors: {},
-                        values: {
-                          ...currentForm.values,
-                          confidence: event.target.value,
-                        },
-                      },
-                );
-                setSaveResult(null);
-              }}
-              value={formValues.confidence}
-            >
-              {confidenceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {formState?.errors.confidence ? (
-            <p
-              className="rpg-study-resource__error"
-              id={resourceErrorIds.confidence}
-              role="alert"
-            >
-              {formState.errors.confidence}
-            </p>
-          ) : null}
+          <details
+            className="form-details"
+            open={Boolean(formState?.errors.confidence)}
+          >
+            <summary>More details</summary>
+            <div className="form-details__content">
+              <label className="rpg-study-resource__field rpg-study-resource__field--short">
+                <span>How sure are you?</span>
+                <select
+                  aria-describedby={
+                    formState?.errors.confidence
+                      ? resourceErrorIds.confidence
+                      : undefined
+                  }
+                  aria-invalid={formState?.errors.confidence ? true : undefined}
+                  onChange={(event) => {
+                    setFormState((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            errors: {},
+                            values: {
+                              ...currentForm.values,
+                              confidence: event.target.value,
+                            },
+                          },
+                    );
+                    setSaveResult(null);
+                  }}
+                  value={formValues.confidence}
+                >
+                  {confidenceOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {formState?.errors.confidence ? (
+                <p
+                  className="rpg-study-resource__error"
+                  id={resourceErrorIds.confidence}
+                  role="alert"
+                >
+                  {formState.errors.confidence}
+                </p>
+              ) : null}
+            </div>
+          </details>
           {formState?.errors.submit ? (
             <p className="rpg-study-resource__error" role="alert">
               {formState.errors.submit}
@@ -679,7 +687,7 @@ export function RpgResourcePage() {
               }
               type="submit"
             >
-              Save local progress
+              Save progress
             </RpgButton>
             <RpgButton
               disabled={

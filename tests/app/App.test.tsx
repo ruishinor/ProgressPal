@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   screen,
@@ -25,6 +26,7 @@ import {
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
 import { achievementDefinitions } from '@/lib/achievements';
+import { router } from '@/app/router/router';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
   getLocalCoordinationStatus,
@@ -506,7 +508,7 @@ describe('App', () => {
         }),
       ).toBeInTheDocument();
       expect(
-        await screen.findByRole('button', { name: 'Save local progress' }),
+        await screen.findByRole('button', { name: 'Save progress' }),
       ).toBeDisabled();
       expect(
         screen.getByRole('button', { name: 'Mark locally complete' }),
@@ -2053,6 +2055,38 @@ describe('App', () => {
       screen.getByText(/Achievement unlocked:.*First Step/),
     ).toBeInTheDocument();
   });
+
+  it('focuses the main landmark on classic route changes, never on mount', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'Dashboard' });
+
+    expect(document.activeElement).toBe(document.body);
+
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Primary' })).getByRole(
+        'link',
+        { name: 'Sessions' },
+      ),
+    );
+
+    await screen.findByRole('heading', { name: 'Study sessions' });
+    expect(document.activeElement).toHaveAttribute('id', 'main-content');
+  });
 });
 
 describe('RPG routes', () => {
@@ -2666,9 +2700,7 @@ describe('RPG routes', () => {
 
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
 
-    await user.click(
-      screen.getByRole('button', { name: 'Save local progress' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Progress saved' }),
@@ -2788,12 +2820,12 @@ describe('RPG routes', () => {
     });
 
     const evidenceControl = await screen.findByLabelText('Submission note');
-    const confidenceControl = screen.getByLabelText('Confidence');
+
+    await user.click(screen.getByText('More details'));
+    const confidenceControl = screen.getByLabelText('How sure are you?');
 
     fireEvent.change(confidenceControl, { target: { value: '' } });
-    await user.click(
-      screen.getByRole('button', { name: 'Save local progress' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
     const evidenceError = document.getElementById(
       'rpg-resource-evidence-error',
@@ -2820,6 +2852,53 @@ describe('RPG routes', () => {
     expect(confidenceControl).toHaveAccessibleDescription(
       confidenceError?.textContent ?? '',
     );
+  });
+
+  it('keeps tracker jargon out of the RPG study resource surface', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
+    const body = document.body.textContent ?? '';
+    expect(body).not.toMatch(/\bConfidence\b/);
+    expect(body).not.toMatch(/Save local progress/);
+  });
+
+  it('applies the RPG body class on /rpg routes and removes it when leaving', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByTestId('rpg-shell');
+
+    expect(document.body.classList.contains('rpg-route-active')).toBe(true);
+
+    await act(async () => {
+      await router.navigate('/dashboard');
+    });
+
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    expect(document.body.classList.contains('rpg-route-active')).toBe(false);
+  });
+
+  it('focuses the RPG main landmark on RPG route changes, never on mount', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByTestId('rpg-shell');
+
+    expect(document.activeElement).toBe(document.body);
+
+    await user.click(
+      within(
+        screen.getByRole('navigation', { name: 'RPG bottom navigation' }),
+      ).getByRole('link', { name: 'Map' }),
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('id', 'rpg-main-content');
+    });
   });
 
   it('marks an RPG resource locally complete only after explicit user action', async () => {
@@ -3136,9 +3215,7 @@ describe('RPG routes', () => {
       fireEvent.change(screen.getByLabelText('Add study note'), {
         target: { value: 'RPG-09 vertical slice progress note.' },
       });
-      await user.click(
-        screen.getByRole('button', { name: 'Save local progress' }),
-      );
+      await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
       expect(
         await screen.findByRole('heading', { name: 'Progress saved' }),

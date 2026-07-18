@@ -1,13 +1,16 @@
 import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
+import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
+import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
+import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 type RpgShellHudStatus = 'error' | 'loading' | 'ready';
 
@@ -153,19 +156,9 @@ export function RpgShell() {
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
   const location = useLocation();
+  const mainRef = useMainContentFocus<HTMLElement>();
   const refreshHud = useCallback(() => {
     setReloadToken((currentToken) => currentToken + 1);
-  }, []);
-
-  // RPG-only shell hygiene: keep the dark RPG canvas applied to <body> for the
-  // whole time an /rpg route is mounted so internal route transitions never
-  // flash the light app background.
-  useEffect(() => {
-    document.body.classList.add('rpg-route-active');
-
-    return () => {
-      document.body.classList.remove('rpg-route-active');
-    };
   }, []);
 
   // Reset scroll to the top of the page on every internal RPG route change.
@@ -238,7 +231,12 @@ export function RpgShell() {
           }}
           state={hudState}
         />
-        <main className="rpg-shell__main" id="rpg-main-content">
+        <main
+          className="rpg-shell__main"
+          id="rpg-main-content"
+          ref={mainRef}
+          tabIndex={-1}
+        >
           {coordination.blockReason === 'peer-active' ? (
             <RpgPanel
               description="Another participating ProgressPal tab owns local writing."
@@ -283,6 +281,14 @@ export function RpgShell() {
                 advisory tab notifications to authorize IndexedDB writes.
               </p>
             </RpgPanel>
+          ) : null}
+          {coordination.blockReason === 'unavailable' &&
+          isLocalCoordinationRevisionExhausted(coordination) ? (
+            <CoordinationRepairControl
+              onRepaired={() => {
+                void refresh();
+              }}
+            />
           ) : null}
           <Outlet context={{ refreshHud } satisfies RpgShellOutletContext} />
         </main>

@@ -1,0 +1,157 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+
+import { describe, expect, it } from 'vitest';
+
+/**
+ * Module 5 service worker source-contract guards.
+ *
+ * `public/sw.js` is unhashed, unbundled, and not type-checked, so nothing else
+ * in the pipeline verifies the file that gates the entire offline contract.
+ * These guards read the worker source and pin its security-relevant contracts:
+ *
+ * - CACHE_VERSION stays in lockstep with package.json, so a version bump is
+ *   the wholesale cache-reset mechanism and a forgotten bump fails here.
+ * - Activation purges only ProgressPal-prefixed caches, never foreign
+ *   same-origin caches (finding M1).
+ * - Successful navigations refresh the cached shell (finding M2).
+ * - Runtime caching is restricted to hashed /assets/* files so a 404-rewritten
+ *   HTML document can never poison the offline boot set (finding L1).
+ * - No file under src/ uses dynamic import(): every boot asset must be a
+ *   static import so install-time discovery sees the complete boot set
+ *   (finding L3; the service worker relies on this to cache everything).
+ *
+ * The string matching is deliberately brittle: a sw.js refactor SHOULD force a
+ * human to re-read these contracts.
+ */
+
+const REPO_ROOT = process.cwd();
+const SW_PATH = path.resolve(REPO_ROOT, 'public', 'sw.js');
+const SRC_ROOT = path.resolve(REPO_ROOT, 'src');
+
+const swSource = readFileSync(SW_PATH, 'utf8');
+const pkg = JSON.parse(
+  readFileSync(path.resolve(REPO_ROOT, 'package.json'), 'utf8'),
+) as { version: string };
+
+/** Recursively collect runtime application source files (excludes tests). */
+function listAppSourceFiles(dir: string): string[] {
+  const files: string[] = [];
+
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...listAppSourceFiles(full));
+      continue;
+    }
+
+    if (
+      /\.(ts|tsx)$/.test(entry.name) &&
+      !/\.(test|spec)\.(ts|tsx)$/.test(entry.name)
+    ) {
+      files.push(full);
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Remove comments so only executable code is scanned — a comment mentioning
+ * dynamic import syntax must not trip the L3 guard.
+ */
+function stripComments(source: string): string {
+  const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, ' ');
+
+  return withoutBlockComments
+    .split('\n')
+    .map((line) => {
+      for (let i = 0; i < line.length - 1; i += 1) {
+        if (line[i] === '/' && line[i + 1] === '/' && line[i - 1] !== ':') {
+          return line.slice(0, i);
+        }
+      }
+
+      return line;
+    })
+    .join('\n');
+}
+
+describe('service worker source contract', () => {
+  it('pins CACHE_VERSION to the package version', () => {
+    // Contract: the cache version is bumped with every release so activation
+    // purges stale caches wholesale; a forgotten bump must fail certification.
+    expect(
+      swSource,
+      'sw.js cache-versioning contract: CACHE_VERSION must be ' +
+        `'progresspal-cache-v${pkg.version}' (matching package.json version) ` +
+        'so a release bump purges stale caches (finding L2)',
+    ).toContain(`const CACHE_VERSION = 'progresspal-cache-v${pkg.version}';`);
+  });
+
+  it('purges only ProgressPal-prefixed caches on activate', () => {
+    // Contract: activation deletes keys under CACHE_PREFIX that are not the
+    // current version — legacy ProgressPal caches are cleaned, foreign
+    // same-origin caches are preserved.
+    expect(
+      swSource,
+      'sw.js activate contract: cache deletion must be guarded by ' +
+        'key.startsWith(CACHE_PREFIX) so foreign same-origin caches survive ' +
+        '(finding M1)',
+    ).toContain('key.startsWith(CACHE_PREFIX)');
+  });
+
+  it('refreshes the cached shell on successful navigations', () => {
+    // Contract: the network-first navigation handler writes the fresh response
+    // back to the shell entry so the offline shell never goes permanently
+    // stale behind an online user.
+    expect(
+      swSource,
+      'sw.js shell-refresh contract: the navigation handler must ' +
+        'cache.put(SHELL_URL, ...) after a successful network-first fetch ' +
+        '(finding M2)',
+    ).toMatch(/request\.mode === 'navigate'[\s\S]*cache\.put\(SHELL_URL/);
+  });
+
+  it('restricts runtime caching to hashed build assets', () => {
+    // Contract: runtime cache.put only happens for /assets/* paths, so an SPA
+    // 404 rewrite serving index.html can never be cached under an asset URL.
+    expect(
+      swSource,
+      'sw.js runtime-caching contract: cache population must be guarded by ' +
+        'url.pathname.startsWith(ASSET_PATH_PREFIX) so 404-rewritten HTML ' +
+        'cannot poison the offline boot set (finding L1)',
+    ).toContain('url.pathname.startsWith(ASSET_PATH_PREFIX)');
+  });
+
+  it('keeps src/ free of dynamic import() so install-time discovery sees the full boot set', () => {
+    // Contract: every boot asset is a static import, so the modulepreload tags
+    // the worker discovers at install time are the complete set needed to boot.
+    const sourceFiles = listAppSourceFiles(SRC_ROOT);
+
+    // Fail loudly if the walker silently finds nothing (otherwise the guard
+    // below would trivially pass).
+    expect(
+      sourceFiles.length,
+      'L3 static-import guard: the src/ file walker must find source files',
+    ).toBeGreaterThan(0);
+
+    const violations: string[] = [];
+
+    for (const file of sourceFiles) {
+      const code = stripComments(readFileSync(file, 'utf8'));
+
+      if (/\bimport\s*\(/.test(code)) {
+        violations.push(path.relative(REPO_ROOT, file).replace(/\\/g, '/'));
+      }
+    }
+
+    expect(
+      violations,
+      'L3 static-import contract: no file under src/ may use dynamic ' +
+        'import(), because the offline service worker relies on static-only ' +
+        'imports for install-time discovery of the complete boot asset set',
+    ).toEqual([]);
+  });
+});

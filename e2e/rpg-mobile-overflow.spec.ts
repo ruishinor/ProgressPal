@@ -37,7 +37,9 @@ const rpgRoutes = [
 ] as const;
 
 const mobileViewports = [
+  { height: 568, width: 320 },
   { height: 800, width: 360 },
+  { height: 667, width: 375 },
   { height: 844, width: 390 },
   { height: 932, width: 430 },
 ] as const;

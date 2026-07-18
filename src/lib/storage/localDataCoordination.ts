@@ -45,6 +45,11 @@ export type LocalWriteOwnership = {
   stop: () => void;
 };
 
+export type LocalCoordinationRepairResult =
+  | 'blocked'
+  | 'not-needed'
+  | 'repaired';
+
 const localDataRevisionTokenOwner = Symbol('local-data-revision-token-owner');
 const localDataRevisionTokenWriteEpoch = Symbol(
   'local-data-revision-token-write-epoch',
@@ -260,13 +265,24 @@ export class LocalDataCoordinator {
     this.phase = 'discovering';
     const persistedRevision = this.readPersistedRevision();
     const initialRevision = this.initialState?.revision;
+    // A BFCache-retained snapshot can carry poisoned revision metadata (for
+    // example, captured before an external repair). Only a bounded, valid
+    // initial revision may seed a fresh coordinator.
+    const sanitizedInitialRevision =
+      initialRevision !== undefined &&
+      Number.isSafeInteger(initialRevision) &&
+      initialRevision >= 0 &&
+      initialRevision < Number.MAX_SAFE_INTEGER
+        ? initialRevision
+        : undefined;
     this.revision = Math.max(
-      initialRevision ?? persistedRevision,
+      sanitizedInitialRevision ?? persistedRevision,
       persistedRevision,
     );
     this.stale =
       (this.initialState?.stale ?? false) ||
-      (initialRevision !== undefined && persistedRevision > initialRevision);
+      (sanitizedInitialRevision !== undefined &&
+        persistedRevision > sanitizedInitialRevision);
     this.started = true;
     this.ownershipInitialized = false;
     this.ownershipState = 'unavailable';
@@ -405,6 +421,95 @@ export class LocalDataCoordinator {
       }
 
       throw new LocalWriteBlockedError('peer-active', true);
+    }
+  }
+
+  async repairPersistedRevision(): Promise<LocalCoordinationRepairResult> {
+    if (
+      !this.started ||
+      this.stopped ||
+      this.destructiveWritePending ||
+      this.destructiveWriteActive ||
+      this.activeWriteLeases > 0
+    ) {
+      return 'blocked';
+    }
+
+    if (this.readRepairablePersistedRevision() !== null) {
+      // The durable value is already valid, so repair must not touch it or the
+      // presence locks. A poisoned in-memory revision still reports 'repaired'
+      // because the caller restarts the coordinator to adopt the durable value.
+      return this.revision >= Number.MAX_SAFE_INTEGER
+        ? 'repaired'
+        : 'not-needed';
+    }
+
+    if (this.ownershipState !== 'owned' || !this.isTransportAvailable()) {
+      return 'blocked';
+    }
+
+    this.destructiveWritePending = true;
+    this.emit();
+    let releaseExclusivePresence: (() => void | Promise<void>) | null = null;
+
+    try {
+      releaseExclusivePresence =
+        await this.writeOwnership.acquireExclusivePresence();
+
+      if (
+        this.stopped ||
+        !this.started ||
+        this.ownershipState !== 'owned' ||
+        !this.isTransportAvailable() ||
+        this.destructiveWriteActive ||
+        this.activeWriteLeases > 0
+      ) {
+        return 'blocked';
+      }
+
+      try {
+        this.writeRevision(0);
+      } catch {
+        return 'blocked';
+      }
+
+      // The in-memory revision deliberately stays poisoned. Revisions never
+      // decrease within a coordinator, so the caller adopts the repaired
+      // durable value by restarting the coordinator.
+      console.info(
+        'ProgressPal repaired corrupt local coordination revision metadata.',
+      );
+      return 'repaired';
+    } catch {
+      return 'blocked';
+    } finally {
+      this.destructiveWritePending = false;
+
+      try {
+        await releaseExclusivePresence?.();
+      } catch {
+        this.ownershipState = 'unavailable';
+      }
+
+      this.emit();
+    }
+  }
+
+  private readRepairablePersistedRevision() {
+    try {
+      const revision = this.readRevision();
+
+      if (
+        !Number.isSafeInteger(revision) ||
+        revision < 0 ||
+        revision >= Number.MAX_SAFE_INTEGER
+      ) {
+        return null;
+      }
+
+      return revision;
+    } catch {
+      return null;
     }
   }
 
@@ -635,7 +740,8 @@ export class LocalDataCoordinator {
         // Corrupt or exhausted revision metadata cannot safely participate in
         // the bounded notification protocol. Web Locks still prevent a second
         // writer, but this coordinator must remain unavailable until the
-        // metadata is repaired under an explicit recovery flow.
+        // metadata is repaired through repairLocalCoordinationRevision(), the
+        // explicit user-initiated recovery flow.
         return Number.MAX_SAFE_INTEGER;
       }
 
@@ -1284,6 +1390,8 @@ const uncoordinatedStatus: LocalCoordinationStatus = {
 
 let activeCoordinator: LocalDataCoordinator | null = null;
 let stopActiveSession: (() => void) | null = null;
+let repairActiveSession: (() => Promise<LocalCoordinationRepairResult>) | null =
+  null;
 
 export function startLocalDataCoordination(
   listener: (status: LocalCoordinationStatus) => void,
@@ -1372,6 +1480,31 @@ export function startLocalDataCoordination(
   window.addEventListener('pagehide', handlePageHide);
   window.addEventListener('pageshow', handlePageShow);
 
+  const repairSession = async (): Promise<LocalCoordinationRepairResult> => {
+    const currentCoordinator = coordinator;
+
+    if (sessionStopped || currentCoordinator === null) {
+      return 'blocked';
+    }
+
+    const result = await currentCoordinator.repairPersistedRevision();
+
+    if (result !== 'repaired') {
+      return result;
+    }
+
+    // The repaired coordinator never lowers its own revision, so adoption of
+    // the rewritten durable value requires a fresh coordinator. A session that
+    // stopped mid-repair leaves the repaired durable value for the next load.
+    stopCoordinator();
+
+    if (!sessionStopped) {
+      void startCoordinator();
+    }
+
+    return 'repaired';
+  };
+
   const stop = () => {
     if (sessionStopped) {
       return;
@@ -1386,11 +1519,16 @@ export function startLocalDataCoordination(
     if (stopActiveSession === stop) {
       stopActiveSession = null;
     }
+
+    if (repairActiveSession === repairSession) {
+      repairActiveSession = null;
+    }
   };
 
   // Install ownership before any synchronous listener invocation. A listener
   // may start a replacement session, which must be able to stop this one.
   stopActiveSession = stop;
+  repairActiveSession = repairSession;
   void startCoordinator();
 
   return {
@@ -1401,6 +1539,16 @@ export function startLocalDataCoordination(
 
 export function getLocalCoordinationStatus() {
   return activeCoordinator?.getStatus() ?? uncoordinatedStatus;
+}
+
+export function isLocalCoordinationRevisionExhausted(
+  status: LocalCoordinationStatus,
+) {
+  return status.revision >= Number.MAX_SAFE_INTEGER;
+}
+
+export function repairLocalCoordinationRevision(): Promise<LocalCoordinationRepairResult> {
+  return repairActiveSession?.() ?? Promise.resolve('blocked');
 }
 
 export function captureLocalDataRevision(): LocalDataRevisionToken {

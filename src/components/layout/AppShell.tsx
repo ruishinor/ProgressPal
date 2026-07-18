@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, Ref } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -25,11 +25,13 @@ export type AppShellProps = PropsWithChildren<{
   title: string;
 }> & {
   brand?: string;
+  mainRef?: Ref<HTMLElement>;
 };
 
 export function AppShell({
   brand = 'ProgressPal CS50 Edition',
   children,
+  mainRef,
   navigationItems,
   statusItems,
   summary,
@@ -78,7 +80,12 @@ export function AppShell({
           </NavLink>
         ))}
       </nav>
-      <main className="shell-main" id="main-content">
+      <main
+        className="shell-main"
+        id="main-content"
+        ref={mainRef}
+        tabIndex={-1}
+      >
         {children}
       </main>
     </div>

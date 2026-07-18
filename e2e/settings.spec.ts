@@ -335,7 +335,7 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
     peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
   ).toBeVisible();
   await expect(
-    peer.getByRole('button', { name: 'Save local progress' }),
+    peer.getByRole('button', { name: 'Save progress' }),
   ).toBeDisabled();
   await expect(
     peer.getByRole('button', { name: 'Mark locally complete' }),

@@ -54,7 +54,7 @@ describe('RPG visual primitives', () => {
   it('renders semantic button and link controls', () => {
     render(
       <div className="rpg-shell">
-        <RpgButton>Save local progress</RpgButton>
+        <RpgButton>Save progress</RpgButton>
         <RpgButton
           href="https://cs50.harvard.edu/x/"
           rel="noopener noreferrer"
@@ -67,7 +67,7 @@ describe('RPG visual primitives', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Save local progress' }),
+      screen.getByRole('button', { name: 'Save progress' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Open official CS50x resource' }),
@@ -240,7 +240,7 @@ describe('RPG primitive CSS scope', () => {
       '--rpg-focus-ring',
     ];
 
-    expect(tokensCss.trim().startsWith('.rpg-shell {')).toBe(true);
+    expect(tokensCss.trim().startsWith('body.rpg-route-active {')).toBe(true);
     for (const token of requiredTokens) {
       expect(tokensCss).toContain(token);
     }

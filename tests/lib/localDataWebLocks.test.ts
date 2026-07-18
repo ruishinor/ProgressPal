@@ -495,4 +495,142 @@ describe('browser Web Locks local-data coordination', () => {
       revision: 0,
     });
   });
+
+  it('repairs a bricked revision so the restarted session can write again', async () => {
+    const lockManager = new FakeLockManager();
+    setNavigatorLocks(lockManager);
+    localStorage.setItem(revisionStorageKey, 'garbage');
+    const consoleInfo = vi
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
+    const module = await importFreshCoordinationModule();
+    const session = module.startLocalDataCoordination(() => undefined);
+    sessions.push(session);
+
+    await finishInitialDiscovery(session);
+
+    const brickedStatus = module.getLocalCoordinationStatus();
+    expect(brickedStatus).toMatchObject({
+      blockReason: 'unavailable',
+      canWrite: false,
+    });
+    expect(module.isLocalCoordinationRevisionExhausted(brickedStatus)).toBe(
+      true,
+    );
+
+    await expect(module.repairLocalCoordinationRevision()).resolves.toBe(
+      'repaired',
+    );
+    await vi.advanceTimersByTimeAsync(250);
+    await flushCoordinationMicrotasks();
+
+    const repairedStatus = module.getLocalCoordinationStatus();
+    expect(repairedStatus).toMatchObject({
+      blockReason: null,
+      canWrite: true,
+      revision: 0,
+      stale: false,
+    });
+    expect(module.isLocalCoordinationRevisionExhausted(repairedStatus)).toBe(
+      false,
+    );
+    expect(localStorage.getItem(revisionStorageKey)).toBe('0');
+    expect(consoleInfo).toHaveBeenCalledWith(
+      'ProgressPal repaired corrupt local coordination revision metadata.',
+    );
+
+    const lease = module.beginLocalWrite();
+    lease.complete();
+
+    expect(module.getLocalCoordinationStatus().revision).toBe(1);
+    expect(localStorage.getItem(revisionStorageKey)).toBe('1');
+  });
+
+  it('blocks owner repair while a contender holds presence and repairs after it stops', async () => {
+    const lockManager = new FakeLockManager();
+    const started = await startTwoBrowserSessions(lockManager, 'drop');
+    const { contenderSession, ownerModule } = splitOwnerAndContender(
+      started.firstModule,
+      started.firstSession,
+      started.secondModule,
+      started.secondSession,
+    );
+    localStorage.setItem(revisionStorageKey, 'garbage');
+
+    expect(ownerModule.getLocalCoordinationStatus()).toMatchObject({
+      blockReason: 'unavailable',
+      canWrite: false,
+    });
+
+    await expect(ownerModule.repairLocalCoordinationRevision()).resolves.toBe(
+      'blocked',
+    );
+    expect(localStorage.getItem(revisionStorageKey)).toBe('garbage');
+    expect(lockManager.heldCount(presenceLockName, 'exclusive')).toBe(0);
+
+    contenderSession.stop();
+    await flushCoordinationMicrotasks();
+
+    await expect(ownerModule.repairLocalCoordinationRevision()).resolves.toBe(
+      'repaired',
+    );
+    expect(localStorage.getItem(revisionStorageKey)).toBe('0');
+    await vi.advanceTimersByTimeAsync(250);
+    await flushCoordinationMicrotasks();
+
+    expect(ownerModule.getLocalCoordinationStatus()).toMatchObject({
+      blockReason: null,
+      canWrite: true,
+      revision: 0,
+    });
+  });
+
+  it('leaves a repaired revision untouched when repair runs again after restart', async () => {
+    const lockManager = new FakeLockManager();
+    setNavigatorLocks(lockManager);
+    localStorage.setItem(revisionStorageKey, 'garbage');
+    const module = await importFreshCoordinationModule();
+    const session = module.startLocalDataCoordination(() => undefined);
+    sessions.push(session);
+
+    await finishInitialDiscovery(session);
+
+    await expect(module.repairLocalCoordinationRevision()).resolves.toBe(
+      'repaired',
+    );
+    await vi.advanceTimersByTimeAsync(250);
+    await flushCoordinationMicrotasks();
+    expect(module.getLocalCoordinationStatus().canWrite).toBe(true);
+
+    await expect(module.repairLocalCoordinationRevision()).resolves.toBe(
+      'not-needed',
+    );
+
+    expect(localStorage.getItem(revisionStorageKey)).toBe('0');
+    expect(lockManager.heldCount(presenceLockName, 'exclusive')).toBe(0);
+    expect(module.getLocalCoordinationStatus().canWrite).toBe(true);
+  });
+
+  it('leaves a valid durable revision untouched', async () => {
+    const lockManager = new FakeLockManager();
+    setNavigatorLocks(lockManager);
+    localStorage.setItem(revisionStorageKey, '42');
+    const module = await importFreshCoordinationModule();
+    const session = module.startLocalDataCoordination(() => undefined);
+    sessions.push(session);
+
+    await finishInitialDiscovery(session);
+
+    expect(module.getLocalCoordinationStatus()).toMatchObject({
+      canWrite: true,
+      revision: 42,
+    });
+
+    await expect(module.repairLocalCoordinationRevision()).resolves.toBe(
+      'not-needed',
+    );
+
+    expect(localStorage.getItem(revisionStorageKey)).toBe('42');
+    expect(lockManager.heldCount(presenceLockName, 'exclusive')).toBe(0);
+  });
 });

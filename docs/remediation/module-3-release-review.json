@@ -107,6 +107,13 @@
       "description": "The counted Module 3 browser matrix remains Chromium-only; Firefox, WebKit, real-device, and assistive-technology certification is not yet present.",
       "resolution": "Accepted only as a stage boundary because Module 6 explicitly owns cross-browser and device validation. Module 3 must not claim that later evidence.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "M3-AR-16",
+      "severity": "P2",
+      "description": "docs/storage-safety.md still described the superseded all-tabs-read-only advisory protocol after M3-AR-09 claimed documentation replacement, contradicting the Web Locks authority contract.",
+      "resolution": "Rewrote the concurrent-tabs section to describe single-writer Web Locks authority, contended read-only peers, exclusive presence for destructive operations, and fail-closed behavior without Web Locks; clarified PRIVACY.md localStorage scope.",
+      "status": "resolved"
     }
   ],
   "retrospective": {

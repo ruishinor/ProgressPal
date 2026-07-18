@@ -54,6 +54,23 @@ export default defineConfig({
     },
   },
   plugins: [react()],
+  preview: {
+    // Mirror vercel.json's security headers so the entire Playwright E2E suite
+    // (which runs against `vite preview`) exercises the app under the
+    // production CSP — executable proof the policy does not break boot,
+    // recharts inline styles, or backup downloads. Vite applies preview
+    // headers to every response, so the per-path Cache-Control rule for sw.js
+    // stays Vercel-only. Keep this block in sync with vercel.json.
+    headers: {
+      'Content-Security-Policy':
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+      'Permissions-Policy':
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

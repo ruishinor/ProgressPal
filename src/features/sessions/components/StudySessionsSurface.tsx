@@ -282,7 +282,7 @@ export function StudySessionsSurface({
             <div className="rpg-focus__header">
               <div>
                 <p className="rpg-focus__eyebrow">RPG</p>
-                <h1>Focus</h1>
+                <h2>Focus</h2>
               </div>
               <div className="rpg-focus__actions">
                 <Link
@@ -333,7 +333,7 @@ export function StudySessionsSurface({
           <div className="rpg-focus__header">
             <div>
               <p className="rpg-focus__eyebrow">RPG</p>
-              <h1>Focus</h1>
+              <h2>Focus</h2>
             </div>
           </div>
         ) : (
@@ -485,7 +485,7 @@ export function StudySessionsSurface({
         <div className="rpg-focus__header">
           <div>
             <p className="rpg-focus__eyebrow">RPG</p>
-            <h1>Focus</h1>
+            <h2>Focus</h2>
             <p className="rpg-focus__lede">{headerDescription}</p>
           </div>
           <div className="rpg-focus__actions">

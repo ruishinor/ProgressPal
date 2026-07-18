@@ -178,7 +178,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           <div className="rpg-log__header">
             <div>
               <p className="rpg-log__eyebrow">RPG</p>
-              <h1>Insights</h1>
+              <h2>Insights</h2>
             </div>
             <div className="rpg-log__actions">
               <Link
@@ -224,12 +224,12 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           <div className="rpg-log__header">
             <div>
               <p className="rpg-log__eyebrow">RPG</p>
-              <h1>Insights</h1>
+              <h2>Insights</h2>
             </div>
           </div>
         ) : (
           <PageHeader
-            description="The app is reading your local sessions, XP, and achievement records."
+            description="The app is reading your local sessions, XP, and achievements."
             title="Insights"
           />
         )}
@@ -256,7 +256,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
         <div className="rpg-log__header">
           <div>
             <p className="rpg-log__eyebrow">RPG</p>
-            <h1>Insights</h1>
+            <h2>Insights</h2>
             <p className="rpg-log__lede">{readyDescription}</p>
           </div>
           <div className="rpg-log__actions">

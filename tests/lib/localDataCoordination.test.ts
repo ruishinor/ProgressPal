@@ -1127,3 +1127,213 @@ describe('local data coordination', () => {
     },
   );
 });
+
+describe('corrupt revision recovery', () => {
+  it('rewrites a corrupt durable revision to 0 under exclusive presence while the in-memory revision stays poisoned', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const {
+      coordinator,
+      getPersistedRevision,
+      scheduler,
+      setPersistedRevision,
+    } = createCoordinator({ writeOwnership });
+    setPersistedRevision(Number.NaN);
+    const consoleInfo = vi
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+
+    expect(coordinator.getStatus()).toMatchObject({
+      blockReason: 'unavailable',
+      canWrite: false,
+      revision: Number.MAX_SAFE_INTEGER,
+    });
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'repaired',
+    );
+
+    expect(getPersistedRevision()).toBe(0);
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(1);
+    expect(writeOwnership.exclusivePresenceReleaseCount).toBe(1);
+    expect(consoleInfo).toHaveBeenCalledWith(
+      'ProgressPal repaired corrupt local coordination revision metadata.',
+    );
+    expect(coordinator.getStatus()).toMatchObject({
+      blockReason: 'unavailable',
+      canWrite: false,
+      revision: Number.MAX_SAFE_INTEGER,
+    });
+    consoleInfo.mockRestore();
+  });
+
+  it('refuses repair while a peer holds exclusive presence and leaves the durable value untouched', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    writeOwnership.exclusivePresenceAvailable = false;
+    const {
+      coordinator,
+      getPersistedRevision,
+      scheduler,
+      setPersistedRevision,
+    } = createCoordinator({ writeOwnership });
+    setPersistedRevision(Number.NaN);
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'blocked',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(1);
+    expect(writeOwnership.exclusivePresenceReleaseCount).toBe(0);
+    expect(getPersistedRevision()).toBe(Number.NaN);
+    expect(coordinator.getStatus().revision).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
+  it('refuses repair without a lock attempt when writer ownership is contended', async () => {
+    const writeOwnership = new ManualWriteOwnership('contended');
+    const { coordinator, scheduler, setPersistedRevision } = createCoordinator({
+      writeOwnership,
+    });
+    setPersistedRevision(Number.NaN);
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'blocked',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(0);
+  });
+
+  it('reports a healthy coordinator as not needing repair without acquiring presence', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const { coordinator, getPersistedRevision, scheduler } = createCoordinator({
+      writeOwnership,
+    });
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'not-needed',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(0);
+    expect(getPersistedRevision()).toBe(0);
+  });
+
+  it('adopts an externally healed durable revision without writing or acquiring presence', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const {
+      coordinator,
+      getPersistedRevision,
+      scheduler,
+      setPersistedRevision,
+    } = createCoordinator({ writeOwnership });
+    setPersistedRevision(Number.NaN);
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+    expect(coordinator.getStatus().revision).toBe(Number.MAX_SAFE_INTEGER);
+
+    setPersistedRevision(7);
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'repaired',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(0);
+    expect(getPersistedRevision()).toBe(7);
+    expect(coordinator.getStatus().revision).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
+  it('refuses repair while a write lease is active', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const { coordinator, scheduler, setPersistedRevision } = createCoordinator({
+      writeOwnership,
+    });
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+    const lease = coordinator.beginWrite();
+    setPersistedRevision(Number.NaN);
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'blocked',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(0);
+    lease.abort();
+  });
+
+  it('restores coordinator state and releases presence when the post-acquisition recheck fails', async () => {
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const {
+      coordinator,
+      getPersistedRevision,
+      scheduler,
+      setPersistedRevision,
+      transport,
+    } = createCoordinator({ writeOwnership });
+    setPersistedRevision(Number.NaN);
+    const ready = coordinator.start();
+    scheduler.runTimeouts();
+    await ready;
+    const originalAcquire =
+      writeOwnership.acquireExclusivePresence.bind(writeOwnership);
+    writeOwnership.acquireExclusivePresence = () => {
+      transport.available = false;
+      return originalAcquire();
+    };
+
+    await expect(coordinator.repairPersistedRevision()).resolves.toBe(
+      'blocked',
+    );
+
+    expect(writeOwnership.exclusivePresenceAcquireCount).toBe(1);
+    expect(writeOwnership.exclusivePresenceReleaseCount).toBe(1);
+    expect(getPersistedRevision()).toBe(Number.NaN);
+    // A stuck destructiveWritePending would report 'discovering' instead.
+    expect(coordinator.getStatus().blockReason).toBe('unavailable');
+  });
+
+  it('sanitizes poisoned initial state so a BFCache restore cannot re-poison a fresh coordinator', async () => {
+    const scheduler = new ManualScheduler();
+    const transport = new FakeTransport();
+    const writeOwnership = new ManualWriteOwnership('owned');
+    const coordinator = new LocalDataCoordinator({
+      discoveryMs: 10,
+      initialState: { revision: Number.MAX_SAFE_INTEGER, stale: true },
+      readRevision: () => 5,
+      scheduler,
+      tabId: 'sanitized-initial-revision-tab',
+      transport,
+      writeOwnership,
+      writeRevision: () => undefined,
+    });
+    const ready = coordinator.start();
+
+    scheduler.runTimeouts();
+    await ready;
+
+    expect(coordinator.getStatus()).toMatchObject({
+      blockReason: 'stale',
+      canWrite: false,
+      revision: 5,
+      stale: true,
+    });
+    expect(coordinator.markSynchronized(coordinator.captureRevision())).toBe(
+      true,
+    );
+    expect(coordinator.getStatus()).toMatchObject({
+      blockReason: null,
+      canWrite: true,
+      revision: 5,
+    });
+  });
+});

@@ -6,23 +6,28 @@ import {
   primaryNavigationItems,
 } from '@/app/router/routeDefinitions';
 import { AppShell as AppShellLayout } from '@/components/layout/AppShell';
+import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
+import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 export function AppShell() {
   const location = useLocation();
   const { coordination, error, profile, refresh, requiresOnboarding, status } =
     useAppState();
+  const mainRef = useMainContentFocus<HTMLElement>();
   const onboardingRoute = getRouteDefinition('onboarding');
   const onboardingPath = onboardingRoute.to ?? '/onboarding';
 
   if (status === 'loading') {
     return (
       <AppShellLayout
+        mainRef={mainRef}
         navigationItems={[
           {
             end: true,
@@ -59,6 +64,7 @@ export function AppShell() {
   if (status === 'error') {
     return (
       <AppShellLayout
+        mainRef={mainRef}
         navigationItems={[
           {
             end: true,
@@ -101,6 +107,13 @@ export function AppShell() {
             description={error ?? 'Local data could not be loaded.'}
             title="Local startup failed"
           />
+          {isLocalCoordinationRevisionExhausted(coordination) ? (
+            <CoordinationRepairControl
+              onRepaired={() => {
+                void refresh();
+              }}
+            />
+          ) : null}
         </section>
       </AppShellLayout>
     );
@@ -132,6 +145,7 @@ export function AppShell() {
 
   return (
     <AppShellLayout
+      mainRef={mainRef}
       navigationItems={navigationItems}
       statusItems={[
         {
@@ -220,6 +234,13 @@ export function AppShell() {
               IndexedDB writes.
             </p>
           </Card>
+          {isLocalCoordinationRevisionExhausted(coordination) ? (
+            <CoordinationRepairControl
+              onRepaired={() => {
+                void refresh();
+              }}
+            />
+          ) : null}
         </section>
       ) : null}
       <DataEpochOutlet />

@@ -23,8 +23,10 @@ const routeChecks = [
 ] as const;
 
 const viewportChecks = [
+  { height: 568, name: 'small-mobile', width: 320 },
   { height: 844, name: 'mobile', width: 390 },
   { height: 1024, name: 'tablet', width: 768 },
+  { height: 800, name: 'small-desktop', width: 1024 },
   { height: 900, name: 'desktop', width: 1440 },
 ] as const;
 
@@ -71,10 +73,14 @@ for (const viewport of viewportChecks) {
       ).toBeVisible({ timeout: 15000 });
 
       if (route.path === '/rpg/focus') {
+        // RPG-wrapped classic surfaces use level-2 page titles, mirroring the
+        // classic PageHeader hierarchy (shell h1 → page h2 → card h3). A
+        // level-1 page title here skipped a level above the h3 card titles and
+        // failed axe heading-order (see e2e/accessibility.spec.ts RPG sweep).
         await expect(
           page.getByRole('heading', {
             exact: true,
-            level: 1,
+            level: 2,
             name: 'Focus',
           }),
         ).toBeVisible();
