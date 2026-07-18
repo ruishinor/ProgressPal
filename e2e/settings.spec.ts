@@ -3,6 +3,17 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
+function collectConsoleIssues(page: Page, issues: string[]) {
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') {
+      issues.push(message.text());
+    }
+  });
+  page.on('pageerror', (error) => {
+    issues.push(error.message);
+  });
+}
+
 async function logWatchedRangeWithNote(page: Page, note: string) {
   await page.goto('/course');
   await page
@@ -50,6 +61,75 @@ async function readLedgerCounts(page: Page) {
     studySessions: number;
     xpTransactions: number;
   };
+}
+
+async function downgradeStoredAppVersion(page: Page) {
+  await page.evaluate(`
+    new Promise((resolve, reject) => {
+      const request = indexedDB.open('progresspal-cs50-edition');
+      request.onerror = () => reject(new Error('open failed'));
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction('app_meta', 'readwrite');
+        const store = transaction.objectStore('app_meta');
+        const read = store.get('app-meta');
+
+        read.onerror = () => reject(new Error('metadata read failed'));
+        read.onsuccess = () => {
+          store.put({ ...read.result, appVersion: '1.2.0' });
+        };
+        transaction.oncomplete = () => {
+          database.close();
+          resolve();
+        };
+        transaction.onerror = () => {
+          database.close();
+          reject(new Error('metadata update failed'));
+        };
+      };
+    });
+  `);
+}
+
+async function readStartupSnapshot(page: Page) {
+  return (await page.evaluate(`
+    new Promise((resolve, reject) => {
+      const request = indexedDB.open('progresspal-cs50-edition');
+      request.onerror = () => reject(new Error('open failed'));
+      request.onsuccess = () => {
+        const database = request.result;
+        const stores = [
+          'app_meta',
+          'learner_profile',
+          'course_units',
+          'course_items',
+          'content_assets',
+          'content_slices',
+        ];
+        const transaction = database.transaction(stores, 'readonly');
+        const reads = Object.fromEntries(
+          stores.map((storeName) => [
+            storeName,
+            transaction.objectStore(storeName).getAll(),
+          ]),
+        );
+        transaction.oncomplete = () => {
+          resolve(
+            JSON.stringify(
+              Object.fromEntries(
+                stores.map((storeName) => [storeName, reads[storeName].result]),
+              ),
+            ),
+          );
+          database.close();
+        };
+        transaction.onerror = () => {
+          reject(new Error('snapshot failed'));
+          database.close();
+        };
+      };
+    });
+  `)) as string;
 }
 
 test('completes the export, reset, and onboarding-restore recovery loop', async ({
@@ -183,43 +263,151 @@ test('rejects an invalid backup file without mutating data', async ({
   expect(await readLedgerCounts(page)).toEqual(before);
 });
 
-test('makes concurrent tabs read-only and blocks destructive recovery', async ({
+test('keeps one writer, makes the peer read-only, and blocks destructive recovery', async ({
+  context,
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+  collectConsoleIssues(page, consoleIssues);
+  await completeOnboarding(page);
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  const beforePeer = await readStartupSnapshot(page);
+
+  const peer = await context.newPage();
+  collectConsoleIssues(peer, consoleIssues);
+  await peer.goto('/settings');
+
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(peer.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  for (const openPage of [page, peer]) {
+    await expect(
+      openPage.getByRole('heading', { name: 'Local startup failed' }),
+    ).toHaveCount(0);
+  }
+
+  await expect(
+    page.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Save local settings' }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole('button', { name: 'Export local backup' }),
+  ).toBeEnabled();
+  await expect(page.getByLabel('Backup file')).toBeDisabled();
+  await expect(page.getByLabel('Confirmation phrase')).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: 'Reset all local data' }),
+  ).toBeDisabled();
+
+  await expect(
+    peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
+  ).toBeVisible();
+  await expect(
+    peer.getByRole('button', { name: 'Save local settings' }),
+  ).toBeDisabled();
+  await expect(
+    peer.getByRole('button', { name: 'Export local backup' }),
+  ).toBeDisabled();
+  await expect(peer.getByLabel('Backup file')).toBeDisabled();
+  await expect(peer.getByLabel('Confirmation phrase')).toBeDisabled();
+  await expect(
+    peer.getByRole('button', { name: 'Reset all local data' }),
+  ).toBeDisabled();
+
+  await peer.goto('/course/week-0-problem-set');
+  await expect(
+    peer.getByRole('heading', { name: 'Problem Set Progress' }),
+  ).toBeVisible();
+  await expect(
+    peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
+  ).toBeVisible();
+  await expect(
+    peer.getByRole('button', { name: 'Save progress' }),
+  ).toBeDisabled();
+
+  await peer.goto('/rpg/resource/week-4-problem-set');
+  await expect(
+    peer.getByRole('heading', { name: 'Problem Set 4: Memory' }),
+  ).toBeVisible();
+  await expect(
+    peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
+  ).toBeVisible();
+  await expect(
+    peer.getByRole('button', { name: 'Save local progress' }),
+  ).toBeDisabled();
+  await expect(
+    peer.getByRole('button', { name: 'Mark locally complete' }),
+  ).toBeDisabled();
+
+  await page.getByLabel('Display name').fill('Owner tab update');
+  await page.getByRole('button', { name: 'Save local settings' }).click();
+  await expect(page.getByText('Local profile saved')).toBeVisible();
+  expect(await readStartupSnapshot(page)).not.toBe(beforePeer);
+
+  await peer.close();
+
+  await expect(
+    page.getByRole('button', { name: 'Export local backup' }),
+  ).toBeEnabled();
+  await expect(page.getByLabel('Backup file')).toBeEnabled();
+  await expect(page.getByLabel('Confirmation phrase')).toBeEnabled();
+  await page.getByLabel('Confirmation phrase').fill('RESET');
+  await expect(
+    page.getByRole('button', { name: 'Reset all local data' }),
+  ).toBeEnabled();
+  expect(consoleIssues).toEqual([]);
+});
+
+test('automatically recovers a blocked startup repair after the active peer closes', async ({
   context,
   page,
 }) => {
   await completeOnboarding(page);
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await downgradeStoredAppVersion(page);
 
   const peer = await context.newPage();
-  await peer.goto('/settings');
-
-  for (const openPage of [page, peer]) {
-    await expect(
-      openPage.getByRole('heading', {
-        name: 'Another ProgressPal tab is open',
-      }),
-    ).toBeVisible();
-    await expect(
-      openPage.getByRole('button', { name: 'Export local backup' }),
-    ).toBeDisabled();
-    await expect(openPage.getByLabel('Backup file')).toBeDisabled();
-    await openPage.getByLabel('Confirmation phrase').fill('RESET');
-    await expect(
-      openPage.getByRole('button', { name: 'Reset all local data' }),
-    ).toBeDisabled();
-  }
-
-  await peer.close();
-
+  const consoleIssues: string[] = [];
+  collectConsoleIssues(peer, consoleIssues);
+  await peer.goto('/rpg/settings');
   await expect(
-    page.getByRole('heading', { name: 'Another ProgressPal tab is open' }),
-  ).toHaveCount(0);
+    peer.getByRole('heading', { name: 'RPG startup failed' }),
+  ).toBeVisible();
   await expect(
-    page.getByRole('button', { name: 'Export local backup' }),
-  ).toBeEnabled();
-  await expect(page.getByLabel('Backup file')).toBeEnabled();
-  await expect(
-    page.getByRole('button', { name: 'Reset all local data' }),
-  ).toBeEnabled();
+    peer.getByText(
+      'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.',
+    ),
+  ).toBeVisible();
+  const retry = peer.getByRole('button', { name: 'Retry local data load' });
+  await expect(retry).toBeDisabled();
+
+  await page.close();
+  await expect(peer.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(retry).toHaveCount(0);
+  await expect
+    .poll(
+      async () =>
+        (await peer.evaluate(`
+          new Promise((resolve, reject) => {
+            const request = indexedDB.open('progresspal-cs50-edition');
+            request.onerror = () => reject(new Error('open failed'));
+            request.onsuccess = () => {
+              const database = request.result;
+              const transaction = database.transaction('app_meta', 'readonly');
+              const read = transaction.objectStore('app_meta').get('app-meta');
+              read.onerror = () => reject(new Error('metadata read failed'));
+              read.onsuccess = () => {
+                const appVersion = read.result.appVersion;
+                database.close();
+                resolve(appVersion);
+              };
+            };
+          });
+        `)) as string,
+    )
+    .toBe('1.3.0');
+  expect(consoleIssues).toEqual([]);
 });
