@@ -56,11 +56,11 @@ so that a learner can use the tool without false release, durability, accessibil
   - [x] Add a single release-gate runner and evidence manifest with commit/tree/lock/runtime/browser/command/result/artifact fields.
   - [x] Retain Playwright trace, screenshot, and video on failure with zero retries.
   - [x] Add GitHub Actions validation plus three sequential certification jobs on the same commit.
-- [x] Module 3 — durability, compatibility, concurrency, and recovery (AC: 5, 6, 14)
+- [ ] Module 3 — durability, compatibility, concurrency, and recovery (AC: 5, 6, 14)
   - [x] Add real historical backup fixtures from tagged and current states and a complete compatibility matrix.
   - [x] Add hostile-backup and injected failure coverage without changing schema, envelope, store, entity, or XP contracts.
   - [x] Add persistent-storage status/request UX while preserving the backup requirement.
-  - [x] Add a schema-free cross-tab revision protocol that prevents stale writes and blocks destructive actions while a peer tab is active.
+  - [ ] Add a schema-free cross-tab revision protocol that prevents stale writes and blocks destructive actions while a peer tab is active.
 - [ ] Module 4 — routing and task interaction correctness (AC: 7, 14)
   - [ ] Complete the route matrix for valid/invalid return paths, onboarding variants, history, and idempotency.
   - [ ] Prove passive routes do not mutate storage and explicit actions write once.
@@ -188,7 +188,7 @@ GPT-5 Codex
 
 - Ultimate context analysis completed from the approved remediation roadmap, audit, current source, current specs, Git history, and official runtime/CI documentation.
 - Modules 0–2 are accepted after three consecutive complete local release-gate passes on one immutable commit and tree. Hosted CI execution remains a later promotion requirement, not a claim made by this local acceptance.
-- Module 3 is accepted locally on immutable commit `4f541de930d0a2bef5e260cd86177714e53f2d41`. Backup compatibility, hostile-input rollback, persistence disclosure, cross-tab read-only coordination, destructive-action blocking, and bundle budgets are implemented and covered. The historical `v1.2.0` fixture is a deterministic reconstruction of the immutable tagged contract, not falsely represented as an archived user export.
+- Module 3 was initially accepted locally on immutable commit `4f541de930d0a2bef5e260cd86177714e53f2d41`, but that acceptance was invalidated by a subsequent adversarial lifecycle review. The review found unsafe BFCache restoration, non-revision-bound synchronization, lost closing-message revisions, transport recovery without rediscovery, coordinator-unbound asynchronous write completion, and incomplete fail-closed transport handling. Module 3 is reopened and its acceptance-pass count is reset to zero. The accepted backup, rollback, persistence-disclosure, and bundle-budget work remains retained pending recertification of the complete module.
 
 ### File List
 
@@ -231,3 +231,4 @@ GPT-5 Codex
 - 2026-07-13: Marked the story in progress; kept Module 0 open pending the release-foundation gate.
 - 2026-07-14: Accepted Modules 0–2 after three complete passes; advanced to Module 3.
 - 2026-07-16: Accepted Module 3 only after correcting the clean-install evidence gap and completing three restarted full passes; advanced to Module 4.
+- 2026-07-16: Reopened Module 3 after adversarial review found six uncovered cross-tab lifecycle and coordination defects; reset its acceptance-pass count to zero and paused Module 4.
