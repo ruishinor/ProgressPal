@@ -38,8 +38,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run immutable release gate
         env:
-          RELEASE_MODULE: foundation
+          RELEASE_MODULE: module-3-storage-durability
           RELEASE_PASS: '1'
+          RELEASE_REVIEW_FILE: docs/remediation/module-3-release-review.json
         run: npm run verify:release
       - name: Upload release evidence
         if: always()
@@ -74,8 +75,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run immutable release gate
         env:
-          RELEASE_MODULE: foundation
+          RELEASE_MODULE: module-3-storage-durability
           RELEASE_PASS: '2'
+          RELEASE_REVIEW_FILE: docs/remediation/module-3-release-review.json
         run: npm run verify:release
       - name: Upload release evidence
         if: always()
@@ -110,8 +112,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run immutable release gate
         env:
-          RELEASE_MODULE: foundation
+          RELEASE_MODULE: module-3-storage-durability
           RELEASE_PASS: '3'
+          RELEASE_REVIEW_FILE: docs/remediation/module-3-release-review.json
         run: npm run verify:release
       - name: Upload release evidence
         if: always()

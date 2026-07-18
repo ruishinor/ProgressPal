@@ -5,7 +5,12 @@ import { platform, release } from 'node:os';
 import { basename, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { diagnosticLines, sanitizeEnvironment } from './release-gate-utils.mjs';
+import {
+  diagnosticLines,
+  executionSummary,
+  sanitizeEnvironment,
+  validateReviewEvidence,
+} from './release-gate-utils.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const ARTIFACT_ROOT = resolve(ROOT, 'artifacts', 'release-evidence');
@@ -40,6 +45,8 @@ const moduleName =
 const passNumber = Number(
   process.env.RELEASE_PASS ?? readArgument('--pass', '0'),
 );
+const reviewFileInput =
+  process.env.RELEASE_REVIEW_FILE ?? readArgument('--review-file', '');
 const startedAt = new Date();
 const commands = [];
 
@@ -83,6 +90,7 @@ async function run(executable, commandArgs, label, validate) {
   });
 
   const warnings = diagnosticLines(stdout, stderr);
+  const summary = executionSummary(stdout, stderr);
   const record = {
     label,
     executable,
@@ -93,6 +101,9 @@ async function run(executable, commandArgs, label, validate) {
     signal: outcome.signal,
     warningCount: warnings.length,
     warnings,
+    retryCount: summary.retryCount,
+    skipCount: summary.skipCount,
+    testCount: summary.testCount,
     stdout: cleanOutput(stdout),
     stderr: cleanOutput(stderr),
   };
@@ -105,6 +116,12 @@ async function run(executable, commandArgs, label, validate) {
   }
   if (warnings.length > 0) {
     throw new Error(label + ' emitted warning or stderr output');
+  }
+  if (summary.skipCount > 0) {
+    throw new Error(label + ' reported skipped, pending, or todo tests');
+  }
+  if (summary.retryCount > 0) {
+    throw new Error(label + ' reported retried tests');
   }
   if (validate !== undefined) {
     validate(record);
@@ -199,12 +216,35 @@ const manifest = {
   reviewer: process.env.RELEASE_REVIEWER ?? null,
   adversarialFindings: [],
   retrospective: null,
+  reviewEvidence: null,
   failure: null,
 };
 
 let failure;
 
 try {
+  if (reviewFileInput.length === 0) {
+    throw new Error(
+      'Release certification requires RELEASE_REVIEW_FILE or --review-file.',
+    );
+  }
+  const reviewFile = resolve(ROOT, reviewFileInput);
+  const reviewFilePath = relative(ROOT, reviewFile).replaceAll('\\', '/');
+  if (reviewFilePath === '..' || reviewFilePath.startsWith('../')) {
+    throw new Error(
+      'Release review evidence must be stored in the repository.',
+    );
+  }
+  const reviewPayload = JSON.parse(await readFile(reviewFile, 'utf8'));
+  const review = validateReviewEvidence(reviewPayload, moduleName);
+  manifest.reviewer = review.reviewer;
+  manifest.adversarialFindings = review.adversarialFindings;
+  manifest.retrospective = review.retrospective;
+  manifest.reviewEvidence = {
+    path: reviewFilePath,
+    sha256: await sha256(reviewFile),
+  };
+
   if (!/^v24\./.test(process.version)) {
     throw new Error(
       'Release certification requires Node 24; observed ' + process.version,
@@ -364,6 +404,14 @@ try {
   manifest.totals.commandCount = commands.length;
   manifest.totals.warningCount = commands.reduce(
     (total, command) => total + command.warningCount,
+    0,
+  );
+  manifest.totals.retryCount = commands.reduce(
+    (total, command) => total + command.retryCount,
+    0,
+  );
+  manifest.totals.skipCount = commands.reduce(
+    (total, command) => total + command.skipCount,
     0,
   );
   await mkdir(ARTIFACT_ROOT, { recursive: true });
