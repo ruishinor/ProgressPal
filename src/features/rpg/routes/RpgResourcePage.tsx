@@ -20,6 +20,7 @@ import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActio
 import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
+import { useAppState } from '@/lib/appState';
 import type { ProgressStatus } from '@/lib/domain';
 import { getRpgFocusPath, getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
 
@@ -148,6 +149,7 @@ function RpgResourceLoadingState() {
 }
 
 export function RpgResourcePage() {
+  const { coordination, runLocalMutation } = useAppState();
   const { itemId } = useParams();
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
   const [state, setState] = useState<RpgResourcePageState>(initialState);
@@ -277,6 +279,8 @@ export function RpgResourcePage() {
       return;
     }
 
+    const parsedConfidence = validation.parsedConfidence;
+
     setFormState((currentForm) =>
       currentForm === null
         ? currentForm
@@ -291,32 +295,38 @@ export function RpgResourcePage() {
     const timestamp = new Date().toISOString();
 
     try {
-      const result = await saveRpgStudyResourceProgress({
-        completedAt: getDefaultCompletedAt(
-          summary,
-          nextValues.status,
-          timestamp,
-        ),
-        confidence:
-          nextValues.status === 'skipped_optional'
-            ? 0
-            : validation.parsedConfidence,
-        evidenceText:
-          nextValues.evidenceText.trim().length === 0
-            ? undefined
-            : nextValues.evidenceText.trim(),
-        evidenceType:
-          nextValues.evidenceText.trim().length === 0
-            ? undefined
-            : 'self_report',
-        itemId: summary.itemId,
-        notes:
-          nextValues.notes.trim().length === 0
-            ? undefined
-            : nextValues.notes.trim(),
-        startedAt: getDefaultStartedAt(summary, nextValues.status, timestamp),
-        status: nextValues.status,
-      });
+      const result = await runLocalMutation(
+        () =>
+          saveRpgStudyResourceProgress({
+            completedAt: getDefaultCompletedAt(
+              summary,
+              nextValues.status,
+              timestamp,
+            ),
+            confidence:
+              nextValues.status === 'skipped_optional' ? 0 : parsedConfidence,
+            evidenceText:
+              nextValues.evidenceText.trim().length === 0
+                ? undefined
+                : nextValues.evidenceText.trim(),
+            evidenceType:
+              nextValues.evidenceText.trim().length === 0
+                ? undefined
+                : 'self_report',
+            itemId: summary.itemId,
+            notes:
+              nextValues.notes.trim().length === 0
+                ? undefined
+                : nextValues.notes.trim(),
+            startedAt: getDefaultStartedAt(
+              summary,
+              nextValues.status,
+              timestamp,
+            ),
+            status: nextValues.status,
+          }),
+        { invalidateRoute: false },
+      );
       refreshHud();
       const nextSummary = await loadRpgStudyResourceSummary(summary.itemId);
 
@@ -663,11 +673,18 @@ export function RpgResourcePage() {
           ) : null}
 
           <div className="rpg-study-resource__form-actions">
-            <RpgButton disabled={formState?.isSaving ?? false} type="submit">
+            <RpgButton
+              disabled={
+                !coordination.canWrite || (formState?.isSaving ?? false)
+              }
+              type="submit"
+            >
               Save local progress
             </RpgButton>
             <RpgButton
-              disabled={formState?.isSaving ?? false}
+              disabled={
+                !coordination.canWrite || (formState?.isSaving ?? false)
+              }
               onClick={handleMarkComplete}
               type="button"
               variant="secondary"

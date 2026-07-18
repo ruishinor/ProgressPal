@@ -981,6 +981,23 @@ describe('database repositories', () => {
   });
 
   describe('XP engine repository integration', () => {
+    it('keeps XP reads passive on an empty current-schema database', async () => {
+      testDatabase = createTestDatabase('xp-passive-read');
+      await testDatabase.db.open();
+
+      await expect(
+        getXpSummary({ db: testDatabase.db }),
+      ).resolves.toMatchObject({
+        level: 1,
+        totalXp: 0,
+      });
+      await expect(
+        listXpTransactions({ db: testDatabase.db }),
+      ).resolves.toEqual([]);
+      expect(await testDatabase.db.appMeta.count()).toBe(0);
+      expect(await testDatabase.db.learnerProfile.count()).toBe(0);
+    });
+
     it('starts with 0 XP and level 1 on a fresh database', async () => {
       testDatabase = createTestDatabase('xp-fresh');
       await initializeDatabase({
@@ -1000,6 +1017,51 @@ describe('database repositories', () => {
 
       const txs = await listXpTransactions({ db: testDatabase.db });
       expect(txs).toEqual([]);
+    });
+
+    it('returns a real XP summary when progress references missing catalog data', async () => {
+      testDatabase = createTestDatabase('xp-missing-catalog');
+      await initializeDatabase({
+        db: testDatabase.db,
+        now: createClock('2026-06-12T16:00:00.000Z'),
+      });
+
+      const missingItemResult = await upsertProgressAndAwardXp(
+        {
+          confidence: 2,
+          itemId: 'missing-item',
+          status: 'started',
+        },
+        { db: testDatabase.db },
+      );
+      expect(missingItemResult.xpSummary).toMatchObject({
+        level: 1,
+        totalXp: 0,
+      });
+
+      await testDatabase.db.courseItems.add({
+        id: 'item-with-missing-unit',
+        createdAt: '2026-06-12T16:01:00.000Z',
+        estimatedMinutes: 20,
+        order: 0,
+        required: true,
+        title: 'Orphaned item',
+        type: 'lecture',
+        unitId: 'missing-unit',
+        updatedAt: '2026-06-12T16:01:00.000Z',
+      });
+      const missingUnitResult = await upsertProgressAndAwardXp(
+        {
+          confidence: 2,
+          itemId: 'item-with-missing-unit',
+          status: 'started',
+        },
+        { db: testDatabase.db },
+      );
+      expect(missingUnitResult.xpSummary).toMatchObject({
+        level: 1,
+        totalXp: 0,
+      });
     });
 
     it('awards study session XP only for duration >= 25 minutes and prevents duplicate awards', async () => {

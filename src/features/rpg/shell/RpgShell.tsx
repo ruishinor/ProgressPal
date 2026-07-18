@@ -2,11 +2,12 @@ import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
-import { RpgProgressBar } from '@/features/rpg/components';
+import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import { useAppState } from '@/lib/appState';
 
 type RpgShellHudStatus = 'error' | 'loading' | 'ready';
 
@@ -148,6 +149,7 @@ function RpgHeroHud({
 }
 
 export function RpgShell() {
+  const { coordination, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
   const location = useLocation();
@@ -237,6 +239,51 @@ export function RpgShell() {
           state={hudState}
         />
         <main className="rpg-shell__main" id="rpg-main-content">
+          {coordination.blockReason === 'peer-active' ? (
+            <RpgPanel
+              description="Another participating ProgressPal tab owns local writing."
+              role="alert"
+              title="This ProgressPal tab is read-only"
+            >
+              <p>
+                You can still review saved progress and navigate here. Close the
+                writer tab; this tab will reread local data before enabling
+                changes.
+              </p>
+            </RpgPanel>
+          ) : null}
+          {coordination.blockReason === 'stale' ? (
+            <RpgPanel
+              description="ProgressPal detected a newer local revision."
+              role="alert"
+              title="Reload changed local data"
+            >
+              <p>
+                Reload before making changes. This tab will remain read-only if
+                another tab still owns local writing.
+              </p>
+              <RpgButton
+                onClick={() => {
+                  void refresh();
+                }}
+                variant="secondary"
+              >
+                Reload local state
+              </RpgButton>
+            </RpgPanel>
+          ) : null}
+          {coordination.blockReason === 'unavailable' ? (
+            <RpgPanel
+              description="The required Web Locks ownership guard is unavailable."
+              role="alert"
+              title="Local writing is unavailable"
+            >
+              <p>
+                Saved data can still be reviewed. ProgressPal will not rely on
+                advisory tab notifications to authorize IndexedDB writes.
+              </p>
+            </RpgPanel>
+          ) : null}
           <Outlet context={{ refreshHud } satisfies RpgShellOutletContext} />
         </main>
         <RpgBottomNav />

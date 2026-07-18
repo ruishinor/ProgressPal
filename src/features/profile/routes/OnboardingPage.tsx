@@ -24,7 +24,8 @@ type OnboardingMode = 'quick' | 'customize';
 export function OnboardingPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { coordination, profile, refresh, saveProfile } = useAppState();
+  const { coordination, profile, runLocalMutation, saveProfile } =
+    useAppState();
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
   const [quickStartError, setQuickStartError] = useState(false);
@@ -70,13 +71,16 @@ export function OnboardingPage() {
     setImportError(false);
 
     try {
-      await restoreDatabaseFromBackup(envelope.data, {
-        seed: bundledCourseSeed,
-        fileName: 'restored-backup.json',
-      });
+      await runLocalMutation(
+        () =>
+          restoreDatabaseFromBackup(envelope.data, {
+            seed: bundledCourseSeed,
+            fileName: 'restored-backup.json',
+          }),
+        { invalidateRoute: true },
+      );
       // Refreshing re-reads app state; if the backup completed onboarding, the
       // app shell forwards to the dashboard. Otherwise the learner stays here.
-      await refresh();
     } catch {
       setImportError(true);
       setImporting(false);
@@ -158,7 +162,7 @@ export function OnboardingPage() {
       )}
       <ImportBackupControl
         busy={importing}
-        disabled={!coordination.canWrite}
+        disabled={!coordination.canWrite || coordination.peerActive}
         confirmLabel="Restore this backup"
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         heading="Already have a backup?"

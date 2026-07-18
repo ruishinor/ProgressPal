@@ -1,12 +1,15 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
+import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
+import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
 
 export function RpgRouteShell() {
   const location = useLocation();
-  const { error, requiresOnboarding, status } = useAppState();
+  const { coordination, error, refresh, requiresOnboarding, status } =
+    useAppState();
 
   if (status === 'loading') {
     return (
@@ -29,6 +32,20 @@ export function RpgRouteShell() {
         <div className="rpg-shell__frame">
           <main className="rpg-shell__main">
             <ErrorState
+              action={
+                <Button
+                  disabled={
+                    coordination.writeOwnership !== 'owned' ||
+                    coordination.blockReason === 'discovering' ||
+                    coordination.blockReason === 'unavailable'
+                  }
+                  onClick={() => {
+                    void refresh();
+                  }}
+                >
+                  Retry local data load
+                </Button>
+              }
               description={error ?? 'Local data could not be loaded.'}
               title="RPG startup failed"
             />
@@ -50,5 +67,5 @@ export function RpgRouteShell() {
     );
   }
 
-  return <Outlet />;
+  return <DataEpochOutlet />;
 }

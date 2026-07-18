@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import Dexie from 'dexie';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildBackupEnvelope } from '@/lib/backup';
@@ -22,9 +23,59 @@ import {
   upsertProgressAndAwardXp,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
+import { getSharedDatabase } from '@/lib/db/database';
 import { achievementDefinitions } from '@/lib/achievements';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
+import {
+  getLocalCoordinationStatus,
+  localCoordinationStorageKeys,
+  type LocalCoordinationMessage,
+} from '@/lib/storage';
 import { bundledCourseSeed } from '@/seed';
+import { FakeLockManager } from '../lib/localDataCoordinationFakes';
+
+function dispatchPeerMessage(
+  kind: LocalCoordinationMessage['kind'],
+  revision = 0,
+) {
+  const message: LocalCoordinationMessage = {
+    id: `app-peer-${kind}-${Date.now()}`,
+    kind,
+    revision,
+    sentAt: Date.now(),
+    tabId: 'app-test-peer',
+  };
+
+  window.dispatchEvent(
+    new StorageEvent('storage', {
+      key: localCoordinationStorageKeys.message,
+      newValue: JSON.stringify(message),
+    }),
+  );
+}
+
+async function holdPeerTabLocks() {
+  const lockManager = navigator.locks as unknown as FakeLockManager;
+  const releasePresence = await lockManager.hold(
+    localCoordinationStorageKeys.presenceLock,
+    'shared',
+  );
+  const releaseWriter = await lockManager.hold(
+    localCoordinationStorageKeys.writerLock,
+    'exclusive',
+  );
+  let released = false;
+
+  return async () => {
+    if (released) {
+      return;
+    }
+
+    released = true;
+    await releaseWriter();
+    await releasePresence();
+  };
+}
 
 describe('App', () => {
   it('redirects a fresh run to onboarding', async () => {
@@ -167,6 +218,396 @@ describe('App', () => {
     expect(
       `${window.location.pathname}${window.location.search}${window.location.hash}`,
     ).toBe('/rpg/focus?itemId=week-4-lecture#resume');
+  });
+
+  it.each([
+    ['/settings', 'Local startup failed'],
+    ['/rpg/settings', 'RPG startup failed'],
+  ])(
+    'explains and automatically recovers from a peer-blocked startup repair at %s',
+    async (route, failureHeading) => {
+      await initializeDatabase({ seed: bundledCourseSeed });
+      await saveLearnerProfile(
+        {
+          ...defaultLearnerProfileValues,
+          targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+        },
+        { completeOnboarding: true },
+      );
+      await getSharedDatabase().appMeta.update('app-meta', {
+        appVersion: '1.2.0',
+      });
+      const releasePeer = await holdPeerTabLocks();
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await renderAppAtRoute(route);
+
+        expect(
+          await screen.findByRole('heading', { name: failureHeading }),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.',
+          ),
+        ).toBeInTheDocument();
+        const retryButton = screen.getByRole('button', {
+          name: 'Retry local data load',
+        });
+        expect(retryButton).toBeDisabled();
+        expect(consoleError).not.toHaveBeenCalled();
+
+        await releasePeer();
+        dispatchPeerMessage('closing');
+
+        expect(
+          await screen.findByRole('heading', { name: 'Settings' }),
+        ).toBeInTheDocument();
+        expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+      } finally {
+        await releasePeer();
+        consoleError.mockRestore();
+      }
+    },
+  );
+
+  it('hides stale route controls before acknowledging a reload', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const originalProfileGet = getSharedDatabase().learnerProfile.get.bind(
+      getSharedDatabase().learnerProfile,
+    );
+    let releaseStaleRead: () => void = () => {};
+    let reportStaleReadStarted: () => void = () => {};
+    const staleReadGate = new Promise<void>((resolve) => {
+      releaseStaleRead = resolve;
+    });
+    const staleReadStarted = new Promise<void>((resolve) => {
+      reportStaleReadStarted = resolve;
+    });
+    vi.spyOn(getSharedDatabase().learnerProfile, 'get').mockImplementationOnce(
+      (key) =>
+        Dexie.Promise.resolve().then(async () => {
+          reportStaleReadStarted();
+          await staleReadGate;
+          return originalProfileGet(key);
+        }),
+    );
+
+    const nextRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', nextRevision);
+    await staleReadStarted;
+    expect(
+      screen.getByRole('heading', { name: 'Preparing your workspace' }),
+    ).toBeInTheDocument();
+    try {
+      expect(getLocalCoordinationStatus()).toMatchObject({
+        blockReason: 'stale',
+        canWrite: false,
+        revision: nextRevision,
+        stale: true,
+      });
+      expect(
+        screen.queryByRole('button', { name: 'Export local backup' }),
+      ).not.toBeInTheDocument();
+    } finally {
+      releaseStaleRead();
+    }
+
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Export local backup' }),
+    ).toBeEnabled();
+  }, 10_000);
+
+  it('reads and acknowledges stale state before applying a required repair', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    await getSharedDatabase().appMeta.update('app-meta', {
+      appVersion: '1.2.0',
+    });
+    const staleRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', staleRevision);
+
+    await waitFor(async () => {
+      expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+      expect(getLocalCoordinationStatus()).toMatchObject({
+        blockReason: null,
+        canWrite: true,
+        stale: false,
+      });
+    });
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+  }, 10_000);
+
+  it('keeps the route guarded when the revision changes during an automatic reload', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const originalProfileGet = getSharedDatabase().learnerProfile.get.bind(
+      getSharedDatabase().learnerProfile,
+    );
+    let profileReadCount = 0;
+    let releaseFirstRead: () => void = () => {};
+    let reportFirstReadStarted: () => void = () => {};
+    const firstReadGate = new Promise<void>((resolve) => {
+      releaseFirstRead = resolve;
+    });
+    const firstReadStarted = new Promise<void>((resolve) => {
+      reportFirstReadStarted = resolve;
+    });
+    vi.spyOn(getSharedDatabase().learnerProfile, 'get').mockImplementation(
+      (key) =>
+        Dexie.Promise.resolve().then(async () => {
+          profileReadCount += 1;
+          const value = await originalProfileGet(key);
+
+          if (profileReadCount === 1) {
+            reportFirstReadStarted();
+            await firstReadGate;
+          }
+
+          return value;
+        }),
+    );
+
+    const firstStaleRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', firstStaleRevision);
+    await firstReadStarted;
+    expect(
+      screen.getByRole('heading', { name: 'Preparing your workspace' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Export local backup' }),
+    ).not.toBeInTheDocument();
+
+    const revisionDuringRead = firstStaleRevision + 1;
+    dispatchPeerMessage('write', revisionDuringRead);
+    releaseFirstRead();
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Settings',
+      }),
+    ).toBeInTheDocument();
+    expect(getLocalCoordinationStatus()).toMatchObject({
+      blockReason: null,
+      canWrite: true,
+      revision: revisionDuringRead,
+      stale: false,
+    });
+    expect(
+      screen.getByRole('button', { name: 'Export local backup' }),
+    ).toBeEnabled();
+  }, 10_000);
+
+  it('keeps classic navigation usable while disabling contended mutation controls', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    const releasePeer = await holdPeerTabLocks();
+
+    try {
+      await renderAppAtRoute('/course/week-0-problem-set');
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Save progress' }),
+      ).toBeDisabled();
+
+      await user.click(screen.getByRole('link', { name: 'Course Map' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Course Map' }),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole('link', { name: 'Sessions' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Study sessions' }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Start live session' }),
+      ).toBeDisabled();
+      for (const saveButton of screen.getAllByRole('button', {
+        name: 'Save session',
+      })) {
+        expect(saveButton).toBeDisabled();
+      }
+    } finally {
+      await releasePeer();
+    }
+  });
+
+  it('keeps RPG navigation usable while disabling contended mutation controls', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    const releasePeer = await holdPeerTabLocks();
+
+    try {
+      await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Save local progress' }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Mark locally complete' }),
+      ).toBeDisabled();
+
+      await user.click(screen.getByRole('link', { name: 'Back to week' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Week 4: Memory' }),
+      ).toBeInTheDocument();
+    } finally {
+      await releasePeer();
+    }
+  });
+
+  it('allows owner writes but disables destructive settings while a peer is present', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const lockManager = navigator.locks as unknown as FakeLockManager;
+    const releasePeerPresence = await lockManager.hold(
+      localCoordinationStorageKeys.presenceLock,
+      'shared',
+    );
+
+    try {
+      dispatchPeerMessage('hello', getLocalCoordinationStatus().revision);
+      await waitFor(() => {
+        expect(getLocalCoordinationStatus().peerActive).toBe(true);
+      });
+
+      expect(
+        screen.queryByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Save local settings' }),
+      ).toBeEnabled();
+      expect(
+        screen.getByRole('button', { name: 'Export local backup' }),
+      ).toBeEnabled();
+      expect(screen.getByLabelText('Backup file')).toBeDisabled();
+      expect(screen.getByLabelText('Confirmation phrase')).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Reset all local data' }),
+      ).toBeDisabled();
+
+      await user.click(
+        screen.getByRole('button', { name: 'Save local settings' }),
+      );
+      expect(
+        await screen.findByText('Local profile saved'),
+      ).toBeInTheDocument();
+    } finally {
+      await releasePeerPresence();
+      dispatchPeerMessage('closing', getLocalCoordinationStatus().revision);
+    }
+  });
+
+  it('fails closed when both browser coordination transports are unavailable', async () => {
+    const storageWrite = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('Injected storage transport failure.');
+      });
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    vi.stubGlobal('BroadcastChannel', undefined);
+
+    try {
+      await renderAppAtRoute('/');
+
+      expect(
+        await screen.findByRole('heading', { name: 'Local startup failed' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Safe local-tab coordination is unavailable in this browser context. ProgressPal will keep local writes blocked.',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Retry local data load' }),
+      ).toBeDisabled();
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      storageWrite.mockRestore();
+      consoleError.mockRestore();
+      vi.unstubAllGlobals();
+    }
   });
 
   it('returns an imported onboarded learner to the requested deep link', async () => {

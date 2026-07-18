@@ -71,8 +71,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     coordination,
     persistenceStatus,
     profile,
-    refresh,
     requestPersistentStorage,
+    runLocalMutation,
     saveProfile,
   } = useAppState();
   const [toast, setToast] = useState<SettingsToast | null>(null);
@@ -98,7 +98,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       });
 
       downloadJson(fileName, JSON.stringify(envelope, null, 2));
-      await recordBackupEvent({ type: 'export', fileName });
+      await runLocalMutation(
+        () => recordBackupEvent({ type: 'export', fileName }),
+        { invalidateRoute: false },
+      );
 
       setToast({
         title: 'Backup exported',
@@ -140,16 +143,19 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     setImporting(true);
 
     try {
-      await restoreDatabaseFromBackup(envelope.data, {
-        seed: bundledCourseSeed,
-        fileName: backupFileName(new Date()),
-      });
+      await runLocalMutation(
+        () =>
+          restoreDatabaseFromBackup(envelope.data, {
+            seed: bundledCourseSeed,
+            fileName: backupFileName(new Date()),
+          }),
+        { invalidateRoute: true },
+      );
       // Land on the restored dashboard so the import has clear, visible
       // feedback. Refreshing app state forces a reload that unmounts this page,
       // so a success toast here would never survive; the dashboard is the
       // feedback instead. Verify-your-restore guidance lives in the preview.
       navigate('/dashboard', { replace: true });
-      await refresh();
     } catch {
       setToast({
         title: 'Import failed',
@@ -165,8 +171,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     setResetting(true);
 
     try {
-      await resetAllData({ seed: bundledCourseSeed });
-      await refresh();
+      await runLocalMutation(() => resetAllData({ seed: bundledCourseSeed }), {
+        invalidateRoute: true,
+      });
       // App state now requires onboarding again; the shell redirects there.
     } catch {
       setToast({
@@ -259,7 +266,6 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         persistenceStatus === 'error' ? (
           <div className="action-row">
             <Button
-              disabled={!coordination.canWrite}
               onClick={() => {
                 void handleRequestPersistence();
               }}
@@ -291,7 +297,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       </Card>
       <ImportBackupControl
         busy={importing}
-        disabled={!coordination.canWrite}
+        disabled={!coordination.canWrite || coordination.peerActive}
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         onConfirmImport={handleImport}
       />
@@ -309,6 +315,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </label>
           <TextInput
             autoComplete="off"
+            disabled={!coordination.canWrite || coordination.peerActive}
             id="reset-confirmation"
             onChange={(event) => setResetPhrase(event.target.value)}
             placeholder={resetConfirmationPhrase}
@@ -317,7 +324,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
         <div className="action-row">
           <Button
-            disabled={!resetReady || !coordination.canWrite}
+            disabled={
+              !resetReady || !coordination.canWrite || coordination.peerActive
+            }
             loading={resetting}
             onClick={handleReset}
             variant="danger"

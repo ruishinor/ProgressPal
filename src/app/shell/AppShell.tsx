@@ -1,5 +1,6 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
+import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
 import {
   getRouteDefinition,
   primaryNavigationItems,
@@ -78,11 +79,25 @@ export function AppShell() {
             value: 'Load failed',
           },
         ]}
-        summary="The app could not open its local storage."
+        summary="ProgressPal could not finish checking or repairing its local storage."
         title="ProgressPal CS50 Edition"
       >
         <section className="page-section">
           <ErrorState
+            action={
+              <Button
+                disabled={
+                  coordination.writeOwnership !== 'owned' ||
+                  coordination.blockReason === 'discovering' ||
+                  coordination.blockReason === 'unavailable'
+                }
+                onClick={() => {
+                  void refresh();
+                }}
+              >
+                Retry local data load
+              </Button>
+            }
             description={error ?? 'Local data could not be loaded.'}
             title="Local startup failed"
           />
@@ -156,14 +171,13 @@ export function AppShell() {
         <section className="page-section">
           <Card
             role="alert"
-            title="Another ProgressPal tab is open"
+            title="This ProgressPal tab is read-only"
             variant="danger"
           >
             <p className="card__description">
-              Local changes, imports, and resets are blocked in every tab while
-              more than one ProgressPal tab is active. Close the other tab, then
-              continue here. This prevents stale screens from silently
-              overwriting the same IndexedDB data.
+              Another participating ProgressPal tab owns local writing. You can
+              still review your saved data and navigate here. Close the writer
+              tab; this tab will reread IndexedDB before it enables changes.
             </p>
           </Card>
         </section>
@@ -176,12 +190,12 @@ export function AppShell() {
             variant="danger"
           >
             <p className="card__description">
-              Another tab changed ProgressPal data. Close any other tab and
-              reload the local state before making changes here.
+              ProgressPal detected a newer local revision. Reload it before
+              making changes. If another tab still owns writing, this tab will
+              remain available for reading after the reload.
             </p>
             <div className="action-row">
               <Button
-                disabled={coordination.peerActive}
                 onClick={() => {
                   void refresh();
                 }}
@@ -192,7 +206,23 @@ export function AppShell() {
           </Card>
         </section>
       ) : null}
-      <Outlet />
+      {coordination.blockReason === 'unavailable' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="Local tab safety is unavailable"
+            variant="danger"
+          >
+            <p className="card__description">
+              This browser context cannot provide the required Web Locks
+              ownership guard. ProgressPal keeps local writes blocked because
+              advisory tab notifications alone cannot prevent concurrent
+              IndexedDB writes.
+            </p>
+          </Card>
+        </section>
+      ) : null}
+      <DataEpochOutlet />
     </AppShellLayout>
   );
 }

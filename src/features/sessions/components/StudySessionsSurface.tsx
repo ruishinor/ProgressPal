@@ -15,6 +15,7 @@ import { Select } from '@/components/ui/Select';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
+import { useAppState } from '@/lib/appState';
 import {
   courseMapPath,
   getCourseItemDetailPath,
@@ -158,6 +159,7 @@ export function StudySessionsSurface({
   onProgressSaved,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
+  const { coordination, runLocalMutation } = useAppState();
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-focus'
@@ -402,7 +404,10 @@ export function StudySessionsSurface({
     setManualIsSaving(true);
 
     try {
-      const xpResult = await addStudySessionAndAwardXp(validation.input);
+      const xpResult = await runLocalMutation(
+        () => addStudySessionAndAwardXp(validation.input),
+        { invalidateRoute: false },
+      );
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
         0,
@@ -442,7 +447,10 @@ export function StudySessionsSurface({
     setLiveIsSaving(true);
 
     try {
-      const xpResult = await addStudySessionAndAwardXp(validation.input);
+      const xpResult = await runLocalMutation(
+        () => addStudySessionAndAwardXp(validation.input),
+        { invalidateRoute: false },
+      );
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
         0,
@@ -670,7 +678,11 @@ export function StudySessionsSurface({
                   </p>
                 </div>
                 <div className="course-detail-form__actions">
-                  <Button size="lg" type="submit">
+                  <Button
+                    disabled={!coordination.canWrite}
+                    size="lg"
+                    type="submit"
+                  >
                     Start live session
                   </Button>
                 </div>
@@ -849,6 +861,7 @@ export function StudySessionsSurface({
                 ) : null}
                 <div className="course-detail-form__actions">
                   <Button
+                    disabled={!coordination.canWrite}
                     loading={liveIsSaving}
                     onClick={() => {
                       void handleLiveSave();
@@ -1113,7 +1126,12 @@ export function StudySessionsSurface({
                   )}
                 </FormField>
                 <div className="course-detail-form__actions">
-                  <Button loading={manualIsSaving} size="lg" type="submit">
+                  <Button
+                    disabled={!coordination.canWrite}
+                    loading={manualIsSaving}
+                    size="lg"
+                    type="submit"
+                  >
                     Save session
                   </Button>
                 </div>

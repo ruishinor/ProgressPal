@@ -1,12 +1,4 @@
-export {
-  closeSharedDatabase,
-  createProgressPalDatabase,
-  deleteDatabaseByName,
-  deleteSharedDatabase,
-  getSharedDatabase,
-  isIndexedDbAvailable,
-  type ProgressPalDatabase,
-} from './database';
+export { isIndexedDbAvailable, type ProgressPalDatabase } from './database';
 export {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,
