@@ -14,6 +14,10 @@ export function registerServiceWorker(): void {
   }
 
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/sw.js');
+    void navigator.serviceWorker.register('/sw.js').catch(() => {
+      // The application remains fully usable online. ProgressPal makes no
+      // offline-readiness claim in the UI, so registration failure only needs
+      // to be contained rather than promoted into new global state.
+    });
   });
 }

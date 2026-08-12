@@ -25,7 +25,7 @@
 const CACHE_PREFIX = 'progresspal-cache-';
 const CACHE_VERSION = 'progresspal-cache-v1.3.0';
 const SHELL_URL = '/index.html';
-const ASSET_PATH_PREFIX = '/assets/';
+const STATIC_ASSET_URLS = ['/assets/character-profile.png'];
 
 /**
  * Fetch the production index.html and extract every same-origin boot asset it
@@ -59,7 +59,7 @@ self.addEventListener('install', (event) => {
       // Atomic: if the shell or any boot asset fails to cache, addAll rejects,
       // install fails, and this worker is discarded instead of activating as a
       // half-populated (broken) offline shell. Install retries on the next load.
-      await cache.addAll(['/', SHELL_URL, ...bootAssets]);
+      await cache.addAll(['/', SHELL_URL, ...bootAssets, ...STATIC_ASSET_URLS]);
 
       // Only take over once the boot set is fully cached.
       await self.skipWaiting();
@@ -147,11 +147,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Same-origin assets: cache-first with runtime population restricted to the
-  // build's hashed assets. The /assets/ restriction matters because SPA hosts
-  // rewrite unknown paths to index.html — without it, a 404-rewritten HTML
-  // document could be cached under an asset URL and poison the offline boot
-  // set. Hashed filenames make stale assets a non-issue.
+  // Same-origin static files: cache-first for the exact resources discovered
+  // and cached during install. Cache misses go to the network but are never
+  // added opportunistically: a 200 HTML SPA rewrite must not be cached under
+  // the requested script URL.
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_VERSION);
@@ -166,10 +165,6 @@ self.addEventListener('fetch', (event) => {
       }
 
       const response = await fetch(request);
-
-      if (response.ok && url.pathname.startsWith(ASSET_PATH_PREFIX)) {
-        await cache.put(request, response.clone());
-      }
 
       return response;
     })(),

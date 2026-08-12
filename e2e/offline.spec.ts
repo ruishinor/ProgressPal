@@ -173,6 +173,7 @@ test('cold-starts offline after one online production load', async ({
 
   // The shell and every referenced boot asset are in the versioned SW cache.
   expect(discovery.cachedPaths).toContain('/index.html');
+  expect(discovery.cachedPaths).toContain('/assets/character-profile.png');
   for (const asset of discovery.expected) {
     expect(discovery.cachedPaths).toContain(asset);
   }
@@ -188,12 +189,14 @@ test('cold-starts offline after one online production load', async ({
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({
     timeout: 15000,
   });
-
   // 4. Core persisted state is visible offline.
   await page.goto('/');
   await expect(
     page.getByRole('heading', { name: 'Local profile for Alex' }),
   ).toBeVisible({ timeout: 15000 });
+  await expect(
+    page.getByRole('img', { name: 'Character profile avatar' }).locator('img'),
+  ).toHaveAttribute('src', '/assets/character-profile.png');
 
   // 5. Offline navigation to a not-yet-visited route resolves.
   await page.getByRole('link', { name: 'Insights' }).click();
@@ -221,6 +224,54 @@ test('cold-starts offline after one online production load', async ({
 
   await page.context().setOffline(false);
   expect(consoleIssues).toEqual([]);
+});
+
+test('does not cache a 200 HTML rewrite under an unknown asset URL', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await completeOnboarding(page);
+  await waitForServiceWorkerControl(page);
+
+  const onlineResult = await page.evaluate(async (cacheVersion) => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    const missingAsset = '/assets/missing-runtime-chunk.js';
+    const response = await fetch(missingAsset);
+    const body = await response.text();
+    const cache = await scope.caches.open(cacheVersion);
+
+    return {
+      body,
+      cached: (await cache.match(missingAsset)) !== undefined,
+      status: response.status,
+    };
+  }, CACHE_VERSION);
+
+  expect(onlineResult.status).toBe(200);
+  expect(onlineResult.body).toContain('<!doctype html>');
+  expect(onlineResult.cached).toBe(false);
+
+  await page.context().setOffline(true);
+  const offlineResult = await page.evaluate(async (cacheVersion) => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    const missingAsset = '/assets/missing-runtime-chunk.js';
+    const cache = await scope.caches.open(cacheVersion);
+    let fetchRejected = false;
+
+    try {
+      await fetch(missingAsset);
+    } catch {
+      fetchRejected = true;
+    }
+
+    return {
+      cached: (await cache.match(missingAsset)) !== undefined,
+      fetchRejected,
+    };
+  }, CACHE_VERSION);
+
+  expect(offlineResult).toEqual({ cached: false, fetchRejected: true });
+  await page.context().setOffline(false);
 });
 
 test('keeps Module 16 reset and onboarding-import recovery working with the service worker active', async ({

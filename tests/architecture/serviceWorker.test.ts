@@ -15,8 +15,9 @@ import { describe, expect, it } from 'vitest';
  * - Activation purges only ProgressPal-prefixed caches, never foreign
  *   same-origin caches (finding M1).
  * - Successful navigations refresh the cached shell (finding M2).
- * - Runtime caching is restricted to hashed /assets/* files so a 404-rewritten
- *   HTML document can never poison the offline boot set (finding L1).
+ * - Runtime cache misses are never populated, so a 200 SPA rewrite cannot be
+ *   stored as JavaScript under an unknown asset URL (finding L1).
+ * - The fixed profile avatar is part of the explicit install-time static set.
  * - No file under src/ uses dynamic import(): every boot asset must be a
  *   static import so install-time discovery sees the complete boot set
  *   (finding L3; the service worker relies on this to cache everything).
@@ -114,15 +115,21 @@ describe('service worker source contract', () => {
     ).toMatch(/request\.mode === 'navigate'[\s\S]*cache\.put\(SHELL_URL/);
   });
 
-  it('restricts runtime caching to hashed build assets', () => {
-    // Contract: runtime cache.put only happens for /assets/* paths, so an SPA
-    // 404 rewrite serving index.html can never be cached under an asset URL.
+  it('never populates the asset cache from runtime cache misses', () => {
+    // A runtime fetch of an unknown asset can receive a 200 HTML SPA rewrite,
+    // so the non-navigation branch must never call cache.put(request, ...).
     expect(
       swSource,
-      'sw.js runtime-caching contract: cache population must be guarded by ' +
-        'url.pathname.startsWith(ASSET_PATH_PREFIX) so 404-rewritten HTML ' +
-        'cannot poison the offline boot set (finding L1)',
-    ).toContain('url.pathname.startsWith(ASSET_PATH_PREFIX)');
+      'sw.js runtime-caching contract: a runtime cache miss must not be ' +
+        'inserted because a 200 HTML SPA rewrite could poison an asset URL',
+    ).not.toContain('cache.put(request');
+  });
+
+  it('pre-caches the fixed same-origin profile avatar', () => {
+    expect(swSource).toContain(
+      "const STATIC_ASSET_URLS = ['/assets/character-profile.png'];",
+    );
+    expect(swSource).toContain('...STATIC_ASSET_URLS');
   });
 
   it('keeps src/ free of dynamic import() so install-time discovery sees the full boot set', () => {
