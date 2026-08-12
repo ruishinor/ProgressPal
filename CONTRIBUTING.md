@@ -5,10 +5,13 @@ ProgressPal accepts changes only when they preserve the product boundary: local-
 For the current v1.3 remediation, read these controlling documents first:
 
 ```text
+docs/rpg-v2/DECISIONS-rpg-v2.md (D-0075)
 docs/remediation/3-1-v1-3-release-remediation.md
 docs/remediation/sprint-change-proposal-2026-07-13.md
 docs/audits/progresspal-1.3.0-remediation-inventory.md
 ```
+
+D-0075 supersedes the older remediation story and proposal where their validation cadence, research prerequisites, or release sequence conflict.
 
 RPG-specific constraints remain under:
 
@@ -107,7 +110,7 @@ Scope Discipline Check
 
 ## Validation
 
-Run the canonical release gate three consecutive times from the same immutable state before a remediation stage is accepted. During foundation work, the explicit commands remain:
+For v1.3, use targeted validation during implementation. Repeat focused checks only for demonstrated timing, lifecycle, process-cleanup, synchronization, or observed flakiness risk. The final candidate requires one clean local canonical release gate and one independent clean CI gate from the accepted source/tree/lockfile state. During implementation, the available constituent commands remain:
 
 ```bash
 npm run lint

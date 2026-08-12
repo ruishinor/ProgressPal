@@ -1,5 +1,7 @@
 # Sprint Change Proposal: ProgressPal v1.3.0 Remediation
 
+> **Superseded execution contract (2026-08-12):** D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` replaces this proposal's three-pass cadence, comparative-research prerequisites, and artifact-promotion assumptions for the remaining v1.3 release work. The body below is retained as historical planning evidence.
+
 Status: approved for implementation by the user's 2026-07-13 instruction
 
 Scope classification: major replan

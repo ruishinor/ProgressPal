@@ -10,11 +10,11 @@ Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.
 
 ---
 
-## 2026-07-13 v1.3 remediation override
+## 2026-08-12 v1.3 remediation override
 
-The current operational release target is `1.3.0`, not `1.2.0`. Existing `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` tags are immutable historical releases. The complete current implementation sequence and three-pass acceptance rule are tracked in `docs/remediation/3-1-v1-3-release-remediation.md`.
+The current operational release target is `1.3.0`, not `1.2.0`. Existing `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` tags are immutable historical releases. D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` governs the remaining v1.3 validation cadence and release scope. The older remediation story remains historical evidence, not the current executable sequence.
 
-For this remediation only, that tracked story and the accepted decisions dated 2026-07-13 supersede older next-action, branch, release-tag, visual-target, and proportional-validation language in this file. Historical module sections remain useful implementation history. No further RPG expansion is authorized until comparative learner-task evidence supports it.
+For this remediation only, D-0075 supersedes older next-action, branch, release-tag, visual-target, research-prerequisite, and validation-cadence language in this file. Historical module sections remain useful implementation history. Classic remains the v1.3 default; RPG promotion is a separate later decision and no further RPG expansion is authorized by the release work.
 
 ---
 

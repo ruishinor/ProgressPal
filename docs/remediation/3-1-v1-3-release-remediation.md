@@ -12,6 +12,8 @@ sources:
   - docs/rpg-v2/MIGRATION_CONTRACT.md
 ---
 
+> **Superseded execution contract (2026-08-12):** D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` replaces this story's three-pass cadence, research prerequisites, and module sequence for the remaining v1.3 release work. This file remains the historical remediation record; do not use its unchecked tasks as the current executable plan.
+
 # Story 3.1: Certify ProgressPal v1.3.0 and validate the product direction
 
 Status: in-progress

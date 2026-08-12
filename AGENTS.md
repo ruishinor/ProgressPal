@@ -108,7 +108,7 @@ This is a certification gate, not a fast feedback loop. It requires a **clean gi
 
 ```powershell
 $env:RELEASE_MODULE = '<module-name>'
-$env:RELEASE_PASS = '<1|2|3>'
+$env:RELEASE_PASS = '1'
 $env:RELEASE_REVIEW_FILE = '<tracked-review-evidence.json>'  # e.g. docs/remediation/module-3-release-review.json
 npm run verify:release
 ```
@@ -117,7 +117,7 @@ It runs `npm ci`, lint, format check, typecheck, build, bundle budget, unit test
 
 ### CI (`.github/workflows/test.yml`)
 
-One workflow, "Release validation": three chained jobs (`Certification pass 1` → `2` → `3`) on `ubuntu-latest`, each checking out the same SHA and running `npm run verify:release`. No sharding, no retries, no deployment stage (deliberate omissions — see `docs/ci.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
+One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`, checking out the triggering SHA and running `npm run verify:release` once. Together with one clean local final gate, this implements D-0075. There is no sharding, retry, or deployment stage (deliberate omissions — see `docs/ci.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
 
 ## Code style guidelines
 

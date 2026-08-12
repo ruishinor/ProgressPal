@@ -2,7 +2,7 @@
 
 Status: active RPG v2 decision log  
 Created: 2026-06-20  
-Updated: 2026-07-13
+Updated: 2026-08-12
 Scope: ProgressPal RPG v2 only  
 Recommended repo path: `docs/rpg-v2/DECISIONS-rpg-v2.md`  
 Supersedes for RPG v2: root `DECISIONS.md` as an active RPG v2 authority, if that file has been intentionally deleted or archived
@@ -116,8 +116,9 @@ revisit-later = future possibility; not allowed in v2 unless accepted later
 | D-0070 | accepted   | Module completion requires source reconciliation, warning classification, committed evidence, and clean final state.              |
 | D-0071 | accepted   | Current app is v1.2 local-first tracker proof, not completed RPG v2.                                                              |
 | D-0072 | accepted   | The post-v1.2.1 backward-compatible release candidate is v1.3.0; historical tags remain immutable.                                |
-| D-0073 | accepted   | Every v1.3 remediation stage requires three consecutive clean targeted and universal passes before acceptance.                    |
+| D-0073 | superseded | Every v1.3 remediation stage required three consecutive clean targeted and universal passes; D-0075 replaces this cadence.        |
 | D-0074 | accepted   | Classic remains the control/default until comparative task evidence supports RPG promotion.                                       |
+| D-0075 | accepted   | v1.3 uses risk-proportional implementation checks, one clean local final gate, and one independent clean CI final gate.           |
 
 ---
 
@@ -1255,7 +1256,7 @@ Backup compatibility remains envelope 1/schema 2. `appVersion` is provenance met
 ## D-0073 — Three consecutive passes govern v1.3 remediation
 
 - Date: 2026-07-13
-- Status: accepted
+- Status: superseded by D-0075
 
 ### Decision
 
@@ -1273,3 +1274,18 @@ The canonical gate must cover unit, integration, security, UI, accessibility/UX 
 ### Decision
 
 Classic remains the default/control until the comparative classic/RPG/task-first/spreadsheet study meets the hard thresholds in the remediation story. RPG may become default, remain optional, or be retired; implementation preference is not evidence.
+
+---
+
+## D-0075 — Risk-proportional v1.3 validation and release scope
+
+- Date: 2026-08-12
+- Status: accepted
+
+### Decision
+
+D-0075 supersedes D-0073 for the remaining v1.3 validation cadence. During implementation, run the targeted checks relevant to the final change once. Repeat a focused check only when demonstrated timing, lifecycle, process-cleanup, synchronization, or observed flakiness risk justifies repetition.
+
+The final v1.3 candidate requires one clean local full release gate and one independent clean CI full release gate. The final gate remains fail-closed for errors, actionable warnings, unexpected skips or retries, process leaks, and dirty-tree changes. Historical three-pass results remain valid historical evidence for the exact states they tested; they are not rewritten or retroactively relabelled.
+
+Product comparison, RPG research, participant recruitment, and field trials are not technical v1.3 release prerequisites. Classic remains the v1.3 default. Any later RPG promotion requires separate evidence and a separate decision.

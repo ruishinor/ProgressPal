@@ -1,3 +1,5 @@
+> **Superseded execution plan (2026-08-12):** D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` replaces this document's three-pass certification sequence, research prerequisites, and later phase ordering for the remaining v1.3 release work. The content below is retained as historical planning evidence.
+
 I have all the evidence needed from the previous five-mission review. The right decomposition now is to have parallel planning specialists draft each phase against the actual code (so steps carry real file/line anchors), then I integrate everything into one continuous roadmap. Launching the planning swarm.
 
 All six planning agents completed. The combined output is large (~172 KB), so let me page through it to synthesize the final roadmap.
