@@ -193,11 +193,11 @@ export function RpgShell() {
           });
         });
       } catch (loadError) {
-        console.error('RPG shell HUD loading failed.', loadError);
-
         if (!isActive) {
           return;
         }
+
+        console.error('RPG shell HUD loading failed.', loadError);
 
         startTransition(() => {
           setHudState({
