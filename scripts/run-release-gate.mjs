@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { platform, release } from 'node:os';
@@ -8,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {
   diagnosticLines,
   executionSummary,
+  runContainedCommand,
   sanitizeEnvironment,
   validateReviewEvidence,
 } from './release-gate-utils.mjs';
@@ -17,6 +17,21 @@ const ARTIFACT_ROOT = resolve(ROOT, 'artifacts', 'release-evidence');
 const npmCli = process.env.npm_execpath;
 const repositoryExclude = resolve(ROOT, '.git', 'info', 'exclude');
 const args = process.argv.slice(2);
+const COMMAND_TIMEOUT_MS = 15 * 60 * 1000;
+const interruptController = new AbortController();
+let receivedSignal;
+
+function recordSignal(signal) {
+  if (receivedSignal !== undefined) {
+    return;
+  }
+
+  receivedSignal = signal;
+  interruptController.abort(new Error(`Release gate received ${signal}.`));
+}
+
+process.once('SIGINT', () => recordSignal('SIGINT'));
+process.once('SIGTERM', () => recordSignal('SIGTERM'));
 
 function readArgument(name, fallback) {
   const index = args.indexOf(name);
@@ -54,40 +69,30 @@ function cleanOutput(value) {
   return value.replaceAll('\u001b', '').trim();
 }
 
-async function run(executable, commandArgs, label, validate) {
+async function run(
+  executable,
+  commandArgs,
+  label,
+  validate,
+  timeoutMs = COMMAND_TIMEOUT_MS,
+) {
   const commandStartedAt = new Date();
   const inheritedEnvironment = sanitizeEnvironment(process.env);
-  const child = spawn(executable, commandArgs, {
+  const outcome = await runContainedCommand({
+    args: commandArgs,
     cwd: ROOT,
+    executable,
     env: {
       ...inheritedEnvironment,
       CI: 'true',
       NPM_CONFIG_UPDATE_NOTIFIER: 'false',
     },
-    shell: false,
-    windowsHide: true,
+    onStderr: (text) => process.stderr.write(text),
+    onStdout: (text) => process.stdout.write(text),
+    signal: interruptController.signal,
+    timeoutMs,
   });
-
-  let stdout = '';
-  let stderr = '';
-
-  child.stdout.on('data', (chunk) => {
-    const text = chunk.toString();
-    stdout += text;
-    process.stdout.write(text);
-  });
-  child.stderr.on('data', (chunk) => {
-    const text = chunk.toString();
-    stderr += text;
-    process.stderr.write(text);
-  });
-
-  const outcome = await new Promise((resolveOutcome, reject) => {
-    child.once('error', reject);
-    child.once('exit', (code, signal) => {
-      resolveOutcome({ code, signal });
-    });
-  });
+  const { stderr, stdout } = outcome;
 
   const warnings = diagnosticLines(stdout, stderr);
   const summary = executionSummary(stdout, stderr);
@@ -99,6 +104,9 @@ async function run(executable, commandArgs, label, validate) {
     endedAt: new Date().toISOString(),
     exitCode: outcome.code,
     signal: outcome.signal,
+    timeoutMs,
+    timedOut: outcome.timedOut,
+    interrupted: outcome.interrupted,
     warningCount: warnings.length,
     warnings,
     retryCount: summary.retryCount,
@@ -109,6 +117,14 @@ async function run(executable, commandArgs, label, validate) {
   };
   commands.push(record);
 
+  if (outcome.timedOut) {
+    throw new Error(
+      label + ' exceeded its ' + String(timeoutMs) + ' ms deadline',
+    );
+  }
+  if (outcome.interrupted) {
+    throw new Error(label + ' was interrupted by ' + receivedSignal);
+  }
   if (outcome.code !== 0 || outcome.signal !== null) {
     throw new Error(
       label + ' failed with exit ' + String(outcome.code ?? outcome.signal),
@@ -192,6 +208,7 @@ const manifest = {
   },
   nodeVersion: process.version,
   npmVersion: null,
+  playwrightVersion: null,
   browserVersion: null,
   workflowUrl:
     process.env.GITHUB_SERVER_URL &&
@@ -268,6 +285,7 @@ try {
         );
       }
     },
+    30_000,
   );
   manifest.commitSha = await run('git', ['rev-parse', 'HEAD'], 'commit SHA');
   manifest.treeSha = await run('git', ['rev-parse', 'HEAD^{tree}'], 'tree SHA');
@@ -302,6 +320,18 @@ try {
       executable: process.execPath,
       args: ['./node_modules/@playwright/test/cli.js', '--version'],
       label: 'Playwright version',
+      validate: (record) => {
+        manifest.playwrightVersion = record.stdout;
+      },
+    },
+    {
+      executable: process.execPath,
+      args: [
+        '--input-type=module',
+        '--eval',
+        "import { chromium } from '@playwright/test'; const browser = await chromium.launch(); try { process.stdout.write(browser.version()); } finally { await browser.close(); }",
+      ],
+      label: 'Chromium version',
       validate: (record) => {
         manifest.browserVersion = record.stdout;
       },
@@ -439,5 +469,6 @@ if (failure !== undefined) {
       ? (failure.stack ?? failure.message)
       : String(failure)) + '\n',
   );
-  process.exit(1);
+  process.exitCode =
+    receivedSignal === 'SIGINT' ? 130 : receivedSignal === 'SIGTERM' ? 143 : 1;
 }
