@@ -1,4 +1,11 @@
-import { startTransition, useEffect, useState, type FormEvent } from 'react';
+import {
+  startTransition,
+  useEffect,
+  useState,
+  type ComponentProps,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -48,6 +55,7 @@ import {
   listCourseItems,
   listCourseUnits,
   listStudySessions,
+  type AddStudySessionWithXpResult,
 } from '@/lib/db';
 import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
@@ -57,8 +65,11 @@ import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 // engine writes are identical.
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
+export type StudySessionSaveResult = AddStudySessionWithXpResult;
+
 type StudySessionsSurfaceProps = {
-  onProgressSaved?: () => void;
+  onProgressSaved?: (result: StudySessionSaveResult) => void;
+  saveFeedback?: ReactNode;
   variant?: StudySessionsSurfaceVariant;
 };
 
@@ -89,6 +100,28 @@ const initialPageState: SessionsPageState = {
   error: null,
   status: 'loading',
 };
+
+function RpgFocusDisclosureCard({
+  enabled,
+  label,
+  ...cardProps
+}: {
+  enabled: boolean;
+  label: string;
+} & ComponentProps<typeof Card>) {
+  const card = <Card {...cardProps} />;
+
+  if (!enabled) {
+    return card;
+  }
+
+  return (
+    <details className="rpg-focus__disclosure">
+      <summary>{label}</summary>
+      <div className="rpg-focus__disclosure-content">{card}</div>
+    </details>
+  );
+}
 
 function nowClockSnapshot() {
   return {
@@ -157,6 +190,7 @@ function getNextItemId(
 
 export function StudySessionsSurface({
   onProgressSaved,
+  saveFeedback,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
   const { coordination, runLocalMutation } = useAppState();
@@ -413,12 +447,16 @@ export function StudySessionsSurface({
         0,
       );
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      setToast({
-        description: `Session saved.${xpToastSuffix}`,
-        title: 'Session saved',
-        tone: 'success',
-      });
-      onProgressSaved?.();
+      if (!isRpgVariant) {
+        setToast({
+          description: `Session saved.${xpToastSuffix}`,
+          title: 'Session saved',
+          tone: 'success',
+        });
+      } else {
+        setToast(null);
+      }
+      onProgressSaved?.(xpResult);
       resetPageStateAfterSave();
     } catch (saveError) {
       setManualErrors({
@@ -456,12 +494,16 @@ export function StudySessionsSurface({
         0,
       );
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      setToast({
-        description: `Session saved.${xpToastSuffix}`,
-        title: 'Session saved',
-        tone: 'success',
-      });
-      onProgressSaved?.();
+      if (!isRpgVariant) {
+        setToast({
+          description: `Session saved.${xpToastSuffix}`,
+          title: 'Session saved',
+          tone: 'success',
+        });
+      } else {
+        setToast(null);
+      }
+      onProgressSaved?.(xpResult);
       resetPageStateAfterSave();
     } catch (saveError) {
       setLiveErrors({
@@ -478,6 +520,8 @@ export function StudySessionsSurface({
     lockedUnitId === null
       ? 'Log study effort against a task from the course. Sessions stay append-only and never imply completion.'
       : `Prefilled from one course task. The unit stays locked to that task while you log effort for ${prefillItemTitle ?? 'the selected task'}.`;
+  const selectedTaskTitle =
+    catalog.itemById.get(liveSession.itemId)?.title ?? prefillItemTitle;
 
   return (
     <section className={sectionClassName}>
@@ -535,6 +579,7 @@ export function StudySessionsSurface({
           title="Study sessions"
         />
       )}
+      {saveFeedback}
       <div className="sessions-layout">
         <div className="sessions-layout__forms">
           <Card
@@ -543,6 +588,12 @@ export function StudySessionsSurface({
             titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
           >
+            {isRpgVariant && selectedTaskTitle !== null ? (
+              <div className="rpg-focus__selected-task">
+                <span>Selected task</span>
+                <strong>{selectedTaskTitle}</strong>
+              </div>
+            ) : null}
             {liveSession.phase === 'idle' ? (
               <form
                 className="course-detail-form"
@@ -881,8 +932,10 @@ export function StudySessionsSurface({
               </div>
             ) : null}
           </Card>
-          <Card
+          <RpgFocusDisclosureCard
             description="Add one completed study session manually when you already know the item, start time, and duration."
+            enabled={isRpgVariant}
+            label="Log a past session manually"
             title="Manual session entry"
             titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
@@ -1139,10 +1192,12 @@ export function StudySessionsSurface({
                 </div>
               </form>
             ) : null}
-          </Card>
+          </RpgFocusDisclosureCard>
         </div>
-        <Card
+        <RpgFocusDisclosureCard
           description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
+          enabled={isRpgVariant}
+          label={`Review saved sessions (${ledgerRows.length})`}
           title="Your saved sessions"
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
@@ -1182,7 +1237,7 @@ export function StudySessionsSurface({
               ))}
             </ol>
           )}
-        </Card>
+        </RpgFocusDisclosureCard>
       </div>
       <Dialog
         actions={

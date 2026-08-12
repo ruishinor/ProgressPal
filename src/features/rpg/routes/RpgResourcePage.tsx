@@ -12,17 +12,27 @@ import {
 import {
   RpgButton,
   RpgPanel,
+  RpgProgressBar,
   RpgResourceCard,
   RpgStatusPill,
   type RpgStatusTone,
 } from '@/features/rpg/components';
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
-import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
+import {
+  loadRpgHubSummary,
+  loadRpgStudyResourceSummary,
+} from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
+import { achievementDefinitionsById } from '@/lib/achievements';
 import type { ProgressStatus } from '@/lib/domain';
-import { getRpgFocusPath, getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgFocusPath,
+  getRpgResourcePath,
+  getRpgWeekPath,
+  rpgMapPath,
+} from '@/lib/routing/rpgRoutePaths';
 
 type RpgResourcePageStatus = 'error' | 'loading' | 'ready';
 
@@ -41,8 +51,15 @@ type RpgResourceFormState = {
 };
 
 type RpgResourceSaveResult = {
+  achievementNames: string[];
   isUpdate: boolean;
+  level: number;
+  levelProgressPercent: number;
+  nextActionHref: string;
+  nextActionLabel: string;
   statusLabel: string;
+  totalXp: number;
+  xpToNextLevel: number;
   xpAdded: number;
 };
 
@@ -328,7 +345,10 @@ export function RpgResourcePage() {
         { invalidateRoute: false },
       );
       refreshHud();
-      const nextSummary = await loadRpgStudyResourceSummary(summary.itemId);
+      const [nextSummary, nextHubSummary] = await Promise.all([
+        loadRpgStudyResourceSummary(summary.itemId),
+        loadRpgHubSummary(),
+      ]);
 
       if (nextSummary === null) {
         throw new Error('RPG resource disappeared after saving progress.');
@@ -338,6 +358,13 @@ export function RpgResourcePage() {
         (total, transaction) => total + transaction.xp,
         0,
       );
+      const achievementNames = result.unlockedAchievements
+        .map(
+          (unlock) =>
+            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+        )
+        .filter(Boolean);
+      const nextQuest = nextHubSummary.continueQuest;
 
       startTransition(() => {
         setState({
@@ -347,8 +374,19 @@ export function RpgResourcePage() {
         });
         setFormState(createFormState(nextSummary));
         setSaveResult({
+          achievementNames,
           isUpdate: summary.savedProgress !== null,
+          level: nextHubSummary.xpSummary.level,
+          levelProgressPercent: nextHubSummary.xpSummary.levelProgressPercent,
+          nextActionHref:
+            nextQuest === null ? rpgMapPath : getRpgResourcePath(nextQuest.id),
+          nextActionLabel:
+            nextQuest === null
+              ? 'Open Campaign Map'
+              : `Continue quest: ${nextQuest.title}`,
           statusLabel: nextSummary.statusLabel,
+          totalXp: nextHubSummary.xpSummary.totalXp,
+          xpToNextLevel: nextHubSummary.xpSummary.xpToNextLevel,
           xpAdded,
         });
       });
@@ -437,52 +475,42 @@ export function RpgResourcePage() {
           <p className="rpg-study-resource__eyebrow">Study Resource</p>
           <h1>{summary.title}</h1>
           <p className="rpg-study-resource__lede">{summary.unitTitle}</p>
-        </div>
-        <div className="rpg-study-resource__actions">
-          <RpgButton href={getRpgWeekPath(summary.unitId)} variant="secondary">
-            Back to week
-          </RpgButton>
-          <RpgButton href={getRpgFocusPath(summary.itemId)} variant="secondary">
-            Start focus session
-          </RpgButton>
-        </div>
-      </div>
-
-      <RpgResourceCard
-        actions={
-          <>
-            {summary.officialLink !== null ? (
-              <RpgButton
-                href={summary.officialLink.url}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Open official CS50x resource
-              </RpgButton>
-            ) : null}
-            <RpgButton
-              href={getRpgFocusPath(summary.itemId)}
-              variant="secondary"
-            >
-              Start focus session
-            </RpgButton>
-          </>
-        }
-        className="rpg-study-resource__card"
-        description={`${summary.typeLabel} - ${summary.estimatedMinutesLabel}`}
-        meta={
-          <>
+          <div className="rpg-study-resource__header-status">
             <RpgStatusPill tone={getStatusTone(summary.statusVariant)}>
               {summary.statusLabel}
             </RpgStatusPill>
             <RpgStatusPill tone={summary.required ? 'progress' : 'neutral'}>
               {summary.required ? 'Required' : 'Optional'}
             </RpgStatusPill>
-          </>
-        }
-        title="Resource details"
+            <span>{`${summary.typeLabel} - ${summary.estimatedMinutesLabel}`}</span>
+          </div>
+        </div>
+        <div className="rpg-study-resource__actions">
+          {summary.officialLink !== null ? (
+            <RpgButton
+              href={summary.officialLink.url}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {summary.statusVariant === 'completed'
+                ? 'Review official CS50x resource'
+                : 'Open official CS50x resource'}
+            </RpgButton>
+          ) : null}
+          <RpgButton href={getRpgFocusPath(summary.itemId)} variant="secondary">
+            Start focus session
+          </RpgButton>
+          <RpgButton href={getRpgWeekPath(summary.unitId)} variant="quiet">
+            Back to week
+          </RpgButton>
+        </div>
+      </div>
+
+      <RpgResourceCard
+        className="rpg-study-resource__card"
+        meta={null}
+        title="Task details"
       >
-        <div className="rpg-study-resource__placeholder" aria-hidden="true" />
         <dl className="rpg-study-resource__details">
           <div>
             <dt>Module</dt>
@@ -707,8 +735,19 @@ export function RpgResourcePage() {
               </h2>
               <p>{`Local status: ${saveResult.statusLabel}`}</p>
               {saveResult.xpAdded > 0 ? (
-                <p>{`XP awarded by existing engine: ${saveResult.xpAdded}`}</p>
+                <p>{`XP awarded: ${saveResult.xpAdded}`}</p>
               ) : null}
+              {saveResult.achievementNames.length > 0 ? (
+                <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
+              ) : null}
+              <RpgProgressBar
+                helperText={`${saveResult.totalXp} XP total - ${saveResult.xpToNextLevel} XP to next level`}
+                label={`Level ${saveResult.level} progress`}
+                value={saveResult.levelProgressPercent}
+              />
+              <RpgButton href={saveResult.nextActionHref} variant="secondary">
+                {saveResult.nextActionLabel}
+              </RpgButton>
             </div>
           ) : null}
         </form>

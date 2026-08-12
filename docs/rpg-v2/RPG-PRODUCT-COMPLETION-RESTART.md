@@ -689,13 +689,19 @@ Deferred: Campaign Map and Week structure remain C3
 Next: C3
 
 C3 - COMPLETE
-Commit: this status entry's containing C3 commit
+Commit: 7fe764d
 Changed: one semantic campaign path, honest optional-unit state, prominent current/next route, task-specific Week action names
 Validation: lint, format, typecheck, 120 targeted tests, production build, 13 route/mobile browser tests, and diff checks passed
 Deferred: resource/focus save-to-reward feedback remains C4
 Next: C4
 
-C4 - PENDING
+C4 - COMPLETE
+Commit: this status entry's containing C4 commit
+Changed: task-first Resource actions, RPG Focus disclosures, authoritative save/reward/level/next-quest feedback, HUD refresh
+Validation: lint, format, typecheck, 117 suite tests plus 3 clean focused passes for one unrelated 5 s keyboard timeout, production build, 5 product/session/XP browser tests, and diff checks passed
+Deferred: cross-surface semantic styling and final cleanup remain C5
+Next: C5
+
 C5 - PENDING
 ```
 

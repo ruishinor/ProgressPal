@@ -2686,6 +2686,18 @@ describe('RPG routes', () => {
       const officialLink = screen.getByRole('link', {
         name: 'Open official CS50x resource',
       });
+      const resourceHeader = screen
+        .getByRole('heading', { name: 'Lecture 4: Memory' })
+        .closest<HTMLElement>('.rpg-study-resource__header');
+
+      expect(resourceHeader).not.toBeNull();
+      expect(within(resourceHeader!).getByText('Started')).toBeInTheDocument();
+      expect(
+        within(resourceHeader!).getByText('Lecture - 2h 30m'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Task details' }),
+      ).toBeInTheDocument();
 
       expect(officialLink).toHaveAttribute(
         'href',
@@ -2753,6 +2765,26 @@ describe('RPG routes', () => {
     expect(afterSnapshot.xpTransactions).toHaveLength(
       beforeSnapshot.xpTransactions.length + 1,
     );
+
+    const saveFeedback = screen
+      .getByRole('heading', { name: 'Progress saved' })
+      .closest<HTMLElement>('.rpg-study-resource__save-result');
+
+    expect(saveFeedback).not.toBeNull();
+    expect(
+      within(saveFeedback!).getByText('XP awarded: 20'),
+    ).toBeInTheDocument();
+    expect(
+      within(saveFeedback!).getByText('Level 1 progress'),
+    ).toBeInTheDocument();
+    expect(
+      within(saveFeedback!).getByRole('link', {
+        name: 'Continue quest: Problem Set 4: Memory',
+      }),
+    ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+    expect(
+      within(saveFeedback!).queryByText(/Achievement unlocked:/),
+    ).not.toBeInTheDocument();
 
     const totalXp = afterSnapshot.xpTransactions.reduce(
       (total, transaction) => total + transaction.xp,
@@ -2828,6 +2860,36 @@ describe('RPG routes', () => {
     );
 
     expect(afterProgress).toEqual(beforeProgress);
+  });
+
+  it('reports an RPG resource update without inventing a second reward', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithRpgHistory();
+
+    await renderAppAtRoute('/rpg/resource/week-4-lecture');
+    await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    const feedback = (
+      await screen.findByRole('heading', { name: 'Progress updated' })
+    ).closest<HTMLElement>('.rpg-study-resource__save-result');
+
+    expect(feedback).not.toBeNull();
+    expect(
+      within(feedback!).getByText('Local status: Started'),
+    ).toBeInTheDocument();
+    expect(
+      within(feedback!).queryByText(/^XP awarded:/),
+    ).not.toBeInTheDocument();
+    expect(
+      within(feedback!).queryByText(/^Achievement unlocked:/),
+    ).not.toBeInTheDocument();
+    expect((await getDatabaseSnapshot()).xpTransactions).toEqual(
+      beforeSnapshot.xpTransactions,
+    );
   });
 
   it('associates RPG submission and confidence errors with their controls', async () => {
@@ -2990,6 +3052,24 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('button', { name: 'Start live session' }),
     ).toBeInTheDocument();
+    const selectedTask = screen
+      .getByText('Selected task')
+      .closest<HTMLElement>('.rpg-focus__selected-task');
+
+    expect(selectedTask).not.toBeNull();
+    expect(
+      within(selectedTask!).getByText('Lecture 4: Memory'),
+    ).toBeInTheDocument();
+
+    for (const label of [
+      'Log a past session manually',
+      'Review saved sessions (1)',
+    ]) {
+      const disclosure = screen.getByText(label).closest('details');
+
+      expect(disclosure).not.toBeNull();
+      expect(disclosure).not.toHaveAttribute('open');
+    }
 
     // Prefill from itemId locks both the live and manual unit selectors to the
     // task's unit, exactly like the classic study-session surface.
@@ -3140,11 +3220,31 @@ describe('RPG routes', () => {
         screen.getByRole('button', { name: 'Save study session' }),
       );
 
-      // The classic surface reloads after a save, so re-query for the success
-      // toast until it settles rather than holding a possibly-detached node.
       await waitFor(() => {
-        expect(screen.getByText('Session saved')).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: 'Session saved' }),
+        ).toBeInTheDocument();
       });
+
+      const focusFeedback = screen
+        .getByRole('heading', { name: 'Session saved' })
+        .closest<HTMLElement>('.rpg-focus__save-result');
+
+      expect(focusFeedback).not.toBeNull();
+      expect(
+        screen.getAllByText('Session saved', { exact: true }),
+      ).toHaveLength(1);
+      expect(
+        within(focusFeedback!).getByText('XP awarded: 10'),
+      ).toBeInTheDocument();
+      expect(
+        within(focusFeedback!).getByText('Level 1 progress'),
+      ).toBeInTheDocument();
+      expect(
+        within(focusFeedback!).getByRole('link', {
+          name: 'Continue quest: Lecture 0: Scratch',
+        }),
+      ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
 
       const afterSnapshot = await getDatabaseSnapshot();
       const savedSessions = afterSnapshot.studySessions.filter(
