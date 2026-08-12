@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "module": "v1.3-final-candidate",
+  "reviewer": "Codex final adversarial review: project lead, UX, senior technical/architecture, and product/scope lenses",
+  "reviewScope": {
+    "baselineCommit": "e017e46",
+    "candidateCommit": "4ea2f3320e1f9187b04530129cb68b0b330d1712",
+    "candidateTree": "f088d17c7bbcfb58355654bc2c8a50a675c86a88",
+    "packageLockBlob": "b10ca91a1b80aa8650f3f1c8d67c59ced4047708",
+    "packageLockSha256": "3ed3238ba9d84b6d7862ca852244fff1697ff9bb9c95494701996b8749d56c35",
+    "runtimeContract": {
+      "node": "24.x; reviewed locally with 24.14.0",
+      "npm": "11.x; reviewed locally with 11.10.1",
+      "install": "npm ci"
+    },
+    "releaseBoundary": "ProgressPal v1.3 remains a browser-only, single-user, local-first CS50x tracker. Classic remains the default. No backend, accounts, cloud sync, analytics, AI tutor, schema change, backup-envelope change, route expansion, runtime course-data fetching, or remote runtime asset was introduced.",
+    "rollbackStrategy": "Before production promotion, record the currently serving Vercel deployment and verify it can be restored. If hosted smoke exposes a blocker, restore that exact previous deployment, do not tag v1.3.0, and reopen only the affected concern."
+  },
+  "adversarialFindings": [
+    {
+      "id": "V13-FR-01",
+      "severity": "P1",
+      "description": "Operative governance and CI still required three repeated certification passes, which conflicted with the accepted proportional final-release contract and multiplied cost without independent evidence.",
+      "resolution": "Added the superseding D-0075 decision, updated only operative instructions, and replaced the chained three-job workflow with one master-targeting final-candidate job. Historical evidence bodies remain unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-02",
+      "severity": "P1",
+      "description": "The locked dependency graph contained live moderate/high advisories, including production router advisories, so the candidate could not produce a clean release audit.",
+      "resolution": "Updated only affected compatible lockfile resolutions, retained package.json ranges and product dependencies, completed a clean npm ci under Node 24/npm 11, and obtained zero-vulnerability full and production audits.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-03",
+      "severity": "P1",
+      "description": "The release gate had no finite command deadlines and could return before inherited output streams closed, leaving hang, truncated-evidence, and owned-process leakage risks.",
+      "resolution": "Introduced finite contained-command execution, output draining through close, owned process-tree termination on timeout or signal, truthful interruption evidence, and distinct Playwright/Chromium version probes. The timing/process suite passed three consecutive focused runs.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-04",
+      "severity": "P1",
+      "description": "Asynchronous import selection could pair one file's displayed name with another file's parsed envelope, and restore history fabricated a new import filename.",
+      "resolution": "Import now uses one immutable generation/fileName/envelope selection, invalidates prior state immediately, ignores late reads, permits same-name reselection, and passes the exact selected filename into the atomic restore history record.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-05",
+      "severity": "P1",
+      "description": "Backup snapshots read persisted stores in separate transactions and export size was not bounded by the importer's actual UTF-8 byte rule, allowing mixed-time or self-unrestorable backups.",
+      "resolution": "All 14 persisted stores are now covered by one explicit Dexie read transaction with a future-table coverage assertion. Export serializes once and enforces the same UTF-8 byte ceiling as import, including exact and one-byte-over ASCII/multibyte regressions.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-06",
+      "severity": "P1",
+      "description": "Export coupled download initiation to the local history write, falsely reported total failure when only history persistence failed, and blocked recovery export from a readable peer.",
+      "resolution": "Download generation/initiation and audit persistence now have separate outcomes and accurate copy. Any readable tab can start a rescue download while all peer mutations remain blocked; a peer history-write failure is reported separately.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-07",
+      "severity": "P1",
+      "description": "An unknown /assets/*.js request could receive the host's 200 HTML SPA rewrite and be cached under the JavaScript URL, poisoning a later offline request.",
+      "resolution": "Runtime cache misses are no longer opportunistically populated. Install-time boot caching remains intact, the fixed same-origin avatar is explicitly pre-cached, unrelated caches survive activation, and the real-browser poisoning regression proves the HTML response is absent offline.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-08",
+      "severity": "P1",
+      "description": "Face, hair, and top-color controls implied visible avatar customization although every value rendered the same fixed image; success copy repeated that false claim.",
+      "resolution": "Removed the inert controls and claims while preserving all legacy avatar fields unchanged in persisted profile and backup contracts. The fixed avatar remains local and renders online/offline.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-09",
+      "severity": "P1",
+      "description": "The RPG badges and focus routes lacked valid page-level heading hierarchies, and mobile settings toasts overlapped the sticky RPG bottom navigation.",
+      "resolution": "Corrected only the shared RPG wrapper heading levels and card hierarchy, added /rpg/focus to the axe sweep, and offset RPG toasts above the navigation. All 21 bounded accessibility/reflow checks pass.",
+      "status": "resolved"
+    },
+    {
+      "id": "V13-FR-10",
+      "severity": "P2",
+      "description": "Automated browser certification remains Chromium-only; Firefox, WebKit, real-device, and manual screen-reader certification are not present.",
+      "resolution": "Accepted as an explicit coverage limitation. The release does not claim cross-browser or screen-reader certification, and the roadmap rejects multiplying the full suite into an unbounded browser matrix.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V13-FR-11",
+      "severity": "P2",
+      "description": "Browsers without Web Locks fail closed for local writes, and service-worker registration failure has no visible offline-status message.",
+      "resolution": "Accepted as honest degradation: existing data remains readable, unsafe writes are unavailable, registration rejection is contained, the online app remains usable, and the UI makes no false offline-readiness claim.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V13-FR-12",
+      "severity": "P2",
+      "description": "A deployment arriving between network-first shell refresh and wholesale cache-version replacement can temporarily leave a mixed shell/asset cache until the next online load.",
+      "resolution": "Accepted as the existing documented service-worker boundary. The demonstrated runtime poisoning path is closed; build-stamped atomic deployment caches would be a materially larger PWA architecture change outside v1.3 stabilization.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The cumulative remediation diff contains no unresolved blocker, P0, or P1 finding. Scope stayed inside release stabilization: Classic remains default, routes and persisted schemas are unchanged, historical fixtures are byte-identical, no dependency or network architecture was added, and the remaining P2 limitations are explicit. This review authorizes one clean local final-candidate certification gate; it does not claim that local certification, independent CI, deployment, production smoke, or tagging has already occurred."
+  }
+}
