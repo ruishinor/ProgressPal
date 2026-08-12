@@ -606,6 +606,12 @@
   font-weight: 800;
   justify-items: center;
   min-width: 4.5rem;
+  width: 4.5rem;
+}
+
+.rpg-shell .rpg-hero__avatar--profile {
+  background: transparent;
+  padding: 0;
 }
 
 .rpg-shell .rpg-hero__identity-copy {

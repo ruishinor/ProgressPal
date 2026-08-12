@@ -3,6 +3,7 @@ import { startTransition, useEffect, useState } from 'react';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { formatMinutes } from '@/features/course/model';
+import { ProfileAvatar } from '@/features/profile';
 import {
   RpgButton,
   RpgEmptyState,
@@ -18,6 +19,7 @@ import {
   rpgLogPath,
   rpgMapPath,
   rpgRoutePath,
+  rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
 
 type RpgHeroPageStatus = 'error' | 'loading' | 'ready';
@@ -186,9 +188,18 @@ export function RpgHeroPage() {
           variant="raised"
         >
           <div className="rpg-hero__identity-layout">
-            <div className="rpg-hero__avatar" aria-hidden="true">
-              {getInitials(summary.learnerName)}
-            </div>
+            {summary.learnerAvatarConfig === null ? (
+              <div className="rpg-hero__avatar" aria-hidden="true">
+                {getInitials(summary.learnerName)}
+              </div>
+            ) : (
+              <ProfileAvatar
+                avatarConfig={summary.learnerAvatarConfig}
+                className="rpg-hero__avatar rpg-hero__avatar--profile"
+                label={`${summary.learnerName} hero avatar`}
+                size="lg"
+              />
+            )}
             <div className="rpg-hero__identity-copy">
               <RpgRankBadge rank={summary.identity.rankLabel} />
               <RpgStatusPill tone="neutral">
@@ -197,6 +208,9 @@ export function RpgHeroPage() {
               <p className="rpg-hero__note">
                 Rank reflects local required-course progress only.
               </p>
+              <RpgButton href={rpgSettingsPath} size="sm" variant="quiet">
+                Edit profile
+              </RpgButton>
             </div>
           </div>
           <dl className="rpg-hero__details">

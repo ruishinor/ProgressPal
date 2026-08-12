@@ -2313,6 +2313,7 @@ describe('RPG routes', () => {
       ['Awards', '/rpg/badges'],
       ['Insights', '/rpg/log'],
       ['Settings', '/rpg/settings'],
+      ['Open Classic dashboard', '/dashboard'],
     ];
 
     for (const [label, href] of expectedItems) {
@@ -2360,6 +2361,7 @@ describe('RPG routes', () => {
       within(heroHud).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
     expect(within(heroHud).getByText('Level')).toBeInTheDocument();
+    expect(within(heroHud).getByText('Rank New Learner')).toBeInTheDocument();
     expect(
       within(heroHud).getByRole('progressbar', {
         name: /XP progress to level/i,
@@ -3412,6 +3414,20 @@ describe('RPG routes', () => {
     expect(screen.getByText('CS Foundations')).toBeInTheDocument();
     expect(screen.getByText('Generalist')).toBeInTheDocument();
     expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
+    const identityPanel = screen
+      .getByRole('heading', { name: "Alex's profile" })
+      .closest('section');
+
+    if (identityPanel === null) {
+      throw new Error('Hero identity panel was not rendered.');
+    }
+
+    expect(
+      within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
+    ).toHaveAttribute('data-avatar-source', 'configured');
+    expect(
+      within(identityPanel).getByRole('link', { name: 'Edit profile' }),
+    ).toHaveAttribute('href', '/rpg/settings');
     expect(
       screen.getByText(`0 of ${achievementDefinitions.length}`),
     ).toBeInTheDocument();
@@ -3440,6 +3456,20 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Hero Profile' }),
     ).toBeInTheDocument();
     expect(await screen.findByText("Alex's profile")).toBeInTheDocument();
+    const identityPanel = screen
+      .getByRole('heading', { name: "Alex's profile" })
+      .closest('section');
+
+    if (identityPanel === null) {
+      throw new Error('Hero identity panel was not rendered.');
+    }
+
+    expect(
+      within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
+    ).toHaveAttribute('data-avatar-source', 'configured');
+    expect(
+      within(identityPanel).getByRole('link', { name: 'Edit profile' }),
+    ).toHaveAttribute('href', '/rpg/settings');
     expect(screen.getByText('Initiate')).toBeInTheDocument();
     expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
     expect(screen.getAllByText('XP').length).toBeGreaterThan(0);
@@ -3659,6 +3689,43 @@ describe('RPG routes', () => {
     expect(mapLink).toHaveAttribute('aria-current', 'page');
   });
 
+  it('opens and closes the mobile More destinations disclosure with focus restoration', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/badges');
+    await screen.findByRole('heading', { name: 'Achievements' });
+
+    const bottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
+    const moreButton = within(bottomNav).getByRole('button', { name: 'More' });
+
+    expect(moreButton).toHaveAttribute('aria-current', 'page');
+    await user.click(moreButton);
+
+    const moreDestinations = screen.getByRole('region', {
+      name: 'More RPG destinations',
+    });
+    const awardsLink = within(moreDestinations).getByRole('link', {
+      name: 'Awards',
+    });
+
+    await waitFor(() => expect(awardsLink).toHaveFocus());
+    expect(
+      within(moreDestinations).getByRole('link', {
+        name: 'Open Classic dashboard',
+      }),
+    ).toHaveAttribute('href', '/dashboard');
+
+    await user.keyboard('{Escape}');
+
+    expect(
+      screen.queryByRole('region', { name: 'More RPG destinations' }),
+    ).not.toBeInTheDocument();
+    expect(moreButton).toHaveFocus();
+  });
+
   it('does not mutate local stores during passive RPG route navigation', async () => {
     await seedOnboardedLearner();
 
@@ -3706,6 +3773,9 @@ describe('RPG routes', () => {
     expect(
       within(primaryNavigation).getByRole('link', { name: 'Dashboard' }),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: 'Open RPG' }),
+    ).toHaveAttribute('href', '/rpg');
     expect(screen.getByText('Current status')).toBeInTheDocument();
   });
 });

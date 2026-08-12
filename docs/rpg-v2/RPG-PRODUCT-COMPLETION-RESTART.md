@@ -668,13 +668,19 @@ module. Keep entries short.
 
 ```text
 C0 - COMPLETE
-Commit: this status entry's containing C0 commit
+Commit: e078850
 Changed: accepted restart authority, one current roadmap pointer, one historical-input notice
 Validation: targeted C0 formatting and diff checks passed
 Deferred: none
 Next: C1
 
-C1 - PENDING
+C1 - COMPLETE
+Commit: this status entry's containing C1 commit
+Changed: Classic/RPG entry and exit, responsive 4+More navigation, compact HUD, Hero portrait/edit path
+Validation: lint, format, typecheck, 112 targeted tests, production build, and 17 browser/accessibility tests passed
+Deferred: Hub composition remains C2
+Next: C2
+
 C2 - PENDING
 C3 - PENDING
 C4 - PENDING

@@ -2,7 +2,7 @@ import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
-import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
+import { ProfileAvatar } from '@/features/profile';
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
@@ -124,7 +124,10 @@ function RpgHeroHud({
         <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
         <p className="rpg-hero-hud__name">{summary.learnerName}</p>
         <p className="rpg-hero-hud__meta">
-          {`Rank ${summary.identity.rankLabel} - ${summary.identity.pathLabel} path / ${summary.identity.classLabel} class - ${summary.identity.guildLabel} guild`}
+          <span>{`Rank ${summary.identity.rankLabel}`}</span>
+          <span className="rpg-hero-hud__meta-detail">
+            {` - ${summary.identity.pathLabel} path / ${summary.identity.classLabel} class - ${summary.identity.guildLabel} guild`}
+          </span>
         </p>
       </div>
 

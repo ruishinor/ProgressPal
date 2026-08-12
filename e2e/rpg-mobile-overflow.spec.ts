@@ -49,6 +49,7 @@ type BrowserLayoutScope = {
   getComputedStyle: (element: unknown) => {
     backgroundColor: string;
     borderTopWidth: string;
+    paddingBottom: string;
     paddingLeft: string;
     paddingRight: string;
   };
@@ -117,8 +118,77 @@ for (const viewport of mobileViewports) {
       await expect(
         page.getByRole('navigation', { name: 'RPG bottom navigation' }),
       ).toBeVisible();
+
+      const bottomNav = page.getByRole('navigation', {
+        name: 'RPG bottom navigation',
+      });
+      const navBox = await bottomNav.boundingBox();
+      const mainBottomPadding = await page
+        .locator('#rpg-main-content')
+        .evaluate((element) => {
+          const scope = globalThis as unknown as BrowserLayoutScope;
+
+          return Number.parseFloat(
+            scope.getComputedStyle(element).paddingBottom,
+          );
+        });
+
+      expect(navBox, `${route.path} bottom navigation box`).not.toBeNull();
+      expect(
+        mainBottomPadding,
+        `${route.path} reserved navigation space`,
+      ).toBeGreaterThanOrEqual((navBox?.height ?? 0) - 1);
     }
 
     await context.close();
   });
 }
+
+test('mobile navigation keeps core routes direct and restores focus after More closes', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await completeOnboarding(page);
+
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await page.getByRole('link', { name: 'Open RPG' }).click();
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+  ).toBeVisible();
+
+  const bottomNav = page.getByRole('navigation', {
+    name: 'RPG bottom navigation',
+  });
+
+  for (const label of ['Hub', 'Map', 'Focus', 'Hero']) {
+    await expect(bottomNav.getByRole('link', { name: label })).toBeVisible();
+  }
+
+  const moreButton = bottomNav.getByRole('button', { name: 'More' });
+  await expect(moreButton).toBeVisible();
+  await moreButton.click();
+
+  const moreDestinations = page.getByRole('region', {
+    name: 'More RPG destinations',
+  });
+
+  await expect(moreDestinations).toBeVisible();
+  await expect(
+    moreDestinations.getByRole('link', { name: 'Awards' }),
+  ).toBeFocused();
+  await expect(
+    moreDestinations.getByRole('link', { name: 'Open Classic dashboard' }),
+  ).toBeVisible();
+
+  await page.keyboard.press('Escape');
+
+  await expect(moreDestinations).not.toBeVisible();
+  await expect(moreButton).toBeFocused();
+
+  await moreButton.click();
+  await moreDestinations
+    .getByRole('link', { name: 'Open Classic dashboard' })
+    .click();
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
+});
