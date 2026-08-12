@@ -10,6 +10,22 @@ Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.
 
 ---
 
+## 2026-08-12 current product-completion authority
+
+ProgressPal v1.3 is released and frozen at
+`feafd522ba53db3984790fa56b761586c5d7307a`
+(`v1.3.0-local-first-proof`). The only current RPG next action is the accepted
+C0-C5 sequence in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`, implemented
+on `rpg/product-completion` while Classic remains the default/control.
+
+All older release-candidate, post-2G-validation, branching, default-switch,
+module-order, and "next action" language in this file is historical context, not
+current execution guidance. Do not restart v1.3 remediation or infer permission
+for new mechanics, schema changes, dependencies, backend services, or RPG
+default promotion.
+
+---
+
 ## 2026-08-12 v1.3 remediation override
 
 The current operational release target is `1.3.0`, not `1.2.0`. Existing `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` tags are immutable historical releases. D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` governs the remaining v1.3 validation cadence and release scope. The older remediation story remains historical evidence, not the current executable sequence.
