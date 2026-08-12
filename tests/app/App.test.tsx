@@ -2494,8 +2494,8 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(weekFourModule).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Plain module list' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('heading', { name: 'Plain module list' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText(`${bundledCourseSeed.units.length} modules`),
     ).toBeInTheDocument();
@@ -2509,10 +2509,6 @@ describe('RPG routes', () => {
           name: new RegExp(`^Open ${escapeRegExp(unit.title)},`),
         }),
       ).toHaveAttribute('href', `/rpg/week/${unit.id}`);
-      expect(screen.getByRole('link', { name: unit.title })).toHaveAttribute(
-        'href',
-        `/rpg/week/${unit.id}`,
-      );
     }
 
     expectRpgShellWithBottomNav('Map');
@@ -2525,35 +2521,38 @@ describe('RPG routes', () => {
 
     await screen.findByTestId('rpg-module-week-4');
 
-    expect(
-      screen.getByText('Current module: Week 4: Memory'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Next route: Week 4: Memory')).toBeInTheDocument();
 
     const weekZeroModule = screen.getByTestId('rpg-module-week-0');
     expect(within(weekZeroModule).getByText('Completed')).toBeInTheDocument();
     expect(within(weekZeroModule).getByText('100%')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Status: Completed. Availability: Available. Progress: 2 of 2 required complete (100%).',
-      ),
-    ).toBeInTheDocument();
 
     const weekFourModule = screen.getByTestId('rpg-module-week-4');
     expect(
       within(weekFourModule).getByText('Current module'),
     ).toBeInTheDocument();
     expect(within(weekFourModule).getByText('In progress')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Status: In progress. Availability: Available. Progress: 0 of 2 required complete (0%).',
-      ),
-    ).toBeInTheDocument();
+    expect(within(weekFourModule).getByRole('link')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
 
     const weekOneModule = screen.getByTestId('rpg-module-week-1');
     expect(
       within(weekOneModule).getByText('Available - 4 quests - 11h'),
     ).toBeInTheDocument();
     expect(within(weekOneModule).getByText('Not started')).toBeInTheDocument();
+
+    const optionalModule = screen.getByTestId(
+      'rpg-module-artificial-intelligence',
+    );
+    const optionalLink = within(optionalModule).getByRole('link');
+
+    expect(within(optionalModule).getByText('Optional')).toBeInTheDocument();
+    expect(within(optionalModule).queryByText('100%')).not.toBeInTheDocument();
+    expect(optionalLink).toHaveAccessibleName(
+      /optional unit with no required tasks/i,
+    );
   });
 
   it('keeps the RPG campaign map semantic and free of fake future course support', async () => {
@@ -2625,10 +2624,14 @@ describe('RPG routes', () => {
         expect(within(row).getAllByText('Optional').length).toBeGreaterThan(0);
       }
       expect(
-        within(row).getByRole('link', { name: resourceLinkName }),
+        within(row).getByRole('link', {
+          name: `${resourceLinkName}: ${item.title}`,
+        }),
       ).toHaveAttribute('href', `/rpg/resource/${item.id}`);
       expect(
-        within(row).getByRole('link', { name: 'Start focus session' }),
+        within(row).getByRole('link', {
+          name: `Start focus session: ${item.title}`,
+        }),
       ).toHaveAttribute('href', `/rpg/focus?itemId=${item.id}`);
     }
 
@@ -3217,7 +3220,7 @@ describe('RPG routes', () => {
       );
       const resourcePath = expectHref(
         within(weekFourLectureRow).getByRole('link', {
-          name: 'Open resource',
+          name: 'Open resource: Lecture 4: Memory',
         }),
         '/rpg/resource/week-4-lecture',
       );

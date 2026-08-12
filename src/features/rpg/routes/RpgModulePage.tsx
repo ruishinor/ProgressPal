@@ -269,6 +269,7 @@ export function RpgModulePage() {
                 action={
                   <div className="rpg-week__task-actions">
                     <RpgButton
+                      aria-label={`${getResourceActionLabel(quest)}: ${quest.title}`}
                       href={getRpgResourcePath(quest.id)}
                       size="sm"
                       variant="quiet"
@@ -276,6 +277,7 @@ export function RpgModulePage() {
                       {getResourceActionLabel(quest)}
                     </RpgButton>
                     <RpgButton
+                      aria-label={`Start focus session: ${quest.title}`}
                       href={getRpgFocusPath(quest.id)}
                       size="sm"
                       variant="secondary"

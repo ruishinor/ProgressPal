@@ -682,13 +682,19 @@ Deferred: Hub composition remains C2
 Next: C2
 
 C2 - COMPLETE
-Commit: this status entry's containing C2 commit
+Commit: 50b4f5f
 Changed: task-first Hub, real recommended quest, compact progress snapshot, returning-user activity disclosure
 Validation: lint, format, typecheck, 115 targeted tests, production build, 7 mobile browser tests, and diff checks passed
 Deferred: Campaign Map and Week structure remain C3
 Next: C3
 
-C3 - PENDING
+C3 - COMPLETE
+Commit: this status entry's containing C3 commit
+Changed: one semantic campaign path, honest optional-unit state, prominent current/next route, task-specific Week action names
+Validation: lint, format, typecheck, 120 targeted tests, production build, 13 route/mobile browser tests, and diff checks passed
+Deferred: resource/focus save-to-reward feedback remains C4
+Next: C4
+
 C4 - PENDING
 C5 - PENDING
 ```

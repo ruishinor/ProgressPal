@@ -220,3 +220,35 @@ test('mobile Hub puts the recommended quest before secondary progress', async ({
   await expect(page.getByText('Recent saved activity')).toHaveCount(0);
   await expect(page.locator('.rpg-hub__identity')).toHaveCount(0);
 });
+
+test('mobile campaign path reaches a Week task and its real resource action', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await completeOnboarding(page);
+  await page.goto('/rpg/map');
+
+  const weekLink = page.getByRole('link', {
+    name: /^Open Week 0: Scratch,/,
+  });
+
+  await expect(weekLink).toHaveAttribute('href', '/rpg/week/week-0');
+  await weekLink.click();
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'Week 0: Scratch' }),
+  ).toBeVisible();
+  await expectNoHorizontalOverflow(page, '/rpg/week/week-0');
+
+  const resourceLink = page.getByRole('link', {
+    name: 'Open resource: Lecture 0: Scratch',
+  });
+
+  await resourceLink.scrollIntoViewIfNeeded();
+  await expect(resourceLink).toBeInViewport();
+  await resourceLink.click();
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'Lecture 0: Scratch' }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/rpg\/resource\/week-0-lecture$/);
+  await expectNoHorizontalOverflow(page, '/rpg/resource/week-0-lecture');
+});
