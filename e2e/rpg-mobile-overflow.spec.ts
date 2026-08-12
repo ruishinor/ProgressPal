@@ -192,3 +192,31 @@ test('mobile navigation keeps core routes direct and restores focus after More c
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
 });
+
+test('mobile Hub puts the recommended quest before secondary progress', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 844, width: 390 });
+  await completeOnboarding(page);
+  await page.getByRole('link', { name: 'Open RPG' }).click();
+
+  const questPanel = page.locator('.rpg-hub__quest-panel');
+
+  await expect(
+    questPanel.getByRole('heading', { name: 'Start with this quest' }),
+  ).toBeVisible();
+  await expect(questPanel.getByText('Recommended first quest')).toBeVisible();
+  await expect(
+    questPanel.getByRole('heading', { name: 'Lecture 0: Scratch' }),
+  ).toBeInViewport();
+  await expect(questPanel.locator('.rpg-hub__quest-meta')).toBeInViewport();
+  await expect(
+    questPanel.locator('.rpg-hub__quest-statuses').getByText('Not started'),
+  ).toBeInViewport();
+  await expect(
+    questPanel.getByRole('link', { name: 'Continue quest' }),
+  ).toBeInViewport();
+  await expect(page.getByText('Progress snapshot')).toBeVisible();
+  await expect(page.getByText('Recent saved activity')).toHaveCount(0);
+  await expect(page.locator('.rpg-hub__identity')).toHaveCount(0);
+});

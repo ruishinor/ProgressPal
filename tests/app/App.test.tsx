@@ -2398,24 +2398,40 @@ describe('RPG routes', () => {
 
     await renderAppAtRoute('/rpg');
 
-    const continueLink = await screen.findByRole('link', {
-      name: 'Continue current quest',
+    const questHeading = await screen.findByRole('heading', {
+      name: 'Current quest',
+    });
+    const questPanel = questHeading.closest('section');
+
+    if (questPanel === null) {
+      throw new Error('Current quest panel was not rendered.');
+    }
+
+    const continueLink = within(questPanel).getByRole('link', {
+      name: 'Continue quest',
     });
 
     expect(continueLink).toHaveAttribute(
       'href',
       '/rpg/resource/week-4-lecture',
     );
-    expect(screen.getByText("Alex's status")).toBeInTheDocument();
-    expect(screen.getByText('Rank:')).toBeInTheDocument();
-    expect(screen.getByText('Initiate')).toBeInTheDocument();
-    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
-    expect(screen.getByText('Generalist')).toBeInTheDocument();
-    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
-    expect(screen.getByText('Week 4: Memory')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Current quest' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Alex's status")).not.toBeInTheDocument();
+    expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
     expect(screen.getByText('Lecture 4: Memory')).toBeInTheDocument();
-    expect(screen.getByText("This week's local progress")).toBeInTheDocument();
-    expect(screen.getByText('Recent saved activity')).toBeInTheDocument();
+    expect(screen.getByText('30 min')).toBeInTheDocument();
+    expect(screen.getAllByText('In progress').length).toBeGreaterThan(0);
+    expect(screen.getByText('Progress snapshot')).toBeInTheDocument();
+
+    const recentActivitySummary = screen.getByText('Recent saved activity');
+    const recentActivityDisclosure = recentActivitySummary.closest('details');
+
+    expect(recentActivityDisclosure).not.toBeNull();
+    expect(recentActivityDisclosure).not.toHaveAttribute('open');
+    fireEvent.click(recentActivitySummary);
+    expect(recentActivityDisclosure).toHaveAttribute('open');
     expect(
       screen.getByText(/Saved study session - Lecture 4: Memory/),
     ).toBeInTheDocument();
@@ -2445,15 +2461,24 @@ describe('RPG routes', () => {
     await renderAppAtRoute('/rpg');
 
     expect(
-      await screen.findByRole('heading', { name: 'No saved RPG activity yet' }),
+      await screen.findByRole('heading', { name: 'Start with this quest' }),
     ).toBeInTheDocument();
+    const questPanel = screen
+      .getByRole('heading', { name: 'Start with this quest' })
+      .closest('section');
+
+    if (questPanel === null) {
+      throw new Error('Recommended quest panel was not rendered.');
+    }
+
+    expect(screen.getByText('Recommended first quest')).toBeInTheDocument();
+    expect(screen.getByText('Lecture 0: Scratch')).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'No recent saved activity yet. Saved progress, study sessions, and XP events will appear here after you record them locally.',
-      ),
-    ).toBeInTheDocument();
+      screen.queryByText('No saved RPG activity yet'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Recent saved activity')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Continue current quest' }),
+      within(questPanel).getByRole('link', { name: 'Continue quest' }),
     ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   });
 

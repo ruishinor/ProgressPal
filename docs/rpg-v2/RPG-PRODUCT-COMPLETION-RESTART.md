@@ -675,13 +675,19 @@ Deferred: none
 Next: C1
 
 C1 - COMPLETE
-Commit: this status entry's containing C1 commit
+Commit: b8ac7c9
 Changed: Classic/RPG entry and exit, responsive 4+More navigation, compact HUD, Hero portrait/edit path
 Validation: lint, format, typecheck, 112 targeted tests, production build, and 17 browser/accessibility tests passed
 Deferred: Hub composition remains C2
 Next: C2
 
-C2 - PENDING
+C2 - COMPLETE
+Commit: this status entry's containing C2 commit
+Changed: task-first Hub, real recommended quest, compact progress snapshot, returning-user activity disclosure
+Validation: lint, format, typecheck, 115 targeted tests, production build, 7 mobile browser tests, and diff checks passed
+Deferred: Campaign Map and Week structure remain C3
+Next: C3
+
 C3 - PENDING
 C4 - PENDING
 C5 - PENDING
