@@ -282,7 +282,7 @@ export function StudySessionsSurface({
             <div className="rpg-focus__header">
               <div>
                 <p className="rpg-focus__eyebrow">RPG</p>
-                <h2>Focus</h2>
+                <h1>Focus</h1>
               </div>
               <div className="rpg-focus__actions">
                 <Link
@@ -333,7 +333,7 @@ export function StudySessionsSurface({
           <div className="rpg-focus__header">
             <div>
               <p className="rpg-focus__eyebrow">RPG</p>
-              <h2>Focus</h2>
+              <h1>Focus</h1>
             </div>
           </div>
         ) : (
@@ -485,7 +485,7 @@ export function StudySessionsSurface({
         <div className="rpg-focus__header">
           <div>
             <p className="rpg-focus__eyebrow">RPG</p>
-            <h2>Focus</h2>
+            <h1>Focus</h1>
             <p className="rpg-focus__lede">{headerDescription}</p>
           </div>
           <div className="rpg-focus__actions">
@@ -540,6 +540,7 @@ export function StudySessionsSurface({
           <Card
             description="Start one live study session, pause it if needed, then save exactly one immutable effort record."
             title="Live focus session"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
           >
             {liveSession.phase === 'idle' ? (
@@ -883,6 +884,7 @@ export function StudySessionsSurface({
           <Card
             description="Add one completed study session manually when you already know the item, start time, and duration."
             title="Manual session entry"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
             {manualForm ? (
               <form
@@ -1142,6 +1144,7 @@ export function StudySessionsSurface({
         <Card
           description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
           title="Your saved sessions"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {ledgerRows.length === 0 ? (
             <EmptyState

@@ -445,6 +445,32 @@ test('the custom checkbox shows a visible keyboard focus indicator in dark theme
   expect(focusOutline.width).toBeGreaterThan(0);
 });
 
+test('an RPG settings toast does not cover the bottom navigation', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { height: 844, width: 390 },
+  });
+  const page = await context.newPage();
+
+  await completeOnboardingDark(page);
+  await page.goto('/rpg/settings');
+  await page.getByRole('button', { name: 'Save local settings' }).click();
+  await expect(
+    page.getByRole('status').getByText('Local profile saved'),
+  ).toBeVisible();
+
+  const toastBox = await page.locator('.toast').boundingBox();
+  const navigationBox = await page
+    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .boundingBox();
+
+  expect(toastBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect(toastBox!.y + toastBox!.height).toBeLessThanOrEqual(navigationBox!.y);
+  await context.close();
+});
+
 test('the in-app reduce-motion setting neutralizes keyframe animations', async ({
   page,
 }) => {
@@ -577,6 +603,7 @@ const rpgAxeRoutes = [
   { heading: 'Campaign Map', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
+  { heading: 'Live focus session', path: '/rpg/focus' },
   { heading: 'Hero Profile', path: '/rpg/hero' },
   { heading: 'Achievements', path: '/rpg/badges' },
   { heading: 'Insights', path: '/rpg/log' },

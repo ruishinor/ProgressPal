@@ -4054,6 +4054,30 @@ describe('Settings route', () => {
     expect(
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();
+    expect(screen.queryByLabelText('Face shape')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Hair')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Top color')).not.toBeInTheDocument();
+  });
+
+  it('preserves legacy avatar fields when the truthful profile controls save', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithHistory();
+    const before = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/settings');
+    await user.click(
+      await screen.findByRole('button', { name: 'Save local settings' }),
+    );
+
+    expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Profile, theme, motion, and study cadence were updated on this device.',
+      ),
+    ).toBeInTheDocument();
+    expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual(
+      before.learnerProfile?.avatarConfig,
+    );
   });
 
   it('does not mutate any local store when settings renders or reloads', async () => {

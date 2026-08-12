@@ -26,9 +26,6 @@ export async function completeOnboarding(
 
   await page.getByLabel('Display name').fill('Alex');
   await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
   await page.getByLabel('Theme').selectOption(options.theme ?? 'dark');
   await page.getByLabel('Reduce motion in this app').check();
   await page.getByRole('button', { name: 'Save and continue' }).click();

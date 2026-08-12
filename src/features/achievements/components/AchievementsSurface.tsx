@@ -151,7 +151,7 @@ export function AchievementsSurface({
           <div className="rpg-badges__header">
             <div>
               <p className="rpg-badges__eyebrow">RPG</p>
-              <h2>Achievements</h2>
+              <h1>Achievements</h1>
             </div>
             <div className="rpg-badges__actions">
               <Link
@@ -197,7 +197,7 @@ export function AchievementsSurface({
           <div className="rpg-badges__header">
             <div>
               <p className="rpg-badges__eyebrow">RPG</p>
-              <h2>Achievements</h2>
+              <h1>Achievements</h1>
             </div>
           </div>
         ) : (
@@ -215,6 +215,7 @@ export function AchievementsSurface({
   }
 
   const { unlockedCount, totalCount } = state.view;
+  const AchievementTitle = isRpgVariant ? 'h2' : 'h3';
 
   const headerDescription =
     'Achievements unlock when you save progress and complete work. Everything is stored on this device.';
@@ -235,7 +236,7 @@ export function AchievementsSurface({
         <div className="rpg-badges__header">
           <div>
             <p className="rpg-badges__eyebrow">RPG</p>
-            <h2>Achievements</h2>
+            <h1>Achievements</h1>
             <p className="rpg-badges__lede">{headerDescription}</p>
             <div className="meta-cluster">{headerMeta}</div>
           </div>
@@ -265,6 +266,7 @@ export function AchievementsSurface({
       <Card
         className="achievements-filters"
         title="Filter achievements"
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
         variant="subtle"
       >
         <div className="achievements-filters__controls">
@@ -317,9 +319,9 @@ export function AchievementsSurface({
                 variant={achievement.unlocked ? 'accent' : 'default'}
               >
                 <div className="achievement-card__head">
-                  <h3 className="achievement-card__title">
+                  <AchievementTitle className="achievement-card__title">
                     {achievement.title}
-                  </h3>
+                  </AchievementTitle>
                   <StatusPill
                     variant={achievement.unlocked ? 'completed' : 'notStarted'}
                   >

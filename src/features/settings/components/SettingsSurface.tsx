@@ -217,7 +217,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         <div className="rpg-settings__header">
           <div>
             <p className="rpg-settings__eyebrow">RPG</p>
-            <h2>Settings</h2>
+            <h1>Settings</h1>
             <p className="rpg-settings__lede">
               Edit your local profile and manage on-device data: export a
               backup, import one, or reset everything. Stored only in this
@@ -254,6 +254,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         />
       )}
       <ProfileForm
+        cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
         disabled={!coordination.canWrite}
         key={profile.updatedAt}
         mode="settings"
@@ -262,14 +263,17 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           setToast({
             title: 'Local profile saved',
             description:
-              'Theme, motion, avatar, and study cadence were updated on this device.',
+              'Profile, theme, motion, and study cadence were updated on this device.',
             tone: 'success',
           });
         }}
         profile={profile}
         submitLabel="Save local settings"
       />
-      <Card title="Browser storage durability" titleAs="h3">
+      <Card
+        title="Browser storage durability"
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
         <p className="card__description">
           {persistenceStatus === 'persistent'
             ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
@@ -300,7 +304,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </div>
         ) : null}
       </Card>
-      <Card title="Export a backup" titleAs="h3">
+      <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">
           Download a full local backup as a JSON file. It contains your learning
           history and progress, notes and saved blockers, XP transactions and
@@ -320,7 +324,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         onConfirmImport={handleImport}
       />
-      <Card title="Reset local data" titleAs="h3">
+      <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">
           Permanently delete all local ProgressPal data on this device and start
           fresh. This removes your progress, sessions, XP, achievements, notes,
@@ -355,7 +359,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
       </Card>
       {isRpgVariant ? (
-        <Card title="Local-first and course boundary" titleAs="h3">
+        <Card title="Local-first and course boundary" titleAs="h2">
           <p className="card__description">
             ProgressPal keeps everything in this browser on this device. There
             is no account, no cloud sync, and no analytics. Browser storage can

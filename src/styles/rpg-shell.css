@@ -260,6 +260,13 @@ body.rpg-route-active {
   color: #17202b;
 }
 
+.rpg-shell .toast-stack {
+  bottom: calc(
+    var(--rpg-bottom-nav-height) + var(--space-4) +
+      env(safe-area-inset-bottom, 0px)
+  );
+}
+
 @media (max-width: 60rem) {
   .rpg-hero-hud,
   .rpg-hero-hud--compact {
