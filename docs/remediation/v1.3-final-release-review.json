@@ -4,8 +4,8 @@
   "reviewer": "Codex final adversarial review: project lead, UX, senior technical/architecture, and product/scope lenses",
   "reviewScope": {
     "baselineCommit": "e017e46",
-    "candidateCommit": "4ea2f3320e1f9187b04530129cb68b0b330d1712",
-    "candidateTree": "f088d17c7bbcfb58355654bc2c8a50a675c86a88",
+    "candidateCommit": "c57276434be762d919d83bd1d9c7a4bbbf7d809f",
+    "candidateTree": "7f2f9b8b1835d9f5834358cfe38f81b173aef5ab",
     "packageLockBlob": "b10ca91a1b80aa8650f3f1c8d67c59ced4047708",
     "packageLockSha256": "3ed3238ba9d84b6d7862ca852244fff1697ff9bb9c95494701996b8749d56c35",
     "runtimeContract": {
@@ -100,6 +100,13 @@
       "description": "A deployment arriving between network-first shell refresh and wholesale cache-version replacement can temporarily leave a mixed shell/asset cache until the next online load.",
       "resolution": "Accepted as the existing documented service-worker boundary. The demonstrated runtime poisoning path is closed; build-stamped atomic deployment caches would be a materially larger PWA architecture change outside v1.3 stabilization.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "V13-FR-13",
+      "severity": "P1",
+      "description": "The first independent CI run exposed a teardown race: an RPG HUD read could reject after its shell unmounted and emit a DatabaseClosedError even though the route assertion passed.",
+      "resolution": "The HUD effect now discards post-unmount failures before logging or updating state. A deterministic cancellation regression and the exact quick-start deep-link path passed three consecutive focused lifecycle runs, with formatting, lint, and typecheck also clean.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
