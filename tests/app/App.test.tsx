@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   screen,
@@ -6,22 +7,77 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import Dexie from 'dexie';
 import { describe, expect, it, vi } from 'vitest';
 
+import { buildBackupEnvelope } from '@/lib/backup';
 import {
   addStudySessionAndAwardXp,
+  defaultLearnerProfileValues,
   getDatabaseSnapshot,
   initializeDatabase,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  resetAllData,
   saveLearnerProfile,
   upsertProgress,
   upsertProgressAndAwardXp,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
+import { getSharedDatabase } from '@/lib/db/database';
 import { achievementDefinitions } from '@/lib/achievements';
+import { router } from '@/app/router/router';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
+import {
+  getLocalCoordinationStatus,
+  localCoordinationStorageKeys,
+  type LocalCoordinationMessage,
+} from '@/lib/storage';
 import { bundledCourseSeed } from '@/seed';
+import { FakeLockManager } from '../lib/localDataCoordinationFakes';
+
+function dispatchPeerMessage(
+  kind: LocalCoordinationMessage['kind'],
+  revision = 0,
+) {
+  const message: LocalCoordinationMessage = {
+    id: `app-peer-${kind}-${Date.now()}`,
+    kind,
+    revision,
+    sentAt: Date.now(),
+    tabId: 'app-test-peer',
+  };
+
+  window.dispatchEvent(
+    new StorageEvent('storage', {
+      key: localCoordinationStorageKeys.message,
+      newValue: JSON.stringify(message),
+    }),
+  );
+}
+
+async function holdPeerTabLocks() {
+  const lockManager = navigator.locks as unknown as FakeLockManager;
+  const releasePresence = await lockManager.hold(
+    localCoordinationStorageKeys.presenceLock,
+    'shared',
+  );
+  const releaseWriter = await lockManager.hold(
+    localCoordinationStorageKeys.writerLock,
+    'exclusive',
+  );
+  let released = false;
+
+  return async () => {
+    if (released) {
+      return;
+    }
+
+    released = true;
+    await releaseWriter();
+    await releasePresence();
+  };
+}
 
 describe('App', () => {
   it('redirects a fresh run to onboarding', async () => {
@@ -96,9 +152,7 @@ describe('App', () => {
 
     await user.clear(displayName);
     await user.type(displayName, 'Casey');
-    await user.click(
-      screen.getByRole('button', { name: 'Save and open dashboard' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save and continue' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Dashboard' }),
@@ -107,6 +161,493 @@ describe('App', () => {
     const snapshot = await getDatabaseSnapshot();
 
     expect(snapshot.learnerProfile?.displayName).toBe('Casey');
+  });
+
+  it('returns a quick-start learner to the requested RPG deep link', async () => {
+    const user = userEvent.setup();
+
+    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#live-session');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Use default learner' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#live-session');
+  });
+
+  it('returns a customized learner to the requested classic deep link', async () => {
+    const user = userEvent.setup();
+
+    await renderAppAtRoute('/course/week-4-lecture?panel=notes#saved-note');
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Customize first' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Save and continue' }));
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Week 4: Memory - Lecture 4: Memory',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/course/week-4-lecture?panel=notes#saved-note');
+  });
+
+  it('forwards an already-onboarded learner from onboarding to validated state', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/onboarding', {
+      returnTo: '/rpg/focus?itemId=week-4-lecture#resume',
+    });
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#resume');
+  });
+
+  it.each([
+    ['/settings', 'Local startup failed'],
+    ['/rpg/settings', 'RPG startup failed'],
+  ])(
+    'explains and automatically recovers from a peer-blocked startup repair at %s',
+    async (route, failureHeading) => {
+      await initializeDatabase({ seed: bundledCourseSeed });
+      await saveLearnerProfile(
+        {
+          ...defaultLearnerProfileValues,
+          targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+        },
+        { completeOnboarding: true },
+      );
+      await getSharedDatabase().appMeta.update('app-meta', {
+        appVersion: '1.2.0',
+      });
+      const releasePeer = await holdPeerTabLocks();
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await renderAppAtRoute(route);
+
+        expect(
+          await screen.findByRole('heading', { name: failureHeading }),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.',
+          ),
+        ).toBeInTheDocument();
+        const retryButton = screen.getByRole('button', {
+          name: 'Retry local data load',
+        });
+        expect(retryButton).toBeDisabled();
+        expect(consoleError).not.toHaveBeenCalled();
+
+        await releasePeer();
+        dispatchPeerMessage('closing');
+
+        expect(
+          await screen.findByRole('heading', { name: 'Settings' }),
+        ).toBeInTheDocument();
+        expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+      } finally {
+        await releasePeer();
+        consoleError.mockRestore();
+      }
+    },
+  );
+
+  it('hides stale route controls before acknowledging a reload', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const originalProfileGet = getSharedDatabase().learnerProfile.get.bind(
+      getSharedDatabase().learnerProfile,
+    );
+    let releaseStaleRead: () => void = () => {};
+    let reportStaleReadStarted: () => void = () => {};
+    const staleReadGate = new Promise<void>((resolve) => {
+      releaseStaleRead = resolve;
+    });
+    const staleReadStarted = new Promise<void>((resolve) => {
+      reportStaleReadStarted = resolve;
+    });
+    vi.spyOn(getSharedDatabase().learnerProfile, 'get').mockImplementationOnce(
+      (key) =>
+        Dexie.Promise.resolve().then(async () => {
+          reportStaleReadStarted();
+          await staleReadGate;
+          return originalProfileGet(key);
+        }),
+    );
+
+    const nextRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', nextRevision);
+    await staleReadStarted;
+    expect(
+      screen.getByRole('heading', { name: 'Preparing your workspace' }),
+    ).toBeInTheDocument();
+    try {
+      expect(getLocalCoordinationStatus()).toMatchObject({
+        blockReason: 'stale',
+        canWrite: false,
+        revision: nextRevision,
+        stale: true,
+      });
+      expect(
+        screen.queryByRole('button', { name: 'Export local backup' }),
+      ).not.toBeInTheDocument();
+    } finally {
+      releaseStaleRead();
+    }
+
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Export local backup' }),
+    ).toBeEnabled();
+  }, 10_000);
+
+  it('reads and acknowledges stale state before applying a required repair', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    await getSharedDatabase().appMeta.update('app-meta', {
+      appVersion: '1.2.0',
+    });
+    const staleRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', staleRevision);
+
+    await waitFor(async () => {
+      expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+      expect(getLocalCoordinationStatus()).toMatchObject({
+        blockReason: null,
+        canWrite: true,
+        stale: false,
+      });
+    });
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+  }, 10_000);
+
+  it('keeps the route guarded when the revision changes during an automatic reload', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const originalProfileGet = getSharedDatabase().learnerProfile.get.bind(
+      getSharedDatabase().learnerProfile,
+    );
+    let profileReadCount = 0;
+    let releaseFirstRead: () => void = () => {};
+    let reportFirstReadStarted: () => void = () => {};
+    const firstReadGate = new Promise<void>((resolve) => {
+      releaseFirstRead = resolve;
+    });
+    const firstReadStarted = new Promise<void>((resolve) => {
+      reportFirstReadStarted = resolve;
+    });
+    vi.spyOn(getSharedDatabase().learnerProfile, 'get').mockImplementation(
+      (key) =>
+        Dexie.Promise.resolve().then(async () => {
+          profileReadCount += 1;
+          const value = await originalProfileGet(key);
+
+          if (profileReadCount === 1) {
+            reportFirstReadStarted();
+            await firstReadGate;
+          }
+
+          return value;
+        }),
+    );
+
+    const firstStaleRevision = getLocalCoordinationStatus().revision + 1;
+    dispatchPeerMessage('write', firstStaleRevision);
+    await firstReadStarted;
+    expect(
+      screen.getByRole('heading', { name: 'Preparing your workspace' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Export local backup' }),
+    ).not.toBeInTheDocument();
+
+    const revisionDuringRead = firstStaleRevision + 1;
+    dispatchPeerMessage('write', revisionDuringRead);
+    releaseFirstRead();
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Settings',
+      }),
+    ).toBeInTheDocument();
+    expect(getLocalCoordinationStatus()).toMatchObject({
+      blockReason: null,
+      canWrite: true,
+      revision: revisionDuringRead,
+      stale: false,
+    });
+    expect(
+      screen.getByRole('button', { name: 'Export local backup' }),
+    ).toBeEnabled();
+  }, 10_000);
+
+  it('keeps classic navigation usable while disabling contended mutation controls', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    const releasePeer = await holdPeerTabLocks();
+
+    try {
+      await renderAppAtRoute('/course/week-0-problem-set');
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Save progress' }),
+      ).toBeDisabled();
+
+      await user.click(screen.getByRole('link', { name: 'Course Map' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Course Map' }),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole('link', { name: 'Sessions' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Study sessions' }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Start live session' }),
+      ).toBeDisabled();
+      for (const saveButton of screen.getAllByRole('button', {
+        name: 'Save session',
+      })) {
+        expect(saveButton).toBeDisabled();
+      }
+    } finally {
+      await releasePeer();
+    }
+  });
+
+  it('keeps RPG navigation usable while disabling contended mutation controls', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    const releasePeer = await holdPeerTabLocks();
+
+    try {
+      await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Save progress' }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Mark locally complete' }),
+      ).toBeDisabled();
+
+      await user.click(screen.getByRole('link', { name: 'Back to week' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Week 4: Memory' }),
+      ).toBeInTheDocument();
+    } finally {
+      await releasePeer();
+    }
+  });
+
+  it('allows owner writes but disables destructive settings while a peer is present', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('heading', { name: 'Settings' }),
+    ).toBeInTheDocument();
+
+    const lockManager = navigator.locks as unknown as FakeLockManager;
+    const releasePeerPresence = await lockManager.hold(
+      localCoordinationStorageKeys.presenceLock,
+      'shared',
+    );
+
+    try {
+      dispatchPeerMessage('hello', getLocalCoordinationStatus().revision);
+      await waitFor(() => {
+        expect(getLocalCoordinationStatus().peerActive).toBe(true);
+      });
+
+      expect(
+        screen.queryByRole('heading', {
+          name: 'This ProgressPal tab is read-only',
+        }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Save local settings' }),
+      ).toBeEnabled();
+      expect(
+        screen.getByRole('button', { name: 'Export local backup' }),
+      ).toBeEnabled();
+      expect(screen.getByLabelText('Backup file')).toBeDisabled();
+      expect(screen.getByLabelText('Confirmation phrase')).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Reset all local data' }),
+      ).toBeDisabled();
+
+      await user.click(
+        screen.getByRole('button', { name: 'Save local settings' }),
+      );
+      expect(
+        await screen.findByText('Local profile saved'),
+      ).toBeInTheDocument();
+    } finally {
+      await releasePeerPresence();
+      dispatchPeerMessage('closing', getLocalCoordinationStatus().revision);
+    }
+  });
+
+  it('fails closed when both browser coordination transports are unavailable', async () => {
+    const storageWrite = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => {
+        throw new Error('Injected storage transport failure.');
+      });
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    vi.stubGlobal('BroadcastChannel', undefined);
+
+    try {
+      await renderAppAtRoute('/');
+
+      expect(
+        await screen.findByRole('heading', { name: 'Local startup failed' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Safe local-tab coordination is unavailable in this browser context. ProgressPal will keep local writes blocked.',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Retry local data load' }),
+      ).toBeDisabled();
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      storageWrite.mockRestore();
+      consoleError.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('returns an imported onboarded learner to the requested deep link', async () => {
+    const user = userEvent.setup();
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+
+    const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
+      appVersion: '1.2.0',
+      exportedAt: '2026-07-12T10:00:00.000Z',
+      schemaVersion: 2,
+    });
+
+    await resetAllData({ seed: bundledCourseSeed });
+    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#imported-session');
+
+    await user.upload(
+      await screen.findByLabelText('Backup file'),
+      new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
+        type: 'application/json',
+      }),
+    );
+    await user.click(
+      await screen.findByRole('button', { name: 'Restore this backup' }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    ).toBe('/rpg/focus?itemId=week-4-lecture#imported-session');
   });
 
   it('does not render forbidden learner-facing terms during onboarding', async () => {
@@ -1514,6 +2055,38 @@ describe('App', () => {
       screen.getByText(/Achievement unlocked:.*First Step/),
     ).toBeInTheDocument();
   });
+
+  it('focuses the main landmark on classic route changes, never on mount', async () => {
+    const user = userEvent.setup();
+
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
+        displayName: 'Alex',
+        preferredTheme: 'dark',
+        reducedMotion: true,
+        targetMinutesPerWeek: 360,
+        targetStudyDays: ['monday', 'thursday'],
+      },
+      { completeOnboarding: true },
+    );
+
+    await renderAppAtRoute('/dashboard');
+    await screen.findByRole('heading', { name: 'Dashboard' });
+
+    expect(document.activeElement).toBe(document.body);
+
+    await user.click(
+      within(screen.getByRole('navigation', { name: 'Primary' })).getByRole(
+        'link',
+        { name: 'Sessions' },
+      ),
+    );
+
+    await screen.findByRole('heading', { name: 'Study sessions' });
+    expect(document.activeElement).toHaveAttribute('id', 'main-content');
+  });
 });
 
 describe('RPG routes', () => {
@@ -2127,9 +2700,7 @@ describe('RPG routes', () => {
 
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
 
-    await user.click(
-      screen.getByRole('button', { name: 'Save local progress' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Progress saved' }),
@@ -2146,6 +2717,30 @@ describe('RPG routes', () => {
       status: 'started',
     });
     expect(savedProgress?.completedAt).toBeUndefined();
+    expect(afterSnapshot.progressEntries).toHaveLength(
+      beforeSnapshot.progressEntries.length + 1,
+    );
+    expect(afterSnapshot.xpTransactions).toHaveLength(
+      beforeSnapshot.xpTransactions.length + 1,
+    );
+
+    const totalXp = afterSnapshot.xpTransactions.reduce(
+      (total, transaction) => total + transaction.xp,
+      0,
+    );
+
+    await waitFor(() => {
+      const heroHud = within(
+        screen.getByRole('region', { name: 'Persistent hero HUD' }),
+      );
+
+      expect(
+        heroHud.getByText(new RegExp(`^${totalXp} XP total`)),
+      ).toBeInTheDocument();
+      expect(
+        heroHud.getByRole('link', { name: 'Continue quest' }),
+      ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+    });
   });
 
   it('does not force a partially logged RPG long-form resource to complete', async () => {
@@ -2183,17 +2778,127 @@ describe('RPG routes', () => {
       screen.getByRole('button', { name: 'Mark locally complete' }),
     );
 
-    expect(
-      await screen.findByText(
-        'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
-      ),
-    ).toBeInTheDocument();
+    const statusError = await screen.findByText(
+      'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
+    );
+    const statusControl = screen.getByLabelText('Progress');
+
+    expect(statusError).toHaveAttribute('id', 'rpg-resource-status-error');
+    expect(statusControl).toHaveAttribute('aria-invalid', 'true');
+    expect(statusControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-status-error',
+    );
+    expect(statusControl).toHaveAccessibleDescription(
+      statusError.textContent ?? '',
+    );
 
     const afterProgress = (await getDatabaseSnapshot()).progressEntries.find(
       (entry) => entry.itemId === 'week-0-lecture',
     );
 
     expect(afterProgress).toEqual(beforeProgress);
+  });
+
+  it('associates RPG submission and confidence errors with their controls', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+    await upsertProgress(
+      {
+        confidence: 3,
+        itemId: 'week-4-problem-set',
+        status: 'submitted',
+      },
+      { now: () => '2026-07-12T10:00:00.000Z' },
+    );
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
+    fireEvent.change(screen.getByLabelText('Progress'), {
+      target: { value: 'accepted' },
+    });
+
+    const evidenceControl = await screen.findByLabelText('Submission note');
+
+    await user.click(screen.getByText('More details'));
+    const confidenceControl = screen.getByLabelText('How sure are you?');
+
+    fireEvent.change(confidenceControl, { target: { value: '' } });
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    const evidenceError = document.getElementById(
+      'rpg-resource-evidence-error',
+    );
+    const confidenceError = document.getElementById(
+      'rpg-resource-confidence-error',
+    );
+
+    expect(evidenceError).toBeInTheDocument();
+    expect(confidenceError).toBeInTheDocument();
+    expect(evidenceControl).toHaveAttribute('aria-invalid', 'true');
+    expect(evidenceControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-evidence-error',
+    );
+    expect(evidenceControl).toHaveAccessibleDescription(
+      evidenceError?.textContent ?? '',
+    );
+    expect(confidenceControl).toHaveAttribute('aria-invalid', 'true');
+    expect(confidenceControl).toHaveAttribute(
+      'aria-describedby',
+      'rpg-resource-confidence-error',
+    );
+    expect(confidenceControl).toHaveAccessibleDescription(
+      confidenceError?.textContent ?? '',
+    );
+  });
+
+  it('keeps tracker jargon out of the RPG study resource surface', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
+    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
+
+    const body = document.body.textContent ?? '';
+    expect(body).not.toMatch(/\bConfidence\b/);
+    expect(body).not.toMatch(/Save local progress/);
+  });
+
+  it('applies the RPG body class on /rpg routes and removes it when leaving', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByTestId('rpg-shell');
+
+    expect(document.body.classList.contains('rpg-route-active')).toBe(true);
+
+    await act(async () => {
+      await router.navigate('/dashboard');
+    });
+
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    expect(document.body.classList.contains('rpg-route-active')).toBe(false);
+  });
+
+  it('focuses the RPG main landmark on RPG route changes, never on mount', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg');
+    await screen.findByTestId('rpg-shell');
+
+    expect(document.activeElement).toBe(document.body);
+
+    await user.click(
+      within(
+        screen.getByRole('navigation', { name: 'RPG bottom navigation' }),
+      ).getByRole('link', { name: 'Map' }),
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toHaveAttribute('id', 'rpg-main-content');
+    });
   });
 
   it('marks an RPG resource locally complete only after explicit user action', async () => {
@@ -2262,13 +2967,15 @@ describe('RPG routes', () => {
     const itemSelectors = screen.getAllByLabelText('What were you working on?');
 
     expect(unitSelectors.length).toBeGreaterThan(0);
-    for (const unitSelector of unitSelectors) {
-      expect(unitSelector).toBeDisabled();
-      expect(unitSelector).toHaveValue('week-4');
-    }
-    for (const itemSelector of itemSelectors) {
-      expect(itemSelector).toHaveValue('week-4-lecture');
-    }
+    await waitFor(() => {
+      for (const unitSelector of unitSelectors) {
+        expect(unitSelector).toBeDisabled();
+        expect(unitSelector).toHaveValue('week-4');
+      }
+      for (const itemSelector of itemSelectors) {
+        expect(itemSelector).toHaveValue('week-4-lecture');
+      }
+    });
 
     expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
       'href',
@@ -2435,6 +3142,19 @@ describe('RPG routes', () => {
         sourceType: 'study_session',
         xp: 10,
       });
+
+      const totalXp = afterSnapshot.xpTransactions.reduce(
+        (total, transaction) => total + transaction.xp,
+        0,
+      );
+
+      await waitFor(() => {
+        expect(
+          within(
+            screen.getByRole('region', { name: 'Persistent hero HUD' }),
+          ).getByText(new RegExp(`^${totalXp} XP total`)),
+        ).toBeInTheDocument();
+      });
     } finally {
       nowSpy.mockRestore();
     }
@@ -2495,9 +3215,7 @@ describe('RPG routes', () => {
       fireEvent.change(screen.getByLabelText('Add study note'), {
         target: { value: 'RPG-09 vertical slice progress note.' },
       });
-      await user.click(
-        screen.getByRole('button', { name: 'Save local progress' }),
-      );
+      await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
       expect(
         await screen.findByRole('heading', { name: 'Progress saved' }),
@@ -2633,6 +3351,7 @@ describe('RPG routes', () => {
     // The same authoritative data controls as classic Settings, rendered inside
     // the RPG shell — not a hand-off link to a separate settings screen.
     for (const cardTitle of [
+      'Browser storage durability',
       'Export a backup',
       'Import a backup',
       'Reset local data',
@@ -2642,6 +3361,9 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
     }
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Persistent permission is not a backup/),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Export local backup' }),
     ).toBeInTheDocument();
@@ -3315,6 +4037,7 @@ describe('Settings route', () => {
     ).toBeInTheDocument();
 
     for (const cardTitle of [
+      'Browser storage durability',
       'Export a backup',
       'Import a backup',
       'Reset local data',
@@ -3326,8 +4049,35 @@ describe('Settings route', () => {
 
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
     expect(
+      screen.getByText(/Persistent permission is not a backup/),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();
+    expect(screen.queryByLabelText('Face shape')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Hair')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Top color')).not.toBeInTheDocument();
+  });
+
+  it('preserves legacy avatar fields when the truthful profile controls save', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithHistory();
+    const before = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/settings');
+    await user.click(
+      await screen.findByRole('button', { name: 'Save local settings' }),
+    );
+
+    expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Profile, theme, motion, and study cadence were updated on this device.',
+      ),
+    ).toBeInTheDocument();
+    expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual(
+      before.learnerProfile?.avatarConfig,
+    );
   });
 
   it('does not mutate any local store when settings renders or reloads', async () => {

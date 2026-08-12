@@ -3,6 +3,7 @@ import type {
   ButtonHTMLAttributes,
   ReactNode,
 } from 'react';
+import { Link } from 'react-router-dom';
 
 import { classNames } from '@/components/ui/utils';
 
@@ -72,12 +73,26 @@ function RpgAnchorButton({
   variant,
   ...anchorProps
 }: RpgButtonLinkProps) {
+  const buttonClassName = getRpgButtonClassName({ className, size, variant });
+  const content = renderRpgButtonContent({
+    children,
+    leadingIcon,
+    trailingIcon,
+  });
+
+  if (anchorProps.href.startsWith('/') && !anchorProps.href.startsWith('//')) {
+    const { href, ...linkProps } = anchorProps;
+
+    return (
+      <Link className={buttonClassName} to={href} {...linkProps}>
+        {content}
+      </Link>
+    );
+  }
+
   return (
-    <a
-      className={getRpgButtonClassName({ className, size, variant })}
-      {...anchorProps}
-    >
-      {renderRpgButtonContent({ children, leadingIcon, trailingIcon })}
+    <a className={buttonClassName} {...anchorProps}>
+      {content}
     </a>
   );
 }

@@ -1,23 +1,33 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
+import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
 import {
   getRouteDefinition,
   primaryNavigationItems,
 } from '@/app/router/routeDefinitions';
 import { AppShell as AppShellLayout } from '@/components/layout/AppShell';
+import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
+import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
+import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 export function AppShell() {
   const location = useLocation();
-  const { error, profile, requiresOnboarding, status } = useAppState();
+  const { coordination, error, profile, refresh, requiresOnboarding, status } =
+    useAppState();
+  const mainRef = useMainContentFocus<HTMLElement>();
   const onboardingRoute = getRouteDefinition('onboarding');
   const onboardingPath = onboardingRoute.to ?? '/onboarding';
 
   if (status === 'loading') {
     return (
       <AppShellLayout
+        mainRef={mainRef}
         navigationItems={[
           {
             end: true,
@@ -54,6 +64,7 @@ export function AppShell() {
   if (status === 'error') {
     return (
       <AppShellLayout
+        mainRef={mainRef}
         navigationItems={[
           {
             end: true,
@@ -74,25 +85,51 @@ export function AppShell() {
             value: 'Load failed',
           },
         ]}
-        summary="The app could not open its local storage."
+        summary="ProgressPal could not finish checking or repairing its local storage."
         title="ProgressPal CS50 Edition"
       >
         <section className="page-section">
           <ErrorState
+            action={
+              <Button
+                disabled={
+                  coordination.writeOwnership !== 'owned' ||
+                  coordination.blockReason === 'discovering' ||
+                  coordination.blockReason === 'unavailable'
+                }
+                onClick={() => {
+                  void refresh();
+                }}
+              >
+                Retry local data load
+              </Button>
+            }
             description={error ?? 'Local data could not be loaded.'}
             title="Local startup failed"
           />
+          {isLocalCoordinationRevisionExhausted(coordination) ? (
+            <CoordinationRepairControl
+              onRepaired={() => {
+                void refresh();
+              }}
+            />
+          ) : null}
         </section>
       </AppShellLayout>
     );
   }
 
   if (requiresOnboarding && location.pathname !== onboardingPath) {
-    return <Navigate replace to={onboardingPath} />;
+    const returnTo =
+      location.pathname === '/'
+        ? '/dashboard'
+        : `${location.pathname}${location.search}${location.hash}`;
+
+    return <Navigate replace state={{ returnTo }} to={onboardingPath} />;
   }
 
   if (!requiresOnboarding && location.pathname === onboardingPath) {
-    return <Navigate replace to="/dashboard" />;
+    return <Navigate replace to={getOnboardingReturnPath(location.state)} />;
   }
 
   const navigationItems = requiresOnboarding
@@ -108,6 +145,7 @@ export function AppShell() {
 
   return (
     <AppShellLayout
+      mainRef={mainRef}
       navigationItems={navigationItems}
       statusItems={[
         {
@@ -130,6 +168,11 @@ export function AppShell() {
               ? 'Unavailable'
               : `${profile.targetMinutesPerWeek} min/week`,
         },
+        {
+          label: 'Local writes',
+          tone: coordination.canWrite ? 'success' : 'warning',
+          value: coordination.canWrite ? 'Available' : 'Read-only',
+        },
       ]}
       summary={
         requiresOnboarding
@@ -138,7 +181,69 @@ export function AppShell() {
       }
       title="ProgressPal CS50 Edition"
     >
-      <Outlet />
+      {coordination.blockReason === 'peer-active' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="This ProgressPal tab is read-only"
+            variant="danger"
+          >
+            <p className="card__description">
+              Another participating ProgressPal tab owns local writing. You can
+              still review your saved data and navigate here. Close the writer
+              tab; this tab will reread IndexedDB before it enables changes.
+            </p>
+          </Card>
+        </section>
+      ) : null}
+      {coordination.blockReason === 'stale' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="This tab has stale local data"
+            variant="danger"
+          >
+            <p className="card__description">
+              ProgressPal detected a newer local revision. Reload it before
+              making changes. If another tab still owns writing, this tab will
+              remain available for reading after the reload.
+            </p>
+            <div className="action-row">
+              <Button
+                onClick={() => {
+                  void refresh();
+                }}
+              >
+                Reload local state
+              </Button>
+            </div>
+          </Card>
+        </section>
+      ) : null}
+      {coordination.blockReason === 'unavailable' ? (
+        <section className="page-section">
+          <Card
+            role="alert"
+            title="Local tab safety is unavailable"
+            variant="danger"
+          >
+            <p className="card__description">
+              This browser context cannot provide the required Web Locks
+              ownership guard. ProgressPal keeps local writes blocked because
+              advisory tab notifications alone cannot prevent concurrent
+              IndexedDB writes.
+            </p>
+          </Card>
+          {isLocalCoordinationRevisionExhausted(coordination) ? (
+            <CoordinationRepairControl
+              onRepaired={() => {
+                void refresh();
+              }}
+            />
+          ) : null}
+        </section>
+      ) : null}
+      <DataEpochOutlet />
     </AppShellLayout>
   );
 }

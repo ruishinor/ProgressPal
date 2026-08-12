@@ -220,7 +220,7 @@ Open Hub -> awards XP
 Open Badge Gallery -> unlocks achievement
 Open Map -> updates progress
 Open Hero -> writes rank
-Open Journey Log -> backfills history
+Open Insights -> backfills history
 Open Study Resource -> marks item started without explicit action
 ```
 

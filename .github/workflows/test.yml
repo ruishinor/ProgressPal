@@ -1,0 +1,54 @@
+name: Release validation
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  final-candidate:
+    name: Final candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm 11
+        run: npm install --global npm@11.10.1
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run immutable release gate
+        env:
+          RELEASE_MODULE: v1.3-final-candidate
+          RELEASE_PASS: '1'
+          RELEASE_REVIEW_FILE: docs/remediation/v1.3-final-release-review.json
+        run: npm run verify:release
+      - name: Upload release evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-evidence-final-candidate
+          path: |
+            artifacts/release-evidence/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 30

@@ -22,6 +22,7 @@ import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { achievementDefinitionsById } from '@/lib/achievements';
+import { useAppState } from '@/lib/appState';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { getItemGuide, type ItemGuide } from '@/features/course/guideContent';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
@@ -420,6 +421,7 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
 
 export function ContentDetailPage() {
   const params = useParams<{ itemId: string }>();
+  const { coordination, runLocalMutation } = useAppState();
   const [progressForm, setProgressForm] = useState<ProgressFormState | null>(
     null,
   );
@@ -652,6 +654,8 @@ export function ContentDetailPage() {
       return;
     }
 
+    const parsedConfidence = validation.parsedConfidence;
+
     setProgressForm((currentForm) =>
       currentForm === null
         ? currentForm
@@ -665,36 +669,40 @@ export function ContentDetailPage() {
     const timestamp = new Date().toISOString();
 
     try {
-      const xpResult = await upsertProgressAndAwardXp({
-        itemId: detail.item.id,
-        status: progressForm.values.status,
-        startedAt: getDefaultStartedAt(
-          detail.progressEntry,
-          progressForm.values.status,
-          timestamp,
-        ),
-        completedAt: getDefaultCompletedAt(
-          detail.progressEntry,
-          progressForm.values.status,
-          timestamp,
-        ),
-        confidence:
-          progressForm.values.status === 'skipped_optional'
-            ? 0
-            : validation.parsedConfidence,
-        notes:
-          progressForm.values.notes.trim().length === 0
-            ? undefined
-            : progressForm.values.notes.trim(),
-        evidenceType:
-          progressForm.values.evidenceText.trim().length === 0
-            ? undefined
-            : 'self_report',
-        evidenceText:
-          progressForm.values.evidenceText.trim().length === 0
-            ? undefined
-            : progressForm.values.evidenceText.trim(),
-      });
+      const xpResult = await runLocalMutation(
+        () =>
+          upsertProgressAndAwardXp({
+            itemId: detail.item.id,
+            status: progressForm.values.status,
+            startedAt: getDefaultStartedAt(
+              detail.progressEntry,
+              progressForm.values.status,
+              timestamp,
+            ),
+            completedAt: getDefaultCompletedAt(
+              detail.progressEntry,
+              progressForm.values.status,
+              timestamp,
+            ),
+            confidence:
+              progressForm.values.status === 'skipped_optional'
+                ? 0
+                : parsedConfidence,
+            notes:
+              progressForm.values.notes.trim().length === 0
+                ? undefined
+                : progressForm.values.notes.trim(),
+            evidenceType:
+              progressForm.values.evidenceText.trim().length === 0
+                ? undefined
+                : 'self_report',
+            evidenceText:
+              progressForm.values.evidenceText.trim().length === 0
+                ? undefined
+                : progressForm.values.evidenceText.trim(),
+          }),
+        { invalidateRoute: false },
+      );
 
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
@@ -758,6 +766,8 @@ export function ContentDetailPage() {
       return;
     }
 
+    const asset = detail.asset;
+
     const startSecond = parseTimestampInput(logForm.startTimestamp);
     const endSecond = parseTimestampInput(logForm.endTimestamp);
 
@@ -789,8 +799,8 @@ export function ContentDetailPage() {
     }
 
     if (
-      detail.asset.durationSeconds !== undefined &&
-      endSecond > detail.asset.durationSeconds
+      asset.durationSeconds !== undefined &&
+      endSecond > asset.durationSeconds
     ) {
       setLogForm((currentForm) =>
         currentForm === null
@@ -815,16 +825,22 @@ export function ContentDetailPage() {
     );
 
     try {
-      const xpResult = await logMediaProgressAndAwardXp({
-        assetId: detail.asset.id,
-        endSecond,
-        energyAfter: Number.parseInt(logForm.energyAfter, 10),
-        energyBefore: Number.parseInt(logForm.energyBefore, 10),
-        notes:
-          logForm.notes.trim().length === 0 ? undefined : logForm.notes.trim(),
-        startSecond,
-        stoppedBecause: logForm.stoppedBecause,
-      } satisfies LogMediaProgressInput);
+      const xpResult = await runLocalMutation(
+        () =>
+          logMediaProgressAndAwardXp({
+            assetId: asset.id,
+            endSecond,
+            energyAfter: Number.parseInt(logForm.energyAfter, 10),
+            energyBefore: Number.parseInt(logForm.energyBefore, 10),
+            notes:
+              logForm.notes.trim().length === 0
+                ? undefined
+                : logForm.notes.trim(),
+            startSecond,
+            stoppedBecause: logForm.stoppedBecause,
+          } satisfies LogMediaProgressInput),
+        { invalidateRoute: false },
+      );
 
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
@@ -1208,7 +1224,12 @@ export function ContentDetailPage() {
             </p>
           ) : null}
           <div className="course-detail-form__actions">
-            <Button loading={logForm.isSaving} size="lg" type="submit">
+            <Button
+              disabled={!coordination.canWrite}
+              loading={logForm.isSaving}
+              size="lg"
+              type="submit"
+            >
               Save session
             </Button>
           </div>
@@ -1452,6 +1473,7 @@ export function ContentDetailPage() {
         ) : null}
         <div className="course-detail-form__actions">
           <Button
+            disabled={!coordination.canWrite}
             loading={progressForm?.isSaving ?? false}
             size="lg"
             type="submit"
@@ -1789,6 +1811,7 @@ export function ContentDetailPage() {
           ) : null}
           <div className="course-detail-form__actions">
             <Button
+              disabled={!coordination.canWrite}
               loading={progressForm?.isSaving ?? false}
               size="lg"
               type="submit"

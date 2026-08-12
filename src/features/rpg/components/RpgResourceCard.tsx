@@ -22,7 +22,7 @@ export function RpgResourceCard({
     <article className={classNames('rpg-resource-card', className)} {...rest}>
       <div className="rpg-resource-card__body">
         <div>
-          <h3 className="rpg-resource-card__title">{title}</h3>
+          <h2 className="rpg-resource-card__title">{title}</h2>
           {description ? (
             <p className="rpg-resource-card__description">{description}</p>
           ) : null}

@@ -15,7 +15,7 @@ const routeChecks = [
   { heading: 'Campaign Map', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
-  { heading: 'No task selected', path: '/rpg/focus' },
+  { heading: 'Live focus session', path: '/rpg/focus' },
   { heading: 'Hero Profile', path: '/rpg/hero' },
   { heading: 'Achievements', path: '/rpg/badges' },
   { heading: 'Insights', path: '/rpg/log' },
@@ -23,8 +23,10 @@ const routeChecks = [
 ] as const;
 
 const viewportChecks = [
+  { height: 568, name: 'small-mobile', width: 320 },
   { height: 844, name: 'mobile', width: 390 },
   { height: 1024, name: 'tablet', width: 768 },
+  { height: 800, name: 'small-desktop', width: 1024 },
   { height: 900, name: 'desktop', width: 1440 },
 ] as const;
 
@@ -69,7 +71,20 @@ for (const viewport of viewportChecks) {
       await expect(
         page.getByRole('heading', { exact: true, name: route.heading }),
       ).toBeVisible({ timeout: 15000 });
+
+      if (route.path === '/rpg/focus') {
+        // The route owns the page-level h1; focus cards follow beneath it.
+        await expect(
+          page.getByRole('heading', {
+            exact: true,
+            level: 1,
+            name: 'Focus',
+          }),
+        ).toBeVisible();
+      }
+
       await expectNoHorizontalOverflow(page, route.path);
+      await expect(page).toHaveURL(route.path);
     }
 
     expect(consoleIssues).toEqual([]);

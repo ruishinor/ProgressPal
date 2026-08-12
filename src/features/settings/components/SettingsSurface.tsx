@@ -4,16 +4,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ImportBackupControl } from '@/components/ui/ImportBackupControl';
+import {
+  ImportBackupControl,
+  type BackupImportSelection,
+} from '@/components/ui/ImportBackupControl';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import {
+  BackupValidationError,
   buildBackupEnvelope,
   backupFileName,
-  type BackupEnvelope,
+  serializeBackupEnvelope,
 } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
 import {
@@ -67,7 +71,14 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     ? 'page-section rpg-settings'
     : 'page-section';
   const navigate = useNavigate();
-  const { profile, refresh, saveProfile } = useAppState();
+  const {
+    coordination,
+    persistenceStatus,
+    profile,
+    requestPersistentStorage,
+    runLocalMutation,
+    saveProfile,
+  } = useAppState();
   const [toast, setToast] = useState<SettingsToast | null>(null);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -90,18 +101,41 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         exportedAt: new Date().toISOString(),
       });
 
-      downloadJson(fileName, JSON.stringify(envelope, null, 2));
-      await recordBackupEvent({ type: 'export', fileName });
+      const { contents } = serializeBackupEnvelope(envelope);
+
+      downloadJson(fileName, contents);
 
       setToast({
-        title: 'Backup exported',
-        description: `Saved ${fileName} to this device. Store it somewhere private.`,
+        title: 'Backup download started',
+        description: `Started downloading ${fileName}. Store it somewhere private.`,
         tone: 'success',
       });
-    } catch {
+
+      try {
+        await runLocalMutation(
+          () => recordBackupEvent({ type: 'export', fileName }),
+          { invalidateRoute: false },
+        );
+        setToast({
+          title: 'Backup download started',
+          description: `Started downloading ${fileName} and recorded it in local backup history.`,
+          tone: 'success',
+        });
+      } catch {
+        setToast({
+          title: 'Backup download started',
+          description:
+            'The file download started, but the local backup-history entry could not be recorded.',
+          tone: 'danger',
+        });
+      }
+    } catch (error) {
       setToast({
         title: 'Export failed',
-        description: 'The local backup could not be created.',
+        description:
+          error instanceof BackupValidationError
+            ? error.message
+            : 'The local backup could not be created or downloaded.',
         tone: 'danger',
       });
     } finally {
@@ -109,20 +143,43 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     }
   }
 
-  async function handleImport(envelope: BackupEnvelope) {
+  async function handleRequestPersistence() {
+    const result = await requestPersistentStorage();
+
+    setToast(
+      result === 'persistent'
+        ? {
+            title: 'Persistent storage granted',
+            description:
+              'The browser reports reduced automatic-eviction risk. Manual deletion, device loss, and browser damage still require a backup.',
+            tone: 'success',
+          }
+        : {
+            title: 'Persistent storage not granted',
+            description:
+              'ProgressPal remains in best-effort browser storage. Export backups regularly.',
+            tone: 'danger',
+          },
+    );
+  }
+
+  async function handleImport(selection: BackupImportSelection) {
     setImporting(true);
 
     try {
-      await restoreDatabaseFromBackup(envelope.data, {
-        seed: bundledCourseSeed,
-        fileName: backupFileName(new Date()),
-      });
+      await runLocalMutation(
+        () =>
+          restoreDatabaseFromBackup(selection.envelope.data, {
+            seed: bundledCourseSeed,
+            fileName: selection.fileName,
+          }),
+        { invalidateRoute: true },
+      );
       // Land on the restored dashboard so the import has clear, visible
       // feedback. Refreshing app state forces a reload that unmounts this page,
       // so a success toast here would never survive; the dashboard is the
       // feedback instead. Verify-your-restore guidance lives in the preview.
       navigate('/dashboard', { replace: true });
-      await refresh();
     } catch {
       setToast({
         title: 'Import failed',
@@ -138,8 +195,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     setResetting(true);
 
     try {
-      await resetAllData({ seed: bundledCourseSeed });
-      await refresh();
+      await runLocalMutation(() => resetAllData({ seed: bundledCourseSeed }), {
+        invalidateRoute: true,
+      });
       // App state now requires onboarding again; the shell redirects there.
     } catch {
       setToast({
@@ -196,6 +254,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         />
       )}
       <ProfileForm
+        cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
+        disabled={!coordination.canWrite}
         key={profile.updatedAt}
         mode="settings"
         onSubmit={async (input) => {
@@ -203,14 +263,48 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           setToast({
             title: 'Local profile saved',
             description:
-              'Theme, motion, avatar, and study cadence were updated on this device.',
+              'Profile, theme, motion, and study cadence were updated on this device.',
             tone: 'success',
           });
         }}
         profile={profile}
         submitLabel="Save local settings"
       />
-      <Card title="Export a backup" titleAs="h3">
+      <Card
+        title="Browser storage durability"
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
+        <p className="card__description">
+          {persistenceStatus === 'persistent'
+            ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
+            : persistenceStatus === 'best-effort'
+              ? 'This browser currently treats ProgressPal storage as best-effort and may evict it under storage pressure.'
+              : persistenceStatus === 'unsupported'
+                ? 'This browser does not expose a persistent-storage request to ProgressPal.'
+                : persistenceStatus === 'error'
+                  ? 'The browser did not provide a reliable persistent-storage status.'
+                  : 'Checking the browser storage policy…'}
+        </p>
+        <p className="card__description">
+          Persistent permission is not a backup. You, the browser, or device
+          failure can still remove local data, and nothing is synced to another
+          device.
+        </p>
+        {persistenceStatus === 'best-effort' ||
+        persistenceStatus === 'error' ? (
+          <div className="action-row">
+            <Button
+              onClick={() => {
+                void handleRequestPersistence();
+              }}
+              variant="secondary"
+            >
+              Request persistent storage
+            </Button>
+          </div>
+        ) : null}
+      </Card>
+      <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">
           Download a full local backup as a JSON file. It contains your learning
           history and progress, notes and saved blockers, XP transactions and
@@ -226,10 +320,11 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       </Card>
       <ImportBackupControl
         busy={importing}
+        disabled={!coordination.canWrite || coordination.peerActive}
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         onConfirmImport={handleImport}
       />
-      <Card title="Reset local data" titleAs="h3">
+      <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">
           Permanently delete all local ProgressPal data on this device and start
           fresh. This removes your progress, sessions, XP, achievements, notes,
@@ -243,6 +338,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </label>
           <TextInput
             autoComplete="off"
+            disabled={!coordination.canWrite || coordination.peerActive}
             id="reset-confirmation"
             onChange={(event) => setResetPhrase(event.target.value)}
             placeholder={resetConfirmationPhrase}
@@ -251,7 +347,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
         <div className="action-row">
           <Button
-            disabled={!resetReady}
+            disabled={
+              !resetReady || !coordination.canWrite || coordination.peerActive
+            }
             loading={resetting}
             onClick={handleReset}
             variant="danger"
@@ -261,7 +359,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
       </Card>
       {isRpgVariant ? (
-        <Card title="Local-first and course boundary" titleAs="h3">
+        <Card title="Local-first and course boundary" titleAs="h2">
           <p className="card__description">
             ProgressPal keeps everything in this browser on this device. There
             is no account, no cloud sync, and no analytics. Browser storage can

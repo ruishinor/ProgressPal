@@ -1,8 +1,9 @@
 import type { HTMLAttributes } from 'react';
 
 import { classNames } from '@/components/ui/utils';
-import { CHARACTER_PROFILE_ASSET } from '@/features/profile/components/characterProfileAsset';
 import type { LearnerAvatarConfig } from '@/lib/domain';
+
+const characterProfileAssetPath = '/assets/character-profile.png';
 
 export type ProfileAvatarProps = HTMLAttributes<HTMLDivElement> & {
   avatarConfig: LearnerAvatarConfig | undefined;
@@ -41,7 +42,7 @@ export function ProfileAvatar({
       <img
         alt=""
         aria-hidden="true"
-        src={CHARACTER_PROFILE_ASSET}
+        src={characterProfileAssetPath}
         style={{
           display: 'block',
           height: '100%',

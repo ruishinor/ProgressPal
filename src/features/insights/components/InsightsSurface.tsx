@@ -229,7 +229,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           </div>
         ) : (
           <PageHeader
-            description="The app is reading your local sessions, XP, and achievement records."
+            description="The app is reading your local sessions, XP, and achievements."
             title="Insights"
           />
         )}
@@ -279,7 +279,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
       )}
 
       <div className="insights-grid">
-        <Card title="Course progress">
+        <Card title="Course progress" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           <ProgressBar
             helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
             label="Required course progress (current)"
@@ -294,7 +294,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           </p>
         </Card>
 
-        <Card title="Effort over time">
+        <Card title="Effort over time" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
               No sessions or video logged yet. Weekly effort will appear here
@@ -356,7 +356,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           )}
         </Card>
 
-        <Card title="XP over time">
+        <Card title="XP over time" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
               No XP earned yet. Saving progress or a study session starts
@@ -405,7 +405,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           )}
         </Card>
 
-        <Card title="Study mode breakdown">
+        <Card title="Study mode breakdown" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           {modeBreakdown.isEmpty ? (
             <p className="card__description">
               No study sessions logged yet. Your effort by mode will appear
@@ -451,7 +451,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           )}
         </Card>
 
-        <Card title="Active days">
+        <Card title="Active days" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           {activeDays.isEmpty ? (
             <p className="card__description">
               No study sessions logged yet. Active-day counts appear once you
@@ -475,7 +475,10 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           )}
         </Card>
 
-        <Card title="Recorded completion awards">
+        <Card
+          title="Recorded completion awards"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {completionAwards.isEmpty ? (
             <p className="card__description">
               No completion awards recorded yet.
@@ -526,7 +529,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           )}
         </Card>
 
-        <Card title="Achievement timeline">
+        <Card title="Achievement timeline" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           {achievementTimeline.isEmpty ? (
             <p className="card__description">
               No achievements unlocked yet. Unlocks will appear here in the

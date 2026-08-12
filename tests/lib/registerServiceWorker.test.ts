@@ -67,4 +67,22 @@ describe('registerServiceWorker', () => {
     (loadHandler as EventListener)(new Event('load'));
     expect(register).toHaveBeenCalledWith('/sw.js');
   });
+
+  it('contains registration rejection so the online app remains usable', async () => {
+    vi.stubEnv('PROD', true);
+    const register = vi.fn(() =>
+      Promise.reject(new Error('registration failed')),
+    );
+    setServiceWorkerSupport(register);
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+
+    registerServiceWorker();
+    const loadHandler = addEventListener.mock.calls.find(
+      ([eventName]) => eventName === 'load',
+    )?.[1];
+
+    (loadHandler as EventListener)(new Event('load'));
+    await Promise.resolve();
+    expect(register).toHaveBeenCalledWith('/sw.js');
+  });
 });

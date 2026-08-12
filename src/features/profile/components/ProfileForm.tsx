@@ -14,17 +14,16 @@ import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
 import {
   createAvatarConfig,
   createProfileFormValues,
-  faceOptions,
-  hairOptions,
   studyDayOptions,
   themeOptions,
-  topColorOptions,
   type ProfileFormValues,
 } from '@/features/profile/model';
 
 type ProfileFormMode = 'onboarding' | 'settings';
 
 type ProfileFormProps = {
+  cardTitleAs?: 'h2' | 'h3';
+  disabled?: boolean;
   mode: ProfileFormMode;
   onSubmit: (input: SaveLearnerProfileInput) => Promise<void>;
   profile: LearnerProfile | null;
@@ -97,6 +96,8 @@ function toProfileInput(
 }
 
 export function ProfileForm({
+  cardTitleAs = 'h3',
+  disabled = false,
   mode,
   onSubmit,
   profile,
@@ -141,6 +142,10 @@ export function ProfileForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (disabled) {
+      return;
+    }
+
     await submitValues(values);
   }
 
@@ -150,6 +155,7 @@ export function ProfileForm({
         <Card
           description="Everything here stays on this device. You can revise it later in settings."
           title={mode === 'onboarding' ? 'Profile setup' : 'Edit profile'}
+          titleAs={cardTitleAs}
         >
           <div className="form-grid">
             <FormField
@@ -245,8 +251,9 @@ export function ProfileForm({
           </fieldset>
         </Card>
         <Card
-          description="The character preview uses a bundled local asset. Profile preferences stay local to this app."
+          description="The fixed character image is bundled with the app. Profile preferences stay local to this device."
           title="Avatar and preferences"
+          titleAs={cardTitleAs}
         >
           <div className="profile-preview-card">
             <ProfileAvatar
@@ -265,66 +272,6 @@ export function ProfileForm({
             </dl>
           </div>
           <div className="form-grid">
-            <FormField
-              controlId={`${fieldPrefix}-face`}
-              label="Face shape"
-              required
-            >
-              {({ describedBy, inputId, invalid }) => (
-                <Select
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setValues((currentValues) => ({
-                      ...currentValues,
-                      face: event.target.value as ProfileFormValues['face'],
-                    }))
-                  }
-                  options={faceOptions}
-                  value={values.face}
-                />
-              )}
-            </FormField>
-            <FormField controlId={`${fieldPrefix}-hair`} label="Hair" required>
-              {({ describedBy, inputId, invalid }) => (
-                <Select
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setValues((currentValues) => ({
-                      ...currentValues,
-                      hair: event.target.value as ProfileFormValues['hair'],
-                    }))
-                  }
-                  options={hairOptions}
-                  value={values.hair}
-                />
-              )}
-            </FormField>
-            <FormField
-              controlId={`${fieldPrefix}-top-color`}
-              label="Top color"
-              required
-            >
-              {({ describedBy, inputId, invalid }) => (
-                <Select
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setValues((currentValues) => ({
-                      ...currentValues,
-                      topColor: event.target
-                        .value as ProfileFormValues['topColor'],
-                    }))
-                  }
-                  options={topColorOptions}
-                  value={values.topColor}
-                />
-              )}
-            </FormField>
             <FormField
               controlId={`${fieldPrefix}-theme`}
               description="System follows the device preference. Light and dark stay local to this app."
@@ -369,7 +316,12 @@ export function ProfileForm({
         </p>
       ) : null}
       <div className="profile-form__actions">
-        <Button loading={isSubmitting} size="lg" type="submit">
+        <Button
+          disabled={disabled}
+          loading={isSubmitting}
+          size="lg"
+          type="submit"
+        >
           {submitLabel}
         </Button>
       </div>

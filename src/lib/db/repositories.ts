@@ -1,3 +1,5 @@
+import Dexie from 'dexie';
+
 import {
   AchievementDefinitionSchema,
   AchievementUnlockSchema,
@@ -33,6 +35,7 @@ import {
   type StudySession,
   type XpTransaction,
 } from '@/lib/domain';
+import { assertBackupDataInvariants } from '@/lib/backup';
 import {
   achievementDefinitions,
   deriveAchievementUnlockId,
@@ -52,6 +55,11 @@ import {
 } from '@/lib/progress';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
 import {
+  beginDestructiveLocalWrite,
+  beginLocalWrite,
+  type LocalWriteLease,
+} from '@/lib/storage';
+import {
   calculateXpSummary,
   deriveXpTransactionId,
   evaluateProgressXp,
@@ -68,6 +76,188 @@ import {
 import { getSharedDatabase, type ProgressPalDatabase } from './database';
 
 export type DatabaseClock = () => string;
+
+type CoordinatedTransactionContext = {
+  database: ProgressPalDatabase;
+  destructive: boolean;
+};
+
+const coordinatedTransactions = new WeakMap<
+  object,
+  CoordinatedTransactionContext
+>();
+
+function markCurrentTransactionCoordinated(
+  database: ProgressPalDatabase,
+  destructive = false,
+) {
+  const transaction = Dexie.currentTransaction;
+
+  if (transaction === null) {
+    throw new Error('A coordinated Dexie transaction was expected.');
+  }
+
+  if (transaction.db !== database) {
+    throw new Error(
+      'A coordinated Dexie transaction must belong to its target database.',
+    );
+  }
+
+  coordinatedTransactions.set(transaction, { database, destructive });
+}
+
+function beginCoordinatedWrite(database: ProgressPalDatabase) {
+  const coordinatedWrite = prepareCoordinatedWrite(database);
+
+  coordinatedWrite.begin();
+
+  return coordinatedWrite;
+}
+
+function prepareCoordinatedWrite(
+  database: ProgressPalDatabase,
+  mode: 'destructive' | 'ordinary' = 'ordinary',
+) {
+  const currentTransaction = Dexie.currentTransaction;
+  const transactionTargetsDatabase = currentTransaction?.db === database;
+  const inheritedContext =
+    currentTransaction === null
+      ? undefined
+      : coordinatedTransactions.get(currentTransaction);
+
+  if (transactionTargetsDatabase && inheritedContext?.database !== database) {
+    throw new Error(
+      'Repository writes cannot run inside an uncoordinated external transaction.',
+    );
+  }
+
+  if (
+    transactionTargetsDatabase &&
+    mode === 'destructive' &&
+    inheritedContext?.destructive !== true
+  ) {
+    throw new Error(
+      'Destructive repository writes cannot inherit an ordinary coordinated transaction.',
+    );
+  }
+
+  const isTopLevelWrite = !transactionTargetsDatabase;
+  let destructiveAcquisition: Promise<void> | null = null;
+  let lease: LocalWriteLease | null = null;
+  let started = false;
+  let settled = false;
+
+  return {
+    abort: () => {
+      if (!started || settled) {
+        return;
+      }
+
+      settled = true;
+      lease?.abort();
+    },
+    begin: () => {
+      if (started) {
+        return;
+      }
+
+      if (isTopLevelWrite) {
+        lease = beginLocalWrite();
+      }
+
+      started = true;
+    },
+    beginDestructive: () => {
+      if (started) {
+        return null;
+      }
+
+      if (!isTopLevelWrite) {
+        started = true;
+        return null;
+      }
+
+      destructiveAcquisition ??= beginDestructiveLocalWrite().then(
+        (acquiredLease) => {
+          lease = acquiredLease;
+          started = true;
+        },
+      );
+
+      return destructiveAcquisition;
+    },
+    complete: () => {
+      if (!started || settled) {
+        return;
+      }
+
+      settled = true;
+      lease?.complete();
+    },
+  };
+}
+
+type PreparedCoordinatedWrite = ReturnType<typeof prepareCoordinatedWrite>;
+
+type LogicalWriteScope = {
+  changed: boolean;
+  coordinatedWrite: PreparedCoordinatedWrite;
+  database: ProgressPalDatabase;
+};
+
+function createLogicalWriteScope(database: ProgressPalDatabase) {
+  return {
+    changed: false,
+    coordinatedWrite: prepareCoordinatedWrite(database),
+    database,
+  } satisfies LogicalWriteScope;
+}
+
+function settleLogicalWriteScope(scope: LogicalWriteScope) {
+  if (scope.changed) {
+    scope.coordinatedWrite.complete();
+  } else {
+    scope.coordinatedWrite.abort();
+  }
+}
+
+async function runCoordinatedWrite<T>(
+  database: ProgressPalDatabase,
+  action: () => Promise<T>,
+) {
+  const coordinatedWrite = beginCoordinatedWrite(database);
+
+  try {
+    const result = await action();
+    coordinatedWrite.complete();
+    return result;
+  } catch (error) {
+    coordinatedWrite.abort();
+    throw error;
+  }
+}
+
+async function runDestructiveCoordinatedWrite<T>(
+  database: ProgressPalDatabase,
+  action: () => Promise<T>,
+) {
+  const coordinatedWrite = prepareCoordinatedWrite(database, 'destructive');
+
+  try {
+    const acquisition = coordinatedWrite.beginDestructive();
+
+    if (acquisition !== null) {
+      await acquisition;
+    }
+
+    const result = await action();
+    coordinatedWrite.complete();
+    return result;
+  } catch (error) {
+    coordinatedWrite.abort();
+    throw error;
+  }
+}
 
 export type DatabaseInitializationResult = {
   appMeta: AppMeta;
@@ -166,18 +356,96 @@ type SeedSyncOptions = BaseDatabaseOptions & {
   skipBaseInitialization?: boolean;
 };
 
+type BaseInitializationResult = Pick<
+  DatabaseInitializationResult,
+  'appMeta' | 'createdAppMeta' | 'createdLearnerProfile'
+> & {
+  changed: boolean;
+};
+
 const defaultClock: DatabaseClock = () => new Date().toISOString();
 
 function resolveDatabase(database?: ProgressPalDatabase) {
   return database ?? getSharedDatabase();
 }
 
-async function ensureOpen(database: ProgressPalDatabase) {
-  if (!database.isOpen()) {
-    await database.open();
+async function openingDatabaseMayWrite(database: ProgressPalDatabase) {
+  if (typeof indexedDB.databases !== 'function') {
+    // Without a read-only database catalog, the safe assumption is that open
+    // may create or upgrade the database. This can conservatively block a
+    // second tab on older engines, but it never permits an uncoordinated write.
+    return true;
   }
 
-  return database;
+  let databaseInfo: IDBDatabaseInfo | undefined;
+
+  try {
+    databaseInfo = (await indexedDB.databases()).find(
+      (candidate) => candidate.name === database.name,
+    );
+  } catch {
+    return true;
+  }
+
+  if (databaseInfo === undefined || databaseInfo.version === undefined) {
+    return true;
+  }
+
+  const configuredNativeVersion = Math.round(database.verno * 10);
+  return databaseInfo.version < configuredNativeVersion;
+}
+
+const pendingDatabaseOpens = new Map<string, Promise<void>>();
+
+async function ensureOpen(
+  database: ProgressPalDatabase,
+  logicalWriteScope?: LogicalWriteScope,
+) {
+  if (database.isOpen()) {
+    return database;
+  }
+
+  if (
+    logicalWriteScope !== undefined &&
+    logicalWriteScope.database !== database
+  ) {
+    throw new Error('A logical write scope cannot switch database objects.');
+  }
+
+  const precedingOpen = pendingDatabaseOpens.get(database.name);
+
+  const queuedOpen = (async () => {
+    if (precedingOpen !== undefined) {
+      await precedingOpen;
+    }
+
+    if (database.isOpen()) {
+      return;
+    }
+
+    if (await openingDatabaseMayWrite(database)) {
+      if (logicalWriteScope === undefined) {
+        await runCoordinatedWrite(database, () => database.open());
+      } else {
+        logicalWriteScope.coordinatedWrite.begin();
+        await database.open();
+        logicalWriteScope.changed = true;
+      }
+    } else {
+      await database.open();
+    }
+  })();
+
+  pendingDatabaseOpens.set(database.name, queuedOpen);
+
+  try {
+    await queuedOpen;
+    return database;
+  } finally {
+    if (pendingDatabaseOpens.get(database.name) === queuedOpen) {
+      pendingDatabaseOpens.delete(database.name);
+    }
+  }
 }
 
 function createEntityId(prefix: string) {
@@ -240,43 +508,99 @@ async function getExistingProfileOrThrow(database: ProgressPalDatabase) {
 
 async function ensureBaseInitialization(
   options: BaseDatabaseOptions = {},
-): Promise<
-  Pick<
-    DatabaseInitializationResult,
-    'appMeta' | 'createdAppMeta' | 'createdLearnerProfile'
-  >
-> {
+  inheritedWriteScope?: LogicalWriteScope,
+): Promise<BaseInitializationResult> {
   const appVersion = options.appVersion ?? currentApplicationVersion;
   const now = options.now ?? defaultClock;
-  const database = await ensureOpen(resolveDatabase(options.db));
+  const requestedDatabase = resolveDatabase(options.db);
+  const ownsWriteScope = inheritedWriteScope === undefined;
+  const logicalWriteScope =
+    inheritedWriteScope ?? createLogicalWriteScope(requestedDatabase);
+  let database: ProgressPalDatabase;
 
-  let createdAppMeta = false;
-  let createdLearnerProfile = false;
+  try {
+    database = await ensureOpen(requestedDatabase, logicalWriteScope);
+  } catch (error) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+    throw error;
+  }
 
-  await database.transaction(
-    'rw',
-    database.appMeta,
-    database.learnerProfile,
-    async () => {
-      const timestamp = now();
-      const storedAppMeta = await database.appMeta.get(singletonIds.appMeta);
-
-      if (storedAppMeta === undefined) {
-        createdAppMeta = true;
-        await database.appMeta.add(createDefaultAppMeta(timestamp, appVersion));
-      } else {
-        const parsedAppMeta = parseWithSchema(
+  const [initialAppMetaRecord, initialProfileRecord] = await Promise.all([
+    database.appMeta.get(singletonIds.appMeta),
+    database.learnerProfile.get(singletonIds.learnerProfile),
+  ]);
+  const initialAppMeta =
+    initialAppMetaRecord === undefined
+      ? null
+      : parseWithSchema(
           AppMetaSchema,
-          storedAppMeta,
+          initialAppMetaRecord,
           'Stored app metadata',
         );
 
-        if (
-          parsedAppMeta.schemaVersion !== currentDatabaseSchemaVersion ||
-          parsedAppMeta.appVersion !== appVersion
-        ) {
-          await database.appMeta.put(
-            parseWithSchema(
+  if (initialProfileRecord !== undefined) {
+    parseWithSchema(
+      LearnerProfileSchema,
+      initialProfileRecord,
+      'Stored learner profile',
+    );
+  }
+
+  const needsAppMetaWrite =
+    initialAppMeta === null ||
+    initialAppMeta.schemaVersion !== currentDatabaseSchemaVersion ||
+    initialAppMeta.appVersion !== appVersion;
+  const needsProfileWrite = initialProfileRecord === undefined;
+
+  if (!needsAppMetaWrite && !needsProfileWrite) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+
+    return {
+      appMeta: initialAppMeta,
+      changed: false,
+      createdAppMeta: false,
+      createdLearnerProfile: false,
+    };
+  }
+
+  logicalWriteScope.coordinatedWrite.begin();
+
+  let createdAppMeta = false;
+  let createdLearnerProfile = false;
+  let updatedAppMeta = false;
+  let appMeta: AppMeta | null = null;
+  let finalAppMeta: AppMeta;
+
+  try {
+    finalAppMeta = await database.transaction(
+      'rw',
+      database.appMeta,
+      database.learnerProfile,
+      async () => {
+        const timestamp = now();
+        const storedAppMeta = await database.appMeta.get(singletonIds.appMeta);
+
+        if (storedAppMeta === undefined) {
+          createdAppMeta = true;
+          appMeta = createDefaultAppMeta(timestamp, appVersion);
+          await database.appMeta.add(appMeta);
+        } else {
+          const parsedAppMeta = parseWithSchema(
+            AppMetaSchema,
+            storedAppMeta,
+            'Stored app metadata',
+          );
+
+          if (
+            parsedAppMeta.schemaVersion !== currentDatabaseSchemaVersion ||
+            parsedAppMeta.appVersion !== appVersion
+          ) {
+            updatedAppMeta = true;
+            appMeta = parseWithSchema(
               AppMetaSchema,
               {
                 ...parsedAppMeta,
@@ -285,34 +609,55 @@ async function ensureBaseInitialization(
                 updatedAt: timestamp,
               },
               'Updated app metadata',
-            ),
+            );
+            await database.appMeta.put(appMeta);
+          } else {
+            appMeta = parsedAppMeta;
+          }
+        }
+
+        const storedLearnerProfile = await database.learnerProfile.get(
+          singletonIds.learnerProfile,
+        );
+
+        if (storedLearnerProfile === undefined) {
+          createdLearnerProfile = true;
+          await database.learnerProfile.add(
+            createDefaultLearnerProfile(timestamp),
+          );
+        } else {
+          parseWithSchema(
+            LearnerProfileSchema,
+            storedLearnerProfile,
+            'Stored learner profile',
           );
         }
-      }
 
-      const storedLearnerProfile = await database.learnerProfile.get(
-        singletonIds.learnerProfile,
-      );
+        if (appMeta === null) {
+          throw new Error('App metadata is missing during initialization.');
+        }
 
-      if (storedLearnerProfile === undefined) {
-        createdLearnerProfile = true;
-        await database.learnerProfile.add(
-          createDefaultLearnerProfile(timestamp),
-        );
-      } else {
-        parseWithSchema(
-          LearnerProfileSchema,
-          storedLearnerProfile,
-          'Stored learner profile',
-        );
-      }
-    },
-  );
+        return appMeta;
+      },
+    );
+  } catch (error) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+    throw error;
+  }
 
-  const appMeta = await getRequiredAppMeta({ db: database });
+  const changed = createdAppMeta || createdLearnerProfile || updatedAppMeta;
+
+  logicalWriteScope.changed ||= changed;
+
+  if (ownsWriteScope) {
+    settleLogicalWriteScope(logicalWriteScope);
+  }
 
   return {
-    appMeta,
+    appMeta: finalAppMeta,
+    changed,
     createdAppMeta,
     createdLearnerProfile,
   };
@@ -633,7 +978,7 @@ function derivedSlicesAreUnchanged(
 
 async function syncDerivedLongFormCatalogFromCourseItems(
   courseItems: readonly CourseItem[],
-  options: BaseDatabaseOptions = {},
+  options: BaseDatabaseOptions & { beforeWrite?: () => void } = {},
 ) {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -648,8 +993,10 @@ async function syncDerivedLongFormCatalogFromCourseItems(
     );
 
   if (longFormItems.length === 0) {
-    return;
+    return false;
   }
+
+  let changed = false;
 
   await database.transaction(
     'rw',
@@ -728,6 +1075,8 @@ async function syncDerivedLongFormCatalogFromCourseItems(
         );
 
         if (existingAsset === null) {
+          options.beforeWrite?.();
+          changed = true;
           await database.contentAssets.add(assetToPersist);
           await database.contentSlices.bulkAdd(
             materializeContentSlices(assetToPersist, timestamp),
@@ -736,6 +1085,8 @@ async function syncDerivedLongFormCatalogFromCourseItems(
         }
 
         if (contentAssetNeedsUpdate(existingAsset, assetToPersist)) {
+          options.beforeWrite?.();
+          changed = true;
           await database.contentAssets.put(assetToPersist);
         }
 
@@ -759,6 +1110,8 @@ async function syncDerivedLongFormCatalogFromCourseItems(
           continue;
         }
 
+        options.beforeWrite?.();
+        changed = true;
         await database.contentSlices
           .where('assetId')
           .equals(assetToPersist.id)
@@ -770,24 +1123,46 @@ async function syncDerivedLongFormCatalogFromCourseItems(
       }
     },
   );
+
+  return changed;
 }
 
 export async function initializeDatabase(
   options: InitializeDatabaseOptions = {},
 ): Promise<DatabaseInitializationResult> {
-  const baseInitialization = await ensureBaseInitialization(options);
-  const seedSync =
-    options.seed === null || options.seed === undefined
-      ? null
-      : await ensureCourseCatalogFromSeed(options.seed, {
-          ...options,
-          skipBaseInitialization: true,
-        });
+  const database = resolveDatabase(options.db);
+  const logicalWriteScope = createLogicalWriteScope(database);
+  const scopedOptions = { ...options, db: database };
 
-  return {
-    ...baseInitialization,
-    seedSync,
-  };
+  try {
+    const baseInitialization = await ensureBaseInitialization(
+      scopedOptions,
+      logicalWriteScope,
+    );
+    const seedSync =
+      options.seed === null || options.seed === undefined
+        ? null
+        : await ensureCourseCatalogFromSeedWithinScope(
+            options.seed,
+            {
+              ...scopedOptions,
+              skipBaseInitialization: true,
+            },
+            logicalWriteScope,
+          );
+
+    settleLogicalWriteScope(logicalWriteScope);
+
+    return {
+      appMeta: baseInitialization.appMeta,
+      createdAppMeta: baseInitialization.createdAppMeta,
+      createdLearnerProfile: baseInitialization.createdLearnerProfile,
+      seedSync,
+    };
+  } catch (error) {
+    settleLogicalWriteScope(logicalWriteScope);
+    throw error;
+  }
 }
 
 export async function getAppMeta(options: BaseDatabaseOptions = {}) {
@@ -862,17 +1237,19 @@ export async function saveLearnerProfile(
       )
     : appMeta;
 
-  await database.transaction(
-    'rw',
-    database.appMeta,
-    database.learnerProfile,
-    async () => {
-      await database.learnerProfile.put(learnerProfile);
+  await runCoordinatedWrite(database, () =>
+    database.transaction(
+      'rw',
+      database.appMeta,
+      database.learnerProfile,
+      async () => {
+        await database.learnerProfile.put(learnerProfile);
 
-      if (nextAppMeta !== appMeta) {
-        await database.appMeta.put(nextAppMeta);
-      }
-    },
+        if (nextAppMeta !== appMeta) {
+          await database.appMeta.put(nextAppMeta);
+        }
+      },
+    ),
   );
 
   return {
@@ -902,164 +1279,216 @@ export async function updateProfile(
     'Updated learner profile',
   );
 
-  await database.learnerProfile.put(updatedProfile);
+  await runCoordinatedWrite(database, () =>
+    database.learnerProfile.put(updatedProfile),
+  );
 
   return updatedProfile;
+}
+
+async function ensureCourseCatalogFromSeedWithinScope(
+  seedInput: unknown,
+  options: SeedSyncOptions = {},
+  inheritedWriteScope?: LogicalWriteScope,
+) {
+  const parsedSeed = parseCourseSeed(seedInput);
+  const now = options.now ?? defaultClock;
+  const requestedDatabase = resolveDatabase(options.db);
+  const ownsWriteScope = inheritedWriteScope === undefined;
+  const logicalWriteScope =
+    inheritedWriteScope ?? createLogicalWriteScope(requestedDatabase);
+  const coordinatedWrite = logicalWriteScope.coordinatedWrite;
+  let database: ProgressPalDatabase;
+
+  try {
+    database = await ensureOpen(requestedDatabase, logicalWriteScope);
+  } catch (error) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+    throw error;
+  }
+
+  let changed = false;
+  try {
+    if (options.skipBaseInitialization !== true) {
+      await ensureBaseInitialization(options, logicalWriteScope);
+    }
+
+    const result = await database.transaction(
+      'rw',
+      [
+        database.appMeta,
+        database.courseUnits,
+        database.courseItems,
+        database.contentAssets,
+        database.contentSlices,
+        database.mediaProgressEvents,
+        database.resumePoints,
+      ],
+      async () => {
+        const timestamp = now();
+        const units = parsedSeed.units;
+        const items = units.flatMap((unit) =>
+          unit.items.map((item) => ({ item, unitId: unit.id })),
+        );
+
+        const existingUnits = await database.courseUnits.bulkGet(
+          units.map((unit) => unit.id),
+        );
+        const existingItems = await database.courseItems.bulkGet(
+          items.map(({ item }) => item.id),
+        );
+
+        const unitsToAdd: CourseUnit[] = [];
+        const unitsToUpdate: CourseUnit[] = [];
+
+        for (const [index, unit] of units.entries()) {
+          const nextUnit = materializeCourseUnit(parsedSeed, unit, timestamp);
+          const existingUnitRecord = existingUnits[index];
+
+          if (existingUnitRecord === undefined) {
+            unitsToAdd.push(nextUnit);
+            continue;
+          }
+
+          const existingUnit = parseWithSchema(
+            CourseUnitSchema,
+            existingUnitRecord,
+            `Stored course unit "${unit.id}"`,
+          );
+
+          if (courseUnitNeedsUpdate(existingUnit, nextUnit)) {
+            unitsToUpdate.push({
+              ...nextUnit,
+              createdAt: existingUnit.createdAt,
+            });
+          }
+        }
+
+        const itemsToAdd: CourseItem[] = [];
+        const itemsToUpdate: CourseItem[] = [];
+
+        for (const [index, { item, unitId }] of items.entries()) {
+          const nextItem = materializeCourseItem(unitId, item, timestamp);
+          const existingItemRecord = existingItems[index];
+
+          if (existingItemRecord === undefined) {
+            itemsToAdd.push(nextItem);
+            continue;
+          }
+
+          const existingItem = parseWithSchema(
+            CourseItemSchema,
+            existingItemRecord,
+            `Stored course item "${item.id}"`,
+          );
+
+          if (courseItemNeedsUpdate(existingItem, nextItem)) {
+            itemsToUpdate.push({
+              ...nextItem,
+              createdAt: existingItem.createdAt,
+            });
+          }
+        }
+
+        const unitsAdded = unitsToAdd.length;
+        const unitsUpdated = unitsToUpdate.length;
+        const itemsAdded = itemsToAdd.length;
+        const itemsUpdated = itemsToUpdate.length;
+
+        const appMeta = await getRequiredAppMeta({ db: database });
+        const shouldUpdateMetadata =
+          appMeta.seedVersion !== parsedSeed.dataVersion ||
+          unitsAdded > 0 ||
+          unitsUpdated > 0 ||
+          itemsAdded > 0 ||
+          itemsUpdated > 0;
+
+        if (shouldUpdateMetadata) {
+          coordinatedWrite.begin();
+        }
+
+        if (unitsToAdd.length > 0) {
+          await database.courseUnits.bulkAdd(unitsToAdd);
+        }
+
+        if (unitsToUpdate.length > 0) {
+          await database.courseUnits.bulkPut(unitsToUpdate);
+        }
+
+        if (itemsToAdd.length > 0) {
+          await database.courseItems.bulkAdd(itemsToAdd);
+        }
+
+        if (itemsToUpdate.length > 0) {
+          await database.courseItems.bulkPut(itemsToUpdate);
+        }
+
+        if (shouldUpdateMetadata) {
+          await database.appMeta.put(
+            parseWithSchema(
+              AppMetaSchema,
+              {
+                ...appMeta,
+                seedVersion: parsedSeed.dataVersion,
+                updatedAt: now(),
+              },
+              'Updated app metadata',
+            ),
+          );
+        }
+
+        const catalogChanged =
+          shouldUpdateMetadata ||
+          unitsAdded > 0 ||
+          unitsUpdated > 0 ||
+          itemsAdded > 0 ||
+          itemsUpdated > 0;
+
+        const derivedChanged = await syncDerivedLongFormCatalogFromCourseItems(
+          await listCourseItems(undefined, { db: database }),
+          { beforeWrite: coordinatedWrite.begin, db: database, now },
+        );
+        changed = catalogChanged || derivedChanged;
+
+        const synchronizedAppMeta = await getRequiredAppMeta({ db: database });
+
+        return {
+          unitCount: parsedSeed.units.length,
+          unitsAdded,
+          unitsUpdated,
+          itemCount: parsedSeed.units.reduce(
+            (total, unit) => total + unit.items.length,
+            0,
+          ),
+          itemsAdded,
+          itemsUpdated,
+          seedVersion: synchronizedAppMeta.seedVersion,
+        };
+      },
+    );
+
+    logicalWriteScope.changed ||= changed;
+
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+
+    return result;
+  } catch (error) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+    throw error;
+  }
 }
 
 export async function ensureCourseCatalogFromSeed(
   seedInput: unknown,
   options: SeedSyncOptions = {},
 ) {
-  const now = options.now ?? defaultClock;
-  const database = await ensureOpen(resolveDatabase(options.db));
-
-  if (options.skipBaseInitialization !== true) {
-    await ensureBaseInitialization(options);
-  }
-
-  const parsedSeed = parseCourseSeed(seedInput);
-
-  let unitsAdded = 0;
-  let unitsUpdated = 0;
-  let itemsAdded = 0;
-  let itemsUpdated = 0;
-
-  await database.transaction(
-    'rw',
-    database.appMeta,
-    database.courseUnits,
-    database.courseItems,
-    async () => {
-      const timestamp = now();
-      const units = parsedSeed.units;
-      const items = units.flatMap((unit) =>
-        unit.items.map((item) => ({ item, unitId: unit.id })),
-      );
-
-      const existingUnits = await database.courseUnits.bulkGet(
-        units.map((unit) => unit.id),
-      );
-      const existingItems = await database.courseItems.bulkGet(
-        items.map(({ item }) => item.id),
-      );
-
-      const unitsToAdd: CourseUnit[] = [];
-      const unitsToUpdate: CourseUnit[] = [];
-
-      for (const [index, unit] of units.entries()) {
-        const nextUnit = materializeCourseUnit(parsedSeed, unit, timestamp);
-        const existingUnitRecord = existingUnits[index];
-
-        if (existingUnitRecord === undefined) {
-          unitsToAdd.push(nextUnit);
-          continue;
-        }
-
-        const existingUnit = parseWithSchema(
-          CourseUnitSchema,
-          existingUnitRecord,
-          `Stored course unit "${unit.id}"`,
-        );
-
-        if (courseUnitNeedsUpdate(existingUnit, nextUnit)) {
-          unitsToUpdate.push({
-            ...nextUnit,
-            createdAt: existingUnit.createdAt,
-          });
-        }
-      }
-
-      const itemsToAdd: CourseItem[] = [];
-      const itemsToUpdate: CourseItem[] = [];
-
-      for (const [index, { item, unitId }] of items.entries()) {
-        const nextItem = materializeCourseItem(unitId, item, timestamp);
-        const existingItemRecord = existingItems[index];
-
-        if (existingItemRecord === undefined) {
-          itemsToAdd.push(nextItem);
-          continue;
-        }
-
-        const existingItem = parseWithSchema(
-          CourseItemSchema,
-          existingItemRecord,
-          `Stored course item "${item.id}"`,
-        );
-
-        if (courseItemNeedsUpdate(existingItem, nextItem)) {
-          itemsToUpdate.push({
-            ...nextItem,
-            createdAt: existingItem.createdAt,
-          });
-        }
-      }
-
-      unitsAdded = unitsToAdd.length;
-      unitsUpdated = unitsToUpdate.length;
-      itemsAdded = itemsToAdd.length;
-      itemsUpdated = itemsToUpdate.length;
-
-      if (unitsToAdd.length > 0) {
-        await database.courseUnits.bulkAdd(unitsToAdd);
-      }
-
-      if (unitsToUpdate.length > 0) {
-        await database.courseUnits.bulkPut(unitsToUpdate);
-      }
-
-      if (itemsToAdd.length > 0) {
-        await database.courseItems.bulkAdd(itemsToAdd);
-      }
-
-      if (itemsToUpdate.length > 0) {
-        await database.courseItems.bulkPut(itemsToUpdate);
-      }
-
-      const appMeta = await getRequiredAppMeta({ db: database });
-
-      if (
-        appMeta.seedVersion !== parsedSeed.dataVersion ||
-        unitsAdded > 0 ||
-        unitsUpdated > 0 ||
-        itemsAdded > 0 ||
-        itemsUpdated > 0
-      ) {
-        await database.appMeta.put(
-          parseWithSchema(
-            AppMetaSchema,
-            {
-              ...appMeta,
-              seedVersion: parsedSeed.dataVersion,
-              updatedAt: now(),
-            },
-            'Updated app metadata',
-          ),
-        );
-      }
-    },
-  );
-
-  await syncDerivedLongFormCatalogFromCourseItems(
-    await listCourseItems(undefined, { db: database }),
-    { db: database, now },
-  );
-
-  const appMeta = await getRequiredAppMeta({ db: database });
-
-  return {
-    unitCount: parsedSeed.units.length,
-    unitsAdded,
-    unitsUpdated,
-    itemCount: parsedSeed.units.reduce(
-      (total, unit) => total + unit.items.length,
-      0,
-    ),
-    itemsAdded,
-    itemsUpdated,
-    seedVersion: appMeta.seedVersion,
-  };
+  return ensureCourseCatalogFromSeedWithinScope(seedInput, options);
 }
 
 export async function listCourseUnits(
@@ -1335,7 +1764,9 @@ export async function upsertProgress(
     'Progress entry',
   );
 
-  await database.progressEntries.put(progressEntry);
+  await runCoordinatedWrite(database, () =>
+    database.progressEntries.put(progressEntry),
+  );
 
   return progressEntry;
 }
@@ -1364,6 +1795,14 @@ export async function logMediaProgress(
     input.endSecond,
     'Media progress endSecond',
   );
+  const validatedSessionId =
+    input.sessionId === undefined
+      ? undefined
+      : parseWithSchema(
+          domainScalarSchemas.entityId,
+          input.sessionId,
+          'Study session id',
+        );
   const assetRecord = await database.contentAssets.get(validatedAssetId);
 
   if (assetRecord === undefined) {
@@ -1469,7 +1908,7 @@ export async function logMediaProgress(
       itemId: asset.itemId,
       assetId: asset.id,
       sliceId: eventSlice?.id,
-      sessionId: input.sessionId,
+      sessionId: validatedSessionId,
       startSecond: validatedStartSecond,
       endSecond: validatedEndSecond,
       watchedSeconds: validatedEndSecond - validatedStartSecond,
@@ -1535,18 +1974,46 @@ export async function logMediaProgress(
     'Progress entry',
   );
 
-  await database.transaction(
-    'rw',
-    database.contentSlices,
-    database.mediaProgressEvents,
-    database.progressEntries,
-    database.resumePoints,
-    async () => {
-      await database.mediaProgressEvents.add(mediaProgressEvent);
-      await database.contentSlices.bulkPut(updatedSlices);
-      await database.resumePoints.put(resumePoint);
-      await database.progressEntries.put(progressEntry);
-    },
+  await runCoordinatedWrite(database, () =>
+    database.transaction(
+      'rw',
+      [
+        database.contentSlices,
+        database.mediaProgressEvents,
+        database.progressEntries,
+        database.resumePoints,
+        database.studySessions,
+      ],
+      async () => {
+        if (validatedSessionId !== undefined) {
+          const sessionRecord =
+            await database.studySessions.get(validatedSessionId);
+
+          if (sessionRecord === undefined) {
+            throw new SchemaValidationError('Media progress event', [
+              `root: study session "${validatedSessionId}" was not found.`,
+            ]);
+          }
+
+          const session = parseWithSchema(
+            StudySessionSchema,
+            sessionRecord,
+            `Study session "${validatedSessionId}"`,
+          );
+
+          if (session.itemId !== asset.itemId) {
+            throw new SchemaValidationError('Media progress event', [
+              'root: the study session does not belong to the targeted content item.',
+            ]);
+          }
+        }
+
+        await database.mediaProgressEvents.add(mediaProgressEvent);
+        await database.contentSlices.bulkPut(updatedSlices);
+        await database.resumePoints.put(resumePoint);
+        await database.progressEntries.put(progressEntry);
+      },
+    ),
   );
 
   return {
@@ -1586,7 +2053,9 @@ export async function addStudySession(
     'Study session',
   );
 
-  await database.studySessions.add(studySession);
+  await runCoordinatedWrite(database, () =>
+    database.studySessions.add(studySession),
+  );
 
   return studySession;
 }
@@ -1612,7 +2081,9 @@ export async function addXpTransaction(
     'XP transaction',
   );
 
-  await database.xpTransactions.add(xpTransaction);
+  await runCoordinatedWrite(database, () =>
+    database.xpTransactions.add(xpTransaction),
+  );
 
   return xpTransaction;
 }
@@ -1641,7 +2112,6 @@ export async function listXpTransactions(
   options: BaseDatabaseOptions = {},
 ): Promise<XpTransaction[]> {
   const database = await ensureOpen(resolveDatabase(options.db));
-  await ensureBaseInitialization(options);
 
   const txs = await database.xpTransactions.toArray();
   const parsedTxs = parseStoredArray(
@@ -1652,15 +2122,23 @@ export async function listXpTransactions(
   return sortXpTransactions(parsedTxs);
 }
 
+async function calculateStoredXpSummary(database: ProgressPalDatabase) {
+  const records = await database.xpTransactions.toArray();
+  const transactions = parseStoredArray(
+    records,
+    'Stored XP transaction',
+    XpTransactionSchema,
+  );
+  return calculateXpSummary(
+    transactions.reduce((total, transaction) => total + transaction.xp, 0),
+  );
+}
+
 export async function getXpSummary(
   options: BaseDatabaseOptions = {},
 ): Promise<XpSummary> {
   const database = await ensureOpen(resolveDatabase(options.db));
-  await ensureBaseInitialization(options);
-
-  const txs = await database.xpTransactions.toArray();
-  const totalXp = txs.reduce((sum, tx) => sum + tx.xp, 0);
-  return calculateXpSummary(totalXp);
+  return calculateStoredXpSummary(database);
 }
 
 export type AchievementView = {
@@ -1847,107 +2325,125 @@ export async function upsertProgressAndAwardXp(
   let progressEntry: ProgressEntry | null = null;
   const awardedTransactions: XpTransaction[] = [];
   let unlockedAchievements: AchievementUnlock[] = [];
+  let xpSummary: XpSummary | null = null;
 
-  await database.transaction(
-    'rw',
-    [
-      database.progressEntries,
-      database.xpTransactions,
-      database.courseItems,
-      database.courseUnits,
-      database.contentSlices,
-      database.mediaProgressEvents,
-      database.studySessions,
-      database.achievementUnlocks,
-      database.appMeta,
-      database.learnerProfile,
-    ],
-    async () => {
-      // 1. Write progress source event
-      progressEntry = await upsertProgress(input, { ...options, db: database });
+  await runCoordinatedWrite(database, () =>
+    database.transaction(
+      'rw',
+      [
+        database.progressEntries,
+        database.xpTransactions,
+        database.courseItems,
+        database.courseUnits,
+        database.contentSlices,
+        database.mediaProgressEvents,
+        database.studySessions,
+        database.achievementUnlocks,
+        database.appMeta,
+        database.learnerProfile,
+      ],
+      async () => {
+        markCurrentTransactionCoordinated(database);
+        // 1. Write progress source event
+        progressEntry = await upsertProgress(input, {
+          ...options,
+          db: database,
+        });
 
-      // 2. Evaluate and award XP
-      const item = await database.courseItems.get(progressEntry!.itemId);
-      if (!item) return;
-      const unit = await database.courseUnits.get(item.unitId);
-      if (!unit) return;
-
-      const allUnitItems = await database.courseItems
-        .where('unitId')
-        .equals(unit.id)
-        .toArray();
-      const allUnitProgress = await database.progressEntries
-        .where('itemId')
-        .anyOf(allUnitItems.map((i) => i.id))
-        .toArray();
-
-      let finalProjectProgress: ProgressEntry[] = [];
-      if (
-        item.id === 'final-project-readme' ||
-        item.id === 'final-project-video-demo'
-      ) {
-        const finalProjectUnit = await database.courseUnits
-          .where('type')
-          .equals('final_project')
-          .first();
-        if (finalProjectUnit) {
-          const finalProjectItems = await database.courseItems
-            .where('unitId')
-            .equals(finalProjectUnit.id)
-            .toArray();
-          finalProjectProgress = await database.progressEntries
-            .where('itemId')
-            .anyOf(finalProjectItems.map((i) => i.id))
-            .toArray();
+        // 2. Evaluate and award XP
+        const item = await database.courseItems.get(progressEntry!.itemId);
+        if (!item) {
+          xpSummary = await calculateStoredXpSummary(database);
+          return;
         }
-      }
-
-      const potentialAwards = evaluateProgressXp({
-        progressEntry: progressEntry!,
-        item,
-        unit,
-        allUnitItems,
-        allUnitProgress,
-        finalProjectProgress,
-      });
-
-      for (const award of potentialAwards) {
-        const exists = await database.xpTransactions
-          .where('sourceId')
-          .equals(award.sourceId)
-          .filter((tx) => tx.sourceType === award.sourceType)
-          .first();
-
-        if (!exists) {
-          const txId = deriveXpTransactionId(award.sourceType, award.sourceId);
-          const tx = await addXpTransaction(
-            {
-              id: txId,
-              sourceType: award.sourceType,
-              sourceId: award.sourceId,
-              xp: award.xp,
-              reason: award.reason,
-              awardedAt: progressEntry!.updatedAt,
-            },
-            { ...options, db: database },
-          );
-          awardedTransactions.push(tx);
+        const unit = await database.courseUnits.get(item.unitId);
+        if (!unit) {
+          xpSummary = await calculateStoredXpSummary(database);
+          return;
         }
-      }
 
-      // 3. Evaluate achievements against all accumulated source data. Writes
-      // only achievement_unlocks; never xp_transactions.
-      unlockedAchievements = await evaluateAndUnlockAchievements(database, now);
-    },
+        const allUnitItems = await database.courseItems
+          .where('unitId')
+          .equals(unit.id)
+          .toArray();
+        const allUnitProgress = await database.progressEntries
+          .where('itemId')
+          .anyOf(allUnitItems.map((i) => i.id))
+          .toArray();
+
+        let finalProjectProgress: ProgressEntry[] = [];
+        if (
+          item.id === 'final-project-readme' ||
+          item.id === 'final-project-video-demo'
+        ) {
+          const finalProjectUnit = await database.courseUnits
+            .where('type')
+            .equals('final_project')
+            .first();
+          if (finalProjectUnit) {
+            const finalProjectItems = await database.courseItems
+              .where('unitId')
+              .equals(finalProjectUnit.id)
+              .toArray();
+            finalProjectProgress = await database.progressEntries
+              .where('itemId')
+              .anyOf(finalProjectItems.map((i) => i.id))
+              .toArray();
+          }
+        }
+
+        const potentialAwards = evaluateProgressXp({
+          progressEntry: progressEntry!,
+          item,
+          unit,
+          allUnitItems,
+          allUnitProgress,
+          finalProjectProgress,
+        });
+
+        for (const award of potentialAwards) {
+          const exists = await database.xpTransactions
+            .where('sourceId')
+            .equals(award.sourceId)
+            .filter((tx) => tx.sourceType === award.sourceType)
+            .first();
+
+          if (!exists) {
+            const txId = deriveXpTransactionId(
+              award.sourceType,
+              award.sourceId,
+            );
+            const tx = await addXpTransaction(
+              {
+                id: txId,
+                sourceType: award.sourceType,
+                sourceId: award.sourceId,
+                xp: award.xp,
+                reason: award.reason,
+                awardedAt: progressEntry!.updatedAt,
+              },
+              { ...options, db: database },
+            );
+            awardedTransactions.push(tx);
+          }
+        }
+
+        // 3. Evaluate achievements against all accumulated source data. Writes
+        // only achievement_unlocks; never xp_transactions.
+        unlockedAchievements = await evaluateAndUnlockAchievements(
+          database,
+          now,
+        );
+        xpSummary = await calculateStoredXpSummary(database);
+      },
+    ),
   );
-
-  const xpSummary = await getXpSummary({ ...options, db: database });
 
   return {
     progressEntry: progressEntry!,
     awardedTransactions,
     unlockedAchievements,
-    xpSummary,
+    xpSummary: xpSummary!,
   };
 }
 
@@ -1960,240 +2456,246 @@ export async function logMediaProgressAndAwardXp(
   let result: LogMediaProgressResult | null = null;
   const awardedTransactions: XpTransaction[] = [];
   let unlockedAchievements: AchievementUnlock[] = [];
+  let xpSummary: XpSummary | null = null;
 
-  await database.transaction(
-    'rw',
-    [
-      database.contentAssets,
-      database.contentSlices,
-      database.mediaProgressEvents,
-      database.progressEntries,
-      database.resumePoints,
-      database.xpTransactions,
-      database.courseItems,
-      database.courseUnits,
-      database.studySessions,
-      database.achievementUnlocks,
-      database.appMeta,
-      database.learnerProfile,
-    ],
-    async () => {
-      // 1. Log media progress
-      result = await logMediaProgress(input, { ...options, db: database });
+  await runCoordinatedWrite(database, () =>
+    database.transaction(
+      'rw',
+      [
+        database.contentAssets,
+        database.contentSlices,
+        database.mediaProgressEvents,
+        database.progressEntries,
+        database.resumePoints,
+        database.xpTransactions,
+        database.courseItems,
+        database.courseUnits,
+        database.studySessions,
+        database.achievementUnlocks,
+        database.appMeta,
+        database.learnerProfile,
+      ],
+      async () => {
+        markCurrentTransactionCoordinated(database);
+        // 1. Log media progress
+        result = await logMediaProgress(input, { ...options, db: database });
 
-      const { event, slices, asset, progressEntry } = result!;
+        const { event, slices, asset, progressEntry } = result!;
 
-      // 2. Evaluate and award XP
-      // a) Clean stop:
-      if (
-        event.watchedSeconds >= 900 &&
-        (event.stoppedBecause === 'reached_limit' ||
-          event.stoppedBecause === 'completed_slice')
-      ) {
-        const sourceId = event.id;
-        const exists = await database.xpTransactions
-          .where('sourceId')
-          .equals(sourceId)
-          .filter((tx) => tx.sourceType === 'media_clean_stop')
-          .first();
+        // 2. Evaluate and award XP
+        // a) Clean stop:
+        if (
+          event.watchedSeconds >= 900 &&
+          (event.stoppedBecause === 'reached_limit' ||
+            event.stoppedBecause === 'completed_slice')
+        ) {
+          const sourceId = event.id;
+          const exists = await database.xpTransactions
+            .where('sourceId')
+            .equals(sourceId)
+            .filter((tx) => tx.sourceType === 'media_clean_stop')
+            .first();
 
-        if (!exists) {
-          const txId = deriveXpTransactionId('media_clean_stop', sourceId);
-          const tx = await addXpTransaction(
-            {
-              id: txId,
-              sourceType: 'media_clean_stop',
-              sourceId,
-              xp: 5,
-              reason: `Clean stop after 15+ minutes of focus on: ${asset.title}`,
-              awardedAt: event.createdAt,
-            },
-            { ...options, db: database },
-          );
-          awardedTransactions.push(tx);
+          if (!exists) {
+            const txId = deriveXpTransactionId('media_clean_stop', sourceId);
+            const tx = await addXpTransaction(
+              {
+                id: txId,
+                sourceType: 'media_clean_stop',
+                sourceId,
+                xp: 5,
+                reason: `Clean stop after 15+ minutes of focus on: ${asset.title}`,
+                awardedAt: event.createdAt,
+              },
+              { ...options, db: database },
+            );
+            awardedTransactions.push(tx);
+          }
         }
-      }
 
-      // b) Unique 10-minute coverage blocks:
-      const allEvents = await database.mediaProgressEvents
-        .where('assetId')
-        .equals(asset.id)
-        .toArray();
-      const coverageAfterRanges = allEvents.map((ev) => ({
-        startSecond: ev.startSecond,
-        endSecond: ev.endSecond,
-      }));
-      const coverageBeforeRanges = allEvents
-        .filter((ev) => ev.id !== event.id)
-        .map((ev) => ({
+        // b) Unique 10-minute coverage blocks:
+        const allEvents = await database.mediaProgressEvents
+          .where('assetId')
+          .equals(asset.id)
+          .toArray();
+        const coverageAfterRanges = allEvents.map((ev) => ({
           startSecond: ev.startSecond,
           endSecond: ev.endSecond,
         }));
+        const coverageBeforeRanges = allEvents
+          .filter((ev) => ev.id !== event.id)
+          .map((ev) => ({
+            startSecond: ev.startSecond,
+            endSecond: ev.endSecond,
+          }));
 
-      const crossedAfter = getCrossedBlocks(
-        coverageAfterRanges,
-        asset.durationSeconds ?? 0,
-      );
-      const crossedBefore = getCrossedBlocks(
-        coverageBeforeRanges,
-        asset.durationSeconds ?? 0,
-      );
-      const newlyCrossed = crossedAfter.filter(
-        (idx) => !crossedBefore.includes(idx),
-      );
+        const crossedAfter = getCrossedBlocks(
+          coverageAfterRanges,
+          asset.durationSeconds ?? 0,
+        );
+        const crossedBefore = getCrossedBlocks(
+          coverageBeforeRanges,
+          asset.durationSeconds ?? 0,
+        );
+        const newlyCrossed = crossedAfter.filter(
+          (idx) => !crossedBefore.includes(idx),
+        );
 
-      for (const blockIndex of newlyCrossed) {
-        const sourceId = `${asset.id}-block-${blockIndex}`;
-        const exists = await database.xpTransactions
-          .where('sourceId')
-          .equals(sourceId)
-          .filter((tx) => tx.sourceType === 'media_unique_10_minutes')
-          .first();
+        for (const blockIndex of newlyCrossed) {
+          const sourceId = `${asset.id}-block-${blockIndex}`;
+          const exists = await database.xpTransactions
+            .where('sourceId')
+            .equals(sourceId)
+            .filter((tx) => tx.sourceType === 'media_unique_10_minutes')
+            .first();
 
-        if (!exists) {
-          const txId = deriveXpTransactionId(
-            'media_unique_10_minutes',
-            sourceId,
-          );
-          const blockNum = blockIndex + 1;
-          const tx = await addXpTransaction(
-            {
-              id: txId,
-              sourceType: 'media_unique_10_minutes',
+          if (!exists) {
+            const txId = deriveXpTransactionId(
+              'media_unique_10_minutes',
               sourceId,
-              xp: 4,
-              reason: `Crossed 10 focused minutes (block ${blockNum}) on: ${asset.title}`,
-              awardedAt: event.createdAt,
-            },
-            { ...options, db: database },
-          );
-          awardedTransactions.push(tx);
-        }
-      }
-
-      // c) Completed content slice:
-      const mergedBefore = mergeCoveredRanges(coverageBeforeRanges);
-      const mergedAfter = mergeCoveredRanges(coverageAfterRanges);
-      const newlyCompletedSlices = slices.filter((slice) => {
-        const prevCov = calculateSliceCoverage(slice, mergedBefore);
-        const nextCov = calculateSliceCoverage(slice, mergedAfter);
-        return prevCov < 1 && nextCov >= 1;
-      });
-
-      for (const slice of newlyCompletedSlices) {
-        const sourceId = slice.id;
-        const exists = await database.xpTransactions
-          .where('sourceId')
-          .equals(sourceId)
-          .filter((tx) => tx.sourceType === 'content_slice_completed')
-          .first();
-
-        if (!exists) {
-          const txId = deriveXpTransactionId(
-            'content_slice_completed',
-            sourceId,
-          );
-          const tx = await addXpTransaction(
-            {
-              id: txId,
-              sourceType: 'content_slice_completed',
-              sourceId,
-              xp: 10,
-              reason: `Completed content slice: ${slice.label} of: ${asset.title}`,
-              awardedAt: event.createdAt,
-            },
-            { ...options, db: database },
-          );
-          awardedTransactions.push(tx);
-        }
-      }
-
-      // d) Progress entry cascading milestone awards:
-      const item = await database.courseItems.get(asset.itemId);
-      if (item) {
-        const unit = await database.courseUnits.get(item.unitId);
-        if (unit) {
-          const allUnitItems = await database.courseItems
-            .where('unitId')
-            .equals(unit.id)
-            .toArray();
-          const allUnitProgress = await database.progressEntries
-            .where('itemId')
-            .anyOf(allUnitItems.map((i) => i.id))
-            .toArray();
-
-          let finalProjectProgress: ProgressEntry[] = [];
-          if (
-            item.id === 'final-project-readme' ||
-            item.id === 'final-project-video-demo'
-          ) {
-            const finalProjectUnit = await database.courseUnits
-              .where('type')
-              .equals('final_project')
-              .first();
-            if (finalProjectUnit) {
-              const finalProjectItems = await database.courseItems
-                .where('unitId')
-                .equals(finalProjectUnit.id)
-                .toArray();
-              finalProjectProgress = await database.progressEntries
-                .where('itemId')
-                .anyOf(finalProjectItems.map((i) => i.id))
-                .toArray();
-            }
-          }
-
-          const progressAwards = evaluateProgressXp({
-            progressEntry,
-            item,
-            unit,
-            allUnitItems,
-            allUnitProgress,
-            finalProjectProgress,
-          });
-
-          for (const award of progressAwards) {
-            const exists = await database.xpTransactions
-              .where('sourceId')
-              .equals(award.sourceId)
-              .filter((tx) => tx.sourceType === award.sourceType)
-              .first();
-
-            if (!exists) {
-              const txId = deriveXpTransactionId(
-                award.sourceType,
-                award.sourceId,
-              );
-              const tx = await addXpTransaction(
-                {
-                  id: txId,
-                  sourceType: award.sourceType,
-                  sourceId: award.sourceId,
-                  xp: award.xp,
-                  reason: award.reason,
-                  awardedAt: progressEntry.updatedAt,
-                },
-                { ...options, db: database },
-              );
-              awardedTransactions.push(tx);
-            }
+            );
+            const blockNum = blockIndex + 1;
+            const tx = await addXpTransaction(
+              {
+                id: txId,
+                sourceType: 'media_unique_10_minutes',
+                sourceId,
+                xp: 4,
+                reason: `Crossed 10 focused minutes (block ${blockNum}) on: ${asset.title}`,
+                awardedAt: event.createdAt,
+              },
+              { ...options, db: database },
+            );
+            awardedTransactions.push(tx);
           }
         }
-      }
 
-      // e) Evaluate achievements against all accumulated source data. Writes
-      // only achievement_unlocks; never xp_transactions.
-      unlockedAchievements = await evaluateAndUnlockAchievements(database, now);
-    },
+        // c) Completed content slice:
+        const mergedBefore = mergeCoveredRanges(coverageBeforeRanges);
+        const mergedAfter = mergeCoveredRanges(coverageAfterRanges);
+        const newlyCompletedSlices = slices.filter((slice) => {
+          const prevCov = calculateSliceCoverage(slice, mergedBefore);
+          const nextCov = calculateSliceCoverage(slice, mergedAfter);
+          return prevCov < 1 && nextCov >= 1;
+        });
+
+        for (const slice of newlyCompletedSlices) {
+          const sourceId = slice.id;
+          const exists = await database.xpTransactions
+            .where('sourceId')
+            .equals(sourceId)
+            .filter((tx) => tx.sourceType === 'content_slice_completed')
+            .first();
+
+          if (!exists) {
+            const txId = deriveXpTransactionId(
+              'content_slice_completed',
+              sourceId,
+            );
+            const tx = await addXpTransaction(
+              {
+                id: txId,
+                sourceType: 'content_slice_completed',
+                sourceId,
+                xp: 10,
+                reason: `Completed content slice: ${slice.label} of: ${asset.title}`,
+                awardedAt: event.createdAt,
+              },
+              { ...options, db: database },
+            );
+            awardedTransactions.push(tx);
+          }
+        }
+
+        // d) Progress entry cascading milestone awards:
+        const item = await database.courseItems.get(asset.itemId);
+        if (item) {
+          const unit = await database.courseUnits.get(item.unitId);
+          if (unit) {
+            const allUnitItems = await database.courseItems
+              .where('unitId')
+              .equals(unit.id)
+              .toArray();
+            const allUnitProgress = await database.progressEntries
+              .where('itemId')
+              .anyOf(allUnitItems.map((i) => i.id))
+              .toArray();
+
+            let finalProjectProgress: ProgressEntry[] = [];
+            if (
+              item.id === 'final-project-readme' ||
+              item.id === 'final-project-video-demo'
+            ) {
+              const finalProjectUnit = await database.courseUnits
+                .where('type')
+                .equals('final_project')
+                .first();
+              if (finalProjectUnit) {
+                const finalProjectItems = await database.courseItems
+                  .where('unitId')
+                  .equals(finalProjectUnit.id)
+                  .toArray();
+                finalProjectProgress = await database.progressEntries
+                  .where('itemId')
+                  .anyOf(finalProjectItems.map((i) => i.id))
+                  .toArray();
+              }
+            }
+
+            const progressAwards = evaluateProgressXp({
+              progressEntry,
+              item,
+              unit,
+              allUnitItems,
+              allUnitProgress,
+              finalProjectProgress,
+            });
+
+            for (const award of progressAwards) {
+              const exists = await database.xpTransactions
+                .where('sourceId')
+                .equals(award.sourceId)
+                .filter((tx) => tx.sourceType === award.sourceType)
+                .first();
+
+              if (!exists) {
+                const txId = deriveXpTransactionId(
+                  award.sourceType,
+                  award.sourceId,
+                );
+                const tx = await addXpTransaction(
+                  {
+                    id: txId,
+                    sourceType: award.sourceType,
+                    sourceId: award.sourceId,
+                    xp: award.xp,
+                    reason: award.reason,
+                    awardedAt: progressEntry.updatedAt,
+                  },
+                  { ...options, db: database },
+                );
+                awardedTransactions.push(tx);
+              }
+            }
+          }
+        }
+
+        // e) Evaluate achievements against all accumulated source data. Writes
+        // only achievement_unlocks; never xp_transactions.
+        unlockedAchievements = await evaluateAndUnlockAchievements(
+          database,
+          now,
+        );
+        xpSummary = await calculateStoredXpSummary(database);
+      },
+    ),
   );
-
-  const xpSummary = await getXpSummary({ ...options, db: database });
 
   return {
     ...result!,
     awardedTransactions,
     unlockedAchievements,
-    xpSummary,
+    xpSummary: xpSummary!,
   };
 }
 
@@ -2203,188 +2705,241 @@ export async function addStudySessionAndAwardXp(
 ): Promise<AddStudySessionWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
+  let changed = false;
   let studySession: StudySession | null = null;
   const awardedTransactions: XpTransaction[] = [];
   let unlockedAchievements: AchievementUnlock[] = [];
+  let xpSummary: XpSummary | null = null;
 
-  await database.transaction(
-    'rw',
-    [
-      database.studySessions,
-      database.xpTransactions,
-      database.courseItems,
-      database.courseUnits,
-      database.progressEntries,
-      database.contentSlices,
-      database.mediaProgressEvents,
-      database.achievementUnlocks,
-      database.appMeta,
-      database.learnerProfile,
-    ],
-    async () => {
-      // 1. Save study session source event
-      if (input.id) {
-        const existing = await database.studySessions.get(input.id);
-        if (existing) {
-          studySession = existing;
+  const coordinatedWrite = beginCoordinatedWrite(database);
+
+  try {
+    await database.transaction(
+      'rw',
+      [
+        database.studySessions,
+        database.xpTransactions,
+        database.courseItems,
+        database.courseUnits,
+        database.progressEntries,
+        database.contentSlices,
+        database.mediaProgressEvents,
+        database.achievementUnlocks,
+        database.appMeta,
+        database.learnerProfile,
+      ],
+      async () => {
+        markCurrentTransactionCoordinated(database);
+        // 1. Save study session source event
+        if (input.id) {
+          const existing = await database.studySessions.get(input.id);
+          if (existing) {
+            studySession = existing;
+          }
         }
-      }
-      if (!studySession) {
-        studySession = await addStudySession(input, {
-          ...options,
-          db: database,
-        });
-      }
-
-      // 2. Award XP if duration >= 25 minutes
-      if (studySession.durationMinutes >= 25) {
-        const sourceId = studySession.id;
-        const exists = await database.xpTransactions
-          .where('sourceId')
-          .equals(sourceId)
-          .filter((tx) => tx.sourceType === 'study_session')
-          .first();
-
-        if (!exists) {
-          const item = await database.courseItems.get(studySession.itemId);
-          const itemTitle = item ? item.title : 'Course item';
-          const txId = deriveXpTransactionId('study_session', sourceId);
-          const tx = await addXpTransaction(
-            {
-              id: txId,
-              sourceType: 'study_session',
-              sourceId,
-              xp: 10,
-              reason: `Logged 25+ minute study session for: ${itemTitle}`,
-              awardedAt: studySession.endedAt,
-            },
-            { ...options, db: database },
-          );
-          awardedTransactions.push(tx);
+        if (!studySession) {
+          studySession = await addStudySession(input, {
+            ...options,
+            db: database,
+          });
+          changed = true;
         }
-      }
 
-      // 3. Evaluate achievements against all accumulated source data. Writes
-      // only achievement_unlocks; never xp_transactions.
-      unlockedAchievements = await evaluateAndUnlockAchievements(database, now);
-    },
-  );
+        // 2. Award XP if duration >= 25 minutes
+        if (studySession.durationMinutes >= 25) {
+          const sourceId = studySession.id;
+          const exists = await database.xpTransactions
+            .where('sourceId')
+            .equals(sourceId)
+            .filter((tx) => tx.sourceType === 'study_session')
+            .first();
 
-  const xpSummary = await getXpSummary({ ...options, db: database });
+          if (!exists) {
+            const item = await database.courseItems.get(studySession.itemId);
+            const itemTitle = item ? item.title : 'Course item';
+            const txId = deriveXpTransactionId('study_session', sourceId);
+            const tx = await addXpTransaction(
+              {
+                id: txId,
+                sourceType: 'study_session',
+                sourceId,
+                xp: 10,
+                reason: `Logged 25+ minute study session for: ${itemTitle}`,
+                awardedAt: studySession.endedAt,
+              },
+              { ...options, db: database },
+            );
+            awardedTransactions.push(tx);
+            changed = true;
+          }
+        }
+
+        // 3. Evaluate achievements against all accumulated source data. Writes
+        // only achievement_unlocks; never xp_transactions.
+        unlockedAchievements = await evaluateAndUnlockAchievements(
+          database,
+          now,
+        );
+        changed ||= unlockedAchievements.length > 0;
+        xpSummary = await calculateStoredXpSummary(database);
+      },
+    );
+
+    if (changed) {
+      coordinatedWrite.complete();
+    } else {
+      coordinatedWrite.abort();
+    }
+  } catch (error) {
+    coordinatedWrite.abort();
+    throw error;
+  }
 
   return {
     studySession: studySession!,
     awardedTransactions,
     unlockedAchievements,
-    xpSummary,
+    xpSummary: xpSummary!,
   };
 }
 
 export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
   const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = allDataTables(database);
+  const includedTableNames = new Set(tables.map((table) => table.name));
+  const omittedTableNames = database.tables
+    .map((table) => table.name)
+    .filter((name) => !includedTableNames.has(name));
 
-  const [
-    appMeta,
-    learnerProfile,
-    courseUnits,
-    courseItems,
-    progressEntries,
-    contentAssets,
-    contentSlices,
-    mediaProgressEvents,
-    resumePoints,
-    studySessions,
-    xpTransactions,
-    achievementDefinitions,
-    achievementUnlocks,
-    backups,
-  ] = await Promise.all([
-    getAppMeta({ db: database }),
-    getProfile({ db: database }),
-    database.courseUnits.toArray(),
-    database.courseItems.toArray(),
-    database.progressEntries.toArray(),
-    database.contentAssets.toArray(),
-    database.contentSlices.toArray(),
-    database.mediaProgressEvents.toArray(),
-    database.resumePoints.toArray(),
-    database.studySessions.toArray(),
-    database.xpTransactions.toArray(),
-    database.achievementDefinitions.toArray(),
-    database.achievementUnlocks.toArray(),
-    database.backups.toArray(),
-  ]);
+  if (
+    omittedTableNames.length > 0 ||
+    includedTableNames.size !== database.tables.length
+  ) {
+    throw new Error(
+      `Database snapshot table coverage is incomplete: ${omittedTableNames.join(', ') || 'duplicate table mapping'}.`,
+    );
+  }
 
-  return {
-    appMeta,
-    learnerProfile,
-    courseUnits: sortCourseUnits(
-      parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
-    ),
-    courseItems: sortCourseItems(
-      parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
-    ),
-    progressEntries: sortProgressEntries(
-      parseStoredArray(
-        progressEntries,
-        'Stored progress entry',
-        ProgressEntrySchema,
-      ),
-    ),
-    contentAssets: sortContentAssets(
-      parseStoredArray(
-        contentAssets,
-        'Stored content asset',
-        ContentAssetSchema,
-      ),
-    ),
-    contentSlices: sortContentSlices(
-      parseStoredArray(
-        contentSlices,
-        'Stored content slice',
-        ContentSliceSchema,
-      ),
-    ),
-    mediaProgressEvents: sortMediaProgressEvents(
-      parseStoredArray(
-        mediaProgressEvents,
-        'Stored media progress event',
-        MediaProgressEventSchema,
-      ),
-    ),
-    resumePoints: sortResumePoints(
-      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
-    ),
-    studySessions: sortStudySessions(
-      parseStoredArray(
-        studySessions,
-        'Stored study session',
-        StudySessionSchema,
-      ),
-    ),
-    xpTransactions: sortXpTransactions(
-      parseStoredArray(
-        xpTransactions,
-        'Stored XP transaction',
-        XpTransactionSchema,
-      ),
-    ),
-    achievementDefinitions: parseStoredArray(
+  return database.transaction('r', tables, async () => {
+    const [
+      storedAppMeta,
+      storedLearnerProfile,
+      courseUnits,
+      courseItems,
+      progressEntries,
+      contentAssets,
+      contentSlices,
+      mediaProgressEvents,
+      resumePoints,
+      studySessions,
+      xpTransactions,
       achievementDefinitions,
-      'Stored achievement definition',
-      AchievementDefinitionSchema,
-    ),
-    achievementUnlocks: parseStoredArray(
       achievementUnlocks,
-      'Stored achievement unlock',
-      AchievementUnlockSchema,
-    ),
-    backups: parseStoredArray(
       backups,
-      'Stored backup record',
-      BackupRecordSchema,
-    ),
-  };
+    ] = await Promise.all([
+      database.appMeta.get(singletonIds.appMeta),
+      database.learnerProfile.get(singletonIds.learnerProfile),
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+      database.progressEntries.toArray(),
+      database.contentAssets.toArray(),
+      database.contentSlices.toArray(),
+      database.mediaProgressEvents.toArray(),
+      database.resumePoints.toArray(),
+      database.studySessions.toArray(),
+      database.xpTransactions.toArray(),
+      database.achievementDefinitions.toArray(),
+      database.achievementUnlocks.toArray(),
+      database.backups.toArray(),
+    ]);
+    const appMeta =
+      storedAppMeta === undefined
+        ? null
+        : parseWithSchema(AppMetaSchema, storedAppMeta, 'Stored app metadata');
+    const learnerProfile =
+      storedLearnerProfile === undefined
+        ? null
+        : parseWithSchema(
+            LearnerProfileSchema,
+            storedLearnerProfile,
+            'Stored learner profile',
+          );
+
+    return {
+      appMeta,
+      learnerProfile,
+      courseUnits: sortCourseUnits(
+        parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+      ),
+      courseItems: sortCourseItems(
+        parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+      ),
+      progressEntries: sortProgressEntries(
+        parseStoredArray(
+          progressEntries,
+          'Stored progress entry',
+          ProgressEntrySchema,
+        ),
+      ),
+      contentAssets: sortContentAssets(
+        parseStoredArray(
+          contentAssets,
+          'Stored content asset',
+          ContentAssetSchema,
+        ),
+      ),
+      contentSlices: sortContentSlices(
+        parseStoredArray(
+          contentSlices,
+          'Stored content slice',
+          ContentSliceSchema,
+        ),
+      ),
+      mediaProgressEvents: sortMediaProgressEvents(
+        parseStoredArray(
+          mediaProgressEvents,
+          'Stored media progress event',
+          MediaProgressEventSchema,
+        ),
+      ),
+      resumePoints: sortResumePoints(
+        parseStoredArray(
+          resumePoints,
+          'Stored resume point',
+          ResumePointSchema,
+        ),
+      ),
+      studySessions: sortStudySessions(
+        parseStoredArray(
+          studySessions,
+          'Stored study session',
+          StudySessionSchema,
+        ),
+      ),
+      xpTransactions: sortXpTransactions(
+        parseStoredArray(
+          xpTransactions,
+          'Stored XP transaction',
+          XpTransactionSchema,
+        ),
+      ),
+      achievementDefinitions: parseStoredArray(
+        achievementDefinitions,
+        'Stored achievement definition',
+        AchievementDefinitionSchema,
+      ),
+      achievementUnlocks: parseStoredArray(
+        achievementUnlocks,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      ),
+      backups: parseStoredArray(
+        backups,
+        'Stored backup record',
+        BackupRecordSchema,
+      ),
+    };
+  });
 }
 
 function allDataTables(database: ProgressPalDatabase) {
@@ -2412,7 +2967,7 @@ function allDataTables(database: ProgressPalDatabase) {
  * restore path must never trust unvalidated structured input.
  */
 function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
-  return {
+  const restored = {
     appMeta:
       snapshot.appMeta === null
         ? null
@@ -2490,6 +3045,12 @@ function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
       BackupRecordSchema,
     ),
   };
+
+  assertBackupDataInvariants(restored, {
+    expectedSchemaVersion: currentDatabaseSchemaVersion,
+  });
+
+  return restored;
 }
 
 export type RecordBackupEventInput = {
@@ -2521,14 +3082,14 @@ export async function recordBackupEvent(
     'Backup record',
   );
 
-  await database.backups.add(record);
+  await runCoordinatedWrite(database, () => database.backups.add(record));
 
   return record;
 }
 
 /**
  * Destructively clear every store and re-bootstrap a fresh default profile and
- * seeded catalog. The clear is atomic; re-initialization runs afterward.
+ * seeded catalog. Clear and re-initialization share one atomic transaction.
  */
 export async function resetAllData(
   options: InitializeDatabaseOptions = {},
@@ -2536,11 +3097,14 @@ export async function resetAllData(
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = allDataTables(database);
 
-  await database.transaction('rw', tables, async () => {
-    await Promise.all(tables.map((table) => table.clear()));
-  });
+  return runDestructiveCoordinatedWrite(database, () =>
+    database.transaction('rw', tables, async () => {
+      markCurrentTransactionCoordinated(database, true);
+      await Promise.all(tables.map((table) => table.clear()));
 
-  return initializeDatabase({ ...options, db: database });
+      return initializeDatabase({ ...options, db: database });
+    }),
+  );
 }
 
 export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
@@ -2549,9 +3113,9 @@ export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
 
 /**
  * Replace-all restore. Validates every row first, then in one atomic
- * transaction clears all stores and writes the validated backup rows. After the
- * transaction commits it reconciles the bundled seed catalog (idempotent on
- * already-current data) and appends exactly one `import` audit record. The
+ * transaction clears all stores, writes the validated rows, re-initializes,
+ * reconciles the bundled seed catalog (idempotent on already-current data),
+ * appends exactly one `import` audit record, and reads the final snapshot. The
  * `backups` store therefore equals the backup's `backups` plus that one record;
  * the other 13 stores match the backup exactly.
  */
@@ -2559,43 +3123,59 @@ export async function restoreDatabaseFromBackup(
   snapshot: DatabaseSnapshot,
   options: RestoreDatabaseFromBackupOptions = {},
 ): Promise<DatabaseSnapshot> {
-  const database = await ensureOpen(resolveDatabase(options.db));
   const restored = parseSnapshotForRestore(snapshot);
+  const database = await ensureOpen(resolveDatabase(options.db));
   const tables = allDataTables(database);
 
-  await database.transaction('rw', tables, async () => {
-    await Promise.all(tables.map((table) => table.clear()));
+  return runDestructiveCoordinatedWrite(database, () =>
+    database.transaction('rw', tables, async () => {
+      markCurrentTransactionCoordinated(database, true);
+      await Promise.all(tables.map((table) => table.clear()));
 
-    if (restored.appMeta !== null) {
-      await database.appMeta.add(restored.appMeta);
-    }
+      if (restored.appMeta !== null) {
+        await database.appMeta.add(restored.appMeta);
+      }
 
-    if (restored.learnerProfile !== null) {
-      await database.learnerProfile.add(restored.learnerProfile);
-    }
+      if (restored.learnerProfile !== null) {
+        await database.learnerProfile.add(restored.learnerProfile);
+      }
 
-    await Promise.all([
-      database.courseUnits.bulkAdd(restored.courseUnits),
-      database.courseItems.bulkAdd(restored.courseItems),
-      database.progressEntries.bulkAdd(restored.progressEntries),
-      database.contentAssets.bulkAdd(restored.contentAssets),
-      database.contentSlices.bulkAdd(restored.contentSlices),
-      database.mediaProgressEvents.bulkAdd(restored.mediaProgressEvents),
-      database.resumePoints.bulkAdd(restored.resumePoints),
-      database.studySessions.bulkAdd(restored.studySessions),
-      database.xpTransactions.bulkAdd(restored.xpTransactions),
-      database.achievementDefinitions.bulkAdd(restored.achievementDefinitions),
-      database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
-      database.backups.bulkAdd(restored.backups),
-    ]);
-  });
+      await Promise.all([
+        database.courseUnits.bulkAdd(restored.courseUnits),
+        database.courseItems.bulkAdd(restored.courseItems),
+        database.progressEntries.bulkAdd(restored.progressEntries),
+        database.contentAssets.bulkAdd(restored.contentAssets),
+        database.contentSlices.bulkAdd(restored.contentSlices),
+        database.mediaProgressEvents.bulkAdd(restored.mediaProgressEvents),
+        database.resumePoints.bulkAdd(restored.resumePoints),
+        database.studySessions.bulkAdd(restored.studySessions),
+        database.xpTransactions.bulkAdd(restored.xpTransactions),
+        database.achievementDefinitions.bulkAdd(
+          restored.achievementDefinitions,
+        ),
+        database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
+        database.backups.bulkAdd(restored.backups),
+      ]);
 
-  await initializeDatabase({ ...options, db: database });
+      await initializeDatabase({ ...options, db: database });
 
-  await recordBackupEvent(
-    { type: 'import', fileName: options.fileName ?? 'imported-backup.json' },
-    { db: database, now: options.now },
+      await recordBackupEvent(
+        {
+          type: 'import',
+          fileName: options.fileName ?? 'imported-backup.json',
+        },
+        { db: database, now: options.now },
+      );
+
+      const finalSnapshot = await getDatabaseSnapshot({ db: database });
+
+      // Seed reconciliation can update catalog ownership after the preflight
+      // check. Re-validate the committed shape while rollback is still possible.
+      assertBackupDataInvariants(finalSnapshot, {
+        expectedSchemaVersion: currentDatabaseSchemaVersion,
+      });
+
+      return finalSnapshot;
+    }),
   );
-
-  return getDatabaseSnapshot({ db: database });
 }

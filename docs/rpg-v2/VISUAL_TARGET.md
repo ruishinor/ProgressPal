@@ -78,7 +78,7 @@ Keep the information architecture and screen families:
 - Focus Session;
 - Hero/Profile;
 - Badge Gallery;
-- Journey Log;
+- Insights;
 - bottom navigation;
 - visible progress;
 - one clear next action;
@@ -541,7 +541,7 @@ Avoid:
 - official-looking course trophies;
 - mystery locks.
 
-### Journey Log
+### Insights
 
 Should feel like a local record.
 

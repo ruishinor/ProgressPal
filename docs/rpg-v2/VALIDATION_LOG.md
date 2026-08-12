@@ -1679,3 +1679,49 @@ Notes:
 - `docs/rpg-v2/RISK_REGISTER.md` was inspected and not changed. No standing risk status changed; the discovered layout blocker was corrected inside RPG-15.
 - Release decision: pass after targeted checks, full E2E, and three consecutive local full `npm run validate` passes completed.
 - Scope discipline: see `docs/rpg-v2/modules/RPG-15-HANDOFF.md`.
+
+## v1.3 remediation foundation — 2026-07-13
+
+Branch: `cx/release-1.3.0-remediation`
+
+Baseline: `67ed6af836ec46f136bc5622aa68c8745c8bcf40`
+
+Current status: implementation in progress; no module or release certification claimed.
+
+Evidence:
+
+- Existing dirty stabilization work was preserved and inventoried in `docs/audits/progresspal-1.3.0-remediation-inventory.md`.
+- Historical tags `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` remain unchanged; the next candidate identity is `1.3.0`.
+- Default `npm test` timed out after 120 seconds before a test result and leaked 187 Codex-launched cmd/Node test trees. The leaked trees were contained without terminating direct Codex or unrelated user processes.
+- A single-worker targeted Vitest run passed 10/10 tests.
+- A single-worker full Vitest baseline passed 39/39 files and 367/367 tests.
+- The managed production Playwright baseline passed 31/31 cases.
+
+Interpretation:
+
+- Earlier three-pass results remain historical evidence for their exact prior byte state. They do not certify the current remediation state.
+- Process termination and cleanup are part of release correctness. The unconstrained Vitest command is not an acceptable gate even when assertions previously passed.
+- Final counted passes require Node 24/npm 11, repository LF policy, an immutable commit/tree/lockfile, `npm ci`, the canonical gate, and zero errors, warnings, flags, retries, or skips.
+
+## Modules 0–2 accepted — 2026-07-14
+
+- Certified commit: `0da8079007733fd63e5fbbf938f19e7c3d6bc3f4`.
+- Certified tree: `f38e21ff20ab621a59cdc0fc253838eb2736ffcb`.
+- Three consecutive local release-gate passes succeeded with zero classified warnings, retries, skips, or failed checks.
+- Each pass included 3 release-runner tests, 367 application unit/integration tests, 31 managed-browser flows, lint, format, typecheck, production build, circular-dependency analysis, dependency audit, and clean-tree checks.
+- Evidence manifests: `2026-07-13T22-03-34-126Z-foundation-pass-1.json`, `2026-07-13T22-06-23-088Z-foundation-pass-2.json`, and `2026-07-13T22-09-11-467Z-foundation-pass-3.json` under the ignored local `artifacts/release-evidence/` directory.
+- Scope limitation: these are local certification passes. GitHub-hosted CI and production deployment evidence are not yet proven.
+
+## Module 3 historical acceptance invalidated — 2026-07-16
+
+- Historical commit: `4f541de930d0a2bef5e260cd86177714e53f2d41`.
+- Historical tree: `3369e6ea7f1e0f5d1645a96f4b1971472d7e8405`.
+- Implemented envelope-1/schema-2 backup compatibility fixtures and a compatibility matrix, hostile-input and atomic-rollback coverage, browser persistence status/request UX, schema-free cross-tab revision coordination, stale-write prevention, destructive-action blocking, and production bundle budgets.
+- The historical `v1.2.0` fixture is explicitly a deterministic reconstruction of the immutable tagged contract; it is not claimed to be an archived user-generated export.
+- Initial gates on implementation commit `6f141f4f798707af1f400847fba3799479d9507e` passed technically but did not record the story-required clean install. Retrospective review rejected those runs for acceptance and corrected the gate.
+- Restarted clean-install evidence manifests: `2026-07-16T17-54-09-259Z-storage-durability-clean-install-pass-1.json`, `2026-07-16T18-00-41-042Z-storage-durability-clean-install-pass-2.json`, and `2026-07-16T18-06-47-962Z-storage-durability-clean-install-pass-3.json` under ignored local `artifacts/release-evidence/`.
+- Each accepted pass recorded one `npm ci`, 20/20 successful gate commands, 4 release-runner tests, 379 application unit/integration tests, 32 managed Chromium/offline flows, lint, format, typecheck, production build, bundle-budget enforcement, circular-dependency analysis, dependency audit, and initial/final clean-tree checks.
+- All three historical passes used the same commit/tree and recorded zero warnings, retries, skips, failed commands, dependency vulnerabilities, or bundle-budget violations.
+- A subsequent adversarial lifecycle review found uncovered BFCache, revision-token, closing-message, transport-recovery, asynchronous-write, and fail-closed defects. That review invalidated the Module 3 acceptance claim even though the recorded commands had passed.
+- Module 3 is reopened at 0/3. The historical manifests remain provenance for their exact prior bytes only; they do not certify the current tree or the revised single-writer Web Locks protocol.
+- No progression to Module 4 is permitted until corrective implementation, independent adversarial and retrospective review, backwards-compatibility verification, and three restarted clean release passes succeed on one immutable commit and tree.

@@ -206,7 +206,7 @@ export function DashboardPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is reading your local progress, sessions, XP, and achievement records."
+          description="The app is reading your local progress, sessions, XP, and achievements."
           title="Dashboard"
         />
         <LoadingState

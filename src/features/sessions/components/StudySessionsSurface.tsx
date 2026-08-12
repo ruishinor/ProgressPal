@@ -15,6 +15,7 @@ import { Select } from '@/components/ui/Select';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
+import { useAppState } from '@/lib/appState';
 import {
   courseMapPath,
   getCourseItemDetailPath,
@@ -57,6 +58,7 @@ import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
 type StudySessionsSurfaceProps = {
+  onProgressSaved?: () => void;
   variant?: StudySessionsSurfaceVariant;
 };
 
@@ -154,8 +156,10 @@ function getNextItemId(
 }
 
 export function StudySessionsSurface({
+  onProgressSaved,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
+  const { coordination, runLocalMutation } = useAppState();
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-focus'
@@ -400,7 +404,10 @@ export function StudySessionsSurface({
     setManualIsSaving(true);
 
     try {
-      const xpResult = await addStudySessionAndAwardXp(validation.input);
+      const xpResult = await runLocalMutation(
+        () => addStudySessionAndAwardXp(validation.input),
+        { invalidateRoute: false },
+      );
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
         0,
@@ -411,6 +418,7 @@ export function StudySessionsSurface({
         title: 'Session saved',
         tone: 'success',
       });
+      onProgressSaved?.();
       resetPageStateAfterSave();
     } catch (saveError) {
       setManualErrors({
@@ -439,7 +447,10 @@ export function StudySessionsSurface({
     setLiveIsSaving(true);
 
     try {
-      const xpResult = await addStudySessionAndAwardXp(validation.input);
+      const xpResult = await runLocalMutation(
+        () => addStudySessionAndAwardXp(validation.input),
+        { invalidateRoute: false },
+      );
       const xpAdded = xpResult.awardedTransactions.reduce(
         (sum, tx) => sum + tx.xp,
         0,
@@ -450,6 +461,7 @@ export function StudySessionsSurface({
         title: 'Session saved',
         tone: 'success',
       });
+      onProgressSaved?.();
       resetPageStateAfterSave();
     } catch (saveError) {
       setLiveErrors({
@@ -528,6 +540,7 @@ export function StudySessionsSurface({
           <Card
             description="Start one live study session, pause it if needed, then save exactly one immutable effort record."
             title="Live focus session"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
           >
             {liveSession.phase === 'idle' ? (
@@ -666,7 +679,11 @@ export function StudySessionsSurface({
                   </p>
                 </div>
                 <div className="course-detail-form__actions">
-                  <Button size="lg" type="submit">
+                  <Button
+                    disabled={!coordination.canWrite}
+                    size="lg"
+                    type="submit"
+                  >
                     Start live session
                   </Button>
                 </div>
@@ -845,6 +862,7 @@ export function StudySessionsSurface({
                 ) : null}
                 <div className="course-detail-form__actions">
                   <Button
+                    disabled={!coordination.canWrite}
                     loading={liveIsSaving}
                     onClick={() => {
                       void handleLiveSave();
@@ -866,6 +884,7 @@ export function StudySessionsSurface({
           <Card
             description="Add one completed study session manually when you already know the item, start time, and duration."
             title="Manual session entry"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
             {manualForm ? (
               <form
@@ -1109,7 +1128,12 @@ export function StudySessionsSurface({
                   )}
                 </FormField>
                 <div className="course-detail-form__actions">
-                  <Button loading={manualIsSaving} size="lg" type="submit">
+                  <Button
+                    disabled={!coordination.canWrite}
+                    loading={manualIsSaving}
+                    size="lg"
+                    type="submit"
+                  >
                     Save session
                   </Button>
                 </div>
@@ -1120,6 +1144,7 @@ export function StudySessionsSurface({
         <Card
           description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
           title="Your saved sessions"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {ledgerRows.length === 0 ? (
             <EmptyState

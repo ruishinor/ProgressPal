@@ -16,7 +16,7 @@ export function RpgEmptyState({
   return (
     <section className="rpg-empty-state">
       {eyebrow ? <p className="rpg-empty-state__eyebrow">{eyebrow}</p> : null}
-      <h3 className="rpg-empty-state__title">{title}</h3>
+      <h2 className="rpg-empty-state__title">{title}</h2>
       <p className="rpg-empty-state__description">{description}</p>
       {action ? <div>{action}</div> : null}
     </section>

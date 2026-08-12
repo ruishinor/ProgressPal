@@ -127,6 +127,13 @@
   gap: var(--space-4);
 }
 
+/* The main landmark receives programmatic focus on route changes
+   (tabIndex=-1); suppress the resulting focus ring. Keyboard focus on
+   interactive elements still uses the global :focus-visible outline. */
+.shell-main:focus {
+  outline: none;
+}
+
 .page-section {
   display: grid;
   gap: var(--space-4);
@@ -545,8 +552,6 @@
 
 .form-grid,
 .profile-page-grid,
-.showcase-grid,
-.state-grid,
 .placeholder-grid,
 .dashboard-grid,
 .insights-grid {
@@ -560,20 +565,12 @@
   align-items: start;
 }
 
-.showcase-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .form-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .profile-page-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.state-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .placeholder-grid {
@@ -1470,8 +1467,6 @@
   .sessions-layout,
   .course-map-summary-grid,
   .profile-page-grid,
-  .showcase-grid,
-  .state-grid,
   .placeholder-grid,
   .dashboard-grid,
   .form-grid {

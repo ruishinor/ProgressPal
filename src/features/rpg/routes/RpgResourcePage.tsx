@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useOutletContext, useParams } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -19,6 +19,8 @@ import {
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
 import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
+import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
+import { useAppState } from '@/lib/appState';
 import type { ProgressStatus } from '@/lib/domain';
 import { getRpgFocusPath, getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
 
@@ -52,6 +54,12 @@ const confidenceOptions = [
   { label: '4', value: '4' },
   { label: '5 - High', value: '5' },
 ] as const;
+
+const resourceErrorIds = {
+  confidence: 'rpg-resource-confidence-error',
+  evidenceText: 'rpg-resource-evidence-error',
+  status: 'rpg-resource-status-error',
+} as const;
 
 const initialState: RpgResourcePageState = {
   error: null,
@@ -141,7 +149,9 @@ function RpgResourceLoadingState() {
 }
 
 export function RpgResourcePage() {
+  const { coordination, runLocalMutation } = useAppState();
   const { itemId } = useParams();
+  const { refreshHud } = useOutletContext<RpgShellOutletContext>();
   const [state, setState] = useState<RpgResourcePageState>(initialState);
   const [formState, setFormState] = useState<RpgResourceFormState | null>(null);
   const [saveResult, setSaveResult] = useState<RpgResourceSaveResult | null>(
@@ -269,6 +279,8 @@ export function RpgResourcePage() {
       return;
     }
 
+    const parsedConfidence = validation.parsedConfidence;
+
     setFormState((currentForm) =>
       currentForm === null
         ? currentForm
@@ -283,32 +295,39 @@ export function RpgResourcePage() {
     const timestamp = new Date().toISOString();
 
     try {
-      const result = await saveRpgStudyResourceProgress({
-        completedAt: getDefaultCompletedAt(
-          summary,
-          nextValues.status,
-          timestamp,
-        ),
-        confidence:
-          nextValues.status === 'skipped_optional'
-            ? 0
-            : validation.parsedConfidence,
-        evidenceText:
-          nextValues.evidenceText.trim().length === 0
-            ? undefined
-            : nextValues.evidenceText.trim(),
-        evidenceType:
-          nextValues.evidenceText.trim().length === 0
-            ? undefined
-            : 'self_report',
-        itemId: summary.itemId,
-        notes:
-          nextValues.notes.trim().length === 0
-            ? undefined
-            : nextValues.notes.trim(),
-        startedAt: getDefaultStartedAt(summary, nextValues.status, timestamp),
-        status: nextValues.status,
-      });
+      const result = await runLocalMutation(
+        () =>
+          saveRpgStudyResourceProgress({
+            completedAt: getDefaultCompletedAt(
+              summary,
+              nextValues.status,
+              timestamp,
+            ),
+            confidence:
+              nextValues.status === 'skipped_optional' ? 0 : parsedConfidence,
+            evidenceText:
+              nextValues.evidenceText.trim().length === 0
+                ? undefined
+                : nextValues.evidenceText.trim(),
+            evidenceType:
+              nextValues.evidenceText.trim().length === 0
+                ? undefined
+                : 'self_report',
+            itemId: summary.itemId,
+            notes:
+              nextValues.notes.trim().length === 0
+                ? undefined
+                : nextValues.notes.trim(),
+            startedAt: getDefaultStartedAt(
+              summary,
+              nextValues.status,
+              timestamp,
+            ),
+            status: nextValues.status,
+          }),
+        { invalidateRoute: false },
+      );
+      refreshHud();
       const nextSummary = await loadRpgStudyResourceSummary(summary.itemId);
 
       if (nextSummary === null) {
@@ -496,7 +515,7 @@ export function RpgResourcePage() {
         ) : null}
       </RpgResourceCard>
 
-      <RpgPanel title="Save local progress" titleAs="h2">
+      <RpgPanel title="Save progress" titleAs="h2">
         <form
           className="rpg-study-resource__form"
           noValidate
@@ -505,6 +524,9 @@ export function RpgResourcePage() {
           <label className="rpg-study-resource__field">
             <span>Progress</span>
             <select
+              aria-describedby={
+                formState?.errors.status ? resourceErrorIds.status : undefined
+              }
               aria-invalid={formState?.errors.status ? true : undefined}
               onChange={(event) => {
                 setFormState((currentForm) =>
@@ -531,7 +553,11 @@ export function RpgResourcePage() {
             </select>
           </label>
           {formState?.errors.status ? (
-            <p className="rpg-study-resource__error" role="alert">
+            <p
+              className="rpg-study-resource__error"
+              id={resourceErrorIds.status}
+              role="alert"
+            >
               {formState.errors.status}
             </p>
           ) : null}
@@ -562,6 +588,11 @@ export function RpgResourcePage() {
             <label className="rpg-study-resource__field">
               <span>Submission note</span>
               <textarea
+                aria-describedby={
+                  formState?.errors.evidenceText
+                    ? resourceErrorIds.evidenceText
+                    : undefined
+                }
                 aria-invalid={formState?.errors.evidenceText ? true : undefined}
                 onChange={(event) => {
                   setFormState((currentForm) =>
@@ -584,44 +615,65 @@ export function RpgResourcePage() {
             </label>
           ) : null}
           {formState?.errors.evidenceText ? (
-            <p className="rpg-study-resource__error" role="alert">
+            <p
+              className="rpg-study-resource__error"
+              id={resourceErrorIds.evidenceText}
+              role="alert"
+            >
               {formState.errors.evidenceText}
             </p>
           ) : null}
 
-          <label className="rpg-study-resource__field rpg-study-resource__field--short">
-            <span>Confidence</span>
-            <select
-              aria-invalid={formState?.errors.confidence ? true : undefined}
-              onChange={(event) => {
-                setFormState((currentForm) =>
-                  currentForm === null
-                    ? currentForm
-                    : {
-                        ...currentForm,
-                        errors: {},
-                        values: {
-                          ...currentForm.values,
-                          confidence: event.target.value,
-                        },
-                      },
-                );
-                setSaveResult(null);
-              }}
-              value={formValues.confidence}
-            >
-              {confidenceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {formState?.errors.confidence ? (
-            <p className="rpg-study-resource__error" role="alert">
-              {formState.errors.confidence}
-            </p>
-          ) : null}
+          <details
+            className="form-details"
+            open={Boolean(formState?.errors.confidence)}
+          >
+            <summary>More details</summary>
+            <div className="form-details__content">
+              <label className="rpg-study-resource__field rpg-study-resource__field--short">
+                <span>How sure are you?</span>
+                <select
+                  aria-describedby={
+                    formState?.errors.confidence
+                      ? resourceErrorIds.confidence
+                      : undefined
+                  }
+                  aria-invalid={formState?.errors.confidence ? true : undefined}
+                  onChange={(event) => {
+                    setFormState((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            errors: {},
+                            values: {
+                              ...currentForm.values,
+                              confidence: event.target.value,
+                            },
+                          },
+                    );
+                    setSaveResult(null);
+                  }}
+                  value={formValues.confidence}
+                >
+                  {confidenceOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {formState?.errors.confidence ? (
+                <p
+                  className="rpg-study-resource__error"
+                  id={resourceErrorIds.confidence}
+                  role="alert"
+                >
+                  {formState.errors.confidence}
+                </p>
+              ) : null}
+            </div>
+          </details>
           {formState?.errors.submit ? (
             <p className="rpg-study-resource__error" role="alert">
               {formState.errors.submit}
@@ -629,11 +681,18 @@ export function RpgResourcePage() {
           ) : null}
 
           <div className="rpg-study-resource__form-actions">
-            <RpgButton disabled={formState?.isSaving ?? false} type="submit">
-              Save local progress
+            <RpgButton
+              disabled={
+                !coordination.canWrite || (formState?.isSaving ?? false)
+              }
+              type="submit"
+            >
+              Save progress
             </RpgButton>
             <RpgButton
-              disabled={formState?.isSaving ?? false}
+              disabled={
+                !coordination.canWrite || (formState?.isSaving ?? false)
+              }
               onClick={handleMarkComplete}
               type="button"
               variant="secondary"

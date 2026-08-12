@@ -1,0 +1,104 @@
+{
+  "format": "progresspal-backup",
+  "formatVersion": 1,
+  "appVersion": "0.1.0",
+  "schemaVersion": 2,
+  "exportedAt": "2026-06-16T11:00:00.000Z",
+  "data": {
+    "appMeta": {
+      "id": "app-meta",
+      "createdAt": "2026-06-16T09:00:00.000Z",
+      "updatedAt": "2026-06-16T10:30:00.000Z",
+      "appVersion": "0.1.0",
+      "schemaVersion": 2,
+      "seedVersion": 1,
+      "onboardingCompletedAt": "2026-06-16T09:05:00.000Z"
+    },
+    "learnerProfile": {
+      "id": "learner-profile",
+      "createdAt": "2026-06-16T09:00:00.000Z",
+      "updatedAt": "2026-06-16T09:05:00.000Z",
+      "displayName": "Historical Ada",
+      "avatarConfig": {
+        "face": "round",
+        "hair": "short",
+        "topColor": "forest"
+      },
+      "targetStudyDays": ["monday", "wednesday"],
+      "targetMinutesPerWeek": 300,
+      "preferredTheme": "system",
+      "reducedMotion": false
+    },
+    "courseUnits": [
+      {
+        "id": "week-0",
+        "createdAt": "2026-06-16T09:00:00.000Z",
+        "updatedAt": "2026-06-16T09:00:00.000Z",
+        "courseId": "cs50x-2026",
+        "title": "Week 0",
+        "order": 0,
+        "type": "week",
+        "sourceYear": 2026,
+        "required": true
+      }
+    ],
+    "courseItems": [
+      {
+        "id": "week-0-lecture",
+        "createdAt": "2026-06-16T09:00:00.000Z",
+        "updatedAt": "2026-06-16T09:00:00.000Z",
+        "unitId": "week-0",
+        "type": "lecture",
+        "title": "Lecture",
+        "required": true,
+        "estimatedMinutes": 120,
+        "order": 0
+      }
+    ],
+    "progressEntries": [
+      {
+        "id": "historical-progress-1",
+        "createdAt": "2026-06-16T10:30:00.000Z",
+        "updatedAt": "2026-06-16T10:30:00.000Z",
+        "itemId": "week-0-lecture",
+        "status": "started",
+        "startedAt": "2026-06-16T10:00:00.000Z",
+        "confidence": 3
+      }
+    ],
+    "contentAssets": [],
+    "contentSlices": [],
+    "mediaProgressEvents": [],
+    "resumePoints": [],
+    "studySessions": [
+      {
+        "id": "historical-session-1",
+        "createdAt": "2026-06-16T10:30:00.000Z",
+        "updatedAt": "2026-06-16T10:30:00.000Z",
+        "unitId": "week-0",
+        "itemId": "week-0-lecture",
+        "startedAt": "2026-06-16T10:00:00.000Z",
+        "endedAt": "2026-06-16T10:30:00.000Z",
+        "durationMinutes": 30,
+        "mode": "coding",
+        "notes": "Historical tagged-state fixture",
+        "blockers": []
+      }
+    ],
+    "xpTransactions": [
+      {
+        "id": "historical-xp-1",
+        "createdAt": "2026-06-16T10:30:00.000Z",
+        "updatedAt": "2026-06-16T10:30:00.000Z",
+        "sourceType": "study_session",
+        "sourceId": "historical-session-1",
+        "xp": 10,
+        "reason": "Logged a study session",
+        "awardedAt": "2026-06-16T10:30:00.000Z"
+      }
+    ],
+    "achievementDefinitions": [],
+    "achievementUnlocks": [],
+    "backups": []
+  }
+}

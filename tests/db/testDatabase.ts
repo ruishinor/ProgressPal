@@ -2,7 +2,7 @@ import {
   createProgressPalDatabase,
   deleteDatabaseByName,
   type ProgressPalDatabase,
-} from '@/lib/db';
+} from '@/lib/db/database';
 import type { CourseSeed } from '@/lib/domain';
 
 let databaseCounter = 0;

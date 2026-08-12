@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -52,7 +54,7 @@ describe('RPG visual primitives', () => {
   it('renders semantic button and link controls', () => {
     render(
       <div className="rpg-shell">
-        <RpgButton>Save local progress</RpgButton>
+        <RpgButton>Save progress</RpgButton>
         <RpgButton
           href="https://cs50.harvard.edu/x/"
           rel="noopener noreferrer"
@@ -65,11 +67,50 @@ describe('RPG visual primitives', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Save local progress' }),
+      screen.getByRole('button', { name: 'Save progress' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Open official CS50x resource' }),
     ).toHaveAttribute('href', 'https://cs50.harvard.edu/x/');
+  });
+
+  it('uses router navigation for internal links and preserves external link attributes', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={['/rpg']}>
+        <Routes>
+          <Route
+            element={
+              <>
+                <RpgButton href="/rpg/map">Open map</RpgButton>
+                <RpgButton
+                  href="https://cs50.harvard.edu/x/"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Open official resource
+                </RpgButton>
+              </>
+            }
+            path="/rpg"
+          />
+          <Route element={<p>Campaign map route</p>} path="/rpg/map" />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const externalLink = screen.getByRole('link', {
+      name: 'Open official resource',
+    });
+
+    expect(externalLink).toHaveAttribute('href', 'https://cs50.harvard.edu/x/');
+    expect(externalLink).toHaveAttribute('target', '_blank');
+    expect(externalLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+    await user.click(screen.getByRole('link', { name: 'Open map' }));
+
+    expect(await screen.findByText('Campaign map route')).toBeInTheDocument();
   });
 
   it('exposes readable progress labels and clamps values', () => {
@@ -96,43 +137,47 @@ describe('RPG visual primitives', () => {
 
   it('renders status, quest, and resource primitives without color-only state', () => {
     render(
-      <div className="rpg-shell">
-        <ol>
-          <RpgQuestRow
-            action={
-              <RpgButton href="/rpg/resource/week-4-memory" variant="quiet">
-                Open resource
-              </RpgButton>
+      <MemoryRouter>
+        <div className="rpg-shell">
+          <ol>
+            <RpgQuestRow
+              action={
+                <RpgButton href="/rpg/resource/week-4-memory" variant="quiet">
+                  Open resource
+                </RpgButton>
+              }
+              meta="Lecture - 90 min"
+              requiredLabel="Required"
+              status={
+                <RpgStatusPill tone="progress">In progress</RpgStatusPill>
+              }
+              summary="Local note exists"
+              title="Memory"
+            />
+          </ol>
+          <RpgResourceCard
+            actions={
+              <>
+                <RpgButton href="https://cs50.harvard.edu/x/" variant="quiet">
+                  Open official CS50x resource
+                </RpgButton>
+                <RpgButton variant="secondary">Start focus session</RpgButton>
+              </>
             }
-            meta="Lecture - 90 min"
-            requiredLabel="Required"
-            status={<RpgStatusPill tone="progress">In progress</RpgStatusPill>}
-            summary="Local note exists"
+            description="Week 4"
+            meta={
+              <>
+                <RpgStatusPill tone="progress">In progress</RpgStatusPill>
+                <span>Required</span>
+                <span>Lecture</span>
+              </>
+            }
             title="Memory"
-          />
-        </ol>
-        <RpgResourceCard
-          actions={
-            <>
-              <RpgButton href="https://cs50.harvard.edu/x/" variant="quiet">
-                Open official CS50x resource
-              </RpgButton>
-              <RpgButton variant="secondary">Start focus session</RpgButton>
-            </>
-          }
-          description="Week 4"
-          meta={
-            <>
-              <RpgStatusPill tone="progress">In progress</RpgStatusPill>
-              <span>Required</span>
-              <span>Lecture</span>
-            </>
-          }
-          title="Memory"
-        >
-          <p>Use the official link, then save local progress explicitly.</p>
-        </RpgResourceCard>
-      </div>,
+          >
+            <p>Use the official link, then save local progress explicitly.</p>
+          </RpgResourceCard>
+        </div>
+      </MemoryRouter>,
     );
 
     const quest = screen.getByRole('listitem');
@@ -147,6 +192,9 @@ describe('RPG visual primitives', () => {
       screen.getByText(
         'Use the official link, then save local progress explicitly.',
       ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Memory' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Start focus session' }),
@@ -192,7 +240,7 @@ describe('RPG primitive CSS scope', () => {
       '--rpg-focus-ring',
     ];
 
-    expect(tokensCss.trim().startsWith('.rpg-shell {')).toBe(true);
+    expect(tokensCss.trim().startsWith('body.rpg-route-active {')).toBe(true);
     for (const token of requiredTokens) {
       expect(tokensCss).toContain(token);
     }

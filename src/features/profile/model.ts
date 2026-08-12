@@ -25,25 +25,6 @@ type NamedOption<T extends string> = {
   value: T;
 };
 
-export const faceOptions: readonly NamedOption<LearnerAvatarFace>[] = [
-  { label: 'Round', value: 'round' },
-  { label: 'Oval', value: 'oval' },
-  { label: 'Square', value: 'square' },
-] as const;
-
-export const hairOptions: readonly NamedOption<LearnerAvatarHair>[] = [
-  { label: 'Short', value: 'short' },
-  { label: 'Curly', value: 'curly' },
-  { label: 'Parted', value: 'parted' },
-] as const;
-
-export const topColorOptions: readonly NamedOption<LearnerAvatarTopColor>[] = [
-  { label: 'Forest', value: 'forest' },
-  { label: 'Ocean', value: 'ocean' },
-  { label: 'Clay', value: 'clay' },
-  { label: 'Amber', value: 'amber' },
-] as const;
-
 export const themeOptions: readonly NamedOption<PreferredTheme>[] = [
   { label: 'System', value: 'system' },
   { label: 'Light', value: 'light' },

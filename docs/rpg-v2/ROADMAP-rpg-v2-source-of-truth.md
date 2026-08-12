@@ -2,11 +2,29 @@
 
 Status: source-of-truth implementation roadmap  
 Created: 2026-06-20  
-Updated: 2026-06-24
+Updated: 2026-07-13
 Scope: ProgressPal RPG v2, implemented as a same-origin `/rpg/*` route tree over the existing ProgressPal CS50x local-first engine  
 Audience: junior/vibe-coding implementer working under strict module gates  
 Supersedes: all earlier RPG v2 roadmap drafts and interim consolidated plans  
 Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.md`, `docs/rpg-v2/ASSETS.md`, `docs/rpg-v2/RISK_REGISTER.md`
+
+---
+
+## 2026-08-12 v1.3 remediation override
+
+The current operational release target is `1.3.0`, not `1.2.0`. Existing `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` tags are immutable historical releases. D-0075 in `docs/rpg-v2/DECISIONS-rpg-v2.md` governs the remaining v1.3 validation cadence and release scope. The older remediation story remains historical evidence, not the current executable sequence.
+
+For this remediation only, D-0075 supersedes older next-action, branch, release-tag, visual-target, research-prerequisite, and validation-cadence language in this file. Historical module sections remain useful implementation history. Classic remains the v1.3 default; RPG promotion is a separate later decision and no further RPG expansion is authorized by the release work.
+
+---
+
+## 2026-07-12 release-candidate stabilization audit
+
+Current audited baseline: `67ed6af836ec46f136bc5622aa68c8745c8bcf40` on `master`.
+
+The current audit has triple-verified the release-route gate, atomic recovery, the managed production-browser harness, first-use/shared RPG state, and representative RPG accessibility/offline behavior. Executable release identity is `1.2.0`. The final release decision remains gated by three clean full-repository validation passes; no broad RPG feature phase is authorized by this stabilization work.
+
+Detailed findings and evidence are recorded in `docs/audits/progresspal-production-readiness-2026-07-11.md`.
 
 ---
 
@@ -51,7 +69,7 @@ The next recommended step is release-candidate validation for the post-2G state,
 The current checked-in app should be frozen and released as:
 
 ```text
-ProgressPal CS50 Edition v1.2 - local-first CS50 tracker proof with gamified elements
+ProgressPal CS50 Edition v1.2.0 - local-first CS50 tracker proof with gamified elements
 ```
 
 Recommended tag:

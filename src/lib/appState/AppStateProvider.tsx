@@ -1,6 +1,8 @@
 import {
-  startTransition,
+  useCallback,
   useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -20,13 +22,43 @@ import {
 import type { AppMeta, LearnerProfile, PreferredTheme } from '@/lib/domain';
 import { hasCompletedOnboarding } from '@/lib/profile';
 import { bundledCourseSeed } from '@/seed';
+import {
+  captureLocalDataRevision,
+  getLocalCoordinationStatus,
+  inspectStoragePersistence,
+  LocalWriteBlockedError,
+  markLocalDataSynchronized,
+  requestStoragePersistence,
+  startLocalDataCoordination,
+  validateLocalDataRevision,
+  type LocalCoordinationStatus,
+  type StoragePersistenceStatus,
+  type LocalDataRevisionToken,
+} from '@/lib/storage';
 
 type ResolvedAppState = {
   appMeta: AppMeta | null;
   error: string | null;
   profile: LearnerProfile | null;
+  revisionToken: LocalDataRevisionToken | null;
   status: AppStateStatus;
 };
+
+type PendingSnapshotPublication = {
+  resolve: (accepted: boolean) => void;
+  state: ResolvedAppState & {
+    revisionToken: LocalDataRevisionToken;
+    status: 'ready';
+  };
+};
+
+type RefreshOptions = {
+  invalidateRoute?: boolean;
+};
+
+const stableReadAttemptLimit = 3;
+const unstableReadError =
+  'Local data changed repeatedly while ProgressPal was reading it. No unverified snapshot was opened. Retry after other local activity finishes.';
 
 function getResolvedTheme(preferredTheme: PreferredTheme) {
   if (preferredTheme !== 'system') {
@@ -89,65 +121,437 @@ function applyDocumentPreferences(profile: LearnerProfile | null) {
   };
 }
 
-export function AppStateProvider({ children }: PropsWithChildren) {
-  const [appMeta, setAppMeta] = useState<AppMeta | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<LearnerProfile | null>(null);
-  const [status, setStatus] = useState<AppStateStatus>('loading');
+function describeBlockedStartup(error: LocalWriteBlockedError) {
+  if (error.reason === 'peer-active') {
+    return 'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.';
+  }
 
-  async function resolveApplicationState(): Promise<ResolvedAppState> {
-    if (!isIndexedDbAvailable()) {
-      return {
-        appMeta: null,
-        error: 'IndexedDB is unavailable in this browser context.',
-        profile: null,
-        status: 'error',
-      };
-    }
+  if (error.reason === 'stale') {
+    return 'This tab became stale before startup repair finished. Close other ProgressPal tabs, then retry. ProgressPal stopped before the blocked repair step.';
+  }
 
-    try {
+  if (error.reason === 'unavailable') {
+    return 'Safe local-tab coordination is unavailable in this browser context. ProgressPal will keep local writes blocked.';
+  }
+
+  return 'Local tab coordination is still checking whether a startup repair is safe. Retry when the check finishes.';
+}
+
+async function readApplicationStateAtRevision() {
+  const revisionToken = captureLocalDataRevision();
+  const [appMeta, profile] = await Promise.all([getAppMeta(), getProfile()]);
+
+  return { appMeta, profile, revisionToken };
+}
+
+function getCoordinationEventKey(status: LocalCoordinationStatus) {
+  return [
+    status.revision,
+    status.phase,
+    status.blockReason ?? 'writable',
+    status.peerActive ? 'peer' : 'alone',
+    status.stale ? 'stale' : 'current',
+    status.writeOwnership,
+  ].join(':');
+}
+
+function canAttemptAutomaticRefresh(status: LocalCoordinationStatus) {
+  return (
+    status.phase === 'ready' &&
+    status.writeOwnership === 'owned' &&
+    status.blockReason !== 'discovering' &&
+    status.blockReason !== 'unavailable' &&
+    status.blockReason !== 'write-active'
+  );
+}
+
+function shouldAutomaticallyRefresh(
+  previous: LocalCoordinationStatus,
+  next: LocalCoordinationStatus,
+  acceptedRevision: number | null,
+) {
+  if (!canAttemptAutomaticRefresh(next)) {
+    return false;
+  }
+
+  const snapshotRevisionChanged =
+    acceptedRevision !== null && next.revision !== acceptedRevision;
+  const ownershipBecameUsable =
+    previous.writeOwnership !== 'owned' && next.writeOwnership === 'owned';
+  const coordinationBecameReady =
+    previous.phase !== 'ready' && next.phase === 'ready';
+
+  return (
+    next.stale ||
+    snapshotRevisionChanged ||
+    ownershipBecameUsable ||
+    coordinationBecameReady
+  );
+}
+
+async function resolveStableApplicationState(
+  acknowledgeRevision: (token: LocalDataRevisionToken) => boolean,
+  validateRevision: (token: LocalDataRevisionToken) => boolean,
+): Promise<ResolvedAppState> {
+  if (!isIndexedDbAvailable()) {
+    return {
+      appMeta: null,
+      error: 'IndexedDB is unavailable in this browser context.',
+      profile: null,
+      revisionToken: null,
+      status: 'error',
+    };
+  }
+
+  try {
+    for (let attempt = 0; attempt < stableReadAttemptLimit; attempt += 1) {
+      if (getLocalCoordinationStatus().stale) {
+        const staleRead = await readApplicationStateAtRevision();
+
+        if (!acknowledgeRevision(staleRead.revisionToken)) {
+          continue;
+        }
+      }
+
       await initializeDatabase({ seed: bundledCourseSeed });
+      const finalRead = await readApplicationStateAtRevision();
 
-      const [nextAppMeta, nextProfile] = await Promise.all([
-        getAppMeta(),
-        getProfile(),
-      ]);
+      if (!validateRevision(finalRead.revisionToken)) {
+        continue;
+      }
 
       return {
-        appMeta: nextAppMeta,
+        appMeta: finalRead.appMeta,
         error: null,
-        profile: nextProfile,
+        profile: finalRead.profile,
+        revisionToken: finalRead.revisionToken,
         status: 'ready',
       };
-    } catch (loadError) {
-      console.error('App state initialization failed.', loadError);
+    }
 
+    return {
+      appMeta: null,
+      error: unstableReadError,
+      profile: null,
+      revisionToken: null,
+      status: 'error',
+    };
+  } catch (loadError) {
+    if (loadError instanceof LocalWriteBlockedError) {
       return {
         appMeta: null,
-        error: 'Local data could not be loaded.',
+        error: describeBlockedStartup(loadError),
         profile: null,
+        revisionToken: null,
         status: 'error',
       };
     }
+
+    console.error('App state initialization failed.', loadError);
+
+    return {
+      appMeta: null,
+      error: 'Local data could not be loaded.',
+      profile: null,
+      revisionToken: null,
+      status: 'error',
+    };
   }
+}
+
+export function AppStateProvider({ children }: PropsWithChildren) {
+  const initialCoordination = getLocalCoordinationStatus();
+  const acceptedRevisionRef = useRef<number | null>(null);
+  const acknowledgementInProgressRef = useRef(false);
+  const autoRefreshEventKeyRef = useRef<string | null>(null);
+  const coordinationRef = useRef(initialCoordination);
+  const localMutationInProgressRef = useRef(0);
+  const loadingCommitResolversRef = useRef<Array<() => void>>([]);
+  const pendingSnapshotPublicationRef =
+    useRef<PendingSnapshotPublication | null>(null);
+  const pendingRouteInvalidationRef = useRef(false);
+  const providerActiveRef = useRef(false);
+  const refreshLoopRef = useRef<Promise<void> | null>(null);
+  const refreshRequestVersionRef = useRef(0);
+  const resolvedOnceRef = useRef(false);
+  const [appMeta, setAppMeta] = useState<AppMeta | null>(null);
+  const [coordination, setCoordination] =
+    useState<LocalCoordinationStatus>(initialCoordination);
+  const [dataEpoch, setDataEpoch] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingCommitVersion, setLoadingCommitVersion] = useState(0);
+  const [persistenceStatus, setPersistenceStatus] =
+    useState<StoragePersistenceStatus>('checking');
+  const [profile, setProfile] = useState<LearnerProfile | null>(null);
+  const [snapshotPublicationVersion, setSnapshotPublicationVersion] =
+    useState(0);
+  const [status, setStatus] = useState<AppStateStatus>('loading');
+
+  const acknowledgeRevision = useCallback((token: LocalDataRevisionToken) => {
+    acknowledgementInProgressRef.current = true;
+
+    try {
+      return markLocalDataSynchronized(token);
+    } finally {
+      acknowledgementInProgressRef.current = false;
+    }
+  }, []);
+
+  const publishErrorState = useCallback((nextState: ResolvedAppState) => {
+    if (!providerActiveRef.current) {
+      return;
+    }
+
+    resolvedOnceRef.current = true;
+    setAppMeta(nextState.appMeta);
+    setError(nextState.error);
+    setProfile(nextState.profile);
+    setStatus(nextState.status);
+  }, []);
+
+  const enterCommittedLoadingState = useCallback(() => {
+    if (!providerActiveRef.current) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      loadingCommitResolversRef.current.push(resolve);
+      setStatus('loading');
+      setLoadingCommitVersion((currentVersion) => currentVersion + 1);
+    });
+  }, []);
+
+  const stageVerifiedSnapshot = useCallback(
+    (nextState: ResolvedAppState, invalidateRoute: boolean) => {
+      const revisionToken = nextState.revisionToken;
+
+      if (
+        !providerActiveRef.current ||
+        nextState.status !== 'ready' ||
+        revisionToken === null
+      ) {
+        return Promise.resolve(false);
+      }
+
+      return new Promise<boolean>((resolve) => {
+        pendingSnapshotPublicationRef.current?.resolve(false);
+        pendingSnapshotPublicationRef.current = {
+          resolve,
+          state: {
+            ...nextState,
+            revisionToken,
+            status: 'ready',
+          },
+        };
+        setAppMeta(nextState.appMeta);
+        setError(null);
+        setProfile(nextState.profile);
+
+        if (invalidateRoute) {
+          setDataEpoch((currentEpoch) => currentEpoch + 1);
+        }
+
+        setSnapshotPublicationVersion((currentVersion) => currentVersion + 1);
+      });
+    },
+    [],
+  );
+
+  useLayoutEffect(() => {
+    const resolvers = loadingCommitResolversRef.current.splice(0);
+
+    for (const resolve of resolvers) {
+      resolve();
+    }
+  }, [loadingCommitVersion]);
+
+  useLayoutEffect(() => {
+    const pendingPublication = pendingSnapshotPublicationRef.current;
+
+    if (pendingPublication === null) {
+      return;
+    }
+
+    pendingSnapshotPublicationRef.current = null;
+    const accepted = acknowledgeRevision(
+      pendingPublication.state.revisionToken,
+    );
+
+    if (accepted) {
+      acceptedRevisionRef.current =
+        pendingPublication.state.revisionToken.revision;
+      resolvedOnceRef.current = true;
+      setStatus('ready');
+    }
+
+    pendingPublication.resolve(accepted);
+  }, [acknowledgeRevision, snapshotPublicationVersion]);
+
+  const requestRefresh = useCallback(
+    (options: RefreshOptions = {}) => {
+      refreshRequestVersionRef.current += 1;
+
+      if (options.invalidateRoute ?? true) {
+        pendingRouteInvalidationRef.current = true;
+      }
+
+      if (refreshLoopRef.current !== null) {
+        return refreshLoopRef.current;
+      }
+
+      const refreshLoop = (async () => {
+        let handledRequestVersion: number;
+
+        try {
+          do {
+            handledRequestVersion = refreshRequestVersionRef.current;
+            const invalidateRoute = pendingRouteInvalidationRef.current;
+            pendingRouteInvalidationRef.current = false;
+
+            if (invalidateRoute) {
+              await enterCommittedLoadingState();
+            }
+
+            let requestSettled = false;
+
+            for (
+              let publicationAttempt = 0;
+              publicationAttempt < stableReadAttemptLimit;
+              publicationAttempt += 1
+            ) {
+              const nextState = await resolveStableApplicationState(
+                acknowledgeRevision,
+                validateLocalDataRevision,
+              );
+
+              if (!providerActiveRef.current) {
+                return;
+              }
+
+              if (handledRequestVersion !== refreshRequestVersionRef.current) {
+                break;
+              }
+
+              if (nextState.status === 'error') {
+                publishErrorState(nextState);
+                requestSettled = true;
+                break;
+              }
+
+              if (await stageVerifiedSnapshot(nextState, invalidateRoute)) {
+                requestSettled = true;
+                break;
+              }
+            }
+
+            if (
+              !requestSettled &&
+              handledRequestVersion === refreshRequestVersionRef.current &&
+              providerActiveRef.current
+            ) {
+              publishErrorState({
+                appMeta: null,
+                error: unstableReadError,
+                profile: null,
+                revisionToken: null,
+                status: 'error',
+              });
+            }
+          } while (
+            handledRequestVersion < refreshRequestVersionRef.current &&
+            providerActiveRef.current
+          );
+        } finally {
+          refreshLoopRef.current = null;
+        }
+      })();
+
+      refreshLoopRef.current = refreshLoop;
+      return refreshLoop;
+    },
+    [
+      acknowledgeRevision,
+      enterCommittedLoadingState,
+      publishErrorState,
+      stageVerifiedSnapshot,
+    ],
+  );
+
+  useEffect(() => {
+    const loadingCommitResolvers = loadingCommitResolversRef.current;
+    providerActiveRef.current = true;
+    const coordinationSession = startLocalDataCoordination((nextStatus) => {
+      const previousStatus = coordinationRef.current;
+      coordinationRef.current = nextStatus;
+
+      if (!providerActiveRef.current) {
+        return;
+      }
+
+      setCoordination(nextStatus);
+
+      if (
+        !resolvedOnceRef.current ||
+        acknowledgementInProgressRef.current ||
+        localMutationInProgressRef.current > 0 ||
+        !shouldAutomaticallyRefresh(
+          previousStatus,
+          nextStatus,
+          acceptedRevisionRef.current,
+        )
+      ) {
+        return;
+      }
+
+      const eventKey = getCoordinationEventKey(nextStatus);
+
+      if (autoRefreshEventKeyRef.current === eventKey) {
+        return;
+      }
+
+      autoRefreshEventKeyRef.current = eventKey;
+      void requestRefresh({ invalidateRoute: true });
+    });
+
+    void (async () => {
+      try {
+        await coordinationSession.ready;
+
+        if (providerActiveRef.current) {
+          await requestRefresh();
+        }
+      } catch {
+        publishErrorState({
+          appMeta: null,
+          error:
+            'Safe local-tab coordination could not start. ProgressPal will keep local writes blocked.',
+          profile: null,
+          revisionToken: null,
+          status: 'error',
+        });
+      }
+    })();
+
+    return () => {
+      providerActiveRef.current = false;
+      const loadingResolvers = loadingCommitResolvers.splice(0);
+      for (const resolve of loadingResolvers) {
+        resolve();
+      }
+      pendingSnapshotPublicationRef.current?.resolve(false);
+      pendingSnapshotPublicationRef.current = null;
+      coordinationSession.stop();
+    };
+  }, [publishErrorState, requestRefresh]);
 
   useEffect(() => {
     let isActive = true;
 
-    void (async () => {
-      const nextState = await resolveApplicationState();
-
-      if (!isActive) {
-        return;
+    void inspectStoragePersistence().then((nextStatus) => {
+      if (isActive) {
+        setPersistenceStatus(nextStatus);
       }
-
-      startTransition(() => {
-        setAppMeta(nextState.appMeta);
-        setError(nextState.error);
-        setProfile(nextState.profile);
-        setStatus(nextState.status);
-      });
-    })();
+    });
 
     return () => {
       isActive = false;
@@ -156,44 +560,62 @@ export function AppStateProvider({ children }: PropsWithChildren) {
 
   useEffect(() => applyDocumentPreferences(profile), [profile]);
 
-  async function refresh() {
-    startTransition(() => {
-      setStatus('loading');
-    });
-
-    const nextState = await resolveApplicationState();
-
-    startTransition(() => {
-      setAppMeta(nextState.appMeta);
-      setError(nextState.error);
-      setProfile(nextState.profile);
-      setStatus(nextState.status);
-    });
+  async function requestPersistentStorageForState() {
+    setPersistenceStatus('checking');
+    const nextStatus = await requestStoragePersistence();
+    setPersistenceStatus(nextStatus);
+    return nextStatus;
   }
+
+  const runLocalMutation = useCallback(
+    async <Result,>(
+      mutation: () => Promise<Result>,
+      options: RefreshOptions = {},
+    ) => {
+      localMutationInProgressRef.current += 1;
+
+      try {
+        const result = await mutation();
+        await requestRefresh({
+          invalidateRoute: options.invalidateRoute ?? true,
+        });
+        return result;
+      } finally {
+        localMutationInProgressRef.current -= 1;
+      }
+    },
+    [requestRefresh],
+  );
 
   async function saveProfileToState(
     input: SaveLearnerProfileInput,
     options: { completeOnboarding?: boolean } = {},
   ) {
-    const result = await saveLearnerProfile(input, options);
-
-    startTransition(() => {
-      setAppMeta(result.appMeta);
-      setError(null);
-      setProfile(result.learnerProfile);
-      setStatus('ready');
+    return runLocalMutation(() => saveLearnerProfile(input, options), {
+      invalidateRoute: false,
     });
-
-    return result;
   }
+
+  const exposedCoordination =
+    status === 'ready'
+      ? coordination
+      : {
+          ...coordination,
+          canWrite: false,
+        };
 
   return (
     <AppStateContext.Provider
       value={{
         appMeta,
+        coordination: exposedCoordination,
+        dataEpoch,
         error,
+        persistenceStatus,
         profile,
-        refresh,
+        refresh: requestRefresh,
+        requestPersistentStorage: requestPersistentStorageForState,
+        runLocalMutation,
         requiresOnboarding: !hasCompletedOnboarding(appMeta, profile),
         saveProfile: saveProfileToState,
         status,

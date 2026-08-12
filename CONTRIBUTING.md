@@ -2,13 +2,18 @@
 
 ProgressPal accepts changes only when they preserve the product boundary: local-first, single-user, CS50x-focused, honest progress tracking.
 
-For RPG v2, the controlling documents are under:
+For the current v1.3 remediation, read these controlling documents first:
 
 ```text
-docs/rpg-v2/
+docs/rpg-v2/DECISIONS-rpg-v2.md (D-0075)
+docs/remediation/3-1-v1-3-release-remediation.md
+docs/remediation/sprint-change-proposal-2026-07-13.md
+docs/audits/progresspal-1.3.0-remediation-inventory.md
 ```
 
-Read these before making RPG v2 changes:
+D-0075 supersedes the older remediation story and proposal where their validation cadence, research prerequisites, or release sequence conflict.
+
+RPG-specific constraints remain under:
 
 ```text
 docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
@@ -43,19 +48,21 @@ If the answer to questions 1, 2, or 3 is no, do not build it.
 
 ## Branching
 
-Expected RPG v2 branch:
+Current remediation branch:
 
 ```text
-rpg/v2
+cx/release-1.3.0-remediation
 ```
 
-Expected v1 freeze tag:
+Current default branch and immutable historical tags:
 
 ```text
-v0.21.0-ux-complete
+master
+v1.2.0-local-first-proof
+v1.2.1-local-first-proof
 ```
 
-Do not create a new repository for RPG v2 unless an accepted decision explicitly changes the plan.
+Do not move historical tags. Do not create a new repository unless an accepted decision explicitly changes the plan.
 
 ## Module discipline
 
@@ -103,7 +110,7 @@ Scope Discipline Check
 
 ## Validation
 
-Run the full expected validation gate before a module is accepted:
+For v1.3, use targeted validation during implementation. Repeat focused checks only for demonstrated timing, lifecycle, process-cleanup, synchronization, or observed flakiness risk. The final candidate requires one clean local canonical release gate and one independent clean CI gate from the accepted source/tree/lockfile state. During implementation, the available constituent commands remain:
 
 ```bash
 npm run lint

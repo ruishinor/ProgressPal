@@ -171,6 +171,13 @@ async function completeOnboardingDark(page: Page) {
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
 }
 
+async function completeOnboardingLight(page: Page) {
+  await completeOnboarding(page, { theme: 'light' });
+
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+}
+
 // Builds a fixture node tree with createElement/textContent (no innerHTML) inside
 // a `#a11y-fixture` host, so it inherits the live dark-theme global stylesheet.
 // Translucent fills are wrapped in a default card in the specs so they composite
@@ -438,6 +445,32 @@ test('the custom checkbox shows a visible keyboard focus indicator in dark theme
   expect(focusOutline.width).toBeGreaterThan(0);
 });
 
+test('an RPG settings toast does not cover the bottom navigation', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { height: 844, width: 390 },
+  });
+  const page = await context.newPage();
+
+  await completeOnboardingDark(page);
+  await page.goto('/rpg/settings');
+  await page.getByRole('button', { name: 'Save local settings' }).click();
+  await expect(
+    page.getByRole('status').getByText('Local profile saved'),
+  ).toBeVisible();
+
+  const toastBox = await page.locator('.toast').boundingBox();
+  const navigationBox = await page
+    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .boundingBox();
+
+  expect(toastBox).not.toBeNull();
+  expect(navigationBox).not.toBeNull();
+  expect(toastBox!.y + toastBox!.height).toBeLessThanOrEqual(navigationBox!.y);
+  await context.close();
+});
+
 test('the in-app reduce-motion setting neutralizes keyframe animations', async ({
   page,
 }) => {
@@ -489,4 +522,158 @@ test('the in-app reduce-motion setting neutralizes keyframe animations', async (
   expect(durations.spinner).toBeLessThanOrEqual(1);
   expect(durations.bar).toBeLessThanOrEqual(1);
   expect(durations.line).toBeLessThanOrEqual(1);
+});
+
+test('the RPG resource form has a complete keyboard path and clean invalid state', async ({
+  page,
+}) => {
+  await completeOnboardingDark(page);
+  await page.goto('/rpg/resource/week-4-problem-set');
+  await expect(
+    page.getByRole('heading', { name: 'Problem Set 4: Memory' }),
+  ).toBeVisible();
+
+  const resourceFields = page.locator('label.rpg-study-resource__field');
+  const progress = resourceFields
+    .filter({ hasText: /^Progress/ })
+    .locator('select');
+  const note = resourceFields
+    .filter({ hasText: /^Add study note/ })
+    .locator('textarea');
+  const confidence = resourceFields
+    .filter({ hasText: /^How sure are you/ })
+    .locator('select');
+  const detailsSummary = page.locator('summary', { hasText: 'More details' });
+
+  await progress.focus();
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Tab');
+  await expect(progress).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(note).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(detailsSummary).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  await expect(confidence).toBeFocused();
+
+  await progress.selectOption('completed');
+  await page.getByRole('button', { name: 'Save progress' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Progress saved' }),
+  ).toBeVisible();
+
+  await progress.selectOption('accepted');
+  const evidence = resourceFields
+    .filter({ hasText: /^Submission note/ })
+    .locator('textarea');
+  await expect(evidence).toBeVisible();
+  await page.getByRole('button', { name: 'Save progress' }).click();
+  await expect(evidence).toHaveAttribute('aria-invalid', 'true');
+  await expect(evidence).toHaveAttribute(
+    'aria-describedby',
+    'rpg-resource-evidence-error',
+  );
+
+  const scan = await new AxeBuilder({ page }).analyze();
+  expect(scan.violations).toEqual([]);
+});
+
+// Route tables mirror the headings asserted in e2e/release-candidate.spec.ts so
+// the axe sweeps scan the same reachable surfaces the release gate walks.
+const classicAxeRoutes = [
+  { heading: 'Dashboard', path: '/dashboard' },
+  { heading: 'Course Map', path: '/course' },
+  { heading: 'Log Lecture', path: '/course/week-0-lecture' },
+  { heading: 'Study sessions', path: '/sessions' },
+  { heading: 'Achievements', path: '/achievements' },
+  { heading: 'Insights', path: '/insights' },
+  { heading: 'Settings', path: '/settings' },
+] as const;
+
+const classicLightAxeRoutes = [
+  { heading: 'Dashboard', path: '/dashboard' },
+  { heading: 'Log Lecture', path: '/course/week-0-lecture' },
+  { heading: 'Study sessions', path: '/sessions' },
+  { heading: 'Settings', path: '/settings' },
+] as const;
+
+const rpgAxeRoutes = [
+  { heading: 'RPG Hub', path: '/rpg' },
+  { heading: 'Campaign Map', path: '/rpg/map' },
+  { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
+  { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
+  { heading: 'Live focus session', path: '/rpg/focus' },
+  { heading: 'Hero Profile', path: '/rpg/hero' },
+  { heading: 'Achievements', path: '/rpg/badges' },
+  { heading: 'Insights', path: '/rpg/log' },
+  { heading: 'Settings', path: '/rpg/settings' },
+] as const;
+
+test('classic routes pass axe in dark theme', async ({ page }) => {
+  await completeOnboardingDark(page);
+
+  for (const route of classicAxeRoutes) {
+    await page.goto(route.path);
+    await expect(
+      page.getByRole('heading', { exact: true, name: route.heading }),
+    ).toBeVisible({ timeout: 15000 });
+
+    const scan = await new AxeBuilder({ page }).analyze();
+    expect(scan.violations).toEqual([]);
+  }
+});
+
+test('key classic routes pass axe in light theme', async ({ page }) => {
+  await completeOnboardingLight(page);
+
+  for (const route of classicLightAxeRoutes) {
+    await page.goto(route.path);
+    await expect(
+      page.getByRole('heading', { exact: true, name: route.heading }),
+    ).toBeVisible({ timeout: 15000 });
+
+    const scan = await new AxeBuilder({ page }).analyze();
+    expect(scan.violations).toEqual([]);
+  }
+});
+
+test('RPG routes pass axe', async ({ page }) => {
+  await completeOnboardingDark(page);
+
+  for (const route of rpgAxeRoutes) {
+    await page.goto(route.path);
+    await expect(
+      page.getByRole('heading', { exact: true, name: route.heading }),
+    ).toBeVisible({ timeout: 15000 });
+
+    const scan = await new AxeBuilder({ page }).analyze();
+    expect(scan.violations).toEqual([]);
+  }
+});
+
+test('route changes move focus to the main content region', async ({
+  page,
+}) => {
+  await completeOnboardingDark(page);
+
+  await page.goto('/dashboard');
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'Dashboard' }),
+  ).toBeVisible();
+  await page
+    .getByRole('navigation', { name: 'Primary' })
+    .getByRole('link', { name: 'Insights' })
+    .click();
+  await expect(page.locator('#main-content')).toBeFocused();
+
+  await page.goto('/rpg');
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+  ).toBeVisible({ timeout: 15000 });
+  await page
+    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('link', { name: 'Map' })
+    .click();
+  await expect(page.locator('#rpg-main-content')).toBeFocused();
 });

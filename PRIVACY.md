@@ -28,7 +28,10 @@ with the app; it is not personal data.
 
 - All of your data is stored locally in your browser using IndexedDB (via
   Dexie). It is tied to the browser profile on the device where you use the app.
-- The app does not use cookies or `localStorage`/`sessionStorage` for your data.
+- The app does not use cookies for anything. `localStorage` is used only for
+  cross-tab coordination metadata (tab IDs, timestamps, and write-revision
+  counters); none of your learner data is stored in
+  `localStorage`/`sessionStorage`.
 - There is no account, no login, and no server-side copy of anything.
 
 ## What the app does not do

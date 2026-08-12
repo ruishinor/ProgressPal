@@ -4,9 +4,14 @@ import { expect, type Page } from '@playwright/test';
  * Drives the first-run onboarding screen through the "Customize first" path,
  * filling the detailed profile form and landing on the dashboard. Shared by the
  * E2E specs so the form-fill flow stays consistent after UX-06 collapsed the
- * detailed form behind the quick-start choices.
+ * detailed form behind the quick-start choices. `options.theme` selects the
+ * PreferredTheme picked in the form; it defaults to 'dark' so every existing
+ * caller keeps its current behavior ('light' is also a valid PreferredTheme).
  */
-export async function completeOnboarding(page: Page) {
+export async function completeOnboarding(
+  page: Page,
+  options: { theme?: 'dark' | 'light' } = {},
+) {
   await page.goto('/');
 
   await expect(
@@ -21,12 +26,9 @@ export async function completeOnboarding(page: Page) {
 
   await page.getByLabel('Display name').fill('Alex');
   await page.getByLabel('Target minutes per week').fill('360');
-  await page.getByLabel('Face shape').selectOption('square');
-  await page.getByLabel('Hair').selectOption('parted');
-  await page.getByLabel('Top color').selectOption('ocean');
-  await page.getByLabel('Theme').selectOption('dark');
+  await page.getByLabel('Theme').selectOption(options.theme ?? 'dark');
   await page.getByLabel('Reduce motion in this app').check();
-  await page.getByRole('button', { name: 'Save and open dashboard' }).click();
+  await page.getByRole('button', { name: 'Save and continue' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 }
