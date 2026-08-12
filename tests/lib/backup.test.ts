@@ -6,6 +6,7 @@ import {
   buildBackupEnvelope,
   currentBackupFormatVersion,
   parseBackupFile,
+  serializeBackupEnvelope,
   summarizeBackup,
   type BackupData,
   type BackupEnvelope,
@@ -227,6 +228,46 @@ describe('backup envelope', () => {
 
     expect(parse(envelope)).toEqual(envelope);
   });
+
+  it.each([
+    ['ASCII', 'Ada Lovelace'],
+    ['multibyte', 'Blåbær 🫐'],
+  ])(
+    'enforces below, exact, and one-byte-over UTF-8 limits for %s data',
+    (_label, displayName) => {
+      const data = makeValidData();
+      data.learnerProfile = { ...data.learnerProfile!, displayName };
+      const envelope = makeEnvelope(data);
+      const serialized = serializeBackupEnvelope(envelope);
+
+      for (const maxBytes of [
+        serialized.byteLength + 1,
+        serialized.byteLength,
+      ]) {
+        expect(serializeBackupEnvelope(envelope, { maxBytes })).toEqual(
+          serialized,
+        );
+        expect(
+          parseBackupFile(serialized.contents, {
+            expectedSchemaVersion,
+            maxBytes,
+          }),
+        ).toEqual(envelope);
+      }
+
+      expect(() =>
+        serializeBackupEnvelope(envelope, {
+          maxBytes: serialized.byteLength - 1,
+        }),
+      ).toThrow(/too large to export/i);
+      expect(() =>
+        parseBackupFile(serialized.contents, {
+          expectedSchemaVersion,
+          maxBytes: serialized.byteLength - 1,
+        }),
+      ).toThrow(/too large to import/i);
+    },
+  );
 
   it('tolerates a null appMeta and null learnerProfile', () => {
     const data = makeValidData();

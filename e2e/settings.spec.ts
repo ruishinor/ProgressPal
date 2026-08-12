@@ -63,6 +63,31 @@ async function readLedgerCounts(page: Page) {
   };
 }
 
+async function readLatestImportFileName(page: Page) {
+  return (await page.evaluate(`
+    new Promise((resolve, reject) => {
+      const request = indexedDB.open('progresspal-cs50-edition');
+      request.onerror = () => reject(new Error('open failed'));
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction('backups', 'readonly');
+        const read = transaction.objectStore('backups').getAll();
+        transaction.oncomplete = () => {
+          const imports = read.result
+            .filter((record) => record.type === 'import')
+            .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+          resolve(imports.at(-1)?.fileName ?? null);
+          database.close();
+        };
+        transaction.onerror = () => {
+          reject(new Error('backup history read failed'));
+          database.close();
+        };
+      };
+    });
+  `)) as string | null;
+}
+
 async function downgradeStoredAppVersion(page: Page) {
   await page.evaluate(`
     new Promise((resolve, reject) => {
@@ -166,7 +191,7 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   const backupPath = await download.path();
   expect(backupPath).toBeTruthy();
   await expect(
-    page.getByRole('status').getByText('Backup exported'),
+    page.getByRole('status').getByText('Backup download started'),
   ).toBeVisible();
 
   // The destructive/reset surface must be accessible in dark theme and must not
@@ -191,12 +216,17 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
 
   // Import the backup from the reachable onboarding recovery control.
   await page.getByLabel('Backup file').setInputFiles(backupPath);
+  const selectedFileName = await page
+    .locator('.backup-preview__file')
+    .textContent();
+  expect(selectedFileName).toBeTruthy();
   await page.getByRole('button', { name: 'Restore this backup' }).click();
 
   // The restored backup completed onboarding, so the app returns to the
   // protected route that initiated the reset/recovery round trip.
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(page).toHaveURL(/\/settings$/);
+  expect(await readLatestImportFileName(page)).toBe(selectedFileName);
 
   const afterRestore = await readLedgerCounts(page);
   expect(afterRestore).toEqual(beforeExport);
@@ -309,7 +339,7 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
   ).toBeDisabled();
   await expect(
     peer.getByRole('button', { name: 'Export local backup' }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(peer.getByLabel('Backup file')).toBeDisabled();
   await expect(peer.getByLabel('Confirmation phrase')).toBeDisabled();
   await expect(

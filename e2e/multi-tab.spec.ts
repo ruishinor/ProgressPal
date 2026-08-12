@@ -14,7 +14,7 @@ import { completeOnboarding } from './support/onboarding';
  * Asserted gating contract, read from
  * src/features/settings/components/SettingsSurface.tsx:
  *   - Profile form:        disabled={!coordination.canWrite}
- *   - Export local backup: disabled={!coordination.canWrite}
+ *   - Export local backup: available in writer and read-only rescue mode
  *   - Backup import:       disabled={!coordination.canWrite || coordination.peerActive}
  *   - Reset phrase/button: disabled={!coordination.canWrite || coordination.peerActive}
  * The writer keeps export + profile writes while a peer is active; the
@@ -156,13 +156,14 @@ test('locks destructive controls on both tabs while a peer is active but lets th
     page.getByRole('button', { name: 'Reset all local data' }),
   ).toBeDisabled();
 
-  // Read-only peer: every mutation control is disabled.
+  // Read-only peer: mutation controls are disabled, but rescue export remains
+  // available because downloading a snapshot is a read-only recovery action.
   await expect(
     peer.getByRole('button', { name: 'Save local settings' }),
   ).toBeDisabled();
   await expect(
     peer.getByRole('button', { name: 'Export local backup' }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(peer.getByLabel('Backup file')).toBeDisabled();
   await expect(peer.getByLabel('Confirmation phrase')).toBeDisabled();
   await expect(
@@ -170,6 +171,20 @@ test('locks destructive controls on both tabs while a peer is active but lets th
   ).toBeDisabled();
 
   const peerLedgerBefore = await readLedgerCounts(peer);
+
+  const [peerDownload] = await Promise.all([
+    peer.waitForEvent('download'),
+    peer.getByRole('button', { name: 'Export local backup' }).click(),
+  ]);
+  expect(await peerDownload.path()).toBeTruthy();
+  await expect(
+    peer.getByRole('status').getByText('Backup download started'),
+  ).toBeVisible();
+  await expect(
+    peer
+      .getByRole('status')
+      .getByText(/backup-history entry could not be recorded/i),
+  ).toBeVisible();
 
   // Export is a non-destructive read + a backup-history write; it must remain
   // available to the writer and must not disturb the peer's view of the ledger.
@@ -179,7 +194,7 @@ test('locks destructive controls on both tabs while a peer is active but lets th
   ]);
   expect(await download.path()).toBeTruthy();
   await expect(
-    page.getByRole('status').getByText('Backup exported'),
+    page.getByRole('status').getByText('Backup download started'),
   ).toBeVisible();
 
   expect(await readLedgerCounts(peer)).toEqual(peerLedgerBefore);

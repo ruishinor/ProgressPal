@@ -33,7 +33,7 @@ export const currentBackupFormatVersion = 1;
 
 /**
  * Hard upper bound for an importable backup. Used as a `File.size` guard in the
- * UI and as a defense-in-depth text-length guard inside {@link parseBackupFile}.
+ * UI and as a defense-in-depth UTF-8 byte guard inside {@link parseBackupFile}.
  */
 export const maxBackupBytes = 25 * 1024 * 1024;
 export const maxBackupTextLength = maxBackupBytes;
@@ -119,7 +119,14 @@ export type BuildBackupEnvelopeMeta = {
 
 export type ParseBackupOptions = {
   expectedSchemaVersion: number;
+  maxBytes?: number;
+  /** @deprecated Use `maxBytes`; retained for internal caller compatibility. */
   maxTextLength?: number;
+};
+
+export type SerializeBackupOptions = {
+  indentation?: number;
+  maxBytes?: number;
 };
 
 export type ValidateBackupDataOptions = {
@@ -156,6 +163,27 @@ export function buildBackupEnvelope(
     exportedAt: meta.exportedAt,
     data,
   };
+}
+
+function utf8ByteLength(text: string) {
+  return new TextEncoder().encode(text).byteLength;
+}
+
+/** Serialize an export and enforce the same UTF-8 byte limit as import. */
+export function serializeBackupEnvelope(
+  envelope: BackupEnvelope,
+  options: SerializeBackupOptions = {},
+) {
+  const contents = JSON.stringify(envelope, null, options.indentation ?? 2);
+  const byteLength = utf8ByteLength(contents);
+
+  if (byteLength > (options.maxBytes ?? maxBackupBytes)) {
+    throw new BackupValidationError(
+      'This backup is too large to export. Remove some local history and try again.',
+    );
+  }
+
+  return { byteLength, contents };
 }
 
 function assertNoDuplicateIds(data: BackupData) {
@@ -417,9 +445,10 @@ export function parseBackupFile(
   text: string,
   options: ParseBackupOptions,
 ): BackupEnvelope {
-  const maxLength = options.maxTextLength ?? maxBackupTextLength;
+  const maxLength =
+    options.maxBytes ?? options.maxTextLength ?? maxBackupTextLength;
 
-  if (text.length > maxLength) {
+  if (utf8ByteLength(text) > maxLength) {
     throw new BackupValidationError('This backup file is too large to import.');
   }
 

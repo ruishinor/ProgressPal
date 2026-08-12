@@ -1,4 +1,4 @@
-import { useId, useState, type ChangeEvent } from 'react';
+import { useId, useRef, useState, type ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -16,8 +16,14 @@ export type ImportBackupControlProps = {
   disabled?: boolean;
   expectedSchemaVersion: number;
   heading?: string;
-  onConfirmImport: (envelope: BackupEnvelope) => void | Promise<void>;
+  onConfirmImport: (selection: BackupImportSelection) => void | Promise<void>;
 };
+
+export type BackupImportSelection = Readonly<{
+  envelope: BackupEnvelope;
+  fileName: string;
+  generation: number;
+}>;
 
 /**
  * Feature-agnostic backup import control: pick a file, validate it locally, show
@@ -35,21 +41,21 @@ export function ImportBackupControl({
   onConfirmImport,
 }: ImportBackupControlProps) {
   const inputId = useId();
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [envelope, setEnvelope] = useState<BackupEnvelope | null>(null);
+  const selectionGeneration = useRef(0);
+  const [selection, setSelection] = useState<BackupImportSelection | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
-    setEnvelope(null);
+    const generation = ++selectionGeneration.current;
+    setSelection(null);
     setError(null);
 
     if (file === null) {
-      setFileName(null);
       return;
     }
-
-    setFileName(file.name);
 
     if (file.size > maxBackupBytes) {
       setError('This backup file is too large to import.');
@@ -61,22 +67,39 @@ export function ImportBackupControl({
     try {
       text = await file.text();
     } catch {
-      setError('This file could not be read.');
+      if (generation === selectionGeneration.current) {
+        setError('This file could not be read.');
+      }
+      return;
+    }
+
+    if (generation !== selectionGeneration.current) {
       return;
     }
 
     try {
-      setEnvelope(parseBackupFile(text, { expectedSchemaVersion }));
+      const envelope = parseBackupFile(text, { expectedSchemaVersion });
+
+      if (generation === selectionGeneration.current) {
+        setSelection(
+          Object.freeze({ envelope, fileName: file.name, generation }),
+        );
+      }
     } catch (parseError) {
-      setError(
-        parseError instanceof BackupValidationError
-          ? parseError.message
-          : 'This file could not be imported as a backup.',
-      );
+      if (generation === selectionGeneration.current) {
+        setError(
+          parseError instanceof BackupValidationError
+            ? parseError.message
+            : 'This file could not be imported as a backup.',
+        );
+      }
     }
   }
 
-  const summary = envelope === null ? null : summarizeBackup(envelope);
+  const preview =
+    selection === null
+      ? null
+      : { selection, summary: summarizeBackup(selection.envelope) };
 
   return (
     <Card title={heading} titleAs="h3">
@@ -94,6 +117,14 @@ export function ImportBackupControl({
           disabled={disabled || busy}
           id={inputId}
           onChange={handleFileChange}
+          onClick={(event) => {
+            // Opening the picker invalidates the old selection immediately.
+            // Clearing the input also permits choosing the same file again.
+            selectionGeneration.current += 1;
+            setSelection(null);
+            setError(null);
+            event.currentTarget.value = '';
+          }}
           type="file"
         />
         {error ? (
@@ -102,47 +133,50 @@ export function ImportBackupControl({
           </p>
         ) : null}
       </div>
-      {summary ? (
+      {preview ? (
         <div className="backup-preview">
           <p className="backup-preview__heading">
-            Preview of <span className="backup-preview__file">{fileName}</span>
+            Preview of{' '}
+            <span className="backup-preview__file">
+              {preview.selection.fileName}
+            </span>
           </p>
           <dl className="backup-preview__list">
             <div className="backup-preview__row">
               <dt>Profile</dt>
               <dd>
-                {summary.hasProfile
-                  ? (summary.profileName ?? 'Included')
+                {preview.summary.hasProfile
+                  ? (preview.summary.profileName ?? 'Included')
                   : 'Not included'}
               </dd>
             </div>
             <div className="backup-preview__row">
               <dt>Exported</dt>
-              <dd>{summary.exportedAt}</dd>
+              <dd>{preview.summary.exportedAt}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>App version</dt>
-              <dd>{summary.appVersion}</dd>
+              <dd>{preview.summary.appVersion}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>Course units</dt>
-              <dd>{summary.counts.courseUnits}</dd>
+              <dd>{preview.summary.counts.courseUnits}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>Progress entries</dt>
-              <dd>{summary.counts.progressEntries}</dd>
+              <dd>{preview.summary.counts.progressEntries}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>Study sessions</dt>
-              <dd>{summary.counts.studySessions}</dd>
+              <dd>{preview.summary.counts.studySessions}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>XP transactions</dt>
-              <dd>{summary.counts.xpTransactions}</dd>
+              <dd>{preview.summary.counts.xpTransactions}</dd>
             </div>
             <div className="backup-preview__row">
               <dt>Achievements</dt>
-              <dd>{summary.counts.achievementUnlocks}</dd>
+              <dd>{preview.summary.counts.achievementUnlocks}</dd>
             </div>
           </dl>
           <div className="backup-verify">
@@ -161,8 +195,8 @@ export function ImportBackupControl({
             disabled={disabled}
             loading={busy}
             onClick={() => {
-              if (envelope !== null) {
-                void onConfirmImport(envelope);
+              if (selection !== null) {
+                void onConfirmImport(selection);
               }
             }}
             variant="primary"

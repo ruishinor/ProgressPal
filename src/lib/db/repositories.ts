@@ -2805,109 +2805,141 @@ export async function addStudySessionAndAwardXp(
 
 export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
   const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = allDataTables(database);
+  const includedTableNames = new Set(tables.map((table) => table.name));
+  const omittedTableNames = database.tables
+    .map((table) => table.name)
+    .filter((name) => !includedTableNames.has(name));
 
-  const [
-    appMeta,
-    learnerProfile,
-    courseUnits,
-    courseItems,
-    progressEntries,
-    contentAssets,
-    contentSlices,
-    mediaProgressEvents,
-    resumePoints,
-    studySessions,
-    xpTransactions,
-    achievementDefinitions,
-    achievementUnlocks,
-    backups,
-  ] = await Promise.all([
-    getAppMeta({ db: database }),
-    getProfile({ db: database }),
-    database.courseUnits.toArray(),
-    database.courseItems.toArray(),
-    database.progressEntries.toArray(),
-    database.contentAssets.toArray(),
-    database.contentSlices.toArray(),
-    database.mediaProgressEvents.toArray(),
-    database.resumePoints.toArray(),
-    database.studySessions.toArray(),
-    database.xpTransactions.toArray(),
-    database.achievementDefinitions.toArray(),
-    database.achievementUnlocks.toArray(),
-    database.backups.toArray(),
-  ]);
+  if (
+    omittedTableNames.length > 0 ||
+    includedTableNames.size !== database.tables.length
+  ) {
+    throw new Error(
+      `Database snapshot table coverage is incomplete: ${omittedTableNames.join(', ') || 'duplicate table mapping'}.`,
+    );
+  }
 
-  return {
-    appMeta,
-    learnerProfile,
-    courseUnits: sortCourseUnits(
-      parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
-    ),
-    courseItems: sortCourseItems(
-      parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
-    ),
-    progressEntries: sortProgressEntries(
-      parseStoredArray(
-        progressEntries,
-        'Stored progress entry',
-        ProgressEntrySchema,
-      ),
-    ),
-    contentAssets: sortContentAssets(
-      parseStoredArray(
-        contentAssets,
-        'Stored content asset',
-        ContentAssetSchema,
-      ),
-    ),
-    contentSlices: sortContentSlices(
-      parseStoredArray(
-        contentSlices,
-        'Stored content slice',
-        ContentSliceSchema,
-      ),
-    ),
-    mediaProgressEvents: sortMediaProgressEvents(
-      parseStoredArray(
-        mediaProgressEvents,
-        'Stored media progress event',
-        MediaProgressEventSchema,
-      ),
-    ),
-    resumePoints: sortResumePoints(
-      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
-    ),
-    studySessions: sortStudySessions(
-      parseStoredArray(
-        studySessions,
-        'Stored study session',
-        StudySessionSchema,
-      ),
-    ),
-    xpTransactions: sortXpTransactions(
-      parseStoredArray(
-        xpTransactions,
-        'Stored XP transaction',
-        XpTransactionSchema,
-      ),
-    ),
-    achievementDefinitions: parseStoredArray(
+  return database.transaction('r', tables, async () => {
+    const [
+      storedAppMeta,
+      storedLearnerProfile,
+      courseUnits,
+      courseItems,
+      progressEntries,
+      contentAssets,
+      contentSlices,
+      mediaProgressEvents,
+      resumePoints,
+      studySessions,
+      xpTransactions,
       achievementDefinitions,
-      'Stored achievement definition',
-      AchievementDefinitionSchema,
-    ),
-    achievementUnlocks: parseStoredArray(
       achievementUnlocks,
-      'Stored achievement unlock',
-      AchievementUnlockSchema,
-    ),
-    backups: parseStoredArray(
       backups,
-      'Stored backup record',
-      BackupRecordSchema,
-    ),
-  };
+    ] = await Promise.all([
+      database.appMeta.get(singletonIds.appMeta),
+      database.learnerProfile.get(singletonIds.learnerProfile),
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+      database.progressEntries.toArray(),
+      database.contentAssets.toArray(),
+      database.contentSlices.toArray(),
+      database.mediaProgressEvents.toArray(),
+      database.resumePoints.toArray(),
+      database.studySessions.toArray(),
+      database.xpTransactions.toArray(),
+      database.achievementDefinitions.toArray(),
+      database.achievementUnlocks.toArray(),
+      database.backups.toArray(),
+    ]);
+    const appMeta =
+      storedAppMeta === undefined
+        ? null
+        : parseWithSchema(AppMetaSchema, storedAppMeta, 'Stored app metadata');
+    const learnerProfile =
+      storedLearnerProfile === undefined
+        ? null
+        : parseWithSchema(
+            LearnerProfileSchema,
+            storedLearnerProfile,
+            'Stored learner profile',
+          );
+
+    return {
+      appMeta,
+      learnerProfile,
+      courseUnits: sortCourseUnits(
+        parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+      ),
+      courseItems: sortCourseItems(
+        parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+      ),
+      progressEntries: sortProgressEntries(
+        parseStoredArray(
+          progressEntries,
+          'Stored progress entry',
+          ProgressEntrySchema,
+        ),
+      ),
+      contentAssets: sortContentAssets(
+        parseStoredArray(
+          contentAssets,
+          'Stored content asset',
+          ContentAssetSchema,
+        ),
+      ),
+      contentSlices: sortContentSlices(
+        parseStoredArray(
+          contentSlices,
+          'Stored content slice',
+          ContentSliceSchema,
+        ),
+      ),
+      mediaProgressEvents: sortMediaProgressEvents(
+        parseStoredArray(
+          mediaProgressEvents,
+          'Stored media progress event',
+          MediaProgressEventSchema,
+        ),
+      ),
+      resumePoints: sortResumePoints(
+        parseStoredArray(
+          resumePoints,
+          'Stored resume point',
+          ResumePointSchema,
+        ),
+      ),
+      studySessions: sortStudySessions(
+        parseStoredArray(
+          studySessions,
+          'Stored study session',
+          StudySessionSchema,
+        ),
+      ),
+      xpTransactions: sortXpTransactions(
+        parseStoredArray(
+          xpTransactions,
+          'Stored XP transaction',
+          XpTransactionSchema,
+        ),
+      ),
+      achievementDefinitions: parseStoredArray(
+        achievementDefinitions,
+        'Stored achievement definition',
+        AchievementDefinitionSchema,
+      ),
+      achievementUnlocks: parseStoredArray(
+        achievementUnlocks,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      ),
+      backups: parseStoredArray(
+        backups,
+        'Stored backup record',
+        BackupRecordSchema,
+      ),
+    };
+  });
 }
 
 function allDataTables(database: ProgressPalDatabase) {

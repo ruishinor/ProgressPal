@@ -4,16 +4,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ImportBackupControl } from '@/components/ui/ImportBackupControl';
+import {
+  ImportBackupControl,
+  type BackupImportSelection,
+} from '@/components/ui/ImportBackupControl';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import {
+  BackupValidationError,
   buildBackupEnvelope,
   backupFileName,
-  type BackupEnvelope,
+  serializeBackupEnvelope,
 } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
 import {
@@ -97,21 +101,41 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         exportedAt: new Date().toISOString(),
       });
 
-      downloadJson(fileName, JSON.stringify(envelope, null, 2));
-      await runLocalMutation(
-        () => recordBackupEvent({ type: 'export', fileName }),
-        { invalidateRoute: false },
-      );
+      const { contents } = serializeBackupEnvelope(envelope);
+
+      downloadJson(fileName, contents);
 
       setToast({
-        title: 'Backup exported',
-        description: `Saved ${fileName} to this device. Store it somewhere private.`,
+        title: 'Backup download started',
+        description: `Started downloading ${fileName}. Store it somewhere private.`,
         tone: 'success',
       });
-    } catch {
+
+      try {
+        await runLocalMutation(
+          () => recordBackupEvent({ type: 'export', fileName }),
+          { invalidateRoute: false },
+        );
+        setToast({
+          title: 'Backup download started',
+          description: `Started downloading ${fileName} and recorded it in local backup history.`,
+          tone: 'success',
+        });
+      } catch {
+        setToast({
+          title: 'Backup download started',
+          description:
+            'The file download started, but the local backup-history entry could not be recorded.',
+          tone: 'danger',
+        });
+      }
+    } catch (error) {
       setToast({
         title: 'Export failed',
-        description: 'The local backup could not be created.',
+        description:
+          error instanceof BackupValidationError
+            ? error.message
+            : 'The local backup could not be created or downloaded.',
         tone: 'danger',
       });
     } finally {
@@ -139,15 +163,15 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     );
   }
 
-  async function handleImport(envelope: BackupEnvelope) {
+  async function handleImport(selection: BackupImportSelection) {
     setImporting(true);
 
     try {
       await runLocalMutation(
         () =>
-          restoreDatabaseFromBackup(envelope.data, {
+          restoreDatabaseFromBackup(selection.envelope.data, {
             seed: bundledCourseSeed,
-            fileName: backupFileName(new Date()),
+            fileName: selection.fileName,
           }),
         { invalidateRoute: true },
       );
@@ -285,12 +309,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           private; they are created and stored only by you.
         </p>
         <div className="action-row">
-          <Button
-            disabled={!coordination.canWrite}
-            loading={exporting}
-            onClick={handleExport}
-            variant="primary"
-          >
+          <Button loading={exporting} onClick={handleExport} variant="primary">
             Export local backup
           </Button>
         </div>

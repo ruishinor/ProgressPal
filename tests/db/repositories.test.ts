@@ -1,4 +1,11 @@
+import Dexie from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
+
+import {
+  buildBackupEnvelope,
+  parseBackupFile,
+  serializeBackupEnvelope,
+} from '@/lib/backup';
 
 import {
   addStudySession,
@@ -1503,6 +1510,17 @@ describe('backup, restore, and reset', () => {
       now: createClock('2026-06-12T09:00:00.000Z'),
       seed: sampleCourseSeed,
     });
+    await context.db.achievementDefinitions.put({
+      id: 'first-step',
+      category: 'course_progress',
+      createdAt: '2026-06-12T09:01:00.000Z',
+      description: 'Complete your first task of any kind.',
+      ruleConfig: {},
+      ruleType: 'first_item_completed',
+      title: 'First Step',
+      updatedAt: '2026-06-12T09:01:00.000Z',
+      xpReward: 0,
+    });
 
     await saveLearnerProfile(
       {
@@ -1534,6 +1552,20 @@ describe('backup, restore, and reset', () => {
       { db: context.db, now: createClock('2026-06-12T10:30:00.000Z') },
     );
 
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 600,
+        energyAfter: 3,
+        energyBefore: 4,
+        notes: 'Representative backup media event.',
+        sessionId: 'session-qualifying',
+        startSecond: 0,
+        stoppedBecause: 'interruption',
+      },
+      { db: context.db, now: createClock('2026-06-12T10:35:00.000Z') },
+    );
+
     // Completing a required item unlocks the first-item achievement.
     await upsertProgressAndAwardXp(
       {
@@ -1562,15 +1594,75 @@ describe('backup, restore, and reset', () => {
     expect(dataStores(after)).toEqual(dataStores(before));
   });
 
+  it('captures every persisted store in one read transaction', async () => {
+    testDatabase = createTestDatabase('backup-transactional-snapshot');
+    await seedRealActivity(testDatabase);
+    await recordBackupEvent(
+      { type: 'export', fileName: 'representative-export.json' },
+      { db: testDatabase.db, now: createClock('2026-06-16T11:00:00.000Z') },
+    );
+
+    const observedTransactions = new Set<unknown>();
+    const observeRead = <T>(value: T) => {
+      observedTransactions.add(Dexie.currentTransaction);
+      return value;
+    };
+
+    for (const table of testDatabase.db.tables) {
+      table.hook('reading', observeRead);
+    }
+
+    const snapshot = await getDatabaseSnapshot({ db: testDatabase.db });
+
+    for (const table of testDatabase.db.tables) {
+      table.hook('reading').unsubscribe(observeRead);
+    }
+
+    expect(observedTransactions).not.toContain(null);
+    expect(observedTransactions).toHaveLength(1);
+    expect(Object.keys(snapshot)).toHaveLength(testDatabase.db.tables.length);
+    expect(snapshot.appMeta).not.toBeNull();
+    expect(snapshot.learnerProfile).not.toBeNull();
+
+    for (const [key, rows] of Object.entries(snapshot)) {
+      if (Array.isArray(rows)) {
+        expect(
+          rows,
+          `${key} must have representative backup data`,
+        ).not.toHaveLength(0);
+      }
+    }
+  });
+
   it('restores a backup with replace-all semantics and faithful equality', async () => {
     sourceDatabase = createTestDatabase('backup-source');
     await seedRealActivity(sourceDatabase);
+    await recordBackupEvent(
+      { type: 'export', fileName: 'source-history.json' },
+      { db: sourceDatabase.db, now: createClock('2026-06-16T11:00:00.000Z') },
+    );
     const exported = await getDatabaseSnapshot({ db: sourceDatabase.db });
+    const firstEnvelope = buildBackupEnvelope(exported, {
+      appVersion: '1.3.0',
+      exportedAt: '2026-06-16T11:00:00.000Z',
+      schemaVersion: 2,
+    });
+    const serialized = serializeBackupEnvelope(firstEnvelope);
+    const parsed = parseBackupFile(serialized.contents, {
+      expectedSchemaVersion: 2,
+    });
 
-    // Confirm the fixture produced real, non-trivial activity to restore.
-    expect(exported.xpTransactions.length).toBeGreaterThan(0);
-    expect(exported.achievementUnlocks.length).toBeGreaterThan(0);
-    expect(exported.studySessions.length).toBeGreaterThan(0);
+    // The synthetic current-format backup represents every persisted store.
+    expect(exported.appMeta).not.toBeNull();
+    expect(exported.learnerProfile).not.toBeNull();
+    for (const [key, rows] of Object.entries(exported)) {
+      if (Array.isArray(rows)) {
+        expect(
+          rows,
+          `${key} must have representative backup data`,
+        ).not.toHaveLength(0);
+      }
+    }
 
     testDatabase = createTestDatabase('backup-target');
     await initializeDatabase({
@@ -1579,7 +1671,7 @@ describe('backup, restore, and reset', () => {
       seed: sampleCourseSeed,
     });
 
-    const restored = await restoreDatabaseFromBackup(exported, {
+    const restored = await restoreDatabaseFromBackup(parsed.data, {
       db: testDatabase.db,
       seed: sampleCourseSeed,
       fileName: 'progresspal-backup-2026-06-12.json',
@@ -1614,6 +1706,17 @@ describe('backup, restore, and reset', () => {
     // A reload reads the same restored state from disk.
     const reread = await getDatabaseSnapshot({ db: testDatabase.db });
     expect(dataStores(reread)).toEqual(dataStores(exported));
+
+    const secondEnvelope = buildBackupEnvelope(reread, {
+      appVersion: '1.3.0',
+      exportedAt: '2026-06-16T12:05:00.000Z',
+      schemaVersion: 2,
+    });
+    const reparsed = parseBackupFile(
+      serializeBackupEnvelope(secondEnvelope).contents,
+      { expectedSchemaVersion: 2 },
+    );
+    expect(dataStores(reparsed.data)).toEqual(dataStores(exported));
   });
 
   it('re-bootstraps nullable singleton rows during restore', async () => {

@@ -4,12 +4,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ImportBackupControl } from '@/components/ui/ImportBackupControl';
+import {
+  ImportBackupControl,
+  type BackupImportSelection,
+} from '@/components/ui/ImportBackupControl';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
-import type { BackupEnvelope } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
 import {
   currentDatabaseSchemaVersion,
@@ -66,16 +68,16 @@ export function OnboardingPage() {
     }
   }
 
-  async function handleImport(envelope: BackupEnvelope) {
+  async function handleImport(selection: BackupImportSelection) {
     setImporting(true);
     setImportError(false);
 
     try {
       await runLocalMutation(
         () =>
-          restoreDatabaseFromBackup(envelope.data, {
+          restoreDatabaseFromBackup(selection.envelope.data, {
             seed: bundledCourseSeed,
-            fileName: 'restored-backup.json',
+            fileName: selection.fileName,
           }),
         { invalidateRoute: true },
       );
