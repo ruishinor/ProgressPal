@@ -75,13 +75,10 @@
   color: var(--rpg-text);
 }
 
-/* Token bridge: the classic SettingsSurface renders unchanged inside the RPG
-   shell ("color it and leave it"), so remap the classic --color-* palette to
-   the RPG palette within this scope only. Scoped to .rpg-settings on purpose:
-   /rpg/log and /rpg/badges are recorded follow-ups, not silently expanded.
-   Soft badge fills composite the RPG accent/feedback hues at 18-20% over the
-   dark surfaces, matching the dark-theme classic recipe. */
-.rpg-shell .rpg-settings {
+/* Shared token bridge for Classic capabilities rendered inside the RPG shell.
+   Behavior stays in the shared components; their semantic design-system roles
+   resolve to the RPG palette only within these explicit variant wrappers. */
+.rpg-shell :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings) {
   --color-canvas: var(--rpg-bg);
   --color-canvas-strong: var(--rpg-surface);
   --color-canvas-muted: var(--rpg-surface-raised);
@@ -98,15 +95,45 @@
   --color-accent: var(--rpg-accent);
   --color-accent-strong: var(--rpg-accent-strong);
   --color-accent-soft: color-mix(in srgb, var(--rpg-accent) 18%, transparent);
+  --color-accent-surface: color-mix(
+    in srgb,
+    var(--rpg-accent) 10%,
+    var(--rpg-surface)
+  );
   --color-success: var(--rpg-success);
   --color-success-soft: color-mix(in srgb, var(--rpg-success) 18%, transparent);
   --color-warning: var(--rpg-warning);
   --color-warning-soft: color-mix(in srgb, var(--rpg-warning) 20%, transparent);
   --color-danger: var(--rpg-danger);
   --color-danger-soft: color-mix(in srgb, var(--rpg-danger) 20%, transparent);
+  --color-danger-surface: color-mix(
+    in srgb,
+    var(--rpg-danger) 12%,
+    var(--rpg-surface)
+  );
   --color-neutral-soft: color-mix(in srgb, var(--rpg-text) 18%, transparent);
   --color-focus: var(--rpg-focus-ring);
   --color-overlay: rgba(5, 9, 14, 0.72);
+}
+
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
+  .card--accent {
+  background: var(--color-accent-surface);
+  border-color: var(--color-accent);
+}
+
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
+  .card--subtle {
+  background: var(--color-surface-muted);
+}
+
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
+  .card--danger {
+  background: var(--color-danger-surface);
+  border-color: var(--color-danger);
 }
 
 .rpg-shell .rpg-hub__header {
@@ -288,8 +315,7 @@
 .rpg-shell .rpg-log__eyebrow,
 .rpg-shell .rpg-badges__eyebrow,
 .rpg-shell .rpg-hero__eyebrow,
-.rpg-shell .rpg-settings__eyebrow,
-.rpg-shell .rpg-hub__subheading {
+.rpg-shell .rpg-settings__eyebrow {
   color: var(--rpg-accent-strong);
   font-size: var(--text-sm);
   font-weight: 700;

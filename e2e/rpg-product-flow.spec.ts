@@ -106,4 +106,31 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
       name: 'Problem Set 0: Scratch',
     }),
   ).toBeVisible();
+
+  await page.goto('/rpg/badges');
+  const firstStep = page.getByTestId('achievement-first-step');
+
+  await expect(firstStep.getByText('Earned', { exact: true })).toBeVisible();
+  await expect(firstStep.getByText(/^Earned 2026-/)).toBeVisible();
+  await expect(firstStep.getByText('0 XP')).toHaveCount(0);
+
+  await page.goto('/rpg/log');
+  await expect(
+    page.getByRole('heading', { name: 'Achievement timeline' }),
+  ).toBeVisible();
+  await expect(page.getByRole('row', { name: /First Step/ })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'View achievements' }),
+  ).toHaveAttribute('href', '/rpg/badges');
+
+  await page.goto('/rpg');
+  await expect(
+    page.getByRole('heading', { name: 'Problem Set 0: Scratch' }),
+  ).toBeVisible();
+
+  await page.goto('/rpg/map');
+  const currentWeek = page.getByTestId('rpg-module-week-0');
+
+  await expect(currentWeek.getByText('Current module')).toBeVisible();
+  await expect(currentWeek.getByText('In progress')).toBeVisible();
 });

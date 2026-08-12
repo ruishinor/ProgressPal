@@ -3643,6 +3643,8 @@ describe('RPG routes', () => {
 
     const firstStep = await screen.findByTestId('achievement-first-step');
     expect(within(firstStep).getByText('Locked')).toBeInTheDocument();
+    expect(within(firstStep).getByText('Requirement:')).toBeInTheDocument();
+    expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
@@ -3676,10 +3678,12 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
 
     const firstStep = await screen.findByTestId('achievement-first-step');
-    expect(within(firstStep).getByText('Unlocked')).toBeInTheDocument();
+    expect(within(firstStep).getByText('Earned')).toBeInTheDocument();
     expect(
-      within(firstStep).getByText('Unlocked 2026-06-12'),
+      within(firstStep).getByText('Earned 2026-06-12'),
     ).toBeInTheDocument();
+    expect(within(firstStep).getByText('Requirement met:')).toBeInTheDocument();
+    expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
@@ -3747,6 +3751,9 @@ describe('RPG routes', () => {
         return link.getAttribute('href') === '/rpg';
       }),
     ).toBe(true);
+    expect(
+      screen.getByRole('link', { name: 'View achievements' }),
+    ).toHaveAttribute('href', '/rpg/badges');
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 

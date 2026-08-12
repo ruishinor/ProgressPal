@@ -325,13 +325,23 @@ export function AchievementsSurface({
                   <StatusPill
                     variant={achievement.unlocked ? 'completed' : 'notStarted'}
                   >
-                    {achievement.unlocked ? 'Unlocked' : 'Locked'}
+                    {achievement.unlocked
+                      ? isRpgVariant
+                        ? 'Earned'
+                        : 'Unlocked'
+                      : 'Locked'}
                   </StatusPill>
                 </div>
 
                 <p className="achievement-card__how">
                   <span className="achievement-card__how-label">
-                    {achievement.unlocked ? 'Earned for: ' : 'How to unlock: '}
+                    {achievement.unlocked
+                      ? isRpgVariant
+                        ? 'Requirement met: '
+                        : 'Earned for: '
+                      : isRpgVariant
+                        ? 'Requirement: '
+                        : 'How to unlock: '}
                   </span>
                   {achievement.description}
                 </p>
@@ -340,10 +350,9 @@ export function AchievementsSurface({
                   <Badge tone="neutral">
                     {achievementCategoryLabels[achievement.category]}
                   </Badge>
-                  <Badge tone="neutral">{`${achievement.xpReward} XP`}</Badge>
                   {achievement.unlocked && achievement.unlockedAt ? (
                     <span className="achievement-card__date">
-                      {`Unlocked ${formatUnlockDate(achievement.unlockedAt)}`}
+                      {`${isRpgVariant ? 'Earned' : 'Unlocked'} ${formatUnlockDate(achievement.unlockedAt)}`}
                     </span>
                   ) : null}
                 </div>

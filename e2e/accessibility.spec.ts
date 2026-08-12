@@ -378,6 +378,48 @@ test('design-system fixture surfaces meet dark-theme contrast with no light grad
   await unmountFixture(page);
 });
 
+test('shared RPG capability surfaces keep measured dark contrast under a light profile preference', async ({
+  page,
+}) => {
+  await completeOnboardingLight(page);
+
+  const surfaces = [
+    {
+      heading: 'Focus',
+      path: '/rpg/focus?itemId=week-0-lecture',
+      selector: '.rpg-focus .card--accent .card__description',
+    },
+    {
+      heading: 'Achievements',
+      path: '/rpg/badges',
+      selector: '.rpg-badges .achievement-card__how',
+    },
+    {
+      heading: 'Insights',
+      path: '/rpg/log',
+      selector: '.rpg-log .card__description',
+    },
+    {
+      heading: 'Settings',
+      path: '/rpg/settings',
+      selector: '.rpg-settings .card__title',
+    },
+  ] as const;
+
+  for (const surface of surfaces) {
+    await page.goto(surface.path);
+    await expect(
+      page.getByRole('heading', { exact: true, name: surface.heading }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(surface.selector).first()).toBeVisible();
+
+    const contrast = await measureContrast(page, surface.selector);
+
+    expect(contrast.gradientBehind).toBe(false);
+    expect(contrast.ratio).toBeGreaterThanOrEqual(MIN_CONTRAST);
+  }
+});
+
 test('primary and danger buttons stay readable on hover in dark theme', async ({
   page,
 }) => {

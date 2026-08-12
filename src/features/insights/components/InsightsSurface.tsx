@@ -24,7 +24,11 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
-import { rpgMapPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import {
+  rpgBadgesPath,
+  rpgMapPath,
+  rpgRoutePath,
+} from '@/lib/routing/rpgRoutePaths';
 
 // The same insights surface renders in two shells: the classic Insights route
 // and the RPG route (/rpg/log). Insights is the product concept; the RPG view
@@ -559,7 +563,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           <div className="action-row">
             <Link
               className="button button--secondary button--sm"
-              to="/achievements"
+              to={isRpgVariant ? rpgBadgesPath : '/achievements'}
             >
               View achievements
             </Link>

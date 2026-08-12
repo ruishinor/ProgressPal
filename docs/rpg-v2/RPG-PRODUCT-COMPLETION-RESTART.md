@@ -696,13 +696,18 @@ Deferred: resource/focus save-to-reward feedback remains C4
 Next: C4
 
 C4 - COMPLETE
-Commit: this status entry's containing C4 commit
+Commit: 51bd668
 Changed: task-first Resource actions, RPG Focus disclosures, authoritative save/reward/level/next-quest feedback, HUD refresh
 Validation: lint, format, typecheck, 117 suite tests plus 3 clean focused passes for one unrelated 5 s keyboard timeout, production build, 5 product/session/XP browser tests, and diff checks passed
 Deferred: cross-surface semantic styling and final cleanup remain C5
 Next: C5
 
-C5 - PENDING
+C5 - COMPLETE
+Commit: this status entry's containing C5 commit
+Changed: variant-scoped secondary-surface tokens, factual achievement states, RPG-local insight links, measured contrast coverage
+Validation: lint, format, typecheck, 111 targeted tests, production build, 25 product/mobile/accessibility/offline browser tests, and diff checks passed
+Deferred: final unchanged-tree acceptance and owner preview review
+Next: final acceptance
 ```
 
 ## 10. Completion boundary
