@@ -23,10 +23,8 @@ type RpgFocusSaveFeedback = {
   xpToNextLevel: number;
 };
 
-// /rpg/focus wraps the classic study-session/focus surface in the RPG shell.
-// The flow, controls, timer behavior, and engine writes are the classic ones;
-// only the surrounding RPG header and shell styling differ. See the Phase 2C
-// wrapper contract: "color it and leave it".
+// The RPG variant shares the timer and save engine with Classic. Its disclosures
+// and reward feedback present the authoritative save result without new writes.
 export function RpgFocusPage() {
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
   const [saveFeedback, setSaveFeedback] = useState<RpgFocusSaveFeedback | null>(

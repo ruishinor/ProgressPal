@@ -179,9 +179,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-log__header">
+          <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow">RPG</p>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Insights</h1>
             </div>
             <div className="rpg-log__actions">
@@ -225,9 +225,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-log__header">
+          <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow">RPG</p>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Insights</h1>
             </div>
           </div>
@@ -257,11 +257,11 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-log__header">
+        <div className="rpg-log__header rpg-page-header">
           <div>
-            <p className="rpg-log__eyebrow">RPG</p>
+            <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Insights</h1>
-            <p className="rpg-log__lede">{readyDescription}</p>
+            <p className="rpg-log__lede rpg-page-lede">{readyDescription}</p>
           </div>
           <div className="rpg-log__actions">
             <Link

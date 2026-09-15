@@ -126,8 +126,8 @@ export function RpgHomePage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-hub">
-          <div className="rpg-hub__header">
-            <p className="rpg-hub__eyebrow">RPG</p>
+          <div className="rpg-hub__header rpg-page-header">
+            <p className="rpg-hub__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>RPG Hub</h1>
           </div>
           <ErrorState
@@ -153,8 +153,8 @@ export function RpgHomePage() {
 
     return (
       <section className="page-section rpg-hub">
-        <div className="rpg-hub__header">
-          <p className="rpg-hub__eyebrow">RPG</p>
+        <div className="rpg-hub__header rpg-page-header">
+          <p className="rpg-hub__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>RPG Hub</h1>
         </div>
         <LoadingState
@@ -172,13 +172,9 @@ export function RpgHomePage() {
 
   return (
     <section className="page-section rpg-hub">
-      <div className="rpg-hub__header">
+      <div className="rpg-hub__header rpg-page-header">
         <div>
-          <p className="rpg-hub__eyebrow">RPG</p>
           <h1>RPG Hub</h1>
-          <p className="rpg-hub__lede">
-            Local quest hub for {summary.learnerName}.
-          </p>
         </div>
         <div className="rpg-hub__actions">
           <RpgButton href={rpgMapPath} variant="secondary">

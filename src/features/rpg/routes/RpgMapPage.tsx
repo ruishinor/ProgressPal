@@ -77,8 +77,8 @@ function getMapNodeAriaLabel(
 function RpgMapLoadingState() {
   return (
     <section className="page-section rpg-map">
-      <div className="rpg-map__header">
-        <p className="rpg-map__eyebrow">RPG</p>
+      <div className="rpg-map__header rpg-page-header">
+        <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
         <h1>Campaign Map</h1>
       </div>
       <LoadingState
@@ -147,8 +147,8 @@ export function RpgMapPage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-map">
-          <div className="rpg-map__header">
-            <p className="rpg-map__eyebrow">RPG</p>
+          <div className="rpg-map__header rpg-page-header">
+            <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Campaign Map</h1>
           </div>
           <ErrorState
@@ -179,11 +179,11 @@ export function RpgMapPage() {
 
   return (
     <section className="page-section rpg-map">
-      <div className="rpg-map__header">
+      <div className="rpg-map__header rpg-page-header">
         <div>
-          <p className="rpg-map__eyebrow">RPG</p>
+          <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>Campaign Map</h1>
-          <p className="rpg-map__lede">
+          <p className="rpg-map__lede rpg-page-lede">
             Follow your course progress and choose the next week to study.
           </p>
         </div>

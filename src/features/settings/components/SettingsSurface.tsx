@@ -214,11 +214,11 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-settings__header">
+        <div className="rpg-settings__header rpg-page-header">
           <div>
-            <p className="rpg-settings__eyebrow">RPG</p>
+            <p className="rpg-settings__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Settings</h1>
-            <p className="rpg-settings__lede">
+            <p className="rpg-settings__lede rpg-page-lede">
               Edit your local profile and manage on-device data: export a
               backup, import one, or reset everything. Stored only in this
               browser on this device.
@@ -254,6 +254,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         />
       )}
       <ProfileForm
+        variant={variant}
         cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
         disabled={!coordination.canWrite}
         key={profile.updatedAt}

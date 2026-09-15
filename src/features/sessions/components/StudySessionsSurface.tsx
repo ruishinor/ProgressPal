@@ -313,9 +313,9 @@ export function StudySessionsSurface({
       return (
         <section className={sectionClassName}>
           {isRpgVariant ? (
-            <div className="rpg-focus__header">
+            <div className="rpg-focus__header rpg-page-header">
               <div>
-                <p className="rpg-focus__eyebrow">RPG</p>
+                <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
                 <h1>Focus</h1>
               </div>
               <div className="rpg-focus__actions">
@@ -364,9 +364,9 @@ export function StudySessionsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-focus__header">
+          <div className="rpg-focus__header rpg-page-header">
             <div>
-              <p className="rpg-focus__eyebrow">RPG</p>
+              <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Focus</h1>
             </div>
           </div>
@@ -516,8 +516,9 @@ export function StudySessionsSurface({
     }
   }
 
-  const headerDescription =
-    lockedUnitId === null
+  const headerDescription = isRpgVariant
+    ? 'Study one task at a time. Save your effort when you finish; task completion is a separate step.'
+    : lockedUnitId === null
       ? 'Log study effort against a task from the course. Sessions stay append-only and never imply completion.'
       : `Prefilled from one course task. The unit stays locked to that task while you log effort for ${prefillItemTitle ?? 'the selected task'}.`;
   const selectedTaskTitle =
@@ -526,11 +527,11 @@ export function StudySessionsSurface({
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-focus__header">
+        <div className="rpg-focus__header rpg-page-header">
           <div>
-            <p className="rpg-focus__eyebrow">RPG</p>
+            <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Focus</h1>
-            <p className="rpg-focus__lede">{headerDescription}</p>
+            <p className="rpg-focus__lede rpg-page-lede">{headerDescription}</p>
           </div>
           <div className="rpg-focus__actions">
             <Link
@@ -583,7 +584,11 @@ export function StudySessionsSurface({
       <div className="sessions-layout">
         <div className="sessions-layout__forms">
           <Card
-            description="Start one live study session, pause it if needed, then save exactly one immutable effort record."
+            description={
+              isRpgVariant
+                ? 'Start your timer, pause when needed, then finish and save your study time.'
+                : 'Start one live study session, pause it if needed, then save exactly one immutable effort record.'
+            }
             title="Live focus session"
             titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
@@ -725,8 +730,9 @@ export function StudySessionsSurface({
                 </div>
                 <div className="course-detail-note">
                   <p>
-                    Unfinished live sessions are not saved. Only explicit finish
-                    and save writes one study-session row.
+                    {isRpgVariant
+                      ? 'Finish and save before leaving. Unfinished timers are not saved.'
+                      : 'Unfinished live sessions are not saved. Only explicit finish and save writes one study-session row.'}
                   </p>
                 </div>
                 <div className="course-detail-form__actions">
@@ -1195,7 +1201,11 @@ export function StudySessionsSurface({
           </RpgFocusDisclosureCard>
         </div>
         <RpgFocusDisclosureCard
-          description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
+          description={
+            isRpgVariant
+              ? 'Your study time, newest first. Saving a session does not mark a task complete.'
+              : 'Saved sessions are listed newest first. Each row is effort history only, not course completion.'
+          }
           enabled={isRpgVariant}
           label={`Review saved sessions (${ledgerRows.length})`}
           title="Your saved sessions"
@@ -1259,8 +1269,9 @@ export function StudySessionsSurface({
                   ),
                 );
                 setToast({
-                  description:
-                    'The in-progress timer was discarded. No study-session row was written.',
+                  description: isRpgVariant
+                    ? 'The timer was discarded without saving a session.'
+                    : 'The in-progress timer was discarded. No study-session row was written.',
                   title: 'Session discarded',
                   tone: 'success',
                 });

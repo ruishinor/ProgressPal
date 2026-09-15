@@ -153,8 +153,10 @@ function getDefaultCompletedAt(
 function RpgResourceLoadingState() {
   return (
     <section className="page-section rpg-study-resource">
-      <div className="rpg-study-resource__header">
-        <p className="rpg-study-resource__eyebrow">Study Resource</p>
+      <div className="rpg-study-resource__header rpg-page-header">
+        <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
+          Study Resource
+        </p>
         <h1>RPG Resource</h1>
       </div>
       <LoadingState
@@ -431,8 +433,10 @@ export function RpgResourcePage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-study-resource">
-          <div className="rpg-study-resource__header">
-            <p className="rpg-study-resource__eyebrow">Study Resource</p>
+          <div className="rpg-study-resource__header rpg-page-header">
+            <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
+              Study Resource
+            </p>
             <h1>RPG Resource</h1>
           </div>
           <ErrorState
@@ -470,11 +474,15 @@ export function RpgResourcePage() {
 
   return (
     <section className="page-section rpg-study-resource">
-      <div className="rpg-study-resource__header">
+      <div className="rpg-study-resource__header rpg-page-header">
         <div>
-          <p className="rpg-study-resource__eyebrow">Study Resource</p>
+          <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
+            Study Resource
+          </p>
           <h1>{summary.title}</h1>
-          <p className="rpg-study-resource__lede">{summary.unitTitle}</p>
+          <p className="rpg-study-resource__lede rpg-page-lede">
+            {summary.unitTitle}
+          </p>
           <div className="rpg-study-resource__header-status">
             <RpgStatusPill tone={getStatusTone(summary.statusVariant)}>
               {summary.statusLabel}
@@ -506,42 +514,26 @@ export function RpgResourcePage() {
         </div>
       </div>
 
-      <RpgResourceCard
-        className="rpg-study-resource__card"
-        meta={null}
-        title="Task details"
-      >
-        <dl className="rpg-study-resource__details">
-          <div>
-            <dt>Module</dt>
-            <dd>{summary.unitTitle}</dd>
-          </div>
-          <div>
-            <dt>Type</dt>
-            <dd>{summary.typeLabel}</dd>
-          </div>
-          <div>
-            <dt>Local status</dt>
-            <dd>{summary.statusLabel}</dd>
-          </div>
-          <div>
-            <dt>Estimated time</dt>
-            <dd>{summary.estimatedMinutesLabel}</dd>
-          </div>
-        </dl>
-        {summary.savedProgress?.notes ? (
-          <div className="rpg-study-resource__saved-note">
-            <p>Saved note</p>
-            <p>{summary.savedProgress.notes}</p>
-          </div>
-        ) : null}
-        {summary.longFormProgress !== null &&
-        summary.longFormProgress.hasProgress ? (
-          <p className="rpg-study-resource__note">
-            {summary.longFormProgress.summaryLine}
-          </p>
-        ) : null}
-      </RpgResourceCard>
+      {summary.savedProgress?.notes || summary.longFormProgress?.hasProgress ? (
+        <RpgResourceCard
+          className="rpg-study-resource__card"
+          meta={null}
+          title="Saved work"
+        >
+          {summary.savedProgress?.notes ? (
+            <div className="rpg-study-resource__saved-note">
+              <p>Saved note</p>
+              <p>{summary.savedProgress.notes}</p>
+            </div>
+          ) : null}
+          {summary.longFormProgress !== null &&
+          summary.longFormProgress.hasProgress ? (
+            <p className="rpg-study-resource__note">
+              {summary.longFormProgress.summaryLine}
+            </p>
+          ) : null}
+        </RpgResourceCard>
+      ) : null}
 
       <RpgPanel title="Save progress" titleAs="h2">
         <form

@@ -44,6 +44,46 @@ const mobileViewports = [
   { height: 932, width: 430 },
 ] as const;
 
+test('keyboard focus stays above the fixed RPG navigation in forms', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of [
+      '/rpg/resource/week-4-lecture',
+      '/rpg/focus',
+      '/rpg/settings',
+    ]) {
+      await page.goto(path);
+      await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
+      await page.locator('#rpg-main-content').focus();
+      let checked = 0;
+      for (let tab = 0; tab < 24; tab++) {
+        await page.keyboard.press('Tab');
+        const focus = (await page.evaluate(`(() => {
+          const element = document.activeElement;
+          if (!element.closest('#rpg-main-content')) return null;
+          const rect = element.getBoundingClientRect();
+          const nav = document.querySelector('.rpg-bottom-nav').getBoundingClientRect();
+          return { top: rect.top, bottom: rect.bottom, navTop: nav.top };
+        })()`)) as { top: number; bottom: number; navTop: number } | null;
+        if (focus === null) continue;
+        checked++;
+        expect(
+          focus.top,
+          `${path} ${width}px Tab ${tab} above viewport`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(
+          focus.bottom,
+          `${path} ${width}px Tab ${tab} covered by navigation`,
+        ).toBeLessThanOrEqual(focus.navTop);
+      }
+      expect(checked).toBeGreaterThan(10);
+    }
+  }
+});
+
 type BrowserLayoutScope = {
   document: { documentElement: { scrollWidth: number } };
   getComputedStyle: (element: unknown) => {

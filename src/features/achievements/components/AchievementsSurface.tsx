@@ -157,9 +157,9 @@ export function AchievementsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-badges__header">
+          <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow">RPG</p>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Achievements</h1>
             </div>
             <div className="rpg-badges__actions">
@@ -203,9 +203,9 @@ export function AchievementsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-badges__header">
+          <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow">RPG</p>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Achievements</h1>
             </div>
           </div>
@@ -242,11 +242,13 @@ export function AchievementsSurface({
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-badges__header">
+        <div className="rpg-badges__header rpg-page-header">
           <div>
-            <p className="rpg-badges__eyebrow">RPG</p>
+            <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Achievements</h1>
-            <p className="rpg-badges__lede">{headerDescription}</p>
+            <p className="rpg-badges__lede rpg-page-lede">
+              {headerDescription}
+            </p>
             <div className="meta-cluster">{headerMeta}</div>
           </div>
           <div className="rpg-badges__actions">

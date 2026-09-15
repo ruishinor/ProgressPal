@@ -2686,7 +2686,6 @@ describe('RPG routes', () => {
         await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
       ).toBeInTheDocument();
       expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Lecture').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Started').length).toBeGreaterThan(0);
       expect(
         screen.getByRole('link', { name: 'Back to week' }),
@@ -2708,7 +2707,10 @@ describe('RPG routes', () => {
         within(resourceHeader!).getByText('Lecture - 2h 30m'),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole('heading', { name: 'Task details' }),
+        screen.getByRole('heading', { name: 'Saved work' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Current RPG hub fixture.', { selector: 'p' }),
       ).toBeInTheDocument();
 
       expect(officialLink).toHaveAttribute(

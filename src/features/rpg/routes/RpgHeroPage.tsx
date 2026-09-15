@@ -93,8 +93,8 @@ export function RpgHeroPage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-hero">
-          <div className="rpg-hero__header">
-            <p className="rpg-hero__eyebrow">RPG</p>
+          <div className="rpg-hero__header rpg-page-header">
+            <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Hero Profile</h1>
           </div>
           <ErrorState
@@ -120,8 +120,8 @@ export function RpgHeroPage() {
 
     return (
       <section className="page-section rpg-hero">
-        <div className="rpg-hero__header">
-          <p className="rpg-hero__eyebrow">RPG</p>
+        <div className="rpg-hero__header rpg-page-header">
+          <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>Hero Profile</h1>
         </div>
         <LoadingState
@@ -136,11 +136,11 @@ export function RpgHeroPage() {
 
   return (
     <section className="page-section rpg-hero">
-      <div className="rpg-hero__header">
+      <div className="rpg-hero__header rpg-page-header">
         <div>
-          <p className="rpg-hero__eyebrow">RPG</p>
+          <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>Hero Profile</h1>
-          <p className="rpg-hero__lede">
+          <p className="rpg-hero__lede rpg-page-lede">
             Your study progress, milestones, and saved activity.
           </p>
         </div>

@@ -123,7 +123,7 @@ function RpgHeroHud({
 }
 
 export function RpgShell() {
-  const { coordination, refresh } = useAppState();
+  const { coordination, profile, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
   const location = useLocation();
@@ -185,7 +185,7 @@ export function RpgShell() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [profile?.updatedAt, reloadToken]);
 
   return (
     <section className="rpg-shell" data-testid="rpg-shell">
@@ -210,26 +210,26 @@ export function RpgShell() {
         >
           {coordination.blockReason === 'peer-active' ? (
             <RpgPanel
-              description="Another participating ProgressPal tab owns local writing."
+              description="Another ProgressPal tab is open for editing."
               role="alert"
               title="This ProgressPal tab is read-only"
             >
               <p>
                 You can still review saved progress and navigate here. Close the
-                writer tab; this tab will reread local data before enabling
+                other tab; this tab will reload saved data before enabling
                 changes.
               </p>
             </RpgPanel>
           ) : null}
           {coordination.blockReason === 'stale' ? (
             <RpgPanel
-              description="ProgressPal detected a newer local revision."
+              description="Saved data changed in another tab."
               role="alert"
               title="Reload changed local data"
             >
               <p>
                 Reload before making changes. This tab will remain read-only if
-                another tab still owns local writing.
+                another tab is still open for editing.
               </p>
               <RpgButton
                 onClick={() => {
@@ -243,13 +243,13 @@ export function RpgShell() {
           ) : null}
           {coordination.blockReason === 'unavailable' ? (
             <RpgPanel
-              description="The required Web Locks ownership guard is unavailable."
+              description="ProgressPal cannot safely coordinate edits in this browser right now."
               role="alert"
               title="Local writing is unavailable"
             >
               <p>
-                Saved data can still be reviewed. ProgressPal will not rely on
-                advisory tab notifications to authorize IndexedDB writes.
+                You can still review saved progress. Editing stays paused until
+                ProgressPal can protect your data from conflicting changes.
               </p>
             </RpgPanel>
           ) : null}
