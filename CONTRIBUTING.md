@@ -2,7 +2,9 @@
 
 ProgressPal accepts changes only when they preserve the product boundary: local-first, single-user, CS50x-focused, honest progress tracking.
 
-For the current v1.3 remediation, read these controlling documents first:
+Current work is final owner-review correction of the optional RPG experience over the frozen v1.3 engine. Read the latest owner instructions and `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` first. C0-C5 are implemented and must be preserved.
+
+Historical v1.3 remediation records:
 
 ```text
 docs/rpg-v2/DECISIONS-rpg-v2.md (D-0075)
@@ -48,10 +50,10 @@ If the answer to questions 1, 2, or 3 is no, do not build it.
 
 ## Branching
 
-Current remediation branch:
+Current product-completion branch:
 
 ```text
-cx/release-1.3.0-remediation
+rpg/product-completion
 ```
 
 Current default branch and immutable historical tags:
@@ -65,6 +67,8 @@ v1.2.1-local-first-proof
 Do not move historical tags. Do not create a new repository unless an accepted decision explicitly changes the plan.
 
 ## Module discipline
+
+For current final review corrections, use concern-scoped local commits and the existing completion document's rolling status. Do not create a handoff for each visual fix. The following template belongs to the older module process and remains available for work explicitly accepted under that process.
 
 Work module by module.
 
@@ -110,7 +114,7 @@ Scope Discipline Check
 
 ## Validation
 
-For v1.3, use targeted validation during implementation. Repeat focused checks only for demonstrated timing, lifecycle, process-cleanup, synchronization, or observed flakiness risk. The final candidate requires one clean local canonical release gate and one independent clean CI gate from the accepted source/tree/lockfile state. During implementation, the available constituent commands remain:
+Use targeted validation during implementation. Repeat focused checks only for demonstrated timing, lifecycle, process-cleanup, synchronization, or observed flakiness risk. Current RPG completion requires the ordinary full commands below, representative browser inspection, and owner visual/product GO. The historical v1.3 certification gate and CI cadence do not reopen certification for this work.
 
 ```bash
 npm run lint
@@ -120,6 +124,7 @@ npm run build
 npm run test
 npm run test:e2e
 npm run check:circular
+npm run check:bundle
 npm run audit
 ```
 

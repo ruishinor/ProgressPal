@@ -2,11 +2,9 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The current candidate is **ProgressPal CS50 Edition v1.3.0**: a local-first CS50 tracker proof undergoing release-wide remediation for reproducibility, recovery, offline upgrades, accessibility, and evidence-backed product direction.
+The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The optional `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. Classic remains the default and can be opened deliberately from RPG.
 
-This current build is **not** the fully realized RPG v2 shell. ProgressPal RPG v2 remains the intended future character-led CS50 campaign shell powered by the same local-first engine.
-
-After the post-freeze RPG Shell Phase 2C-2G remediation, Focus, Achievements, Insights, Settings, and stale Journey Log cleanup are merged into `master`. The existing `v1.2.0` and `v1.2.1` tags are historical and will not be moved. The `v1.3.0` candidate is not production-certified until the tracked remediation story and release evidence pass.
+C0-C5 product-completion work is implemented on `rpg/product-completion`. Final owner-review corrections and acceptance evidence are tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Owner visual/product GO is pending; this branch is not a new production release.
 
 ## Current product position
 
@@ -28,17 +26,16 @@ ProgressPal is not:
 - a social learning platform;
 - an AI tutor;
 - a media streaming interface.
-- a completed RPG v2 campaign shell.
 
 ## Release freeze status
 
-Current release classification:
+Frozen engine release:
 
 ```text
-ProgressPal CS50 Edition v1.3.0 - local-first CS50 tracker proof candidate
+ProgressPal CS50 Edition v1.3.0 - local-first CS50 tracker proof
 ```
 
-Recommended release tag:
+Existing immutable release tag:
 
 ```text
 v1.3.0-local-first-proof
@@ -61,7 +58,7 @@ docs/releases/v1.3.0-local-first-proof.md
 For RPG v2 work, read these files first:
 
 ```text
-docs/ProgressPal CS50 RPG v2 - 26-06-23.md
+docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md
 docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
 docs/rpg-v2/DECISIONS-rpg-v2.md
 docs/rpg-v2/VALIDATION_LOG.md
@@ -69,10 +66,9 @@ docs/rpg-v2/MIGRATION_CONTRACT.md
 docs/rpg-v2/ASSETS.md
 docs/rpg-v2/RISK_REGISTER.md
 docs/rpg-v2/VISUAL_TARGET.md
-docs/rpg-v2/RESTART_PROMPT.md
 ```
 
-The June 23 planning document and v1.2 release note are historical freeze records. Current implementation authority is the v1.3 remediation story and its accepted decisions. The current build must still not be described as completed RPG v2.
+The latest owner instructions and product-completion restart document govern current work. The June 23 planning document, older restart prompt, release-remediation stories, and module handoffs are historical context, not new implementation queues.
 
 Older root-level planning files may describe the completed v1 engine phase and may be archived under:
 
@@ -136,29 +132,17 @@ npm run build
 npm run test
 npm run test:e2e
 npm run check:circular
+npm run check:bundle
 npm run audit
 ```
 
-If the repo has a combined script such as `npm run validate`, use it only if it runs the full required gate.
+`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and legitimate tracked review evidence. Use the ordinary commands above for product-completion acceptance; do not manufacture release evidence to run certification.
 
 ## RPG shell transformation rule
 
-Do not start broad RPG shell transformation work from more tracker panels. The current post-2G release candidate must retain complete, reproducible validation evidence.
+Preserve completed C0-C5 behavior, the shared local-first engine, and Classic's default entry. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
 
-Only after post-2G validation is recorded should any future feature plan reconsider:
-
-- persistent Hero HUD;
-- collapsed/detail panels;
-- quest-first resource flow;
-- reward feedback after explicit saves;
-- minimal, approved asset foundation;
-- campaign-map redesign.
-
-Every future implementation module must still include a Scope Discipline Check in its handoff file under:
-
-```text
-docs/rpg-v2/modules/
-```
+Push, PR, merge, deployment, tags, and version changes need a later explicit owner decision.
 
 ## License
 

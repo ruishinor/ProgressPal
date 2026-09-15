@@ -10,13 +10,15 @@ Companion files: `docs/rpg-v2/DECISIONS-rpg-v2.md`, `docs/rpg-v2/VALIDATION_LOG.
 
 ---
 
-## 2026-08-12 current product-completion authority
+## 2026-09-15 current product-completion authority
 
 ProgressPal v1.3 is released and frozen at
 `feafd522ba53db3984790fa56b761586c5d7307a`
-(`v1.3.0-local-first-proof`). The only current RPG next action is the accepted
-C0-C5 sequence in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`, implemented
-on `rpg/product-completion` while Classic remains the default/control.
+(`v1.3.0-local-first-proof`). C0-C5 are implemented on `rpg/product-completion`.
+Current work is the final owner-review corrections and acceptance recorded in
+`docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`, subject to the latest owner
+instructions. Classic remains the default/control. Final owner GO is pending;
+remote actions require separate explicit authorization.
 
 All older release-candidate, post-2G-validation, branching, default-switch,
 module-order, and "next action" language in this file is historical context, not

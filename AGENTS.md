@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository. Read this before makin
 
 ## Project overview
 
-ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The current candidate is **v1.3.0** (`progresspal-cs50-edition`), a local-first tracker proof undergoing release-wide remediation for reproducibility, recovery, offline upgrades, and accessibility. It is explicitly **not** the completed "RPG v2" campaign shell; RPG v2 is future work governed by separate source-of-truth documents.
+ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 is implemented; final owner-review corrections are tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Classic remains the default. Final owner visual/product GO is pending; do not restart historical release remediation or C0-C5.
 
 Product boundary (do not cross it):
 
@@ -13,7 +13,7 @@ Product boundary (do not cross it):
 - CS50x-focused study companion; not affiliated with Harvard, CS50, edX, or OpenCourseWare. Never add CS50/Harvard branding.
 - User data can be lost when browser storage is cleared — backup export/import is the mitigation, not sync.
 
-Current branch is `cx/release-1.3.0-remediation`; `master` is the default branch. Tags `v1.2.0-local-first-proof` and `v1.2.1-local-first-proof` are immutable historical records — never move them.
+Current completion branch is `rpg/product-completion`; `master` is the default branch. Release tags, including `v1.3.0-local-first-proof`, are immutable historical records. Current authority permits local work and concern-scoped commits only; push, PR, merge, deployment, tags, and version changes require a later explicit owner decision.
 
 ## Tech stack
 
@@ -136,7 +136,7 @@ Do not add features, files, dependencies, abstractions, assets, or refactors tha
 
 **Forbidden without an accepted decision:** backend, authentication, cloud sync, analytics, AI tutor, schema changes, new XP rules, fake RPG mechanics, embedded external course content, runtime course-data fetching, remote assets, CS50/Harvard branding, convenience dependencies, and broad unrelated refactors.
 
-RPG v2 module work additionally requires a handoff file under `docs/rpg-v2/modules/` with a Scope Discipline Check; see `CONTRIBUTING.md` for the template. Commit messages are module-oriented, e.g. `rpg-01: add RPG route shell and navigation`.
+Use the current completion document's rolling status and concern-scoped commits for final review corrections. The older per-module handoff template under `docs/rpg-v2/modules/` remains historical guidance for that module process; it does not require a new handoff per visual fix. Scope and architecture discipline still apply.
 
 ## Security considerations
 
@@ -161,6 +161,7 @@ Read these when their area comes up:
 - `CONTRIBUTING.md` — operating standard, module discipline, Scope Discipline Check, forbidden list.
 - `docs/ci.md` — release pipeline contract and troubleshooting.
 - `docs/storage-safety.md` — cross-tab coordination and persistent-storage policy.
-- `docs/remediation/3-1-v1-3-release-remediation.md` — current v1.3 remediation story (controlling document).
+- `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` — current RPG completion authority and rolling evidence, subject to the latest owner instructions.
+- `docs/remediation/3-1-v1-3-release-remediation.md` — historical v1.3 release remediation; do not reopen it as the current work queue.
 - `docs/rpg-v2/` — RPG v2 source-of-truth set (roadmap, decisions, migration contract, validation log, risk register). RPG v2 module handoffs live in `docs/rpg-v2/modules/`.
 - `docs/archive/engine-v1/` — historical v1 engine records only; not active guidance.

@@ -9,6 +9,12 @@ Scope: ProgressPal RPG v2 same-origin `/rpg/*` implementation
 
 ## 1. Purpose
 
+Current-state note (2026-09-15): the released v1.3 baseline resolves the old
+post-2G release-candidate prerequisite in R-026. Its dated row below is historical.
+The current acceptance risk is premature final owner/product approval: C0-C5
+and local corrections do not authorize shipping. See the product-completion
+restart document for current evidence and the pending owner GO.
+
 This register tracks risks that could damage ProgressPal RPG v2 implementation, user trust, data safety, local-first behavior, maintainability, or release readiness.
 
 Every module handoff should update this file when:
@@ -167,11 +173,11 @@ Future consideration:
 
 ## Risk: avatar preview controls no longer affect visual output
 
-Status: Accepted temporary debt.
+Status: Mitigated in the current completion baseline.
 
 Context:
 
-RPG-01b replaced the generated SVG avatar with a bundled character portrait. The existing profile form still exposes face shape, hair, and top color controls, but those controls no longer change the visible avatar preview.
+RPG-01b replaced the generated SVG avatar with a bundled character portrait. The current profile form has removed the ineffective face, hair, and top controls. Legacy avatar configuration remains preserved when saving profile changes.
 
 Risk:
 
@@ -181,25 +187,25 @@ Mitigation:
 
 - Copy now says the character preview uses a bundled local asset.
 - No schema/storage changes were made.
-- A later profile/character module should either remove these controls, relabel them as saved character preferences, or reintroduce real character customization.
+- The fixed portrait is shared by Classic and RPG; tests protect preserved legacy profile fields. Do not imply that it can currently be customized.
 
 Owner/follow-up:
 
-RPG profile/character customization module, not RPG-02 route shell.
+No customization feature is authorized by the current completion scope.
 
-## Risk: inline avatar asset increases main bundle size
+## Risk: visual assets increase offline download size
 
 Status: Mitigated for now.
 
 Context:
 
-The avatar is embedded as a generated data URL to preserve offline navigation without adding service-worker complexity.
+The existing portrait is a local `/assets/character-profile.png` file explicitly cached by the service worker. The final review adds seven small static inline WebP imports (37,762 bytes of source images), allowing first visits to their RPG routes while offline.
 
 Mitigation:
 
-- Source PNG was resized before generating `characterProfileAsset.ts`.
-- Full validation passed after the change.
-- Build output should be monitored if additional inline assets are introduced.
+- Selected images were resized to 128 or 192 px and recorded in `ASSETS.md`.
+- Browser checks verify all six achievement images and the Guild emblem on first offline RPG visits after an online Classic boot.
+- The main JS chunk remains below the 500 kB raw budget; final command evidence is in the completion document.
 
 Rule:
 

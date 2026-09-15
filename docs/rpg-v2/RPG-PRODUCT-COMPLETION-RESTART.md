@@ -2,6 +2,8 @@
 
 Status: accepted for implementation with the 2026-08-12 execution-protocol corrections
 
+Current checkpoint (2026-09-16): C0-C5 are preserved and final owner-review corrections are implemented locally. Section 9 records acceptance evidence and limitations. The remaining checkpoint is one owner visual/product GO; deployment is separately authorized.
+
 Date: 2026-08-12
 
 Baseline: `master` at `feafd522ba53db3984790fa56b761586c5d7307a` / `v1.3.0-local-first-proof`
@@ -63,8 +65,8 @@ rpg/product-completion
 
 Use one concern-scoped commit for each completed module. Do not implement these
 modules directly on `master`, and do not create a branch or pull request per
-module. After final acceptance and owner visual approval, merge one pull request
-from this branch to `master`.
+module. The latest owner instructions require separate explicit authorization
+for any push, PR, merge, or deployment, even after local checks pass.
 
 ### Audit evidence
 
@@ -571,23 +573,19 @@ Then run the ordinary whole-repository validation sequence once. That validates
 the changed product; it does not reopen or rewrite the historical v1.3
 certification.
 
-### Final visual and production acceptance
+### Final visual acceptance — current local checkpoint
 
 After the automated gates pass:
 
-1. Create one preview deployment from `rpg/product-completion`.
-2. Capture one review set at 390 px and desktop for Hub, Map, Week, Resource,
+1. Serve the production build locally from `rpg/product-completion` with isolated synthetic browser data.
+2. Capture one review set at 390 px, 768 px, and desktop for Hub, Map, Week, Resource,
    Focus, Hero, Badges, Insights, and Settings.
 3. Compare the review set against the observable target state in section 3.
    Record concrete mismatches; do not treat screenshots as functional QA.
 4. Obtain one owner visual/product GO. This is the only visual approval
    checkpoint; do not add per-module visual approvals.
-5. Merge one pull request to `master`.
-6. Allow the existing Git-linked production deployment to complete.
-7. Run a short production smoke covering Classic-default, RPG entry/exit, the
-   core RPG study/save path with synthetic data, offline reload, console errors,
-   and unexpected network requests.
-8. Stop.
+5. Stop at the owner checkpoint. Remote preview, push, PR, merge, deployment,
+   production smoke, tags, and version changes need a later explicit owner decision.
 
 Classic remains default throughout. Shipping the completed optional RPG mode is
 not an RPG-default promotion. A release tag or version change remains a separate
@@ -663,30 +661,124 @@ This is proposal-quality reasoning only, not runtime or release evidence.
 
 ## 9. Rolling completion status
 
-### 2026-09-15 final owner-review corrections
+### 2026-09-15–16 final owner-review corrections
 
 C0-C5 are preserved. The owner review requested further identity/HUD, curated
 asset, responsive, copy, and acceptance work; it was not a final product GO.
 All review work stays local on `rpg/product-completion`. Remote preview, push,
 PR, merge, deployment, tags, and version changes require a later owner decision.
 
-- **Hero identity/HUD:** shared portrait/Rank/Guild/Class/Path vocabulary,
-  Level/XP object, complete current-quest text, recomposed mobile/tablet layout,
-  and repaired bottom-nav palette. Guild emblem: 2,440-byte 128 px WebP, statically
-  inlined for offline availability; Level uses an original SVG outline with DOM
-  text. Focused lint/type/build checks and 125 tests passed. The 21-test managed
-  browser rerun passed (retained `test-results/.last-run.json`); final full gates
-  remain pending. Desktop/390/768 screenshots were inspected outside the repo.
-- **Assets/campaign:** six curated achievement illustrations, optional artwork
-  slot in the shared gallery, live week-number markers, current/completed/optional
-  path states, and DOM progress tracks. Seven images including the emblem total
-  37,762 bytes. Typecheck, build, lint, 19 focused tests and 14 managed browser
-  tests passed, including decoding never-visited artwork offline. CSS path
-  connectors were visually refined after those tests; final whole-tree checks
-  remain pending.
-- **Next:** confirmed stale HUD
-  after profile save, misleading theme description, remaining learner-facing
-  copy, populated-state QA, and final unchanged-tree acceptance.
+- **Hero identity/HUD:** Identity | Progression | Current Quest. Shared portrait,
+  prominent name/Rank/Guild, quieter Class/Path, live Level/XP object, and complete
+  quest text are reused in the HUD and Hero. Mobile recomposes these groups and
+  retains every identity field. The ordinary 390 px HUD is 277 px tall; tablet is
+  237 px and desktop 163 px. Profile saves now refresh the HUD immediately through
+  the existing app-state profile timestamp and authoritative read model.
+- **Assets/campaign:** all 276 candidates in 16 categories were inspected using
+  21 contact sheets, with individual inspection of selections. Seven optimized
+  local WebP images total 37,762 B: one shared Guild emblem and six illustrations
+  mapped to existing achievements. Level is a project-authored SVG outline with
+  DOM text. Real week numbers, optional/final-project markers, path connectors,
+  and progress tracks preserve the actual 14-unit course. See `ASSETS.md` for
+  sources, sizes, rejected candidates, and owner-supplied usage basis.
+- **Daily use:** removed redundant Hub introduction and Resource metadata card;
+  saved notes/resume information remain available. RPG settings explain that
+  the theme preference applies to Classic. Focus and coordination messages use
+  learner-facing language. Fixed the light-profile bottom-nav palette and browser
+  scrolling of keyboard focus behind the fixed navigation.
+- **CSS budget:** the first final build exceeded the unchanged 10,000 B gzip
+  limit (10,673 B). Shared RPG header classes, consolidated repeated rules, removal
+  of unused selectors, and reduced decorative shadows/gradients brought it to
+  **9,985 B**. Classic selectors and the variant token bridge remain intact.
+  Visual review caught and corrected a Resource status selector accidentally
+  renamed during consolidation; the final captures include that correction.
+- **Dependency audit:** the reachable audit initially reported four affected
+  development packages. Patched Vitest and its packages to 4.1.11, Browserslist
+  to 4.29.0, baseline-browser-mapping to 2.11.23, and their required transitive
+  dependencies. No dependency was added and production dependency versions did
+  not change. Installed the updated lockfile with `npm ci`; the subsequent audit
+  reported zero vulnerabilities. Relevant advisories:
+  [Vitest](https://github.com/advisories/GHSA-82fw-gwwq-j7x9),
+  [Browserslist](https://github.com/advisories/GHSA-c83g-rgw3-j3cx),
+  [baseline-browser-mapping](https://github.com/advisories/GHSA-w5vr-8v7q-w6rv).
+- **Documentation:** narrowly reconciled current authority in AGENTS, README,
+  CONTRIBUTING, roadmap, asset ledger, risk register, and the session boundary
+  README. Historical release and C0-C5 records remain historical.
+
+#### Acceptance evidence
+
+Environment: Windows, Node 24.19.0, npm 11.10.1, production Vite build,
+Playwright Chromium, synthetic data only. No certification gate was run.
+Runtime candidate: `bf862a9` (including identity `db736f4`, assets `6e25cdd`, and
+development dependency fixes `b266472`); subsequent completion edits are docs only.
+
+| Command                                                                                                      | Result                                                                              |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `npm ci`                                                                                                     | PASS: exact updated lockfile installed                                              |
+| `npm run lint`                                                                                               | PASS: zero lint warnings                                                            |
+| `npm run format:check`                                                                                       | PASS: all matched files formatted                                                   |
+| `npm run typecheck`                                                                                          | PASS                                                                                |
+| `npm run build`                                                                                              | PASS                                                                                |
+| `npm test`                                                                                                   | PASS: 50 files, 515 tests on patched Vitest                                         |
+| `npm run test:e2e`                                                                                           | PASS: 59 tests, including Classic, RPG, recovery and offline                        |
+| `npm run test:e2e -- e2e/rpg-product-flow.spec.ts e2e/rpg-mobile-overflow.spec.ts e2e/accessibility.spec.ts` | PASS: 24 tests after the final Resource selector repair                             |
+| `npm run check:circular`                                                                                     | PASS: 188 files, no cycles                                                          |
+| `npm run check:bundle`                                                                                       | PASS: CSS gzip 9,985 B; JS gzip 254,091 B; largest JS raw 318,646 B; no source maps |
+| `npm run audit`                                                                                              | PASS: zero reported vulnerabilities after security patches                          |
+
+The full suites passed after dependency/CSS consolidation. The final two-selector
+Resource spacing repair was followed by build/budget checks, fresh/populated
+visual tours, and the focused browser command above. No business logic changed
+after the full unit run.
+
+- **VERIFIED:** Classic default and deliberate RPG entry/exit; explicit progress
+  save updates HUD/quest/Map; Focus pause/resume excludes paused time, saves one
+  session and awards one XP transaction/achievement without completing its task;
+  reload and passive navigation preserve the saved reward stores. Full fresh and
+  populated tours also compare every IndexedDB table before and after navigation.
+- **VERIFIED:** existing backup/export/import/reset and cross-tab protections
+  pass. Offline cold starts cover Hub/Resource/Focus. After only an online Classic
+  boot, the first offline RPG visit decodes the Guild image and all six previously
+  unvisited achievement images. Schema, backup envelope, engine rules and service
+  worker are unchanged by these review corrections.
+- **VERIFIED:** axe checks on RPG and Classic routes, measured contrast with
+  light/dark profile preferences, focus movement, reduced motion, form errors,
+  More-menu keyboard behavior, and 24-Tab traversals across Resource/Focus/Settings
+  at 390/1280 px pass in the exercised browser.
+- **OBSERVED:** all nine RPG surfaces inspected at 1280 and 390 px; Hub, Map,
+  Resource and Hero at 768 px. Fresh/populated tours plus long-name/quest stress
+  at 320/390/768/1024/1280 give 49 layout cases: no horizontal overflow, broken
+  images, console errors/warnings or unexpected external runtime requests.
+  Populated records: 4/26 required tasks (15%), 320 XP/Level 2/Initiate, three
+  sessions totaling 135 minutes, four achievements, and three active days.
+- **Limitations:** no physical-device, Firefox/WebKit, or manual screen-reader
+  testing; no new deployment/CI certification or production smoke. Extreme valid
+  names and long quest text increase HUD height (418 px at 390 px) without hiding
+  information. CSS budget has only 15 B remaining; subsequent CSS changes must
+  recheck it. A clean audit is dependency evidence, not a claim of total security.
+  The runner's NO_COLOR/FORCE_COLOR notice affects terminal coloring only; browser
+  console checks are clean.
+
+Local screenshots and logs are outside the repository:
+
+```text
+C:\Users\alex_\.codex\visualizations\2026\09\15\01a0a38c-2cfe-75b0-b476-6305f2cc58ed\
+  review.html                         # selector-based screenshot gallery
+  acceptance-fresh\                   # desktop/mobile/tablet + observations.json
+  acceptance-populated\               # same routes + long-content stress
+  final-unit-patched.log               # 515 passing tests
+  final-e2e-patched.log                # 59 passing tests
+  acceptance-focused-e2e.log           # final Resource/CSS regression checks
+```
+
+Retrospective: screenshots and axe alone did not detect keyboard controls being
+scrolled behind navigation; direct Tab geometry isolated the fix to root scroll
+padding. CSS consolidation required visual inspection as well as a size check;
+the selector repair demonstrates why a passing build is not visual acceptance.
+
+**Next:** one owner visual/product GO. No engineering blocker is currently known;
+remote Git actions, deployment, tags, version changes and default promotion remain
+outside this local completion authority.
 
 Update this section in the same concern-scoped commit that completes each
 module. Keep entries short.
@@ -737,8 +829,13 @@ Next: final acceptance
 
 ## 10. Completion boundary
 
-When C0-C5, automated acceptance, owner visual review, merge, production
-deployment, and production smoke pass, report:
+The current task ends when C0-C5 are preserved, final review corrections and
+ordinary automated/visual acceptance pass, and the branch is ready for one
+owner visual/product GO. Report local evidence and remaining limitations.
+Do not claim that live production has been updated.
+
+After a separately authorized future shipping step and production smoke, the
+shipping report may state:
 
 ```text
 RPG working-state implementation: complete.
