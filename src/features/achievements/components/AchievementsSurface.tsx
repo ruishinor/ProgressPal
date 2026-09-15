@@ -1,4 +1,11 @@
-import { startTransition, useEffect, useId, useMemo, useState } from 'react';
+import {
+  startTransition,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -33,6 +40,7 @@ type AchievementsSurfaceVariant = 'classic' | 'rpg';
 
 type AchievementsSurfaceProps = {
   variant?: AchievementsSurfaceVariant;
+  renderArtwork?: (achievementId: string) => ReactNode;
 };
 
 type AchievementsPageStatus = 'error' | 'loading' | 'ready';
@@ -59,6 +67,7 @@ const statusOptions: { label: string; value: AchievementStatusFilter }[] = [
 
 export function AchievementsSurface({
   variant = 'classic',
+  renderArtwork,
 }: AchievementsSurfaceProps) {
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
@@ -319,6 +328,7 @@ export function AchievementsSurface({
                 variant={achievement.unlocked ? 'accent' : 'default'}
               >
                 <div className="achievement-card__head">
+                  {isRpgVariant ? renderArtwork?.(achievement.id) : null}
                   <AchievementTitle className="achievement-card__title">
                     {achievement.title}
                   </AchievementTitle>

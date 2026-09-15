@@ -246,6 +246,44 @@ resolution and in the desktop/mobile HUD and Hero. Build uses `?inline` so the
 existing service worker caches it with the boot JavaScript. Final offline
 acceptance will verify the decoded image after network disconnection.
 
+### Achievement selection (2026-09-15)
+
+These six unbranded, text-free project-library illustrations map only to existing
+achievement IDs. The source is `achievements/progress-pal-visual-asset-achievements
+(N).png`, using the numbers below. They are resized to 192 px WebP, quality 85;
+exact output sizes are recorded after optimization. They use static `?inline`
+imports so every image is available with the existing offline boot bundle.
+All use decorative `alt=""` beside the real name, requirement, and earned/locked
+state. Locked art is muted by CSS without removing readable requirements.
+
+| ID        |     Source N | Production file under `assets/badges/`  | Existing achievement / visual meaning                                                        |
+| --------- | -----------: | --------------------------------------- | -------------------------------------------------------------------------------------------- |
+| asset-007 |           15 | `rpg-badge-first-step.webp`             | First Step: walking boot                                                                     |
+| asset-008 |           20 | `rpg-badge-data-structure-builder.webp` | Data Structure Builder: branching structure                                                  |
+| asset-009 |           25 | `rpg-badge-query-builder.webp`          | Query Builder: database and chart                                                            |
+| asset-010 |           22 | `rpg-badge-bug-hunter.webp`             | Bug Hunter: beetle                                                                           |
+| asset-011 |           16 | `rpg-badge-final-project-mvp.webp`      | Final Project MVP: construction tools                                                        |
+| asset-012 |           45 | `rpg-badge-final-project-shipped.webp`  | Final Project Shipped: code/document scroll                                                  |
+| asset-013 | original CSS | `RpgAchievementArt` fallback            | Neutral medal outline for existing achievements without selected artwork; no invented reward |
+
+Other illustrations are omitted where they suggest combat, currencies, extra
+classes, unsupported rewards, official course identity, or add decorative weight.
+Navigation stays text-first. Map/path and numbered-module candidates serve as
+composition references only; accessible CSS connectors and DOM unit labels
+represent the real 14-unit course. Backgrounds, banners, raster controls, and
+example screenshots are not shipped.
+
+Optimized sizes, visually checked in the actual gallery: First Step 6,674 B;
+Data Structure Builder 6,952 B; Query Builder 4,804 B; Bug Hunter 6,334 B;
+Final Project MVP 5,052 B; Final Project Shipped 5,506 B. Together with the Guild
+emblem, **seven images total 37,762 B** (36.9 KiB). No budget exception is needed.
+Original Level SVG and fallback CSS are small source primitives, included in
+the checked JS/CSS bundle. The main JS chunk is approximately 318 kB raw.
+
+Offline acceptance passed: after one online Classic load, a fresh offline RPG
+Hub decoded the Guild image and the never-visited gallery decoded all six
+192 px achievement images. The existing service worker required no changes.
+
 | ID        | File                                | Repo path                            | In-app use                                 | Source/origin                                                        | Rights/usage basis                               | Contains text? | Decorative? | Alt text / aria decision                                     | Size | Optimized? | Reviewer/date | Status           | Notes                                     |
 | --------- | ----------------------------------- | ------------------------------------ | ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------ | -------------: | ----------: | ------------------------------------------------------------ | ---: | ---------: | ------------- | ---------------- | ----------------------------------------- |
 | asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/     | Hub, Hero/Profile, optional Settings/About | Candidate from shield-badges or first-party generated replacement    | Must be first-party/owned; no CS50/Harvard marks |             No |          No | alt="Code Knights emblem"                                    |  TBD |        TBD | TBD           | Planned          | Sword/circuit/shield motif.               |

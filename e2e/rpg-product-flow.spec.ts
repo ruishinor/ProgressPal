@@ -113,6 +113,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await expect(firstStep.getByText('Earned', { exact: true })).toBeVisible();
   await expect(firstStep.getByText(/^Earned 2026-/)).toBeVisible();
   await expect(firstStep.getByText('0 XP')).toHaveCount(0);
+  await expect(firstStep.locator('img')).toHaveJSProperty('naturalWidth', 192);
 
   await page.goto('/rpg/log');
   await expect(

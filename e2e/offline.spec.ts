@@ -209,6 +209,10 @@ test('cold-starts offline after one online production load', async ({
     page.getByRole('link', { name: 'Open Campaign Map' }).first(),
   ).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(/\/rpg$/);
+  await expect(page.locator('.rpg-identity__guild img')).toHaveJSProperty(
+    'naturalWidth',
+    128,
+  );
 
   await page.goto('/rpg/resource/week-0-lecture');
   await expect(
@@ -221,6 +225,14 @@ test('cold-starts offline after one online production load', async ({
     page.getByRole('heading', { name: 'Live focus session' }),
   ).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(/\/rpg\/focus\?itemId=week-0-lecture$/);
+
+  // Achievement art was never visited online: it must arrive with boot assets.
+  await page.goto('/rpg/badges');
+  const badgeImages = page.locator('.rpg-achievement-art[src]');
+  await expect(badgeImages).toHaveCount(6);
+  for (const badgeImage of await badgeImages.all()) {
+    await expect(badgeImage).toHaveJSProperty('naturalWidth', 192);
+  }
 
   await page.context().setOffline(false);
   expect(consoleIssues).toEqual([]);

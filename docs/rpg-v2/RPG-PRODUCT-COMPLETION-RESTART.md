@@ -677,7 +677,14 @@ PR, merge, deployment, tags, and version changes require a later owner decision.
   text. Focused lint/type/build checks and 125 tests passed. The 21-test managed
   browser rerun passed (retained `test-results/.last-run.json`); final full gates
   remain pending. Desktop/390/768 screenshots were inspected outside the repo.
-- **Next:** curated achievement art, campaign position cues, confirmed stale HUD
+- **Assets/campaign:** six curated achievement illustrations, optional artwork
+  slot in the shared gallery, live week-number markers, current/completed/optional
+  path states, and DOM progress tracks. Seven images including the emblem total
+  37,762 bytes. Typecheck, build, lint, 19 focused tests and 14 managed browser
+  tests passed, including decoding never-visited artwork offline. CSS path
+  connectors were visually refined after those tests; final whole-tree checks
+  remain pending.
+- **Next:** confirmed stale HUD
   after profile save, misleading theme description, remaining learner-facing
   copy, populated-state QA, and final unchanged-tree acceptance.
 

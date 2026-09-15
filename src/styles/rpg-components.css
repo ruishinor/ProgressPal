@@ -820,24 +820,20 @@
 .rpg-shell .rpg-map__node-item:not(:last-child)::after {
   background: var(--rpg-border);
   content: '';
-  height: var(--space-3);
-  left: 1.45rem;
+  height: calc(100% + var(--space-3));
+  left: 2.4rem;
   position: absolute;
-  top: 100%;
+  top: 2.75rem;
   width: 2px;
+  pointer-events: none;
 }
 
 .rpg-shell .rpg-map__node {
   align-items: center;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--rpg-accent) 10%, transparent),
-      transparent 38%
-    ),
-    var(--rpg-surface-raised);
-  border: 1px solid var(--rpg-border);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom-color: var(--rpg-border);
+  border-radius: 0;
   color: var(--rpg-text);
   display: grid;
   gap: var(--space-3);
@@ -852,6 +848,8 @@
 }
 
 .rpg-shell .rpg-map__node[data-current='true'] {
+  background: var(--rpg-surface-raised);
+  border-radius: var(--radius-md);
   border-color: var(--rpg-accent-strong);
   border-left-width: 4px;
   box-shadow:
@@ -866,17 +864,88 @@
 }
 
 .rpg-shell .rpg-map__node-index {
+  position: relative;
+  z-index: 1;
   align-items: center;
-  background: rgba(214, 173, 92, 0.14);
+  background: var(--rpg-surface);
   border: 1px solid var(--rpg-border);
   border-radius: 50%;
-  color: var(--rpg-accent-strong);
+  color: var(--rpg-text-muted);
   display: inline-flex;
   font-size: var(--text-sm);
   font-weight: 800;
   justify-content: center;
   min-height: 2.75rem;
   width: 2.75rem;
+}
+
+.rpg-shell .rpg-map__node[data-current='true'] .rpg-map__node-index {
+  color: #17202b;
+  background: var(--rpg-accent);
+  border-color: var(--rpg-accent);
+  box-shadow:
+    0 0 0 4px var(--rpg-surface),
+    0 0 0 5px var(--rpg-accent);
+}
+
+.rpg-shell .rpg-map__node[data-status='completed'] .rpg-map__node-index {
+  color: #17202b;
+  background: var(--rpg-success);
+  border-color: var(--rpg-success);
+}
+
+.rpg-shell .rpg-map__node-item[data-status='completed']::after {
+  background: var(--rpg-success);
+}
+.rpg-shell .rpg-map__node[data-status='optional'] .rpg-map__node-index {
+  border-style: dashed;
+}
+.rpg-map__node-track {
+  grid-column: 2 / -1;
+  display: block;
+  height: 0.25rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--rpg-border);
+}
+.rpg-map__node-track > span {
+  display: block;
+  height: 100%;
+  background: var(--rpg-progress);
+}
+.rpg-map__node[data-status='completed'] .rpg-map__node-track > span {
+  background: var(--rpg-success);
+}
+
+/* The earned state comes from the shared achievement surface. */
+.rpg-badges .achievement-card__head {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.rpg-achievement-art {
+  width: 5rem;
+  height: 5rem;
+  grid-row: span 2;
+  border-radius: 50%;
+  object-fit: contain;
+}
+.rpg-achievement-art--simple {
+  display: grid;
+  place-items: center;
+  border: 3px double var(--rpg-border-strong);
+  color: var(--rpg-accent-strong);
+  font-size: 2.5rem;
+  background: var(--rpg-surface);
+}
+.rpg-badges .achievement-card__head > .status-pill {
+  grid-column: 2;
+  justify-self: start;
+}
+.rpg-badges .achievement-card[data-unlocked='false'] .rpg-achievement-art {
+  filter: grayscale(1);
+  opacity: 0.65;
 }
 
 .rpg-shell .rpg-map__node-copy {
@@ -1435,6 +1504,10 @@
   .rpg-shell .rpg-map__node-status {
     grid-column: 2;
     justify-content: start;
+  }
+
+  .rpg-shell .rpg-map__node-item:not(:last-child)::after {
+    left: 2.2rem;
   }
 
   .rpg-shell .rpg-week__actions,

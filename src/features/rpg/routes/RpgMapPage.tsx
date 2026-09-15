@@ -184,7 +184,7 @@ export function RpgMapPage() {
           <p className="rpg-map__eyebrow">RPG</p>
           <h1>Campaign Map</h1>
           <p className="rpg-map__lede">
-            CS50x course weeks from the local seed, linked to RPG week pages.
+            Follow your course progress and choose the next week to study.
           </p>
         </div>
         <div className="rpg-map__summary" aria-label="Campaign map summary">
@@ -200,7 +200,7 @@ export function RpgMapPage() {
 
       {summary.modules.length === 0 ? (
         <RpgEmptyState
-          description="No local course units were found in the current seed."
+          description="The course could not be found. Reload the app to try again."
           eyebrow="No modules"
           title="Campaign map is empty"
         />
@@ -212,7 +212,7 @@ export function RpgMapPage() {
             titleAs="h2"
           >
             <ol className="rpg-map__node-list" aria-label="Campaign map nodes">
-              {summary.modules.map((module, index) => {
+              {summary.modules.map((module) => {
                 const currentLabel = getCurrentLabel(
                   module,
                   summary.currentModule,
@@ -223,6 +223,7 @@ export function RpgMapPage() {
                   <li
                     className="rpg-map__node-item"
                     data-testid={`rpg-module-${module.id}`}
+                    data-status={module.statusVariant}
                     key={module.id}
                   >
                     <a
@@ -233,10 +234,15 @@ export function RpgMapPage() {
                       aria-current={currentLabel !== null ? 'step' : undefined}
                       className="rpg-map__node"
                       data-current={currentLabel !== null ? 'true' : undefined}
+                      data-status={module.statusVariant}
                       href={getRpgWeekPath(module.id)}
                     >
                       <span className="rpg-map__node-index" aria-hidden="true">
-                        {index + 1}
+                        {module.id.startsWith('week-')
+                          ? module.id.slice(5)
+                          : module.requiredItemCount === 0
+                            ? '+'
+                            : '◆'}
                       </span>
                       <span className="rpg-map__node-copy">
                         <span className="rpg-map__node-type">
@@ -270,6 +276,16 @@ export function RpgMapPage() {
                           </span>
                         ) : null}
                       </span>
+                      {module.requiredItemCount > 0 ? (
+                        <span
+                          className="rpg-map__node-track"
+                          aria-hidden="true"
+                        >
+                          <span
+                            style={{ width: `${module.completionPercent}%` }}
+                          />
+                        </span>
+                      ) : null}
                     </a>
                   </li>
                 );
