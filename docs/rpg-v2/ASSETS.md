@@ -218,6 +218,34 @@ For each asset:
 
 Fill this table before any asset is used in code.
 
+### 2026-09-15 owner-review selection
+
+The owner supplied the 276-file categorized library (326,845,569 source bytes)
+for ProgressPal use. All 16 categories were visually inspected using 21 contact
+sheets; selected files were also inspected individually. The owner authorizes
+optimization and integration of project-generated, unbranded candidates. This
+is the usage basis for the selections below, not a third-party license claim.
+
+| ID        | Production file / primitive                    | Source                                                          | Purpose and use                                                                            | Treatment                                                                                                  | Status                                                              |
+| --------- | ---------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| asset-005 | `emblems/rpg-emblem-code-knights-primary.webp` | `shield-badges/progress-pal-visual-asset-shield-badges (1).png` | Guild identity shared by HUD and Hero; unbranded gold sword/shield                         | Resize to 128 px WebP; decorative `alt=""` beside the Guild name; static inline import for offline boot    | Selected 2026-09-15; size and validation recorded below after build |
+| asset-006 | `RpgLevelProgress` shield outline              | Project-authored SVG geometry, informed by `levels/`            | One Level marker with live DOM number beside authoritative XP progress, reused in HUD/Hero | No baked-in number, no rank meaning; SVG hidden from assistive technology; DOM Level label remains visible | Selected 2026-09-15                                                 |
+
+The numbered `levels/` candidates represent **Level**, not Rank. They are not
+shipped because their numbers are baked into the artwork. The reusable outline
+works for every engine-derived level. `numbered-week-icons/` is rejected because
+its baked-in week names/numbers disagree with the actual course (Scratch is
+Week 0). Module markers will use real course labels in DOM text.
+
+No source archive or candidate directory is copied into the repository.
+Production sizes and final offline checks are recorded with the completed
+selection below.
+
+`asset-005`: 128 × 128, **2,440 bytes**, WebP quality 85. Inspected at source
+resolution and in the desktop/mobile HUD and Hero. Build uses `?inline` so the
+existing service worker caches it with the boot JavaScript. Final offline
+acceptance will verify the decoded image after network disconnection.
+
 | ID        | File                                | Repo path                            | In-app use                                 | Source/origin                                                        | Rights/usage basis                               | Contains text? | Decorative? | Alt text / aria decision                                     | Size | Optimized? | Reviewer/date | Status           | Notes                                     |
 | --------- | ----------------------------------- | ------------------------------------ | ------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------ | -------------: | ----------: | ------------------------------------------------------------ | ---: | ---------: | ------------- | ---------------- | ----------------------------------------- |
 | asset-001 | rpg-emblem-code-knights-primary.svg | src/features/rpg/assets/emblems/     | Hub, Hero/Profile, optional Settings/About | Candidate from shield-badges or first-party generated replacement    | Must be first-party/owned; no CS50/Harvard marks |             No |          No | alt="Code Knights emblem"                                    |  TBD |        TBD | TBD           | Planned          | Sword/circuit/shield motif.               |

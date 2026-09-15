@@ -2279,9 +2279,7 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/hero') {
-      await screen.findByText(
-        'Read-only profile derived from local ProgressPal records.',
-      );
+      await screen.findByRole('heading', { name: "Alex's profile" });
       return;
     }
 
@@ -2356,12 +2354,22 @@ describe('RPG routes', () => {
       name: 'Persistent hero HUD',
     });
 
-    expect(within(heroHud).getByText('Hero HUD')).toBeInTheDocument();
+    expect(within(heroHud).getByText('Current quest')).toBeInTheDocument();
     expect(
       within(heroHud).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
     expect(within(heroHud).getByText('Level')).toBeInTheDocument();
-    expect(within(heroHud).getByText('Rank New Learner')).toBeInTheDocument();
+    expect(within(heroHud).getByText('New Learner')).toBeInTheDocument();
+    for (const label of [
+      'Guild',
+      'Code Knights',
+      'Class',
+      'Generalist',
+      'Path',
+      'CS Foundations',
+    ]) {
+      expect(within(heroHud).getByText(label)).toBeInTheDocument();
+    }
     expect(
       within(heroHud).getByRole('progressbar', {
         name: /XP progress to level/i,
@@ -2420,7 +2428,9 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Alex's status")).not.toBeInTheDocument();
     expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
-    expect(screen.getByText('Lecture 4: Memory')).toBeInTheDocument();
+    expect(
+      within(questPanel).getByRole('heading', { name: 'Lecture 4: Memory' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('30 min')).toBeInTheDocument();
     expect(screen.getAllByText('In progress').length).toBeGreaterThan(0);
     expect(screen.getByText('Progress snapshot')).toBeInTheDocument();
@@ -2472,7 +2482,9 @@ describe('RPG routes', () => {
     }
 
     expect(screen.getByText('Recommended first quest')).toBeInTheDocument();
-    expect(screen.getByText('Lecture 0: Scratch')).toBeInTheDocument();
+    expect(
+      within(questPanel).getByRole('heading', { name: 'Lecture 0: Scratch' }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText('No saved RPG activity yet'),
     ).not.toBeInTheDocument();
@@ -3427,7 +3439,9 @@ describe('RPG routes', () => {
       await renderAppAtRoute(hubPath);
       await screen.findByRole('heading', { name: 'RPG Hub' });
 
-      expect(await screen.findByText('Lecture 4: Memory')).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
+      ).toBeInTheDocument();
       expect(
         await screen.findByText(
           /Saved progress - Lecture 4: Memory \(started\)/,
@@ -3537,17 +3551,25 @@ describe('RPG routes', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Alex's profile")).toBeInTheDocument();
-    expect(screen.getByText('Rank:')).toBeInTheDocument();
-    expect(screen.getByText('New Learner')).toBeInTheDocument();
-    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
-    expect(screen.getByText('Generalist')).toBeInTheDocument();
-    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
     const identityPanel = screen
       .getByRole('heading', { name: "Alex's profile" })
       .closest('section');
 
     if (identityPanel === null) {
       throw new Error('Hero identity panel was not rendered.');
+    }
+
+    for (const label of [
+      'Rank:',
+      'New Learner',
+      'Path',
+      'CS Foundations',
+      'Class',
+      'Generalist',
+      'Guild',
+      'Code Knights',
+    ]) {
+      expect(within(identityPanel).getByText(label)).toBeInTheDocument();
     }
 
     expect(
@@ -3598,9 +3620,9 @@ describe('RPG routes', () => {
     expect(
       within(identityPanel).getByRole('link', { name: 'Edit profile' }),
     ).toHaveAttribute('href', '/rpg/settings');
-    expect(screen.getByText('Initiate')).toBeInTheDocument();
+    expect(within(identityPanel).getByText('Initiate')).toBeInTheDocument();
     expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('XP').length).toBeGreaterThan(0);
+    expect(within(identityPanel).getByText(/XP total$/)).toBeInTheDocument();
     expect(screen.getByText('Required course progress')).toBeInTheDocument();
     expect(screen.getByText('Local activity totals')).toBeInTheDocument();
     expect(screen.getByText('Study sessions')).toBeInTheDocument();

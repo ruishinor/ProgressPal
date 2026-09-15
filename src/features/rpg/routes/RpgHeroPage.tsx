@@ -3,14 +3,13 @@ import { startTransition, useEffect, useState } from 'react';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { formatMinutes } from '@/features/course/model';
-import { ProfileAvatar } from '@/features/profile';
 import {
   RpgButton,
   RpgEmptyState,
   RpgPanel,
   RpgProgressBar,
-  RpgRankBadge,
-  RpgStatusPill,
+  RpgHeroIdentity,
+  RpgLevelProgress,
 } from '@/features/rpg/components';
 import { loadRpgHeroProfileSummary } from '@/features/rpg/model/readModels';
 import type { RpgHeroProfileSummary } from '@/features/rpg/model/types';
@@ -35,17 +34,6 @@ const initialState: RpgHeroPageState = {
   status: 'loading',
   summary: null,
 };
-
-function getInitials(name: string) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('');
-
-  return initials.length > 0 ? initials : 'L';
-}
 
 export function RpgHeroPage() {
   const [state, setState] = useState<RpgHeroPageState>(initialState);
@@ -153,7 +141,7 @@ export function RpgHeroPage() {
           <p className="rpg-hero__eyebrow">RPG</p>
           <h1>Hero Profile</h1>
           <p className="rpg-hero__lede">
-            Read-only profile derived from local ProgressPal records.
+            Your study progress, milestones, and saved activity.
           </p>
         </div>
         <div className="rpg-hero__actions">
@@ -164,22 +152,6 @@ export function RpgHeroPage() {
         </div>
       </div>
 
-      {summary.hasLocalActivity ? null : (
-        <RpgEmptyState
-          action={
-            <div className="rpg-hero__actions">
-              <RpgButton href={rpgMapPath}>Open Campaign Map</RpgButton>
-              <RpgButton href={rpgRoutePath} variant="secondary">
-                Back to Hub
-              </RpgButton>
-            </div>
-          }
-          description="Save progress or finish a Focus Session to fill this profile with local XP, study time, badges, and recent activity."
-          eyebrow="New local profile"
-          title="No saved Hero activity yet"
-        />
-      )}
-
       <div className="rpg-hero__grid">
         <RpgPanel
           className="rpg-hero__identity"
@@ -188,50 +160,30 @@ export function RpgHeroPage() {
           variant="raised"
         >
           <div className="rpg-hero__identity-layout">
-            {summary.learnerAvatarConfig === null ? (
-              <div className="rpg-hero__avatar" aria-hidden="true">
-                {getInitials(summary.learnerName)}
-              </div>
-            ) : (
-              <ProfileAvatar
-                avatarConfig={summary.learnerAvatarConfig}
-                className="rpg-hero__avatar rpg-hero__avatar--profile"
-                label={`${summary.learnerName} hero avatar`}
-                size="lg"
-              />
-            )}
-            <div className="rpg-hero__identity-copy">
-              <RpgRankBadge rank={summary.identity.rankLabel} />
-              <RpgStatusPill tone="neutral">
-                {`Guild: ${summary.identity.guildLabel}`}
-              </RpgStatusPill>
-              <p className="rpg-hero__note">
-                Rank reflects local required-course progress only.
-              </p>
-              <RpgButton href={rpgSettingsPath} size="sm" variant="quiet">
-                Edit profile
-              </RpgButton>
-            </div>
+            <RpgHeroIdentity
+              avatarConfig={summary.learnerAvatarConfig}
+              identity={summary.identity}
+              name={summary.learnerName}
+              variant="profile"
+            />
+            <RpgLevelProgress xp={summary.xpSummary} />
           </div>
-          <dl className="rpg-hero__details">
-            <div>
-              <dt>Path</dt>
-              <dd>{summary.identity.pathLabel}</dd>
-            </div>
-            <div>
-              <dt>Class</dt>
-              <dd>{summary.identity.classLabel}</dd>
-            </div>
-            <div>
-              <dt>Level</dt>
-              <dd>{summary.xpSummary.level}</dd>
-            </div>
-            <div>
-              <dt>XP</dt>
-              <dd>{summary.xpSummary.totalXp}</dd>
-            </div>
-          </dl>
+          <p className="rpg-hero__note">
+            Rank reflects local required-course progress only.
+          </p>
+          <RpgButton href={rpgSettingsPath} size="sm" variant="quiet">
+            Edit profile
+          </RpgButton>
         </RpgPanel>
+
+        {summary.hasLocalActivity ? null : (
+          <RpgEmptyState
+            className="rpg-hero__recent"
+            action={<RpgButton href={rpgRoutePath}>Continue quest</RpgButton>}
+            description="Save progress or finish a Focus Session to build your XP, study time, and achievements."
+            title="No saved Hero activity yet"
+          />
+        )}
 
         <RpgPanel title="Required course progress" titleAs="h2">
           <RpgProgressBar

@@ -739,38 +739,7 @@
   align-items: center;
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.rpg-shell .rpg-hero__avatar {
-  align-items: center;
-  aspect-ratio: 1;
-  background: color-mix(in srgb, var(--rpg-accent) 20%, var(--rpg-surface));
-  border: 1px solid var(--rpg-border);
-  border-radius: 50%;
-  color: var(--rpg-accent-strong);
-  display: inline-grid;
-  font-size: var(--text-xl);
-  font-weight: 800;
-  justify-items: center;
-  min-width: 4.5rem;
-  width: 4.5rem;
-}
-
-.rpg-shell .rpg-hero__avatar--profile {
-  background: transparent;
-  padding: 0;
-}
-
-.rpg-shell .rpg-hero__identity-copy {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.rpg-shell .rpg-hero__identity-copy .rpg-hero__note {
-  flex-basis: 100%;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
 }
 
 .rpg-shell .rpg-hero__details {
@@ -1125,8 +1094,7 @@
   background: var(--rpg-warning);
 }
 
-.rpg-shell .rpg-status-pill,
-.rpg-shell .rpg-rank-badge {
+.rpg-shell .rpg-status-pill {
   align-items: center;
   background: color-mix(in srgb, var(--rpg-surface-raised) 72%, transparent);
   border: 1px solid var(--rpg-border);
@@ -1169,19 +1137,203 @@
 }
 
 .rpg-shell .rpg-rank-badge {
-  background: rgba(214, 173, 92, 0.14);
-  border-color: var(--rpg-border-strong);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.4;
   color: var(--rpg-accent-strong);
 }
 
-.rpg-shell .rpg-bottom-nav {
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--rpg-surface-raised) 18%, transparent),
-      transparent
-    ),
-    var(--color-surface);
+.rpg-rank-badge > span:first-child {
+  color: var(--rpg-text-muted);
+  font-weight: 400;
+}
+
+/* Identity and progression are shared by the persistent HUD and Hero profile. */
+.rpg-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.rpg-identity .rpg-identity__portrait {
+  width: 5.5rem;
+  height: 5.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rpg-border-strong);
+  border-radius: 50%;
+  color: var(--rpg-accent-strong);
+  font-weight: 800;
+  font-size: var(--text-xl);
+}
+
+.rpg-identity__copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.rpg-identity__name {
+  color: var(--rpg-text);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.rpg-identity__traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.rpg-identity__traits > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.rpg-identity__traits dt {
+  color: var(--rpg-text-muted);
+}
+.rpg-identity__traits dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.rpg-identity__guild {
+  flex-basis: 100%;
+}
+.rpg-identity__guild dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.rpg-identity__guild dd {
+  font-weight: 700;
+}
+.rpg-identity__guild img {
+  width: 1.5rem;
+  height: 1.5rem;
+  align-self: center;
+  mix-blend-mode: screen;
+}
+.rpg-identity__class dd {
+  color: var(--rpg-text);
+}
+.rpg-identity__path dd {
+  color: var(--rpg-text-muted);
+}
+.rpg-identity--profile .rpg-identity__portrait {
+  width: 7rem;
+  height: 7rem;
+}
+
+.rpg-level-progress {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.rpg-level-progress__marker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 3.75rem;
+  height: 4.5rem;
+  padding-bottom: 0.4rem;
+  color: var(--rpg-accent-strong);
+  flex-shrink: 0;
+}
+.rpg-level-progress__marker svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--rpg-surface-raised);
+  stroke: var(--rpg-accent);
+  stroke-width: 1.5;
+}
+.rpg-level-progress__marker span,
+.rpg-level-progress__marker strong {
+  position: relative;
+  line-height: 1.1;
+}
+.rpg-level-progress__marker span {
+  font-size: 0.7rem;
+}
+.rpg-level-progress__marker strong {
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.rpg-level-progress__xp {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.rpg-level-progress__total {
+  color: var(--rpg-text);
+  font-weight: 700;
+  margin: 0;
+}
+.rpg-level-progress__remaining {
+  color: var(--rpg-text-muted);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+/* The visible XP values label the group. Keep the full progressbar name for AT. */
+.rpg-level-progress__bar .rpg-progress-bar__header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.rpg-shell .rpg-level-progress__bar .rpg-progress-bar__track {
+  height: 0.55rem;
+}
+
+@media (max-width: 42rem) {
+  .rpg-identity .rpg-identity__portrait {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+  .rpg-level-progress__marker {
+    width: 2.65rem;
+    height: 3.2rem;
+  }
+  .rpg-level-progress__marker strong {
+    font-size: 1.25rem;
+  }
+  .rpg-level-progress__xp {
+    grid-template-columns: 1fr auto;
+    gap: 0.25rem 0.5rem;
+  }
+  .rpg-level-progress__total,
+  .rpg-level-progress__remaining {
+    font-size: 0.8125rem;
+  }
+  .rpg-level-progress__bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .rpg-level-progress__remaining {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .rpg-shell .rpg-quest-row {

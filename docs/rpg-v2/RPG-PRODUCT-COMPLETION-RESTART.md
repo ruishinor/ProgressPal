@@ -663,6 +663,24 @@ This is proposal-quality reasoning only, not runtime or release evidence.
 
 ## 9. Rolling completion status
 
+### 2026-09-15 final owner-review corrections
+
+C0-C5 are preserved. The owner review requested further identity/HUD, curated
+asset, responsive, copy, and acceptance work; it was not a final product GO.
+All review work stays local on `rpg/product-completion`. Remote preview, push,
+PR, merge, deployment, tags, and version changes require a later owner decision.
+
+- **Hero identity/HUD:** shared portrait/Rank/Guild/Class/Path vocabulary,
+  Level/XP object, complete current-quest text, recomposed mobile/tablet layout,
+  and repaired bottom-nav palette. Guild emblem: 2,440-byte 128 px WebP, statically
+  inlined for offline availability; Level uses an original SVG outline with DOM
+  text. Focused lint/type/build checks and 125 tests passed. The 21-test managed
+  browser rerun passed (retained `test-results/.last-run.json`); final full gates
+  remain pending. Desktop/390/768 screenshots were inspected outside the repo.
+- **Next:** curated achievement art, campaign position cues, confirmed stale HUD
+  after profile save, misleading theme description, remaining learner-facing
+  copy, populated-state QA, and final unchanged-tree acceptance.
+
 Update this section in the same concern-scoped commit that completes each
 module. Keep entries short.
 

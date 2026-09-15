@@ -2,8 +2,13 @@ import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
-import { ProfileAvatar } from '@/features/profile';
-import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
+import { formatMinutes } from '@/features/course/model';
+import {
+  RpgButton,
+  RpgPanel,
+  RpgHeroIdentity,
+  RpgLevelProgress,
+} from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
@@ -30,17 +35,6 @@ const initialHudState: RpgShellHudState = {
   summary: null,
 };
 
-function getHeroInitials(name: string) {
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('');
-
-  return initials || 'L';
-}
-
 function RpgHeroHud({
   onRetry,
   state,
@@ -59,7 +53,6 @@ function RpgHeroHud({
             !
           </div>
           <div className="rpg-hero-hud__identity">
-            <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
             <p className="rpg-hero-hud__name">Hero state unavailable</p>
             <p className="rpg-hero-hud__meta">
               {state.error ??
@@ -86,10 +79,8 @@ function RpgHeroHud({
           L
         </div>
         <div className="rpg-hero-hud__identity">
-          <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
-          <p className="rpg-hero-hud__name">Loading local hero state</p>
-          <p className="rpg-hero-hud__meta">
-            Reading the existing local RPG summary.
+          <p className="rpg-hero-hud__name" role="status">
+            Loading your Hero
           </p>
         </div>
       </section>
@@ -101,51 +92,28 @@ function RpgHeroHud({
   const currentQuestHref =
     currentQuest === null ? rpgMapPath : getRpgResourcePath(currentQuest.id);
   const currentQuestLabel =
-    currentQuest === null
-      ? 'No required quest pending'
-      : `Next: ${currentQuest.title}`;
+    currentQuest === null ? 'No required quest pending' : currentQuest.title;
 
   return (
     <section aria-label="Persistent hero HUD" className="rpg-hero-hud">
-      {summary.learnerAvatarConfig === null ? (
-        <div aria-hidden="true" className="rpg-hero-hud__avatar">
-          {getHeroInitials(summary.learnerName)}
-        </div>
-      ) : (
-        <ProfileAvatar
-          avatarConfig={summary.learnerAvatarConfig}
-          className="rpg-hero-hud__avatar rpg-hero-hud__avatar--profile"
-          label={`${summary.learnerName} hero avatar`}
-          size="sm"
-        />
-      )}
-
-      <div className="rpg-hero-hud__identity">
-        <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
-        <p className="rpg-hero-hud__name">{summary.learnerName}</p>
-        <p className="rpg-hero-hud__meta">
-          <span>{`Rank ${summary.identity.rankLabel}`}</span>
-          <span className="rpg-hero-hud__meta-detail">
-            {` - ${summary.identity.pathLabel} path / ${summary.identity.classLabel} class - ${summary.identity.guildLabel} guild`}
-          </span>
-        </p>
-      </div>
-
-      <div className="rpg-hero-hud__level" aria-label="Hero level">
-        <span>Level</span>
-        <strong>{summary.xpSummary.level}</strong>
-      </div>
-
-      <RpgProgressBar
-        className="rpg-hero-hud__xp"
-        helperText={`${summary.xpSummary.totalXp} XP total - ${summary.xpSummary.xpToNextLevel} XP to next level`}
-        label={`XP progress to level ${summary.xpSummary.level + 1}`}
-        value={summary.xpSummary.levelProgressPercent}
+      <RpgHeroIdentity
+        avatarConfig={summary.learnerAvatarConfig}
+        identity={summary.identity}
+        name={summary.learnerName}
       />
+      <RpgLevelProgress xp={summary.xpSummary} />
 
       <div className="rpg-hero-hud__quest">
-        <span>Current quest</span>
-        <strong>{currentQuestLabel}</strong>
+        <div className="rpg-hero-hud__quest-copy">
+          <p className="rpg-hero-hud__quest-label">Current quest</p>
+          <strong>{currentQuestLabel}</strong>
+          {currentQuest ? (
+            <p className="rpg-hero-hud__quest-context">
+              {currentQuest.unitTitle} /{' '}
+              {formatMinutes(currentQuest.estimatedMinutes)}
+            </p>
+          ) : null}
+        </div>
         <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
           {currentQuest === null ? 'Open map' : 'Continue quest'}
         </Link>

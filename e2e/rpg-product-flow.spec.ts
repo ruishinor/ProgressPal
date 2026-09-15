@@ -79,7 +79,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   const heroHud = page.getByRole('region', { name: 'Persistent hero HUD' });
 
   await expect(heroHud.getByText(/^40 XP total/)).toBeVisible();
-  await expect(heroHud.getByText('Next: Problem Set 0: Scratch')).toBeVisible();
+  await expect(heroHud.getByText('Problem Set 0: Scratch')).toBeVisible();
 
   const stores = await readRpgRewardStores(page);
 

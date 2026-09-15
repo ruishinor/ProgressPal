@@ -115,6 +115,22 @@ for (const viewport of mobileViewports) {
       ).toBeVisible({ timeout: 15000 });
       await expectReadableRpgHeaderSurface(page, route);
       await expectNoHorizontalOverflow(page, route.path);
+      const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
+      for (const identity of [
+        'New Learner',
+        'Guild',
+        'Code Knights',
+        'Class',
+        'Generalist',
+        'Path',
+        'CS Foundations',
+        '0 XP total',
+      ]) {
+        await expect(hud.getByText(identity, { exact: true })).toBeVisible();
+      }
+      if (viewport.width === 390) {
+        expect((await hud.boundingBox())!.height).toBeLessThan(310);
+      }
       await expect(
         page.getByRole('navigation', { name: 'RPG bottom navigation' }),
       ).toBeVisible();
