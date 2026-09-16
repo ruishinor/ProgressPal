@@ -4,7 +4,7 @@ ProgressPal is a local-first CS50x study tracker.
 
 The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The optional `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. Classic remains the default and can be opened deliberately from RPG.
 
-C0-C5 product-completion work is implemented on `rpg/product-completion`. Final owner-review corrections and acceptance evidence are tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Owner visual/product GO is pending; this branch is not a new production release.
+C0-C5 product-completion work and final owner-review corrections are frozen on `rpg/product-completion` at `freeze/rpg-product-completion-2026-09-16`, following the owner's commit/tag/freeze/push instruction. Acceptance evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. This repository checkpoint is not a new production release.
 
 ## Current product position
 
@@ -28,6 +28,17 @@ ProgressPal is not:
 - a media streaming interface.
 
 ## Release freeze status
+
+Frozen optional RPG completion checkpoint:
+
+```text
+freeze/rpg-product-completion-2026-09-16
+```
+
+The annotated tag identifies the final completion commit, including the freeze
+record. Runtime implementation is `5610da1`; package version remains `1.3.0`.
+Further implementation requires a new owner instruction. Classic remains the
+default; `master`, historical release tags, and production are unchanged.
 
 Frozen engine release:
 
@@ -142,7 +153,9 @@ npm run audit
 
 Preserve completed C0-C5 behavior, the shared local-first engine, and Classic's default entry. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
 
-Push, PR, merge, deployment, tags, and version changes need a later explicit owner decision.
+The owner authorized the completion branch and freeze tag to be pushed on
+2026-09-16. PR, merge, deployment, version changes, and RPG default promotion
+remain separate owner decisions.
 
 ## License
 

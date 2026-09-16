@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository. Read this before makin
 
 ## Project overview
 
-ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 is implemented; final owner-review corrections are tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Classic remains the default. Final owner visual/product GO is pending; do not restart historical release remediation or C0-C5.
+ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 and final owner-review corrections are frozen by owner instruction at `freeze/rpg-product-completion-2026-09-16`; evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Classic remains the default. Do not restart historical release remediation, C0-C5, or further product work without a new owner instruction.
 
 Product boundary (do not cross it):
 
@@ -13,7 +13,7 @@ Product boundary (do not cross it):
 - CS50x-focused study companion; not affiliated with Harvard, CS50, edX, or OpenCourseWare. Never add CS50/Harvard branding.
 - User data can be lost when browser storage is cleared — backup export/import is the mitigation, not sync.
 
-Current completion branch is `rpg/product-completion`; `master` is the default branch. Release tags, including `v1.3.0-local-first-proof`, are immutable historical records. Current authority permits local work and concern-scoped commits only; push, PR, merge, deployment, tags, and version changes require a later explicit owner decision.
+The frozen completion branch is `rpg/product-completion`; `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. On 2026-09-16 the owner authorized committing, tagging, freezing, and pushing this completion branch and tag. That instruction does not authorize a PR, merge, deployment, package-version change, or RPG default promotion; those remain separate owner decisions.
 
 ## Tech stack
 

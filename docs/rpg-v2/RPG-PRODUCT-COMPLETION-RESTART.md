@@ -1,8 +1,8 @@
 # ProgressPal RPG Product-Completion Restart
 
-Status: accepted for implementation with the 2026-08-12 execution-protocol corrections
+Status: completed and frozen by owner instruction on 2026-09-16
 
-Current checkpoint (2026-09-16): C0-C5 are preserved and final owner-review corrections are implemented locally. Section 9 records acceptance evidence and limitations. The remaining checkpoint is one owner visual/product GO; deployment is separately authorized.
+Current checkpoint (2026-09-16): the owner authorized commit, tag, freeze, and push of `rpg/product-completion` as `freeze/rpg-product-completion-2026-09-16`. C0-C5 and final owner-review corrections are preserved. Section 9 records acceptance evidence, limitations, and the freeze boundary. Further implementation, PR, merge, deployment, version changes, and RPG default promotion require separate owner instructions.
 
 Date: 2026-08-12
 
@@ -829,10 +829,31 @@ restart. The permanent app regression now covers that lifecycle; live developmen
 startup was checked separately. A successful screenshot capture does not establish
 that the owner's preview session can open the app.
 
-**Next:** one owner visual/product GO on the corrected live local preview. Remote
-Git actions, deployment, tags, version changes and default promotion remain outside
-this local completion authority. No physical-device, Firefox/WebKit, or manual
-screen-reader verification was added. CSS has 6 B remaining under its fixed budget.
+No physical-device, Firefox/WebKit, or manual screen-reader verification was added.
+CSS has 6 B remaining under its fixed budget.
+
+### 2026-09-16 owner-authorized repository freeze
+
+Owner instruction: "Commit, tag, freeze and push accordingly."
+
+- Freeze branch: `rpg/product-completion`.
+- Immutable annotated tag: `freeze/rpg-product-completion-2026-09-16`.
+- Validated runtime: `5610da1eee027055317ca9ce12c470d1e0368f44`, including startup
+  correction `493c363`. The freeze commit adds documentation only; the tag identifies
+  that complete checkpoint.
+- Acceptance: the 520 unit/integration tests, 59 browser tests, static/build/audit
+  checks and live preview observations above remain the evidence for this runtime.
+  The freeze documentation receives formatting and whitespace validation; repeated
+  runtime tests provide no additional evidence for this documentation-only commit.
+- Package version stays `1.3.0`. Existing engine release tags stay immutable.
+- Publish only the completion branch and this freeze tag to `origin`, together.
+  This is a repository freeze, with no new production or release-certification claim.
+- Stop implementation here. Further changes need a new owner instruction. PR,
+  merge to `master`, deployment, version changes, and RPG default promotion remain
+  separate decisions.
+
+**Next:** verify the pushed branch and annotated tag resolve to the same freeze
+commit. Preserve this checkpoint without further implementation.
 
 Update this section in the same concern-scoped commit that completes each
 module. Keep entries short.
@@ -883,10 +904,10 @@ Next: final acceptance
 
 ## 10. Completion boundary
 
-The current task ends when C0-C5 are preserved, final review corrections and
-ordinary automated/visual acceptance pass, and the branch is ready for one
-owner visual/product GO. Report local evidence and remaining limitations.
-Do not claim that live production has been updated.
+The owner authorized the completed branch to be committed, tagged, frozen, and
+pushed on 2026-09-16. The current task ends after the freeze commit and annotated
+tag are verified on `origin`. Preserve C0-C5, final review corrections, evidence,
+and limitations. Do not claim that live production has been updated.
 
 After a separately authorized future shipping step and production smoke, the
 shipping report may state:

@@ -2,7 +2,7 @@
 
 ProgressPal accepts changes only when they preserve the product boundary: local-first, single-user, CS50x-focused, honest progress tracking.
 
-Current work is final owner-review correction of the optional RPG experience over the frozen v1.3 engine. Read the latest owner instructions and `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` first. C0-C5 are implemented and must be preserved.
+The optional RPG experience and final owner-review corrections are frozen at `freeze/rpg-product-completion-2026-09-16` over the frozen v1.3 engine. Read the latest owner instructions and `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` first. Further implementation requires a new owner instruction; preserve C0-C5 and the validated corrections.
 
 Historical v1.3 remediation records:
 
@@ -50,7 +50,7 @@ If the answer to questions 1, 2, or 3 is no, do not build it.
 
 ## Branching
 
-Current product-completion branch:
+Frozen product-completion branch:
 
 ```text
 rpg/product-completion
@@ -64,7 +64,7 @@ v1.2.0-local-first-proof
 v1.2.1-local-first-proof
 ```
 
-Do not move historical tags. Do not create a new repository unless an accepted decision explicitly changes the plan.
+The owner authorized pushing `rpg/product-completion` and its annotated freeze tag on 2026-09-16. Do not move release or freeze tags. Do not create a new repository unless an accepted decision explicitly changes the plan. A PR, merge, deployment, version change, or RPG default promotion requires a separate owner decision.
 
 ## Module discipline
 
