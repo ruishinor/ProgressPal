@@ -45,6 +45,7 @@ export type RpgHubWeeklyProgress = {
 };
 
 export type RpgQuestSummary = {
+  rewardLabel: string;
   estimatedMinutes: number;
   id: string;
   longFormProgress: CourseLongFormProgress | null;
@@ -155,6 +156,7 @@ export type RpgHeroProfileSummary = {
 };
 
 export type RpgStudyResourceSummary = {
+  rewardLabel: string;
   estimatedMinutesLabel: string;
   itemId: string;
   itemType: CourseItemType;

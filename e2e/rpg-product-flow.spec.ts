@@ -30,6 +30,15 @@ test('RPG settings refresh identity immediately and explain the Classic theme pr
   ).toHaveText('Morgan');
   await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
+  await page.reload();
+  await expect(
+    page.locator('.rpg-identity--profile .rpg-identity__name'),
+  ).toHaveText('Morgan');
+  await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
+  await page.goto('/rpg/settings');
+  await expect(page.getByLabel('Display name')).toHaveValue('Morgan');
+  expect(await readRpgRewardStores(page)).toEqual(storesBefore);
+  await page.goto('/rpg/hero');
   await page
     .getByRole('link', { name: 'Open Classic dashboard', exact: true })
     .click();
@@ -158,6 +167,12 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await page.setViewportSize({ height: 900, width: 1280 });
   await completeOnboarding(page);
   await page.goto('/rpg/resource/week-0-lecture');
+  await expect(
+    page.locator('.rpg-study-resource__header .rpg-quest-reward'),
+  ).toHaveText('+40 XP on completion');
+  await expect(page.locator('.rpg-hero-hud .rpg-quest-reward')).toHaveText(
+    '+40 XP on completion',
+  );
 
   await expect(
     page.getByRole('heading', { exact: true, name: 'Lecture 0: Scratch' }),
@@ -175,6 +190,9 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   ).toBeVisible();
   await expect(feedback.getByText('Local status: Completed')).toBeVisible();
   await expect(feedback.getByText('XP awarded: 40')).toBeVisible();
+  await expect(
+    page.locator('.rpg-study-resource__header .rpg-quest-reward'),
+  ).toHaveText('Task XP earned');
   await expect(
     feedback.getByText('Achievement unlocked: First Step'),
   ).toBeVisible();

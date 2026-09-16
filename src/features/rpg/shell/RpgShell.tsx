@@ -108,6 +108,9 @@ function RpgHeroHud({
           <p className="rpg-hero-hud__quest-label">Current quest</p>
           <strong>{currentQuestLabel}</strong>
           {currentQuest ? (
+            <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
+          ) : null}
+          {currentQuest ? (
             <p className="rpg-hero-hud__quest-context">
               {currentQuest.unitTitle} /{' '}
               {formatMinutes(currentQuest.estimatedMinutes)}

@@ -776,9 +776,63 @@ scrolled behind navigation; direct Tab geometry isolated the fix to root scroll
 padding. CSS consolidation required visual inspection as well as a size check;
 the selector repair demonstrates why a passing build is not visual acceptance.
 
-**Next:** one owner visual/product GO. No engineering blocker is currently known;
-remote Git actions, deployment, tags, version changes and default promotion remain
-outside this local completion authority.
+### 2026-09-16 preview follow-up — latest checkpoint
+
+The owner subsequently reported a misaligned Guild value, missing quest XP
+incentives, and a localhost startup failure. The earlier screenshot checkpoint
+was not successful owner preview acceptance.
+
+- **Guild:** vertically center the existing trait rows so the Guild emblem/label
+  and name align in both shared HUD and Hero identity instances.
+- **Quest incentive:** show remaining task XP in the HUD, Hub, Week task list and
+  Resource header. A pure read model calls the existing reward evaluator and
+  excludes ledger entries by the same source type/id pair used by the save path.
+  Problem-set totals explicitly say "through acceptance"; the README/demo reward
+  states its shared condition. A currently available week bonus is separate.
+  Already-earned rewards are not offered again after a progress reversal. No XP
+  rules, schema, writes, or dependency changes were introduced.
+- **Custom name:** onboarding and Settings already expose Display name. Added
+  browser coverage for saving a custom name, reloading, revisiting Settings and
+  Hero, and preserving the reward stores.
+- **Startup:** reproduced the exact stale-startup message under React StrictMode.
+  A stopped effect's ready callback could resume under its replacement's active
+  flag. The replacement could also inherit stale writer status before a database
+  existed; the attempted freshness read then required a guarded database-creation
+  write. Cancel callbacks per effect session and prove database absence using
+  IndexedDB's database listing before opening it. Revision validation and Web
+  Locks remain authoritative; no data clearing or lock bypass is involved.
+  Startup correction and lifecycle tests are committed as `493c363`.
+- **Regression evidence:** the new StrictMode test failed before the fix and now
+  passes for fresh and existing closed databases, including a subsequent profile
+  save. Full unit/integration run: **520 tests / 50 files passed**. Lint, format,
+  typecheck, production build, circular-dependency check and audit passed (zero
+  reported vulnerabilities). Bundle check passed: CSS **9,994 B gzip**, JavaScript
+  **254,482 B gzip**, largest JavaScript chunk **320,329 B raw**, no source maps.
+  Full managed production browser suite: **59 passed**, including accessibility,
+  cross-tab ownership/recovery, backup/import/reset, XP and offline scenarios;
+  no skipped or retried tests. Terminal color-environment notices are unchanged
+  and do not affect browser results.
+- **Live development preview:** synthetic Chromium checks at `localhost:5173`
+  passed startup, onboarding-name persistence and Settings-name persistence after
+  reload. Twelve Hub/Week/Resource/Hero layout cases at 320/390/1280 px have no
+  horizontal overflow; Guild label/value centers differ by less than one pixel.
+  No browser console errors were observed. The existing in-app browser profile
+  also reopened successfully and displays the RPG Hub with the new quest reward.
+
+Evidence remains outside the repository in the same visualization directory:
+`owner-followup-unit.log`, `owner-followup-e2e.log`, and
+`owner-followup/` (synthetic screenshots and `results.json`). The dev server is
+left available for local owner review. This does not update production.
+
+Retrospective: production-only browser tests do not exercise StrictMode's effect
+restart. The permanent app regression now covers that lifecycle; live development
+startup was checked separately. A successful screenshot capture does not establish
+that the owner's preview session can open the app.
+
+**Next:** one owner visual/product GO on the corrected live local preview. Remote
+Git actions, deployment, tags, version changes and default promotion remain outside
+this local completion authority. No physical-device, Firefox/WebKit, or manual
+screen-reader verification was added. CSS has 6 B remaining under its fixed budget.
 
 Update this section in the same concern-scoped commit that completes each
 module. Keep entries short.

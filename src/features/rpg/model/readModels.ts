@@ -23,6 +23,7 @@ import {
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
 import { calculateXpSummary } from '@/lib/xp/engine';
+import { buildQuestRewardLabel } from './questRewards';
 
 import type {
   RpgBadgeGallerySummary,
@@ -127,8 +128,10 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
 function buildQuestSummary(
   unit: CourseMapUnit,
   item: CourseMapItem,
+  snapshot: DatabaseSnapshot,
 ): RpgQuestSummary {
   return {
+    rewardLabel: buildQuestRewardLabel(snapshot, item.id),
     estimatedMinutes: item.estimatedMinutes,
     id: item.id,
     longFormProgress: item.longFormProgress,
@@ -147,7 +150,10 @@ function buildQuestSummary(
   };
 }
 
-function buildModuleSummary(unit: CourseMapUnit): RpgModuleSummary {
+function buildModuleSummary(
+  unit: CourseMapUnit,
+  snapshot: DatabaseSnapshot,
+): RpgModuleSummary {
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
     completionPercent: unit.completionPercent,
@@ -155,7 +161,7 @@ function buildModuleSummary(unit: CourseMapUnit): RpgModuleSummary {
     id: unit.id,
     itemCount: unit.itemCount,
     officialLink: toRpgOfficialLink(getCs50UnitLink(unit.id)),
-    quests: unit.items.map((item) => buildQuestSummary(unit, item)),
+    quests: unit.items.map((item) => buildQuestSummary(unit, item, snapshot)),
     requiredItemCount: unit.requiredItemCount,
     statusLabel: unit.statusLabel,
     statusVariant: unit.statusVariant,
@@ -399,7 +405,9 @@ export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
 ): RpgCourseMapSummary {
   const { courseMap } = buildCourseMapContext(snapshot);
-  const modules = courseMap.units.map((unit) => buildModuleSummary(unit));
+  const modules = courseMap.units.map((unit) =>
+    buildModuleSummary(unit, snapshot),
+  );
   const continueQuest = selectContinueQuest(modules);
 
   return {
@@ -421,7 +429,7 @@ export function buildRpgModuleSummary(
   const { courseMap } = buildCourseMapContext(snapshot);
   const unit = courseMap.units.find((candidate) => candidate.id === unitId);
 
-  return unit === undefined ? null : buildModuleSummary(unit);
+  return unit === undefined ? null : buildModuleSummary(unit, snapshot);
 }
 
 export function buildRpgHubSummary(
@@ -491,8 +499,10 @@ function buildStudyResourceFromDetail(
   item: CourseItem,
   progressEntry: ProgressEntry | null,
   unitId: string,
+  rewardLabel: string,
 ): RpgStudyResourceSummary {
   return {
+    rewardLabel,
     estimatedMinutesLabel: detail.estimatedMinutesLabel,
     itemId: detail.itemId,
     itemType: item.type,
@@ -548,7 +558,13 @@ export function buildRpgStudyResourceSummary(
     getLongFormProgressForItem(snapshot, item.id),
   );
 
-  return buildStudyResourceFromDetail(detail, item, progressEntry, unit.id);
+  return buildStudyResourceFromDetail(
+    detail,
+    item,
+    progressEntry,
+    unit.id,
+    buildQuestRewardLabel(snapshot, item.id),
+  );
 }
 
 export function buildRpgFocusSessionSummary(

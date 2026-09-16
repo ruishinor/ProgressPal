@@ -292,6 +292,7 @@ export function RpgModulePage() {
                   quest.estimatedMinutes,
                 )}`}
                 requiredLabel={quest.required ? 'Required' : 'Optional'}
+                rewardLabel={quest.rewardLabel}
                 status={
                   <RpgStatusPill tone={getStatusTone(quest.statusVariant)}>
                     {quest.statusLabel}

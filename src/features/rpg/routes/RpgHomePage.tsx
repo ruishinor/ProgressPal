@@ -214,6 +214,7 @@ export function RpgHomePage() {
                   {newUser ? 'Recommended first quest' : 'Next required quest'}
                 </p>
                 <h3>{currentQuest.title}</h3>
+                <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
                 <p className="rpg-hub__quest-meta">
                   {`${currentQuest.unitTitle} - ${currentQuest.typeLabel} - ${formatMinutes(
                     currentQuest.estimatedMinutes,

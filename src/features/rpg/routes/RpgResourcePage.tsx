@@ -480,6 +480,7 @@ export function RpgResourcePage() {
             Study Resource
           </p>
           <h1>{summary.title}</h1>
+          <p className="rpg-quest-reward">{summary.rewardLabel}</p>
           <p className="rpg-study-resource__lede rpg-page-lede">
             {summary.unitTitle}
           </p>

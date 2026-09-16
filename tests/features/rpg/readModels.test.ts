@@ -124,6 +124,99 @@ describe('RPG read models', () => {
     return result;
   }
 
+  it('previews unearned task XP consistently without writing or re-offering earned rewards', async () => {
+    const db = await createSeededRpgDatabase();
+    const resource = await expectReadOnly(() =>
+      loadRpgStudyResourceSummary('week-4-lecture', { db }),
+    );
+    expect(resource?.rewardLabel).toBe('+40 XP on completion');
+    expect((await loadRpgHubSummary({ db })).continueQuest?.rewardLabel).toBe(
+      resource?.rewardLabel,
+    );
+    expect(
+      (await loadRpgModuleSummary('week-4', { db }))?.quests.find(
+        (quest) => quest.id === 'week-4-lecture',
+      )?.rewardLabel,
+    ).toBe(resource?.rewardLabel);
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
+      { db },
+    );
+    // Moving progress backwards never makes the once-only award available again.
+    await upsertProgress(
+      { itemId: 'week-4-lecture', status: 'started', confidence: 3 },
+      { db },
+    );
+    expect(
+      (
+        await expectReadOnly(() =>
+          loadRpgStudyResourceSummary('week-4-lecture', { db }),
+        )
+      )?.rewardLabel,
+    ).toBe('Task XP earned');
+  });
+
+  it('shows the remaining problem-set milestones and a separate once-only week bonus', async () => {
+    const db = await createSeededRpgDatabase();
+    const itemId = 'week-0-problem-set';
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe('+220 XP through acceptance · +150 XP week completion bonus');
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'started', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe('+200 XP through acceptance · +150 XP week completion bonus');
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'submitted', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe('+125 XP through acceptance');
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'accepted', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await expectReadOnly(() => loadRpgStudyResourceSummary(itemId, { db })))
+        ?.rewardLabel,
+    ).toBe('Task XP earned');
+  });
+
+  it('labels the shared final-project reward condition and removes it from both tasks once earned', async () => {
+    const db = await createSeededRpgDatabase();
+    const itemIds = ['final-project-readme', 'final-project-video-demo'];
+    for (const itemId of itemIds) {
+      expect(
+        (
+          await expectReadOnly(() =>
+            loadRpgStudyResourceSummary(itemId, { db }),
+          )
+        )?.rewardLabel,
+      ).toBe('+200 XP when README + demo are complete (shared reward)');
+      await upsertProgressAndAwardXp(
+        { itemId, status: 'completed', confidence: 3 },
+        { db },
+      );
+    }
+    for (const itemId of itemIds) {
+      expect(
+        (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+      ).toBe('Task XP earned');
+    }
+    expect(
+      (await loadRpgStudyResourceSummary('final-project-build', { db }))
+        ?.rewardLabel,
+    ).toBe('+250 XP on completion');
+    expect(
+      (await loadRpgStudyResourceSummary('final-project-submit50', { db }))
+        ?.rewardLabel,
+    ).toBe('No task XP');
+  });
+
   it('loads a hub summary from real progress, sessions, XP, and course data without mutation', async () => {
     const db = await createSeededRpgDatabase();
 

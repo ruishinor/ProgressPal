@@ -926,7 +926,7 @@
 .rpg-identity__traits > div {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 0.35rem;
 }
 .rpg-identity__traits dd {
@@ -943,6 +943,13 @@
 }
 .rpg-identity__guild dd {
   font-weight: 700;
+}
+
+.rpg-quest-reward {
+  color: var(--rpg-accent-strong);
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0;
 }
 .rpg-identity__guild img {
   width: 1.5rem;
