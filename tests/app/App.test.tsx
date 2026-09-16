@@ -2,12 +2,14 @@ import {
   act,
   cleanup,
   fireEvent,
+  render,
   screen,
   waitFor,
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Dexie from 'dexie';
+import { StrictMode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildBackupEnvelope } from '@/lib/backup';
@@ -27,6 +29,7 @@ import {
 import { getSharedDatabase } from '@/lib/db/database';
 import { achievementDefinitions } from '@/lib/achievements';
 import { router } from '@/app/router/router';
+import { App } from '@/app/App';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
   getLocalCoordinationStatus,
@@ -80,6 +83,40 @@ async function holdPeerTabLocks() {
 }
 
 describe('App', () => {
+  it.each(['fresh', 'existing'])(
+    'finishes %s startup after the StrictMode coordination restart',
+    async (storage) => {
+      if (storage === 'existing') {
+        await initializeDatabase({ seed: bundledCourseSeed });
+        getSharedDatabase().close();
+      }
+      await router.navigate('/');
+      render(
+        <StrictMode>
+          <App />
+        </StrictMode>,
+      );
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'Start tracking CS50 locally',
+        }),
+      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(getLocalCoordinationStatus().canWrite).toBe(true);
+      });
+      await userEvent
+        .setup()
+        .click(screen.getByRole('button', { name: 'Use default learner' }));
+      expect(
+        await screen.findByRole('heading', { name: 'Dashboard' }),
+      ).toBeInTheDocument();
+      expect((await getDatabaseSnapshot()).learnerProfile?.displayName).toBe(
+        'Learner',
+      );
+    },
+  );
+
   it('redirects a fresh run to onboarding', async () => {
     await renderAppAtRoute('/');
 
