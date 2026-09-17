@@ -215,7 +215,7 @@ export function RpgModulePage() {
           <p className="rpg-week__lede rpg-page-lede">
             {`${summary.typeLabel} - ${formatMinutes(
               summary.estimatedMinutes,
-            )} planned from real local course data.`}
+            )} estimated study time.`}
           </p>
         </div>
         <div className="rpg-week__actions">

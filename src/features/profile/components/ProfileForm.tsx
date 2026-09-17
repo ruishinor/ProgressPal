@@ -162,7 +162,7 @@ export function ProfileForm({
           <div className="form-grid">
             <FormField
               controlId={`${fieldPrefix}-display-name`}
-              description="Used only inside this local app shell."
+              description="The name shown in ProgressPal on this device."
               error={errors.displayName}
               label="Display name"
               required

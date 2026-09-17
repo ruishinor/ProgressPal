@@ -1,5 +1,11 @@
-import { useCallback, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { useLocation, useOutletContext } from 'react-router-dom';
 
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
@@ -16,8 +22,9 @@ type RpgFocusSaveFeedback = {
   durationMinutes: number;
   level: number;
   levelProgressPercent: number | null;
-  nextActionHref: string;
-  nextActionLabel: string;
+  nextActionHref: string | null;
+  nextActionLabel: string | null;
+  refreshStatus: 'loading' | 'ready' | 'error';
   totalXp: number;
   xpAdded: number;
   xpToNextLevel: number;
@@ -27,12 +34,66 @@ type RpgFocusSaveFeedback = {
 // and reward feedback present the authoritative save result without new writes.
 export function RpgFocusPage() {
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
+  const { key: pageKey } = useLocation();
+  const activePageKey = useRef<string | null>(pageKey);
   const [saveFeedback, setSaveFeedback] = useState<RpgFocusSaveFeedback | null>(
     null,
   );
+  const refreshVersion = useRef(0);
+  useEffect(() => {
+    activePageKey.current = pageKey;
+    startTransition(() => setSaveFeedback(null));
+
+    return () => {
+      activePageKey.current = null;
+      refreshVersion.current += 1;
+    };
+  }, [pageKey]);
+  const refreshProgressSummary = useCallback(
+    async (feedback: RpgFocusSaveFeedback) => {
+      const version = ++refreshVersion.current;
+      setSaveFeedback({ ...feedback, refreshStatus: 'loading' });
+      refreshHud();
+
+      try {
+        const hubSummary = await loadRpgHubSummary();
+        if (version !== refreshVersion.current) {
+          return;
+        }
+        const recommendation = hubSummary.recommendation;
+        const nextQuest = recommendation.quest;
+        setSaveFeedback({
+          ...feedback,
+          level: hubSummary.xpSummary.level,
+          levelProgressPercent: hubSummary.xpSummary.levelProgressPercent,
+          nextActionHref:
+            nextQuest === null ? rpgMapPath : getRpgResourcePath(nextQuest.id),
+          nextActionLabel:
+            nextQuest === null
+              ? 'Open Campaign Map'
+              : `${recommendation.state === 'needs_attention' ? 'Review blocked quest' : 'Continue quest'}: ${nextQuest.title}`,
+          refreshStatus: 'ready',
+          totalXp: hubSummary.xpSummary.totalXp,
+          xpToNextLevel: hubSummary.xpSummary.xpToNextLevel,
+        });
+      } catch (loadError) {
+        console.error(
+          'RPG Focus next-quest feedback could not be refreshed.',
+          loadError,
+        );
+        if (version === refreshVersion.current) {
+          setSaveFeedback({ ...feedback, refreshStatus: 'error' });
+        }
+      }
+    },
+    [refreshHud],
+  );
   const handleProgressSaved = useCallback(
     (result: StudySessionSaveResult) => {
-      refreshHud();
+      if (activePageKey.current !== pageKey) {
+        refreshHud();
+        return;
+      }
 
       const xpAdded = result.awardedTransactions.reduce(
         (total, transaction) => total + transaction.xp,
@@ -49,42 +110,17 @@ export function RpgFocusPage() {
         durationMinutes: result.studySession.durationMinutes,
         level: result.xpSummary.level,
         levelProgressPercent: null,
-        nextActionHref: rpgMapPath,
-        nextActionLabel: 'Open Campaign Map',
+        nextActionHref: null,
+        nextActionLabel: null,
+        refreshStatus: 'loading',
         totalXp: result.xpSummary.totalXp,
         xpAdded,
         xpToNextLevel: result.xpSummary.xpToNextLevel,
       } satisfies RpgFocusSaveFeedback;
 
-      void loadRpgHubSummary()
-        .then((hubSummary) => {
-          const nextQuest = hubSummary.continueQuest;
-
-          setSaveFeedback({
-            ...baseFeedback,
-            level: hubSummary.xpSummary.level,
-            levelProgressPercent: hubSummary.xpSummary.levelProgressPercent,
-            nextActionHref:
-              nextQuest === null
-                ? rpgMapPath
-                : getRpgResourcePath(nextQuest.id),
-            nextActionLabel:
-              nextQuest === null
-                ? 'Open Campaign Map'
-                : `Continue quest: ${nextQuest.title}`,
-            totalXp: hubSummary.xpSummary.totalXp,
-            xpToNextLevel: hubSummary.xpSummary.xpToNextLevel,
-          });
-        })
-        .catch((loadError: unknown) => {
-          console.error(
-            'RPG Focus next-quest feedback could not be refreshed.',
-            loadError,
-          );
-          setSaveFeedback(baseFeedback);
-        });
+      void refreshProgressSummary(baseFeedback);
     },
-    [refreshHud],
+    [pageKey, refreshHud, refreshProgressSummary],
   );
 
   const feedbackPanel =
@@ -104,7 +140,7 @@ export function RpgFocusPage() {
           <p>{`Achievement unlocked: ${saveFeedback.achievementNames.join(', ')}`}</p>
         ) : null}
         {saveFeedback.levelProgressPercent === null ? (
-          <p>{`Level ${saveFeedback.level}: ${saveFeedback.totalXp} XP total, ${saveFeedback.xpToNextLevel} XP to next level.`}</p>
+          <p>{`At save: Level ${saveFeedback.level}, ${saveFeedback.totalXp} XP total, ${saveFeedback.xpToNextLevel} XP to next level.`}</p>
         ) : (
           <RpgProgressBar
             helperText={`${saveFeedback.totalXp} XP total - ${saveFeedback.xpToNextLevel} XP to next level`}
@@ -112,9 +148,28 @@ export function RpgFocusPage() {
             value={saveFeedback.levelProgressPercent}
           />
         )}
-        <RpgButton href={saveFeedback.nextActionHref} variant="secondary">
-          {saveFeedback.nextActionLabel}
-        </RpgButton>
+        {saveFeedback.refreshStatus === 'error' ? (
+          <>
+            <p>
+              Your session is saved locally. The current progression and next
+              quest could not be refreshed.
+            </p>
+            <RpgButton
+              onClick={() => {
+                void refreshProgressSummary(saveFeedback);
+              }}
+              variant="secondary"
+            >
+              Refresh progress summary
+            </RpgButton>
+          </>
+        ) : saveFeedback.refreshStatus === 'loading' ? (
+          <p>Refreshing the progress summary…</p>
+        ) : saveFeedback.nextActionHref !== null ? (
+          <RpgButton href={saveFeedback.nextActionHref} variant="secondary">
+            {saveFeedback.nextActionLabel}
+          </RpgButton>
+        ) : null}
       </RpgPanel>
     );
 

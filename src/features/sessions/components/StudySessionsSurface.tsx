@@ -1,6 +1,7 @@
 import {
   startTransition,
   useEffect,
+  useRef,
   useState,
   type ComponentProps,
   type FormEvent,
@@ -57,7 +58,7 @@ import {
   listStudySessions,
   type AddStudySessionWithXpResult,
 } from '@/lib/db';
-import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same study-session surface renders in two shells: the classic Study
 // Sessions route and the RPG Focus route. Only the section wrapper and the
@@ -127,13 +128,6 @@ function nowClockSnapshot() {
   return {
     iso: new Date().toISOString(),
     milliseconds: Date.now(),
-  };
-}
-
-function createSelectionState(itemId: string, unitId: string) {
-  return {
-    itemId,
-    unitId,
   };
 }
 
@@ -214,6 +208,14 @@ export function StudySessionsSurface({
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [historyRefreshStatus, setHistoryRefreshStatus] = useState<
+    'ready' | 'loading' | 'error'
+  >('ready');
+  const saveInFlight = useRef(false);
+  const savedManualDraft = useRef<ManualSessionFormValues | null>(null);
+  const savedLiveDraft = useRef<LiveSessionState | null>(null);
+  const historyRefreshVersion = useRef(0);
+  const pageVersion = useRef(0);
   const [timerTickMilliseconds, setTimerTickMilliseconds] = useState(() =>
     Date.now(),
   );
@@ -222,6 +224,10 @@ export function StudySessionsSurface({
 
   useEffect(() => {
     let isActive = true;
+    pageVersion.current += 1;
+    saveInFlight.current = false;
+    savedManualDraft.current = null;
+    savedLiveDraft.current = null;
 
     startTransition(() => {
       setPageState(initialPageState);
@@ -241,6 +247,26 @@ export function StudySessionsSurface({
             error: null,
             status: 'ready',
           });
+          setManualForm(
+            createManualSessionFormValues(
+              new Date(),
+              data.prefilledItemId,
+              data.lockedUnitId ?? '',
+            ),
+          );
+          setManualErrors({});
+          setManualIsSaving(false);
+          setLiveSession(
+            createIdleLiveSession(
+              data.prefilledItemId,
+              data.lockedUnitId ?? '',
+            ),
+          );
+          setLiveErrors({});
+          setLiveIsSaving(false);
+          setShowDiscardDialog(false);
+          setHistoryRefreshStatus('ready');
+          setToast(null);
         });
       } catch (loadError) {
         if (!isActive) {
@@ -264,35 +290,10 @@ export function StudySessionsSurface({
 
     return () => {
       isActive = false;
+      pageVersion.current += 1;
+      historyRefreshVersion.current += 1;
     };
   }, [prefilledItemId, reloadToken]);
-
-  useEffect(() => {
-    if (pageState.data === null) {
-      return;
-    }
-
-    const nextSelection = createSelectionState(
-      pageState.data.prefilledItemId,
-      pageState.data.lockedUnitId ?? '',
-    );
-
-    setManualForm(
-      createManualSessionFormValues(
-        new Date(),
-        nextSelection.itemId,
-        nextSelection.unitId,
-      ),
-    );
-    setManualErrors({});
-    setManualIsSaving(false);
-    setLiveSession(
-      createIdleLiveSession(nextSelection.itemId, nextSelection.unitId),
-    );
-    setLiveErrors({});
-    setLiveIsSaving(false);
-    setShowDiscardDialog(false);
-  }, [pageState.data]);
 
   useEffect(() => {
     if (liveSession.phase !== 'running') {
@@ -412,14 +413,65 @@ export function StudySessionsSurface({
       ? null
       : getCourseItemDetailPath(liveSession.itemId);
 
-  function resetPageStateAfterSave() {
-    setReloadToken((currentToken) => currentToken + 1);
+  async function refreshSessionHistory() {
+    const version = ++historyRefreshVersion.current;
+    setHistoryRefreshStatus('loading');
+    try {
+      const sessions = await listStudySessions();
+      if (version !== historyRefreshVersion.current) {
+        return;
+      }
+      setPageState((current) =>
+        current.data === null
+          ? current
+          : {
+              ...current,
+              data: {
+                ...current.data,
+                ledgerRows: buildSessionLedgerRows(
+                  sessions,
+                  current.data.catalog,
+                ),
+              },
+            },
+      );
+      setHistoryRefreshStatus('ready');
+    } catch (loadError) {
+      console.error('Saved session history could not be refreshed.', loadError);
+      if (version === historyRefreshVersion.current) {
+        setHistoryRefreshStatus('error');
+      }
+    }
+  }
+
+  function showSavedSession(result: StudySessionSaveResult) {
+    const xpAdded = result.awardedTransactions.reduce(
+      (sum, tx) => sum + tx.xp,
+      0,
+    );
+    const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
+    if (!isRpgVariant) {
+      setToast({
+        description: `Session saved.${xpToastSuffix}`,
+        title: 'Session saved',
+        tone: 'success',
+      });
+    } else {
+      setToast(null);
+    }
+    onProgressSaved?.(result);
+    void refreshSessionHistory();
   }
 
   async function handleManualSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (manualForm === null || manualIsSaving) {
+    if (
+      manualForm === null ||
+      !coordination.canWrite ||
+      saveInFlight.current ||
+      savedManualDraft.current === manualForm
+    ) {
       return;
     }
 
@@ -436,29 +488,19 @@ export function StudySessionsSurface({
     }
 
     setManualIsSaving(true);
+    const version = pageVersion.current;
+    saveInFlight.current = true;
 
+    let xpResult: StudySessionSaveResult;
     try {
-      const xpResult = await runLocalMutation(
+      xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
         { invalidateRoute: false },
       );
-      const xpAdded = xpResult.awardedTransactions.reduce(
-        (sum, tx) => sum + tx.xp,
-        0,
-      );
-      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      if (!isRpgVariant) {
-        setToast({
-          description: `Session saved.${xpToastSuffix}`,
-          title: 'Session saved',
-          tone: 'success',
-        });
-      } else {
-        setToast(null);
-      }
-      onProgressSaved?.(xpResult);
-      resetPageStateAfterSave();
     } catch (saveError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
       setManualErrors({
         itemId:
           saveError instanceof Error
@@ -466,11 +508,35 @@ export function StudySessionsSurface({
             : 'The study session could not be saved.',
       });
       setManualIsSaving(false);
+      saveInFlight.current = false;
+      return;
     }
+
+    if (version !== pageVersion.current) {
+      onProgressSaved?.(xpResult);
+      void refreshSessionHistory();
+      return;
+    }
+
+    savedManualDraft.current = manualForm;
+    setManualForm(
+      createManualSessionFormValues(
+        new Date(),
+        pageState.data!.prefilledItemId,
+        lockedUnitId ?? '',
+      ),
+    );
+    setManualIsSaving(false);
+    showSavedSession(xpResult);
+    saveInFlight.current = false;
   }
 
   async function handleLiveSave() {
-    if (liveIsSaving) {
+    if (
+      !coordination.canWrite ||
+      saveInFlight.current ||
+      savedLiveDraft.current === liveSession
+    ) {
       return;
     }
 
@@ -483,29 +549,19 @@ export function StudySessionsSurface({
     }
 
     setLiveIsSaving(true);
+    const version = pageVersion.current;
+    saveInFlight.current = true;
 
+    let xpResult: StudySessionSaveResult;
     try {
-      const xpResult = await runLocalMutation(
+      xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
         { invalidateRoute: false },
       );
-      const xpAdded = xpResult.awardedTransactions.reduce(
-        (sum, tx) => sum + tx.xp,
-        0,
-      );
-      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      if (!isRpgVariant) {
-        setToast({
-          description: `Session saved.${xpToastSuffix}`,
-          title: 'Session saved',
-          tone: 'success',
-        });
-      } else {
-        setToast(null);
-      }
-      onProgressSaved?.(xpResult);
-      resetPageStateAfterSave();
     } catch (saveError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
       setLiveErrors({
         itemId:
           saveError instanceof Error
@@ -513,7 +569,26 @@ export function StudySessionsSurface({
             : 'The live study session could not be saved.',
       });
       setLiveIsSaving(false);
+      saveInFlight.current = false;
+      return;
     }
+
+    if (version !== pageVersion.current) {
+      onProgressSaved?.(xpResult);
+      void refreshSessionHistory();
+      return;
+    }
+
+    savedLiveDraft.current = liveSession;
+    setLiveSession(
+      createIdleLiveSession(
+        pageState.data!.prefilledItemId,
+        lockedUnitId ?? '',
+      ),
+    );
+    setLiveIsSaving(false);
+    showSavedSession(xpResult);
+    saveInFlight.current = false;
   }
 
   const headerDescription = isRpgVariant
@@ -529,25 +604,8 @@ export function StudySessionsSurface({
       {isRpgVariant ? (
         <div className="rpg-focus__header rpg-page-header">
           <div>
-            <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Focus</h1>
             <p className="rpg-focus__lede rpg-page-lede">{headerDescription}</p>
-          </div>
-          <div className="rpg-focus__actions">
-            <Link
-              className="button button--secondary button--md"
-              to={rpgRoutePath}
-            >
-              Back to Hub
-            </Link>
-            {liveSession.unitId.trim().length > 0 ? (
-              <Link
-                className="button button--secondary button--md"
-                to={getRpgWeekPath(liveSession.unitId)}
-              >
-                Back to week
-              </Link>
-            ) : null}
           </div>
         </div>
       ) : (
@@ -581,6 +639,24 @@ export function StudySessionsSurface({
         />
       )}
       {saveFeedback}
+      {historyRefreshStatus === 'error' ? (
+        <div className="course-detail-note" role="status">
+          <p>
+            Your session is saved locally. Session history could not be
+            refreshed and may be out of date.
+          </p>
+          <Button
+            onClick={() => {
+              void refreshSessionHistory();
+            }}
+            variant="secondary"
+          >
+            Refresh session history
+          </Button>
+        </div>
+      ) : historyRefreshStatus === 'loading' ? (
+        <p role="status">Refreshing saved session history…</p>
+      ) : null}
       <div className="sessions-layout">
         <div className="sessions-layout__forms">
           <Card
@@ -596,7 +672,9 @@ export function StudySessionsSurface({
             {isRpgVariant && selectedTaskTitle !== null ? (
               <div className="rpg-focus__selected-task">
                 <span>Selected task</span>
-                <strong>{selectedTaskTitle}</strong>
+                <Link to={getRpgResourcePath(liveSession.itemId)}>
+                  {selectedTaskTitle}
+                </Link>
               </div>
             ) : null}
             {liveSession.phase === 'idle' ? (
@@ -862,6 +940,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={liveIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setLiveErrors((currentErrors) => ({
@@ -892,6 +971,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={liveIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setLiveErrors((currentErrors) => ({
@@ -929,6 +1009,7 @@ export function StudySessionsSurface({
                     Save study session
                   </Button>
                   <Button
+                    disabled={liveIsSaving}
                     onClick={() => setShowDiscardDialog(true)}
                     variant="danger"
                   >
@@ -964,6 +1045,7 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -995,7 +1077,7 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
-                        disabled={lockedUnitId !== null}
+                        disabled={manualIsSaving || lockedUnitId !== null}
                         id={inputId}
                         onChange={(event) => {
                           const nextUnitId = event.target.value;
@@ -1035,7 +1117,10 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
-                        disabled={manualForm.unitId.trim().length === 0}
+                        disabled={
+                          manualIsSaving ||
+                          manualForm.unitId.trim().length === 0
+                        }
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -1071,6 +1156,7 @@ export function StudySessionsSurface({
                       <TextInput
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -1102,6 +1188,7 @@ export function StudySessionsSurface({
                       <NumberInput
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         min={1}
                         max={720}
@@ -1136,6 +1223,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={manualIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setManualErrors((currentErrors) => ({
@@ -1166,6 +1254,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={manualIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setManualErrors((currentErrors) => ({

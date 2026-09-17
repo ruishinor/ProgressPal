@@ -155,7 +155,12 @@ for (const viewport of mobileViewports) {
       ).toBeVisible({ timeout: 15000 });
       await expectReadableRpgHeaderSurface(page, route);
       await expectNoHorizontalOverflow(page, route.path);
-      const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
+      const hud = page.getByRole('region', {
+        name:
+          route.path === '/rpg/hero'
+            ? 'Learner identity and progression'
+            : 'Persistent hero HUD',
+      });
       for (const identity of [
         'New Learner',
         'Guild',
@@ -168,7 +173,7 @@ for (const viewport of mobileViewports) {
       ]) {
         await expect(hud.getByText(identity, { exact: true })).toBeVisible();
       }
-      if (viewport.width === 390) {
+      if (viewport.width === 390 && route.path !== '/rpg/hero') {
         expect((await hud.boundingBox())!.height).toBeLessThan(310);
       }
       await expect(
@@ -272,6 +277,9 @@ test('mobile Hub puts the recommended quest before secondary progress', async ({
   await expect(
     questPanel.getByRole('link', { name: 'Continue quest' }),
   ).toBeInViewport();
+  await expect(
+    page.getByRole('link', { name: 'Continue quest', exact: true }),
+  ).toHaveCount(1);
   await expect(page.getByText('Progress snapshot')).toBeVisible();
   await expect(page.getByText('Recent saved activity')).toHaveCount(0);
   await expect(page.locator('.rpg-hub__identity')).toHaveCount(0);

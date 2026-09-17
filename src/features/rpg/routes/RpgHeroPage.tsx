@@ -16,7 +16,6 @@ import type { RpgHeroProfileSummary } from '@/features/rpg/model/types';
 import {
   rpgBadgesPath,
   rpgLogPath,
-  rpgMapPath,
   rpgRoutePath,
   rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
@@ -121,7 +120,6 @@ export function RpgHeroPage() {
     return (
       <section className="page-section rpg-hero">
         <div className="rpg-hero__header rpg-page-header">
-          <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>Hero Profile</h1>
         </div>
         <LoadingState
@@ -145,9 +143,8 @@ export function RpgHeroPage() {
           </p>
         </div>
         <div className="rpg-hero__actions">
-          <RpgButton href={rpgRoutePath}>Back to Hub</RpgButton>
-          <RpgButton href={rpgMapPath} variant="secondary">
-            Open Campaign Map
+          <RpgButton href={rpgSettingsPath} variant="secondary">
+            Edit profile
           </RpgButton>
         </div>
       </div>
@@ -155,8 +152,7 @@ export function RpgHeroPage() {
       <div className="rpg-hero__grid">
         <RpgPanel
           className="rpg-hero__identity"
-          title={`${summary.learnerName}'s profile`}
-          titleAs="h2"
+          aria-label="Learner identity and progression"
           variant="raised"
         >
           <div className="rpg-hero__identity-layout">
@@ -171,9 +167,6 @@ export function RpgHeroPage() {
           <p className="rpg-hero__note">
             Rank reflects local required-course progress only.
           </p>
-          <RpgButton href={rpgSettingsPath} size="sm" variant="quiet">
-            Edit profile
-          </RpgButton>
         </RpgPanel>
 
         {summary.hasLocalActivity ? null : (
@@ -233,8 +226,8 @@ export function RpgHeroPage() {
         >
           {summary.recentActivity.length === 0 ? (
             <p className="rpg-hero__note">
-              No recent saved activity yet. Saved progress, study sessions, XP,
-              and badges will shape this profile after explicit local actions.
+              Your saved progress, study sessions, and achievements will appear
+              here.
             </p>
           ) : (
             <ol className="rpg-hero__activity-list">

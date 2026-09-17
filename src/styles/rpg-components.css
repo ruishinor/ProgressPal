@@ -21,7 +21,7 @@
 .rpg-badges,
 .rpg-hero,
 .rpg-settings,
-.rpg-focus__selected-task strong,
+.rpg-focus__selected-task a,
 .rpg-identity__class dd {
   color: var(--rpg-text);
 }

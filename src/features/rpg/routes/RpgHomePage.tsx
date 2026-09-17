@@ -15,11 +15,7 @@ import type {
   RpgHubSummary,
   RpgQuestSummary,
 } from '@/features/rpg/model/types';
-import {
-  getRpgResourcePath,
-  getRpgWeekPath,
-  rpgMapPath,
-} from '@/lib/routing/rpgRoutePaths';
+import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 
 type RpgHomePageStatus = 'error' | 'loading' | 'ready';
 
@@ -45,18 +41,6 @@ function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   };
 
   return tones[statusVariant];
-}
-
-function getContinueHref(summary: RpgHubSummary) {
-  if (summary.continueQuest !== null) {
-    return getRpgResourcePath(summary.continueQuest.id);
-  }
-
-  if (summary.currentModule !== null) {
-    return getRpgWeekPath(summary.currentModule.id);
-  }
-
-  return rpgMapPath;
 }
 
 function hasLocalActivity(summary: RpgHubSummary) {
@@ -166,8 +150,8 @@ export function RpgHomePage() {
   }
 
   const { summary } = state;
-  const continueHref = getContinueHref(summary);
-  const currentQuest = summary.continueQuest;
+  const { recommendation } = summary;
+  const currentQuest = recommendation.quest;
   const newUser = !hasLocalActivity(summary);
 
   return (
@@ -176,42 +160,52 @@ export function RpgHomePage() {
         <div>
           <h1>RPG Hub</h1>
         </div>
-        <div className="rpg-hub__actions">
-          <RpgButton href={rpgMapPath} variant="secondary">
-            Open Campaign Map
-          </RpgButton>
-        </div>
       </div>
 
       <div className="rpg-hub__grid">
         <RpgPanel
           className="rpg-hub__quest-panel"
-          title={newUser ? 'Start with this quest' : 'Current quest'}
+          title={
+            recommendation.state === 'needs_attention'
+              ? 'Blocked work needs attention'
+              : currentQuest === null
+                ? 'Required progress'
+                : newUser
+                  ? 'Start with this quest'
+                  : 'Current quest'
+          }
           titleAs="h2"
           variant="raised"
         >
           {currentQuest === null ? (
             <div className="rpg-hub__quest-primary">
               <div>
-                <p className="rpg-hub__quest-kicker">
-                  No required quest pending
-                </p>
+                <h3>
+                  {recommendation.state === 'required_complete'
+                    ? 'Required tasks complete in ProgressPal'
+                    : 'Course data unavailable'}
+                </h3>
                 <p className="rpg-hub__note">
-                  Review the current module or Campaign Map to choose the next
-                  local study task.
+                  {recommendation.state === 'required_complete'
+                    ? 'All required tasks are marked complete locally. This does not confirm official CS50 completion.'
+                    : 'The course could not be summarized. This does not mean your required work is complete.'}
                 </p>
+                {recommendation.state === 'required_complete' &&
+                recommendation.optionalRemainingCount > 0 ? (
+                  <p className="rpg-hub__note">{`${recommendation.optionalRemainingCount} optional tasks remain. You can explore them on the Campaign Map.`}</p>
+                ) : null}
               </div>
-              <RpgButton href={continueHref}>
-                {summary.currentModule === null
-                  ? 'Open Campaign Map'
-                  : 'Open current module'}
-              </RpgButton>
+              <RpgButton href={rpgMapPath}>Open Campaign Map</RpgButton>
             </div>
           ) : (
             <div className="rpg-hub__quest-primary">
               <div className="rpg-hub__quest-copy">
                 <p className="rpg-hub__quest-kicker">
-                  {newUser ? 'Recommended first quest' : 'Next required quest'}
+                  {recommendation.state === 'needs_attention'
+                    ? `${recommendation.remainingRequiredCount} required tasks still need attention`
+                    : newUser
+                      ? 'Recommended first quest'
+                      : 'Next required quest'}
                 </p>
                 <h3>{currentQuest.title}</h3>
                 <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
@@ -230,9 +224,17 @@ export function RpgHomePage() {
                     {currentQuest.required ? 'Required' : 'Optional'}
                   </RpgStatusPill>
                 </div>
+                {recommendation.state === 'needs_attention' ? (
+                  <p className="rpg-hub__note">
+                    Open this task to review your notes and decide how to
+                    continue. Blocked tasks remain available.
+                  </p>
+                ) : null}
               </div>
               <RpgButton href={getRpgResourcePath(currentQuest.id)}>
-                Continue quest
+                {recommendation.state === 'needs_attention'
+                  ? 'Review blocked quest'
+                  : 'Continue quest'}
               </RpgButton>
             </div>
           )}
@@ -264,22 +266,32 @@ export function RpgHomePage() {
           title="Progress snapshot"
           titleAs="h2"
         >
-          <RpgProgressBar
-            helperText={`${summary.courseProgress.completedRequiredItemCount} of ${summary.courseProgress.requiredItemCount} required tasks complete`}
-            label="Required course progress"
-            showValue={summary.courseProgress.requiredItemCount > 0}
-            value={summary.courseProgress.completionPercent}
-          />
+          {recommendation.state !== 'unavailable' ? (
+            <RpgProgressBar
+              helperText={`${summary.courseProgress.completedRequiredItemCount} of ${summary.courseProgress.requiredItemCount} required tasks complete`}
+              label="Required course progress"
+              showValue={summary.courseProgress.requiredItemCount > 0}
+              value={summary.courseProgress.completionPercent}
+            />
+          ) : (
+            <p className="rpg-hub__note">
+              Required-course totals are unavailable.
+            </p>
+          )}
           <p className="rpg-hub__note">
             {`This week: ${summary.weeklyProgress.weekStartDate} to ${summary.weeklyProgress.weekEndDate}`}
           </p>
           <dl className="rpg-hub__details rpg-hub__details--summary">
             <div>
               <dt>Required complete</dt>
-              <dd>{`${summary.courseProgress.completedRequiredItemCount} / ${summary.courseProgress.requiredItemCount}`}</dd>
+              <dd>
+                {recommendation.state === 'unavailable'
+                  ? 'Unavailable'
+                  : `${summary.courseProgress.completedRequiredItemCount} / ${summary.courseProgress.requiredItemCount}`}
+              </dd>
             </div>
             <div>
-              <dt>Saved updates</dt>
+              <dt>Tasks last updated</dt>
               <dd>{summary.weeklyProgress.savedProgressCount}</dd>
             </div>
             <div>
@@ -295,6 +307,14 @@ export function RpgHomePage() {
               <dd>{summary.weeklyProgress.xpEarned}</dd>
             </div>
           </dl>
+          <p className="rpg-hub__note">
+            Each task is counted once, by its latest saved change.
+          </p>
+          {currentQuest === null ? null : (
+            <RpgButton href={rpgMapPath} variant="secondary">
+              Open Campaign Map
+            </RpgButton>
+          )}
         </RpgPanel>
 
         {summary.recentActivity.length === 0 ? null : (

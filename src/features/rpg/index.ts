@@ -57,6 +57,7 @@ export type {
   RpgHubSummary,
   RpgModuleSummary,
   RpgOfficialLink,
+  RpgQuestRecommendation,
   RpgQuestSummary,
   RpgStudyResourceSummary,
 } from './model/types';

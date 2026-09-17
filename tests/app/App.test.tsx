@@ -2316,7 +2316,9 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/hero') {
-      await screen.findByRole('heading', { name: "Alex's profile" });
+      await screen.findByRole('region', {
+        name: 'Learner identity and progression',
+      });
       return;
     }
 
@@ -2376,22 +2378,34 @@ describe('RPG routes', () => {
 
   async function expectPersistentHeroHud({
     currentQuestHref,
+    composition = 'full',
   }: {
     currentQuestHref: string;
+    composition?: 'full' | 'overview' | 'profile';
   }) {
+    const regionName =
+      composition === 'profile'
+        ? 'Learner identity and progression'
+        : 'Persistent hero HUD';
     await waitFor(() => {
       expect(
-        within(
-          screen.getByRole('region', { name: 'Persistent hero HUD' }),
-        ).getByText('Alex'),
+        within(screen.getByRole('region', { name: regionName })).getByText(
+          'Alex',
+        ),
       ).toBeInTheDocument();
     });
 
     const heroHud = screen.getByRole('region', {
-      name: 'Persistent hero HUD',
+      name: regionName,
     });
 
-    expect(within(heroHud).getByText('Current quest')).toBeInTheDocument();
+    if (composition === 'full') {
+      expect(within(heroHud).getByText('Current quest')).toBeInTheDocument();
+    } else {
+      expect(
+        within(heroHud).queryByText('Current quest'),
+      ).not.toBeInTheDocument();
+    }
     expect(
       within(heroHud).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
@@ -2413,9 +2427,11 @@ describe('RPG routes', () => {
       }),
     ).toBeInTheDocument();
     expect(within(heroHud).queryByText(/Route:/i)).not.toBeInTheDocument();
-    expect(
-      within(heroHud).getByRole('link', { name: 'Continue quest' }),
-    ).toHaveAttribute('href', currentQuestHref);
+    if (composition === 'full') {
+      expect(
+        within(heroHud).getByRole('link', { name: 'Continue quest' }),
+      ).toHaveAttribute('href', currentQuestHref);
+    }
   }
 
   it('renders the RPG hub shell', async () => {
@@ -2435,7 +2451,11 @@ describe('RPG routes', () => {
     expectClassicShellAbsent();
     await expectPersistentHeroHud({
       currentQuestHref: '/rpg/resource/week-0-lecture',
+      composition: 'overview',
     });
+    expect(
+      screen.getAllByRole('link', { name: 'Continue quest' }),
+    ).toHaveLength(1);
   });
 
   it('renders the RPG quest hub from real local data', async () => {
@@ -2826,7 +2846,7 @@ describe('RPG routes', () => {
       within(saveFeedback!).getByText('XP awarded: 20'),
     ).toBeInTheDocument();
     expect(
-      within(saveFeedback!).getByText('Level 1 progress'),
+      await within(saveFeedback!).findByText('Level 1 progress'),
     ).toBeInTheDocument();
     expect(
       within(saveFeedback!).getByRole('link', {
@@ -2851,8 +2871,8 @@ describe('RPG routes', () => {
         heroHud.getByText(new RegExp(`^${totalXp} XP total`)),
       ).toBeInTheDocument();
       expect(
-        heroHud.getByRole('link', { name: 'Continue quest' }),
-      ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+        heroHud.queryByRole('link', { name: 'Continue quest' }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -3138,11 +3158,10 @@ describe('RPG routes', () => {
       }
     });
 
-    expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
-      'href',
-      '/rpg/week/week-4',
-    );
-    expect(screen.getByRole('link', { name: 'Back to Hub' })).toHaveAttribute(
+    expect(
+      within(selectedTask!).getByRole('link', { name: 'Lecture 4: Memory' }),
+    ).toHaveAttribute('href', '/rpg/resource/week-4-lecture');
+    expect(screen.getByRole('link', { name: 'Hub' })).toHaveAttribute(
       'href',
       '/rpg',
     );
@@ -3289,7 +3308,7 @@ describe('RPG routes', () => {
         within(focusFeedback!).getByText('XP awarded: 10'),
       ).toBeInTheDocument();
       expect(
-        within(focusFeedback!).getByText('Level 1 progress'),
+        await within(focusFeedback!).findByText('Level 1 progress'),
       ).toBeInTheDocument();
       expect(
         within(focusFeedback!).getByRole('link', {
@@ -3470,7 +3489,7 @@ describe('RPG routes', () => {
       expect(savedSessionXp).toHaveLength(1);
 
       const hubPath = expectHref(
-        await screen.findByRole('link', { name: 'Back to Hub' }),
+        await screen.findByRole('link', { name: 'Hub' }),
         '/rpg',
       );
 
@@ -3517,6 +3536,12 @@ describe('RPG routes', () => {
       expectClassicShellAbsent();
       await expectPersistentHeroHud({
         currentQuestHref: '/rpg/resource/week-0-lecture',
+        composition:
+          route === '/rpg/hero'
+            ? 'profile'
+            : route === '/rpg/focus'
+              ? 'overview'
+              : 'full',
       });
     }
   });
@@ -3589,10 +3614,10 @@ describe('RPG routes', () => {
         name: 'No saved Hero activity yet',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Alex's profile")).toBeInTheDocument();
-    const identityPanel = screen
-      .getByRole('heading', { name: "Alex's profile" })
-      .closest('section');
+    const identityPanel = screen.getByRole('region', {
+      name: 'Learner identity and progression',
+    });
+    expect(screen.getAllByText('Alex', { exact: true })).toHaveLength(1);
 
     if (identityPanel === null) {
       throw new Error('Hero identity panel was not rendered.');
@@ -3614,24 +3639,21 @@ describe('RPG routes', () => {
     expect(
       within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
-    expect(
-      within(identityPanel).getByRole('link', { name: 'Edit profile' }),
-    ).toHaveAttribute('href', '/rpg/settings');
+    expect(screen.getByRole('link', { name: 'Edit profile' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
     expect(
       screen.getByText(`0 of ${achievementDefinitions.length}`),
     ).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Open Campaign Map' })
-        .some((link) => {
-          return link.getAttribute('href') === '/rpg/map';
-        }),
-    ).toBe(true);
-    expect(
-      screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
-        return link.getAttribute('href') === '/rpg';
-      }),
-    ).toBe(true);
+    expect(screen.getByRole('link', { name: 'Map' })).toHaveAttribute(
+      'href',
+      '/rpg/map',
+    );
+    expect(screen.getByRole('link', { name: 'Hub' })).toHaveAttribute(
+      'href',
+      '/rpg',
+    );
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
@@ -3644,10 +3666,9 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'Hero Profile' }),
     ).toBeInTheDocument();
-    expect(await screen.findByText("Alex's profile")).toBeInTheDocument();
-    const identityPanel = screen
-      .getByRole('heading', { name: "Alex's profile" })
-      .closest('section');
+    const identityPanel = await screen.findByRole('region', {
+      name: 'Learner identity and progression',
+    });
 
     if (identityPanel === null) {
       throw new Error('Hero identity panel was not rendered.');
@@ -3656,9 +3677,10 @@ describe('RPG routes', () => {
     expect(
       within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
-    expect(
-      within(identityPanel).getByRole('link', { name: 'Edit profile' }),
-    ).toHaveAttribute('href', '/rpg/settings');
+    expect(screen.getByRole('link', { name: 'Edit profile' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
     expect(within(identityPanel).getByText('Initiate')).toBeInTheDocument();
     expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
     expect(within(identityPanel).getByText(/XP total$/)).toBeInTheDocument();

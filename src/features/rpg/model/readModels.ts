@@ -16,14 +16,15 @@ import {
 } from '@/features/course/cs50Links';
 import { buildLongFormProgressMap } from '@/features/progress/model';
 import { achievementDefinitions } from '@/lib/achievements';
+import { isItemComplete } from '@/lib/completion';
 import {
   getDatabaseSnapshot,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
-import { calculateXpSummary } from '@/lib/xp/engine';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
+import { calculateXpSummary } from '@/lib/xp/engine';
 import { buildQuestRewardLabel } from './questRewards';
 
 import type {
@@ -35,6 +36,7 @@ import type {
   RpgHubWeeklyProgress,
   RpgModuleSummary,
   RpgOfficialLink,
+  RpgQuestRecommendation,
   RpgQuestSummary,
   RpgStudyResourceSummary,
 } from './types';
@@ -161,42 +163,68 @@ function buildModuleSummary(
   };
 }
 
-function selectContinueQuest(
+function selectQuestRecommendation(
   modules: readonly RpgModuleSummary[],
-): RpgQuestSummary | null {
-  const requiredQuests = modules.flatMap((module) =>
-    module.quests.filter((quest) => quest.required),
+  snapshot: DatabaseSnapshot,
+): RpgQuestRecommendation {
+  const quests = modules.flatMap((module) => module.quests);
+  const requiredQuests = quests.filter((quest) => quest.required);
+  const hasEmptyRequiredUnit = snapshot.courseUnits.some(
+    (unit) =>
+      unit.required &&
+      !requiredQuests.some((quest) => quest.unitId === unit.id),
   );
+
+  // A missing catalog or broken item/unit relation cannot establish completion.
+  if (
+    requiredQuests.length === 0 ||
+    quests.length !== snapshot.courseItems.length ||
+    hasEmptyRequiredUnit
+  ) {
+    return { state: 'unavailable', quest: null };
+  }
 
   const incomplete = requiredQuests.filter(
-    (quest) => quest.statusVariant !== 'completed',
+    (quest) => !isItemComplete(quest.status),
   );
+  const optionalRemainingCount = quests.filter(
+    (quest) =>
+      !quest.required &&
+      !isItemComplete(quest.status) &&
+      quest.status !== 'skipped_optional',
+  ).length;
 
-  return (
-    incomplete.find(
+  if (incomplete.length === 0) {
+    return {
+      state: 'required_complete',
+      quest: null,
+      remainingRequiredCount: 0,
+      optionalRemainingCount,
+    };
+  }
+
+  const actionable = incomplete.filter((quest) => quest.status !== 'blocked');
+  const nextActionable =
+    actionable.find(
       (quest) =>
         quest.statusVariant === 'inProgress' ||
         quest.longFormProgress?.hasProgress === true,
-    ) ??
-    incomplete.find((quest) => quest.statusVariant !== 'blocked') ??
-    null
-  );
+    ) ?? actionable[0];
+
+  return {
+    state: nextActionable === undefined ? 'needs_attention' : 'actionable',
+    quest: nextActionable ?? incomplete[0],
+    remainingRequiredCount: incomplete.length,
+    optionalRemainingCount,
+  };
 }
 
 function selectCurrentModule(
   modules: readonly RpgModuleSummary[],
-  continueQuest: RpgQuestSummary | null,
+  recommendation: RpgQuestRecommendation,
 ) {
-  if (continueQuest !== null) {
-    return modules.find((module) => module.id === continueQuest.unitId) ?? null;
-  }
-
   return (
-    modules.find(
-      (module) =>
-        module.requiredItemCount > 0 &&
-        module.completedRequiredItemCount < module.requiredItemCount,
-    ) ?? null
+    modules.find((module) => module.id === recommendation.quest?.unitId) ?? null
   );
 }
 
@@ -400,12 +428,12 @@ export function buildRpgCourseMapSummary(
   const modules = courseMap.units.map((unit) =>
     buildModuleSummary(unit, snapshot),
   );
-  const continueQuest = selectContinueQuest(modules);
+  const recommendation = selectQuestRecommendation(modules, snapshot);
 
   return {
     completedRequiredItemCount: courseMap.completedRequiredItemCount,
     completionPercent: courseMap.completionPercent,
-    currentModule: selectCurrentModule(modules, continueQuest),
+    currentModule: selectCurrentModule(modules, recommendation),
     modules,
     requiredItemCount: courseMap.requiredItemCount,
     unitCount: courseMap.unitCount,
@@ -429,7 +457,10 @@ export function buildRpgHubSummary(
   nowIso = new Date().toISOString(),
 ): RpgHubSummary {
   const courseMapSummary = buildRpgCourseMapSummary(snapshot);
-  const continueQuest = selectContinueQuest(courseMapSummary.modules);
+  const recommendation = selectQuestRecommendation(
+    courseMapSummary.modules,
+    snapshot,
+  );
   const xpSummary = calculateXpSummary(
     snapshot.xpTransactions.reduce((total, transaction) => {
       return total + transaction.xp;
@@ -440,13 +471,16 @@ export function buildRpgHubSummary(
   }, 0);
 
   return {
-    continueQuest,
+    recommendation,
     courseProgress: {
       completedRequiredItemCount: courseMapSummary.completedRequiredItemCount,
       completionPercent: courseMapSummary.completionPercent,
       requiredItemCount: courseMapSummary.requiredItemCount,
     },
-    currentModule: selectCurrentModule(courseMapSummary.modules, continueQuest),
+    currentModule: selectCurrentModule(
+      courseMapSummary.modules,
+      recommendation,
+    ),
     identity: {
       classLabel: 'Generalist',
       guildLabel: 'Code Knights',

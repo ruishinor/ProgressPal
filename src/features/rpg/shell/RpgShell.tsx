@@ -13,7 +13,13 @@ import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
-import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgResourcePath,
+  rpgHeroPath,
+  rpgMapPath,
+  rpgRoutePath,
+  rpgFocusPath,
+} from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
@@ -38,9 +44,11 @@ const initialHudState: RpgShellHudState = {
 function RpgHeroHud({
   onRetry,
   state,
+  showQuest,
 }: {
   onRetry: () => void;
   state: RpgShellHudState;
+  showQuest: boolean;
 }) {
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -88,14 +96,21 @@ function RpgHeroHud({
   }
 
   const { summary } = state;
-  const currentQuest = summary.continueQuest;
+  const { recommendation } = summary;
+  const currentQuest = recommendation.quest;
   const currentQuestHref =
     currentQuest === null ? rpgMapPath : getRpgResourcePath(currentQuest.id);
   const currentQuestLabel =
-    currentQuest === null ? 'No required quest pending' : currentQuest.title;
+    currentQuest?.title ??
+    (recommendation.state === 'required_complete'
+      ? 'Required tasks complete in ProgressPal'
+      : 'Course data unavailable');
 
   return (
-    <section aria-label="Persistent hero HUD" className="rpg-hero-hud">
+    <section
+      aria-label="Persistent hero HUD"
+      className={`rpg-hero-hud${showQuest ? '' : ' rpg-hero-hud--overview'}`}
+    >
       <RpgHeroIdentity
         avatarConfig={summary.learnerAvatarConfig}
         identity={summary.identity}
@@ -103,24 +118,38 @@ function RpgHeroHud({
       />
       <RpgLevelProgress xp={summary.xpSummary} />
 
-      <div className="rpg-hero-hud__quest">
-        <div className="rpg-hero-hud__quest-copy">
-          <p className="rpg-hero-hud__quest-label">Current quest</p>
-          <strong>{currentQuestLabel}</strong>
-          {currentQuest ? (
-            <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
-          ) : null}
-          {currentQuest ? (
-            <p className="rpg-hero-hud__quest-context">
-              {currentQuest.unitTitle} /{' '}
-              {formatMinutes(currentQuest.estimatedMinutes)}
+      {showQuest ? (
+        <div className="rpg-hero-hud__quest">
+          <div className="rpg-hero-hud__quest-copy">
+            <p className="rpg-hero-hud__quest-label">
+              {recommendation.state === 'needs_attention'
+                ? 'Blocked work needs attention'
+                : 'Current quest'}
             </p>
-          ) : null}
+            <strong>{currentQuestLabel}</strong>
+            {currentQuest ? (
+              <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
+            ) : null}
+            {recommendation.state === 'required_complete' &&
+            recommendation.optionalRemainingCount > 0 ? (
+              <p className="rpg-hero-hud__quest-context">{`${recommendation.optionalRemainingCount} optional tasks remain on the map.`}</p>
+            ) : null}
+            {currentQuest ? (
+              <p className="rpg-hero-hud__quest-context">
+                {currentQuest.unitTitle} /{' '}
+                {formatMinutes(currentQuest.estimatedMinutes)}
+              </p>
+            ) : null}
+          </div>
+          <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
+            {currentQuest === null
+              ? 'Open map'
+              : recommendation.state === 'needs_attention'
+                ? 'Review blocked quest'
+                : 'Continue quest'}
+          </Link>
         </div>
-        <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
-          {currentQuest === null ? 'Open map' : 'Continue quest'}
-        </Link>
-      </div>
+      ) : null}
     </section>
   );
 }
@@ -196,15 +225,22 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        <RpgHeroHud
-          onRetry={() => {
-            startTransition(() => {
-              setHudState(initialHudState);
-            });
-            setReloadToken((currentToken) => currentToken + 1);
-          }}
-          state={hudState}
-        />
+        {location.pathname !== rpgHeroPath ? (
+          <RpgHeroHud
+            showQuest={
+              location.pathname !== rpgRoutePath &&
+              location.pathname !== rpgFocusPath &&
+              !location.pathname.startsWith('/rpg/resource/')
+            }
+            onRetry={() => {
+              startTransition(() => {
+                setHudState(initialHudState);
+              });
+              setReloadToken((currentToken) => currentToken + 1);
+            }}
+            state={hudState}
+          />
+        ) : null}
         <main
           className="rpg-shell__main"
           id="rpg-main-content"

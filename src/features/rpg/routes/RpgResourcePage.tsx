@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import {
   validateCourseDetailProgressForm,
   type CourseDetailProgressFormValues,
 } from '@/features/course/detailModel';
+import { getItemStatusLabel } from '@/features/course/model';
 import {
   RpgButton,
   RpgPanel,
@@ -54,9 +55,10 @@ type RpgResourceSaveResult = {
   achievementNames: string[];
   isUpdate: boolean;
   level: number;
-  levelProgressPercent: number;
-  nextActionHref: string;
-  nextActionLabel: string;
+  levelProgressPercent: number | null;
+  nextActionHref: string | null;
+  nextActionLabel: string | null;
+  refreshStatus: 'loading' | 'ready' | 'error';
   statusLabel: string;
   totalXp: number;
   xpToNextLevel: number;
@@ -105,6 +107,19 @@ function createFormState(summary: RpgStudyResourceSummary) {
     isSaving: false,
     values: createFormValues(summary),
   } satisfies RpgResourceFormState;
+}
+
+function matchesSavedValues(
+  values: CourseDetailProgressFormValues,
+  saved: CourseDetailProgressFormValues | null,
+) {
+  return (
+    saved !== null &&
+    Object.entries(values).every(
+      ([key, value]) =>
+        saved[key as keyof CourseDetailProgressFormValues] === value,
+    )
+  );
 }
 
 function getStatusTone(
@@ -177,9 +192,19 @@ export function RpgResourcePage() {
     null,
   );
   const [reloadToken, setReloadToken] = useState(0);
+  const [savedFormValues, setSavedFormValues] =
+    useState<CourseDetailProgressFormValues | null>(null);
+  const saveInFlight = useRef(false);
+  const refreshInFlight = useRef(false);
+  const savedValues = useRef<CourseDetailProgressFormValues | null>(null);
+  const pageVersion = useRef(0);
 
   useEffect(() => {
     let isActive = true;
+    pageVersion.current += 1;
+    saveInFlight.current = false;
+    refreshInFlight.current = false;
+    savedValues.current = null;
 
     async function loadSummary() {
       startTransition(() => {
@@ -189,6 +214,7 @@ export function RpgResourcePage() {
           status: 'loading',
         }));
         setSaveResult(null);
+        setSavedFormValues(null);
       });
 
       if (itemId === undefined || itemId.trim().length === 0) {
@@ -252,6 +278,7 @@ export function RpgResourcePage() {
 
     return () => {
       isActive = false;
+      pageVersion.current += 1;
     };
   }, [itemId, reloadToken]);
 
@@ -269,8 +296,83 @@ export function RpgResourcePage() {
     });
   }, [summary]);
 
+  async function refreshSavedProgress(resourceId: string) {
+    if (refreshInFlight.current) {
+      return;
+    }
+
+    refreshInFlight.current = true;
+    const version = pageVersion.current;
+    setSaveResult((current) =>
+      current === null ? current : { ...current, refreshStatus: 'loading' },
+    );
+    refreshHud();
+
+    try {
+      const [nextSummary, nextHubSummary] = await Promise.all([
+        loadRpgStudyResourceSummary(resourceId),
+        loadRpgHubSummary(),
+      ]);
+
+      if (version !== pageVersion.current) {
+        return;
+      }
+
+      if (nextSummary === null) {
+        throw new Error('RPG resource disappeared after saving progress.');
+      }
+
+      const recommendation = nextHubSummary.recommendation;
+      const nextQuest = recommendation.quest;
+      setState({ error: null, status: 'ready', summary: nextSummary });
+      setSaveResult((current) =>
+        current === null
+          ? current
+          : {
+              ...current,
+              level: nextHubSummary.xpSummary.level,
+              levelProgressPercent:
+                nextHubSummary.xpSummary.levelProgressPercent,
+              nextActionHref:
+                nextQuest === null
+                  ? rpgMapPath
+                  : getRpgResourcePath(nextQuest.id),
+              nextActionLabel:
+                nextQuest === null
+                  ? 'Open Campaign Map'
+                  : `${recommendation.state === 'needs_attention' ? 'Review blocked quest' : 'Continue quest'}: ${nextQuest.title}`,
+              refreshStatus: 'ready',
+              totalXp: nextHubSummary.xpSummary.totalXp,
+              xpToNextLevel: nextHubSummary.xpSummary.xpToNextLevel,
+            },
+      );
+    } catch (loadError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
+      console.error(
+        'Saved RPG resource summaries could not be refreshed.',
+        loadError,
+      );
+      setSaveResult((current) =>
+        current === null ? current : { ...current, refreshStatus: 'error' },
+      );
+    } finally {
+      if (version === pageVersion.current) {
+        refreshInFlight.current = false;
+      }
+    }
+  }
+
   async function saveProgress(nextValues: CourseDetailProgressFormValues) {
-    if (summary === null) {
+    if (
+      summary === null ||
+      summary.itemId !== itemId ||
+      !coordination.canWrite ||
+      saveInFlight.current ||
+      (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
+      matchesSavedValues(nextValues, savedValues.current)
+    ) {
       return;
     }
 
@@ -299,6 +401,8 @@ export function RpgResourcePage() {
     }
 
     const parsedConfidence = validation.parsedConfidence;
+    const version = pageVersion.current;
+    saveInFlight.current = true;
 
     setFormState((currentForm) =>
       currentForm === null
@@ -313,8 +417,9 @@ export function RpgResourcePage() {
 
     const timestamp = new Date().toISOString();
 
+    let result: Awaited<ReturnType<typeof saveRpgStudyResourceProgress>>;
     try {
-      const result = await runLocalMutation(
+      result = await runLocalMutation(
         () =>
           saveRpgStudyResourceProgress({
             completedAt: getDefaultCompletedAt(
@@ -346,53 +451,10 @@ export function RpgResourcePage() {
           }),
         { invalidateRoute: false },
       );
-      refreshHud();
-      const [nextSummary, nextHubSummary] = await Promise.all([
-        loadRpgStudyResourceSummary(summary.itemId),
-        loadRpgHubSummary(),
-      ]);
-
-      if (nextSummary === null) {
-        throw new Error('RPG resource disappeared after saving progress.');
-      }
-
-      const xpAdded = result.awardedTransactions.reduce(
-        (total, transaction) => total + transaction.xp,
-        0,
-      );
-      const achievementNames = result.unlockedAchievements
-        .map(
-          (unlock) =>
-            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
-        )
-        .filter(Boolean);
-      const nextQuest = nextHubSummary.continueQuest;
-
-      startTransition(() => {
-        setState({
-          error: null,
-          status: 'ready',
-          summary: nextSummary,
-        });
-        setFormState(createFormState(nextSummary));
-        setSaveResult({
-          achievementNames,
-          isUpdate: summary.savedProgress !== null,
-          level: nextHubSummary.xpSummary.level,
-          levelProgressPercent: nextHubSummary.xpSummary.levelProgressPercent,
-          nextActionHref:
-            nextQuest === null ? rpgMapPath : getRpgResourcePath(nextQuest.id),
-          nextActionLabel:
-            nextQuest === null
-              ? 'Open Campaign Map'
-              : `Continue quest: ${nextQuest.title}`,
-          statusLabel: nextSummary.statusLabel,
-          totalXp: nextHubSummary.xpSummary.totalXp,
-          xpToNextLevel: nextHubSummary.xpSummary.xpToNextLevel,
-          xpAdded,
-        });
-      });
     } catch (saveError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
       console.error('RPG resource progress save failed.', saveError);
       setFormState((currentForm) =>
         currentForm === null
@@ -405,6 +467,49 @@ export function RpgResourcePage() {
               isSaving: false,
             },
       );
+      saveInFlight.current = false;
+      return;
+    }
+
+    if (version !== pageVersion.current) {
+      refreshHud();
+      return;
+    }
+
+    // The adapter has committed. Reads below can only change refresh feedback,
+    // never turn this confirmed result into a request to repeat the write.
+    savedValues.current = nextValues;
+    setSavedFormValues(nextValues);
+    setFormState((current) =>
+      current === null ? current : { ...current, isSaving: false },
+    );
+    setSaveResult({
+      achievementNames: result.unlockedAchievements
+        .map(
+          (unlock) =>
+            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+        )
+        .filter(Boolean),
+      isUpdate: summary.savedProgress !== null,
+      level: result.xpSummary.level,
+      levelProgressPercent: null,
+      nextActionHref: null,
+      nextActionLabel: null,
+      refreshStatus: 'loading',
+      statusLabel: getItemStatusLabel(
+        summary.required,
+        result.progressEntry.status,
+      ),
+      totalXp: result.xpSummary.totalXp,
+      xpToNextLevel: result.xpSummary.xpToNextLevel,
+      xpAdded: result.awardedTransactions.reduce(
+        (total, transaction) => total + transaction.xp,
+        0,
+      ),
+    });
+    await refreshSavedProgress(summary.itemId);
+    if (version === pageVersion.current) {
+      saveInFlight.current = false;
     }
   }
 
@@ -562,7 +667,9 @@ export function RpgResourcePage() {
                         },
                       },
                 );
-                setSaveResult(null);
+                setSaveResult((current) =>
+                  current?.refreshStatus === 'ready' ? null : current,
+                );
               }}
               value={formValues.status}
             >
@@ -598,7 +705,9 @@ export function RpgResourcePage() {
                         },
                       },
                 );
-                setSaveResult(null);
+                setSaveResult((current) =>
+                  current?.refreshStatus === 'ready' ? null : current,
+                );
               }}
               placeholder="What changed, where you got stuck, or what to do next."
               value={formValues.notes}
@@ -628,7 +737,9 @@ export function RpgResourcePage() {
                           },
                         },
                   );
-                  setSaveResult(null);
+                  setSaveResult((current) =>
+                    current?.refreshStatus === 'ready' ? null : current,
+                  );
                 }}
                 placeholder="Where did you submit this work?"
                 value={formValues.evidenceText}
@@ -673,7 +784,9 @@ export function RpgResourcePage() {
                             },
                           },
                     );
-                    setSaveResult(null);
+                    setSaveResult((current) =>
+                      current?.refreshStatus === 'ready' ? null : current,
+                    );
                   }}
                   value={formValues.confidence}
                 >
@@ -704,7 +817,10 @@ export function RpgResourcePage() {
           <div className="rpg-study-resource__form-actions">
             <RpgButton
               disabled={
-                !coordination.canWrite || (formState?.isSaving ?? false)
+                !coordination.canWrite ||
+                (formState?.isSaving ?? false) ||
+                (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
+                matchesSavedValues(formValues, savedFormValues)
               }
               type="submit"
             >
@@ -712,7 +828,13 @@ export function RpgResourcePage() {
             </RpgButton>
             <RpgButton
               disabled={
-                !coordination.canWrite || (formState?.isSaving ?? false)
+                !coordination.canWrite ||
+                (formState?.isSaving ?? false) ||
+                (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
+                matchesSavedValues(
+                  { ...formValues, status: 'completed' },
+                  savedFormValues,
+                )
               }
               onClick={handleMarkComplete}
               type="button"
@@ -733,14 +855,39 @@ export function RpgResourcePage() {
               {saveResult.achievementNames.length > 0 ? (
                 <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
               ) : null}
-              <RpgProgressBar
-                helperText={`${saveResult.totalXp} XP total - ${saveResult.xpToNextLevel} XP to next level`}
-                label={`Level ${saveResult.level} progress`}
-                value={saveResult.levelProgressPercent}
-              />
-              <RpgButton href={saveResult.nextActionHref} variant="secondary">
-                {saveResult.nextActionLabel}
-              </RpgButton>
+              {saveResult.levelProgressPercent === null ? (
+                <p>{`At save: Level ${saveResult.level}, ${saveResult.totalXp} XP total, ${saveResult.xpToNextLevel} XP to next level.`}</p>
+              ) : (
+                <RpgProgressBar
+                  helperText={`${saveResult.totalXp} XP total - ${saveResult.xpToNextLevel} XP to next level`}
+                  label={`Level ${saveResult.level} progress`}
+                  value={saveResult.levelProgressPercent}
+                />
+              )}
+              {saveResult.refreshStatus === 'error' ? (
+                <>
+                  <p>
+                    Progress is saved locally. Resource details and the next
+                    quest could not be refreshed; the other details on this page
+                    may be out of date. Refresh the summary to continue.
+                  </p>
+                  <RpgButton
+                    onClick={() => {
+                      void refreshSavedProgress(summary.itemId);
+                    }}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Refresh progress summary
+                  </RpgButton>
+                </>
+              ) : saveResult.refreshStatus === 'loading' ? (
+                <p>Progress is saved locally. Refreshing the summary…</p>
+              ) : saveResult.nextActionHref !== null ? (
+                <RpgButton href={saveResult.nextActionHref} variant="secondary">
+                  {saveResult.nextActionLabel}
+                </RpgButton>
+              ) : null}
             </div>
           ) : null}
         </form>

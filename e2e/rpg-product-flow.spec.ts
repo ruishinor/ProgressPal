@@ -28,13 +28,14 @@ test('RPG settings refresh identity immediately and explain the Classic theme pr
   await expect(
     page.locator('.rpg-identity--profile .rpg-identity__name'),
   ).toHaveText('Morgan');
-  await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
+  await expect(page.locator('.rpg-identity__name')).toHaveCount(1);
+  await expect(hud).toHaveCount(0);
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
   await page.reload();
   await expect(
     page.locator('.rpg-identity--profile .rpg-identity__name'),
   ).toHaveText('Morgan');
-  await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
+  await expect(page.locator('.rpg-identity__name')).toHaveCount(1);
   await page.goto('/rpg/settings');
   await expect(page.getByLabel('Display name')).toHaveValue('Morgan');
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
@@ -86,8 +87,8 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
   await expect(hud.getByText(/^10 XP total/)).toBeVisible();
   await expect(
-    hud.getByText('Lecture 0: Scratch', { exact: true }),
-  ).toBeVisible();
+    feedback.getByRole('link', { name: 'Continue quest: Lecture 0: Scratch' }),
+  ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   const saved = await readRpgRewardStores(page);
   expect(saved.studySessions).toHaveLength(before.studySessions.length + 1);
   expect(saved.studySessions[0]).toMatchObject({
@@ -170,9 +171,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await expect(
     page.locator('.rpg-study-resource__header .rpg-quest-reward'),
   ).toHaveText('+40 XP on completion');
-  await expect(page.locator('.rpg-hero-hud .rpg-quest-reward')).toHaveText(
-    '+40 XP on completion',
-  );
+  await expect(page.locator('.rpg-hero-hud .rpg-quest-reward')).toHaveCount(0);
 
   await expect(
     page.getByRole('heading', { exact: true, name: 'Lecture 0: Scratch' }),
@@ -210,7 +209,11 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   const heroHud = page.getByRole('region', { name: 'Persistent hero HUD' });
 
   await expect(heroHud.getByText(/^40 XP total/)).toBeVisible();
-  await expect(heroHud.getByText('Problem Set 0: Scratch')).toBeVisible();
+  await expect(
+    feedback.getByRole('link', {
+      name: 'Continue quest: Problem Set 0: Scratch',
+    }),
+  ).toBeVisible();
 
   const stores = await readRpgRewardStores(page);
 
