@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+// Domain and backup schemas import this module before creating their objects.
+// Keep validation compatible with the app's CSP without an eval capability probe.
+z.config({ jitless: true });
+
 export class SchemaValidationError extends Error {
   readonly issues: string[];
 
