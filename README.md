@@ -6,6 +6,12 @@ The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The optional 
 
 C0-C5 product-completion work and final owner-review corrections are frozen on `rpg/product-completion` at `freeze/rpg-product-completion-2026-09-16`, following the owner's commit/tag/freeze/push instruction. Acceptance evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. This repository checkpoint is not a new production release.
 
+The owner subsequently authorized bounded local publish-readiness corrections on
+`rpg/publish-readiness`. Current work and validation are recorded in
+[the completion record, section 11](docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md#11-local-publish-readiness-reopening).
+The historical freeze remains immutable. Owner review and publication are separate
+steps; this branch does not change the deployed application.
+
 ## Current product position
 
 ProgressPal is:
@@ -37,7 +43,7 @@ freeze/rpg-product-completion-2026-09-16
 
 The annotated tag identifies the final completion commit, including the freeze
 record. Runtime implementation is `5610da1`; package version remains `1.3.0`.
-Further implementation requires a new owner instruction. Classic remains the
+The bounded reopening above follows a new owner instruction. Classic remains the
 default; `master`, historical release tags, and production are unchanged.
 
 Frozen engine release:

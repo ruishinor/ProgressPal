@@ -1,8 +1,8 @@
 # ProgressPal RPG Product-Completion Restart
 
-Status: completed and frozen by owner instruction on 2026-09-16
+Status: validated local publish-readiness candidate; owner visual/product review and publication prerequisites pending (2026-09-17)
 
-Current checkpoint (2026-09-16): the owner authorized commit, tag, freeze, and push of `rpg/product-completion` as `freeze/rpg-product-completion-2026-09-16`. C0-C5 and final owner-review corrections are preserved. Section 9 records acceptance evidence, limitations, and the freeze boundary. Further implementation, PR, merge, deployment, version changes, and RPG default promotion require separate owner instructions.
+Historical checkpoint (2026-09-16): the owner authorized commit, tag, freeze, and push of `rpg/product-completion` as `freeze/rpg-product-completion-2026-09-16`. C0-C5 and final owner-review corrections are preserved. Sections 1–10 retain that historical scope, acceptance evidence and freeze boundary. Section 11 records the subsequent authorized local reopening. PR, merge, deployment, version changes, and RPG default promotion remain separate owner decisions.
 
 Date: 2026-08-12
 
@@ -922,3 +922,218 @@ RPG default promotion: separate owner decision.
 
 Do not automatically start a comparison study, switch the default, create a
 release tag/version, or begin another roadmap.
+
+## 11. Local publish-readiness reopening
+
+The owner authorized the bounded implementation and validation described in the
+ProgressPal Autonomous Publish-Readiness Execution Prompt, resumed on 2026-09-17.
+Work is local on `rpg/publish-readiness`, based on the verified clean freeze commit
+`56a8b5ced15fb580a737e7dd6f36fcc74f08ceca` (runtime `5610da1`). No historical branch
+or tag has moved. This instruction supersedes the earlier implementation stop only
+for this scope; it does not authorize publication.
+
+**Local candidate ready. Owner review pending. Publication prerequisites pending.**
+No required local check or material known local defect remains unresolved within
+the tested scope. This is not a release certificate or a production verification.
+
+Tested code: `bef04111056e03beabeb9311451532f457c4ff1f`. The ordinary gate ran with
+only this completion record, README and AGENTS documentation changes uncommitted.
+The commit containing this final section is a documentation-only successor;
+it does not change the tested runtime or tests. Its resolved SHA and clean final
+status are recorded in the ignored evidence index, avoiding a self-referential
+commit claim here.
+
+### Implemented and verified concerns
+
+- **Recommendation truth:** explicit actionable, needs-attention,
+  required-complete and unavailable states. Catalog-derived cases cover all
+  blocked, last required task blocked, blocked long-form progress, ordinary
+  ordering, optional remainder, missing catalog and read errors. Blocked tasks
+  remain inspectable; local completion never implies official CS50 completion.
+- **Calendar consistency:** shared device-local Monday-week primitives, with
+  half-open bounds ending at the next local Monday. Deterministic isolated
+  timezone tests cover the reviewed Oslo session, exact boundaries, negative
+  offsets and DST. Session-start, XP-award and latest-progress-update attribution
+  remain distinct. Hub and Insights agree for comparable records.
+- **Save outcomes:** failure injection confirmed the successful-write/failed-read
+  misreport. Resource and shared session handling now preserve committed results,
+  distinguish failed refreshes from write failures, retry reads without rewriting,
+  preserve unsaved input and guard rapid/unchanged submissions. Deferred-operation
+  regressions cover old route continuations overwriting a newer task or draft.
+  Operation calls and XP/unlock ledgers are checked, including Classic sessions.
+- **Hierarchy and copy:** Hub, Resource and Focus retain identity/progression
+  without a competing HUD quest; Hero has one expanded identity and a direct edit
+  action. Rank, Guild, Class, Path, Level and XP remain visible on mobile. The
+  weekly metric says “Tasks last updated,” reflecting distinct current records.
+  Existing theme wording correctly limits the preference to Classic.
+- **Keyboard visibility:** expanded manual Focus coverage reproduced a textarea
+  partly hidden behind fixed navigation. Scoped focus scrolling exposes the whole
+  field using existing scroll padding. The regression now traverses every visible
+  enabled control, including expanded Resource/Focus forms, instead of counting
+  repeated Tab cycles. No layout, storage or CSS-budget change was needed.
+- **Offline upgrades:** stopping the owned server reproduced a broader failure
+  than the old cache comment described: changed shell HTML lacked its boot assets,
+  and the documented ordinary online recovery did not repair it. The worker now
+  validates and caches the exact navigation's same-origin JS/CSS before publishing
+  its shell, serializes updates, and retains the previous shell on failure. Tests
+  cover incomplete assets, wrong MIME/HTML rewrites, redirects, quota/network
+  failures and navigation races. The manual package/cache-version contract stays
+  unchanged; the worker never accesses IndexedDB.
+- **CSP:** Firefox exposed Zod's dynamic-code capability probe as console CSP
+  violations. The existing validation boundary enables Zod's supported jitless
+  mode. Schema/backup tests and all three browser engines pass without weakening
+  CSP or adding a dependency.
+
+Local concern commits: `67765ce` (calendar), `1ecf5e6` (study loop/save outcomes),
+`cb08556` (offline cache), `0f6f667` (CSP), `7debedd` (ignore generated evidence in
+source checks), `10b32d6` (singular blocked-task copy), `bef0411` (keyboard).
+
+### Final evidence
+
+The portable [review index](../../artifacts/publish-readiness/review.html) uses
+relative links to screenshots, logs and JSON reports under ignored
+`artifacts/publish-readiness/`. Its [manifest](../../artifacts/publish-readiness/evidence.json)
+records code/handoff SHAs, build checksums, environment, fixture conditions and
+Git status. These synthetic artifacts are local review material, not tracked
+release evidence. Historical 520/59 results are not used for this candidate.
+
+Environment: Windows, Node **24.19.0**, npm **11.10.1**, locked dependencies unchanged.
+The final ordinary gate completed on 2026-09-17 with these exact commands:
+
+| Command                  | Result                                           |
+| ------------------------ | ------------------------------------------------ |
+| `npm run lint`           | Passed, zero lint warnings                       |
+| `npm run format:check`   | Passed                                           |
+| `npm run typecheck`      | Passed                                           |
+| `npm run build`          | Passed                                           |
+| `npm test`               | 55 files, **577 tests passed**, no skips         |
+| `npm run test:e2e`       | **59 passed**, no retries or skips               |
+| `npm run check:circular` | No cycles                                        |
+| `npm run check:bundle`   | Passed; no production source maps                |
+| `npm run audit`          | Endpoint reached; **0 vulnerabilities reported** |
+| `git diff --check`       | Passed                                           |
+
+Node's inherited `NO_COLOR`/`FORCE_COLOR` conflict warning remains visible in E2E
+logs. It affects terminal formatting only and is classified as non-blocking for
+this ordinary gate. Browser console checks contain no unexplained warnings or
+errors. Later warning-strict certification needs an unambiguous color environment.
+
+Measured bundle totals use the gate's gzip calculation, including `sw.js`:
+
+| Measure              | Actual bytes |   Limit | Headroom |
+| -------------------- | -----------: | ------: | -------: |
+| CSS gzip             |        9,984 |  10,000 |       16 |
+| Total JS gzip        |      256,658 | 400,000 |  143,342 |
+| Largest JS chunk raw |      325,698 | 500,000 |  174,302 |
+
+No production asset was added or changed. The seven existing WebPs remain
+**37,762 bytes**; the existing portrait is **174,088 bytes**, separately counted.
+Their recorded provenance is preserved; no new independent rights claim is made.
+Selected visuals decode in production/offline checks.
+
+The final browser evidence covers:
+
+- **34 matched before/after pairs:** all nine surfaces at 390×844 and 1280×900;
+  shell/Hub/Map/Resource/Hero at 768×900; representative populated surfaces.
+  Same Alex profile, Oslo timezone, fixed 2026-09-16 clock and scrollY=0. Passive
+  tours preserve every IndexedDB table; images decode; no horizontal overflow.
+- **18 edge captures:** UI-generated all-blocked, last-blocked, required-complete
+  with optional remainder, legitimate Level 1→2 and long-name/title states down
+  to 320px. A synthetic catalog title is explicitly limited to layout testing.
+  200% root-text reflow at 640×900 has no horizontal overflow and eight traversed
+  controls clear fixed navigation.
+- **Core flow:** Chromium **148.0.7778.96** in development/StrictMode, Firefox
+  **150.0.2** and WebKit **26.4** in production. Classic onboarding → deliberate
+  RPG entry → Resource save → Focus start/pause/resume/finish/save → progression,
+  achievements, Hero/Insights → reload and Classic exit. Authoritative ledgers
+  show one logical set of effects; More closes/restores focus and marks its route.
+  Console and unexpected external request collections are empty.
+- **Keyboard:** managed full-control traversal on Resource, expanded Focus and
+  Settings at 390/1280px; six supplemental browser/viewport checks prove both
+  manual Focus textareas remain fully above navigation. Captures were inspected.
+- **Recovery and accessibility:** managed tests retain export/import/reset,
+  rejected-import integrity, corrupt-metadata recovery, secondary read-only tabs,
+  responsive layouts, axe, measured contrast, reduced motion and focus behavior.
+- **Production offline:** fresh and previously unvisited routes, plus a frozen →
+  candidate upgrade on one isolated origin. The owned HTTP server is fully stopped
+  for offline checks. Nine offline conditions and online recovery pass; all-table
+  hashes remain identical across 14 snapshots. A second phase tests changed boot
+  assets with byte-identical worker source, so success does not depend on install.
+  See `upgrade/2026-09-17T17-19-08-207Z/evidence.json` in the index.
+
+Matched 390px measurements demonstrate the hierarchy change, without treating
+above-the-fold placement as a universal requirement:
+
+| Fixture/control                     |      Before |       After |
+| ----------------------------------- | ----------: | ----------: |
+| Fresh Hub/Resource/Focus HUD height |       298px |       181px |
+| Populated Hub/Focus HUD height      |       340px |       181px |
+| Fresh Hub heading / Continue top    | 343 / 736px | 226 / 553px |
+| Populated Hub Continue top          |       799px |       574px |
+| Fresh Focus Start control top       |     1,177px |       915px |
+| Hero heading / Edit profile top     | 364 / 916px |  50 / 162px |
+
+Hero removes the duplicate HUD identity. Focus's complete Start control needs
+approximately 190px of scrolling to clear the fixed nav, versus 452px before.
+These are geometry measurements, not a human usability/effectiveness claim.
+
+### Limits, review and later publication
+
+Classic remains default; schema 2, backup envelope 1, package/cache version 1.3.0,
+same-origin storage, engine-owned reward/session rules, static imports and local
+assets remain intact. No push, PR, merge, tag change, workflow dispatch or deployment
+was performed. The frozen branch/tag still resolve to `56a8b5c`.
+
+Not tested: physical iOS/Android devices, manual screen-reader operation or the
+eventual hosted origin/CDN. Browser automation is not a physical Safari/mobile
+certificate. Engineering and visual review here are agent self-review, not
+independent human or owner acceptance. Human comprehension, motivation and learning effectiveness remain
+unestablished. A never-visited installation cannot bootstrap offline. Same-version
+old hashed assets remain cached until the normal version cleanup; simulated quota
+failure preserves the previous complete offline shell rather than learner-data
+deletion. No blanket security/accessibility/all-browser claim is made.
+
+The checked-in static configuration retains SPA rewrites, self-only script,
+connect and worker CSP, `nosniff`, frame restrictions and `/sw.js` no-cache. Local
+preview does not prove hosted header/MIME/cache behavior; the upgrade fixture
+applies these headers locally without claiming CDN equivalence.
+
+Later operator checklist, **not executed**:
+
+1. Obtain owner visual/product GO for this candidate. Record the exact chosen
+   source/handoff commit and the currently serving deployment for rollback.
+2. Prepare genuine candidate-specific review evidence and a corresponding module.
+   CI currently uses `v1.3-final-candidate` and its historical review of `c572764`;
+   that file is not applicable evidence for this new work. After separately
+   authorized configuration/remote work, run one clean local `verify:release`
+   and the D-0075 CI job on the chosen candidate. Do not fabricate approvals or
+   reuse a historical certificate. Normalize conflicting terminal-color variables
+   before the warning-strict gate; never suppress product warnings.
+3. Confirm the actual target origin and preserve its backup/export path. A new
+   origin or browser profile has different IndexedDB storage; moving the site
+   does not transfer data. Import only a deliberately selected backup with consent.
+   For later authorized Vercel operations, installing the missing CLI with
+   `npm i -g vercel` is strongly recommended. No CLI installation is required for
+   this completed local review and none was performed.
+4. Obtain explicit authorization for the intended push/PR/merge/deployment actions.
+   Publish only the exact reviewed artifact. Verify hosted Classic/RPG deep links,
+   real JS/CSS MIME types, CSP/other headers, worker root scope and no-cache policy,
+   decoded assets, no source maps, console/network, the save/reload loop and the
+   same-origin online-update → offline path using synthetic data.
+5. If hosted smoke fails materially, restore the recorded previous deployment and
+   recheck it. A code rollback neither restores nor erases learner data. Do not
+   clear IndexedDB or import a backup as an automatic rollback action.
+
+Owner checkpoint: find the next task, save work, explain what changed and remains,
+use Focus, inspect the blocked/completed examples, and return to Classic. The
+review index supplies the examples; the local production preview supplies the
+interactive flow. Request one visual/product GO after reviewing, with publication
+still a separate decision.
+
+Retrospective: browser offline emulation alone left worker network access, so the
+first nominal upgrade result was invalidated and replaced with server-stopped
+evidence. Fixture construction must respect existing blocked-state XP and seed
+reconciliation. Generated evidence needed a narrow lint/format exclusion. A fixed
+Tab count both broke after redundant links were removed and missed expanded-form
+coverage; enumerating unique controls revealed the actual textarea overlap.
+Future validation should establish these fixture/coverage boundaries first.

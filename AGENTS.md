@@ -6,6 +6,13 @@ Guidance for AI coding agents working in this repository. Read this before makin
 
 ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 and final owner-review corrections are frozen by owner instruction at `freeze/rpg-product-completion-2026-09-16`; evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Classic remains the default. Do not restart historical release remediation, C0-C5, or further product work without a new owner instruction.
 
+The owner's subsequent publish-readiness instruction authorizes bounded local
+corrections and validation on `rpg/publish-readiness`; section 11 of that completion
+record is the active status. Preserve the historical freeze and engine contracts.
+The endpoint is a validated local candidate for owner review. It does not authorize
+push, PR, merge, remote workflow dispatch, deployment, tags, a package-version change,
+or RPG default promotion.
+
 Product boundary (do not cross it):
 
 - Local-first: the browser IndexedDB database is the only source of truth. No backend, no accounts, no cloud sync, no analytics, no telemetry.
