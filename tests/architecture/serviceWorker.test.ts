@@ -15,8 +15,9 @@ import { describe, expect, it } from 'vitest';
  * - Activation purges only ProgressPal-prefixed caches, never foreign
  *   same-origin caches (finding M1).
  * - Successful navigations refresh the cached shell (finding M2).
- * - Runtime cache misses are never populated, so a 200 SPA rewrite cannot be
- *   stored as JavaScript under an unknown asset URL (finding L1).
+ * - Unrelated static-request misses are never populated. Navigation can cache
+ *   its validated boot set, but a 200 SPA rewrite must never be stored as
+ *   JavaScript under an unknown asset URL (finding L1).
  * - The fixed profile avatar is part of the explicit install-time static set.
  * - No file under src/ uses dynamic import(): every boot asset must be a
  *   static import so install-time discovery sees the complete boot set
