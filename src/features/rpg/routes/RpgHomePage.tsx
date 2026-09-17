@@ -202,7 +202,7 @@ export function RpgHomePage() {
               <div className="rpg-hub__quest-copy">
                 <p className="rpg-hub__quest-kicker">
                   {recommendation.state === 'needs_attention'
-                    ? `${recommendation.remainingRequiredCount} required tasks still need attention`
+                    ? `${recommendation.remainingRequiredCount} required ${recommendation.remainingRequiredCount === 1 ? 'task still needs' : 'tasks still need'} attention`
                     : newUser
                       ? 'Recommended first quest'
                       : 'Next required quest'}
