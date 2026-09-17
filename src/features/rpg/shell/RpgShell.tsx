@@ -244,6 +244,17 @@ export function RpgShell() {
         <main
           className="rpg-shell__main"
           id="rpg-main-content"
+          onFocus={(event) => {
+            // Native focus scrolling can expose only a textarea's caret. Keep
+            // the whole field above the fixed navigation using scroll padding.
+            if (event.target instanceof HTMLTextAreaElement) {
+              event.target.scrollIntoView({
+                behavior: 'instant',
+                block: 'nearest',
+                inline: 'nearest',
+              });
+            }
+          }}
           ref={mainRef}
           tabIndex={-1}
         >

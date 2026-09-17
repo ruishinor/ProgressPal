@@ -34,6 +34,13 @@ Object.defineProperty(window, 'scrollTo', {
   value: () => undefined,
 });
 
+// Browser gates verify focus visibility; jsdom has no scrolling layout.
+Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+  configurable: true,
+  writable: true,
+  value: () => undefined,
+});
+
 // jsdom does not implement the Web Locks API. Install a fresh spec-shaped lock
 // manager for every test so browser-session tests exercise the same mandatory
 // ownership path as production. Tests for unsupported browsers explicitly

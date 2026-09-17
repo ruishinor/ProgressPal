@@ -50,26 +50,70 @@ test('keyboard focus stays above the fixed RPG navigation in forms', async ({
   await completeOnboarding(page);
   for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of [
-      '/rpg/resource/week-4-lecture',
-      '/rpg/focus',
-      '/rpg/settings',
-    ]) {
+    for (const [path, readyButton] of [
+      ['/rpg/resource/week-4-lecture', 'Save progress'],
+      ['/rpg/focus', 'Start live session'],
+      ['/rpg/settings', 'Save local settings'],
+    ] as const) {
       await page.goto(path);
       await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
-      await page.locator('#rpg-main-content').focus();
-      let checked = 0;
-      for (let tab = 0; tab < 24; tab++) {
+      await expect(
+        page.getByRole('button', { exact: true, name: readyButton }),
+      ).toBeVisible();
+      const main = page.locator('#rpg-main-content');
+      const disclosure = main.locator('summary').filter({
+        hasText:
+          path === '/rpg/focus'
+            ? 'Log a past session manually'
+            : 'More details',
+      });
+      if (path !== '/rpg/settings') {
+        await disclosure.focus();
+        await page.keyboard.press('Enter');
+      }
+      const controls = main
+        .locator(
+          'a[href], button, input, select, textarea, summary, [tabindex="0"]',
+        )
+        .filter({ visible: true });
+      const expected = await controls.evaluateAll((elements) =>
+        elements.flatMap((element, index) =>
+          element.tabIndex >= 0 && !element.matches(':disabled') ? [index] : [],
+        ),
+      );
+      expect(expected.length).toBeGreaterThan(0);
+      await main.focus();
+      const visited = new Set<number>();
+      // Native datetime controls have several internal Tab stops. Require every
+      // enabled control once, rather than counting repeated trips around the page.
+      for (let tab = 0; tab < expected.length * 8; tab++) {
         await page.keyboard.press('Tab');
-        const focus = (await page.evaluate(`(() => {
-          const element = document.activeElement;
-          if (!element.closest('#rpg-main-content')) return null;
+        const focus = await controls.evaluateAll((elements) => {
+          const scope = globalThis as unknown as {
+            document: {
+              activeElement: unknown;
+              querySelector: (selector: string) => {
+                getBoundingClientRect: () => { top: number };
+              } | null;
+            };
+          };
+          const index = elements.findIndex(
+            (element) => element === scope.document.activeElement,
+          );
+          const element = elements[index];
+          const nav = scope.document
+            .querySelector('.rpg-bottom-nav')
+            ?.getBoundingClientRect();
+          if (!element || !nav) return null;
           const rect = element.getBoundingClientRect();
-          const nav = document.querySelector('.rpg-bottom-nav').getBoundingClientRect();
-          return { top: rect.top, bottom: rect.bottom, navTop: nav.top };
-        })()`)) as { top: number; bottom: number; navTop: number } | null;
-        if (focus === null) continue;
-        checked++;
+          return { index, top: rect.top, bottom: rect.bottom, navTop: nav.top };
+        });
+        expect(
+          focus,
+          `${path} ${width}px Tab ${tab} left the form`,
+        ).not.toBeNull();
+        if (focus === null) break;
+        visited.add(focus.index);
         expect(
           focus.top,
           `${path} ${width}px Tab ${tab} above viewport`,
@@ -78,8 +122,9 @@ test('keyboard focus stays above the fixed RPG navigation in forms', async ({
           focus.bottom,
           `${path} ${width}px Tab ${tab} covered by navigation`,
         ).toBeLessThanOrEqual(focus.navTop);
+        if (visited.size === expected.length) break;
       }
-      expect(checked).toBeGreaterThan(10);
+      expect([...visited].sort((a, b) => a - b)).toEqual(expected);
     }
   }
 });
