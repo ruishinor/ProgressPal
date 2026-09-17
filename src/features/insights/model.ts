@@ -8,6 +8,7 @@ import type {
   StudySessionMode,
   XpTransaction,
 } from '@/lib/domain';
+import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 
 /**
  * Module 15 insights model. Like the dashboard model this file is intentionally
@@ -158,14 +159,6 @@ export type BuildInsightsModelOptions = {
   now?: string;
 };
 
-function pad2(value: number) {
-  return String(value).padStart(2, '0');
-}
-
-function formatLocalDate(date: Date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-}
-
 /** Local-device calendar day (YYYY-MM-DD) of an absolute instant. */
 function localDayKey(isoTimestamp: string) {
   return formatLocalDate(new Date(isoTimestamp));
@@ -173,16 +166,7 @@ function localDayKey(isoTimestamp: string) {
 
 /** Local-device Monday-week-start day (YYYY-MM-DD) of an absolute instant. */
 function localWeekStartKey(isoTimestamp: string) {
-  const date = new Date(isoTimestamp);
-  const dayOfWeek = date.getDay(); // 0 = Sunday … 6 = Saturday
-  const mondayOffset = (dayOfWeek + 6) % 7;
-  const monday = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate() - mondayOffset,
-  );
-
-  return formatLocalDate(monday);
+  return formatLocalDate(getLocalWeekStart(isoTimestamp));
 }
 
 /** Stable integer day index for a YYYY-MM-DD key, for adjacency comparisons. */

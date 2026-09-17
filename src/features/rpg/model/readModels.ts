@@ -23,6 +23,7 @@ import {
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
 import { calculateXpSummary } from '@/lib/xp/engine';
+import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { buildQuestRewardLabel } from './questRewards';
 
 import type {
@@ -58,42 +59,32 @@ function toDateOnly(isoTimestamp: string) {
   return isoTimestamp.slice(0, 10);
 }
 
-function toIsoDate(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 function getWeekBounds(nowIso: string) {
   const now = new Date(nowIso);
   const validNow = Number.isNaN(now.getTime()) ? new Date() : now;
-  const weekStart = new Date(
-    Date.UTC(
-      validNow.getUTCFullYear(),
-      validNow.getUTCMonth(),
-      validNow.getUTCDate(),
-    ),
-  );
-  const day = weekStart.getUTCDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-
-  weekStart.setUTCDate(weekStart.getUTCDate() + mondayOffset);
-
+  const weekStart = getLocalWeekStart(validNow.toISOString());
   const weekEnd = new Date(weekStart);
-  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const nextWeekStart = new Date(weekStart);
+  // Advance by local calendar days: a DST week can be 167 or 169 hours.
+  nextWeekStart.setDate(weekStart.getDate() + 7);
 
   return {
-    endDate: toIsoDate(weekEnd),
-    endTime: `${toIsoDate(weekEnd)}T23:59:59.999Z`,
-    startDate: toIsoDate(weekStart),
-    startTime: `${toIsoDate(weekStart)}T00:00:00.000Z`,
+    endDate: formatLocalDate(weekEnd),
+    nextStartTime: nextWeekStart.getTime(),
+    startDate: formatLocalDate(weekStart),
+    startTime: weekStart.getTime(),
   };
 }
 
 function isIsoInRange(
   isoTimestamp: string,
-  startTime: string,
-  endTime: string,
+  startTime: number,
+  nextStartTime: number,
 ) {
-  return isoTimestamp >= startTime && isoTimestamp <= endTime;
+  const time = Date.parse(isoTimestamp);
+
+  return time >= startTime && time < nextStartTime;
 }
 
 function toRpgOfficialLink(link: Cs50Link | null): RpgOfficialLink | null {
@@ -269,18 +260,19 @@ function buildWeeklyProgress(
   snapshot: DatabaseSnapshot,
   nowIso: string,
 ): RpgHubWeeklyProgress {
-  const { endDate, endTime, startDate, startTime } = getWeekBounds(nowIso);
+  const { endDate, nextStartTime, startDate, startTime } =
+    getWeekBounds(nowIso);
   const completedRequiredItemIds = new Set(
     snapshot.courseItems.filter((item) => item.required).map((item) => item.id),
   );
   const thisWeeksProgress = snapshot.progressEntries.filter((entry) =>
-    isIsoInRange(entry.updatedAt, startTime, endTime),
+    isIsoInRange(entry.updatedAt, startTime, nextStartTime),
   );
   const thisWeeksSessions = snapshot.studySessions.filter((session) =>
-    isIsoInRange(session.startedAt, startTime, endTime),
+    isIsoInRange(session.startedAt, startTime, nextStartTime),
   );
   const thisWeeksXp = snapshot.xpTransactions.filter((transaction) =>
-    isIsoInRange(transaction.awardedAt, startTime, endTime),
+    isIsoInRange(transaction.awardedAt, startTime, nextStartTime),
   );
 
   return {
