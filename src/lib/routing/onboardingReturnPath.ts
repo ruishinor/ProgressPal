@@ -1,4 +1,4 @@
-const defaultOnboardingReturnPath = '/dashboard';
+const defaultOnboardingReturnPath = '/rpg';
 const onboardingPath = '/onboarding';
 
 export type OnboardingLocationState = {

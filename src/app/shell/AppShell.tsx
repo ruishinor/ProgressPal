@@ -122,7 +122,7 @@ export function AppShell() {
   if (requiresOnboarding && location.pathname !== onboardingPath) {
     const returnTo =
       location.pathname === '/'
-        ? '/dashboard'
+        ? '/rpg'
         : `${location.pathname}${location.search}${location.hash}`;
 
     return <Navigate replace state={{ returnTo }} to={onboardingPath} />;

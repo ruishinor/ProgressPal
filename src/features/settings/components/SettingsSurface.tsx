@@ -179,7 +179,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       // feedback. Refreshing app state forces a reload that unmounts this page,
       // so a success toast here would never survive; the dashboard is the
       // feedback instead. Verify-your-restore guidance lives in the preview.
-      navigate('/dashboard', { replace: true });
+      navigate('/rpg', { replace: true });
     } catch {
       setToast({
         title: 'Import failed',

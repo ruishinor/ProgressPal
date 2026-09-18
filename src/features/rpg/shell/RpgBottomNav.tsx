@@ -40,9 +40,9 @@ const secondaryNavItems: readonly RpgNavItem[] = [
   { activePaths: [rpgLogPath], label: 'Insights', to: rpgLogPath },
   { activePaths: [rpgSettingsPath], label: 'Settings', to: rpgSettingsPath },
   {
-    accessibleLabel: 'Open Classic dashboard',
+    accessibleLabel: 'Open Tracker',
     activePaths: [],
-    label: 'Classic dashboard',
+    label: 'Tracker',
     to: '/dashboard',
   },
 ] as const;
@@ -125,7 +125,7 @@ export function RpgBottomNav() {
               key={item.to}
               to={item.to}
             >
-              {item.label === 'Classic dashboard' ? 'Classic' : item.label}
+              {item.label}
             </Link>
           );
         })}
