@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { SessionAssignmentCorrection } from './SessionAssignmentCorrection';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -1327,6 +1328,12 @@ export function StudySessionsSurface({
                     ) : null}
                   </div>
                   <div className="session-ledger-list__meta">
+                    <SessionAssignmentCorrection
+                      sessionId={row.id}
+                      itemId={row.itemId}
+                      catalog={catalog}
+                      onCorrected={refreshSessionHistory}
+                    />
                     <Badge tone="neutral">{row.durationLabel}</Badge>
                     {row.blockerSummary ? (
                       <Badge tone="warning">{row.blockerSummary}</Badge>

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   addStudySessionAndAwardXp,
+  correctStudySessionAssignment,
   getDatabaseSnapshot,
   initializeDatabase,
   logMediaProgressAndAwardXp,
@@ -401,6 +402,15 @@ describe('repository local-write coordination', () => {
     ).rejects.toThrow(
       'Close the other ProgressPal tab before replacing or resetting local data.',
     );
+    await expect(
+      correctStudySessionAssignment(
+        { sessionId: 'saved-session', itemId: 'week-0-lecture' },
+        { db: testDatabase.db },
+      ),
+    ).rejects.toMatchObject({
+      name: 'LocalWriteBlockedError',
+      reason: 'peer-active',
+    });
     await expect(
       restoreDatabaseFromBackup(before, {
         db: testDatabase.db,
@@ -1000,6 +1010,33 @@ describe('repository local-write coordination', () => {
     );
     expect(afterRetry.xpTransactions).toHaveLength(
       before.xpTransactions.length + 1,
+    );
+    expect(
+      Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
+    ).toBe(1);
+  });
+
+  it('records exactly one revision for a saved-session assignment correction', async () => {
+    testDatabase = createTestDatabase('coordinated-study-correction');
+    await initializeDatabase({ db: testDatabase.db, seed: sampleCourseSeed });
+    await addStudySessionAndAwardXp(
+      {
+        id: 'saved-session',
+        itemId: 'week-0-lecture',
+        unitId: 'week-0',
+        durationMinutes: 30,
+        mode: 'watching',
+        startedAt: '2026-07-16T10:00:00.000Z',
+        endedAt: '2026-07-16T10:30:00.000Z',
+      },
+      { db: testDatabase.db },
+    );
+    const session = startLocalDataCoordination(() => undefined);
+    stopCoordination = session.stop;
+    await session.ready;
+    await correctStudySessionAssignment(
+      { sessionId: 'saved-session', itemId: 'week-0-lecture' },
+      { db: testDatabase.db },
     );
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),

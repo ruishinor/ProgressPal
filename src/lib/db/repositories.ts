@@ -2060,6 +2060,67 @@ export async function addStudySession(
   return studySession;
 }
 
+/** Correct attribution only; earned rewards remain historical records. */
+export async function correctStudySessionAssignment(
+  input: { sessionId: string; itemId: string },
+  options: BaseDatabaseOptions = {},
+) {
+  const sessionId = parseWithSchema(
+    domainScalarSchemas.entityId,
+    input.sessionId,
+    'Session id',
+  );
+  const itemId = parseWithSchema(
+    domainScalarSchemas.entityId,
+    input.itemId,
+    'Item id',
+  );
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const now = options.now ?? defaultClock;
+  return runCoordinatedWrite(database, () =>
+    database.transaction(
+      'rw',
+      [
+        database.studySessions,
+        database.courseItems,
+        database.courseUnits,
+        database.xpTransactions,
+      ],
+      async () => {
+        markCurrentTransactionCoordinated(database);
+        const session = await database.studySessions.get(sessionId);
+        const item = await database.courseItems.get(itemId);
+        if (!session) throw new Error('The saved session no longer exists.');
+        if (!item || !(await database.courseUnits.get(item.unitId))) {
+          throw new Error('Choose an existing course task.');
+        }
+        const corrected = parseWithSchema(
+          StudySessionSchema,
+          {
+            ...session,
+            itemId: item.id,
+            unitId: item.unitId,
+            updatedAt: now(),
+          },
+          'Corrected study session',
+        );
+        await database.studySessions.put(corrected);
+        const rewards = await database.xpTransactions
+          .where('sourceId')
+          .equals(session.id)
+          .filter((reward) => reward.sourceType === 'study_session')
+          .toArray();
+        for (const reward of rewards) {
+          await database.xpTransactions.update(reward.id, {
+            reason: `Logged 25+ minute study session for: ${item.title}`,
+          });
+        }
+        return corrected;
+      },
+    ),
+  );
+}
+
 export async function addXpTransaction(
   input: AddXpTransactionInput,
   options: BaseDatabaseOptions = {},

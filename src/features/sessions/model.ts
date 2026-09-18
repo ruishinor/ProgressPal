@@ -91,6 +91,7 @@ export type LiveSessionState =
     };
 
 export type SessionLedgerRow = {
+  itemId: string;
   blockerSummary: string | null;
   durationLabel: string;
   id: string;
@@ -697,6 +698,7 @@ export function buildSessionLedgerRows(
               : `${blockerCount} blockers`,
         durationLabel: formatDurationMinutes(session.durationMinutes),
         id: session.id,
+        itemId: session.itemId,
         itemTitle: item?.title ?? session.itemId,
         modeLabel: getModeLabel(session.mode),
         notesPreview:
