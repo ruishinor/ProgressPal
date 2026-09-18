@@ -5,8 +5,8 @@
   "reviewScope": {
     "date": "2026-09-18",
     "baselineCommit": "aa705bcd2b257ea0128b355a6c68d7c7b6edc9b5",
-    "sourceCandidateCommit": "0c9780e34cd119b4da1968fd3a9539f7c7b1af7e",
-    "sourceCandidateTree": "5ac2c372c8881e6c89f5a98605da7c9a548c8d23",
+    "sourceCandidateCommit": "6e30ad42a64b411d7e19cab3db660b6a6bc320d0",
+    "sourceCandidateTree": "57707c32865294c4a5a8efdeb04eca46b5aceebb",
     "binding": "Reviews the corrected runtime and tests at sourceCandidateCommit plus the following documentation/workflow/review metadata commit. The release runner binds this tracked review checksum to the exact clean final HEAD; no certification success is inferred before that run.",
     "method": "Inspect changed execution paths and preserved engine files; falsify owner acceptance claims with focused repository/integration tests, managed production browser paths, keyboard/axe checks, offline image decoding, and actual mobile/desktop screenshot inspection. This is self-review, not an independent human review.",
     "checks": [
@@ -47,6 +47,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "No unresolved P0/P1 was found in the bounded candidate review. Preserve established baseline evidence and run one clean full release gate on the final committed candidate. Focused browser failures were stale six-image/open-timeline assertions, not waived checks; keyboard QA must focus summary rather than its heading. No full ordinary suite was duplicated before certification. Physical/hosted limits remain explicit. A passing gate certifies only its recorded exact HEAD."
+    "summary": "Certification attempts stopped before application tests: first a verified local Vite process held the native Rolldown file during npm ci (process stopped); then the new offline assertion used a DOM type unavailable in the Node E2E project. The assertion now uses a structural image-property type with identical runtime behavior; focused typecheck passes. These attempts are failures, not clean passes. No unresolved P0/P1 was found in the bounded candidate review. Preserve established baseline evidence and run one clean full release gate on the final committed candidate. Focused browser failures were stale six-image/open-timeline assertions, not waived checks; keyboard QA must focus summary rather than its heading. No full ordinary suite was duplicated before certification. Physical/hosted limits remain explicit. A passing gate certifies only its recorded exact HEAD."
   }
 }

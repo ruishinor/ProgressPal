@@ -1215,3 +1215,12 @@ summary controls, not their child headings, and synthetic repository writes must
 respect the existing stale-revision guard. The final gate is the sole complete
 candidate sweep; targeted development checks are not claimed as independent full
 certification runs.
+
+Certification preparation follow-up: the first gate stopped during locked install
+because another local ProgressPal Vite process held the native Rolldown binding;
+the identified process was stopped. The next attempt stopped at typecheck because
+the new offline image assertion referenced a DOM type unavailable in the Node E2E
+project. Commit `6e30ad4` changes only that type annotation; runtime assertion
+behavior is identical and focused typecheck passes. Both failed manifests remain
+in release evidence. The refreshed review binds this corrected source; no prior
+failed attempt counts as certification.
