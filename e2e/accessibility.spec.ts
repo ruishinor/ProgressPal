@@ -425,8 +425,8 @@ test('primary and danger buttons stay readable on hover in dark theme', async ({
 }) => {
   await completeOnboardingDark(page);
 
-  // Primary button hover - the "Open dashboard" CTA on Home.
-  await page.goto('/');
+  // Primary button hover - the "Open dashboard" CTA on the Tracker profile.
+  await page.goto('/profile');
   const primary = page.getByRole('link', { name: 'Open dashboard' });
   await primary.hover();
   await expect(page.locator('.button--primary')).toHaveCount(1);

@@ -1242,3 +1242,14 @@ the same repair and write-blocking controls with `RPG startup failed`; only the
 heading expectations changed. All four focused recovery tests and formatting
 pass. The release review includes this test-only correction; no recovery behavior
 or safety assertion was removed.
+
+Certification preparation follow-up: the latest supplied release-evidence manifest
+reached the managed browser gate after clean install, release-runner checks, lint,
+formatting, typecheck, build, bundle checks and **600/600** unit/integration tests.
+It then failed **1 of 60** E2E cases because the dark-theme primary-button hover
+contrast test still navigated to `/` and waited for Tracker's `Open dashboard` CTA.
+The root now correctly renders RPG. The test keeps the same real `.button--primary`
+hover/contrast assertion and now opens `/profile`, where that Tracker CTA remains
+directly reachable. The failed gate remains failed evidence and does not count as
+certification. Run the focused contrast case, then one clean full gate on the
+committed candidate; do not rerun an unchanged passing gate.
