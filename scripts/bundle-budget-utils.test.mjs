@@ -29,7 +29,12 @@ test('reports raw JavaScript, total JavaScript gzip, and CSS gzip independently'
   const result = evaluateBundleBudget([
     { gzipBytes: 250_000, kind: 'js', path: 'a.js', rawBytes: 500_001 },
     { gzipBytes: 150_001, kind: 'js', path: 'b.js', rawBytes: 100_000 },
-    { gzipBytes: 10_001, kind: 'css', path: 'a.css', rawBytes: 20_000 },
+    {
+      gzipBytes: releaseBundleBudget.maxCssGzipBytes + 1,
+      kind: 'css',
+      path: 'a.css',
+      rawBytes: 20_000,
+    },
   ]);
 
   assert.equal(result.violations.length, 3);

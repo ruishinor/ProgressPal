@@ -1229,3 +1229,9 @@ The next preparation attempt failed formatting on the repaired offline assertion
 Prettier wrapping is now applied, with formatting and typecheck checked together
 before restart. This was avoidable gate overhead, not additional certification
 evidence; future assertion repairs must include these cheap checks before commit.
+
+The following attempt passed lint, formatting, typecheck and build, then detected
+a stale budget-helper fixture using 10,001 B as over-limit after the authorized
+12,000 B ceiling. The fixture now uses configured limit + 1; both budget boundary
+tests and its formatting check pass. Product code is unchanged. This failed gate
+is retained; future budget changes must check both measurement and boundary tests.
