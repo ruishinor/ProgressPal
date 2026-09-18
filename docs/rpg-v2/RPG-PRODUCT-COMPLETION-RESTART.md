@@ -1224,3 +1224,8 @@ project. Commit `6e30ad4` changes only that type annotation; runtime assertion
 behavior is identical and focused typecheck passes. Both failed manifests remain
 in release evidence. The refreshed review binds this corrected source; no prior
 failed attempt counts as certification.
+
+The next preparation attempt failed formatting on the repaired offline assertion.
+Prettier wrapping is now applied, with formatting and typecheck checked together
+before restart. This was avoidable gate overhead, not additional certification
+evidence; future assertion repairs must include these cheap checks before commit.
