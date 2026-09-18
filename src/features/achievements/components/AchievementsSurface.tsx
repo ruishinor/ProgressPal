@@ -346,15 +346,17 @@ export function AchievementsSurface({
                 </div>
 
                 <p className="achievement-card__how">
-                  <span className="achievement-card__how-label">
-                    {achievement.unlocked
-                      ? isRpgVariant
-                        ? 'Requirement met: '
-                        : 'Earned for: '
-                      : isRpgVariant
-                        ? 'Requirement: '
-                        : 'How to unlock: '}
-                  </span>
+                  {!isRpgVariant ? (
+                    <span className="achievement-card__how-label">
+                      {achievement.unlocked
+                        ? isRpgVariant
+                          ? 'Requirement met: '
+                          : 'Earned for: '
+                        : isRpgVariant
+                          ? 'Requirement: '
+                          : 'How to unlock: '}
+                    </span>
+                  ) : null}
                   {achievement.description}
                 </p>
 

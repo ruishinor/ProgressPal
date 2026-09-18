@@ -75,7 +75,7 @@ test('refuses repair while a second tab is open and repairs after it closes', as
 
   const peer = await context.newPage();
   collectConsoleIssues(peer, consoleIssues);
-  await peer.goto('/');
+  await peer.goto('/dashboard');
   await expect(
     peer.getByRole('heading', { name: 'Local startup failed' }),
   ).toBeVisible();

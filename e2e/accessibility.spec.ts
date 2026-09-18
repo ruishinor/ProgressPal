@@ -221,7 +221,7 @@ test('real reachable routes meet dark-theme contrast with no light gradient behi
   await completeOnboardingDark(page);
 
   // `.card--accent` renders live on Home (saved-profile card).
-  await page.goto('/');
+  await page.goto('/profile');
   await expect(
     page.getByRole('heading', { name: 'Local profile for Alex' }),
   ).toBeVisible();

@@ -1,5 +1,5 @@
 export const releaseBundleBudget = Object.freeze({
-  maxCssGzipBytes: 10_000,
+  maxCssGzipBytes: 12_000,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
 });

@@ -1,8 +1,9 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
-test('RPG settings refresh identity immediately and explain the Classic theme preference', async ({
+test('RPG settings refresh identity immediately and explain the Tracker theme preference', async ({
   page,
 }) => {
   await completeOnboarding(page);
@@ -10,11 +11,11 @@ test('RPG settings refresh identity immediately and explain the Classic theme pr
   const storesBefore = await readRpgRewardStores(page);
   await expect(
     page.getByText(
-      'Applies to Classic pages. RPG keeps its dark study theme. System follows your device.',
+      'Applies to Tracker pages. RPG keeps its dark study theme. System follows your device.',
     ),
   ).toBeVisible();
   await page.getByLabel('Display name').fill('Morgan');
-  await page.getByLabel('Classic theme').selectOption('light');
+  await page.getByLabel('Tracker theme').selectOption('light');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
     page.getByText('Local profile saved', { exact: true }),
@@ -40,9 +41,7 @@ test('RPG settings refresh identity immediately and explain the Classic theme pr
   await expect(page.getByLabel('Display name')).toHaveValue('Morgan');
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
   await page.goto('/rpg/hero');
-  await page
-    .getByRole('link', { name: 'Open Classic dashboard', exact: true })
-    .click();
+  await page.getByRole('link', { name: 'Open Tracker', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Dashboard', exact: true }),
   ).toBeVisible();
@@ -85,11 +84,11 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
     feedback.getByText('Achievement unlocked: Bug Hunter'),
   ).toBeVisible();
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
-  await expect(hud.getByText(/^10 XP total/)).toBeVisible();
+  await expect(hud.getByText('10 / 100 XP to Level 2')).toBeVisible();
   await expect(
-    feedback.getByRole('link', { name: 'Continue quest: Lecture 0: Scratch' }),
+    feedback.getByRole('link', { name: 'Start quest: Lecture 0: Scratch' }),
   ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
-  const saved = await readRpgRewardStores(page);
+  let saved = await readRpgRewardStores(page);
   expect(saved.studySessions).toHaveLength(before.studySessions.length + 1);
   expect(saved.studySessions[0]).toMatchObject({
     durationMinutes: 25,
@@ -101,6 +100,37 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
   expect(saved.achievementUnlocks).toHaveLength(
     before.achievementUnlocks.length + 1,
   );
+
+  await page.getByText('Review saved sessions (1)', { exact: true }).click();
+  const correctionButton = page.getByRole('button', {
+    name: 'Correct session',
+    exact: true,
+  });
+  await correctionButton.click();
+  await page.getByLabel('Correct task').selectOption('week-4-problem-set');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole('button', { name: 'Save assignment' }).click();
+  await expect(
+    page.getByText(
+      'Session assignment corrected. Time and earned rewards are unchanged.',
+    ),
+  ).toBeVisible();
+  await expect(correctionButton).toBeFocused();
+  const corrected = await readRpgRewardStores(page);
+  expect(corrected.studySessions[0]).toEqual({
+    ...saved.studySessions[0],
+    itemId: 'week-4-problem-set',
+    unitId: 'week-4',
+    updatedAt: expect.any(String),
+  });
+  expect(corrected.xpTransactions).toEqual(
+    saved.xpTransactions.map((tx) => ({
+      ...tx,
+      reason: 'Logged 25+ minute study session for: Problem Set 4: Memory',
+    })),
+  );
+  expect(corrected.achievementUnlocks).toEqual(saved.achievementUnlocks);
+  saved = corrected;
   await page.getByRole('link', { name: 'Hero', exact: true }).click();
   await expect(page.locator('.rpg-hero')).toContainText('25 min');
   await page.goto('/rpg/badges');
@@ -110,6 +140,8 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
       .getByText('Earned', { exact: true }),
   ).toBeVisible();
   await page.goto('/rpg/log');
+  await page.getByText('Study mode breakdown', { exact: true }).click();
+  await page.getByText('Achievement timeline', { exact: true }).click();
   await expect(page.getByRole('row', { name: /Debugging/ })).toContainText(
     '25',
   );
@@ -170,7 +202,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await page.goto('/rpg/resource/week-0-lecture');
   await expect(
     page.locator('.rpg-study-resource__header .rpg-quest-reward'),
-  ).toHaveText('+40 XP on completion');
+  ).toHaveText('Up to 40 XP remaining for this task');
   await expect(page.locator('.rpg-hero-hud .rpg-quest-reward')).toHaveCount(0);
 
   await expect(
@@ -198,7 +230,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await expect(feedback.getByText('Level 1 progress')).toBeVisible();
 
   const nextQuestLink = feedback.getByRole('link', {
-    name: 'Continue quest: Problem Set 0: Scratch',
+    name: 'Start quest: Problem Set 0: Scratch',
   });
 
   await expect(nextQuestLink).toHaveAttribute(
@@ -208,10 +240,10 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
 
   const heroHud = page.getByRole('region', { name: 'Persistent hero HUD' });
 
-  await expect(heroHud.getByText(/^40 XP total/)).toBeVisible();
+  await expect(heroHud.getByText('40 / 100 XP to Level 2')).toBeVisible();
   await expect(
     feedback.getByRole('link', {
-      name: 'Continue quest: Problem Set 0: Scratch',
+      name: 'Start quest: Problem Set 0: Scratch',
     }),
   ).toBeVisible();
 
@@ -253,6 +285,7 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
   await expect(
     page.getByRole('heading', { name: 'Achievement timeline' }),
   ).toBeVisible();
+  await page.getByText('Achievement timeline', { exact: true }).click();
   await expect(page.getByRole('row', { name: /First Step/ })).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'View achievements' }),
@@ -268,4 +301,52 @@ test('explicit RPG progress save updates rewards, HUD, and next real quest', asy
 
   await expect(currentWeek.getByText('Current module')).toBeVisible();
   await expect(currentWeek.getByText('In progress')).toBeVisible();
+});
+
+test('deliberate backward status correction preserves earned rewards and supports keyboard disclosure', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await completeOnboarding(page);
+  await page.goto('/rpg/resource/week-0-lecture');
+  await page.getByRole('button', { name: 'Mark locally complete' }).click();
+  await expect(page.getByText('Local status: Completed')).toBeVisible();
+  const before = await readRpgRewardStores(page);
+  await page.getByRole('button', { name: 'Correct saved status' }).click();
+  await expect(page.getByRole('note')).toContainText(
+    'XP and achievements already earned are not removed.',
+  );
+  await page
+    .getByRole('combobox', { name: /^Progress/ })
+    .selectOption('blocked');
+  const info = page.getByRole('button', { name: 'What does Blocked mean?' });
+  await info.focus();
+  await page.keyboard.press('Enter');
+  await expect(info).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByText(/Blocked means you started/)).toBeVisible();
+  await page.keyboard.press('Space');
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByRole('button', { name: 'Save status correction' }).click();
+  await expect(page.getByText('Local status: Blocked')).toBeVisible();
+  const corrected = await readRpgRewardStores(page);
+  expect(corrected.xpTransactions).toEqual(before.xpTransactions);
+  expect(corrected.achievementUnlocks).toEqual(before.achievementUnlocks);
+  await expect(
+    page.locator('.rpg-study-resource__header .rpg-quest-reward'),
+  ).toHaveText('Task XP earned');
+  await page.getByRole('button', { name: 'Mark locally complete' }).click();
+  await expect(page.getByText('Local status: Completed')).toBeVisible();
+  expect((await readRpgRewardStores(page)).xpTransactions).toEqual(
+    before.xpTransactions,
+  );
+  await page.goto('/rpg/log');
+  await expect(page.locator('.insights-disclosure[open]')).toHaveCount(1);
+  const effort = page
+    .locator('summary')
+    .filter({ hasText: 'Effort over time' });
+  await effort.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.insights-disclosure[open]')).toHaveCount(2);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

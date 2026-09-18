@@ -15,6 +15,7 @@ export default tseslint.config(
       '_bmad-output/**',
       'design-artifacts/**',
       'artifacts/publish-readiness/**',
+      'artifacts/rpg-primary/**',
       'dist/**',
       'coverage/**',
       'node_modules/**',

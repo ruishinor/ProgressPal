@@ -214,7 +214,7 @@ for (const viewport of mobileViewports) {
         'Generalist',
         'Path',
         'CS Foundations',
-        '0 XP total',
+        '0 / 100 XP to Level 2',
       ]) {
         await expect(hud.getByText(identity, { exact: true })).toBeVisible();
       }
@@ -255,9 +255,8 @@ test('mobile navigation keeps core routes direct and restores focus after More c
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await completeOnboarding(page);
+  await page.goto('/rpg');
 
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-  await page.getByRole('link', { name: 'Open RPG' }).click();
   await expect(
     page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
   ).toBeVisible();
@@ -283,7 +282,7 @@ test('mobile navigation keeps core routes direct and restores focus after More c
     moreDestinations.getByRole('link', { name: 'Awards' }),
   ).toBeFocused();
   await expect(
-    moreDestinations.getByRole('link', { name: 'Open Classic dashboard' }),
+    moreDestinations.getByRole('link', { name: 'Open Tracker' }),
   ).toBeVisible();
 
   await page.keyboard.press('Escape');
@@ -292,9 +291,7 @@ test('mobile navigation keeps core routes direct and restores focus after More c
   await expect(moreButton).toBeFocused();
 
   await moreButton.click();
-  await moreDestinations
-    .getByRole('link', { name: 'Open Classic dashboard' })
-    .click();
+  await moreDestinations.getByRole('link', { name: 'Open Tracker' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
 });
@@ -320,10 +317,10 @@ test('mobile Hub puts the recommended quest before secondary progress', async ({
     questPanel.locator('.rpg-hub__quest-statuses').getByText('Not started'),
   ).toBeInViewport();
   await expect(
-    questPanel.getByRole('link', { name: 'Continue quest' }),
+    questPanel.getByRole('link', { name: 'Start quest' }),
   ).toBeInViewport();
   await expect(
-    page.getByRole('link', { name: 'Continue quest', exact: true }),
+    page.getByRole('link', { name: 'Start quest', exact: true }),
   ).toHaveCount(1);
   await expect(page.getByText('Progress snapshot')).toBeVisible();
   await expect(page.getByText('Recent saved activity')).toHaveCount(0);

@@ -281,7 +281,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
   ).toHaveCount(0);
 
   await page.goto('/onboarding');
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/rpg$/);
 
   await expect
     .poll(async () => {
@@ -313,7 +313,8 @@ test('creates a local profile, persists it across reload, and applies stored pre
       seedVersion: 20260617,
     });
 
-  // The /onboarding -> /dashboard redirect re-loads the dashboard's local data;
+  await page.goto('/dashboard');
+  // The /onboarding -> /rpg redirect re-loads the dashboard's local data;
   // wait for the ready-state dashboard before scanning for accessibility issues.
   await expect(
     page.getByRole('heading', { name: 'Course progress' }),

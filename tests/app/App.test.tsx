@@ -1,3 +1,5 @@
+import { getLevelProgressDisplay } from '@/features/rpg/model/presentation';
+import { calculateXpSummary } from '@/lib/xp/engine';
 import {
   act,
   cleanup,
@@ -109,7 +111,7 @@ describe('App', () => {
         .setup()
         .click(screen.getByRole('button', { name: 'Use default learner' }));
       expect(
-        await screen.findByRole('heading', { name: 'Dashboard' }),
+        await screen.findByRole('heading', { name: 'RPG Hub' }),
       ).toBeInTheDocument();
       expect((await getDatabaseSnapshot()).learnerProfile?.displayName).toBe(
         'Learner',
@@ -161,7 +163,7 @@ describe('App', () => {
     );
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
 
     const snapshot = await getDatabaseSnapshot();
@@ -192,7 +194,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Save and continue' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
 
     const snapshot = await getDatabaseSnapshot();
@@ -631,7 +633,7 @@ describe('App', () => {
       await renderAppAtRoute('/');
 
       expect(
-        await screen.findByRole('heading', { name: 'Local startup failed' }),
+        await screen.findByRole('heading', { name: 'RPG startup failed' }),
       ).toBeInTheDocument();
       expect(
         screen.getByText(
@@ -649,43 +651,48 @@ describe('App', () => {
     }
   });
 
-  it('returns an imported onboarded learner to the requested deep link', async () => {
-    const user = userEvent.setup();
-    await initializeDatabase({ seed: bundledCourseSeed });
-    await saveLearnerProfile(
-      {
-        ...defaultLearnerProfileValues,
-        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
-      },
-      { completeOnboarding: true },
-    );
+  it.each(['/rpg/focus?itemId=week-4-lecture#imported-session', '/'])(
+    'returns an imported onboarded learner to %s or the RPG default',
+    async (destination) => {
+      const user = userEvent.setup();
+      await initializeDatabase({ seed: bundledCourseSeed });
+      await saveLearnerProfile(
+        {
+          ...defaultLearnerProfileValues,
+          targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+        },
+        { completeOnboarding: true },
+      );
 
-    const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
-      appVersion: '1.2.0',
-      exportedAt: '2026-07-12T10:00:00.000Z',
-      schemaVersion: 2,
-    });
+      const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
+        appVersion: '1.2.0',
+        exportedAt: '2026-07-12T10:00:00.000Z',
+        schemaVersion: 2,
+      });
 
-    await resetAllData({ seed: bundledCourseSeed });
-    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#imported-session');
+      await resetAllData({ seed: bundledCourseSeed });
+      await renderAppAtRoute(destination);
 
-    await user.upload(
-      await screen.findByLabelText('Backup file'),
-      new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
-        type: 'application/json',
-      }),
-    );
-    await user.click(
-      await screen.findByRole('button', { name: 'Restore this backup' }),
-    );
+      await user.upload(
+        await screen.findByLabelText('Backup file'),
+        new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
+          type: 'application/json',
+        }),
+      );
+      await user.click(
+        await screen.findByRole('button', { name: 'Restore this backup' }),
+      );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Focus' }),
-    ).toBeInTheDocument();
-    expect(
-      `${window.location.pathname}${window.location.search}${window.location.hash}`,
-    ).toBe('/rpg/focus?itemId=week-4-lecture#imported-session');
-  });
+      expect(
+        await screen.findByRole('heading', {
+          name: destination === '/' ? 'RPG Hub' : 'Focus',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      ).toBe(destination === '/' ? '/rpg' : destination);
+    },
+  );
 
   it('does not render forbidden learner-facing terms during onboarding', async () => {
     const user = userEvent.setup();
@@ -733,8 +740,24 @@ describe('App', () => {
     await user.keyboard('{Enter}');
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
+  });
+
+  it('opens the RPG default for an onboarded learner at root', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/');
+    expect(
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
+    ).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/rpg');
   });
 
   it('renders the saved profile route after onboarding is complete', async () => {
@@ -755,7 +778,7 @@ describe('App', () => {
       { completeOnboarding: true },
     );
 
-    await renderAppAtRoute('/');
+    await renderAppAtRoute('/profile');
 
     expect(
       await screen.findByRole('heading', { name: 'Local profile for Alex' }),
@@ -2350,7 +2373,7 @@ describe('RPG routes', () => {
       ['Awards', '/rpg/badges'],
       ['Insights', '/rpg/log'],
       ['Settings', '/rpg/settings'],
-      ['Open Classic dashboard', '/dashboard'],
+      ['Open Tracker', '/dashboard'],
     ];
 
     for (const [label, href] of expectedItems) {
@@ -2429,7 +2452,7 @@ describe('RPG routes', () => {
     expect(within(heroHud).queryByText(/Route:/i)).not.toBeInTheDocument();
     if (composition === 'full') {
       expect(
-        within(heroHud).getByRole('link', { name: 'Continue quest' }),
+        within(heroHud).getByRole('link', { name: /^(Start|Continue) quest$/ }),
       ).toHaveAttribute('href', currentQuestHref);
     }
   }
@@ -2453,9 +2476,9 @@ describe('RPG routes', () => {
       currentQuestHref: '/rpg/resource/week-0-lecture',
       composition: 'overview',
     });
-    expect(
-      screen.getAllByRole('link', { name: 'Continue quest' }),
-    ).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: 'Start quest' })).toHaveLength(
+      1,
+    );
   });
 
   it('renders the RPG quest hub from real local data', async () => {
@@ -2547,7 +2570,7 @@ describe('RPG routes', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Recent saved activity')).not.toBeInTheDocument();
     expect(
-      within(questPanel).getByRole('link', { name: 'Continue quest' }),
+      within(questPanel).getByRole('link', { name: 'Start quest' }),
     ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   });
 
@@ -2868,7 +2891,10 @@ describe('RPG routes', () => {
       );
 
       expect(
-        heroHud.getByText(new RegExp(`^${totalXp} XP total`)),
+        heroHud.getByText(
+          getLevelProgressDisplay(calculateXpSummary(totalXp))
+            .levelProgressLabel,
+        ),
       ).toBeInTheDocument();
       expect(
         heroHud.queryByRole('link', { name: 'Continue quest' }),
@@ -3312,7 +3338,7 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
       expect(
         within(focusFeedback!).getByRole('link', {
-          name: 'Continue quest: Lecture 0: Scratch',
+          name: 'Start quest: Lecture 0: Scratch',
         }),
       ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
 
@@ -3352,7 +3378,10 @@ describe('RPG routes', () => {
         expect(
           within(
             screen.getByRole('region', { name: 'Persistent hero HUD' }),
-          ).getByText(new RegExp(`^${totalXp} XP total`)),
+          ).getByText(
+            getLevelProgressDisplay(calculateXpSummary(totalXp))
+              .levelProgressLabel,
+          ),
         ).toBeInTheDocument();
       });
     } finally {
@@ -3683,7 +3712,7 @@ describe('RPG routes', () => {
     );
     expect(within(identityPanel).getByText('Initiate')).toBeInTheDocument();
     expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
-    expect(within(identityPanel).getByText(/XP total$/)).toBeInTheDocument();
+    expect(within(identityPanel).getByText(/XP to Level/)).toBeInTheDocument();
     expect(screen.getByText('Required course progress')).toBeInTheDocument();
     expect(screen.getByText('Local activity totals')).toBeInTheDocument();
     expect(screen.getByText('Study sessions')).toBeInTheDocument();
@@ -3726,7 +3755,9 @@ describe('RPG routes', () => {
 
     const firstStep = await screen.findByTestId('achievement-first-step');
     expect(within(firstStep).getByText('Locked')).toBeInTheDocument();
-    expect(within(firstStep).getByText('Requirement:')).toBeInTheDocument();
+    expect(
+      within(firstStep).queryByText('Requirement:'),
+    ).not.toBeInTheDocument();
     expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
@@ -3765,7 +3796,9 @@ describe('RPG routes', () => {
     expect(
       within(firstStep).getByText('Earned 2026-06-12'),
     ).toBeInTheDocument();
-    expect(within(firstStep).getByText('Requirement met:')).toBeInTheDocument();
+    expect(
+      within(firstStep).queryByText('Requirement met:'),
+    ).not.toBeInTheDocument();
     expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
@@ -3796,6 +3829,12 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Effort over time' }),
     ).toBeInTheDocument();
 
+    for (const details of document.querySelectorAll<HTMLDetailsElement>(
+      '.insights-disclosure',
+    )) {
+      details.open = true;
+      fireEvent(details, new Event('toggle'));
+    }
     for (const cardTitle of [
       'Course progress',
       'XP over time',
@@ -3853,6 +3892,12 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Effort over time' }),
     ).toBeInTheDocument();
 
+    for (const details of document.querySelectorAll<HTMLDetailsElement>(
+      '.insights-disclosure',
+    )) {
+      details.open = true;
+      fireEvent(details, new Event('toggle'));
+    }
     for (const cardTitle of [
       'Course progress',
       'XP over time',
@@ -3932,7 +3977,7 @@ describe('RPG routes', () => {
     await waitFor(() => expect(awardsLink).toHaveFocus());
     expect(
       within(moreDestinations).getByRole('link', {
-        name: 'Open Classic dashboard',
+        name: 'Open Tracker',
       }),
     ).toHaveAttribute('href', '/dashboard');
 
