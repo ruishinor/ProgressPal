@@ -234,7 +234,7 @@ test('cold-starts offline after one online production load', async ({
     await expect
       .poll(() =>
         badgeImage.evaluate(
-          (image) => (image as HTMLImageElement).naturalWidth,
+          (image) => (image as unknown as { naturalWidth: number }).naturalWidth,
         ),
       )
       .toBeGreaterThan(0);
