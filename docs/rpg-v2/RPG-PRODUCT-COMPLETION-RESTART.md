@@ -1137,3 +1137,81 @@ reconciliation. Generated evidence needed a narrow lint/format exclusion. A fixe
 Tab count both broke after redundant links were removed and missed expanded-form
 coverage; enumerating unique controls revealed the actual textarea overlap.
 Future validation should establish these fixture/coverage boundaries first.
+
+## 12. RPG-primary final candidate
+
+This section supersedes section 11's current-work/default-mode restrictions under
+new owner instruction dated 2026-09-18. Sections 1–11 and the immutable freeze
+remain historical evidence. RPG is the primary/default experience; Tracker is
+secondary. The bounded product correction pass is implemented on
+`rpg/publish-readiness`, starting from `aa705bcd2b257ea0128b355a6c68d7c7b6edc9b5`.
+
+Implemented concerns:
+
+- Root, quick/custom onboarding and default backup restore enter `/rpg`.
+  Explicit RPG/Tracker deep links survive onboarding. Tracker Profile is now
+  `/profile`; its other routes retain their paths. User-facing mode copy says Tracker.
+- One presentation helper supplies Start / Continue / Review blocked quest.
+  Current-level XP derives from existing engine thresholds, including 210 lifetime
+  XP rendered as `110 / 300 XP to Level 3`. Compact/detailed reward copy uses the
+  existing evaluator and earned-source ledger without changing rules.
+- Session assignment correction is an atomic coordinated repository mutation:
+  task determines unit; only attribution, updatedAt and existing XP reason change.
+  Source facts, award identifiers/amounts/dates and unlocks remain intact.
+- Deliberate saved-status correction offers legal earlier states without changing
+  the ordinary forward selector. Historical XP/unlocks persist and replay does not
+  duplicate them. Blocked has a keyboard-operable explanation.
+- All 16 achievement IDs have distinct local artwork, with fallback only for
+  unknown IDs or failed images. RPG Insights starts with Course progress open and
+  six sections closed; closed section bodies are unmounted. Tracker retains cards.
+- A narrow density pass removes duplicate Hub counts and achievement labels,
+  shortens Insights copy, uses amber for blocked states, and repairs save-heading
+  contrast under the default light Tracker theme. HUD architecture, Focus,
+  Settings and Map structure are retained.
+
+No database/backup schema, XP curve, achievement rule, dependency, package version,
+course catalog or service-worker implementation changed. Asset provenance and
+exact file sizes are in ASSETS.md. CSS gzip measured 10,112 B before certification,
+so its authorized ceiling is 12,000 B; JS ceilings remain unchanged (largest raw
+chunk 368,186 B, total JS gzip 285,666 B in the focused production build).
+
+Focused evidence uses synthetic data only:
+
+- Route/onboarding/default restore and preserved explicit deep-link integration.
+- CTA/level/reward models; backward accepted/completed progress corrections and
+  reward replay; session preservation, invalid-target rollback and transaction
+  failure rollback; peer-active rejection and exactly one coordinated revision.
+- Production browser flows for correction, focus return, keyboard explanation,
+  Insights disclosures/axe, and 320–430 px fixed-navigation obstruction checks.
+- Targeted offline cold start decoded all 16 achievement images. The initial
+  focused browser run passed 15/17; two stale expectations (six images and an
+  already-open timeline) were repaired and both targeted reruns passed.
+- Visual inspection at 390 and 1280 px: Hub, Resource, Awards and Insights; mobile
+  session correction dialog/confirmation, saved status correction, More/Tracker.
+  Fresh, started and all-required-blocked Hub states were separately inspected;
+  the progressed fixture demonstrated 210 lifetime XP. Evidence is under ignored
+  `artifacts/rpg-primary/` and is not a substitute for the release manifest.
+- Changed routing and native keyboard disclosures passed isolated Chromium
+  148.0.7778.96, Firefox 150.0.2 and WebKit 26.4 spot checks without page errors.
+
+Candidate review: `docs/remediation/rpg-primary-final-release-review.json`.
+Certification module: **rpg-primary-final-candidate**, pass 1. The tracked review
+binds the corrected source commit; this documentation/workflow commit supplies
+its review metadata. The immutable gate records the exact final commit, review
+checksum, test counts and build checksums in ignored `artifacts/release-evidence/`.
+A successful manifest for that exact HEAD is the certification result; this
+pre-gate record does not predeclare a pass. Do not rerun an unchanged passing gate.
+
+Remaining publication prerequisites: owner visual/product GO, real iPhone/Safari
+and Android/Chrome checks, manual human screen-reader review, independently
+triggered remote CI and hosted-origin smoke/rollback checks. These are NOT TESTED
+by local emulation. No push, PR, merge, tag, version bump, remote workflow dispatch,
+or deployment is authorized or performed. For later authorized Vercel work,
+installing the missing CLI with `npm i -g vercel` is strongly recommended.
+
+Retrospective: preserve proven baseline evidence and test changed contracts.
+Fix stale UI assertions rather than weaken checks. Browser QA must focus native
+summary controls, not their child headings, and synthetic repository writes must
+respect the existing stale-revision guard. The final gate is the sole complete
+candidate sweep; targeted development checks are not claimed as independent full
+certification runs.

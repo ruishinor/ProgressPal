@@ -4,14 +4,14 @@ Guidance for AI coding agents working in this repository. Read this before makin
 
 ## Project overview
 
-ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 and final owner-review corrections are frozen by owner instruction at `freeze/rpg-product-completion-2026-09-16`; evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. Classic remains the default. Do not restart historical release remediation, C0-C5, or further product work without a new owner instruction.
+ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 and final owner-review corrections are frozen by owner instruction at `freeze/rpg-product-completion-2026-09-16`; evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. RPG is now the primary/default experience; Tracker is secondary under the latest owner instruction. Do not restart historical release remediation, C0-C5, or further product work without a new owner instruction.
 
 The owner's subsequent publish-readiness instruction authorizes bounded local
-corrections and validation on `rpg/publish-readiness`; section 11 of that completion
+corrections and validation on `rpg/publish-readiness`; section 12 of that completion
 record is the active status. Preserve the historical freeze and engine contracts.
 The endpoint is a validated local candidate for owner review. It does not authorize
 push, PR, merge, remote workflow dispatch, deployment, tags, a package-version change,
-or RPG default promotion.
+or other remote mutations. The latest owner instruction explicitly authorizes bounded RPG default promotion and local candidate certification.
 
 Product boundary (do not cross it):
 
@@ -20,7 +20,7 @@ Product boundary (do not cross it):
 - CS50x-focused study companion; not affiliated with Harvard, CS50, edX, or OpenCourseWare. Never add CS50/Harvard branding.
 - User data can be lost when browser storage is cleared — backup export/import is the mitigation, not sync.
 
-The frozen completion branch is `rpg/product-completion`; `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. On 2026-09-16 the owner authorized committing, tagging, freezing, and pushing this completion branch and tag. That instruction does not authorize a PR, merge, deployment, package-version change, or RPG default promotion; those remain separate owner decisions.
+The frozen completion branch is `rpg/product-completion`; `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. On 2026-09-16 the owner authorized committing, tagging, freezing, and pushing this completion branch and tag. That historical instruction did not authorize a PR, merge, deployment, package-version change, or RPG default promotion. The latest owner instruction separately authorizes RPG promotion and local certification; remote publication and version changes remain separate decisions.
 
 ## Tech stack
 

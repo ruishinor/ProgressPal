@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "module": "rpg-primary-final-candidate",
+  "reviewer": "Codex / GPT-6 Astra, candidate-specific adversarial self-review",
+  "reviewScope": {
+    "date": "2026-09-18",
+    "baselineCommit": "aa705bcd2b257ea0128b355a6c68d7c7b6edc9b5",
+    "sourceCandidateCommit": "0c9780e34cd119b4da1968fd3a9539f7c7b1af7e",
+    "sourceCandidateTree": "5ac2c372c8881e6c89f5a98605da7c9a548c8d23",
+    "binding": "Reviews the corrected runtime and tests at sourceCandidateCommit plus the following documentation/workflow/review metadata commit. The release runner binds this tracked review checksum to the exact clean final HEAD; no certification success is inferred before that run.",
+    "method": "Inspect changed execution paths and preserved engine files; falsify owner acceptance claims with focused repository/integration tests, managed production browser paths, keyboard/axe checks, offline image decoding, and actual mobile/desktop screenshot inspection. This is self-review, not an independent human review.",
+    "checks": [
+      "Root redirect is outside Tracker shell; quick/custom/default-restore return to RPG, explicit local deep links preserved, former root Profile available at /profile.",
+      "One quest-label helper handles fresh/started/blocked; level arithmetic uses floor and ceiling from unchanged XP engine; reward labels exclude previously earned sources.",
+      "Session correction validates references inside coordinated atomic transaction, derives unit, changes attribution and existing reason only; rollback, source-fact preservation, peer-active rejection and single revision tested.",
+      "Saved progress correction uses existing validated upsert path; normal forward options remain bounded; accepted/completed rollback and forward replay preserve historical rewards without duplicates.",
+      "All 16 known achievement IDs map to distinct decorative local artwork, fallback only unknown/failure; never-visited production offline gallery decoded all images.",
+      "Blocked explanation, correction dialog and native Insights summaries preserve keyboard operation; collapsed bodies unmount; Tracker Insights remains unchanged.",
+      "390/1280 Hub, Resource, Awards, Insights visually inspected; mobile correction/nav and fresh/started/all-blocked fixtures inspected; 210 lifetime XP displays 110 / 300 to Level 3.",
+      "Chromium, Firefox and WebKit changed-route/disclosure spot checks passed without page errors. Focused production keyboard/navigation/axe paths passed.",
+      "No changes to domain schemas, DB schema, backup format, XP curve/rules, achievement rules, package/lockfile, catalog or service worker. No new runtime remote resource.",
+      "Measured CSS gzip 10112 B requires the authorized 12000 B ceiling. Largest JS raw chunk 368186 B and total JS gzip 285666 B satisfy unchanged ceilings. Final gate will record exact build checksums and counts."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "RPG-FINAL-01",
+      "severity": "P2",
+      "description": "The RPG save-feedback heading inherited dark text under the default light Tracker theme, reducing contrast against the RPG panel.",
+      "resolution": "Apply the existing RPG text token to the save-result heading; the scoped visual/axe coverage preserves readable feedback without changing theme architecture.",
+      "status": "resolved"
+    },
+    {
+      "id": "RPG-FINAL-02",
+      "severity": "P2",
+      "description": "New recovery/disclosure styling takes CSS gzip slightly beyond the old 10000-byte ceiling.",
+      "resolution": "Use the owner's explicitly permitted 12000-byte hard ceiling, record measured 10112 bytes, preserve both JavaScript limits and enforce them in final certification.",
+      "status": "resolved"
+    },
+    {
+      "id": "RPG-FINAL-03",
+      "severity": "P2",
+      "description": "Browser emulation and automated accessibility cannot establish physical-device ergonomics, human screen-reader usability, hosted-origin headers/update behavior or production rollback.",
+      "resolution": "Accept only for this local candidate. Keep actual iPhone/Android, human screen reader, owner GO, independent remote CI and hosted smoke/rollback as publication prerequisites. No remote publication is authorized by this review.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No unresolved P0/P1 was found in the bounded candidate review. Preserve established baseline evidence and run one clean full release gate on the final committed candidate. Focused browser failures were stale six-image/open-timeline assertions, not waived checks; keyboard QA must focus summary rather than its heading. No full ordinary suite was duplicated before certification. Physical/hosted limits remain explicit. A passing gate certifies only its recorded exact HEAD."
+  }
+}

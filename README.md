@@ -2,13 +2,13 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The optional `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. Classic remains the default and can be opened deliberately from RPG.
+The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The primary `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Tracker can be opened deliberately from RPG.
 
 C0-C5 product-completion work and final owner-review corrections are frozen on `rpg/product-completion` at `freeze/rpg-product-completion-2026-09-16`, following the owner's commit/tag/freeze/push instruction. Acceptance evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. This repository checkpoint is not a new production release.
 
 The owner subsequently authorized bounded local publish-readiness corrections on
 `rpg/publish-readiness`. Current work and validation are recorded in
-[the completion record, section 11](docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md#11-local-publish-readiness-reopening).
+[the completion record, section 12](docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md#12-rpg-primary-final-candidate).
 The historical freeze remains immutable. Owner review and publication are separate
 steps; this branch does not change the deployed application.
 
@@ -43,8 +43,7 @@ freeze/rpg-product-completion-2026-09-16
 
 The annotated tag identifies the final completion commit, including the freeze
 record. Runtime implementation is `5610da1`; package version remains `1.3.0`.
-The bounded reopening above follows a new owner instruction. Classic remains the
-default; `master`, historical release tags, and production are unchanged.
+The bounded reopening above follows a new owner instruction. The latest owner instruction promotes RPG to the default; `master`, historical release tags, and production are unchanged.
 
 Frozen engine release:
 
@@ -157,11 +156,10 @@ npm run audit
 
 ## RPG shell transformation rule
 
-Preserve completed C0-C5 behavior, the shared local-first engine, and Classic's default entry. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
+Preserve completed C0-C5 behavior, the shared local-first engine, and direct secondary Tracker routes. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
 
 The owner authorized the completion branch and freeze tag to be pushed on
-2026-09-16. PR, merge, deployment, version changes, and RPG default promotion
-remain separate owner decisions.
+2026-09-16. The latest owner instruction separately authorizes RPG default promotion and local certification. PR, merge, deployment, and version changes remain separate owner decisions.
 
 ## License
 

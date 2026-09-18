@@ -384,3 +384,37 @@ Constraints:
 - No schema change.
 - No IndexedDB storage change.
 - No service worker change.
+
+### Final candidate achievement coverage (2026-09-18)
+
+The latest owner instruction completes artwork for **16/16 existing achievements**.
+The six illustrations above remain unchanged. The following six use the same
+owner-supplied project library and provenance recorded above, optimized to 192 px
+WebP at quality 85. Four small original SVG medallions complete the distinct set.
+All are static inline imports, decorative beside the achievement name and actual
+requirement. Generic artwork is now only an unknown-ID/image-failure fallback.
+
+| Achievement         | Source / visual meaning         | Production filename               | Bytes |
+| ------------------- | ------------------------------- | --------------------------------- | ----: |
+| Scratch Initiate    | Library 12; puzzle              | rpg-badge-scratch-initiate.webp   |  3554 |
+| Pointer Survivor    | Library 10; pointer/tree shield | rpg-badge-pointer-survivor.webp   |  2734 |
+| Python Shift        | Library 1; snake/scroll         | rpg-badge-python-shift.webp       |  5622 |
+| Browser Builder     | Library 41; browser/server      | rpg-badge-browser-builder.webp    |  3886 |
+| Flask Route Maker   | Library 33; routing/server      | rpg-badge-flask-route-maker.webp  |  5534 |
+| Course Complete     | Library 50; check shield        | rpg-badge-course-complete.webp    |  5110 |
+| First Slice         | Original SVG; film/play         | rpg-badge-first-slice.svg         |   475 |
+| Pset Chain          | Original SVG; linked checks     | rpg-badge-pset-chain.svg          |   463 |
+| Clean Stop          | Original SVG; pause/bookmark    | rpg-badge-clean-stop.svg          |   395 |
+| Three Deep Sessions | Original SVG; three clocks      | rpg-badge-three-deep-sessions.svg |   458 |
+
+Added artwork totals **28,231 B**. All 16 achievement files total **63,553 B**;
+with the unchanged Guild emblem, **65,993 B**. The unchanged shared character
+portrait is separate (174,088 B). No source ZIP or candidate library is copied
+into Git. No remote asset, font, script, achievement rule, or worker change.
+The selected set was inspected in the 390 px and 1280 px gallery; a targeted
+production offline test decoded all 16 images on a never-visited gallery.
+
+CSS gzip is slightly above the previous 10,000 B limit after the bounded recovery
+and disclosure controls. The owner-authorized hard ceiling is now 12,000 B.
+JavaScript limits remain 500,000 B per raw chunk and 400,000 B total gzip. Exact
+candidate measurements and checksums belong to its release-gate evidence.
