@@ -33,7 +33,7 @@ const initialState: RpgMapPageState = {
 
 function getStatusTone(statusVariant: RpgModuleSummary['statusVariant']) {
   const tones: Record<RpgModuleSummary['statusVariant'], RpgStatusTone> = {
-    blocked: 'danger',
+    blocked: 'warning',
     completed: 'success',
     inProgress: 'progress',
     notStarted: 'neutral',

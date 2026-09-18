@@ -1,3 +1,4 @@
+import { getLevelProgressDisplay } from './presentation';
 import {
   buildCourseDetailView,
   type CourseDetailView,
@@ -497,6 +498,7 @@ export function buildRpgHubSummary(
     weeklyProgress: buildWeeklyProgress(snapshot, nowIso),
     weekFour: courseMapSummary.weekFour,
     xpSummary: {
+      ...getLevelProgressDisplay(xpSummary),
       level: xpSummary.level,
       levelProgressPercent: getLevelProgressPercent(xpSummary),
       totalXp: xpSummary.totalXp,
@@ -589,7 +591,7 @@ export function buildRpgStudyResourceSummary(
     item,
     progressEntry,
     unit.id,
-    buildQuestRewardLabel(snapshot, item.id),
+    buildQuestRewardLabel(snapshot, item.id, true),
   );
 }
 

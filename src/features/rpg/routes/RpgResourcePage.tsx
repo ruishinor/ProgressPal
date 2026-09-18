@@ -1,3 +1,8 @@
+import { InlineInfo } from '@/components/ui/InlineInfo';
+import {
+  getQuestActionLabel,
+  getLevelProgressDisplay,
+} from '@/features/rpg/model/presentation';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useOutletContext, useParams } from 'react-router-dom';
@@ -54,6 +59,7 @@ type RpgResourceFormState = {
 type RpgResourceSaveResult = {
   achievementNames: string[];
   isUpdate: boolean;
+  levelProgressLabel: string;
   level: number;
   levelProgressPercent: number | null;
   nextActionHref: string | null;
@@ -127,7 +133,7 @@ function getStatusTone(
 ) {
   const tones: Record<RpgStudyResourceSummary['statusVariant'], RpgStatusTone> =
     {
-      blocked: 'danger',
+      blocked: 'warning',
       completed: 'success',
       inProgress: 'progress',
       notStarted: 'neutral',
@@ -195,6 +201,7 @@ export function RpgResourcePage() {
   const [savedFormValues, setSavedFormValues] =
     useState<CourseDetailProgressFormValues | null>(null);
   const saveInFlight = useRef(false);
+  const [correctingStatus, setCorrectingStatus] = useState(false);
   const refreshInFlight = useRef(false);
   const savedValues = useRef<CourseDetailProgressFormValues | null>(null);
   const pageVersion = useRef(0);
@@ -214,6 +221,7 @@ export function RpgResourcePage() {
           status: 'loading',
         }));
         setSaveResult(null);
+        setCorrectingStatus(false);
         setSavedFormValues(null);
       });
 
@@ -289,12 +297,13 @@ export function RpgResourcePage() {
     }
 
     return getCourseProgressStatusOptions({
+      correction: correctingStatus,
       currentStatus: summary.progressStatus,
       itemType: summary.itemType,
       longFormProgress: summary.longFormProgress,
       required: summary.required,
     });
-  }, [summary]);
+  }, [summary, correctingStatus]);
 
   async function refreshSavedProgress(resourceId: string) {
     if (refreshInFlight.current) {
@@ -330,6 +339,7 @@ export function RpgResourcePage() {
           ? current
           : {
               ...current,
+              levelProgressLabel: nextHubSummary.xpSummary.levelProgressLabel,
               level: nextHubSummary.xpSummary.level,
               levelProgressPercent:
                 nextHubSummary.xpSummary.levelProgressPercent,
@@ -340,7 +350,7 @@ export function RpgResourcePage() {
               nextActionLabel:
                 nextQuest === null
                   ? 'Open Campaign Map'
-                  : `${recommendation.state === 'needs_attention' ? 'Review blocked quest' : 'Continue quest'}: ${nextQuest.title}`,
+                  : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
               refreshStatus: 'ready',
               totalXp: nextHubSummary.xpSummary.totalXp,
               xpToNextLevel: nextHubSummary.xpSummary.xpToNextLevel,
@@ -377,6 +387,7 @@ export function RpgResourcePage() {
     }
 
     const validation = validateCourseDetailProgressForm(nextValues, {
+      correction: correctingStatus,
       currentStatus: summary.progressStatus,
       itemType: summary.itemType,
       longFormProgress: summary.longFormProgress,
@@ -479,6 +490,7 @@ export function RpgResourcePage() {
     // The adapter has committed. Reads below can only change refresh feedback,
     // never turn this confirmed result into a request to repeat the write.
     savedValues.current = nextValues;
+    setCorrectingStatus(false);
     setSavedFormValues(nextValues);
     setFormState((current) =>
       current === null ? current : { ...current, isSaving: false },
@@ -491,6 +503,8 @@ export function RpgResourcePage() {
         )
         .filter(Boolean),
       isUpdate: summary.savedProgress !== null,
+      levelProgressLabel: getLevelProgressDisplay(result.xpSummary)
+        .levelProgressLabel,
       level: result.xpSummary.level,
       levelProgressPercent: null,
       nextActionHref: null,
@@ -593,6 +607,12 @@ export function RpgResourcePage() {
             <RpgStatusPill tone={getStatusTone(summary.statusVariant)}>
               {summary.statusLabel}
             </RpgStatusPill>
+            {summary.progressStatus === 'blocked' ? (
+              <InlineInfo label="What does Blocked mean?">
+                Blocked means you started this task but cannot continue right
+                now. It stays available until you change its status.
+              </InlineInfo>
+            ) : null}
             <RpgStatusPill tone={summary.required ? 'progress' : 'neutral'}>
               {summary.required ? 'Required' : 'Optional'}
             </RpgStatusPill>
@@ -642,6 +662,28 @@ export function RpgResourcePage() {
       ) : null}
 
       <RpgPanel title="Save progress" titleAs="h2">
+        {summary.savedProgress ? (
+          <div>
+            <RpgButton
+              variant="quiet"
+              disabled={formState?.isSaving || !coordination.canWrite}
+              onClick={() => {
+                setCorrectingStatus(!correctingStatus);
+                setFormState(createFormState(summary));
+              }}
+            >
+              {correctingStatus
+                ? 'Cancel status correction'
+                : 'Correct saved status'}
+            </RpgButton>
+            {correctingStatus ? (
+              <p role="note">
+                Correcting the saved status changes your current ProgressPal
+                status. XP and achievements already earned are not removed.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <form
           className="rpg-study-resource__form"
           noValidate
@@ -680,6 +722,16 @@ export function RpgResourcePage() {
               ))}
             </select>
           </label>
+          {selectedProgressStatus === 'blocked' &&
+          summary.progressStatus !== 'blocked' ? (
+            <span>
+              Blocked{' '}
+              <InlineInfo label="What does Blocked mean?">
+                Blocked means you started this task but cannot continue right
+                now. It stays available until you change its status.
+              </InlineInfo>
+            </span>
+          ) : null}
           {formState?.errors.status ? (
             <p
               className="rpg-study-resource__error"
@@ -824,7 +876,7 @@ export function RpgResourcePage() {
               }
               type="submit"
             >
-              Save progress
+              {correctingStatus ? 'Save status correction' : 'Save progress'}
             </RpgButton>
             <RpgButton
               disabled={
@@ -856,10 +908,10 @@ export function RpgResourcePage() {
                 <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
               ) : null}
               {saveResult.levelProgressPercent === null ? (
-                <p>{`At save: Level ${saveResult.level}, ${saveResult.totalXp} XP total, ${saveResult.xpToNextLevel} XP to next level.`}</p>
+                <p>{`At save: Level ${saveResult.level}, ${saveResult.levelProgressLabel}.`}</p>
               ) : (
                 <RpgProgressBar
-                  helperText={`${saveResult.totalXp} XP total - ${saveResult.xpToNextLevel} XP to next level`}
+                  helperText={saveResult.levelProgressLabel}
                   label={`Level ${saveResult.level} progress`}
                   value={saveResult.levelProgressPercent}
                 />

@@ -1754,3 +1754,21 @@
   color: var(--color-text-soft);
   font-size: var(--text-sm);
 }
+
+.inline-info button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35em;
+}
+.inline-info button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.inline-info > span:not([hidden]) {
+  display: block;
+  font-size: var(--text-sm);
+  margin-block: 0.5rem;
+}

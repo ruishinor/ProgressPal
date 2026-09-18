@@ -136,3 +136,39 @@ describe('course detail model', () => {
     });
   });
 });
+
+describe('deliberate status correction options', () => {
+  it('keeps required non-problem tasks out of submission and skip states', () => {
+    expect(
+      getCourseProgressStatusOptions({
+        correction: true,
+        currentStatus: 'completed',
+        itemType: 'lecture',
+        required: true,
+        longFormProgress: null,
+      }).map((option) => option.value),
+    ).toEqual(['started', 'blocked', 'completed']);
+  });
+  it('retains partial-media constraints in correction mode', () => {
+    expect(
+      getCourseProgressStatusOptions({
+        correction: true,
+        currentStatus: 'started',
+        itemType: 'lecture',
+        required: false,
+        longFormProgress: partialLongFormProgress,
+      }).map((option) => option.value),
+    ).toEqual(['started', 'blocked']);
+  });
+  it('allows optional-only skipping', () => {
+    expect(
+      getCourseProgressStatusOptions({
+        correction: true,
+        currentStatus: 'completed',
+        itemType: 'shorts',
+        required: false,
+        longFormProgress: null,
+      }).map((option) => option.value),
+    ).toContain('skipped_optional');
+  });
+});

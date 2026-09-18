@@ -44,6 +44,7 @@ export type CourseDetailProgressValidationResult = {
 };
 
 type ProgressStatusOptionContext = {
+  correction?: boolean;
   currentStatus: ProgressStatus | 'not_started';
   itemType: CourseItem['type'];
   longFormProgress: CourseLongFormProgress | null;
@@ -140,11 +141,21 @@ export function createCourseDetailProgressFormValues(
 export function getCourseProgressStatusOptions(
   context: ProgressStatusOptionContext,
 ): CourseProgressStatusOption[] {
-  const baseStatuses = getStatusSequence(
-    context.currentStatus,
-    context.itemType,
-    context.required,
-  );
+  const baseStatuses: readonly ProgressStatus[] = context.correction
+    ? [
+        'started',
+        'blocked',
+        'completed',
+        ...(context.itemType === 'problem_set'
+          ? (['submitted', 'accepted'] as const)
+          : []),
+        ...(!context.required ? (['skipped_optional'] as const) : []),
+      ]
+    : getStatusSequence(
+        context.currentStatus,
+        context.itemType,
+        context.required,
+      );
   const statuses = dedupeStatuses(
     baseStatuses.filter((status) => {
       if (

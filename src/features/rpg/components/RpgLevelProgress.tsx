@@ -19,16 +19,13 @@ export function RpgLevelProgress({ xp }: { xp: RpgHubSummary['xpSummary'] }) {
         <strong>{xp.level}</strong>
       </div>
       <div className="rpg-level-progress__xp">
-        <p className="rpg-level-progress__total">{xp.totalXp} XP total</p>
+        <p className="rpg-level-progress__total">{xp.levelProgressLabel}</p>
         <RpgProgressBar
           label={`XP progress to level ${xp.level + 1}`}
           value={xp.levelProgressPercent}
           showValue={false}
           className="rpg-level-progress__bar"
         />
-        <p className="rpg-level-progress__remaining">
-          {xp.xpToNextLevel} XP to level {xp.level + 1}
-        </p>
       </div>
     </div>
   );

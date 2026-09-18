@@ -1,3 +1,4 @@
+import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
@@ -144,9 +145,7 @@ function RpgHeroHud({
           <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
             {currentQuest === null
               ? 'Open map'
-              : recommendation.state === 'needs_attention'
-                ? 'Review blocked quest'
-                : 'Continue quest'}
+              : getQuestActionLabel(currentQuest.status)}
           </Link>
         </div>
       ) : null}

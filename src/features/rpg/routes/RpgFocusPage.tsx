@@ -1,4 +1,8 @@
 import {
+  getQuestActionLabel,
+  getLevelProgressDisplay,
+} from '@/features/rpg/model/presentation';
+import {
   startTransition,
   useCallback,
   useEffect,
@@ -20,6 +24,7 @@ import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 type RpgFocusSaveFeedback = {
   achievementNames: string[];
   durationMinutes: number;
+  levelProgressLabel: string;
   level: number;
   levelProgressPercent: number | null;
   nextActionHref: string | null;
@@ -64,6 +69,7 @@ export function RpgFocusPage() {
         const nextQuest = recommendation.quest;
         setSaveFeedback({
           ...feedback,
+          levelProgressLabel: hubSummary.xpSummary.levelProgressLabel,
           level: hubSummary.xpSummary.level,
           levelProgressPercent: hubSummary.xpSummary.levelProgressPercent,
           nextActionHref:
@@ -71,7 +77,7 @@ export function RpgFocusPage() {
           nextActionLabel:
             nextQuest === null
               ? 'Open Campaign Map'
-              : `${recommendation.state === 'needs_attention' ? 'Review blocked quest' : 'Continue quest'}: ${nextQuest.title}`,
+              : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
           refreshStatus: 'ready',
           totalXp: hubSummary.xpSummary.totalXp,
           xpToNextLevel: hubSummary.xpSummary.xpToNextLevel,
@@ -108,6 +114,8 @@ export function RpgFocusPage() {
       const baseFeedback = {
         achievementNames,
         durationMinutes: result.studySession.durationMinutes,
+        levelProgressLabel: getLevelProgressDisplay(result.xpSummary)
+          .levelProgressLabel,
         level: result.xpSummary.level,
         levelProgressPercent: null,
         nextActionHref: null,
@@ -140,10 +148,10 @@ export function RpgFocusPage() {
           <p>{`Achievement unlocked: ${saveFeedback.achievementNames.join(', ')}`}</p>
         ) : null}
         {saveFeedback.levelProgressPercent === null ? (
-          <p>{`At save: Level ${saveFeedback.level}, ${saveFeedback.totalXp} XP total, ${saveFeedback.xpToNextLevel} XP to next level.`}</p>
+          <p>{`At save: Level ${saveFeedback.level}, ${saveFeedback.levelProgressLabel}.`}</p>
         ) : (
           <RpgProgressBar
-            helperText={`${saveFeedback.totalXp} XP total - ${saveFeedback.xpToNextLevel} XP to next level`}
+            helperText={saveFeedback.levelProgressLabel}
             label={`Level ${saveFeedback.level} progress`}
             value={saveFeedback.levelProgressPercent}
           />

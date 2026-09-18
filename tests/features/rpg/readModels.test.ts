@@ -416,15 +416,15 @@ describe('RPG read models', () => {
     const resource = await expectReadOnly(() =>
       loadRpgStudyResourceSummary('week-4-lecture', { db }),
     );
-    expect(resource?.rewardLabel).toBe('+40 XP on completion');
+    expect(resource?.rewardLabel).toBe('Up to 40 XP remaining for this task');
     expect(
       (await loadRpgHubSummary({ db })).recommendation.quest?.rewardLabel,
-    ).toBe(resource?.rewardLabel);
+    ).toBe('Up to +40 XP');
     expect(
       (await loadRpgModuleSummary('week-4', { db }))?.quests.find(
         (quest) => quest.id === 'week-4-lecture',
       )?.rewardLabel,
-    ).toBe(resource?.rewardLabel);
+    ).toBe('Up to +40 XP');
     await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
       { db },
@@ -448,21 +448,25 @@ describe('RPG read models', () => {
     const itemId = 'week-0-problem-set';
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
-    ).toBe('+220 XP through acceptance · +150 XP week completion bonus');
+    ).toBe(
+      'Up to 220 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
+    );
     await upsertProgressAndAwardXp(
       { itemId, status: 'started', confidence: 3 },
       { db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
-    ).toBe('+200 XP through acceptance · +150 XP week completion bonus');
+    ).toBe(
+      'Up to 200 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
+    );
     await upsertProgressAndAwardXp(
       { itemId, status: 'submitted', confidence: 3 },
       { db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
-    ).toBe('+125 XP through acceptance');
+    ).toBe('Up to 125 XP remaining for this task');
     await upsertProgressAndAwardXp(
       { itemId, status: 'accepted', confidence: 3 },
       { db },
@@ -483,7 +487,9 @@ describe('RPG read models', () => {
             loadRpgStudyResourceSummary(itemId, { db }),
           )
         )?.rewardLabel,
-      ).toBe('+200 XP when README + demo are complete (shared reward)');
+      ).toBe(
+        'Up to 200 XP remaining for this task (shared with README + demo)',
+      );
       await upsertProgressAndAwardXp(
         { itemId, status: 'completed', confidence: 3 },
         { db },
@@ -497,7 +503,7 @@ describe('RPG read models', () => {
     expect(
       (await loadRpgStudyResourceSummary('final-project-build', { db }))
         ?.rewardLabel,
-    ).toBe('+250 XP on completion');
+    ).toBe('Up to 250 XP remaining for this task');
     expect(
       (await loadRpgStudyResourceSummary('final-project-submit50', { db }))
         ?.rewardLabel,

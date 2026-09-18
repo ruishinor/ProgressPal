@@ -1,3 +1,4 @@
+import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import { startTransition, useEffect, useState } from 'react';
 
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -33,7 +34,7 @@ const initialState: RpgHomePageState = {
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
-    blocked: 'danger',
+    blocked: 'warning',
     completed: 'success',
     inProgress: 'progress',
     notStarted: 'neutral',
@@ -232,9 +233,7 @@ export function RpgHomePage() {
                 ) : null}
               </div>
               <RpgButton href={getRpgResourcePath(currentQuest.id)}>
-                {recommendation.state === 'needs_attention'
-                  ? 'Review blocked quest'
-                  : 'Continue quest'}
+                {getQuestActionLabel(currentQuest.status)}
               </RpgButton>
             </div>
           )}
@@ -283,14 +282,6 @@ export function RpgHomePage() {
           </p>
           <dl className="rpg-hub__details rpg-hub__details--summary">
             <div>
-              <dt>Required complete</dt>
-              <dd>
-                {recommendation.state === 'unavailable'
-                  ? 'Unavailable'
-                  : `${summary.courseProgress.completedRequiredItemCount} / ${summary.courseProgress.requiredItemCount}`}
-              </dd>
-            </div>
-            <div>
               <dt>Tasks last updated</dt>
               <dd>{summary.weeklyProgress.savedProgressCount}</dd>
             </div>
@@ -307,9 +298,10 @@ export function RpgHomePage() {
               <dd>{summary.weeklyProgress.xpEarned}</dd>
             </div>
           </dl>
-          <p className="rpg-hub__note">
-            Each task is counted once, by its latest saved change.
-          </p>
+          <details className="rpg-hub__activity-disclosure">
+            <summary>How tasks are counted</summary>
+            <p>Each task is counted once, by its latest saved change.</p>
+          </details>
           {currentQuest === null ? null : (
             <RpgButton href={rpgMapPath} variant="secondary">
               Open Campaign Map

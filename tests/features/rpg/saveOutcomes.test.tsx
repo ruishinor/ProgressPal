@@ -1,3 +1,4 @@
+import { getLevelProgressDisplay } from '@/features/rpg/model/presentation';
 import {
   act,
   fireEvent,
@@ -101,6 +102,81 @@ describe('Confirmed save outcomes and read recovery', () => {
     vi.restoreAllMocks();
   });
 
+  it.each([
+    ['week-0-problem-set', 'accepted', 'started'],
+    ['week-0-lecture', 'completed', 'blocked'],
+  ] as const)(
+    'corrects %s backwards without replaying rewards',
+    async (itemId, originalStatus, correctedStatus) => {
+      await database.upsertProgressAndAwardXp({
+        itemId,
+        status: originalStatus,
+        confidence: 3,
+        evidenceText: 'Synthetic submission note',
+        evidenceType: 'self_report',
+      });
+      const before = await database.getDatabaseSnapshot();
+      renderRoute('/rpg/resource/' + itemId);
+      const progress = await screen.findByLabelText('Progress');
+      expect(
+        within(progress).queryByRole('option', {
+          name: correctedStatus === 'started' ? 'Started' : 'Blocked',
+        }),
+      ).not.toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Correct saved status' }),
+      );
+      expect(screen.getByRole('note')).toHaveTextContent(
+        'XP and achievements already earned are not removed.',
+      );
+      fireEvent.change(progress, { target: { value: correctedStatus } });
+      if (correctedStatus === 'blocked') {
+        const info = screen.getByRole('button', {
+          name: 'What does Blocked mean?',
+        });
+        fireEvent.click(info);
+        expect(info).toHaveAttribute('aria-expanded', 'true');
+        expect(screen.getByText(/Blocked means you started/)).toBeVisible();
+        fireEvent.click(info);
+        expect(info).toHaveAttribute('aria-expanded', 'false');
+      }
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Save status correction' }),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Correct saved status' }),
+        ).toBeEnabled(),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            'Local status: ' +
+              (correctedStatus === 'started' ? 'Started' : 'Blocked'),
+          ),
+        ).toBeInTheDocument(),
+      );
+      const corrected = await database.getDatabaseSnapshot();
+      expect(
+        corrected.progressEntries.find((entry) => entry.itemId === itemId)
+          ?.status,
+      ).toBe(correctedStatus);
+      expect(corrected.xpTransactions).toEqual(before.xpTransactions);
+      expect(corrected.achievementUnlocks).toEqual(before.achievementUnlocks);
+      expect(screen.getByText('Task XP earned')).toBeInTheDocument();
+      await database.upsertProgressAndAwardXp({
+        itemId,
+        status: originalStatus,
+        confidence: 3,
+        evidenceText: 'Synthetic submission note',
+        evidenceType: 'self_report',
+      });
+      expect((await database.getDatabaseSnapshot()).xpTransactions).toEqual(
+        before.xpTransactions,
+      );
+    },
+  );
+
   it.each(['resource', 'hub'] as const)(
     'keeps a committed Resource result when the %s refresh fails, then recovers without writing',
     async (failedRead) => {
@@ -156,7 +232,7 @@ describe('Confirmed save outcomes and read recovery', () => {
         screen.queryByRole('link', { name: /^Continue quest:/ }),
       ).not.toBeInTheDocument();
       expect(screen.getByText(/^At save: Level/)).toHaveTextContent(
-        `${result.xpSummary.totalXp} XP total`,
+        getLevelProgressDisplay(result.xpSummary).levelProgressLabel,
       );
 
       // Read recovery remains usable when another tab has taken write ownership.
@@ -263,7 +339,7 @@ describe('Confirmed save outcomes and read recovery', () => {
       screen.getByRole('button', { name: 'Refresh progress summary' }),
     );
     await screen.findByRole('link', {
-      name: 'Continue quest: Lecture 0: Scratch',
+      name: 'Start quest: Lecture 0: Scratch',
     });
     expect(save).toHaveBeenCalledTimes(1);
     expect(await database.getDatabaseSnapshot()).toEqual(snapshot);

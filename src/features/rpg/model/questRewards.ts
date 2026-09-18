@@ -6,6 +6,7 @@ import { evaluateProgressXp } from '@/lib/xp/engine';
 export function buildQuestRewardLabel(
   snapshot: DatabaseSnapshot,
   itemId: string,
+  detailed = false,
 ) {
   const item = snapshot.courseItems.find(
     (candidate) => candidate.id === itemId,
@@ -59,18 +60,15 @@ export function buildQuestRewardLabel(
   const weekXp = remaining
     .filter((award) => award.sourceType === 'week_completed')
     .reduce((sum, award) => sum + award.xp, 0);
-  const condition = sharedFinalReward
-    ? 'when README + demo are complete (shared reward)'
-    : item.type === 'problem_set'
-      ? 'through acceptance'
-      : 'on completion';
   const taskLabel =
     taskXp > 0
-      ? `+${taskXp} XP ${condition}`
+      ? detailed
+        ? `Up to ${taskXp} XP remaining for this task${sharedFinalReward ? ' (shared with README + demo)' : ''}`
+        : `Up to +${taskXp} XP`
       : taskAwards.length > 0
         ? 'Task XP earned'
         : 'No task XP';
-  return weekXp > 0
-    ? `${taskLabel} · +${weekXp} XP week completion bonus`
+  return detailed && weekXp > 0
+    ? `${taskLabel} · +${weekXp} XP when ${unit.title} is complete`
     : taskLabel;
 }

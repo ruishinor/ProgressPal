@@ -172,7 +172,7 @@ export function RpgHeroPage() {
         {summary.hasLocalActivity ? null : (
           <RpgEmptyState
             className="rpg-hero__recent"
-            action={<RpgButton href={rpgRoutePath}>Continue quest</RpgButton>}
+            action={<RpgButton href={rpgRoutePath}>Open Hub</RpgButton>}
             description="Save progress or finish a Focus Session to build your XP, study time, and achievements."
             title="No saved Hero activity yet"
           />

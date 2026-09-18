@@ -39,7 +39,7 @@ const initialState: RpgModulePageState = {
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
-    blocked: 'danger',
+    blocked: 'warning',
     completed: 'success',
     inProgress: 'progress',
     notStarted: 'neutral',
