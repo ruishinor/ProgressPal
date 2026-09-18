@@ -1235,3 +1235,10 @@ a stale budget-helper fixture using 10,001 B as over-limit after the authorized
 12,000 B ceiling. The fixture now uses configured limit + 1; both budget boundary
 tests and its formatting check pass. Product code is unchanged. This failed gate
 is retained; future budget changes must check both measurement and boundary tests.
+
+The first complete unit sweep passed 598/600 tests. Two recovery tests at `/`
+expected the old Tracker startup-error heading. The existing RPG shell exposes
+the same repair and write-blocking controls with `RPG startup failed`; only the
+heading expectations changed. All four focused recovery tests and formatting
+pass. The release review includes this test-only correction; no recovery behavior
+or safety assertion was removed.

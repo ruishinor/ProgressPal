@@ -21,7 +21,7 @@ describe('corrupt revision recovery surface', () => {
     await renderAppAtRoute('/');
 
     expect(
-      await screen.findByRole('heading', { name: 'Local startup failed' }),
+      await screen.findByRole('heading', { name: 'RPG startup failed' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Repair local tab safety' }),
@@ -43,7 +43,7 @@ describe('corrupt revision recovery surface', () => {
       await renderAppAtRoute('/');
 
       expect(
-        await screen.findByRole('heading', { name: 'Local startup failed' }),
+        await screen.findByRole('heading', { name: 'RPG startup failed' }),
       ).toBeInTheDocument();
       expect(
         screen.getByText(
