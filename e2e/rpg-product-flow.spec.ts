@@ -3,23 +3,32 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
-test('RPG settings refresh identity immediately and explain the Tracker theme preference', async ({
+test('RPG settings separate Classic appearance from the deliberate interface switch', async ({
   page,
 }) => {
   await completeOnboarding(page);
   await page.goto('/rpg/settings');
   const storesBefore = await readRpgRewardStores(page);
+
+  await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
   await expect(
     page.getByText(
-      'Applies to Tracker pages. RPG keeps its dark study theme. System follows your device.',
+      'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.',
     ),
   ).toBeVisible();
+  await expect(
+    page.getByText(
+      'Applies to the Classic interface. RPG keeps its dark study theme. System follows your device.',
+    ),
+  ).toBeVisible();
+
   await page.getByLabel('Display name').fill('Morgan');
-  await page.getByLabel('Tracker theme').selectOption('light');
+  await page.getByLabel('Classic appearance').selectOption('light');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
     page.getByText('Local profile saved', { exact: true }),
   ).toBeVisible();
+
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
   await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
   await page
@@ -32,20 +41,26 @@ test('RPG settings refresh identity immediately and explain the Tracker theme pr
   await expect(page.locator('.rpg-identity__name')).toHaveCount(1);
   await expect(hud).toHaveCount(0);
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
-  await page.reload();
-  await expect(
-    page.locator('.rpg-identity--profile .rpg-identity__name'),
-  ).toHaveText('Morgan');
-  await expect(page.locator('.rpg-identity__name')).toHaveCount(1);
-  await page.goto('/rpg/settings');
+
+  await page.getByRole('link', { name: 'Open Settings' }).click();
   await expect(page.getByLabel('Display name')).toHaveValue('Morgan');
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
-  await page.goto('/rpg/hero');
-  await page.getByRole('link', { name: 'Open Tracker', exact: true }).click();
+
+  await page.getByRole('link', { name: 'Open Classic interface' }).click();
   await expect(
     page.getByRole('heading', { name: 'Dashboard', exact: true }),
   ).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await readRpgRewardStores(page)).toEqual(storesBefore);
+
+  await page
+    .getByRole('navigation', { name: 'Primary' })
+    .getByRole('link', { name: 'Return to RPG' })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+  ).toBeVisible();
+  expect(await readRpgRewardStores(page)).toEqual(storesBefore);
 });
 
 test('RPG Focus saves one timed session and refreshes rewards without completing its task', async ({

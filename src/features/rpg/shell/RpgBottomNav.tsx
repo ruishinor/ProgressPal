@@ -1,4 +1,3 @@
-import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { classNames } from '@/components/ui/utils';
@@ -9,43 +8,60 @@ import {
   rpgLogPath,
   rpgMapPath,
   rpgRoutePath,
-  rpgSettingsPath,
   rpgWeekPathPattern,
 } from '@/lib/routing/rpgRoutePaths';
 
+type RpgNavIconName = 'awards' | 'focus' | 'hero' | 'hub' | 'insights' | 'map';
+
 type RpgNavItem = {
   activePaths: readonly string[];
-  accessibleLabel?: string;
+  icon: RpgNavIconName;
   label: string;
   to: string;
 };
 
-const primaryNavItems = [
-  { activePaths: [rpgRoutePath], label: 'Hub', to: rpgRoutePath },
+const navItems = [
   {
     activePaths: [
       rpgMapPath,
       rpgWeekPathPattern.replace('/:unitId', ''),
       '/rpg/resource',
     ],
+    icon: 'map',
     label: 'Map',
     to: rpgMapPath,
   },
-  { activePaths: [rpgFocusPath], label: 'Focus', to: rpgFocusPath },
-  { activePaths: [rpgHeroPath], label: 'Hero', to: rpgHeroPath },
-] as const satisfies readonly RpgNavItem[];
-
-const secondaryNavItems: readonly RpgNavItem[] = [
-  { activePaths: [rpgBadgesPath], label: 'Awards', to: rpgBadgesPath },
-  { activePaths: [rpgLogPath], label: 'Insights', to: rpgLogPath },
-  { activePaths: [rpgSettingsPath], label: 'Settings', to: rpgSettingsPath },
   {
-    accessibleLabel: 'Open Tracker',
-    activePaths: [],
-    label: 'Tracker',
-    to: '/dashboard',
+    activePaths: [rpgFocusPath],
+    icon: 'focus',
+    label: 'Focus',
+    to: rpgFocusPath,
   },
-] as const;
+  {
+    activePaths: [rpgHeroPath],
+    icon: 'hero',
+    label: 'Hero',
+    to: rpgHeroPath,
+  },
+  {
+    activePaths: [rpgRoutePath],
+    icon: 'hub',
+    label: 'Hub',
+    to: rpgRoutePath,
+  },
+  {
+    activePaths: [rpgBadgesPath],
+    icon: 'awards',
+    label: 'Awards',
+    to: rpgBadgesPath,
+  },
+  {
+    activePaths: [rpgLogPath],
+    icon: 'insights',
+    label: 'Insights',
+    to: rpgLogPath,
+  },
+] as const satisfies readonly RpgNavItem[];
 
 function isNavItemActive(pathname: string, item: RpgNavItem) {
   return item.activePaths.some((path) =>
@@ -55,140 +71,98 @@ function isNavItemActive(pathname: string, item: RpgNavItem) {
   );
 }
 
+function RpgNavIcon({ name }: { name: RpgNavIconName }) {
+  const commonProps = {
+    'aria-hidden': true,
+    className: 'rpg-bottom-nav__icon',
+    fill: 'none',
+    viewBox: '0 0 24 24',
+  } as const;
+
+  if (name === 'map') {
+    return (
+      <svg {...commonProps}>
+        <path d="M3.5 5.5 8.8 3v15.5L3.5 21V5.5Z" />
+        <path d="m8.8 3 6.4 2.5V21l-6.4-2.5V3Z" />
+        <path d="m15.2 5.5 5.3-2.5v15.5L15.2 21V5.5Z" />
+      </svg>
+    );
+  }
+
+  if (name === 'focus') {
+    return (
+      <svg {...commonProps}>
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="4.2" />
+        <circle className="rpg-bottom-nav__icon-fill" cx="12" cy="12" r="1.6" />
+      </svg>
+    );
+  }
+
+  if (name === 'hero') {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 3.1 18.4 6v5.4c0 4.1-2.5 7.4-6.4 9.5-3.9-2.1-6.4-5.4-6.4-9.5V6L12 3.1Z" />
+        <path d="M9.1 11.2h5.8M10 8.2h4M10.1 14.2l1.9 2 1.9-2" />
+      </svg>
+    );
+  }
+
+  if (name === 'hub') {
+    return (
+      <svg {...commonProps}>
+        <path d="m5 15.8 5.3-6.1 2.3 2.7 2.1-4.2L19 15.8" />
+        <path d="M7.5 18h9" />
+      </svg>
+    );
+  }
+
+  if (name === 'awards') {
+    return (
+      <svg {...commonProps}>
+        <path d="M7 4.5h10v4.2c0 3-2.1 5.3-5 5.3s-5-2.3-5-5.3V4.5Z" />
+        <path d="M7 6H4.5v1.4c0 2.2 1.4 3.8 3.5 4.2M17 6h2.5v1.4c0 2.2-1.4 3.8-3.5 4.2M12 14v3.2M8.5 20h7M10 17.2h4" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...commonProps}>
+      <path d="M5 19V12M10 19V8M15 19V5M20 19V10" />
+      <path d="M3.5 19.5h18" />
+    </svg>
+  );
+}
+
 export function RpgBottomNav() {
   const location = useLocation();
-  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
-  const firstMoreLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const [openedAtPath, setOpenedAtPath] = useState<string | null>(null);
-  const morePanelId = useId();
-  const isMoreOpen = openedAtPath === location.pathname;
-  const isSecondaryRouteActive = secondaryNavItems.some((item) =>
-    isNavItemActive(location.pathname, item),
-  );
-
-  useEffect(() => {
-    if (!isMoreOpen) {
-      return;
-    }
-
-    firstMoreLinkRef.current?.focus();
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key !== 'Escape') {
-        return;
-      }
-
-      event.preventDefault();
-      setOpenedAtPath(null);
-      moreButtonRef.current?.focus();
-    }
-
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isMoreOpen]);
 
   return (
     <nav aria-label="RPG bottom navigation" className="rpg-bottom-nav">
       <div className="rpg-bottom-nav__list">
-        {primaryNavItems.map((item) => {
+        {navItems.map((item) => {
           const isActive = isNavItemActive(location.pathname, item);
+          const isHub = item.icon === 'hub';
 
           return (
             <Link
               aria-current={isActive ? 'page' : undefined}
               className={classNames(
                 'rpg-bottom-nav__link',
+                isHub && 'rpg-bottom-nav__link--hub',
                 isActive && 'rpg-bottom-nav__link--active',
               )}
               key={item.to}
               to={item.to}
             >
-              {item.label}
+              <span className="rpg-bottom-nav__icon-frame">
+                <RpgNavIcon name={item.icon} />
+              </span>
+              <span className="rpg-bottom-nav__label">{item.label}</span>
             </Link>
           );
         })}
-        {secondaryNavItems.map((item) => {
-          const isActive = isNavItemActive(location.pathname, item);
-
-          return (
-            <Link
-              aria-current={isActive ? 'page' : undefined}
-              aria-label={item.accessibleLabel}
-              className={classNames(
-                'rpg-bottom-nav__link',
-                'rpg-bottom-nav__link--desktop-secondary',
-                isActive && 'rpg-bottom-nav__link--active',
-              )}
-              key={item.to}
-              to={item.to}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-        <button
-          aria-controls={morePanelId}
-          aria-current={isSecondaryRouteActive ? 'page' : undefined}
-          aria-expanded={isMoreOpen}
-          className={classNames(
-            'rpg-bottom-nav__link',
-            'rpg-bottom-nav__more-button',
-            isSecondaryRouteActive && 'rpg-bottom-nav__link--active',
-          )}
-          onClick={() => {
-            setOpenedAtPath(isMoreOpen ? null : location.pathname);
-          }}
-          ref={moreButtonRef}
-          type="button"
-        >
-          More
-        </button>
       </div>
-      {isMoreOpen ? (
-        <div
-          aria-label="More RPG destinations"
-          className="rpg-bottom-nav__more-panel"
-          id={morePanelId}
-          role="region"
-        >
-          <p className="rpg-bottom-nav__more-title">More destinations</p>
-          <div className="rpg-bottom-nav__more-links">
-            {secondaryNavItems.map((item, index) => {
-              const isActive = isNavItemActive(location.pathname, item);
-
-              return (
-                <Link
-                  aria-current={isActive ? 'page' : undefined}
-                  aria-label={item.accessibleLabel}
-                  className={classNames(
-                    'rpg-bottom-nav__link',
-                    isActive && 'rpg-bottom-nav__link--active',
-                  )}
-                  key={item.to}
-                  onClick={() => setOpenedAtPath(null)}
-                  ref={index === 0 ? firstMoreLinkRef : undefined}
-                  to={item.to}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-          <button
-            className="rpg-bottom-nav__more-close"
-            onClick={() => {
-              setOpenedAtPath(null);
-              moreButtonRef.current?.focus();
-            }}
-            type="button"
-          >
-            Close more destinations
-          </button>
-        </div>
-      ) : null}
     </nav>
   );
 }

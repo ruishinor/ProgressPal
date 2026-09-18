@@ -2366,14 +2366,12 @@ describe('RPG routes', () => {
       name: 'RPG bottom navigation',
     });
     const expectedItems = [
-      ['Hub', '/rpg'],
       ['Map', '/rpg/map'],
       ['Focus', '/rpg/focus'],
       ['Hero', '/rpg/hero'],
+      ['Hub', '/rpg'],
       ['Awards', '/rpg/badges'],
       ['Insights', '/rpg/log'],
-      ['Settings', '/rpg/settings'],
-      ['Open Tracker', '/dashboard'],
     ];
 
     for (const [label, href] of expectedItems) {
@@ -2383,8 +2381,21 @@ describe('RPG routes', () => {
     }
 
     expect(
-      within(bottomNav).getByRole('link', { name: activeLabel }),
-    ).toHaveAttribute('aria-current', 'page');
+      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(bottomNav).queryByRole('button', { name: 'More' }),
+    ).not.toBeInTheDocument();
+
+    if (activeLabel === 'Settings') {
+      expect(
+        screen.getByRole('link', { name: 'Open Settings' }),
+      ).toHaveAttribute('aria-current', 'page');
+    } else {
+      expect(
+        within(bottomNav).getByRole('link', { name: activeLabel }),
+      ).toHaveAttribute('aria-current', 'page');
+    }
   }
 
   function expectClassicShellAbsent() {
@@ -3584,6 +3595,13 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'Settings' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Interface' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Open Classic interface' }),
+    ).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByLabelText('Classic appearance')).toBeInTheDocument();
 
     // The same authoritative data controls as classic Settings, rendered inside
     // the RPG shell — not a hand-off link to a separate settings screen.
@@ -3938,22 +3956,23 @@ describe('RPG routes', () => {
     const bottomNav = screen.getByRole('navigation', {
       name: 'RPG bottom navigation',
     });
-    const hubLink = within(bottomNav).getByRole('link', { name: 'Hub' });
     const mapLink = within(bottomNav).getByRole('link', { name: 'Map' });
+    const focusLink = within(bottomNav).getByRole('link', { name: 'Focus' });
 
-    hubLink.focus();
-    expect(hubLink).toHaveFocus();
-
-    await user.keyboard('{Tab}');
+    mapLink.focus();
     expect(mapLink).toHaveFocus();
 
+    await user.keyboard('{Tab}');
+    expect(focusLink).toHaveFocus();
+
     await user.keyboard('{Enter}');
-    expect(await screen.findByTestId('rpg-module-week-4')).toBeInTheDocument();
-    expect(mapLink).toHaveAttribute('aria-current', 'page');
+    expect(
+      await screen.findByRole('heading', { name: 'Focus' }),
+    ).toBeInTheDocument();
+    expect(focusLink).toHaveAttribute('aria-current', 'page');
   });
 
-  it('opens and closes the mobile More destinations disclosure with focus restoration', async () => {
-    const user = userEvent.setup();
+  it('keeps all six primary RPG destinations direct and keeps Classic out of peer navigation', async () => {
     await seedOnboardedLearner();
 
     await renderAppAtRoute('/rpg/badges');
@@ -3962,31 +3981,26 @@ describe('RPG routes', () => {
     const bottomNav = screen.getByRole('navigation', {
       name: 'RPG bottom navigation',
     });
-    const moreButton = within(bottomNav).getByRole('button', { name: 'More' });
 
-    expect(moreButton).toHaveAttribute('aria-current', 'page');
-    await user.click(moreButton);
-
-    const moreDestinations = screen.getByRole('region', {
-      name: 'More RPG destinations',
-    });
-    const awardsLink = within(moreDestinations).getByRole('link', {
-      name: 'Awards',
-    });
-
-    await waitFor(() => expect(awardsLink).toHaveFocus());
-    expect(
-      within(moreDestinations).getByRole('link', {
-        name: 'Open Tracker',
-      }),
-    ).toHaveAttribute('href', '/dashboard');
-
-    await user.keyboard('{Escape}');
+    for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
+      expect(
+        within(bottomNav).getByRole('link', { name: label }),
+      ).toBeVisible();
+    }
 
     expect(
-      screen.queryByRole('region', { name: 'More RPG destinations' }),
+      within(bottomNav).getByRole('link', { name: 'Awards' }),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(
+      within(bottomNav).queryByRole('button', { name: 'More' }),
     ).not.toBeInTheDocument();
-    expect(moreButton).toHaveFocus();
+    expect(
+      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Settings' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
   });
 
   it('does not mutate local stores during passive RPG route navigation', async () => {
@@ -4023,6 +4037,33 @@ describe('RPG routes', () => {
     expectClassicShellAbsent();
   });
 
+  it('switches between RPG and Classic without creating passive local writes', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/settings');
+    await screen.findByRole('heading', { name: 'Settings' });
+
+    await user.click(
+      screen.getByRole('link', { name: 'Open Classic interface' }),
+    );
+    await screen.findByRole('heading', { name: /^Dashboard$/ });
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+    const primaryNavigation = screen.getByRole('navigation', {
+      name: 'Primary',
+    });
+    const returnLink = within(primaryNavigation).getByRole('link', {
+      name: 'Return to RPG',
+    });
+    expect(returnLink).toHaveAttribute('href', '/rpg');
+
+    await user.click(returnLink);
+    await screen.findByRole('heading', { name: 'RPG Hub' });
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
   it('preserves classic chrome on classic routes', async () => {
     await seedOnboardedLearner();
 
@@ -4036,6 +4077,9 @@ describe('RPG routes', () => {
     expect(
       within(primaryNavigation).getByRole('link', { name: 'Dashboard' }),
     ).toBeInTheDocument();
+    expect(
+      within(primaryNavigation).getByRole('link', { name: 'Return to RPG' }),
+    ).toHaveAttribute('href', '/rpg');
     expect(
       await screen.findByRole('link', { name: 'Open RPG' }),
     ).toHaveAttribute('href', '/rpg');

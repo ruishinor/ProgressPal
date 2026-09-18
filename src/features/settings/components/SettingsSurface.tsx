@@ -237,7 +237,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         <PageHeader
           actions={
             <div className="action-row">
-              <Link className="button button--secondary button--md" to="/">
+              <Link
+                className="button button--secondary button--md"
+                to="/profile"
+              >
                 Back to profile
               </Link>
             </div>
@@ -253,6 +256,21 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           title="Settings"
         />
       )}
+      <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <p className="card__description">
+          {isRpgVariant
+            ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
+            : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
+        </p>
+        <div className="action-row">
+          <Link
+            className="button button--secondary button--md"
+            to={isRpgVariant ? '/dashboard' : rpgRoutePath}
+          >
+            {isRpgVariant ? 'Open Classic interface' : 'Return to RPG'}
+          </Link>
+        </div>
+      </Card>
       <ProfileForm
         variant={variant}
         cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
@@ -264,7 +282,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           setToast({
             title: 'Local profile saved',
             description:
-              'Profile, theme, motion, and study cadence were updated on this device.',
+              'Profile, appearance, motion, and study cadence were updated on this device.',
             tone: 'success',
           });
         }}

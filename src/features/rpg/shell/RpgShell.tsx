@@ -20,6 +20,7 @@ import {
   rpgMapPath,
   rpgRoutePath,
   rpgFocusPath,
+  rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
@@ -224,6 +225,27 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
+        <div className="rpg-shell__utility-bar">
+          <Link
+            aria-current={
+              location.pathname === rpgSettingsPath ? 'page' : undefined
+            }
+            aria-label="Open Settings"
+            className="rpg-shell__settings-link"
+            to={rpgSettingsPath}
+          >
+            <svg
+              aria-hidden="true"
+              className="rpg-shell__settings-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path d="M9.8 3.8h4.4l.6 2.1 1.6.9 2.1-.6 2.2 3.8-1.5 1.5v1.9l1.5 1.5-2.2 3.8-2.1-.6-1.6.9-.6 2.1H9.8L9.2 19l-1.6-.9-2.1.6-2.2-3.8 1.5-1.5v-1.9L3.3 10l2.2-3.8 2.1.6 1.6-.9.6-2.1Z" />
+              <circle cx="12" cy="12.4" r="2.8" />
+            </svg>
+            <span className="rpg-shell__settings-text">Settings</span>
+          </Link>
+        </div>
         {location.pathname !== rpgHeroPath ? (
           <RpgHeroHud
             showQuest={

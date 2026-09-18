@@ -250,7 +250,7 @@ for (const viewport of mobileViewports) {
   });
 }
 
-test('mobile navigation keeps core routes direct and restores focus after More closes', async ({
+test('mobile navigation keeps the six RPG destinations direct and moves Classic to Settings', async ({
   page,
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
@@ -265,35 +265,33 @@ test('mobile navigation keeps core routes direct and restores focus after More c
     name: 'RPG bottom navigation',
   });
 
-  for (const label of ['Hub', 'Map', 'Focus', 'Hero']) {
+  for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
     await expect(bottomNav.getByRole('link', { name: label })).toBeVisible();
   }
 
-  const moreButton = bottomNav.getByRole('button', { name: 'More' });
-  await expect(moreButton).toBeVisible();
-  await moreButton.click();
-
-  const moreDestinations = page.getByRole('region', {
-    name: 'More RPG destinations',
-  });
-
-  await expect(moreDestinations).toBeVisible();
+  await expect(bottomNav.getByRole('button', { name: 'More' })).toHaveCount(0);
   await expect(
-    moreDestinations.getByRole('link', { name: 'Awards' }),
-  ).toBeFocused();
+    bottomNav.getByRole('link', { name: /Tracker|Classic/i }),
+  ).toHaveCount(0);
+  await expect(bottomNav.getByRole('link', { name: 'Hub' })).toHaveClass(
+    /rpg-bottom-nav__link--hub/,
+  );
+
+  await page.getByRole('link', { name: 'Open Settings' }).click();
+  await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
+  await expect(page.getByLabel('Classic appearance')).toBeVisible();
+  await page.getByRole('link', { name: 'Open Classic interface' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  const classicNav = page.getByRole('navigation', { name: 'Primary' });
   await expect(
-    moreDestinations.getByRole('link', { name: 'Open Tracker' }),
+    classicNav.getByRole('link', { name: 'Return to RPG' }),
   ).toBeVisible();
 
-  await page.keyboard.press('Escape');
-
-  await expect(moreDestinations).not.toBeVisible();
-  await expect(moreButton).toBeFocused();
-
-  await moreButton.click();
-  await moreDestinations.getByRole('link', { name: 'Open Tracker' }).click();
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
+  await classicNav.getByRole('link', { name: 'Return to RPG' }).click();
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+  ).toBeVisible();
 });
 
 test('mobile Hub puts the recommended quest before secondary progress', async ({

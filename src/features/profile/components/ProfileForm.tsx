@@ -264,7 +264,9 @@ export function ProfileForm({
             />
             <dl className="profile-summary-list">
               <div>
-                <dt>{variant === 'rpg' ? 'Tracker theme' : 'Theme'}</dt>
+                <dt>
+                  {mode === 'onboarding' ? 'Theme' : 'Classic appearance'}
+                </dt>
                 <dd>{values.preferredTheme}</dd>
               </div>
               <div>
@@ -277,11 +279,13 @@ export function ProfileForm({
             <FormField
               controlId={`${fieldPrefix}-theme`}
               description={
-                variant === 'rpg'
-                  ? 'Applies to Tracker pages. RPG keeps its dark study theme. System follows your device.'
-                  : 'System follows the device preference. Light and dark stay local to this app.'
+                mode === 'onboarding'
+                  ? 'System follows the device preference. Light and dark stay local to this app.'
+                  : variant === 'rpg'
+                    ? 'Applies to the Classic interface. RPG keeps its dark study theme. System follows your device.'
+                    : 'Controls the Classic interface. System follows your device. Light and dark stay local to this app.'
               }
-              label={variant === 'rpg' ? 'Tracker theme' : 'Theme'}
+              label={mode === 'onboarding' ? 'Theme' : 'Classic appearance'}
               required
             >
               {({ describedBy, inputId, invalid }) => (

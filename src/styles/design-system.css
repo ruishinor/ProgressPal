@@ -97,6 +97,18 @@
   padding: var(--space-2);
 }
 
+.shell-nav__utility {
+  align-items: center;
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  margin-left: auto;
+  padding-left: var(--space-2);
+}
+
+.shell-nav__link--utility {
+  font-weight: 700;
+}
+
 .shell-nav__link {
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
@@ -1482,6 +1494,15 @@
 @media (max-width: 720px) {
   .shell-root {
     padding: var(--space-3);
+  }
+
+  .shell-nav__utility {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: var(--space-2);
+    width: 100%;
   }
 
   .shell-brand-block,
