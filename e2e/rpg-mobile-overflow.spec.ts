@@ -332,12 +332,20 @@ test('mobile campaign path reaches a Week task and its real resource action', as
   await completeOnboarding(page);
   await page.goto('/rpg/map');
 
-  const weekLink = page.getByRole('link', {
-    name: /^Open Week 0: Scratch,/,
+  const weekZeroModule = page.getByTestId('rpg-module-week-0');
+  const continueLink = weekZeroModule.getByRole('link', {
+    name: 'Continue learning',
   });
 
-  await expect(weekLink).toHaveAttribute('href', '/rpg/week/week-0');
-  await weekLink.click();
+  await expect(
+    weekZeroModule.getByRole('list', {
+      name: 'Week 0: Scratch quest status',
+    }),
+  ).toBeVisible();
+  await expect(continueLink).toHaveAttribute('href', '/rpg/week/week-0');
+  await expect(continueLink).toHaveAttribute('aria-current', 'step');
+  await expectNoHorizontalOverflow(page, '/rpg/map');
+  await continueLink.click();
   await expect(
     page.getByRole('heading', { exact: true, name: 'Week 0: Scratch' }),
   ).toBeVisible();

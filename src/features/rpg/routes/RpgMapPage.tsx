@@ -7,6 +7,7 @@ import {
   RpgButton,
   RpgEmptyState,
   RpgPanel,
+  RpgProgressBar,
   RpgStatusPill,
   type RpgStatusTone,
 } from '@/features/rpg/components';
@@ -54,11 +55,7 @@ function getCurrentLabel(
   return currentModule?.id === module.id ? 'Current module' : null;
 }
 
-function getMapNodeAriaLabel(
-  module: RpgModuleSummary,
-  currentModule: RpgModuleSummary | null,
-) {
-  const currentLabel = getCurrentLabel(module, currentModule);
+function getMapNodeAriaLabel(module: RpgModuleSummary) {
   const progressLabel =
     module.requiredItemCount === 0
       ? 'optional unit with no required tasks'
@@ -67,11 +64,31 @@ function getMapNodeAriaLabel(
     `Open ${module.title}`,
     `status ${module.statusLabel}`,
     progressLabel,
-    currentLabel,
-    currentLabel === null ? null : 'continue here',
   ].filter(Boolean);
 
   return parts.join(', ');
+}
+
+function getQuestMarker(
+  statusVariant: RpgModuleSummary['quests'][number]['statusVariant'],
+) {
+  if (statusVariant === 'completed') {
+    return '✓';
+  }
+
+  if (statusVariant === 'inProgress') {
+    return '•';
+  }
+
+  if (statusVariant === 'blocked') {
+    return '!';
+  }
+
+  if (statusVariant === 'optional') {
+    return '+';
+  }
+
+  return '○';
 }
 
 function RpgMapLoadingState() {
@@ -181,18 +198,31 @@ export function RpgMapPage() {
     <section className="page-section rpg-map">
       <div className="rpg-map__header rpg-page-header">
         <div>
-          <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
+          <p className="rpg-map__eyebrow rpg-page-eyebrow">
+            Your learning campaign
+          </p>
           <h1>Campaign Map</h1>
           <p className="rpg-map__lede rpg-page-lede">
-            Follow your course progress and choose the next week to study.
+            Pick up where you left off, or open any week.
           </p>
         </div>
         <div className="rpg-map__summary" aria-label="Campaign map summary">
+          <strong className="rpg-map__completion">
+            {`${summary.completionPercent}% complete`}
+          </strong>
+          <RpgProgressBar
+            className="rpg-map__course-progress"
+            label="Required course progress"
+            showValue={false}
+            value={summary.completionPercent}
+          />
           <span>{`${summary.unitCount} modules`}</span>
-          <span>{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</span>
+          <span>
+            {`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required tasks complete`}
+          </span>
           {summary.currentModule !== null ? (
             <span className="rpg-map__current-route">
-              Next route: {summary.currentModule.title}
+              Continue: {summary.currentModule.title}
             </span>
           ) : null}
         </div>
@@ -208,7 +238,8 @@ export function RpgMapPage() {
         <div className="rpg-map__content">
           <RpgPanel
             className="rpg-map__visual-panel"
-            title="Module route"
+            padding="compact"
+            title="Course route"
             titleAs="h2"
           >
             <ol className="rpg-map__node-list" aria-label="Campaign map nodes">
@@ -218,6 +249,7 @@ export function RpgMapPage() {
                   summary.currentModule,
                 );
                 const availabilityLabel = getAvailabilityLabel(module);
+                const isCurrent = currentLabel !== null;
 
                 return (
                   <li
@@ -226,67 +258,174 @@ export function RpgMapPage() {
                     data-status={module.statusVariant}
                     key={module.id}
                   >
-                    <a
-                      aria-label={getMapNodeAriaLabel(
-                        module,
-                        summary.currentModule,
-                      )}
-                      aria-current={currentLabel !== null ? 'step' : undefined}
-                      className="rpg-map__node"
-                      data-current={currentLabel !== null ? 'true' : undefined}
+                    <article
+                      className="rpg-map__module-card"
+                      data-current={isCurrent ? 'true' : undefined}
                       data-status={module.statusVariant}
-                      href={getRpgWeekPath(module.id)}
                     >
-                      <span className="rpg-map__node-index" aria-hidden="true">
-                        {module.id.startsWith('week-')
-                          ? module.id.slice(5)
-                          : module.requiredItemCount === 0
-                            ? '+'
-                            : '◆'}
-                      </span>
-                      <span className="rpg-map__node-copy">
-                        <span className="rpg-map__node-type">
-                          {module.typeLabel}
-                        </span>
-                        <span className="rpg-map__node-title">
-                          {module.title}
-                        </span>
-                        <span className="rpg-map__node-meta">
-                          {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
-                            module.estimatedMinutes,
-                          )}`}
-                        </span>
-                      </span>
-                      <span className="rpg-map__node-status">
-                        {currentLabel ? (
-                          <>
+                      {isCurrent ? (
+                        <div
+                          className="rpg-map__node rpg-map__node--current-summary"
+                          data-current="true"
+                          data-status={module.statusVariant}
+                        >
+                          <span
+                            className="rpg-map__node-index"
+                            aria-hidden="true"
+                          >
+                            {module.id.startsWith('week-')
+                              ? module.id.slice(5)
+                              : module.requiredItemCount === 0
+                                ? '+'
+                                : '◆'}
+                          </span>
+                          <span className="rpg-map__node-copy">
+                            <span className="rpg-map__node-type">
+                              {module.typeLabel}
+                            </span>
+                            <span className="rpg-map__node-title">
+                              {module.title}
+                            </span>
+                            <span className="rpg-map__node-meta">
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                                module.estimatedMinutes,
+                              )}`}
+                            </span>
+                          </span>
+                          <span className="rpg-map__node-status">
                             <RpgStatusPill tone="progress">
                               {currentLabel}
                             </RpgStatusPill>
-                          </>
-                        ) : null}
-                        <RpgStatusPill
-                          tone={getStatusTone(module.statusVariant)}
-                        >
-                          {module.statusLabel}
-                        </RpgStatusPill>
-                        {module.requiredItemCount > 0 ? (
-                          <span className="rpg-map__node-progress">
-                            {`${module.completionPercent}%`}
+                            <RpgStatusPill
+                              tone={getStatusTone(module.statusVariant)}
+                            >
+                              {module.statusLabel}
+                            </RpgStatusPill>
+                            {module.requiredItemCount > 0 ? (
+                              <span className="rpg-map__node-progress">
+                                {`${module.completionPercent}%`}
+                              </span>
+                            ) : null}
                           </span>
-                        ) : null}
-                      </span>
-                      {module.requiredItemCount > 0 ? (
-                        <span
-                          className="rpg-map__node-track"
-                          aria-hidden="true"
+                          {module.requiredItemCount > 0 ? (
+                            <span
+                              className="rpg-map__node-track"
+                              aria-hidden="true"
+                            >
+                              <span
+                                style={{
+                                  width: `${module.completionPercent}%`,
+                                }}
+                              />
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <a
+                          aria-label={getMapNodeAriaLabel(module)}
+                          className="rpg-map__node"
+                          data-status={module.statusVariant}
+                          href={getRpgWeekPath(module.id)}
                         >
                           <span
-                            style={{ width: `${module.completionPercent}%` }}
-                          />
-                        </span>
+                            className="rpg-map__node-index"
+                            aria-hidden="true"
+                          >
+                            {module.id.startsWith('week-')
+                              ? module.id.slice(5)
+                              : module.requiredItemCount === 0
+                                ? '+'
+                                : '◆'}
+                          </span>
+                          <span className="rpg-map__node-copy">
+                            <span className="rpg-map__node-type">
+                              {module.typeLabel}
+                            </span>
+                            <span className="rpg-map__node-title">
+                              {module.title}
+                            </span>
+                            <span className="rpg-map__node-meta">
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                                module.estimatedMinutes,
+                              )}`}
+                            </span>
+                          </span>
+                          <span className="rpg-map__node-status">
+                            <RpgStatusPill
+                              tone={getStatusTone(module.statusVariant)}
+                            >
+                              {module.statusLabel}
+                            </RpgStatusPill>
+                            {module.requiredItemCount > 0 ? (
+                              <span className="rpg-map__node-progress">
+                                {`${module.completionPercent}%`}
+                              </span>
+                            ) : null}
+                          </span>
+                          {module.requiredItemCount > 0 ? (
+                            <span
+                              className="rpg-map__node-track"
+                              aria-hidden="true"
+                            >
+                              <span
+                                style={{
+                                  width: `${module.completionPercent}%`,
+                                }}
+                              />
+                            </span>
+                          ) : null}
+                        </a>
+                      )}
+
+                      {isCurrent ? (
+                        <div className="rpg-map__current-detail">
+                          <div className="rpg-map__current-heading">
+                            <div>
+                              <h3>Tasks in {module.title}</h3>
+                            </div>
+                            <span>
+                              {`${module.completedRequiredItemCount} of ${module.requiredItemCount} required complete`}
+                            </span>
+                          </div>
+
+                          <ol
+                            aria-label={`${module.title} quest status`}
+                            className="rpg-map__quest-preview"
+                          >
+                            {module.quests.map((quest) => (
+                              <li
+                                className="rpg-map__quest-preview-item"
+                                data-status={quest.statusVariant}
+                                key={quest.id}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="rpg-map__quest-marker"
+                                >
+                                  {getQuestMarker(quest.statusVariant)}
+                                </span>
+                                <span className="rpg-map__quest-copy">
+                                  <strong>{quest.title}</strong>
+                                  <span>{quest.typeLabel}</span>
+                                </span>
+                                <span className="rpg-map__quest-status">
+                                  {quest.statusLabel}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+
+                          <RpgButton
+                            aria-current="step"
+                            className="rpg-map__continue"
+                            href={getRpgWeekPath(module.id)}
+                            size="sm"
+                          >
+                            Continue learning
+                          </RpgButton>
+                        </div>
                       ) : null}
-                    </a>
+                    </article>
                   </li>
                 );
               })}

@@ -2293,10 +2293,6 @@ describe('RPG routes', () => {
     );
   }
 
-  function escapeRegExp(value: string) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
   function expectHref(element: HTMLElement, href: string) {
     expect(element).toHaveAttribute('href', href);
     return href;
@@ -2607,11 +2603,10 @@ describe('RPG routes', () => {
       const module = screen.getByTestId(`rpg-module-${unit.id}`);
 
       expect(within(module).getByText(unit.title)).toBeInTheDocument();
-      expect(
-        within(module).getByRole('link', {
-          name: new RegExp(`^Open ${escapeRegExp(unit.title)},`),
-        }),
-      ).toHaveAttribute('href', `/rpg/week/${unit.id}`);
+      expect(within(module).getByRole('link')).toHaveAttribute(
+        'href',
+        `/rpg/week/${unit.id}`,
+      );
     }
 
     expectRpgShellWithBottomNav('Map');
@@ -2624,7 +2619,7 @@ describe('RPG routes', () => {
 
     await screen.findByTestId('rpg-module-week-4');
 
-    expect(screen.getByText('Next route: Week 4: Memory')).toBeInTheDocument();
+    expect(screen.getByText('Continue: Week 4: Memory')).toBeInTheDocument();
 
     const weekZeroModule = screen.getByTestId('rpg-module-week-0');
     expect(within(weekZeroModule).getByText('Completed')).toBeInTheDocument();
@@ -2635,10 +2630,20 @@ describe('RPG routes', () => {
       within(weekFourModule).getByText('Current module'),
     ).toBeInTheDocument();
     expect(within(weekFourModule).getByText('In progress')).toBeInTheDocument();
-    expect(within(weekFourModule).getByRole('link')).toHaveAttribute(
-      'aria-current',
-      'step',
-    );
+    const continueLink = within(weekFourModule).getByRole('link', {
+      name: 'Continue learning',
+    });
+    expect(continueLink).toHaveAttribute('aria-current', 'step');
+    const currentQuestList = within(weekFourModule).getByRole('list', {
+      name: 'Week 4: Memory quest status',
+    });
+    expect(
+      within(currentQuestList).getByText('Lecture 4: Memory'),
+    ).toBeInTheDocument();
+    expect(
+      within(currentQuestList).getByText('Problem Set 4: Memory'),
+    ).toBeInTheDocument();
+    expect(continueLink).toHaveAttribute('href', '/rpg/week/week-4');
 
     const weekOneModule = screen.getByTestId('rpg-module-week-1');
     expect(

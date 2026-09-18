@@ -225,7 +225,10 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        <div className="rpg-shell__utility-bar">
+        <nav
+          aria-label="RPG utility navigation"
+          className="rpg-shell__utility-bar"
+        >
           <Link
             aria-current={
               location.pathname === rpgSettingsPath ? 'page' : undefined
@@ -245,7 +248,7 @@ export function RpgShell() {
             </svg>
             <span className="rpg-shell__settings-text">Settings</span>
           </Link>
-        </div>
+        </nav>
         {location.pathname !== rpgHeroPath ? (
           <RpgHeroHud
             showQuest={
