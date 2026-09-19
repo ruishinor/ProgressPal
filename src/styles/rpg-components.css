@@ -87,6 +87,30 @@
   border-color: var(--color-danger);
 }
 
+/* Keep shared Classic capability primitives visually coherent inside RPG
+   without changing their underlying component behavior or data semantics. */
+.rpg-shell :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings) .card {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.rpg-shell :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings) .button {
+  border-radius: var(--radius-sm);
+}
+
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
+  .button--primary:not(:disabled) {
+  background: var(--rpg-accent);
+  color: #17202b;
+}
+
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
+  .button--primary:hover:not(:disabled) {
+  background: var(--rpg-accent-strong);
+}
+
 .rpg-page-header {
   align-items: start;
   display: flex;
@@ -101,7 +125,7 @@
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  padding: var(--space-5);
+  padding: var(--space-4);
   width: 100%;
 }
 
@@ -127,6 +151,15 @@
   font-weight: 700;
   margin: 0;
   text-transform: uppercase;
+}
+
+/* The shell already establishes RPG context. Keep meaningful route-specific
+   eyebrows (for example Campaign Map) while removing repeated generic chrome. */
+.rpg-hero__eyebrow,
+.rpg-badges__eyebrow,
+.rpg-log__eyebrow,
+.rpg-settings__eyebrow {
+  display: none;
 }
 
 .rpg-page-lede,
