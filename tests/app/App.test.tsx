@@ -4454,7 +4454,7 @@ describe('Settings route', () => {
     expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Profile, theme, motion, and study cadence were updated on this device.',
+        'Profile, appearance, motion, and study cadence were updated on this device.',
       ),
     ).toBeInTheDocument();
     expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual(

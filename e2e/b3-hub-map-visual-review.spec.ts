@@ -24,6 +24,28 @@ type ProgressFixture = {
   updatedAt: string;
 };
 
+interface IndexedDbBrowserScope {
+  indexedDB: {
+    open(name: string): {
+      onerror: (() => void) | null;
+      onsuccess: (() => void) | null;
+      result: {
+        close(): void;
+        transaction(
+          storeNames: string[],
+          mode: 'readwrite',
+        ): {
+          objectStore(name: string): {
+            put(value: unknown): unknown;
+          };
+          oncomplete: (() => void) | null;
+          onerror: (() => void) | null;
+        };
+      };
+    };
+  };
+}
+
 async function capturePage(page: Page, fileName: string) {
   await page.screenshot({
     fullPage: true,
@@ -37,7 +59,8 @@ async function writeProgressFixtures(
 ) {
   await page.evaluate(async (fixtures) => {
     await new Promise<void>((resolve, reject) => {
-      const request = indexedDB.open('progresspal-cs50-edition');
+      const scope = globalThis as unknown as IndexedDbBrowserScope;
+      const request = scope.indexedDB.open('progresspal-cs50-edition');
 
       request.onerror = () => {
         reject(new Error('Failed to open IndexedDB for B3 visual fixtures.'));
