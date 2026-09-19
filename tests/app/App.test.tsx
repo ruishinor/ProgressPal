@@ -3971,10 +3971,14 @@ describe('RPG routes', () => {
     expect(focusLink).toHaveFocus();
 
     await user.keyboard('{Enter}');
+    await screen.findByRole('heading', { name: 'Focus' });
+
+    const updatedBottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
     expect(
-      await screen.findByRole('heading', { name: 'Focus' }),
-    ).toBeInTheDocument();
-    expect(focusLink).toHaveAttribute('aria-current', 'page');
+      within(updatedBottomNav).getByRole('link', { name: 'Focus' }),
+    ).toHaveAttribute('aria-current', 'page');
   });
 
   it('keeps all six primary RPG destinations direct and keeps Classic out of peer navigation', async () => {
