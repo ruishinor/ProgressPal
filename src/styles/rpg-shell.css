@@ -405,7 +405,13 @@ html:has(body.rpg-route-active) {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     bottom: 0;
-    padding-inline: 0.35rem;
+    inset-inline: 0;
+    justify-self: stretch;
+    max-width: none;
+    padding-inline: max(0.35rem, env(safe-area-inset-left, 0px))
+      max(0.35rem, env(safe-area-inset-right, 0px));
+    position: fixed;
+    width: auto;
   }
 
   .rpg-bottom-nav__list {

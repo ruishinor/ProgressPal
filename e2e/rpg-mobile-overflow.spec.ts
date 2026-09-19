@@ -137,8 +137,10 @@ type BrowserLayoutScope = {
     paddingBottom: string;
     paddingLeft: string;
     paddingRight: string;
+    position: string;
   };
   innerWidth: number;
+  scrollY: number;
 };
 
 async function expectNoHorizontalOverflow(page: Page, route: string) {
@@ -229,6 +231,11 @@ for (const viewport of mobileViewports) {
         name: 'RPG bottom navigation',
       });
       const navBox = await bottomNav.boundingBox();
+      const navPosition = await bottomNav.evaluate((element) => {
+        const scope = globalThis as unknown as BrowserLayoutScope;
+
+        return scope.getComputedStyle(element).position;
+      });
       const mainBottomPadding = await page
         .locator('#rpg-main-content')
         .evaluate((element) => {
@@ -240,6 +247,21 @@ for (const viewport of mobileViewports) {
         });
 
       expect(navBox, `${route.path} bottom navigation box`).not.toBeNull();
+      expect(navPosition, `${route.path} bottom navigation position`).toBe(
+        'fixed',
+      );
+      expect(
+        Math.abs(navBox?.x ?? Number.POSITIVE_INFINITY),
+        `${route.path} bottom navigation left edge`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(viewport.width - ((navBox?.x ?? 0) + (navBox?.width ?? 0))),
+        `${route.path} bottom navigation right edge`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(viewport.height - ((navBox?.y ?? 0) + (navBox?.height ?? 0))),
+        `${route.path} bottom navigation bottom edge`,
+      ).toBeLessThanOrEqual(1);
       expect(
         mainBottomPadding,
         `${route.path} reserved navigation space`,
@@ -249,6 +271,54 @@ for (const viewport of mobileViewports) {
     await context.close();
   });
 }
+
+test('mobile bottom navigation stays fixed during real document scroll', async ({
+  page,
+}) => {
+  const viewport = { height: 844, width: 390 };
+  await page.setViewportSize(viewport);
+  await completeOnboarding(page);
+  await page.goto('/rpg/settings');
+
+  await expect(
+    page.getByRole('heading', { exact: true, name: 'Settings' }),
+  ).toBeVisible({ timeout: 15000 });
+
+  const bottomNav = page.getByRole('navigation', {
+    name: 'RPG bottom navigation',
+  });
+  await expect(bottomNav).toBeVisible();
+
+  const initialNavBox = await bottomNav.boundingBox();
+  expect(initialNavBox, 'initial bottom navigation box').not.toBeNull();
+
+  await page.mouse.move(2, viewport.height / 2);
+  await page.mouse.wheel(0, 2000);
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const scope = globalThis as unknown as BrowserLayoutScope;
+        return scope.scrollY;
+      }),
+    )
+    .toBeGreaterThan(100);
+
+  const scrolledNavBox = await bottomNav.boundingBox();
+  expect(scrolledNavBox, 'scrolled bottom navigation box').not.toBeNull();
+  expect(
+    Math.abs(
+      (scrolledNavBox?.y ?? Number.POSITIVE_INFINITY) - (initialNavBox?.y ?? 0),
+    ),
+    'bottom navigation stays at the same viewport Y position while scrolling',
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(
+      viewport.height -
+        ((scrolledNavBox?.y ?? 0) + (scrolledNavBox?.height ?? 0)),
+    ),
+    'bottom navigation remains attached to the viewport bottom after scrolling',
+  ).toBeLessThanOrEqual(1);
+});
 
 test('mobile navigation keeps the six RPG destinations direct and moves Classic to Settings', async ({
   page,
