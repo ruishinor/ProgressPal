@@ -53,7 +53,7 @@ stories:
     objective: >-
       Replace Module broad snapshot access with unit-scoped bulk/indexed reads without
       per-item/per-asset query growth.
-    readiness: eligible_for_fresh_readiness
+    readiness: PASS
     acceptance_summary:
       - requested unit/item scope only
       - query count independent of item/asset count
@@ -62,7 +62,7 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x module cardinality
       - value equivalence and missing-unit behavior
-    state: ready_for_readiness
+    state: ready_for_implementation
 
   - id: A3
     title: Resource read boundary
