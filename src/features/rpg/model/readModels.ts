@@ -1,3 +1,4 @@
+import { getLevelProgressDisplay } from './presentation';
 import {
   buildCourseDetailView,
   type CourseDetailView,
@@ -16,13 +17,16 @@ import {
 } from '@/features/course/cs50Links';
 import { buildLongFormProgressMap } from '@/features/progress/model';
 import { achievementDefinitions } from '@/lib/achievements';
+import { isItemComplete } from '@/lib/completion';
 import {
   getDatabaseSnapshot,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
+import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
+import { buildQuestRewardLabel } from './questRewards';
 
 import type {
   RpgBadgeGallerySummary,
@@ -33,6 +37,7 @@ import type {
   RpgHubWeeklyProgress,
   RpgModuleSummary,
   RpgOfficialLink,
+  RpgQuestRecommendation,
   RpgQuestSummary,
   RpgStudyResourceSummary,
 } from './types';
@@ -57,42 +62,32 @@ function toDateOnly(isoTimestamp: string) {
   return isoTimestamp.slice(0, 10);
 }
 
-function toIsoDate(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 function getWeekBounds(nowIso: string) {
   const now = new Date(nowIso);
   const validNow = Number.isNaN(now.getTime()) ? new Date() : now;
-  const weekStart = new Date(
-    Date.UTC(
-      validNow.getUTCFullYear(),
-      validNow.getUTCMonth(),
-      validNow.getUTCDate(),
-    ),
-  );
-  const day = weekStart.getUTCDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-
-  weekStart.setUTCDate(weekStart.getUTCDate() + mondayOffset);
-
+  const weekStart = getLocalWeekStart(validNow.toISOString());
   const weekEnd = new Date(weekStart);
-  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const nextWeekStart = new Date(weekStart);
+  // Advance by local calendar days: a DST week can be 167 or 169 hours.
+  nextWeekStart.setDate(weekStart.getDate() + 7);
 
   return {
-    endDate: toIsoDate(weekEnd),
-    endTime: `${toIsoDate(weekEnd)}T23:59:59.999Z`,
-    startDate: toIsoDate(weekStart),
-    startTime: `${toIsoDate(weekStart)}T00:00:00.000Z`,
+    endDate: formatLocalDate(weekEnd),
+    nextStartTime: nextWeekStart.getTime(),
+    startDate: formatLocalDate(weekStart),
+    startTime: weekStart.getTime(),
   };
 }
 
 function isIsoInRange(
   isoTimestamp: string,
-  startTime: string,
-  endTime: string,
+  startTime: number,
+  nextStartTime: number,
 ) {
-  return isoTimestamp >= startTime && isoTimestamp <= endTime;
+  const time = Date.parse(isoTimestamp);
+
+  return time >= startTime && time < nextStartTime;
 }
 
 function toRpgOfficialLink(link: Cs50Link | null): RpgOfficialLink | null {
@@ -127,8 +122,10 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
 function buildQuestSummary(
   unit: CourseMapUnit,
   item: CourseMapItem,
+  snapshot: DatabaseSnapshot,
 ): RpgQuestSummary {
   return {
+    rewardLabel: buildQuestRewardLabel(snapshot, item.id),
     estimatedMinutes: item.estimatedMinutes,
     id: item.id,
     longFormProgress: item.longFormProgress,
@@ -147,7 +144,10 @@ function buildQuestSummary(
   };
 }
 
-function buildModuleSummary(unit: CourseMapUnit): RpgModuleSummary {
+function buildModuleSummary(
+  unit: CourseMapUnit,
+  snapshot: DatabaseSnapshot,
+): RpgModuleSummary {
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
     completionPercent: unit.completionPercent,
@@ -155,7 +155,7 @@ function buildModuleSummary(unit: CourseMapUnit): RpgModuleSummary {
     id: unit.id,
     itemCount: unit.itemCount,
     officialLink: toRpgOfficialLink(getCs50UnitLink(unit.id)),
-    quests: unit.items.map((item) => buildQuestSummary(unit, item)),
+    quests: unit.items.map((item) => buildQuestSummary(unit, item, snapshot)),
     requiredItemCount: unit.requiredItemCount,
     statusLabel: unit.statusLabel,
     statusVariant: unit.statusVariant,
@@ -164,42 +164,68 @@ function buildModuleSummary(unit: CourseMapUnit): RpgModuleSummary {
   };
 }
 
-function selectContinueQuest(
+function selectQuestRecommendation(
   modules: readonly RpgModuleSummary[],
-): RpgQuestSummary | null {
-  const requiredQuests = modules.flatMap((module) =>
-    module.quests.filter((quest) => quest.required),
+  snapshot: DatabaseSnapshot,
+): RpgQuestRecommendation {
+  const quests = modules.flatMap((module) => module.quests);
+  const requiredQuests = quests.filter((quest) => quest.required);
+  const hasEmptyRequiredUnit = snapshot.courseUnits.some(
+    (unit) =>
+      unit.required &&
+      !requiredQuests.some((quest) => quest.unitId === unit.id),
   );
+
+  // A missing catalog or broken item/unit relation cannot establish completion.
+  if (
+    requiredQuests.length === 0 ||
+    quests.length !== snapshot.courseItems.length ||
+    hasEmptyRequiredUnit
+  ) {
+    return { state: 'unavailable', quest: null };
+  }
 
   const incomplete = requiredQuests.filter(
-    (quest) => quest.statusVariant !== 'completed',
+    (quest) => !isItemComplete(quest.status),
   );
+  const optionalRemainingCount = quests.filter(
+    (quest) =>
+      !quest.required &&
+      !isItemComplete(quest.status) &&
+      quest.status !== 'skipped_optional',
+  ).length;
 
-  return (
-    incomplete.find(
+  if (incomplete.length === 0) {
+    return {
+      state: 'required_complete',
+      quest: null,
+      remainingRequiredCount: 0,
+      optionalRemainingCount,
+    };
+  }
+
+  const actionable = incomplete.filter((quest) => quest.status !== 'blocked');
+  const nextActionable =
+    actionable.find(
       (quest) =>
         quest.statusVariant === 'inProgress' ||
         quest.longFormProgress?.hasProgress === true,
-    ) ??
-    incomplete.find((quest) => quest.statusVariant !== 'blocked') ??
-    null
-  );
+    ) ?? actionable[0];
+
+  return {
+    state: nextActionable === undefined ? 'needs_attention' : 'actionable',
+    quest: nextActionable ?? incomplete[0],
+    remainingRequiredCount: incomplete.length,
+    optionalRemainingCount,
+  };
 }
 
 function selectCurrentModule(
   modules: readonly RpgModuleSummary[],
-  continueQuest: RpgQuestSummary | null,
+  recommendation: RpgQuestRecommendation,
 ) {
-  if (continueQuest !== null) {
-    return modules.find((module) => module.id === continueQuest.unitId) ?? null;
-  }
-
   return (
-    modules.find(
-      (module) =>
-        module.requiredItemCount > 0 &&
-        module.completedRequiredItemCount < module.requiredItemCount,
-    ) ?? null
+    modules.find((module) => module.id === recommendation.quest?.unitId) ?? null
   );
 }
 
@@ -263,18 +289,19 @@ function buildWeeklyProgress(
   snapshot: DatabaseSnapshot,
   nowIso: string,
 ): RpgHubWeeklyProgress {
-  const { endDate, endTime, startDate, startTime } = getWeekBounds(nowIso);
+  const { endDate, nextStartTime, startDate, startTime } =
+    getWeekBounds(nowIso);
   const completedRequiredItemIds = new Set(
     snapshot.courseItems.filter((item) => item.required).map((item) => item.id),
   );
   const thisWeeksProgress = snapshot.progressEntries.filter((entry) =>
-    isIsoInRange(entry.updatedAt, startTime, endTime),
+    isIsoInRange(entry.updatedAt, startTime, nextStartTime),
   );
   const thisWeeksSessions = snapshot.studySessions.filter((session) =>
-    isIsoInRange(session.startedAt, startTime, endTime),
+    isIsoInRange(session.startedAt, startTime, nextStartTime),
   );
   const thisWeeksXp = snapshot.xpTransactions.filter((transaction) =>
-    isIsoInRange(transaction.awardedAt, startTime, endTime),
+    isIsoInRange(transaction.awardedAt, startTime, nextStartTime),
   );
 
   return {
@@ -399,13 +426,15 @@ export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
 ): RpgCourseMapSummary {
   const { courseMap } = buildCourseMapContext(snapshot);
-  const modules = courseMap.units.map((unit) => buildModuleSummary(unit));
-  const continueQuest = selectContinueQuest(modules);
+  const modules = courseMap.units.map((unit) =>
+    buildModuleSummary(unit, snapshot),
+  );
+  const recommendation = selectQuestRecommendation(modules, snapshot);
 
   return {
     completedRequiredItemCount: courseMap.completedRequiredItemCount,
     completionPercent: courseMap.completionPercent,
-    currentModule: selectCurrentModule(modules, continueQuest),
+    currentModule: selectCurrentModule(modules, recommendation),
     modules,
     requiredItemCount: courseMap.requiredItemCount,
     unitCount: courseMap.unitCount,
@@ -421,7 +450,7 @@ export function buildRpgModuleSummary(
   const { courseMap } = buildCourseMapContext(snapshot);
   const unit = courseMap.units.find((candidate) => candidate.id === unitId);
 
-  return unit === undefined ? null : buildModuleSummary(unit);
+  return unit === undefined ? null : buildModuleSummary(unit, snapshot);
 }
 
 export function buildRpgHubSummary(
@@ -429,7 +458,10 @@ export function buildRpgHubSummary(
   nowIso = new Date().toISOString(),
 ): RpgHubSummary {
   const courseMapSummary = buildRpgCourseMapSummary(snapshot);
-  const continueQuest = selectContinueQuest(courseMapSummary.modules);
+  const recommendation = selectQuestRecommendation(
+    courseMapSummary.modules,
+    snapshot,
+  );
   const xpSummary = calculateXpSummary(
     snapshot.xpTransactions.reduce((total, transaction) => {
       return total + transaction.xp;
@@ -440,13 +472,16 @@ export function buildRpgHubSummary(
   }, 0);
 
   return {
-    continueQuest,
+    recommendation,
     courseProgress: {
       completedRequiredItemCount: courseMapSummary.completedRequiredItemCount,
       completionPercent: courseMapSummary.completionPercent,
       requiredItemCount: courseMapSummary.requiredItemCount,
     },
-    currentModule: selectCurrentModule(courseMapSummary.modules, continueQuest),
+    currentModule: selectCurrentModule(
+      courseMapSummary.modules,
+      recommendation,
+    ),
     identity: {
       classLabel: 'Generalist',
       guildLabel: 'Code Knights',
@@ -463,6 +498,7 @@ export function buildRpgHubSummary(
     weeklyProgress: buildWeeklyProgress(snapshot, nowIso),
     weekFour: courseMapSummary.weekFour,
     xpSummary: {
+      ...getLevelProgressDisplay(xpSummary),
       level: xpSummary.level,
       levelProgressPercent: getLevelProgressPercent(xpSummary),
       totalXp: xpSummary.totalXp,
@@ -491,8 +527,10 @@ function buildStudyResourceFromDetail(
   item: CourseItem,
   progressEntry: ProgressEntry | null,
   unitId: string,
+  rewardLabel: string,
 ): RpgStudyResourceSummary {
   return {
+    rewardLabel,
     estimatedMinutesLabel: detail.estimatedMinutesLabel,
     itemId: detail.itemId,
     itemType: item.type,
@@ -548,7 +586,13 @@ export function buildRpgStudyResourceSummary(
     getLongFormProgressForItem(snapshot, item.id),
   );
 
-  return buildStudyResourceFromDetail(detail, item, progressEntry, unit.id);
+  return buildStudyResourceFromDetail(
+    detail,
+    item,
+    progressEntry,
+    unit.id,
+    buildQuestRewardLabel(snapshot, item.id, true),
+  );
 }
 
 export function buildRpgFocusSessionSummary(

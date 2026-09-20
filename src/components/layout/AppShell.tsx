@@ -21,6 +21,7 @@ export type AppShellStatusItem = {
 export type AppShellProps = PropsWithChildren<{
   navigationItems: readonly AppShellNavigationItem[];
   statusItems?: readonly AppShellStatusItem[];
+  utilityNavigationItems?: readonly AppShellNavigationItem[];
   summary: string;
   title: string;
 }> & {
@@ -36,6 +37,7 @@ export function AppShell({
   statusItems,
   summary,
   title,
+  utilityNavigationItems,
 }: AppShellProps) {
   return (
     <div className="shell-root">
@@ -79,6 +81,20 @@ export function AppShell({
             {item.label}
           </NavLink>
         ))}
+        {utilityNavigationItems?.length ? (
+          <div className="shell-nav__utility">
+            {utilityNavigationItems.map((item) => (
+              <NavLink
+                className="shell-nav__link shell-nav__link--utility"
+                end={item.end}
+                key={item.id}
+                to={item.to}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        ) : null}
       </nav>
       <main
         className="shell-main"

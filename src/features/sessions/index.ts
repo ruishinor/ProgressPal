@@ -1,5 +1,6 @@
 export { SessionsPage } from '@/features/sessions/routes/SessionsPage';
 export { StudySessionsSurface } from '@/features/sessions/components/StudySessionsSurface';
+export type { StudySessionSaveResult } from '@/features/sessions/components/StudySessionsSurface';
 export {
   buildSessionCatalog,
   buildSessionLedgerRows,

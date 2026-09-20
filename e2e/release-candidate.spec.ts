@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
 
 const routeChecks = [
-  { heading: 'Local profile for Alex', path: '/' },
+  { heading: 'Local profile for Alex', path: '/profile' },
   { heading: 'Dashboard', path: '/dashboard' },
   { heading: 'Course Map', path: '/course' },
   { heading: 'Log Lecture', path: '/course/week-0-lecture' },

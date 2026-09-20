@@ -8,27 +8,131 @@ import {
   rpgLogPath,
   rpgMapPath,
   rpgRoutePath,
-  rpgSettingsPath,
   rpgWeekPathPattern,
 } from '@/lib/routing/rpgRoutePaths';
 
-const rpgBottomNavItems = [
-  { activePaths: [rpgRoutePath], label: 'Hub', to: rpgRoutePath },
+type RpgNavIconName = 'awards' | 'focus' | 'hero' | 'hub' | 'insights' | 'map';
+
+type RpgNavItem = {
+  activePaths: readonly string[];
+  icon: RpgNavIconName;
+  label: string;
+  to: string;
+};
+
+const navItems = [
   {
     activePaths: [
       rpgMapPath,
       rpgWeekPathPattern.replace('/:unitId', ''),
       '/rpg/resource',
     ],
+    icon: 'map',
     label: 'Map',
     to: rpgMapPath,
   },
-  { activePaths: [rpgFocusPath], label: 'Focus', to: rpgFocusPath },
-  { activePaths: [rpgHeroPath], label: 'Hero', to: rpgHeroPath },
-  { activePaths: [rpgBadgesPath], label: 'Awards', to: rpgBadgesPath },
-  { activePaths: [rpgLogPath], label: 'Insights', to: rpgLogPath },
-  { activePaths: [rpgSettingsPath], label: 'Settings', to: rpgSettingsPath },
-] as const;
+  {
+    activePaths: [rpgFocusPath],
+    icon: 'focus',
+    label: 'Focus',
+    to: rpgFocusPath,
+  },
+  {
+    activePaths: [rpgHeroPath],
+    icon: 'hero',
+    label: 'Hero',
+    to: rpgHeroPath,
+  },
+  {
+    activePaths: [rpgRoutePath],
+    icon: 'hub',
+    label: 'Hub',
+    to: rpgRoutePath,
+  },
+  {
+    activePaths: [rpgBadgesPath],
+    icon: 'awards',
+    label: 'Awards',
+    to: rpgBadgesPath,
+  },
+  {
+    activePaths: [rpgLogPath],
+    icon: 'insights',
+    label: 'Insights',
+    to: rpgLogPath,
+  },
+] as const satisfies readonly RpgNavItem[];
+
+function isNavItemActive(pathname: string, item: RpgNavItem) {
+  return item.activePaths.some((path) =>
+    path === rpgRoutePath
+      ? pathname === path
+      : pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+function RpgNavIcon({ name }: { name: RpgNavIconName }) {
+  const commonProps = {
+    'aria-hidden': true,
+    className: 'rpg-bottom-nav__icon',
+    fill: 'none',
+    viewBox: '0 0 24 24',
+  } as const;
+
+  if (name === 'map') {
+    return (
+      <svg {...commonProps}>
+        <path d="M3.5 5.5 8.8 3v15.5L3.5 21V5.5Z" />
+        <path d="m8.8 3 6.4 2.5V21l-6.4-2.5V3Z" />
+        <path d="m15.2 5.5 5.3-2.5v15.5L15.2 21V5.5Z" />
+      </svg>
+    );
+  }
+
+  if (name === 'focus') {
+    return (
+      <svg {...commonProps}>
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="4.2" />
+        <circle className="rpg-bottom-nav__icon-fill" cx="12" cy="12" r="1.6" />
+      </svg>
+    );
+  }
+
+  if (name === 'hero') {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 3.1 18.4 6v5.4c0 4.1-2.5 7.4-6.4 9.5-3.9-2.1-6.4-5.4-6.4-9.5V6L12 3.1Z" />
+        <path d="M9.1 11.2h5.8M10 8.2h4M10.1 14.2l1.9 2 1.9-2" />
+      </svg>
+    );
+  }
+
+  if (name === 'hub') {
+    return (
+      <svg {...commonProps}>
+        <path d="m5 15.8 5.3-6.1 2.3 2.7 2.1-4.2L19 15.8" />
+        <path d="M7.5 18h9" />
+      </svg>
+    );
+  }
+
+  if (name === 'awards') {
+    return (
+      <svg {...commonProps}>
+        <path d="M7 4.5h10v4.2c0 3-2.1 5.3-5 5.3s-5-2.3-5-5.3V4.5Z" />
+        <path d="M7 6H4.5v1.4c0 2.2 1.4 3.8 3.5 4.2M17 6h2.5v1.4c0 2.2-1.4 3.8-3.5 4.2M12 14v3.2M8.5 20h7M10 17.2h4" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...commonProps}>
+      <path d="M5 19V12M10 19V8M15 19V5M20 19V10" />
+      <path d="M3.5 19.5h18" />
+    </svg>
+  );
+}
 
 export function RpgBottomNav() {
   const location = useLocation();
@@ -36,25 +140,25 @@ export function RpgBottomNav() {
   return (
     <nav aria-label="RPG bottom navigation" className="rpg-bottom-nav">
       <div className="rpg-bottom-nav__list">
-        {rpgBottomNavItems.map((item) => {
-          const isActive = item.activePaths.some((path) =>
-            path === rpgRoutePath
-              ? location.pathname === path
-              : location.pathname === path ||
-                location.pathname.startsWith(`${path}/`),
-          );
+        {navItems.map((item) => {
+          const isActive = isNavItemActive(location.pathname, item);
+          const isHub = item.icon === 'hub';
 
           return (
             <Link
               aria-current={isActive ? 'page' : undefined}
               className={classNames(
                 'rpg-bottom-nav__link',
+                isHub && 'rpg-bottom-nav__link--hub',
                 isActive && 'rpg-bottom-nav__link--active',
               )}
               key={item.to}
               to={item.to}
             >
-              {item.label}
+              <span className="rpg-bottom-nav__icon-frame">
+                <RpgNavIcon name={item.icon} />
+              </span>
+              <span className="rpg-bottom-nav__label">{item.label}</span>
             </Link>
           );
         })}

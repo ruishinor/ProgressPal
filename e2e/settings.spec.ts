@@ -232,7 +232,7 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   expect(afterRestore).toEqual(beforeExport);
 
   // Restored profile and activity are visible across a reload.
-  await page.goto('/');
+  await page.goto('/profile');
   await expect(
     page.getByRole('heading', { name: 'Local profile for Alex' }),
   ).toBeVisible();
@@ -267,8 +267,10 @@ test('imports a backup from settings when onboarding is complete', async ({
     .getByRole('button', { name: 'Replace local data with this backup' })
     .click();
 
-  // A settings import lands on the restored dashboard as its confirmation.
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  // A settings import lands on the restored RPG Hub as its confirmation.
+  await expect(
+    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+  ).toBeVisible();
   expect(await readLedgerCounts(page)).toEqual(before);
 });
 

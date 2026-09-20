@@ -14,6 +14,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
+import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 export function AppShell() {
@@ -122,7 +123,7 @@ export function AppShell() {
   if (requiresOnboarding && location.pathname !== onboardingPath) {
     const returnTo =
       location.pathname === '/'
-        ? '/dashboard'
+        ? '/rpg'
         : `${location.pathname}${location.search}${location.hash}`;
 
     return <Navigate replace state={{ returnTo }} to={onboardingPath} />;
@@ -174,6 +175,18 @@ export function AppShell() {
           value: coordination.canWrite ? 'Available' : 'Read-only',
         },
       ]}
+      utilityNavigationItems={
+        requiresOnboarding
+          ? undefined
+          : [
+              {
+                end: true,
+                id: 'return-to-rpg',
+                label: 'Return to RPG',
+                to: rpgRoutePath,
+              },
+            ]
+      }
       summary={
         requiresOnboarding
           ? 'Create the local learner profile before opening the rest of the app. Nothing is synced or sent anywhere.'

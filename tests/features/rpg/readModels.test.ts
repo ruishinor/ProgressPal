@@ -1,7 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  buildRpgHubSummary,
   buildRpgHeroProfileSummary,
+  buildRpgCourseMapSummary,
   loadRpgBadgeGallerySummary,
   loadRpgCourseMapSummary,
   loadRpgFocusSessionSummary,
@@ -16,9 +18,12 @@ import {
   addXpTransaction,
   getDatabaseSnapshot,
   initializeDatabase,
+  logMediaProgress,
   upsertProgress,
   upsertProgressAndAwardXp,
+  type DatabaseSnapshot,
 } from '@/lib/db';
+import type { CourseItem, ProgressStatus } from '@/lib/domain';
 import { achievementDefinitions } from '@/lib/achievements';
 import { bundledCourseSeed } from '@/seed';
 import {
@@ -31,6 +36,7 @@ describe('RPG read models', () => {
   let testDatabase: TestDatabaseContext | null = null;
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await testDatabase?.cleanup();
     testDatabase = null;
   });
@@ -124,6 +130,386 @@ describe('RPG read models', () => {
     return result;
   }
 
+  async function createRecommendationSnapshot(
+    statusForItem: (item: CourseItem) => ProgressStatus | null = () => null,
+  ): Promise<DatabaseSnapshot> {
+    const db = await createSeededRpgDatabase();
+    const snapshot = await getDatabaseSnapshot({ db });
+    const timestamp = '2026-09-16T08:00:00.000Z';
+
+    return {
+      ...snapshot,
+      progressEntries: snapshot.courseItems.flatMap((item) => {
+        const status = statusForItem(item);
+
+        return status === null
+          ? []
+          : [
+              {
+                id: `recommendation-${item.id}`,
+                itemId: item.id,
+                confidence: 3,
+                status,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+              },
+            ];
+      }),
+    };
+  }
+
+  it('keeps all-blocked required work inspectable without claiming completion or changing data', async () => {
+    const snapshot = await createRecommendationSnapshot((item) =>
+      item.required ? 'blocked' : null,
+    );
+    const before = structuredClone(snapshot);
+    const hub = buildRpgHubSummary(snapshot);
+    const firstRequiredItem = bundledCourseSeed.units
+      .flatMap((unit) => unit.items)
+      .find((item) => item.required);
+
+    expect(hub.courseProgress).toEqual({
+      completedRequiredItemCount: 0,
+      completionPercent: 0,
+      requiredItemCount: snapshot.courseItems.filter((item) => item.required)
+        .length,
+    });
+    expect(hub.recommendation).toMatchObject({
+      state: 'needs_attention',
+      quest: { id: firstRequiredItem?.id, status: 'blocked' },
+      remainingRequiredCount: hub.courseProgress.requiredItemCount,
+    });
+    expect(hub.currentModule?.id).toBe(hub.recommendation.quest?.unitId);
+    expect(buildRpgCourseMapSummary(snapshot).currentModule).toEqual(
+      hub.currentModule,
+    );
+    expect(snapshot).toEqual(before);
+  });
+
+  it('routes to the final blocked gradebook check while required progress remains incomplete', async () => {
+    const blockedItemId = 'final-project-gradebook-check';
+    const snapshot = await createRecommendationSnapshot((item) =>
+      !item.required
+        ? null
+        : item.id === blockedItemId
+          ? 'blocked'
+          : 'completed',
+    );
+    const requiredCount = snapshot.courseItems.filter(
+      (item) => item.required,
+    ).length;
+    const hub = buildRpgHubSummary(snapshot);
+
+    expect(hub.courseProgress).toEqual({
+      completedRequiredItemCount: requiredCount - 1,
+      completionPercent:
+        Math.round(((requiredCount - 1) / requiredCount) * 1000) / 10,
+      requiredItemCount: requiredCount,
+    });
+    expect(hub.recommendation).toMatchObject({
+      state: 'needs_attention',
+      quest: {
+        id: blockedItemId,
+        title: 'Confirm completion in the gradebook',
+        status: 'blocked',
+      },
+      remainingRequiredCount: 1,
+    });
+    expect(hub.currentModule?.id).toBe('final-project');
+  });
+
+  it('retains blocked lecture progress without preferring it over actionable work', async () => {
+    const snapshot = await createRecommendationSnapshot((item) =>
+      item.required ? 'blocked' : null,
+    );
+
+    if (testDatabase === null) {
+      throw new Error('Test database was not created.');
+    }
+
+    await logMediaProgress(
+      {
+        assetId: 'week-0-lecture-asset',
+        endSecond: 1200,
+        energyAfter: 3,
+        energyBefore: 4,
+        startSecond: 0,
+        stoppedBecause: 'confusion',
+      },
+      { db: testDatabase.db, now: createClock('2026-09-16T08:00:00.000Z') },
+    );
+    const loggedSnapshot = await getDatabaseSnapshot({ db: testDatabase.db });
+    const blockedSnapshot = {
+      ...snapshot,
+      mediaProgressEvents: loggedSnapshot.mediaProgressEvents,
+      resumePoints: loggedSnapshot.resumePoints,
+    };
+    const blocked = buildRpgHubSummary(blockedSnapshot);
+
+    expect(blocked.recommendation).toMatchObject({
+      state: 'needs_attention',
+      quest: {
+        id: 'week-0-lecture',
+        status: 'blocked',
+        longFormProgress: { hasProgress: true },
+      },
+    });
+    const actionable = buildRpgHubSummary({
+      ...blockedSnapshot,
+      progressEntries: blockedSnapshot.progressEntries.filter(
+        (entry) => entry.itemId !== 'week-0-problem-set',
+      ),
+    });
+
+    expect(actionable.recommendation).toMatchObject({
+      state: 'actionable',
+      quest: { id: 'week-0-problem-set', status: 'not_started' },
+    });
+    expect(
+      buildRpgCourseMapSummary(blockedSnapshot)
+        .modules.flatMap((module) => module.quests)
+        .find((quest) => quest.id === 'week-0-lecture')?.longFormProgress,
+    ).toEqual(blocked.recommendation.quest?.longFormProgress);
+  });
+
+  it('uses established course order and prioritizes actionable started work', async () => {
+    const snapshot = await createRecommendationSnapshot((item) =>
+      ['week-2-lecture', 'week-4-lecture'].includes(item.id) ? 'started' : null,
+    );
+    const reversedSnapshot = {
+      ...snapshot,
+      courseUnits: [...snapshot.courseUnits].reverse(),
+      courseItems: [...snapshot.courseItems].reverse(),
+      progressEntries: [...snapshot.progressEntries].reverse(),
+    };
+
+    expect(buildRpgHubSummary(reversedSnapshot).recommendation).toMatchObject({
+      state: 'actionable',
+      quest: { id: 'week-2-lecture', status: 'started' },
+    });
+    expect(
+      buildRpgHubSummary({ ...reversedSnapshot, progressEntries: [] })
+        .recommendation,
+    ).toMatchObject({
+      state: 'actionable',
+      quest: { id: 'week-0-lecture', status: 'not_started' },
+    });
+  });
+
+  it('recognizes the authoritative complete statuses with no required or optional work remaining', async () => {
+    const completeStatuses: ProgressStatus[] = [
+      'completed',
+      'submitted',
+      'accepted',
+    ];
+    let completedItemIndex = 0;
+    const snapshot = await createRecommendationSnapshot((item) =>
+      item.required
+        ? completeStatuses[completedItemIndex++ % completeStatuses.length]
+        : 'skipped_optional',
+    );
+    const hub = buildRpgHubSummary(snapshot);
+
+    expect(hub.recommendation).toEqual({
+      state: 'required_complete',
+      quest: null,
+      remainingRequiredCount: 0,
+      optionalRemainingCount: 0,
+    });
+    expect(hub.courseProgress.completedRequiredItemCount).toBe(
+      snapshot.courseItems.filter((item) => item.required).length,
+    );
+    expect(hub.courseProgress.completionPercent).toBe(100);
+    expect(hub.currentModule).toBeNull();
+  });
+
+  it('keeps optional-only remainder visible without preventing required completion', async () => {
+    const snapshot = await createRecommendationSnapshot((item) =>
+      item.required ? 'completed' : null,
+    );
+    const hub = buildRpgHubSummary(snapshot);
+
+    expect(hub.recommendation).toEqual({
+      state: 'required_complete',
+      quest: null,
+      remainingRequiredCount: 0,
+      optionalRemainingCount: snapshot.courseItems.filter(
+        (item) => !item.required,
+      ).length,
+    });
+    expect(hub.courseProgress.completionPercent).toBe(100);
+  });
+
+  it('counts started and blocked optional work but excludes completed and deliberately skipped optional work', async () => {
+    const optionalStatuses: (ProgressStatus | null)[] = [
+      null,
+      'started',
+      'blocked',
+      'completed',
+      'submitted',
+      'accepted',
+      'skipped_optional',
+    ];
+    let optionalIndex = 0;
+    const snapshot = await createRecommendationSnapshot((item) => {
+      if (item.required) {
+        return 'completed';
+      }
+
+      const status = optionalStatuses[optionalIndex];
+      optionalIndex += 1;
+
+      return status === undefined ? 'skipped_optional' : status;
+    });
+
+    expect(optionalIndex).toBeGreaterThanOrEqual(optionalStatuses.length);
+    expect(buildRpgHubSummary(snapshot).recommendation).toMatchObject({
+      state: 'required_complete',
+      optionalRemainingCount: 3,
+    });
+  });
+
+  it.each([
+    'empty',
+    'no-items',
+    'no-units',
+    'empty-required-unit',
+    'orphan-item',
+  ] as const)(
+    'marks %s course data unavailable instead of treating it as required completion',
+    async (scenario) => {
+      const snapshot = await createRecommendationSnapshot(() => 'completed');
+      const unavailableSnapshot = {
+        ...snapshot,
+        courseItems:
+          scenario === 'empty' || scenario === 'no-items'
+            ? []
+            : scenario === 'empty-required-unit'
+              ? snapshot.courseItems.filter((item) => item.unitId !== 'week-0')
+              : snapshot.courseItems,
+        courseUnits:
+          scenario === 'empty' || scenario === 'no-units'
+            ? []
+            : scenario === 'orphan-item'
+              ? snapshot.courseUnits.filter((unit) => unit.id !== 'week-0')
+              : snapshot.courseUnits,
+      };
+      const hub = buildRpgHubSummary(unavailableSnapshot);
+
+      expect(hub.recommendation).toEqual({ state: 'unavailable', quest: null });
+      expect(hub.currentModule).toBeNull();
+    },
+  );
+
+  it('propagates a failed catalog read so consumers cannot confuse it with completion', async () => {
+    const db = await createSeededRpgDatabase();
+    const before = await getDatabaseSnapshot({ db });
+    const readFailure = new Error('Synthetic catalog read failure');
+    vi.spyOn(db.courseUnits, 'toArray').mockRejectedValueOnce(readFailure);
+
+    await expect(loadRpgHubSummary({ db })).rejects.toBe(readFailure);
+    expect(await getDatabaseSnapshot({ db })).toEqual(before);
+  });
+
+  it('previews unearned task XP consistently without writing or re-offering earned rewards', async () => {
+    const db = await createSeededRpgDatabase();
+    const resource = await expectReadOnly(() =>
+      loadRpgStudyResourceSummary('week-4-lecture', { db }),
+    );
+    expect(resource?.rewardLabel).toBe('Up to 40 XP remaining for this task');
+    expect(
+      (await loadRpgHubSummary({ db })).recommendation.quest?.rewardLabel,
+    ).toBe('Up to +40 XP');
+    expect(
+      (await loadRpgModuleSummary('week-4', { db }))?.quests.find(
+        (quest) => quest.id === 'week-4-lecture',
+      )?.rewardLabel,
+    ).toBe('Up to +40 XP');
+    await upsertProgressAndAwardXp(
+      { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
+      { db },
+    );
+    // Moving progress backwards never makes the once-only award available again.
+    await upsertProgress(
+      { itemId: 'week-4-lecture', status: 'started', confidence: 3 },
+      { db },
+    );
+    expect(
+      (
+        await expectReadOnly(() =>
+          loadRpgStudyResourceSummary('week-4-lecture', { db }),
+        )
+      )?.rewardLabel,
+    ).toBe('Task XP earned');
+  });
+
+  it('shows the remaining problem-set milestones and a separate once-only week bonus', async () => {
+    const db = await createSeededRpgDatabase();
+    const itemId = 'week-0-problem-set';
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe(
+      'Up to 220 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
+    );
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'started', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe(
+      'Up to 200 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
+    );
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'submitted', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+    ).toBe('Up to 125 XP remaining for this task');
+    await upsertProgressAndAwardXp(
+      { itemId, status: 'accepted', confidence: 3 },
+      { db },
+    );
+    expect(
+      (await expectReadOnly(() => loadRpgStudyResourceSummary(itemId, { db })))
+        ?.rewardLabel,
+    ).toBe('Task XP earned');
+  });
+
+  it('labels the shared final-project reward condition and removes it from both tasks once earned', async () => {
+    const db = await createSeededRpgDatabase();
+    const itemIds = ['final-project-readme', 'final-project-video-demo'];
+    for (const itemId of itemIds) {
+      expect(
+        (
+          await expectReadOnly(() =>
+            loadRpgStudyResourceSummary(itemId, { db }),
+          )
+        )?.rewardLabel,
+      ).toBe(
+        'Up to 200 XP remaining for this task (shared with README + demo)',
+      );
+      await upsertProgressAndAwardXp(
+        { itemId, status: 'completed', confidence: 3 },
+        { db },
+      );
+    }
+    for (const itemId of itemIds) {
+      expect(
+        (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+      ).toBe('Task XP earned');
+    }
+    expect(
+      (await loadRpgStudyResourceSummary('final-project-build', { db }))
+        ?.rewardLabel,
+    ).toBe('Up to 250 XP remaining for this task');
+    expect(
+      (await loadRpgStudyResourceSummary('final-project-submit50', { db }))
+        ?.rewardLabel,
+    ).toBe('No task XP');
+  });
+
   it('loads a hub summary from real progress, sessions, XP, and course data without mutation', async () => {
     const db = await createSeededRpgDatabase();
 
@@ -168,7 +554,8 @@ describe('RPG read models', () => {
       'Saved progress - Lecture 0: Scratch (completed)',
     ]);
     expect(hub.courseProgress.requiredItemCount).toBeGreaterThan(0);
-    expect(hub.continueQuest).toMatchObject({
+    expect(hub.recommendation.state).toBe('actionable');
+    expect(hub.recommendation.quest).toMatchObject({
       id: 'week-4-lecture',
       status: 'started',
       title: 'Lecture 4: Memory',

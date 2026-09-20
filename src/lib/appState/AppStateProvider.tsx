@@ -15,6 +15,7 @@ import {
   saveLearnerProfile,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
+import { getSharedDatabase } from '@/lib/db/database';
 import {
   AppStateContext,
   type AppStateStatus,
@@ -139,6 +140,17 @@ function describeBlockedStartup(error: LocalWriteBlockedError) {
 
 async function readApplicationStateAtRevision() {
   const revisionToken = captureLocalDataRevision();
+  // A read must not create an absent database: a new writer can be stale even
+  // before the first database exists. Prove absence without opening/upgrading it.
+  if (
+    !getSharedDatabase().isOpen() &&
+    typeof indexedDB.databases === 'function' &&
+    !(await indexedDB.databases()).some(
+      (database) => database.name === getSharedDatabase().name,
+    )
+  ) {
+    return { appMeta: null, profile: null, revisionToken };
+  }
   const [appMeta, profile] = await Promise.all([getAppMeta(), getProfile()]);
 
   return { appMeta, profile, revisionToken };
@@ -478,6 +490,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
+    let sessionActive = true;
     const loadingCommitResolvers = loadingCommitResolversRef.current;
     providerActiveRef.current = true;
     const coordinationSession = startLocalDataCoordination((nextStatus) => {
@@ -517,10 +530,13 @@ export function AppStateProvider({ children }: PropsWithChildren) {
       try {
         await coordinationSession.ready;
 
-        if (providerActiveRef.current) {
+        if (sessionActive && providerActiveRef.current) {
           await requestRefresh();
         }
       } catch {
+        if (!sessionActive) {
+          return;
+        }
         publishErrorState({
           appMeta: null,
           error:
@@ -533,6 +549,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     })();
 
     return () => {
+      sessionActive = false;
       providerActiveRef.current = false;
       const loadingResolvers = loadingCommitResolvers.splice(0);
       for (const resolve of loadingResolvers) {

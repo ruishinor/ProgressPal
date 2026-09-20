@@ -45,6 +45,7 @@ export type RpgHubWeeklyProgress = {
 };
 
 export type RpgQuestSummary = {
+  rewardLabel: string;
   estimatedMinutes: number;
   id: string;
   longFormProgress: CourseLongFormProgress | null;
@@ -75,8 +76,26 @@ export type RpgModuleSummary = {
   typeLabel: string;
 };
 
+export type RpgQuestRecommendation =
+  | {
+      state: 'actionable' | 'needs_attention';
+      quest: RpgQuestSummary;
+      remainingRequiredCount: number;
+      optionalRemainingCount: number;
+    }
+  | {
+      state: 'required_complete';
+      quest: null;
+      remainingRequiredCount: 0;
+      optionalRemainingCount: number;
+    }
+  | {
+      state: 'unavailable';
+      quest: null;
+    };
+
 export type RpgHubSummary = {
-  continueQuest: RpgQuestSummary | null;
+  recommendation: RpgQuestRecommendation;
   courseProgress: RpgCourseProgressSummary;
   currentModule: RpgModuleSummary | null;
   identity: RpgHubIdentity;
@@ -90,6 +109,9 @@ export type RpgHubSummary = {
   weeklyProgress: RpgHubWeeklyProgress;
   weekFour: RpgModuleSummary | null;
   xpSummary: {
+    currentLevelXp: number;
+    currentLevelTargetXp: number;
+    levelProgressLabel: string;
     level: number;
     levelProgressPercent: number;
     totalXp: number;
@@ -147,6 +169,9 @@ export type RpgHeroProfileSummary = {
     totalMinutes: number;
   };
   xpSummary: {
+    currentLevelXp: number;
+    currentLevelTargetXp: number;
+    levelProgressLabel: string;
     level: number;
     levelProgressPercent: number;
     totalXp: number;
@@ -155,6 +180,7 @@ export type RpgHeroProfileSummary = {
 };
 
 export type RpgStudyResourceSummary = {
+  rewardLabel: string;
   estimatedMinutesLabel: string;
   itemId: string;
   itemType: CourseItemType;

@@ -14,6 +14,7 @@ describe('routeDefinitions', () => {
   it('keeps the baseline routes in a single source of truth', () => {
     expect(knownRoutePaths).toEqual([
       '/',
+      '/profile',
       '/onboarding',
       '/dashboard',
       '/course',
@@ -33,7 +34,7 @@ describe('routeDefinitions', () => {
       '/settings',
     ]);
     expect(primaryNavigationItems.map((item) => item.to)).toEqual([
-      '/',
+      '/profile',
       '/dashboard',
       '/course',
       '/sessions',

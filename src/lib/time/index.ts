@@ -1,3 +1,22 @@
+export function formatLocalDate(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/** Device-local Monday at midnight for an absolute timestamp. */
+export function getLocalWeekStart(isoTimestamp: string) {
+  const date = new Date(isoTimestamp);
+  const mondayOffset = (date.getDay() + 6) % 7;
+
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() - mondayOffset,
+  );
+}
+
 export function formatTimestampInput(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
   const hours = Math.floor(safeSeconds / 3600);

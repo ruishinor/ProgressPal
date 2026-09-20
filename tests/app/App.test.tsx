@@ -1,13 +1,17 @@
+import { getLevelProgressDisplay } from '@/features/rpg/model/presentation';
+import { calculateXpSummary } from '@/lib/xp/engine';
 import {
   act,
   cleanup,
   fireEvent,
+  render,
   screen,
   waitFor,
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Dexie from 'dexie';
+import { StrictMode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildBackupEnvelope } from '@/lib/backup';
@@ -27,6 +31,7 @@ import {
 import { getSharedDatabase } from '@/lib/db/database';
 import { achievementDefinitions } from '@/lib/achievements';
 import { router } from '@/app/router/router';
+import { App } from '@/app/App';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
   getLocalCoordinationStatus,
@@ -80,6 +85,40 @@ async function holdPeerTabLocks() {
 }
 
 describe('App', () => {
+  it.each(['fresh', 'existing'])(
+    'finishes %s startup after the StrictMode coordination restart',
+    async (storage) => {
+      if (storage === 'existing') {
+        await initializeDatabase({ seed: bundledCourseSeed });
+        getSharedDatabase().close();
+      }
+      await router.navigate('/');
+      render(
+        <StrictMode>
+          <App />
+        </StrictMode>,
+      );
+
+      expect(
+        await screen.findByRole('heading', {
+          name: 'Start tracking CS50 locally',
+        }),
+      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(getLocalCoordinationStatus().canWrite).toBe(true);
+      });
+      await userEvent
+        .setup()
+        .click(screen.getByRole('button', { name: 'Use default learner' }));
+      expect(
+        await screen.findByRole('heading', { name: 'RPG Hub' }),
+      ).toBeInTheDocument();
+      expect((await getDatabaseSnapshot()).learnerProfile?.displayName).toBe(
+        'Learner',
+      );
+    },
+  );
+
   it('redirects a fresh run to onboarding', async () => {
     await renderAppAtRoute('/');
 
@@ -124,7 +163,7 @@ describe('App', () => {
     );
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
 
     const snapshot = await getDatabaseSnapshot();
@@ -155,7 +194,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Save and continue' }));
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
 
     const snapshot = await getDatabaseSnapshot();
@@ -594,7 +633,7 @@ describe('App', () => {
       await renderAppAtRoute('/');
 
       expect(
-        await screen.findByRole('heading', { name: 'Local startup failed' }),
+        await screen.findByRole('heading', { name: 'RPG startup failed' }),
       ).toBeInTheDocument();
       expect(
         screen.getByText(
@@ -612,43 +651,48 @@ describe('App', () => {
     }
   });
 
-  it('returns an imported onboarded learner to the requested deep link', async () => {
-    const user = userEvent.setup();
-    await initializeDatabase({ seed: bundledCourseSeed });
-    await saveLearnerProfile(
-      {
-        ...defaultLearnerProfileValues,
-        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
-      },
-      { completeOnboarding: true },
-    );
+  it.each(['/rpg/focus?itemId=week-4-lecture#imported-session', '/'])(
+    'returns an imported onboarded learner to %s or the RPG default',
+    async (destination) => {
+      const user = userEvent.setup();
+      await initializeDatabase({ seed: bundledCourseSeed });
+      await saveLearnerProfile(
+        {
+          ...defaultLearnerProfileValues,
+          targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+        },
+        { completeOnboarding: true },
+      );
 
-    const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
-      appVersion: '1.2.0',
-      exportedAt: '2026-07-12T10:00:00.000Z',
-      schemaVersion: 2,
-    });
+      const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
+        appVersion: '1.2.0',
+        exportedAt: '2026-07-12T10:00:00.000Z',
+        schemaVersion: 2,
+      });
 
-    await resetAllData({ seed: bundledCourseSeed });
-    await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#imported-session');
+      await resetAllData({ seed: bundledCourseSeed });
+      await renderAppAtRoute(destination);
 
-    await user.upload(
-      await screen.findByLabelText('Backup file'),
-      new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
-        type: 'application/json',
-      }),
-    );
-    await user.click(
-      await screen.findByRole('button', { name: 'Restore this backup' }),
-    );
+      await user.upload(
+        await screen.findByLabelText('Backup file'),
+        new File([JSON.stringify(envelope)], 'progresspal-backup.json', {
+          type: 'application/json',
+        }),
+      );
+      await user.click(
+        await screen.findByRole('button', { name: 'Restore this backup' }),
+      );
 
-    expect(
-      await screen.findByRole('heading', { name: 'Focus' }),
-    ).toBeInTheDocument();
-    expect(
-      `${window.location.pathname}${window.location.search}${window.location.hash}`,
-    ).toBe('/rpg/focus?itemId=week-4-lecture#imported-session');
-  });
+      expect(
+        await screen.findByRole('heading', {
+          name: destination === '/' ? 'RPG Hub' : 'Focus',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      ).toBe(destination === '/' ? '/rpg' : destination);
+    },
+  );
 
   it('does not render forbidden learner-facing terms during onboarding', async () => {
     const user = userEvent.setup();
@@ -696,8 +740,24 @@ describe('App', () => {
     await user.keyboard('{Enter}');
 
     expect(
-      await screen.findByRole('heading', { name: 'Dashboard' }),
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
+  });
+
+  it('opens the RPG default for an onboarded learner at root', async () => {
+    await initializeDatabase({ seed: bundledCourseSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    await renderAppAtRoute('/');
+    expect(
+      await screen.findByRole('heading', { name: 'RPG Hub' }),
+    ).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/rpg');
   });
 
   it('renders the saved profile route after onboarding is complete', async () => {
@@ -718,7 +778,7 @@ describe('App', () => {
       { completeOnboarding: true },
     );
 
-    await renderAppAtRoute('/');
+    await renderAppAtRoute('/profile');
 
     expect(
       await screen.findByRole('heading', { name: 'Local profile for Alex' }),
@@ -2233,10 +2293,6 @@ describe('RPG routes', () => {
     );
   }
 
-  function escapeRegExp(value: string) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
-
   function expectHref(element: HTMLElement, href: string) {
     expect(element).toHaveAttribute('href', href);
     return href;
@@ -2279,9 +2335,9 @@ describe('RPG routes', () => {
     }
 
     if (route === '/rpg/hero') {
-      await screen.findByText(
-        'Read-only profile derived from local ProgressPal records.',
-      );
+      await screen.findByRole('region', {
+        name: 'Learner identity and progression',
+      });
       return;
     }
 
@@ -2306,13 +2362,12 @@ describe('RPG routes', () => {
       name: 'RPG bottom navigation',
     });
     const expectedItems = [
-      ['Hub', '/rpg'],
       ['Map', '/rpg/map'],
       ['Focus', '/rpg/focus'],
       ['Hero', '/rpg/hero'],
+      ['Hub', '/rpg'],
       ['Awards', '/rpg/badges'],
       ['Insights', '/rpg/log'],
-      ['Settings', '/rpg/settings'],
     ];
 
     for (const [label, href] of expectedItems) {
@@ -2322,8 +2377,21 @@ describe('RPG routes', () => {
     }
 
     expect(
-      within(bottomNav).getByRole('link', { name: activeLabel }),
-    ).toHaveAttribute('aria-current', 'page');
+      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(bottomNav).queryByRole('button', { name: 'More' }),
+    ).not.toBeInTheDocument();
+
+    if (activeLabel === 'Settings') {
+      expect(
+        screen.getByRole('link', { name: 'Open Settings' }),
+      ).toHaveAttribute('aria-current', 'page');
+    } else {
+      expect(
+        within(bottomNav).getByRole('link', { name: activeLabel }),
+      ).toHaveAttribute('aria-current', 'page');
+    }
   }
 
   function expectClassicShellAbsent() {
@@ -2340,35 +2408,60 @@ describe('RPG routes', () => {
 
   async function expectPersistentHeroHud({
     currentQuestHref,
+    composition = 'full',
   }: {
     currentQuestHref: string;
+    composition?: 'full' | 'overview' | 'profile';
   }) {
+    const regionName =
+      composition === 'profile'
+        ? 'Learner identity and progression'
+        : 'Persistent hero HUD';
     await waitFor(() => {
       expect(
-        within(
-          screen.getByRole('region', { name: 'Persistent hero HUD' }),
-        ).getByText('Alex'),
+        within(screen.getByRole('region', { name: regionName })).getByText(
+          'Alex',
+        ),
       ).toBeInTheDocument();
     });
 
     const heroHud = screen.getByRole('region', {
-      name: 'Persistent hero HUD',
+      name: regionName,
     });
 
-    expect(within(heroHud).getByText('Hero HUD')).toBeInTheDocument();
+    if (composition === 'full') {
+      expect(within(heroHud).getByText('Current quest')).toBeInTheDocument();
+    } else {
+      expect(
+        within(heroHud).queryByText('Current quest'),
+      ).not.toBeInTheDocument();
+    }
     expect(
       within(heroHud).getByRole('img', { name: 'Alex hero avatar' }),
     ).toHaveAttribute('data-avatar-source', 'configured');
     expect(within(heroHud).getByText('Level')).toBeInTheDocument();
+    expect(within(heroHud).getByText('New Learner')).toBeInTheDocument();
+    for (const label of [
+      'Guild',
+      'Code Knights',
+      'Class',
+      'Generalist',
+      'Path',
+      'CS Foundations',
+    ]) {
+      expect(within(heroHud).getByText(label)).toBeInTheDocument();
+    }
     expect(
       within(heroHud).getByRole('progressbar', {
         name: /XP progress to level/i,
       }),
     ).toBeInTheDocument();
     expect(within(heroHud).queryByText(/Route:/i)).not.toBeInTheDocument();
-    expect(
-      within(heroHud).getByRole('link', { name: 'Continue quest' }),
-    ).toHaveAttribute('href', currentQuestHref);
+    if (composition === 'full') {
+      expect(
+        within(heroHud).getByRole('link', { name: /^(Start|Continue) quest$/ }),
+      ).toHaveAttribute('href', currentQuestHref);
+    }
   }
 
   it('renders the RPG hub shell', async () => {
@@ -2388,7 +2481,11 @@ describe('RPG routes', () => {
     expectClassicShellAbsent();
     await expectPersistentHeroHud({
       currentQuestHref: '/rpg/resource/week-0-lecture',
+      composition: 'overview',
     });
+    expect(screen.getAllByRole('link', { name: 'Start quest' })).toHaveLength(
+      1,
+    );
   });
 
   it('renders the RPG quest hub from real local data', async () => {
@@ -2396,24 +2493,42 @@ describe('RPG routes', () => {
 
     await renderAppAtRoute('/rpg');
 
-    const continueLink = await screen.findByRole('link', {
-      name: 'Continue current quest',
+    const questHeading = await screen.findByRole('heading', {
+      name: 'Current quest',
+    });
+    const questPanel = questHeading.closest('section');
+
+    if (questPanel === null) {
+      throw new Error('Current quest panel was not rendered.');
+    }
+
+    const continueLink = within(questPanel).getByRole('link', {
+      name: 'Continue quest',
     });
 
     expect(continueLink).toHaveAttribute(
       'href',
       '/rpg/resource/week-4-lecture',
     );
-    expect(screen.getByText("Alex's status")).toBeInTheDocument();
-    expect(screen.getByText('Rank:')).toBeInTheDocument();
-    expect(screen.getByText('Initiate')).toBeInTheDocument();
-    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
-    expect(screen.getByText('Generalist')).toBeInTheDocument();
-    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
-    expect(screen.getByText('Week 4: Memory')).toBeInTheDocument();
-    expect(screen.getByText('Lecture 4: Memory')).toBeInTheDocument();
-    expect(screen.getByText("This week's local progress")).toBeInTheDocument();
-    expect(screen.getByText('Recent saved activity')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Current quest' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Alex's status")).not.toBeInTheDocument();
+    expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
+    expect(
+      within(questPanel).getByRole('heading', { name: 'Lecture 4: Memory' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('30 min')).toBeInTheDocument();
+    expect(screen.getAllByText('In progress').length).toBeGreaterThan(0);
+    expect(screen.getByText('Progress snapshot')).toBeInTheDocument();
+
+    const recentActivitySummary = screen.getByText('Recent saved activity');
+    const recentActivityDisclosure = recentActivitySummary.closest('details');
+
+    expect(recentActivityDisclosure).not.toBeNull();
+    expect(recentActivityDisclosure).not.toHaveAttribute('open');
+    fireEvent.click(recentActivitySummary);
+    expect(recentActivityDisclosure).toHaveAttribute('open');
     expect(
       screen.getByText(/Saved study session - Lecture 4: Memory/),
     ).toBeInTheDocument();
@@ -2443,15 +2558,26 @@ describe('RPG routes', () => {
     await renderAppAtRoute('/rpg');
 
     expect(
-      await screen.findByRole('heading', { name: 'No saved RPG activity yet' }),
+      await screen.findByRole('heading', { name: 'Start with this quest' }),
+    ).toBeInTheDocument();
+    const questPanel = screen
+      .getByRole('heading', { name: 'Start with this quest' })
+      .closest('section');
+
+    if (questPanel === null) {
+      throw new Error('Recommended quest panel was not rendered.');
+    }
+
+    expect(screen.getByText('Recommended first quest')).toBeInTheDocument();
+    expect(
+      within(questPanel).getByRole('heading', { name: 'Lecture 0: Scratch' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'No recent saved activity yet. Saved progress, study sessions, and XP events will appear here after you record them locally.',
-      ),
-    ).toBeInTheDocument();
+      screen.queryByText('No saved RPG activity yet'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Recent saved activity')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Continue current quest' }),
+      within(questPanel).getByRole('link', { name: 'Start quest' }),
     ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
   });
 
@@ -2467,8 +2593,8 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
     expect(weekFourModule).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Plain module list' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('heading', { name: 'Plain module list' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText(`${bundledCourseSeed.units.length} modules`),
     ).toBeInTheDocument();
@@ -2477,12 +2603,7 @@ describe('RPG routes', () => {
       const module = screen.getByTestId(`rpg-module-${unit.id}`);
 
       expect(within(module).getByText(unit.title)).toBeInTheDocument();
-      expect(
-        within(module).getByRole('link', {
-          name: new RegExp(`^Open ${escapeRegExp(unit.title)},`),
-        }),
-      ).toHaveAttribute('href', `/rpg/week/${unit.id}`);
-      expect(screen.getByRole('link', { name: unit.title })).toHaveAttribute(
+      expect(within(module).getByRole('link')).toHaveAttribute(
         'href',
         `/rpg/week/${unit.id}`,
       );
@@ -2498,35 +2619,48 @@ describe('RPG routes', () => {
 
     await screen.findByTestId('rpg-module-week-4');
 
-    expect(
-      screen.getByText('Current module: Week 4: Memory'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Continue: Week 4: Memory')).toBeInTheDocument();
 
     const weekZeroModule = screen.getByTestId('rpg-module-week-0');
     expect(within(weekZeroModule).getByText('Completed')).toBeInTheDocument();
     expect(within(weekZeroModule).getByText('100%')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Status: Completed. Availability: Available. Progress: 2 of 2 required complete (100%).',
-      ),
-    ).toBeInTheDocument();
 
     const weekFourModule = screen.getByTestId('rpg-module-week-4');
     expect(
       within(weekFourModule).getByText('Current module'),
     ).toBeInTheDocument();
     expect(within(weekFourModule).getByText('In progress')).toBeInTheDocument();
+    const continueLink = within(weekFourModule).getByRole('link', {
+      name: 'Continue learning',
+    });
+    expect(continueLink).toHaveAttribute('aria-current', 'step');
+    const currentQuestList = within(weekFourModule).getByRole('list', {
+      name: 'Week 4: Memory quest status',
+    });
     expect(
-      screen.getByText(
-        'Status: In progress. Availability: Available. Progress: 0 of 2 required complete (0%).',
-      ),
+      within(currentQuestList).getByText('Lecture 4: Memory'),
     ).toBeInTheDocument();
+    expect(
+      within(currentQuestList).getByText('Problem Set 4: Memory'),
+    ).toBeInTheDocument();
+    expect(continueLink).toHaveAttribute('href', '/rpg/week/week-4');
 
     const weekOneModule = screen.getByTestId('rpg-module-week-1');
     expect(
       within(weekOneModule).getByText('Available - 4 quests - 11h'),
     ).toBeInTheDocument();
     expect(within(weekOneModule).getByText('Not started')).toBeInTheDocument();
+
+    const optionalModule = screen.getByTestId(
+      'rpg-module-artificial-intelligence',
+    );
+    const optionalLink = within(optionalModule).getByRole('link');
+
+    expect(within(optionalModule).getByText('Optional')).toBeInTheDocument();
+    expect(within(optionalModule).queryByText('100%')).not.toBeInTheDocument();
+    expect(optionalLink).toHaveAccessibleName(
+      /optional unit with no required tasks/i,
+    );
   });
 
   it('keeps the RPG campaign map semantic and free of fake future course support', async () => {
@@ -2598,10 +2732,14 @@ describe('RPG routes', () => {
         expect(within(row).getAllByText('Optional').length).toBeGreaterThan(0);
       }
       expect(
-        within(row).getByRole('link', { name: resourceLinkName }),
+        within(row).getByRole('link', {
+          name: `${resourceLinkName}: ${item.title}`,
+        }),
       ).toHaveAttribute('href', `/rpg/resource/${item.id}`);
       expect(
-        within(row).getByRole('link', { name: 'Start focus session' }),
+        within(row).getByRole('link', {
+          name: `Start focus session: ${item.title}`,
+        }),
       ).toHaveAttribute('href', `/rpg/focus?itemId=${item.id}`);
     }
 
@@ -2644,7 +2782,6 @@ describe('RPG routes', () => {
         await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
       ).toBeInTheDocument();
       expect(screen.getAllByText('Week 4: Memory').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Lecture').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Started').length).toBeGreaterThan(0);
       expect(
         screen.getByRole('link', { name: 'Back to week' }),
@@ -2656,6 +2793,21 @@ describe('RPG routes', () => {
       const officialLink = screen.getByRole('link', {
         name: 'Open official CS50x resource',
       });
+      const resourceHeader = screen
+        .getByRole('heading', { name: 'Lecture 4: Memory' })
+        .closest<HTMLElement>('.rpg-study-resource__header');
+
+      expect(resourceHeader).not.toBeNull();
+      expect(within(resourceHeader!).getByText('Started')).toBeInTheDocument();
+      expect(
+        within(resourceHeader!).getByText('Lecture - 2h 30m'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Saved work' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Current RPG hub fixture.', { selector: 'p' }),
+      ).toBeInTheDocument();
 
       expect(officialLink).toHaveAttribute(
         'href',
@@ -2724,6 +2876,26 @@ describe('RPG routes', () => {
       beforeSnapshot.xpTransactions.length + 1,
     );
 
+    const saveFeedback = screen
+      .getByRole('heading', { name: 'Progress saved' })
+      .closest<HTMLElement>('.rpg-study-resource__save-result');
+
+    expect(saveFeedback).not.toBeNull();
+    expect(
+      within(saveFeedback!).getByText('XP awarded: 20'),
+    ).toBeInTheDocument();
+    expect(
+      await within(saveFeedback!).findByText('Level 1 progress'),
+    ).toBeInTheDocument();
+    expect(
+      within(saveFeedback!).getByRole('link', {
+        name: 'Continue quest: Problem Set 4: Memory',
+      }),
+    ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+    expect(
+      within(saveFeedback!).queryByText(/Achievement unlocked:/),
+    ).not.toBeInTheDocument();
+
     const totalXp = afterSnapshot.xpTransactions.reduce(
       (total, transaction) => total + transaction.xp,
       0,
@@ -2735,11 +2907,14 @@ describe('RPG routes', () => {
       );
 
       expect(
-        heroHud.getByText(new RegExp(`^${totalXp} XP total`)),
+        heroHud.getByText(
+          getLevelProgressDisplay(calculateXpSummary(totalXp))
+            .levelProgressLabel,
+        ),
       ).toBeInTheDocument();
       expect(
-        heroHud.getByRole('link', { name: 'Continue quest' }),
-      ).toHaveAttribute('href', '/rpg/resource/week-4-problem-set');
+        heroHud.queryByRole('link', { name: 'Continue quest' }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -2798,6 +2973,36 @@ describe('RPG routes', () => {
     );
 
     expect(afterProgress).toEqual(beforeProgress);
+  });
+
+  it('reports an RPG resource update without inventing a second reward', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithRpgHistory();
+
+    await renderAppAtRoute('/rpg/resource/week-4-lecture');
+    await screen.findByRole('heading', { name: 'Lecture 4: Memory' });
+
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await user.click(screen.getByRole('button', { name: 'Save progress' }));
+
+    const feedback = (
+      await screen.findByRole('heading', { name: 'Progress updated' })
+    ).closest<HTMLElement>('.rpg-study-resource__save-result');
+
+    expect(feedback).not.toBeNull();
+    expect(
+      within(feedback!).getByText('Local status: Started'),
+    ).toBeInTheDocument();
+    expect(
+      within(feedback!).queryByText(/^XP awarded:/),
+    ).not.toBeInTheDocument();
+    expect(
+      within(feedback!).queryByText(/^Achievement unlocked:/),
+    ).not.toBeInTheDocument();
+    expect((await getDatabaseSnapshot()).xpTransactions).toEqual(
+      beforeSnapshot.xpTransactions,
+    );
   });
 
   it('associates RPG submission and confidence errors with their controls', async () => {
@@ -2960,6 +3165,24 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('button', { name: 'Start live session' }),
     ).toBeInTheDocument();
+    const selectedTask = screen
+      .getByText('Selected task')
+      .closest<HTMLElement>('.rpg-focus__selected-task');
+
+    expect(selectedTask).not.toBeNull();
+    expect(
+      within(selectedTask!).getByText('Lecture 4: Memory'),
+    ).toBeInTheDocument();
+
+    for (const label of [
+      'Log a past session manually',
+      'Review saved sessions (1)',
+    ]) {
+      const disclosure = screen.getByText(label).closest('details');
+
+      expect(disclosure).not.toBeNull();
+      expect(disclosure).not.toHaveAttribute('open');
+    }
 
     // Prefill from itemId locks both the live and manual unit selectors to the
     // task's unit, exactly like the classic study-session surface.
@@ -2977,11 +3200,10 @@ describe('RPG routes', () => {
       }
     });
 
-    expect(screen.getByRole('link', { name: 'Back to week' })).toHaveAttribute(
-      'href',
-      '/rpg/week/week-4',
-    );
-    expect(screen.getByRole('link', { name: 'Back to Hub' })).toHaveAttribute(
+    expect(
+      within(selectedTask!).getByRole('link', { name: 'Lecture 4: Memory' }),
+    ).toHaveAttribute('href', '/rpg/resource/week-4-lecture');
+    expect(screen.getByRole('link', { name: 'Hub' })).toHaveAttribute(
       'href',
       '/rpg',
     );
@@ -3110,11 +3332,31 @@ describe('RPG routes', () => {
         screen.getByRole('button', { name: 'Save study session' }),
       );
 
-      // The classic surface reloads after a save, so re-query for the success
-      // toast until it settles rather than holding a possibly-detached node.
       await waitFor(() => {
-        expect(screen.getByText('Session saved')).toBeInTheDocument();
+        expect(
+          screen.getByRole('heading', { name: 'Session saved' }),
+        ).toBeInTheDocument();
       });
+
+      const focusFeedback = screen
+        .getByRole('heading', { name: 'Session saved' })
+        .closest<HTMLElement>('.rpg-focus__save-result');
+
+      expect(focusFeedback).not.toBeNull();
+      expect(
+        screen.getAllByText('Session saved', { exact: true }),
+      ).toHaveLength(1);
+      expect(
+        within(focusFeedback!).getByText('XP awarded: 10'),
+      ).toBeInTheDocument();
+      expect(
+        await within(focusFeedback!).findByText('Level 1 progress'),
+      ).toBeInTheDocument();
+      expect(
+        within(focusFeedback!).getByRole('link', {
+          name: 'Start quest: Lecture 0: Scratch',
+        }),
+      ).toHaveAttribute('href', '/rpg/resource/week-0-lecture');
 
       const afterSnapshot = await getDatabaseSnapshot();
       const savedSessions = afterSnapshot.studySessions.filter(
@@ -3152,7 +3394,10 @@ describe('RPG routes', () => {
         expect(
           within(
             screen.getByRole('region', { name: 'Persistent hero HUD' }),
-          ).getByText(new RegExp(`^${totalXp} XP total`)),
+          ).getByText(
+            getLevelProgressDisplay(calculateXpSummary(totalXp))
+              .levelProgressLabel,
+          ),
         ).toBeInTheDocument();
       });
     } finally {
@@ -3190,7 +3435,7 @@ describe('RPG routes', () => {
       );
       const resourcePath = expectHref(
         within(weekFourLectureRow).getByRole('link', {
-          name: 'Open resource',
+          name: 'Open resource: Lecture 4: Memory',
         }),
         '/rpg/resource/week-4-lecture',
       );
@@ -3289,7 +3534,7 @@ describe('RPG routes', () => {
       expect(savedSessionXp).toHaveLength(1);
 
       const hubPath = expectHref(
-        await screen.findByRole('link', { name: 'Back to Hub' }),
+        await screen.findByRole('link', { name: 'Hub' }),
         '/rpg',
       );
 
@@ -3297,7 +3542,9 @@ describe('RPG routes', () => {
       await renderAppAtRoute(hubPath);
       await screen.findByRole('heading', { name: 'RPG Hub' });
 
-      expect(await screen.findByText('Lecture 4: Memory')).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Lecture 4: Memory' }),
+      ).toBeInTheDocument();
       expect(
         await screen.findByText(
           /Saved progress - Lecture 4: Memory \(started\)/,
@@ -3334,6 +3581,12 @@ describe('RPG routes', () => {
       expectClassicShellAbsent();
       await expectPersistentHeroHud({
         currentQuestHref: '/rpg/resource/week-0-lecture',
+        composition:
+          route === '/rpg/hero'
+            ? 'profile'
+            : route === '/rpg/focus'
+              ? 'overview'
+              : 'full',
       });
     }
   });
@@ -3347,6 +3600,13 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'Settings' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Interface' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Open Classic interface' }),
+    ).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByLabelText('Classic appearance')).toBeInTheDocument();
 
     // The same authoritative data controls as classic Settings, rendered inside
     // the RPG shell — not a hand-off link to a separate settings screen.
@@ -3406,27 +3666,46 @@ describe('RPG routes', () => {
         name: 'No saved Hero activity yet',
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Alex's profile")).toBeInTheDocument();
-    expect(screen.getByText('Rank:')).toBeInTheDocument();
-    expect(screen.getByText('New Learner')).toBeInTheDocument();
-    expect(screen.getByText('CS Foundations')).toBeInTheDocument();
-    expect(screen.getByText('Generalist')).toBeInTheDocument();
-    expect(screen.getByText('Guild: Code Knights')).toBeInTheDocument();
+    const identityPanel = screen.getByRole('region', {
+      name: 'Learner identity and progression',
+    });
+    expect(screen.getAllByText('Alex', { exact: true })).toHaveLength(1);
+
+    if (identityPanel === null) {
+      throw new Error('Hero identity panel was not rendered.');
+    }
+
+    for (const label of [
+      'Rank:',
+      'New Learner',
+      'Path',
+      'CS Foundations',
+      'Class',
+      'Generalist',
+      'Guild',
+      'Code Knights',
+    ]) {
+      expect(within(identityPanel).getByText(label)).toBeInTheDocument();
+    }
+
+    expect(
+      within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
+    ).toHaveAttribute('data-avatar-source', 'configured');
+    expect(screen.getByRole('link', { name: 'Edit profile' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
     expect(
       screen.getByText(`0 of ${achievementDefinitions.length}`),
     ).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByRole('link', { name: 'Open Campaign Map' })
-        .some((link) => {
-          return link.getAttribute('href') === '/rpg/map';
-        }),
-    ).toBe(true);
-    expect(
-      screen.getAllByRole('link', { name: 'Back to Hub' }).some((link) => {
-        return link.getAttribute('href') === '/rpg';
-      }),
-    ).toBe(true);
+    expect(screen.getByRole('link', { name: 'Map' })).toHaveAttribute(
+      'href',
+      '/rpg/map',
+    );
+    expect(screen.getByRole('link', { name: 'Hub' })).toHaveAttribute(
+      'href',
+      '/rpg',
+    );
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
@@ -3439,10 +3718,24 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'Hero Profile' }),
     ).toBeInTheDocument();
-    expect(await screen.findByText("Alex's profile")).toBeInTheDocument();
-    expect(screen.getByText('Initiate')).toBeInTheDocument();
+    const identityPanel = await screen.findByRole('region', {
+      name: 'Learner identity and progression',
+    });
+
+    if (identityPanel === null) {
+      throw new Error('Hero identity panel was not rendered.');
+    }
+
+    expect(
+      within(identityPanel).getByRole('img', { name: 'Alex hero avatar' }),
+    ).toHaveAttribute('data-avatar-source', 'configured');
+    expect(screen.getByRole('link', { name: 'Edit profile' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
+    expect(within(identityPanel).getByText('Initiate')).toBeInTheDocument();
     expect(screen.getAllByText('Level').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('XP').length).toBeGreaterThan(0);
+    expect(within(identityPanel).getByText(/XP to Level/)).toBeInTheDocument();
     expect(screen.getByText('Required course progress')).toBeInTheDocument();
     expect(screen.getByText('Local activity totals')).toBeInTheDocument();
     expect(screen.getByText('Study sessions')).toBeInTheDocument();
@@ -3486,6 +3779,10 @@ describe('RPG routes', () => {
     const firstStep = await screen.findByTestId('achievement-first-step');
     expect(within(firstStep).getByText('Locked')).toBeInTheDocument();
     expect(
+      within(firstStep).queryByText('Requirement:'),
+    ).not.toBeInTheDocument();
+    expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
+    expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
 
@@ -3518,10 +3815,14 @@ describe('RPG routes', () => {
     ).toBeInTheDocument();
 
     const firstStep = await screen.findByTestId('achievement-first-step');
-    expect(within(firstStep).getByText('Unlocked')).toBeInTheDocument();
+    expect(within(firstStep).getByText('Earned')).toBeInTheDocument();
     expect(
-      within(firstStep).getByText('Unlocked 2026-06-12'),
+      within(firstStep).getByText('Earned 2026-06-12'),
     ).toBeInTheDocument();
+    expect(
+      within(firstStep).queryByText('Requirement met:'),
+    ).not.toBeInTheDocument();
+    expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
     expect(
       within(firstStep).getByText('Complete your first task of any kind.'),
     ).toBeInTheDocument();
@@ -3551,6 +3852,12 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Effort over time' }),
     ).toBeInTheDocument();
 
+    for (const details of document.querySelectorAll<HTMLDetailsElement>(
+      '.insights-disclosure',
+    )) {
+      details.open = true;
+      fireEvent(details, new Event('toggle'));
+    }
     for (const cardTitle of [
       'Course progress',
       'XP over time',
@@ -3589,6 +3896,9 @@ describe('RPG routes', () => {
         return link.getAttribute('href') === '/rpg';
       }),
     ).toBe(true);
+    expect(
+      screen.getByRole('link', { name: 'View achievements' }),
+    ).toHaveAttribute('href', '/rpg/badges');
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
@@ -3605,6 +3915,12 @@ describe('RPG routes', () => {
       await screen.findByRole('heading', { name: 'Effort over time' }),
     ).toBeInTheDocument();
 
+    for (const details of document.querySelectorAll<HTMLDetailsElement>(
+      '.insights-disclosure',
+    )) {
+      details.open = true;
+      fireEvent(details, new Event('toggle'));
+    }
     for (const cardTitle of [
       'Course progress',
       'XP over time',
@@ -3645,18 +3961,55 @@ describe('RPG routes', () => {
     const bottomNav = screen.getByRole('navigation', {
       name: 'RPG bottom navigation',
     });
-    const hubLink = within(bottomNav).getByRole('link', { name: 'Hub' });
     const mapLink = within(bottomNav).getByRole('link', { name: 'Map' });
+    const focusLink = within(bottomNav).getByRole('link', { name: 'Focus' });
 
-    hubLink.focus();
-    expect(hubLink).toHaveFocus();
-
-    await user.keyboard('{Tab}');
+    mapLink.focus();
     expect(mapLink).toHaveFocus();
 
+    await user.keyboard('{Tab}');
+    expect(focusLink).toHaveFocus();
+
     await user.keyboard('{Enter}');
-    expect(await screen.findByTestId('rpg-module-week-4')).toBeInTheDocument();
-    expect(mapLink).toHaveAttribute('aria-current', 'page');
+    await screen.findByRole('heading', { name: 'Focus' });
+
+    const updatedBottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
+    expect(
+      within(updatedBottomNav).getByRole('link', { name: 'Focus' }),
+    ).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('keeps all six primary RPG destinations direct and keeps Classic out of peer navigation', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/badges');
+    await screen.findByRole('heading', { name: 'Achievements' });
+
+    const bottomNav = screen.getByRole('navigation', {
+      name: 'RPG bottom navigation',
+    });
+
+    for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
+      expect(
+        within(bottomNav).getByRole('link', { name: label }),
+      ).toBeVisible();
+    }
+
+    expect(
+      within(bottomNav).getByRole('link', { name: 'Awards' }),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(
+      within(bottomNav).queryByRole('button', { name: 'More' }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open Settings' })).toHaveAttribute(
+      'href',
+      '/rpg/settings',
+    );
   });
 
   it('does not mutate local stores during passive RPG route navigation', async () => {
@@ -3693,6 +4046,33 @@ describe('RPG routes', () => {
     expectClassicShellAbsent();
   });
 
+  it('switches between RPG and Classic without creating passive local writes', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearner();
+    const beforeSnapshot = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/rpg/settings');
+    await screen.findByRole('heading', { name: 'Settings' });
+
+    await user.click(
+      screen.getByRole('link', { name: 'Open Classic interface' }),
+    );
+    await screen.findByRole('heading', { name: /^Dashboard$/ });
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+
+    const primaryNavigation = screen.getByRole('navigation', {
+      name: 'Primary',
+    });
+    const returnLink = within(primaryNavigation).getByRole('link', {
+      name: 'Return to RPG',
+    });
+    expect(returnLink).toHaveAttribute('href', '/rpg');
+
+    await user.click(returnLink);
+    await screen.findByRole('heading', { name: 'RPG Hub' });
+    expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
+  });
+
   it('preserves classic chrome on classic routes', async () => {
     await seedOnboardedLearner();
 
@@ -3706,6 +4086,12 @@ describe('RPG routes', () => {
     expect(
       within(primaryNavigation).getByRole('link', { name: 'Dashboard' }),
     ).toBeInTheDocument();
+    expect(
+      within(primaryNavigation).getByRole('link', { name: 'Return to RPG' }),
+    ).toHaveAttribute('href', '/rpg');
+    expect(
+      await screen.findByRole('link', { name: 'Open RPG' }),
+    ).toHaveAttribute('href', '/rpg');
     expect(screen.getByText('Current status')).toBeInTheDocument();
   });
 });
@@ -4072,7 +4458,7 @@ describe('Settings route', () => {
     expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Profile, theme, motion, and study cadence were updated on this device.',
+        'Profile, appearance, motion, and study cadence were updated on this device.',
       ),
     ).toBeInTheDocument();
     expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual(

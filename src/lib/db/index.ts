@@ -10,6 +10,7 @@ export {
 export {
   addStudySession,
   addStudySessionAndAwardXp,
+  correctStudySessionAssignment,
   addXpTransaction,
   ensureCourseCatalogFromSeed,
   getAchievementsView,

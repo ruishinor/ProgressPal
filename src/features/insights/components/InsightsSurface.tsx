@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Card } from '@/components/ui/Card';
+import { Card, type CardProps } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -24,7 +24,11 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
-import { rpgMapPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import {
+  rpgBadgesPath,
+  rpgMapPath,
+  rpgRoutePath,
+} from '@/lib/routing/rpgRoutePaths';
 
 // The same insights surface renders in two shells: the classic Insights route
 // and the RPG route (/rpg/log). Insights is the product concept; the RPG view
@@ -71,6 +75,23 @@ function bar(value: number, max: number, variant: BarVariant) {
 
 const readyDescription =
   "Your CS50 study activity over time. Saved sessions, watched video, and earned XP appear here. Days and weeks use this device's local time.";
+
+function InsightsSection({ rpg, ...props }: CardProps & { rpg: boolean }) {
+  const [open, setOpen] = useState(props.title === 'Course progress');
+  if (!rpg) return <Card {...props} />;
+  return (
+    <details
+      className="card card--default card--comfortable insights-disclosure"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>
+        <h2 className="card__title">{props.title}</h2>
+      </summary>
+      {open ? <div className="card__body">{props.children}</div> : null}
+    </details>
+  );
+}
 
 export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
   const isRpgVariant = variant === 'rpg';
@@ -175,9 +196,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-log__header">
+          <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow">RPG</p>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Insights</h1>
             </div>
             <div className="rpg-log__actions">
@@ -221,9 +242,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-log__header">
+          <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow">RPG</p>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Insights</h1>
             </div>
           </div>
@@ -253,11 +274,14 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-log__header">
+        <div className="rpg-log__header rpg-page-header">
           <div>
-            <p className="rpg-log__eyebrow">RPG</p>
+            <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Insights</h1>
-            <p className="rpg-log__lede">{readyDescription}</p>
+            <p className="rpg-log__lede rpg-page-lede">
+              Study time, progress, and earned rewards. Dates use your device’s
+              local time.
+            </p>
           </div>
           <div className="rpg-log__actions">
             <Link
@@ -279,7 +303,11 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
       )}
 
       <div className="insights-grid">
-        <Card title="Course progress" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="Course progress"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           <ProgressBar
             helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
             label="Required course progress (current)"
@@ -292,9 +320,13 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
             A current snapshot of required-item completion, not a historical
             trend.
           </p>
-        </Card>
+        </InsightsSection>
 
-        <Card title="Effort over time" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="Effort over time"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
               No sessions or video logged yet. Weekly effort will appear here
@@ -354,9 +386,13 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tfoot>
             </table>
           )}
-        </Card>
+        </InsightsSection>
 
-        <Card title="XP over time" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="XP over time"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
               No XP earned yet. Saving progress or a study session starts
@@ -403,9 +439,13 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tfoot>
             </table>
           )}
-        </Card>
+        </InsightsSection>
 
-        <Card title="Study mode breakdown" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="Study mode breakdown"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {modeBreakdown.isEmpty ? (
             <p className="card__description">
               No study sessions logged yet. Your effort by mode will appear
@@ -449,9 +489,13 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tbody>
             </table>
           )}
-        </Card>
+        </InsightsSection>
 
-        <Card title="Active days" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="Active days"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {activeDays.isEmpty ? (
             <p className="card__description">
               No study sessions logged yet. Active-day counts appear once you
@@ -473,9 +517,10 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </div>
             </dl>
           )}
-        </Card>
+        </InsightsSection>
 
-        <Card
+        <InsightsSection
+          rpg={isRpgVariant}
           title="Recorded completion awards"
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
@@ -527,9 +572,13 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tfoot>
             </table>
           )}
-        </Card>
+        </InsightsSection>
 
-        <Card title="Achievement timeline" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <InsightsSection
+          rpg={isRpgVariant}
+          title="Achievement timeline"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
           {achievementTimeline.isEmpty ? (
             <p className="card__description">
               No achievements unlocked yet. Unlocks will appear here in the
@@ -559,12 +608,12 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           <div className="action-row">
             <Link
               className="button button--secondary button--sm"
-              to="/achievements"
+              to={isRpgVariant ? rpgBadgesPath : '/achievements'}
             >
               View achievements
             </Link>
           </div>
-        </Card>
+        </InsightsSection>
       </div>
     </section>
   );

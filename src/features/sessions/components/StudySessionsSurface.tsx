@@ -1,5 +1,14 @@
-import { startTransition, useEffect, useState, type FormEvent } from 'react';
+import {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { SessionAssignmentCorrection } from './SessionAssignmentCorrection';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -48,8 +57,9 @@ import {
   listCourseItems,
   listCourseUnits,
   listStudySessions,
+  type AddStudySessionWithXpResult,
 } from '@/lib/db';
-import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same study-session surface renders in two shells: the classic Study
 // Sessions route and the RPG Focus route. Only the section wrapper and the
@@ -57,8 +67,11 @@ import { getRpgWeekPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 // engine writes are identical.
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
+export type StudySessionSaveResult = AddStudySessionWithXpResult;
+
 type StudySessionsSurfaceProps = {
-  onProgressSaved?: () => void;
+  onProgressSaved?: (result: StudySessionSaveResult) => void;
+  saveFeedback?: ReactNode;
   variant?: StudySessionsSurfaceVariant;
 };
 
@@ -90,17 +103,32 @@ const initialPageState: SessionsPageState = {
   status: 'loading',
 };
 
+function RpgFocusDisclosureCard({
+  enabled,
+  label,
+  ...cardProps
+}: {
+  enabled: boolean;
+  label: string;
+} & ComponentProps<typeof Card>) {
+  const card = <Card {...cardProps} />;
+
+  if (!enabled) {
+    return card;
+  }
+
+  return (
+    <details className="rpg-focus__disclosure">
+      <summary>{label}</summary>
+      <div className="rpg-focus__disclosure-content">{card}</div>
+    </details>
+  );
+}
+
 function nowClockSnapshot() {
   return {
     iso: new Date().toISOString(),
     milliseconds: Date.now(),
-  };
-}
-
-function createSelectionState(itemId: string, unitId: string) {
-  return {
-    itemId,
-    unitId,
   };
 }
 
@@ -157,6 +185,7 @@ function getNextItemId(
 
 export function StudySessionsSurface({
   onProgressSaved,
+  saveFeedback,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
   const { coordination, runLocalMutation } = useAppState();
@@ -180,6 +209,14 @@ export function StudySessionsSurface({
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [historyRefreshStatus, setHistoryRefreshStatus] = useState<
+    'ready' | 'loading' | 'error'
+  >('ready');
+  const saveInFlight = useRef(false);
+  const savedManualDraft = useRef<ManualSessionFormValues | null>(null);
+  const savedLiveDraft = useRef<LiveSessionState | null>(null);
+  const historyRefreshVersion = useRef(0);
+  const pageVersion = useRef(0);
   const [timerTickMilliseconds, setTimerTickMilliseconds] = useState(() =>
     Date.now(),
   );
@@ -188,6 +225,10 @@ export function StudySessionsSurface({
 
   useEffect(() => {
     let isActive = true;
+    pageVersion.current += 1;
+    saveInFlight.current = false;
+    savedManualDraft.current = null;
+    savedLiveDraft.current = null;
 
     startTransition(() => {
       setPageState(initialPageState);
@@ -207,6 +248,26 @@ export function StudySessionsSurface({
             error: null,
             status: 'ready',
           });
+          setManualForm(
+            createManualSessionFormValues(
+              new Date(),
+              data.prefilledItemId,
+              data.lockedUnitId ?? '',
+            ),
+          );
+          setManualErrors({});
+          setManualIsSaving(false);
+          setLiveSession(
+            createIdleLiveSession(
+              data.prefilledItemId,
+              data.lockedUnitId ?? '',
+            ),
+          );
+          setLiveErrors({});
+          setLiveIsSaving(false);
+          setShowDiscardDialog(false);
+          setHistoryRefreshStatus('ready');
+          setToast(null);
         });
       } catch (loadError) {
         if (!isActive) {
@@ -230,35 +291,10 @@ export function StudySessionsSurface({
 
     return () => {
       isActive = false;
+      pageVersion.current += 1;
+      historyRefreshVersion.current += 1;
     };
   }, [prefilledItemId, reloadToken]);
-
-  useEffect(() => {
-    if (pageState.data === null) {
-      return;
-    }
-
-    const nextSelection = createSelectionState(
-      pageState.data.prefilledItemId,
-      pageState.data.lockedUnitId ?? '',
-    );
-
-    setManualForm(
-      createManualSessionFormValues(
-        new Date(),
-        nextSelection.itemId,
-        nextSelection.unitId,
-      ),
-    );
-    setManualErrors({});
-    setManualIsSaving(false);
-    setLiveSession(
-      createIdleLiveSession(nextSelection.itemId, nextSelection.unitId),
-    );
-    setLiveErrors({});
-    setLiveIsSaving(false);
-    setShowDiscardDialog(false);
-  }, [pageState.data]);
 
   useEffect(() => {
     if (liveSession.phase !== 'running') {
@@ -279,9 +315,9 @@ export function StudySessionsSurface({
       return (
         <section className={sectionClassName}>
           {isRpgVariant ? (
-            <div className="rpg-focus__header">
+            <div className="rpg-focus__header rpg-page-header">
               <div>
-                <p className="rpg-focus__eyebrow">RPG</p>
+                <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
                 <h1>Focus</h1>
               </div>
               <div className="rpg-focus__actions">
@@ -330,9 +366,9 @@ export function StudySessionsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-focus__header">
+          <div className="rpg-focus__header rpg-page-header">
             <div>
-              <p className="rpg-focus__eyebrow">RPG</p>
+              <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Focus</h1>
             </div>
           </div>
@@ -378,14 +414,65 @@ export function StudySessionsSurface({
       ? null
       : getCourseItemDetailPath(liveSession.itemId);
 
-  function resetPageStateAfterSave() {
-    setReloadToken((currentToken) => currentToken + 1);
+  async function refreshSessionHistory() {
+    const version = ++historyRefreshVersion.current;
+    setHistoryRefreshStatus('loading');
+    try {
+      const sessions = await listStudySessions();
+      if (version !== historyRefreshVersion.current) {
+        return;
+      }
+      setPageState((current) =>
+        current.data === null
+          ? current
+          : {
+              ...current,
+              data: {
+                ...current.data,
+                ledgerRows: buildSessionLedgerRows(
+                  sessions,
+                  current.data.catalog,
+                ),
+              },
+            },
+      );
+      setHistoryRefreshStatus('ready');
+    } catch (loadError) {
+      console.error('Saved session history could not be refreshed.', loadError);
+      if (version === historyRefreshVersion.current) {
+        setHistoryRefreshStatus('error');
+      }
+    }
+  }
+
+  function showSavedSession(result: StudySessionSaveResult) {
+    const xpAdded = result.awardedTransactions.reduce(
+      (sum, tx) => sum + tx.xp,
+      0,
+    );
+    const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
+    if (!isRpgVariant) {
+      setToast({
+        description: `Session saved.${xpToastSuffix}`,
+        title: 'Session saved',
+        tone: 'success',
+      });
+    } else {
+      setToast(null);
+    }
+    onProgressSaved?.(result);
+    void refreshSessionHistory();
   }
 
   async function handleManualSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (manualForm === null || manualIsSaving) {
+    if (
+      manualForm === null ||
+      !coordination.canWrite ||
+      saveInFlight.current ||
+      savedManualDraft.current === manualForm
+    ) {
       return;
     }
 
@@ -402,25 +489,19 @@ export function StudySessionsSurface({
     }
 
     setManualIsSaving(true);
+    const version = pageVersion.current;
+    saveInFlight.current = true;
 
+    let xpResult: StudySessionSaveResult;
     try {
-      const xpResult = await runLocalMutation(
+      xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
         { invalidateRoute: false },
       );
-      const xpAdded = xpResult.awardedTransactions.reduce(
-        (sum, tx) => sum + tx.xp,
-        0,
-      );
-      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      setToast({
-        description: `Session saved.${xpToastSuffix}`,
-        title: 'Session saved',
-        tone: 'success',
-      });
-      onProgressSaved?.();
-      resetPageStateAfterSave();
     } catch (saveError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
       setManualErrors({
         itemId:
           saveError instanceof Error
@@ -428,11 +509,35 @@ export function StudySessionsSurface({
             : 'The study session could not be saved.',
       });
       setManualIsSaving(false);
+      saveInFlight.current = false;
+      return;
     }
+
+    if (version !== pageVersion.current) {
+      onProgressSaved?.(xpResult);
+      void refreshSessionHistory();
+      return;
+    }
+
+    savedManualDraft.current = manualForm;
+    setManualForm(
+      createManualSessionFormValues(
+        new Date(),
+        pageState.data!.prefilledItemId,
+        lockedUnitId ?? '',
+      ),
+    );
+    setManualIsSaving(false);
+    showSavedSession(xpResult);
+    saveInFlight.current = false;
   }
 
   async function handleLiveSave() {
-    if (liveIsSaving) {
+    if (
+      !coordination.canWrite ||
+      saveInFlight.current ||
+      savedLiveDraft.current === liveSession
+    ) {
       return;
     }
 
@@ -445,25 +550,19 @@ export function StudySessionsSurface({
     }
 
     setLiveIsSaving(true);
+    const version = pageVersion.current;
+    saveInFlight.current = true;
 
+    let xpResult: StudySessionSaveResult;
     try {
-      const xpResult = await runLocalMutation(
+      xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
         { invalidateRoute: false },
       );
-      const xpAdded = xpResult.awardedTransactions.reduce(
-        (sum, tx) => sum + tx.xp,
-        0,
-      );
-      const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
-      setToast({
-        description: `Session saved.${xpToastSuffix}`,
-        title: 'Session saved',
-        tone: 'success',
-      });
-      onProgressSaved?.();
-      resetPageStateAfterSave();
     } catch (saveError) {
+      if (version !== pageVersion.current) {
+        return;
+      }
       setLiveErrors({
         itemId:
           saveError instanceof Error
@@ -471,38 +570,43 @@ export function StudySessionsSurface({
             : 'The live study session could not be saved.',
       });
       setLiveIsSaving(false);
+      saveInFlight.current = false;
+      return;
     }
+
+    if (version !== pageVersion.current) {
+      onProgressSaved?.(xpResult);
+      void refreshSessionHistory();
+      return;
+    }
+
+    savedLiveDraft.current = liveSession;
+    setLiveSession(
+      createIdleLiveSession(
+        pageState.data!.prefilledItemId,
+        lockedUnitId ?? '',
+      ),
+    );
+    setLiveIsSaving(false);
+    showSavedSession(xpResult);
+    saveInFlight.current = false;
   }
 
-  const headerDescription =
-    lockedUnitId === null
+  const headerDescription = isRpgVariant
+    ? 'Study one task at a time. Save your effort when you finish; task completion is a separate step.'
+    : lockedUnitId === null
       ? 'Log study effort against a task from the course. Sessions stay append-only and never imply completion.'
       : `Prefilled from one course task. The unit stays locked to that task while you log effort for ${prefillItemTitle ?? 'the selected task'}.`;
+  const selectedTaskTitle =
+    catalog.itemById.get(liveSession.itemId)?.title ?? prefillItemTitle;
 
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-focus__header">
+        <div className="rpg-focus__header rpg-page-header">
           <div>
-            <p className="rpg-focus__eyebrow">RPG</p>
             <h1>Focus</h1>
-            <p className="rpg-focus__lede">{headerDescription}</p>
-          </div>
-          <div className="rpg-focus__actions">
-            <Link
-              className="button button--secondary button--md"
-              to={rpgRoutePath}
-            >
-              Back to Hub
-            </Link>
-            {liveSession.unitId.trim().length > 0 ? (
-              <Link
-                className="button button--secondary button--md"
-                to={getRpgWeekPath(liveSession.unitId)}
-              >
-                Back to week
-              </Link>
-            ) : null}
+            <p className="rpg-focus__lede rpg-page-lede">{headerDescription}</p>
           </div>
         </div>
       ) : (
@@ -535,14 +639,45 @@ export function StudySessionsSurface({
           title="Study sessions"
         />
       )}
+      {saveFeedback}
+      {historyRefreshStatus === 'error' ? (
+        <div className="course-detail-note" role="status">
+          <p>
+            Your session is saved locally. Session history could not be
+            refreshed and may be out of date.
+          </p>
+          <Button
+            onClick={() => {
+              void refreshSessionHistory();
+            }}
+            variant="secondary"
+          >
+            Refresh session history
+          </Button>
+        </div>
+      ) : historyRefreshStatus === 'loading' ? (
+        <p role="status">Refreshing saved session history…</p>
+      ) : null}
       <div className="sessions-layout">
         <div className="sessions-layout__forms">
           <Card
-            description="Start one live study session, pause it if needed, then save exactly one immutable effort record."
+            description={
+              isRpgVariant
+                ? 'Start your timer, pause when needed, then finish and save your study time.'
+                : 'Start one live study session, pause it if needed, then save exactly one immutable effort record.'
+            }
             title="Live focus session"
             titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
           >
+            {isRpgVariant && selectedTaskTitle !== null ? (
+              <div className="rpg-focus__selected-task">
+                <span>Selected task</span>
+                <Link to={getRpgResourcePath(liveSession.itemId)}>
+                  {selectedTaskTitle}
+                </Link>
+              </div>
+            ) : null}
             {liveSession.phase === 'idle' ? (
               <form
                 className="course-detail-form"
@@ -674,8 +809,9 @@ export function StudySessionsSurface({
                 </div>
                 <div className="course-detail-note">
                   <p>
-                    Unfinished live sessions are not saved. Only explicit finish
-                    and save writes one study-session row.
+                    {isRpgVariant
+                      ? 'Finish and save before leaving. Unfinished timers are not saved.'
+                      : 'Unfinished live sessions are not saved. Only explicit finish and save writes one study-session row.'}
                   </p>
                 </div>
                 <div className="course-detail-form__actions">
@@ -805,6 +941,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={liveIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setLiveErrors((currentErrors) => ({
@@ -835,6 +972,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={liveIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setLiveErrors((currentErrors) => ({
@@ -872,6 +1010,7 @@ export function StudySessionsSurface({
                     Save study session
                   </Button>
                   <Button
+                    disabled={liveIsSaving}
                     onClick={() => setShowDiscardDialog(true)}
                     variant="danger"
                   >
@@ -881,8 +1020,10 @@ export function StudySessionsSurface({
               </div>
             ) : null}
           </Card>
-          <Card
+          <RpgFocusDisclosureCard
             description="Add one completed study session manually when you already know the item, start time, and duration."
+            enabled={isRpgVariant}
+            label="Log a past session manually"
             title="Manual session entry"
             titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
@@ -905,6 +1046,7 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -936,7 +1078,7 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
-                        disabled={lockedUnitId !== null}
+                        disabled={manualIsSaving || lockedUnitId !== null}
                         id={inputId}
                         onChange={(event) => {
                           const nextUnitId = event.target.value;
@@ -976,7 +1118,10 @@ export function StudySessionsSurface({
                       <Select
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
-                        disabled={manualForm.unitId.trim().length === 0}
+                        disabled={
+                          manualIsSaving ||
+                          manualForm.unitId.trim().length === 0
+                        }
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -1012,6 +1157,7 @@ export function StudySessionsSurface({
                       <TextInput
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         onChange={(event) => {
                           setManualErrors((currentErrors) => ({
@@ -1043,6 +1189,7 @@ export function StudySessionsSurface({
                       <NumberInput
                         aria-describedby={describedBy}
                         aria-invalid={invalid || undefined}
+                        disabled={manualIsSaving}
                         id={inputId}
                         min={1}
                         max={720}
@@ -1077,6 +1224,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={manualIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setManualErrors((currentErrors) => ({
@@ -1107,6 +1255,7 @@ export function StudySessionsSurface({
                     <TextArea
                       aria-describedby={describedBy}
                       aria-invalid={invalid || undefined}
+                      disabled={manualIsSaving}
                       id={inputId}
                       onChange={(event) => {
                         setManualErrors((currentErrors) => ({
@@ -1139,10 +1288,16 @@ export function StudySessionsSurface({
                 </div>
               </form>
             ) : null}
-          </Card>
+          </RpgFocusDisclosureCard>
         </div>
-        <Card
-          description="Saved sessions are listed newest first. Each row is effort history only, not course completion."
+        <RpgFocusDisclosureCard
+          description={
+            isRpgVariant
+              ? 'Your study time, newest first. Saving a session does not mark a task complete.'
+              : 'Saved sessions are listed newest first. Each row is effort history only, not course completion.'
+          }
+          enabled={isRpgVariant}
+          label={`Review saved sessions (${ledgerRows.length})`}
           title="Your saved sessions"
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
@@ -1173,6 +1328,12 @@ export function StudySessionsSurface({
                     ) : null}
                   </div>
                   <div className="session-ledger-list__meta">
+                    <SessionAssignmentCorrection
+                      sessionId={row.id}
+                      itemId={row.itemId}
+                      catalog={catalog}
+                      onCorrected={refreshSessionHistory}
+                    />
                     <Badge tone="neutral">{row.durationLabel}</Badge>
                     {row.blockerSummary ? (
                       <Badge tone="warning">{row.blockerSummary}</Badge>
@@ -1182,7 +1343,7 @@ export function StudySessionsSurface({
               ))}
             </ol>
           )}
-        </Card>
+        </RpgFocusDisclosureCard>
       </div>
       <Dialog
         actions={
@@ -1204,8 +1365,9 @@ export function StudySessionsSurface({
                   ),
                 );
                 setToast({
-                  description:
-                    'The in-progress timer was discarded. No study-session row was written.',
+                  description: isRpgVariant
+                    ? 'The timer was discarded without saving a session.'
+                    : 'The in-progress timer was discarded. No study-session row was written.',
                   title: 'Session discarded',
                   tone: 'success',
                 });

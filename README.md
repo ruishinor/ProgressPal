@@ -2,11 +2,11 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The current candidate is **ProgressPal CS50 Edition v1.3.0**: a local-first CS50 tracker proof undergoing release-wide remediation for reproducibility, recovery, offline upgrades, accessibility, and evidence-backed product direction.
+The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The primary `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Classic interface is available deliberately from RPG.
 
-This current build is **not** the fully realized RPG v2 shell. ProgressPal RPG v2 remains the intended future character-led CS50 campaign shell powered by the same local-first engine.
+The certified runtime baseline for publication closure is `07ae92a08abe87738986c418d2c0d603ee2a4005` (tree `fe599050158c366d69b760f77e13270d43f2d150`) on `rpg/publish-readiness`. That runtime candidate passed the immutable local release gate and independent GitHub Final candidate validation on 2026-09-19. Release-boundary or documentation-only follow-up may create a successor commit without changing application runtime; the immutable release manifest for that committed candidate is authoritative for the exact final SHA/tree rather than this README attempting to self-reference its own commit.
 
-After the post-freeze RPG Shell Phase 2C-2G remediation, Focus, Achievements, Insights, Settings, and stale Journey Log cleanup are merged into `master`. The existing `v1.2.0` and `v1.2.1` tags are historical and will not be moved. The `v1.3.0` candidate is not production-certified until the tracked remediation story and release evidence pass.
+Publication remains blocked until the required real iPhone/Safari, Android/Chrome, human screen-reader, owner GO, merge, and production hosted-origin smoke/rollback checks are complete.
 
 ## Current product position
 
@@ -28,59 +28,12 @@ ProgressPal is not:
 - a social learning platform;
 - an AI tutor;
 - a media streaming interface.
-- a completed RPG v2 campaign shell.
 
-## Release freeze status
+## Release and source-package status
 
-Current release classification:
+The immutable engine proof remains tagged `v1.3.0-local-first-proof`, and the completed RPG product work remains frozen at `freeze/rpg-product-completion-2026-09-16`. Current publication closure is performed on `rpg/publish-readiness`; it does not reopen product or engine work.
 
-```text
-ProgressPal CS50 Edition v1.3.0 - local-first CS50 tracker proof candidate
-```
-
-Recommended release tag:
-
-```text
-v1.3.0-local-first-proof
-```
-
-Strategic planning/reference document:
-
-```text
-docs/ProgressPal CS50 RPG v2 - 26-06-23.md
-```
-
-Release note:
-
-```text
-docs/releases/v1.3.0-local-first-proof.md
-```
-
-## RPG v2 source of truth
-
-For RPG v2 work, read these files first:
-
-```text
-docs/ProgressPal CS50 RPG v2 - 26-06-23.md
-docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
-docs/rpg-v2/DECISIONS-rpg-v2.md
-docs/rpg-v2/VALIDATION_LOG.md
-docs/rpg-v2/MIGRATION_CONTRACT.md
-docs/rpg-v2/ASSETS.md
-docs/rpg-v2/RISK_REGISTER.md
-docs/rpg-v2/VISUAL_TARGET.md
-docs/rpg-v2/RESTART_PROMPT.md
-```
-
-The June 23 planning document and v1.2 release note are historical freeze records. Current implementation authority is the v1.3 remediation story and its accepted decisions. The current build must still not be described as completed RPG v2.
-
-Older root-level planning files may describe the completed v1 engine phase and may be archived under:
-
-```text
-docs/archive/engine-v1/
-```
-
-Those archived files are historical context, not active RPG v2 implementation guidance.
+Internal engineering history, release reviews, implementation notes, and repository automation are retained in the repository for traceability but are not part of the distributable source archive. Source-release archives must be created from the exact final commit with `git archive`, which applies the tracked `export-ignore` boundary. Do not create release archives by zipping a working directory.
 
 ## Architecture summary
 
@@ -136,29 +89,17 @@ npm run build
 npm run test
 npm run test:e2e
 npm run check:circular
+npm run check:bundle
 npm run audit
 ```
 
-If the repo has a combined script such as `npm run validate`, use it only if it runs the full required gate.
+`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and legitimate tracked review evidence. Use the ordinary commands above for product-completion acceptance; do not manufacture release evidence to run certification.
 
 ## RPG shell transformation rule
 
-Do not start broad RPG shell transformation work from more tracker panels. The current post-2G release candidate must retain complete, reproducible validation evidence.
+Preserve completed C0-C5 behavior, the shared local-first engine, and direct secondary Classic routes. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
 
-Only after post-2G validation is recorded should any future feature plan reconsider:
-
-- persistent Hero HUD;
-- collapsed/detail panels;
-- quest-first resource flow;
-- reward feedback after explicit saves;
-- minimal, approved asset foundation;
-- campaign-map redesign.
-
-Every future implementation module must still include a Scope Discipline Check in its handoff file under:
-
-```text
-docs/rpg-v2/modules/
-```
+Publication closure is limited to packaging/evidence sanitation, candidate certification, the required physical/manual checks, and the explicit owner-controlled merge/deployment sequence. Product behavior changes require a new accepted scope.
 
 ## License
 

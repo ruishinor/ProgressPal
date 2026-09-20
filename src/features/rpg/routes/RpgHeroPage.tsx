@@ -8,16 +8,16 @@ import {
   RpgEmptyState,
   RpgPanel,
   RpgProgressBar,
-  RpgRankBadge,
-  RpgStatusPill,
+  RpgHeroIdentity,
+  RpgLevelProgress,
 } from '@/features/rpg/components';
 import { loadRpgHeroProfileSummary } from '@/features/rpg/model/readModels';
 import type { RpgHeroProfileSummary } from '@/features/rpg/model/types';
 import {
   rpgBadgesPath,
   rpgLogPath,
-  rpgMapPath,
   rpgRoutePath,
+  rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
 
 type RpgHeroPageStatus = 'error' | 'loading' | 'ready';
@@ -33,17 +33,6 @@ const initialState: RpgHeroPageState = {
   status: 'loading',
   summary: null,
 };
-
-function getInitials(name: string) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('');
-
-  return initials.length > 0 ? initials : 'L';
-}
 
 export function RpgHeroPage() {
   const [state, setState] = useState<RpgHeroPageState>(initialState);
@@ -103,8 +92,8 @@ export function RpgHeroPage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-hero">
-          <div className="rpg-hero__header">
-            <p className="rpg-hero__eyebrow">RPG</p>
+          <div className="rpg-hero__header rpg-page-header">
+            <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Hero Profile</h1>
           </div>
           <ErrorState
@@ -130,8 +119,7 @@ export function RpgHeroPage() {
 
     return (
       <section className="page-section rpg-hero">
-        <div className="rpg-hero__header">
-          <p className="rpg-hero__eyebrow">RPG</p>
+        <div className="rpg-hero__header rpg-page-header">
           <h1>Hero Profile</h1>
         </div>
         <LoadingState
@@ -146,78 +134,49 @@ export function RpgHeroPage() {
 
   return (
     <section className="page-section rpg-hero">
-      <div className="rpg-hero__header">
+      <div className="rpg-hero__header rpg-page-header">
         <div>
-          <p className="rpg-hero__eyebrow">RPG</p>
+          <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
           <h1>Hero Profile</h1>
-          <p className="rpg-hero__lede">
-            Read-only profile derived from local ProgressPal records.
+          <p className="rpg-hero__lede rpg-page-lede">
+            Your study progress, milestones, and saved activity.
           </p>
         </div>
         <div className="rpg-hero__actions">
-          <RpgButton href={rpgRoutePath}>Back to Hub</RpgButton>
-          <RpgButton href={rpgMapPath} variant="secondary">
-            Open Campaign Map
+          <RpgButton href={rpgSettingsPath} variant="secondary">
+            Edit profile
           </RpgButton>
         </div>
       </div>
 
-      {summary.hasLocalActivity ? null : (
-        <RpgEmptyState
-          action={
-            <div className="rpg-hero__actions">
-              <RpgButton href={rpgMapPath}>Open Campaign Map</RpgButton>
-              <RpgButton href={rpgRoutePath} variant="secondary">
-                Back to Hub
-              </RpgButton>
-            </div>
-          }
-          description="Save progress or finish a Focus Session to fill this profile with local XP, study time, badges, and recent activity."
-          eyebrow="New local profile"
-          title="No saved Hero activity yet"
-        />
-      )}
-
       <div className="rpg-hero__grid">
         <RpgPanel
           className="rpg-hero__identity"
-          title={`${summary.learnerName}'s profile`}
-          titleAs="h2"
+          aria-label="Learner identity and progression"
           variant="raised"
         >
           <div className="rpg-hero__identity-layout">
-            <div className="rpg-hero__avatar" aria-hidden="true">
-              {getInitials(summary.learnerName)}
-            </div>
-            <div className="rpg-hero__identity-copy">
-              <RpgRankBadge rank={summary.identity.rankLabel} />
-              <RpgStatusPill tone="neutral">
-                {`Guild: ${summary.identity.guildLabel}`}
-              </RpgStatusPill>
-              <p className="rpg-hero__note">
-                Rank reflects local required-course progress only.
-              </p>
-            </div>
+            <RpgHeroIdentity
+              avatarConfig={summary.learnerAvatarConfig}
+              identity={summary.identity}
+              name={summary.learnerName}
+              variant="profile"
+            />
+            <RpgLevelProgress xp={summary.xpSummary} />
           </div>
-          <dl className="rpg-hero__details">
-            <div>
-              <dt>Path</dt>
-              <dd>{summary.identity.pathLabel}</dd>
-            </div>
-            <div>
-              <dt>Class</dt>
-              <dd>{summary.identity.classLabel}</dd>
-            </div>
-            <div>
-              <dt>Level</dt>
-              <dd>{summary.xpSummary.level}</dd>
-            </div>
-            <div>
-              <dt>XP</dt>
-              <dd>{summary.xpSummary.totalXp}</dd>
-            </div>
-          </dl>
+          <p className="rpg-hero__note">
+            Rank reflects local required-course progress only.
+          </p>
         </RpgPanel>
+
+        {summary.hasLocalActivity ? null : (
+          <RpgEmptyState
+            className="rpg-hero__recent"
+            action={<RpgButton href={rpgRoutePath}>Open Hub</RpgButton>}
+            description="Save progress or finish a Focus Session to build your XP, study time, and achievements."
+            title="No saved Hero activity yet"
+          />
+        )}
 
         <RpgPanel title="Required course progress" titleAs="h2">
           <RpgProgressBar
@@ -267,8 +226,8 @@ export function RpgHeroPage() {
         >
           {summary.recentActivity.length === 0 ? (
             <p className="rpg-hero__note">
-              No recent saved activity yet. Saved progress, study sessions, XP,
-              and badges will shape this profile after explicit local actions.
+              Your saved progress, study sessions, and achievements will appear
+              here.
             </p>
           ) : (
             <ol className="rpg-hero__activity-list">

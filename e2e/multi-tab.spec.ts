@@ -300,7 +300,7 @@ test('isolates a second browser context into its own fresh onboarding state', as
   // Seed the first context with a completed profile so isolation is proven
   // against real data, not against an empty database.
   await completeOnboarding(page);
-  await page.goto('/');
+  await page.goto('/profile');
   await expect(
     page.getByRole('heading', { name: 'Local profile for Alex' }),
   ).toBeVisible();

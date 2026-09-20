@@ -39,7 +39,7 @@ const initialState: RpgModulePageState = {
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
-    blocked: 'danger',
+    blocked: 'warning',
     completed: 'success',
     inProgress: 'progress',
     notStarted: 'neutral',
@@ -76,8 +76,8 @@ function getResourceActionLabel(quest: RpgQuestSummary) {
 function RpgWeekLoadingState() {
   return (
     <section className="page-section rpg-week">
-      <div className="rpg-week__header">
-        <p className="rpg-week__eyebrow">RPG week</p>
+      <div className="rpg-week__header rpg-page-header">
+        <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
         <h1>RPG Week</h1>
       </div>
       <LoadingState
@@ -169,9 +169,9 @@ export function RpgModulePage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-week">
-          <div className="rpg-week__header">
+          <div className="rpg-week__header rpg-page-header">
             <div>
-              <p className="rpg-week__eyebrow">RPG week</p>
+              <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
               <h1>RPG Week</h1>
             </div>
             <RpgButton href={rpgMapPath} variant="secondary">
@@ -208,14 +208,14 @@ export function RpgModulePage() {
 
   return (
     <section className="page-section rpg-week">
-      <div className="rpg-week__header">
+      <div className="rpg-week__header rpg-page-header">
         <div>
-          <p className="rpg-week__eyebrow">RPG week</p>
+          <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
           <h1>{summary.title}</h1>
-          <p className="rpg-week__lede">
+          <p className="rpg-week__lede rpg-page-lede">
             {`${summary.typeLabel} - ${formatMinutes(
               summary.estimatedMinutes,
-            )} planned from real local course data.`}
+            )} estimated study time.`}
           </p>
         </div>
         <div className="rpg-week__actions">
@@ -259,7 +259,7 @@ export function RpgModulePage() {
 
         <RpgPanel
           className="rpg-week__task-panel"
-          description="Rows come from the current CS50x seed and local ProgressPal progress."
+          description="Choose a task to study, then save your progress when you are ready."
           title="Tasks and resources"
           titleAs="h2"
         >
@@ -269,6 +269,7 @@ export function RpgModulePage() {
                 action={
                   <div className="rpg-week__task-actions">
                     <RpgButton
+                      aria-label={`${getResourceActionLabel(quest)}: ${quest.title}`}
                       href={getRpgResourcePath(quest.id)}
                       size="sm"
                       variant="quiet"
@@ -276,6 +277,7 @@ export function RpgModulePage() {
                       {getResourceActionLabel(quest)}
                     </RpgButton>
                     <RpgButton
+                      aria-label={`Start focus session: ${quest.title}`}
                       href={getRpgFocusPath(quest.id)}
                       size="sm"
                       variant="secondary"
@@ -290,6 +292,7 @@ export function RpgModulePage() {
                   quest.estimatedMinutes,
                 )}`}
                 requiredLabel={quest.required ? 'Required' : 'Optional'}
+                rewardLabel={quest.rewardLabel}
                 status={
                   <RpgStatusPill tone={getStatusTone(quest.statusVariant)}>
                     {quest.statusLabel}

@@ -1,14 +1,27 @@
+import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import { startTransition, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
-import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
-import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
+import { formatMinutes } from '@/features/course/model';
+import {
+  RpgButton,
+  RpgPanel,
+  RpgHeroIdentity,
+  RpgLevelProgress,
+} from '@/features/rpg/components';
 import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
-import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgResourcePath,
+  rpgHeroPath,
+  rpgMapPath,
+  rpgRoutePath,
+  rpgFocusPath,
+  rpgSettingsPath,
+} from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
@@ -30,23 +43,14 @@ const initialHudState: RpgShellHudState = {
   summary: null,
 };
 
-function getHeroInitials(name: string) {
-  const initials = name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('');
-
-  return initials || 'L';
-}
-
 function RpgHeroHud({
   onRetry,
   state,
+  showQuest,
 }: {
   onRetry: () => void;
   state: RpgShellHudState;
+  showQuest: boolean;
 }) {
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -59,7 +63,6 @@ function RpgHeroHud({
             !
           </div>
           <div className="rpg-hero-hud__identity">
-            <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
             <p className="rpg-hero-hud__name">Hero state unavailable</p>
             <p className="rpg-hero-hud__meta">
               {state.error ??
@@ -86,10 +89,8 @@ function RpgHeroHud({
           L
         </div>
         <div className="rpg-hero-hud__identity">
-          <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
-          <p className="rpg-hero-hud__name">Loading local hero state</p>
-          <p className="rpg-hero-hud__meta">
-            Reading the existing local RPG summary.
+          <p className="rpg-hero-hud__name" role="status">
+            Loading your Hero
           </p>
         </div>
       </section>
@@ -97,62 +98,64 @@ function RpgHeroHud({
   }
 
   const { summary } = state;
-  const currentQuest = summary.continueQuest;
+  const { recommendation } = summary;
+  const currentQuest = recommendation.quest;
   const currentQuestHref =
     currentQuest === null ? rpgMapPath : getRpgResourcePath(currentQuest.id);
   const currentQuestLabel =
-    currentQuest === null
-      ? 'No required quest pending'
-      : `Next: ${currentQuest.title}`;
+    currentQuest?.title ??
+    (recommendation.state === 'required_complete'
+      ? 'Required tasks complete in ProgressPal'
+      : 'Course data unavailable');
 
   return (
-    <section aria-label="Persistent hero HUD" className="rpg-hero-hud">
-      {summary.learnerAvatarConfig === null ? (
-        <div aria-hidden="true" className="rpg-hero-hud__avatar">
-          {getHeroInitials(summary.learnerName)}
-        </div>
-      ) : (
-        <ProfileAvatar
-          avatarConfig={summary.learnerAvatarConfig}
-          className="rpg-hero-hud__avatar rpg-hero-hud__avatar--profile"
-          label={`${summary.learnerName} hero avatar`}
-          size="sm"
-        />
-      )}
-
-      <div className="rpg-hero-hud__identity">
-        <p className="rpg-hero-hud__eyebrow">Hero HUD</p>
-        <p className="rpg-hero-hud__name">{summary.learnerName}</p>
-        <p className="rpg-hero-hud__meta">
-          {`Rank ${summary.identity.rankLabel} - ${summary.identity.pathLabel} path / ${summary.identity.classLabel} class - ${summary.identity.guildLabel} guild`}
-        </p>
-      </div>
-
-      <div className="rpg-hero-hud__level" aria-label="Hero level">
-        <span>Level</span>
-        <strong>{summary.xpSummary.level}</strong>
-      </div>
-
-      <RpgProgressBar
-        className="rpg-hero-hud__xp"
-        helperText={`${summary.xpSummary.totalXp} XP total - ${summary.xpSummary.xpToNextLevel} XP to next level`}
-        label={`XP progress to level ${summary.xpSummary.level + 1}`}
-        value={summary.xpSummary.levelProgressPercent}
+    <section
+      aria-label="Persistent hero HUD"
+      className={`rpg-hero-hud${showQuest ? '' : ' rpg-hero-hud--overview'}`}
+    >
+      <RpgHeroIdentity
+        avatarConfig={summary.learnerAvatarConfig}
+        identity={summary.identity}
+        name={summary.learnerName}
       />
+      <RpgLevelProgress xp={summary.xpSummary} />
 
-      <div className="rpg-hero-hud__quest">
-        <span>Current quest</span>
-        <strong>{currentQuestLabel}</strong>
-        <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
-          {currentQuest === null ? 'Open map' : 'Continue quest'}
-        </Link>
-      </div>
+      {showQuest ? (
+        <div className="rpg-hero-hud__quest">
+          <div className="rpg-hero-hud__quest-copy">
+            <p className="rpg-hero-hud__quest-label">
+              {recommendation.state === 'needs_attention'
+                ? 'Blocked work needs attention'
+                : 'Current quest'}
+            </p>
+            <strong>{currentQuestLabel}</strong>
+            {currentQuest ? (
+              <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
+            ) : null}
+            {recommendation.state === 'required_complete' &&
+            recommendation.optionalRemainingCount > 0 ? (
+              <p className="rpg-hero-hud__quest-context">{`${recommendation.optionalRemainingCount} optional tasks remain on the map.`}</p>
+            ) : null}
+            {currentQuest ? (
+              <p className="rpg-hero-hud__quest-context">
+                {currentQuest.unitTitle} /{' '}
+                {formatMinutes(currentQuest.estimatedMinutes)}
+              </p>
+            ) : null}
+          </div>
+          <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
+            {currentQuest === null
+              ? 'Open map'
+              : getQuestActionLabel(currentQuest.status)}
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }
 
 export function RpgShell() {
-  const { coordination, refresh } = useAppState();
+  const { coordination, profile, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [reloadToken, setReloadToken] = useState(0);
   const location = useLocation();
@@ -214,7 +217,7 @@ export function RpgShell() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [profile?.updatedAt, reloadToken]);
 
   return (
     <section className="rpg-shell" data-testid="rpg-shell">
@@ -222,43 +225,85 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        <RpgHeroHud
-          onRetry={() => {
-            startTransition(() => {
-              setHudState(initialHudState);
-            });
-            setReloadToken((currentToken) => currentToken + 1);
-          }}
-          state={hudState}
-        />
+        <nav
+          aria-label="RPG utility navigation"
+          className="rpg-shell__utility-bar"
+        >
+          <Link
+            aria-current={
+              location.pathname === rpgSettingsPath ? 'page' : undefined
+            }
+            aria-label="Open Settings"
+            className="rpg-shell__settings-link"
+            to={rpgSettingsPath}
+          >
+            <svg
+              aria-hidden="true"
+              className="rpg-shell__settings-icon"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path d="M9.8 3.8h4.4l.6 2.1 1.6.9 2.1-.6 2.2 3.8-1.5 1.5v1.9l1.5 1.5-2.2 3.8-2.1-.6-1.6.9-.6 2.1H9.8L9.2 19l-1.6-.9-2.1.6-2.2-3.8 1.5-1.5v-1.9L3.3 10l2.2-3.8 2.1.6 1.6-.9.6-2.1Z" />
+              <circle cx="12" cy="12.4" r="2.8" />
+            </svg>
+            <span className="rpg-shell__settings-text">Settings</span>
+          </Link>
+        </nav>
+        {location.pathname !== rpgHeroPath ? (
+          <RpgHeroHud
+            showQuest={
+              location.pathname !== rpgRoutePath &&
+              location.pathname !== rpgFocusPath &&
+              !location.pathname.startsWith('/rpg/resource/')
+            }
+            onRetry={() => {
+              startTransition(() => {
+                setHudState(initialHudState);
+              });
+              setReloadToken((currentToken) => currentToken + 1);
+            }}
+            state={hudState}
+          />
+        ) : null}
         <main
           className="rpg-shell__main"
           id="rpg-main-content"
+          onFocus={(event) => {
+            // Native focus scrolling can expose only a textarea's caret. Keep
+            // the whole field above the fixed navigation using scroll padding.
+            if (event.target instanceof HTMLTextAreaElement) {
+              event.target.scrollIntoView({
+                behavior: 'instant',
+                block: 'nearest',
+                inline: 'nearest',
+              });
+            }
+          }}
           ref={mainRef}
           tabIndex={-1}
         >
           {coordination.blockReason === 'peer-active' ? (
             <RpgPanel
-              description="Another participating ProgressPal tab owns local writing."
+              description="Another ProgressPal tab is open for editing."
               role="alert"
               title="This ProgressPal tab is read-only"
             >
               <p>
                 You can still review saved progress and navigate here. Close the
-                writer tab; this tab will reread local data before enabling
+                other tab; this tab will reload saved data before enabling
                 changes.
               </p>
             </RpgPanel>
           ) : null}
           {coordination.blockReason === 'stale' ? (
             <RpgPanel
-              description="ProgressPal detected a newer local revision."
+              description="Saved data changed in another tab."
               role="alert"
               title="Reload changed local data"
             >
               <p>
                 Reload before making changes. This tab will remain read-only if
-                another tab still owns local writing.
+                another tab is still open for editing.
               </p>
               <RpgButton
                 onClick={() => {
@@ -272,13 +317,13 @@ export function RpgShell() {
           ) : null}
           {coordination.blockReason === 'unavailable' ? (
             <RpgPanel
-              description="The required Web Locks ownership guard is unavailable."
+              description="ProgressPal cannot safely coordinate edits in this browser right now."
               role="alert"
               title="Local writing is unavailable"
             >
               <p>
-                Saved data can still be reviewed. ProgressPal will not rely on
-                advisory tab notifications to authorize IndexedDB writes.
+                You can still review saved progress. Editing stays paused until
+                ProgressPal can protect your data from conflicting changes.
               </p>
             </RpgPanel>
           ) : null}

@@ -8,3 +8,9 @@
 *.webp binary
 *.woff binary
 *.woff2 binary
+
+# Source-release boundary: internal repository/process material is retained in
+# Git history but excluded from distributable archives created with git archive.
+AGENTS.md export-ignore
+.github/** export-ignore
+docs/** export-ignore

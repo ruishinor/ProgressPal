@@ -8,12 +8,9 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   {
     ignores: [
-      '.agent/**',
-      '.agents/**',
-      '.claude/**',
-      '_bmad/**',
-      '_bmad-output/**',
       'design-artifacts/**',
+      'artifacts/publish-readiness/**',
+      'artifacts/rpg-primary/**',
       'dist/**',
       'coverage/**',
       'node_modules/**',

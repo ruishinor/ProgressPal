@@ -30,6 +30,7 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
+import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 type DashboardPageStatus = 'error' | 'loading' | 'ready';
 
@@ -247,6 +248,12 @@ export function DashboardPage() {
               to="/achievements"
             >
               Achievements
+            </Link>
+            <Link
+              className="button button--secondary button--md"
+              to={rpgRoutePath}
+            >
+              Open RPG
             </Link>
           </div>
         }

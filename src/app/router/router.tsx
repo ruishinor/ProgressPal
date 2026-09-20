@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { HomePage } from '@/app/routes/HomePage';
 import { NotFoundPage } from '@/app/routes/NotFoundPage';
@@ -44,14 +44,19 @@ const insightsRoute = getRouteDefinition('insights');
 const settingsRoute = getRouteDefinition('settings');
 const notFoundRoute = getRouteDefinition('notFound');
 const homeRoute = getRouteDefinition('home');
+const profileRoute = getRouteDefinition('profile');
 
 export const router = createBrowserRouter([
   {
-    path: homeRoute.to ?? '/',
+    path: homeRoute.to,
+    element: <Navigate replace to="/rpg" />,
+  },
+  {
+    path: '/',
     element: <AppShell />,
     children: [
       {
-        index: true,
+        path: profileRoute.segment,
         element: <HomePage />,
       },
       {

@@ -34,7 +34,7 @@ const initialState: RpgMapPageState = {
 
 function getStatusTone(statusVariant: RpgModuleSummary['statusVariant']) {
   const tones: Record<RpgModuleSummary['statusVariant'], RpgStatusTone> = {
-    blocked: 'danger',
+    blocked: 'warning',
     completed: 'success',
     inProgress: 'progress',
     notStarted: 'neutral',
@@ -55,27 +55,47 @@ function getCurrentLabel(
   return currentModule?.id === module.id ? 'Current module' : null;
 }
 
-function getMapNodeAriaLabel(
-  module: RpgModuleSummary,
-  currentModule: RpgModuleSummary | null,
-) {
-  const currentLabel = getCurrentLabel(module, currentModule);
+function getMapNodeAriaLabel(module: RpgModuleSummary) {
+  const progressLabel =
+    module.requiredItemCount === 0
+      ? 'optional unit with no required tasks'
+      : `${module.completionPercent}% complete, ${module.completedRequiredItemCount} of ${module.requiredItemCount} required complete`;
   const parts = [
     `Open ${module.title}`,
     `status ${module.statusLabel}`,
-    `${module.completionPercent}% complete`,
-    `${module.completedRequiredItemCount} of ${module.requiredItemCount} required complete`,
-    currentLabel,
+    progressLabel,
   ].filter(Boolean);
 
   return parts.join(', ');
 }
 
+function getQuestMarker(
+  statusVariant: RpgModuleSummary['quests'][number]['statusVariant'],
+) {
+  if (statusVariant === 'completed') {
+    return '✓';
+  }
+
+  if (statusVariant === 'inProgress') {
+    return '•';
+  }
+
+  if (statusVariant === 'blocked') {
+    return '!';
+  }
+
+  if (statusVariant === 'optional') {
+    return '+';
+  }
+
+  return '○';
+}
+
 function RpgMapLoadingState() {
   return (
     <section className="page-section rpg-map">
-      <div className="rpg-map__header">
-        <p className="rpg-map__eyebrow">RPG</p>
+      <div className="rpg-map__header rpg-page-header">
+        <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
         <h1>Campaign Map</h1>
       </div>
       <LoadingState
@@ -144,8 +164,8 @@ export function RpgMapPage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-map">
-          <div className="rpg-map__header">
-            <p className="rpg-map__eyebrow">RPG</p>
+          <div className="rpg-map__header rpg-page-header">
+            <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Campaign Map</h1>
           </div>
           <ErrorState
@@ -176,54 +196,50 @@ export function RpgMapPage() {
 
   return (
     <section className="page-section rpg-map">
-      <div className="rpg-map__header">
+      <div className="rpg-map__header rpg-page-header">
         <div>
-          <p className="rpg-map__eyebrow">RPG</p>
+          <p className="rpg-map__eyebrow rpg-page-eyebrow">
+            Your learning campaign
+          </p>
           <h1>Campaign Map</h1>
-          <p className="rpg-map__lede">
-            CS50x course weeks from the local seed, linked to RPG week pages.
+          <p className="rpg-map__lede rpg-page-lede">
+            Pick up where you left off, or open any week.
           </p>
         </div>
         <div className="rpg-map__summary" aria-label="Campaign map summary">
+          <strong className="rpg-map__completion">
+            {`${summary.completionPercent}% complete`}
+          </strong>
+          <RpgProgressBar
+            className="rpg-map__course-progress"
+            label="Required course progress"
+            showValue={false}
+            value={summary.completionPercent}
+          />
           <span>{`${summary.unitCount} modules`}</span>
-          <span>{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</span>
+          <span>
+            {`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required tasks complete`}
+          </span>
+          {summary.currentModule !== null ? (
+            <span className="rpg-map__current-route">
+              Continue: {summary.currentModule.title}
+            </span>
+          ) : null}
         </div>
       </div>
 
       {summary.modules.length === 0 ? (
         <RpgEmptyState
-          description="No local course units were found in the current seed."
+          description="The course could not be found. Reload the app to try again."
           eyebrow="No modules"
           title="Campaign map is empty"
         />
       ) : (
-        <>
-          <RpgPanel
-            className="rpg-map__overview"
-            title="Course progress"
-            titleAs="h2"
-          >
-            <RpgProgressBar
-              helperText={`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required tasks complete`}
-              label="Required CS50x progress"
-              showValue={summary.requiredItemCount > 0}
-              value={summary.completionPercent}
-            />
-            {summary.currentModule !== null ? (
-              <p className="rpg-map__note">
-                Current module: {summary.currentModule.title}
-              </p>
-            ) : (
-              <p className="rpg-map__note">
-                No current module can be selected from local progress.
-              </p>
-            )}
-          </RpgPanel>
-
+        <div className="rpg-map__content">
           <RpgPanel
             className="rpg-map__visual-panel"
-            description="Each node is a normal link with visible status and progress text."
-            title="Module route"
+            padding="compact"
+            title="Course route"
             titleAs="h2"
           >
             <ol className="rpg-map__node-list" aria-label="Campaign map nodes">
@@ -233,96 +249,189 @@ export function RpgMapPage() {
                   summary.currentModule,
                 );
                 const availabilityLabel = getAvailabilityLabel(module);
+                const isCurrent = currentLabel !== null;
 
                 return (
                   <li
                     className="rpg-map__node-item"
                     data-testid={`rpg-module-${module.id}`}
+                    data-status={module.statusVariant}
                     key={module.id}
                   >
-                    <a
-                      aria-label={getMapNodeAriaLabel(
-                        module,
-                        summary.currentModule,
-                      )}
-                      className="rpg-map__node"
-                      data-current={currentLabel !== null ? 'true' : undefined}
-                      href={getRpgWeekPath(module.id)}
+                    <article
+                      className="rpg-map__module-card"
+                      data-current={isCurrent ? 'true' : undefined}
+                      data-status={module.statusVariant}
                     >
-                      <span className="rpg-map__node-index" aria-hidden="true">
-                        {module.typeLabel}
-                      </span>
-                      <span className="rpg-map__node-copy">
-                        <span className="rpg-map__node-title">
-                          {module.title}
-                        </span>
-                        <span className="rpg-map__node-meta">
-                          {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
-                            module.estimatedMinutes,
-                          )}`}
-                        </span>
-                      </span>
-                      <span className="rpg-map__node-status">
-                        {currentLabel ? (
-                          <RpgStatusPill tone="progress">
-                            {currentLabel}
-                          </RpgStatusPill>
-                        ) : null}
-                        <RpgStatusPill
-                          tone={getStatusTone(module.statusVariant)}
+                      {isCurrent ? (
+                        <div
+                          className="rpg-map__node rpg-map__node--current-summary"
+                          data-current="true"
+                          data-status={module.statusVariant}
                         >
-                          {module.statusLabel}
-                        </RpgStatusPill>
-                        <span>{`${module.completionPercent}%`}</span>
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ol>
-          </RpgPanel>
+                          <span
+                            className="rpg-map__node-index"
+                            aria-hidden="true"
+                          >
+                            {module.id.startsWith('week-')
+                              ? module.id.slice(5)
+                              : module.requiredItemCount === 0
+                                ? '+'
+                                : '◆'}
+                          </span>
+                          <span className="rpg-map__node-copy">
+                            <span className="rpg-map__node-type">
+                              {module.typeLabel}
+                            </span>
+                            <span className="rpg-map__node-title">
+                              {module.title}
+                            </span>
+                            <span className="rpg-map__node-meta">
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                                module.estimatedMinutes,
+                              )}`}
+                            </span>
+                          </span>
+                          <span className="rpg-map__node-status">
+                            <RpgStatusPill tone="progress">
+                              {currentLabel}
+                            </RpgStatusPill>
+                            <RpgStatusPill
+                              tone={getStatusTone(module.statusVariant)}
+                            >
+                              {module.statusLabel}
+                            </RpgStatusPill>
+                            {module.requiredItemCount > 0 ? (
+                              <span className="rpg-map__node-progress">
+                                {`${module.completionPercent}%`}
+                              </span>
+                            ) : null}
+                          </span>
+                          {module.requiredItemCount > 0 ? (
+                            <span
+                              className="rpg-map__node-track"
+                              aria-hidden="true"
+                            >
+                              <span
+                                style={{
+                                  width: `${module.completionPercent}%`,
+                                }}
+                              />
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <a
+                          aria-label={getMapNodeAriaLabel(module)}
+                          className="rpg-map__node"
+                          data-status={module.statusVariant}
+                          href={getRpgWeekPath(module.id)}
+                        >
+                          <span
+                            className="rpg-map__node-index"
+                            aria-hidden="true"
+                          >
+                            {module.id.startsWith('week-')
+                              ? module.id.slice(5)
+                              : module.requiredItemCount === 0
+                                ? '+'
+                                : '◆'}
+                          </span>
+                          <span className="rpg-map__node-copy">
+                            <span className="rpg-map__node-type">
+                              {module.typeLabel}
+                            </span>
+                            <span className="rpg-map__node-title">
+                              {module.title}
+                            </span>
+                            <span className="rpg-map__node-meta">
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                                module.estimatedMinutes,
+                              )}`}
+                            </span>
+                          </span>
+                          <span className="rpg-map__node-status">
+                            <RpgStatusPill
+                              tone={getStatusTone(module.statusVariant)}
+                            >
+                              {module.statusLabel}
+                            </RpgStatusPill>
+                            {module.requiredItemCount > 0 ? (
+                              <span className="rpg-map__node-progress">
+                                {`${module.completionPercent}%`}
+                              </span>
+                            ) : null}
+                          </span>
+                          {module.requiredItemCount > 0 ? (
+                            <span
+                              className="rpg-map__node-track"
+                              aria-hidden="true"
+                            >
+                              <span
+                                style={{
+                                  width: `${module.completionPercent}%`,
+                                }}
+                              />
+                            </span>
+                          ) : null}
+                        </a>
+                      )}
 
-          <RpgPanel
-            className="rpg-map__fallback"
-            description="Plain list fallback for scanning the same modules without relying on the visual route layout."
-            title="Plain module list"
-            titleAs="h2"
-          >
-            <ol className="rpg-map__plain-list">
-              {summary.modules.map((module) => {
-                const currentLabel = getCurrentLabel(
-                  module,
-                  summary.currentModule,
-                );
+                      {isCurrent ? (
+                        <div className="rpg-map__current-detail">
+                          <div className="rpg-map__current-heading">
+                            <div>
+                              <h3>Tasks in {module.title}</h3>
+                            </div>
+                            <span>
+                              {`${module.completedRequiredItemCount} of ${module.requiredItemCount} required complete`}
+                            </span>
+                          </div>
 
-                return (
-                  <li key={module.id}>
-                    <div>
-                      <a
-                        className="rpg-map__plain-link"
-                        href={getRpgWeekPath(module.id)}
-                      >
-                        {module.title}
-                      </a>
-                      {currentLabel ? (
-                        <span className="rpg-map__plain-current">
-                          {currentLabel}
-                        </span>
+                          <ol
+                            aria-label={`${module.title} quest status`}
+                            className="rpg-map__quest-preview"
+                          >
+                            {module.quests.map((quest) => (
+                              <li
+                                className="rpg-map__quest-preview-item"
+                                data-status={quest.statusVariant}
+                                key={quest.id}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="rpg-map__quest-marker"
+                                >
+                                  {getQuestMarker(quest.statusVariant)}
+                                </span>
+                                <span className="rpg-map__quest-copy">
+                                  <strong>{quest.title}</strong>
+                                  <span>{quest.typeLabel}</span>
+                                </span>
+                                <span className="rpg-map__quest-status">
+                                  {quest.statusLabel}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+
+                          <RpgButton
+                            aria-current="step"
+                            className="rpg-map__continue"
+                            href={getRpgWeekPath(module.id)}
+                            size="sm"
+                          >
+                            Continue learning
+                          </RpgButton>
+                        </div>
                       ) : null}
-                    </div>
-                    <p>
-                      {`Status: ${module.statusLabel}. Availability: ${getAvailabilityLabel(
-                        module,
-                      )}. Progress: ${module.completedRequiredItemCount} of ${
-                        module.requiredItemCount
-                      } required complete (${module.completionPercent}%).`}
-                    </p>
+                    </article>
                   </li>
                 );
               })}
             </ol>
           </RpgPanel>
-        </>
+        </div>
       )}
     </section>
   );

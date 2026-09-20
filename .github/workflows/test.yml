@@ -37,9 +37,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run immutable release gate
         env:
-          RELEASE_MODULE: v1.3-final-candidate
+          RELEASE_MODULE: rpg-primary-final-candidate
           RELEASE_PASS: '1'
-          RELEASE_REVIEW_FILE: docs/remediation/v1.3-final-release-review.json
+          RELEASE_REVIEW_FILE: docs/remediation/rpg-primary-final-release-review.json
         run: npm run verify:release
       - name: Upload release evidence
         if: always()

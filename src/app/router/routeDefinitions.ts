@@ -15,6 +15,7 @@ import {
 
 export type AppRouteId =
   | 'home'
+  | 'profile'
   | 'onboarding'
   | 'dashboard'
   | 'course'
@@ -53,6 +54,12 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'home',
     segment: '',
     to: '/',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'profile',
+    segment: 'profile',
+    to: '/profile',
     label: 'Profile',
     end: true,
     includeInPrimaryNavigation: true,

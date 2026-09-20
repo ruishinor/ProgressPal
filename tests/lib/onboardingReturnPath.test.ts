@@ -22,6 +22,6 @@ describe('getOnboardingReturnPath', () => {
     { returnTo: '/rpg\\focus' },
     { returnTo: '/rpg\n/focus' },
   ])('falls back for unsafe or malformed state %#', (state) => {
-    expect(getOnboardingReturnPath(state)).toBe('/dashboard');
+    expect(getOnboardingReturnPath(state)).toBe('/rpg');
   });
 });

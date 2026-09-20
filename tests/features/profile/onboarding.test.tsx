@@ -111,7 +111,7 @@ describe('OnboardingPage', () => {
     expect(saveProfile).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back to the dashboard for an unsafe return destination', async () => {
+  it('falls back to RPG for an unsafe return destination', async () => {
     const user = userEvent.setup();
     const saveProfile = vi
       .fn<AppStateContextValue['saveProfile']>()
@@ -123,6 +123,6 @@ describe('OnboardingPage', () => {
       screen.getByRole('button', { name: 'Use default learner' }),
     );
 
-    expect(await screen.findByText('/dashboard')).toBeInTheDocument();
+    expect(await screen.findByText('/rpg')).toBeInTheDocument();
   });
 });

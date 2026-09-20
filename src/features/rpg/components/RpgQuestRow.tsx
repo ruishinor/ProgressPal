@@ -6,6 +6,7 @@ export type RpgQuestRowProps = HTMLAttributes<HTMLLIElement> & {
   action?: ReactNode;
   meta: string;
   requiredLabel: string;
+  rewardLabel?: string;
   status: ReactNode;
   summary?: string;
   title: string;
@@ -16,6 +17,7 @@ export function RpgQuestRow({
   className,
   meta,
   requiredLabel,
+  rewardLabel,
   status,
   summary,
   title,
@@ -31,6 +33,7 @@ export function RpgQuestRow({
           </span>
         </div>
         <p className="rpg-quest-row__meta">{meta}</p>
+        {rewardLabel ? <p className="rpg-quest-reward">{rewardLabel}</p> : null}
         {summary ? <p className="rpg-quest-row__meta">{summary}</p> : null}
       </div>
       <div className="rpg-quest-row__aside">

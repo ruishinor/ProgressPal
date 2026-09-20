@@ -1,3 +1,10 @@
+> **Historical product input — superseded for execution.** This June 2026
+> document explains the original RPG intention, but it is not a current build
+> plan. Use `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` for the accepted
+> C0-C5 sequence. Do not execute this document's old branch, release,
+> default-switch, schema/persistent-disclosure, cosmetic-title, or Journey Log
+> instructions.
+
 **Freeze the current app as the new live proof of the local-first CS50 tracker. Then start a narrower RPG-shell transformation phase from that frozen state.**
 
 Do not treat the current build as failed RPG v2. Treat it as the engine finally reaching the maturity it should have had before the RPG wrapper began.

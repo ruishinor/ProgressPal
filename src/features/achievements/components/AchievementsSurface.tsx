@@ -1,4 +1,11 @@
-import { startTransition, useEffect, useId, useMemo, useState } from 'react';
+import {
+  startTransition,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -33,6 +40,7 @@ type AchievementsSurfaceVariant = 'classic' | 'rpg';
 
 type AchievementsSurfaceProps = {
   variant?: AchievementsSurfaceVariant;
+  renderArtwork?: (achievementId: string) => ReactNode;
 };
 
 type AchievementsPageStatus = 'error' | 'loading' | 'ready';
@@ -59,6 +67,7 @@ const statusOptions: { label: string; value: AchievementStatusFilter }[] = [
 
 export function AchievementsSurface({
   variant = 'classic',
+  renderArtwork,
 }: AchievementsSurfaceProps) {
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
@@ -148,9 +157,9 @@ export function AchievementsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-badges__header">
+          <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow">RPG</p>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Achievements</h1>
             </div>
             <div className="rpg-badges__actions">
@@ -194,9 +203,9 @@ export function AchievementsSurface({
     return (
       <section className={sectionClassName}>
         {isRpgVariant ? (
-          <div className="rpg-badges__header">
+          <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow">RPG</p>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
               <h1>Achievements</h1>
             </div>
           </div>
@@ -233,11 +242,13 @@ export function AchievementsSurface({
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-badges__header">
+        <div className="rpg-badges__header rpg-page-header">
           <div>
-            <p className="rpg-badges__eyebrow">RPG</p>
+            <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Achievements</h1>
-            <p className="rpg-badges__lede">{headerDescription}</p>
+            <p className="rpg-badges__lede rpg-page-lede">
+              {headerDescription}
+            </p>
             <div className="meta-cluster">{headerMeta}</div>
           </div>
           <div className="rpg-badges__actions">
@@ -319,20 +330,33 @@ export function AchievementsSurface({
                 variant={achievement.unlocked ? 'accent' : 'default'}
               >
                 <div className="achievement-card__head">
+                  {isRpgVariant ? renderArtwork?.(achievement.id) : null}
                   <AchievementTitle className="achievement-card__title">
                     {achievement.title}
                   </AchievementTitle>
                   <StatusPill
                     variant={achievement.unlocked ? 'completed' : 'notStarted'}
                   >
-                    {achievement.unlocked ? 'Unlocked' : 'Locked'}
+                    {achievement.unlocked
+                      ? isRpgVariant
+                        ? 'Earned'
+                        : 'Unlocked'
+                      : 'Locked'}
                   </StatusPill>
                 </div>
 
                 <p className="achievement-card__how">
-                  <span className="achievement-card__how-label">
-                    {achievement.unlocked ? 'Earned for: ' : 'How to unlock: '}
-                  </span>
+                  {!isRpgVariant ? (
+                    <span className="achievement-card__how-label">
+                      {achievement.unlocked
+                        ? isRpgVariant
+                          ? 'Requirement met: '
+                          : 'Earned for: '
+                        : isRpgVariant
+                          ? 'Requirement: '
+                          : 'How to unlock: '}
+                    </span>
+                  ) : null}
                   {achievement.description}
                 </p>
 
@@ -340,10 +364,9 @@ export function AchievementsSurface({
                   <Badge tone="neutral">
                     {achievementCategoryLabels[achievement.category]}
                   </Badge>
-                  <Badge tone="neutral">{`${achievement.xpReward} XP`}</Badge>
                   {achievement.unlocked && achievement.unlockedAt ? (
                     <span className="achievement-card__date">
-                      {`Unlocked ${formatUnlockDate(achievement.unlockedAt)}`}
+                      {`${isRpgVariant ? 'Earned' : 'Unlocked'} ${formatUnlockDate(achievement.unlockedAt)}`}
                     </span>
                   ) : null}
                 </div>

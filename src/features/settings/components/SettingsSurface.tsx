@@ -179,7 +179,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       // feedback. Refreshing app state forces a reload that unmounts this page,
       // so a success toast here would never survive; the dashboard is the
       // feedback instead. Verify-your-restore guidance lives in the preview.
-      navigate('/dashboard', { replace: true });
+      navigate('/rpg', { replace: true });
     } catch {
       setToast({
         title: 'Import failed',
@@ -214,11 +214,11 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   return (
     <section className={sectionClassName}>
       {isRpgVariant ? (
-        <div className="rpg-settings__header">
+        <div className="rpg-settings__header rpg-page-header">
           <div>
-            <p className="rpg-settings__eyebrow">RPG</p>
+            <p className="rpg-settings__eyebrow rpg-page-eyebrow">RPG</p>
             <h1>Settings</h1>
-            <p className="rpg-settings__lede">
+            <p className="rpg-settings__lede rpg-page-lede">
               Edit your local profile and manage on-device data: export a
               backup, import one, or reset everything. Stored only in this
               browser on this device.
@@ -237,7 +237,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         <PageHeader
           actions={
             <div className="action-row">
-              <Link className="button button--secondary button--md" to="/">
+              <Link
+                className="button button--secondary button--md"
+                to="/profile"
+              >
                 Back to profile
               </Link>
             </div>
@@ -253,7 +256,23 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           title="Settings"
         />
       )}
+      <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <p className="card__description">
+          {isRpgVariant
+            ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
+            : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
+        </p>
+        <div className="action-row">
+          <Link
+            className="button button--secondary button--md"
+            to={isRpgVariant ? '/dashboard' : rpgRoutePath}
+          >
+            {isRpgVariant ? 'Open Classic interface' : 'Return to RPG'}
+          </Link>
+        </div>
+      </Card>
       <ProfileForm
+        variant={variant}
         cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
         disabled={!coordination.canWrite}
         key={profile.updatedAt}
@@ -263,7 +282,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           setToast({
             title: 'Local profile saved',
             description:
-              'Profile, theme, motion, and study cadence were updated on this device.',
+              'Profile, appearance, motion, and study cadence were updated on this device.',
             tone: 'success',
           });
         }}

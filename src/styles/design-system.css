@@ -97,6 +97,18 @@
   padding: var(--space-2);
 }
 
+.shell-nav__utility {
+  align-items: center;
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  margin-left: auto;
+  padding-left: var(--space-2);
+}
+
+.shell-nav__link--utility {
+  font-weight: 700;
+}
+
 .shell-nav__link {
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
@@ -1484,6 +1496,15 @@
     padding: var(--space-3);
   }
 
+  .shell-nav__utility {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: var(--space-2);
+    width: 100%;
+  }
+
   .shell-brand-block,
   .page-header,
   .card,
@@ -1753,4 +1774,22 @@
 .lecture-previous-notes__meta {
   color: var(--color-text-soft);
   font-size: var(--text-sm);
+}
+
+.inline-info button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35em;
+}
+.inline-info button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.inline-info > span:not([hidden]) {
+  display: block;
+  font-size: var(--text-sm);
+  margin-block: 0.5rem;
 }

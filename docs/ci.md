@@ -13,7 +13,7 @@
 
 ## Pipeline structure
 
-The `Final candidate` job checks out `github.sha`, installs the locked environment, and runs `npm run verify:release` once with `RELEASE_MODULE=v1.3-final-candidate` and `RELEASE_PASS=1`.
+The `Final candidate` job checks out `github.sha`, installs the locked environment, and runs `npm run verify:release` once with `RELEASE_MODULE=rpg-primary-final-candidate` and `RELEASE_PASS=1`.
 
 There is no sharding or retry. `npm test` is intentionally limited to one worker and no file parallelism because the inherited unconstrained Vitest process model leaked workers on Windows.
 
@@ -24,9 +24,9 @@ From a clean committed tree under Node 24/npm 11:
 ```powershell
 npm ci
 npx playwright install chromium
-$env:RELEASE_MODULE = 'v1.3-final-candidate'
+$env:RELEASE_MODULE = 'rpg-primary-final-candidate'
 $env:RELEASE_PASS = '1'
-$env:RELEASE_REVIEW_FILE = 'docs/remediation/v1.3-final-release-review.json'
+$env:RELEASE_REVIEW_FILE = 'docs/remediation/rpg-primary-final-release-review.json'
 npm run verify:release
 ```
 
