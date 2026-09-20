@@ -295,11 +295,18 @@ html:has(body.rpg-route-active) {
   overflow: visible;
 }
 
-.rpg-bottom-nav__link:hover,
 .rpg-bottom-nav__link:focus-visible {
   background: var(--rpg-surface-raised);
   border-color: var(--rpg-border);
   color: var(--rpg-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rpg-bottom-nav__link:hover {
+    background: var(--rpg-surface-raised);
+    border-color: var(--rpg-border);
+    color: var(--rpg-text);
+  }
 }
 
 .rpg-bottom-nav__link--active {

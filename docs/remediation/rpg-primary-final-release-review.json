@@ -4,47 +4,57 @@
   "reviewer": "AI-assisted engineering review with human owner-controlled acceptance",
   "reviewScope": {
     "date": "2026-09-20",
-    "certifiedRuntimeBaseCommit": "07ae92a08abe87738986c418d2c0d603ee2a4005",
-    "certifiedRuntimeBaseTree": "fe599050158c366d69b760f77e13270d43f2d150",
-    "binding": "Reviews one release-boundary and current-state documentation successor on top of the certified runtime candidate. Application runtime behavior is intentionally unchanged. The exact successor HEAD/tree is recorded by the immutable release manifest after commit; this tracked review therefore binds the known certified runtime base and the bounded successor scope without attempting to self-reference its own commit SHA.",
+    "certifiedRuntimeBaseCommit": "770c1c08f9d8c282bc60a4de8b3ac95666047dbe",
+    "certifiedRuntimeBaseTree": "d32b669eb882a48b56bc0d338fc95a1a85173de7",
+    "binding": "Reviews one bounded mobile presentation repair successor on top of the certified and sanitized 770c1c0 candidate. The exact successor HEAD/tree is recorded by the immutable release manifest after commit; this tracked review binds the certified base and narrowly defined runtime delta without self-referencing its own commit SHA.",
     "scope": [
-      "Remove local-tool directory exceptions from distributable lint/format/ignore configuration after those local directories were moved outside the repository.",
-      "Define a deterministic git-archive source-package boundary that excludes internal repository/process material while preserving it in repository history.",
-      "Replace stale active release prose with a concise current-state ledger and keep the immutable release manifest authoritative for the final successor SHA/tree.",
-      "Do not change application source, tests, package manifests, lockfile, service worker, storage, XP, achievements, course data, dependencies, CSP, or runtime behavior."
+      "Keep the already-correct viewport-fixed mobile bottom navigation behavior unchanged.",
+      "Raise the expanded current Campaign Map module above its decorative route spine so the connector cannot paint through task content or the Continue learning action.",
+      "Restrict bottom-navigation hover styling to hover-capable fine-pointer devices while retaining focus-visible styling for keyboard accessibility.",
+      "Add directly coupled mobile regression assertions for Campaign Map stacking and touch-pointer hover behavior.",
+      "Do not change engine rules, storage, service worker, CSP, dependencies, data model, course content, navigation destinations, or broader product design."
     ],
     "evidence": [
-      "Runtime base 07ae92a08abe87738986c418d2c0d603ee2a4005 passed the local immutable release gate on tree fe599050158c366d69b760f77e13270d43f2d150.",
-      "Independent GitHub Release validation / Final candidate succeeded on the same runtime-base SHA.",
-      "The Vercel preview for the same runtime-base SHA reached READY.",
-      "Physical iPhone/Safari, Android/Chrome, human screen-reader, owner GO, and final production hosted-origin smoke/rollback remain publication prerequisites."
+      "Base 770c1c08f9d8c282bc60a4de8b3ac95666047dbe passed the local immutable release gate on tree d32b669eb882a48b56bc0d338fc95a1a85173de7.",
+      "Independent GitHub Release validation / Final candidate #7 succeeded on the same base SHA/tree.",
+      "The Vercel preview for the same base SHA reached READY.",
+      "Physical mobile review across separate browser sessions, including a private/incognito session, showed the Campaign Map route spine painting through the expanded current-module card and a stale touch-hover visual state on bottom-navigation destinations.",
+      "The same physical evidence did not reproduce the earlier document-scroll navigation regression: the bar remained attached to the usable viewport while browser chrome changed the visual viewport height.",
+      "After this repair, targeted automated checks, one immutable full gate, independent CI, and focused physical-device confirmation remain required before publication."
     ]
   },
   "adversarialFindings": [
     {
-      "id": "FINAL-BOUNDARY-01",
+      "id": "FINAL-MOBILE-01",
       "severity": "P1",
-      "description": "Working-directory source handoffs could include ignored local development-tool trees and generated artifacts, and tracked configuration contained exceptions specifically for those local trees.",
-      "resolution": "Move the local development-tool trees outside the repository, remove their tracked lint/format/ignore exceptions, and create distributable source only with git archive from the exact final commit. Internal repository/process material is excluded structurally with export-ignore rather than by rewriting historical records.",
+      "description": "On the mobile Campaign Map, the decorative vertical route spine paints through the expanded current-module content, including task rows and the Continue learning CTA.",
+      "resolution": "Establish the current expanded module card as a positioned z-index layer above the connector while leaving the connector visible between modules.",
       "status": "resolved"
     },
     {
-      "id": "FINAL-BOUNDARY-02",
+      "id": "FINAL-MOBILE-02",
       "severity": "P2",
-      "description": "Active release prose lagged the certified 07ae92a runtime state and hard-coding the final successor SHA inside files that determine that SHA would create a self-reference problem.",
-      "resolution": "Record 07ae92a as the certified runtime base and make the immutable release manifest authoritative for the exact successor HEAD/tree. Keep documentation concise and current rather than appending another release chronology.",
+      "description": "Touch browsers can retain the unconditional bottom-navigation hover treatment on a previously tapped destination, creating a false second selected-looking state alongside the actual active route.",
+      "resolution": "Keep focus-visible styling universal and apply hover styling only when the primary input reports both hover capability and a fine pointer.",
       "status": "resolved"
     },
     {
-      "id": "FINAL-BOUNDARY-03",
+      "id": "FINAL-MOBILE-03",
       "severity": "P2",
-      "description": "Automated local/remote certification does not replace physical-device ergonomics, human screen-reader evaluation, owner publication approval, or production hosted-origin validation.",
-      "resolution": "Keep real iPhone/Safari, Android/Chrome, human screen-reader review, owner GO, and production hosted smoke/rollback as explicit publication prerequisites after the successor candidate is certified.",
+      "description": "Physical review initially raised concern that the fixed bottom navigation had reverted to document-scrolling behavior.",
+      "resolution": "Cross-browser and private-session recordings show the navigation remaining attached to the usable viewport. Its physical screen position changes when mobile browser chrome expands or collapses, which changes the visual viewport; the fixed-position implementation is retained unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "FINAL-MOBILE-04",
+      "severity": "P2",
+      "description": "Automated certification does not replace focused real-device confirmation of the repaired visual defects, human screen-reader review, owner GO, or final production hosted-origin validation.",
+      "resolution": "Require focused mobile confirmation after deployment of the repaired candidate, then complete the remaining human accessibility and production publication checks without reopening unrelated feature work.",
       "status": "accepted-risk"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "The runtime candidate is already certified locally and independently in CI. This successor is intentionally limited to source-package boundary, validation-configuration sanitation, and current-state evidence/documentation. Because lint/format/package-boundary configuration changes, certify the committed successor once locally and once in independent CI; do not reopen feature work or repeat unchanged gates."
+    "summary": "Physical mobile evidence found two concrete presentation defects after base certification: Campaign Map connector stacking and stale touch-hover styling. Apply only those coupled CSS corrections plus regression assertions. Preserve the working fixed-navigation implementation and avoid broader mobile redesign. After targeted validation, certify the committed successor once locally and once in independent CI, then repeat only the focused physical checks affected by this repair before continuing publication."
   }
 }

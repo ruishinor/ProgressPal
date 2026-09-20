@@ -1343,6 +1343,8 @@
   border-radius: var(--radius-md);
   box-shadow: 0 0.6rem 1.4rem rgb(0 0 0 / 0.18);
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .rpg-map__module-card[data-current='true'] .rpg-map__node {

@@ -138,8 +138,10 @@ type BrowserLayoutScope = {
     paddingLeft: string;
     paddingRight: string;
     position: string;
+    zIndex: string;
   };
   innerWidth: number;
+  matchMedia: (query: string) => { matches: boolean };
   scrollY: number;
 };
 
@@ -320,6 +322,45 @@ test('mobile bottom navigation stays fixed during real document scroll', async (
   ).toBeLessThanOrEqual(1);
 });
 
+test('touch navigation does not preserve hover styling on a previous destination', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { height: 844, width: 390 },
+  });
+  const page = await context.newPage();
+
+  await completeOnboarding(page);
+  await page.goto('/rpg');
+
+  const hoverFine = await page.evaluate(() => {
+    const scope = globalThis as unknown as BrowserLayoutScope;
+    return scope.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  });
+  expect(hoverFine).toBe(false);
+
+  const insights = page
+    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('link', { name: 'Insights' });
+
+  const beforeHover = await insights.evaluate((element) => {
+    const scope = globalThis as unknown as BrowserLayoutScope;
+    return scope.getComputedStyle(element).backgroundColor;
+  });
+
+  await insights.hover();
+
+  const afterHover = await insights.evaluate((element) => {
+    const scope = globalThis as unknown as BrowserLayoutScope;
+    return scope.getComputedStyle(element).backgroundColor;
+  });
+
+  expect(afterHover).toBe(beforeHover);
+  await context.close();
+});
+
 test('mobile navigation keeps the six RPG destinations direct and moves Classic to Settings', async ({
   page,
 }) => {
@@ -403,9 +444,27 @@ test('mobile campaign path reaches a Week task and its real resource action', as
   await page.goto('/rpg/map');
 
   const weekZeroModule = page.getByTestId('rpg-module-week-0');
+  const currentModuleCard = weekZeroModule.locator(
+    '.rpg-map__module-card[data-current="true"]',
+  );
   const continueLink = weekZeroModule.getByRole('link', {
     name: 'Continue learning',
   });
+
+  const layering = await currentModuleCard.evaluate((element) => {
+    const scope = globalThis as unknown as BrowserLayoutScope;
+    const styles = scope.getComputedStyle(element);
+
+    return {
+      backgroundColor: styles.backgroundColor,
+      position: styles.position,
+      zIndex: styles.zIndex,
+    };
+  });
+
+  expect(layering.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+  expect(layering.position).toBe('relative');
+  expect(Number.parseInt(layering.zIndex, 10)).toBeGreaterThan(0);
 
   await expect(
     weekZeroModule.getByRole('list', {
