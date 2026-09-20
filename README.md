@@ -2,15 +2,11 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The primary `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Tracker can be opened deliberately from RPG.
+The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The primary `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Classic interface is available deliberately from RPG.
 
-C0-C5 product-completion work and final owner-review corrections are frozen on `rpg/product-completion` at `freeze/rpg-product-completion-2026-09-16`, following the owner's commit/tag/freeze/push instruction. Acceptance evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. This repository checkpoint is not a new production release.
+The certified runtime baseline for publication closure is `07ae92a08abe87738986c418d2c0d603ee2a4005` (tree `fe599050158c366d69b760f77e13270d43f2d150`) on `rpg/publish-readiness`. That runtime candidate passed the immutable local release gate and independent GitHub Final candidate validation on 2026-09-19. Release-boundary or documentation-only follow-up may create a successor commit without changing application runtime; the immutable release manifest for that committed candidate is authoritative for the exact final SHA/tree rather than this README attempting to self-reference its own commit.
 
-The owner subsequently authorized bounded local publish-readiness corrections on
-`rpg/publish-readiness`. Current work and validation are recorded in
-[the completion record, section 12](docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md#12-rpg-primary-final-candidate).
-The historical freeze remains immutable. Owner review and publication are separate
-steps; this branch does not change the deployed application.
+Publication remains blocked until the required real iPhone/Safari, Android/Chrome, human screen-reader, owner GO, merge, and production hosted-origin smoke/rollback checks are complete.
 
 ## Current product position
 
@@ -33,66 +29,11 @@ ProgressPal is not:
 - an AI tutor;
 - a media streaming interface.
 
-## Release freeze status
+## Release and source-package status
 
-Frozen optional RPG completion checkpoint:
+The immutable engine proof remains tagged `v1.3.0-local-first-proof`, and the completed RPG product work remains frozen at `freeze/rpg-product-completion-2026-09-16`. Current publication closure is performed on `rpg/publish-readiness`; it does not reopen product or engine work.
 
-```text
-freeze/rpg-product-completion-2026-09-16
-```
-
-The annotated tag identifies the final completion commit, including the freeze
-record. Runtime implementation is `5610da1`; package version remains `1.3.0`.
-The bounded reopening above follows a new owner instruction. The latest owner instruction promotes RPG to the default; `master`, historical release tags, and production are unchanged.
-
-Frozen engine release:
-
-```text
-ProgressPal CS50 Edition v1.3.0 - local-first CS50 tracker proof
-```
-
-Existing immutable release tag:
-
-```text
-v1.3.0-local-first-proof
-```
-
-Strategic planning/reference document:
-
-```text
-docs/ProgressPal CS50 RPG v2 - 26-06-23.md
-```
-
-Release note:
-
-```text
-docs/releases/v1.3.0-local-first-proof.md
-```
-
-## RPG v2 source of truth
-
-For RPG v2 work, read these files first:
-
-```text
-docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md
-docs/rpg-v2/ROADMAP-rpg-v2-source-of-truth.md
-docs/rpg-v2/DECISIONS-rpg-v2.md
-docs/rpg-v2/VALIDATION_LOG.md
-docs/rpg-v2/MIGRATION_CONTRACT.md
-docs/rpg-v2/ASSETS.md
-docs/rpg-v2/RISK_REGISTER.md
-docs/rpg-v2/VISUAL_TARGET.md
-```
-
-The latest owner instructions and product-completion restart document govern current work. The June 23 planning document, older restart prompt, release-remediation stories, and module handoffs are historical context, not new implementation queues.
-
-Older root-level planning files may describe the completed v1 engine phase and may be archived under:
-
-```text
-docs/archive/engine-v1/
-```
-
-Those archived files are historical context, not active RPG v2 implementation guidance.
+Internal engineering history, release reviews, implementation notes, and repository automation are retained in the repository for traceability but are not part of the distributable source archive. Source-release archives must be created from the exact final commit with `git archive`, which applies the tracked `export-ignore` boundary. Do not create release archives by zipping a working directory.
 
 ## Architecture summary
 
@@ -156,10 +97,9 @@ npm run audit
 
 ## RPG shell transformation rule
 
-Preserve completed C0-C5 behavior, the shared local-first engine, and direct secondary Tracker routes. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
+Preserve completed C0-C5 behavior, the shared local-first engine, and direct secondary Classic routes. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
 
-The owner authorized the completion branch and freeze tag to be pushed on
-2026-09-16. The latest owner instruction separately authorizes RPG default promotion and local certification. PR, merge, deployment, and version changes remain separate owner decisions.
+Publication closure is limited to packaging/evidence sanitation, candidate certification, the required physical/manual checks, and the explicit owner-controlled merge/deployment sequence. Product behavior changes require a new accepted scope.
 
 ## License
 

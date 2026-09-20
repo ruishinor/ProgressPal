@@ -5,10 +5,5 @@ playwright-report/
 test-results/
 artifacts/
 
-# Local AI / agent support folders
-.agent/
-.agents/
-.claude/
-_bmad/
-_bmad-output/
+# Local design artifacts
 design-artifacts/

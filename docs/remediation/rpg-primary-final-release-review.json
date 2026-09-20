@@ -1,70 +1,50 @@
 {
   "schemaVersion": 1,
   "module": "rpg-primary-final-candidate",
-  "reviewer": "ChatGPT GPT-5.6 Sol, final physical-device recovery adversarial review",
+  "reviewer": "AI-assisted engineering review with human owner-controlled acceptance",
   "reviewScope": {
-    "date": "2026-09-19",
-    "candidateBaseCommit": "688a9c8ef74db45bca0b8c0fb65b91abb05ac79a",
-    "candidateBaseTree": "4dbe9d93ca0233e9f117dafd8070619d8c51fa09",
-    "binding": "Reviews one regenerated release-recovery candidate applied directly on top of the exact clean B-final commit that already passed local immutable certification and independent GitHub Final candidate CI. The candidate changes only mobile RPG bottom-navigation presentation, directly coupled Playwright regression coverage, and this tracked release-review evidence. The immutable release gate must record the exact final committed HEAD/tree and this review-file checksum; the earlier 688a9c8 certificates do not certify the changed candidate.",
-    "method": "Start from the last clean certified commit rather than continue the uncommitted repair chain. Reassess the real-device mobile-browser finding against the effective CSS cascade, RpgShell DOM placement, mobile containment tests, visual evidence semantics, service-worker code, Vercel preview protection, release runner, CI workflow, and publication prerequisites. Require the smallest coherent navigation fix, viewport-edge geometry assertions at 320/360/375/390/430 px, a dedicated real-document-scroll regression on the long Settings route using the established structural BrowserLayoutScope pattern, one clean local immutable release gate, fresh real iPhone/Safari and Android/Chrome checks on the exact deployed candidate, manual human screen-reader review, independent GitHub Final candidate CI on the same SHA, and exact Vercel production smoke/rollback verification before publication is called complete.",
-    "checks": [
-      "The recovery base is the clean B-final commit 688a9c8ef74db45bca0b8c0fb65b91abb05ac79a with tree 4dbe9d93ca0233e9f117dafd8070619d8c51fa09; its previous local and remote certificates are baseline evidence only after this candidate changes source bytes.",
-      "A real mobile-device browser check on the protected Vercel preview exposed a release-blocking mobile navigation defect: the bottom navigation moved with document scroll and did not span the viewport edge to edge.",
-      "The mobile CSS repair overrides the inherited sticky/centered/capped grid-item behavior only below 42rem: position becomes fixed, inline insets are zero, justify-self stretches, max-width is removed, safe-area-aware inline padding remains, and width is auto.",
-      "Playwright coverage proves fixed positioning, left/right/bottom viewport attachment and reserved content space across 320/360/375/390/430 px, then independently scrolls the long RPG Settings document and proves the navigation retains its viewport-relative Y position and bottom attachment.",
-      "The E2E implementation uses a narrow BrowserLayoutScope structural type rather than adding DOM libs or direct browser globals to the Node E2E TypeScript project.",
-      "No storage schema, backup format, XP/reward/achievement rules, course data, service-worker implementation, package manifest, lockfile, dependency, Classic behavior, or RPG information architecture changes in this repair.",
-      "The vercel.live toolbar script CSP violation is preview-tooling injection blocked by the existing strict script-src 'self' policy and is not a reason to weaken CSP. The protected-preview service-worker fetch rejection remains an observation to recheck on an unprotected/final hosted origin; do not change the worker unless a user-visible failure reproduces outside preview protection.",
-      "Publication remains blocked until the changed candidate is cleanly committed, passes one local immutable release gate, is pushed, passes independent GitHub Final candidate CI on that exact SHA, passes fresh real iPhone/Safari and Android/Chrome checks plus manual human screen-reader review, receives owner GO, and passes production hosted-origin smoke with rollback readiness."
+    "date": "2026-09-20",
+    "certifiedRuntimeBaseCommit": "07ae92a08abe87738986c418d2c0d603ee2a4005",
+    "certifiedRuntimeBaseTree": "fe599050158c366d69b760f77e13270d43f2d150",
+    "binding": "Reviews one release-boundary and current-state documentation successor on top of the certified runtime candidate. Application runtime behavior is intentionally unchanged. The exact successor HEAD/tree is recorded by the immutable release manifest after commit; this tracked review therefore binds the known certified runtime base and the bounded successor scope without attempting to self-reference its own commit SHA.",
+    "scope": [
+      "Remove local-tool directory exceptions from distributable lint/format/ignore configuration after those local directories were moved outside the repository.",
+      "Define a deterministic git-archive source-package boundary that excludes internal repository/process material while preserving it in repository history.",
+      "Replace stale active release prose with a concise current-state ledger and keep the immutable release manifest authoritative for the final successor SHA/tree.",
+      "Do not change application source, tests, package manifests, lockfile, service worker, storage, XP, achievements, course data, dependencies, CSP, or runtime behavior."
+    ],
+    "evidence": [
+      "Runtime base 07ae92a08abe87738986c418d2c0d603ee2a4005 passed the local immutable release gate on tree fe599050158c366d69b760f77e13270d43f2d150.",
+      "Independent GitHub Release validation / Final candidate succeeded on the same runtime-base SHA.",
+      "The Vercel preview for the same runtime-base SHA reached READY.",
+      "Physical iPhone/Safari, Android/Chrome, human screen-reader, owner GO, and final production hosted-origin smoke/rollback remain publication prerequisites."
     ]
   },
   "adversarialFindings": [
     {
-      "id": "BFINAL-01",
+      "id": "FINAL-BOUNDARY-01",
       "severity": "P1",
-      "description": "The immutable release gate invokes project-wide TypeScript validation, which failed on accepted B3 test code because e2e/b3-hub-map-visual-review.spec.ts referenced indexedDB directly while the E2E TypeScript project intentionally has no DOM globals.",
-      "resolution": "Use a narrow IndexedDbBrowserScope structural type and access browser IndexedDB through globalThis inside page.evaluate. This repair is already committed in the recovery base and remains preserved.",
+      "description": "Working-directory source handoffs could include ignored local development-tool trees and generated artifacts, and tracked configuration contained exceptions specifically for those local trees.",
+      "resolution": "Move the local development-tool trees outside the repository, remove their tracked lint/format/ignore exceptions, and create distributable source only with git archive from the exact final commit. Internal repository/process material is excluded structurally with export-ignore rather than by rewriting historical records.",
       "status": "resolved"
     },
     {
-      "id": "BFINAL-02",
+      "id": "FINAL-BOUNDARY-02",
       "severity": "P2",
-      "description": "A Classic Settings App test expected the historical save-confirmation word theme while the authoritative Settings implementation says appearance.",
-      "resolution": "The stale assertion was updated to the existing product string in the recovery base and remains preserved.",
+      "description": "Active release prose lagged the certified 07ae92a runtime state and hard-coding the final successor SHA inside files that determine that SHA would create a self-reference problem.",
+      "resolution": "Record 07ae92a as the certified runtime base and make the immutable release manifest authoritative for the exact successor HEAD/tree. Keep documentation concise and current rather than appending another release chronology.",
       "status": "resolved"
     },
     {
-      "id": "BFINAL-03",
+      "id": "FINAL-BOUNDARY-03",
       "severity": "P2",
-      "description": "The earlier tracked RPG final review became stale as the candidate evolved through release-gate repair and later physical-device findings.",
-      "resolution": "Refresh this tracked review in place for the final recovery candidate while preserving the CI-required module and path. Bind it to the exact 688a9c8 recovery base and bounded three-file diff; the immutable gate records final HEAD/tree and review checksum.",
-      "status": "resolved"
-    },
-    {
-      "id": "BFINAL-04",
-      "severity": "P2",
-      "description": "Browser emulation and automated accessibility cannot establish physical-device ergonomics, real mobile Safari/Chrome behavior, human screen-reader usability, hosted-origin headers/update behavior, or production rollback.",
-      "resolution": "Keep fresh real iPhone/Safari and Android/Chrome checks, manual human screen-reader review, owner production GO, independent remote CI, and hosted smoke/rollback as publication prerequisites on the exact changed candidate.",
-      "status": "accepted-risk"
-    },
-    {
-      "id": "BFINAL-05",
-      "severity": "P1",
-      "description": "Real-device mobile-browser review of the certified preview found the mobile RPG bottom navigation was not viewport-fixed and full-bleed as intended: it moved with scrolling and remained constrained/centered instead of spanning the viewport.",
-      "resolution": "Regenerate one clean candidate from certified commit 688a9c8. On mobile only, override the inherited sticky/centered/capped nav with fixed positioning, zero inline insets, stretch alignment and no max-width while retaining safe-area padding. Strengthen Playwright geometry coverage and add a real-document-scroll regression on RPG Settings. Re-run physical-device review on the exact deployed candidate before publication.",
-      "status": "resolved"
-    },
-    {
-      "id": "BFINAL-06",
-      "severity": "P2",
-      "description": "The Vercel protected preview attempted to inject vercel.live feedback tooling that the app CSP correctly blocked, and the service worker logged a same-origin fetch rejection while preview protection was active.",
-      "resolution": "Do not weaken CSP and do not change the service worker based on protected-preview tooling noise alone. Recheck console/network and navigation on the exact final unprotected/production origin; treat this as a product defect only if a user-visible failure reproduces there.",
+      "description": "Automated local/remote certification does not replace physical-device ergonomics, human screen-reader evaluation, owner publication approval, or production hosted-origin validation.",
+      "resolution": "Keep real iPhone/Safari, Android/Chrome, human screen-reader review, owner GO, and production hosted smoke/rollback as explicit publication prerequisites after the successor candidate is certified.",
       "status": "accepted-risk"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "The previous B-final candidate 688a9c8 passed local immutable certification and independent GitHub CI, but a required real-device check correctly found a release-blocking mobile navigation defect. The repair process then accumulated two uncommitted manual edits and an incomplete first CSS attempt. The correct recovery is to restore only those uncommitted files to clean 688a9c8, preserve the already-correct committed release repairs, and apply one regenerated three-file candidate: the complete mobile navigation fix, directly coupled geometry plus real-scroll regression coverage, and truthful refreshed release-review evidence. Production remains blocked until the changed candidate is recertified and all remaining physical/manual/hosted prerequisites pass."
+    "summary": "The runtime candidate is already certified locally and independently in CI. This successor is intentionally limited to source-package boundary, validation-configuration sanitation, and current-state evidence/documentation. Because lint/format/package-boundary configuration changes, certify the committed successor once locally and once in independent CI; do not reopen feature work or repeat unchanged gates."
   }
 }
