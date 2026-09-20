@@ -51,6 +51,7 @@ import {
   getLongFormAssetDefinition,
   mergeCoveredRanges,
   type CoveredRange,
+  type LongFormEventAggregate,
   type LongFormProgressView,
 } from '@/lib/progress';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
@@ -62,7 +63,9 @@ import {
 import {
   calculateXpSummary,
   deriveXpTransactionId,
+  evaluateCompletionPreviewXp,
   evaluateProgressXp,
+  getXpAwardSourceKey,
   getCrossedBlocks,
   type XpSummary,
 } from '@/lib/xp/engine';
@@ -340,6 +343,17 @@ export type DatabaseSnapshot = {
   resumePoints: ResumePoint[];
   studySessions: StudySession[];
   xpTransactions: XpTransaction[];
+};
+
+export type CourseMapReadData = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItems: CourseItem[];
+  courseUnits: CourseUnit[];
+  mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+  earnedRewardSourceKeys: ReadonlySet<string>;
 };
 
 type BaseDatabaseOptions = {
@@ -2862,6 +2876,239 @@ export async function addStudySessionAndAwardXp(
     unlockedAchievements,
     xpSummary: xpSummary!,
   };
+}
+
+type MutableLongFormEventAggregate = LongFormEventAggregate & {
+  lastCreatedAt: string | null;
+  lastEventId: string | null;
+};
+
+function addCoverageRange(ranges: CoveredRange[], range: CoveredRange): void {
+  let startSecond = Math.floor(range.startSecond);
+  let endSecond = Math.floor(range.endSecond);
+
+  if (endSecond <= startSecond) {
+    return;
+  }
+
+  let lower = 0;
+  let upper = ranges.length;
+
+  while (lower < upper) {
+    const middle = Math.floor((lower + upper) / 2);
+
+    if (ranges[middle]!.endSecond < startSecond) {
+      lower = middle + 1;
+    } else {
+      upper = middle;
+    }
+  }
+
+  const index = lower;
+  let removeCount = 0;
+
+  while (
+    index + removeCount < ranges.length &&
+    ranges[index + removeCount]!.startSecond <= endSecond
+  ) {
+    const current = ranges[index + removeCount]!;
+    startSecond = Math.min(startSecond, current.startSecond);
+    endSecond = Math.max(endSecond, current.endSecond);
+    removeCount += 1;
+  }
+
+  ranges.splice(index, removeCount, { endSecond, startSecond });
+}
+
+function getCourseMapRewardSources(
+  courseUnits: readonly CourseUnit[],
+  courseItems: readonly CourseItem[],
+  progressEntries: readonly ProgressEntry[],
+) {
+  const sourceIds = new Set<string>();
+  const sourceKeys = new Set<string>();
+  const unitById = new Map(courseUnits.map((unit) => [unit.id, unit]));
+
+  for (const item of courseItems) {
+    const unit = unitById.get(item.unitId);
+
+    if (unit === undefined) {
+      continue;
+    }
+
+    for (const award of evaluateCompletionPreviewXp({
+      allCourseItems: courseItems,
+      allProgress: progressEntries,
+      item,
+      unit,
+    })) {
+      if (award.sourceType === 'week_completed') {
+        continue;
+      }
+
+      sourceIds.add(award.sourceId);
+      sourceKeys.add(getXpAwardSourceKey(award.sourceType, award.sourceId));
+    }
+  }
+
+  return { sourceIds: [...sourceIds], sourceKeys };
+}
+
+export async function getCourseMapReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<CourseMapReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const [
+      courseUnits,
+      courseItems,
+      progressEntries,
+      contentAssets,
+      contentSlices,
+      resumePoints,
+    ] = await Promise.all([
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+      database.progressEntries.toArray(),
+      database.contentAssets.toArray(),
+      database.contentSlices.toArray(),
+      database.resumePoints.toArray(),
+    ]);
+    const parsedCourseUnits = sortCourseUnits(
+      parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+    );
+    const parsedCourseItems = sortCourseItems(
+      parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+    );
+    const parsedProgressEntries = sortProgressEntries(
+      parseStoredArray(
+        progressEntries,
+        'Stored progress entry',
+        ProgressEntrySchema,
+      ),
+    );
+    const parsedContentAssets = sortContentAssets(
+      parseStoredArray(
+        contentAssets,
+        'Stored content asset',
+        ContentAssetSchema,
+      ),
+    );
+    const parsedContentSlices = sortContentSlices(
+      parseStoredArray(
+        contentSlices,
+        'Stored content slice',
+        ContentSliceSchema,
+      ),
+    );
+    const parsedResumePoints = sortResumePoints(
+      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+    );
+    const mediaProgressByAssetId = new Map<
+      string,
+      MutableLongFormEventAggregate
+    >();
+    const assetIds = parsedContentAssets.map((asset) => asset.id);
+
+    if (assetIds.length > 0) {
+      await database.mediaProgressEvents
+        .where('assetId')
+        .anyOf(assetIds)
+        .each((storedEvent) => {
+          const event = parseWithSchema(
+            MediaProgressEventSchema,
+            storedEvent,
+            'Stored media progress event',
+          );
+          const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+            coverageRanges: [],
+            eventCount: 0,
+            lastCreatedAt: null,
+            lastEventEndSecond: null,
+            lastEventId: null,
+          };
+
+          aggregate.eventCount += 1;
+          addCoverageRange(aggregate.coverageRanges, {
+            endSecond: event.endSecond,
+            startSecond: event.startSecond,
+          });
+
+          if (
+            aggregate.lastCreatedAt === null ||
+            event.createdAt > aggregate.lastCreatedAt ||
+            (event.createdAt === aggregate.lastCreatedAt &&
+              (aggregate.lastEventId === null ||
+                event.id > aggregate.lastEventId))
+          ) {
+            aggregate.lastCreatedAt = event.createdAt;
+            aggregate.lastEventEndSecond = event.endSecond;
+            aggregate.lastEventId = event.id;
+          }
+
+          mediaProgressByAssetId.set(event.assetId, aggregate);
+        });
+    }
+
+    const rewardSources = getCourseMapRewardSources(
+      parsedCourseUnits,
+      parsedCourseItems,
+      parsedProgressEntries,
+    );
+    const earnedRewardSourceKeys = new Set<string>();
+
+    if (rewardSources.sourceIds.length > 0) {
+      await database.xpTransactions
+        .where('sourceId')
+        .anyOf(rewardSources.sourceIds)
+        .each((storedTransaction) => {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored Map reward XP transaction',
+          );
+          const sourceKey = getXpAwardSourceKey(
+            transaction.sourceType,
+            transaction.sourceId,
+          );
+
+          if (rewardSources.sourceKeys.has(sourceKey)) {
+            earnedRewardSourceKeys.add(sourceKey);
+          }
+        });
+    }
+
+    return {
+      contentAssets: parsedContentAssets,
+      contentSlices: parsedContentSlices,
+      courseItems: parsedCourseItems,
+      courseUnits: parsedCourseUnits,
+      mediaProgressByAssetId: new Map(
+        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+          assetId,
+          {
+            coverageRanges: aggregate.coverageRanges,
+            eventCount: aggregate.eventCount,
+            lastEventEndSecond: aggregate.lastEventEndSecond,
+          },
+        ]),
+      ),
+      progressEntries: parsedProgressEntries,
+      resumePoints: parsedResumePoints,
+      earnedRewardSourceKeys,
+    };
+  });
 }
 
 export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {

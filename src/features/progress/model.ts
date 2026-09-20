@@ -7,10 +7,12 @@ import type {
 } from '@/lib/domain';
 import {
   buildLongFormProgressView,
+  buildLongFormProgressViewFromEventAggregate,
   calculateSliceCoverage,
   formatMediaTimestamp,
   formatLoggedMinutes,
   mergeCoveredRanges,
+  type LongFormEventAggregate,
   type LongFormProgressView,
 } from '@/lib/progress';
 
@@ -205,6 +207,55 @@ export function buildLongFormProgressMap(
       asset,
       slicesByAssetId.get(asset.id) ?? [],
       eventsByAssetId.get(asset.id) ?? [],
+      resumePointsByAssetId.get(asset.id) ?? null,
+      progressEntriesByItemId.get(asset.itemId) ?? null,
+    );
+
+    if (longFormProgress !== null && !progressMap.has(asset.itemId)) {
+      progressMap.set(asset.itemId, longFormProgress);
+    }
+  }
+
+  return progressMap;
+}
+
+export function buildLongFormProgressMapFromEventAggregates(
+  assets: readonly ContentAsset[],
+  slices: readonly ContentSlice[],
+  eventAggregatesByAssetId: ReadonlyMap<string, LongFormEventAggregate>,
+  resumePoints: readonly ResumePoint[],
+  progressEntries: readonly ProgressEntry[],
+) {
+  const slicesByAssetId = new Map<string, ContentSlice[]>();
+  const resumePointsByAssetId = new Map<string, ResumePoint>();
+  const progressEntriesByItemId = new Map<string, ProgressEntry>();
+
+  for (const slice of sortSlices(slices)) {
+    const groupedSlices = slicesByAssetId.get(slice.assetId) ?? [];
+
+    groupedSlices.push(slice);
+    slicesByAssetId.set(slice.assetId, groupedSlices);
+  }
+
+  for (const resumePoint of resumePoints) {
+    resumePointsByAssetId.set(resumePoint.assetId, resumePoint);
+  }
+
+  for (const progressEntry of progressEntries) {
+    progressEntriesByItemId.set(progressEntry.itemId, progressEntry);
+  }
+
+  const progressMap = new Map<string, LongFormProgressView>();
+
+  for (const asset of sortAssets(assets)) {
+    const longFormProgress = buildLongFormProgressViewFromEventAggregate(
+      asset,
+      slicesByAssetId.get(asset.id) ?? [],
+      eventAggregatesByAssetId.get(asset.id) ?? {
+        coverageRanges: [],
+        eventCount: 0,
+        lastEventEndSecond: null,
+      },
       resumePointsByAssetId.get(asset.id) ?? null,
       progressEntriesByItemId.get(asset.itemId) ?? null,
     );

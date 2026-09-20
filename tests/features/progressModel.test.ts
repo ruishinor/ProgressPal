@@ -15,6 +15,7 @@ import {
 import {
   buildLongFormDetailView,
   buildLongFormProgressMap,
+  buildLongFormProgressMapFromEventAggregates,
 } from '@/features/progress';
 
 const timestamp = '2026-06-12T09:00:00.000Z';
@@ -145,6 +146,75 @@ describe('progress feature model', () => {
       hasProgress: false,
       summaryLine: '6 segments planned',
     });
+  });
+
+  it('builds the same long-form view from a streaming event aggregate', () => {
+    const events: MediaProgressEvent[] = [
+      {
+        assetId,
+        completedSlice: true,
+        createdAt: '2026-06-12T09:10:00.000Z',
+        endSecond: 1200,
+        energyAfter: 3,
+        energyBefore: 4,
+        id: 'event-1',
+        itemId: 'week-0-lecture',
+        notes: 'First slice done.',
+        sessionId: undefined,
+        sliceId: deriveLongFormSliceId(assetId, 0),
+        startSecond: 0,
+        stoppedBecause: 'completed_slice',
+        updatedAt: '2026-06-12T09:10:00.000Z',
+        watchedSeconds: 1200,
+      },
+      {
+        assetId,
+        completedSlice: false,
+        createdAt: '2026-06-12T09:25:00.000Z',
+        endSecond: 2400,
+        energyAfter: 2,
+        energyBefore: 3,
+        id: 'event-2',
+        itemId: 'week-0-lecture',
+        notes: 'Second slice partially logged.',
+        sessionId: undefined,
+        sliceId: deriveLongFormSliceId(assetId, 1),
+        startSecond: 1800,
+        stoppedBecause: 'interruption',
+        updatedAt: '2026-06-12T09:25:00.000Z',
+        watchedSeconds: 600,
+      },
+    ];
+    const resumePoints: ResumePoint[] = [];
+    const progressEntries: ProgressEntry[] = [];
+    const expected = buildLongFormProgressMap(
+      [asset],
+      slices,
+      events,
+      resumePoints,
+      progressEntries,
+    );
+    const actual = buildLongFormProgressMapFromEventAggregates(
+      [asset],
+      slices,
+      new Map([
+        [
+          assetId,
+          {
+            coverageRanges: [
+              { startSecond: 0, endSecond: 1200 },
+              { startSecond: 1800, endSecond: 2400 },
+            ],
+            eventCount: 2,
+            lastEventEndSecond: 2400,
+          },
+        ],
+      ]),
+      resumePoints,
+      progressEntries,
+    );
+
+    expect(actual).toEqual(expected);
   });
 
   it('builds slice-level detail for the content-detail route', () => {

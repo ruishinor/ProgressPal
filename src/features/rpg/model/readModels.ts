@@ -15,18 +15,23 @@ import {
   getCs50UnitLink,
   type Cs50Link,
 } from '@/features/course/cs50Links';
-import { buildLongFormProgressMap } from '@/features/progress/model';
+import {
+  buildLongFormProgressMap,
+  buildLongFormProgressMapFromEventAggregates,
+} from '@/features/progress/model';
 import { achievementDefinitions } from '@/lib/achievements';
 import { isItemComplete } from '@/lib/completion';
 import {
+  getCourseMapReadData,
   getDatabaseSnapshot,
+  type CourseMapReadData,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
-import { buildQuestRewardLabel } from './questRewards';
+import { buildQuestRewardLabel, type QuestRewardData } from './questRewards';
 
 import type {
   RpgBadgeGallerySummary,
@@ -119,10 +124,37 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
   };
 }
 
+function buildCourseMapContextFromReadData(
+  data: CourseMapReadData,
+): CourseMapContext {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const courseMap = buildCourseMap(
+    data.courseUnits,
+    data.courseItems,
+    data.progressEntries,
+    longFormByItemId,
+  );
+
+  return {
+    courseMap,
+    itemById: new Map(data.courseItems.map((item) => [item.id, item])),
+    progressByItemId: new Map(
+      data.progressEntries.map((entry) => [entry.itemId, entry]),
+    ),
+    unitById: new Map(data.courseUnits.map((unit) => [unit.id, unit])),
+  };
+}
+
 function buildQuestSummary(
   unit: CourseMapUnit,
   item: CourseMapItem,
-  snapshot: DatabaseSnapshot,
+  snapshot: QuestRewardData,
 ): RpgQuestSummary {
   return {
     rewardLabel: buildQuestRewardLabel(snapshot, item.id),
@@ -146,7 +178,7 @@ function buildQuestSummary(
 
 function buildModuleSummary(
   unit: CourseMapUnit,
-  snapshot: DatabaseSnapshot,
+  snapshot: QuestRewardData,
 ): RpgModuleSummary {
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
@@ -166,7 +198,7 @@ function buildModuleSummary(
 
 function selectQuestRecommendation(
   modules: readonly RpgModuleSummary[],
-  snapshot: DatabaseSnapshot,
+  snapshot: Pick<QuestRewardData, 'courseItems' | 'courseUnits'>,
 ): RpgQuestRecommendation {
   const quests = modules.flatMap((module) => module.quests);
   const requiredQuests = quests.filter((quest) => quest.required);
@@ -443,6 +475,25 @@ export function buildRpgCourseMapSummary(
   };
 }
 
+function buildRpgCourseMapSummaryFromReadData(
+  data: CourseMapReadData,
+): RpgCourseMapSummary {
+  const { courseMap } = buildCourseMapContextFromReadData(data);
+  const modules = courseMap.units.map((unit) => buildModuleSummary(unit, data));
+  const recommendation = selectQuestRecommendation(modules, data);
+
+  return {
+    completedRequiredItemCount: courseMap.completedRequiredItemCount,
+    completionPercent: courseMap.completionPercent,
+    currentModule: selectCurrentModule(modules, recommendation),
+    modules,
+    requiredItemCount: courseMap.requiredItemCount,
+    unitCount: courseMap.unitCount,
+    weekFour:
+      modules.find((module) => module.id === RPG_WEEK_FOUR_UNIT_ID) ?? null,
+  };
+}
+
 export function buildRpgModuleSummary(
   snapshot: DatabaseSnapshot,
   unitId: string,
@@ -640,7 +691,9 @@ export async function loadRpgHubSummary(
 export async function loadRpgCourseMapSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgCourseMapSummary> {
-  return buildRpgCourseMapSummary(await readSnapshot(options));
+  return buildRpgCourseMapSummaryFromReadData(
+    await getCourseMapReadData(options),
+  );
 }
 
 export async function loadRpgModuleSummary(

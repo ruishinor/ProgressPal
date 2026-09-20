@@ -27,6 +27,12 @@ export type CoveredRange = {
   startSecond: number;
 };
 
+export type LongFormEventAggregate = {
+  coverageRanges: CoveredRange[];
+  eventCount: number;
+  lastEventEndSecond: number | null;
+};
+
 export type GeneratedSlicePlan = {
   endSecond: number;
   label: string;
@@ -266,18 +272,39 @@ export function buildLongFormProgressView(
   resumePoint: ResumePoint | null,
   progressEntry: ProgressEntry | null,
 ): LongFormProgressView | null {
+  return buildLongFormProgressViewFromEventAggregate(
+    asset,
+    slices,
+    {
+      coverageRanges: mergeCoveredRanges(
+        events.map((event) => ({
+          endSecond: event.endSecond,
+          startSecond: event.startSecond,
+        })),
+      ),
+      eventCount: events.length,
+      lastEventEndSecond:
+        events.length > 0 ? events[events.length - 1]!.endSecond : null,
+    },
+    resumePoint,
+    progressEntry,
+  );
+}
+
+export function buildLongFormProgressViewFromEventAggregate(
+  asset: ContentAsset,
+  slices: readonly ContentSlice[],
+  eventAggregate: LongFormEventAggregate,
+  resumePoint: ResumePoint | null,
+  progressEntry: ProgressEntry | null,
+): LongFormProgressView | null {
   if (asset.durationSeconds === undefined) {
     return null;
   }
 
-  const coverageRanges = mergeCoveredRanges(
-    events.map((event) => ({
-      endSecond: event.endSecond,
-      startSecond: event.startSecond,
-    })),
-  );
+  const coverageRanges = mergeCoveredRanges(eventAggregate.coverageRanges);
   const legacyComplete =
-    events.length === 0 &&
+    eventAggregate.eventCount === 0 &&
     progressEntry !== null &&
     completeProgressStatuses.has(progressEntry.status);
   const watchedSeconds = legacyComplete
@@ -297,11 +324,9 @@ export function buildLongFormProgressView(
   const nextSlice =
     slices.find((slice) => calculateSliceCoverage(slice, coverageRanges) < 1) ??
     null;
-  const fallbackResumeSecond =
-    events.length > 0 ? events[events.length - 1]!.endSecond : null;
   const resumeSecond = isComplete
     ? asset.durationSeconds
-    : (resumePoint?.lastSecond ?? fallbackResumeSecond);
+    : (resumePoint?.lastSecond ?? eventAggregate.lastEventEndSecond);
   const completionPercent =
     asset.durationSeconds === 0
       ? 0
@@ -316,7 +341,7 @@ export function buildLongFormProgressView(
         : 'none',
     completedSliceCount,
     durationSeconds: asset.durationSeconds,
-    eventCount: events.length,
+    eventCount: eventAggregate.eventCount,
     hasProgress: legacyComplete || watchedSeconds > 0,
     isComplete,
     itemId: asset.itemId,
