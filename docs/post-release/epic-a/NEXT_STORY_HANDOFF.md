@@ -1,100 +1,120 @@
-# Next-story handoff — A1 only
+# Next-story handoff — A2 readiness only
 
-Next story: **A1 — Map read boundary + access measurement harness**
+Next story: **A2 — Module read boundary**
 
-Do not begin A2 from this handoff.
+Status: **eligible for fresh readiness assessment after A1 closure integration**
+
+Do not begin A3 from this handoff. Do not modify A2 production code until the fresh A2 readiness gate passes.
+
+## Accepted lineage entering A2
+
+Product baseline remains:
+
+- `master`: `a0581c13a22fdd3387534d2de0eca2591cf13ed6`
+- tree: `d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34`
+
+Accepted A1 implementation:
+
+- commit: `ec651536e61a7e5d939506069887df32b81b5c0f`
+- tree: `f401d82dc0d92fea9f3f18a7a1404eca8b3fa5a3`
+- parent / accepted A0: `168ccfbca21dfbc5e66ec953a5dbdd42d47fa97d`
+
+A2 must branch from the **current accepted `postrelease/01-read-architecture` HEAD after the A1 documentation-only closure commit**, not directly from `master` and not directly from the A1 story branch. The integration HEAD must descend from the exact A1 implementation commit above.
 
 ## Objective
 
-On a fresh A1 story branch from the current accepted Epic A integration commit, build test-only mechanism instrumentation and replace only the Campaign Map broad-snapshot read with a narrow coherent Map read contract. The Epic A integration branch must itself descend from the real accepted `master`; production behavior remains measured against that product baseline.
+Replace only the Module broad-snapshot read boundary with a unit-scoped coherent read contract. Reads must use bulk/indexed operations whose query count does not grow per item or per asset, while preserving the published Module values, long-form state, reward labels, missing-unit behavior, and passive-read semantics.
 
-This story establishes the pattern later stories will copy. It must prove the new architecture test fails on the untouched published path before production implementation makes it pass.
+A2 must reuse the proven A1 measurement approach rather than inventing a second incompatible access probe.
 
 ## Required fresh context
 
-Load only:
+Load only what is needed for A2:
 
 1. repository `AGENTS.md`;
-2. `SPEC.md` from A0;
-3. A1 entry from `stories.yaml`;
-4. actual current:
+2. `docs/post-release/epic-a/SPEC.md`;
+3. the updated A2 entry in `stories.yaml`;
+4. `A1_CLOSURE_RECORD.md`;
+5. actual current:
    - `package.json`, `package-lock.json`, `.nvmrc`, `.github/workflows/test.yml`;
    - `src/lib/db/database.ts`;
    - `src/lib/db/repositories.ts` and `src/lib/db/index.ts`;
    - `src/features/rpg/model/readModels.ts` and `questRewards.ts`;
-   - `src/features/progress/model.ts` / `src/lib/progress/engine.ts` as required by Map semantics;
-   - `src/features/rpg/routes/RpgMapPage.tsx` and `src/features/rpg/shell/RpgShell.tsx` for actual composition awareness;
-   - `tests/features/rpg/readModels.test.ts`;
-   - `tests/architecture/rpgFeature.test.ts` and relevant DB test utilities.
+   - progress/XP helpers actually used by the Module builder;
+   - `src/features/rpg/routes/RpgModulePage.tsx`;
+   - `src/features/rpg/shell/RpgShell.tsx` only for composition awareness;
+   - A1 access-probe files and calibration tests;
+   - existing Module/read-model tests and relevant repository tests.
 
-Do **not** load the rejected Phase 1 patch as a starting point. Inspect it only if a specific implementation question requires forensic comparison after the baseline design is understood.
+Do not use the rejected pre-A1 Phase 1 candidate or the rejected intermediate A1 harnesses as implementation starting points.
 
-## Pre-code readiness gate
+## Fresh A2 pre-code readiness gate
 
-Before creating the A1 story branch or editing:
+Before creating the A2 story branch or editing production code, prove:
 
 ```text
-prove current accepted master HEAD/tree (product baseline)
-prove current Epic A integration HEAD descends from that master and contains only accepted Epic A/A0 changes
-prove clean worktree
-prove Node24/npm11 authoritative validation path is actually invocable
-confirm current schema/read paths still match A0 assumptions
+origin/master still identifies the accepted product baseline, or any newer accepted master has been explicitly reconciled
+current postrelease/01-read-architecture HEAD descends from accepted A1 commit ec651536...
+A1_CLOSURE_RECORD.md and updated stories.yaml are present on that integration HEAD
+worktree is clean
+Node24/npm11 authoritative validation path remains invocable
+src/lib/db/database.ts schema/index/version contract is unchanged
+A1 access-probe calibration remains green
+current Module production path still matches the A0/A2 assumptions
 ```
 
-If authoritative validation cannot be invoked locally or through the defined CI path, A1 state becomes `blocked` and no production code should be written.
+If any condition fails, stop before production code and classify A2 as blocked/reconciliation-required.
 
-## Branch recommendation — only after the gate above passes
+## Branch recommendation — only after readiness passes
 
-Create `postrelease/a1-map-read-boundary` **from the current accepted `postrelease/01-read-architecture` integration commit**, not directly from `master`. This keeps the A0 SPEC/story ledger available on the story branch while preserving `master` as the product baseline.
+Create:
 
-Do not branch from the rejected candidate or its synthetic commit. Do not implement A1 directly on `master`.
+`postrelease/a2-module-read-boundary`
 
-## A1 red evidence before implementation
+from the then-current accepted `postrelease/01-read-architecture` integration HEAD.
 
-Create/validate a test access probe capable of recording:
+Do not implement A2 directly on the integration branch or on `master`.
 
-- store + operation;
-- rows returned/materialized;
-- rows scanned/cursor visits;
-- query count;
-- transaction ID/mode/table scope;
-- writes.
+## A2 RED evidence before implementation
 
-Calibrate the probe first with small known fixtures for keyed reads, indexed/full `toArray`, cursor scans and deliberate N+1 queries. The probe must fail if production code bypasses the observed repository/Dexie access path.
+Reuse and calibrate the A1 access probe. On the untouched accepted A2 baseline, invoke the actual production Module loader/path and demonstrate a mechanism-level failure caused by the existing broad read. The RED result must come from observed store/query/materialization/transaction evidence, not from a symbol or regex ban.
 
-On the untouched accepted baseline, demonstrate a failing Map contract that observes at least:
+At minimum, establish that the published Module logical read accesses stores/history beyond the requested unit's real dependency set and/or materializes forbidden append-only history through the broad snapshot path.
 
-- access to an unrelated store such as `backups` or `study_sessions`;
-- full `media_progress_events` materialization;
-- all-14-store transaction scope.
+Preserve A1 tests as regression guards while adding Module-specific acceptance tests.
 
-The failure must arise from observed data access, not from finding the string `getDatabaseSnapshot`.
+## A2 target contract
 
-## A1 target contract
+The Module logical read represents one requested unit. Its production read must therefore:
 
-Map output may read the whole course catalogue/progress/long-form state because Map represents the whole course. It may read only XP records required to establish existing reward state. It may not read profile, app metadata, sessions, achievement definitions/unlocks, or backups.
+- scope catalogue work to the requested unit and its items rather than the whole course where indexes permit;
+- use bulk/indexed operations rather than per-item/per-asset N+1 queries;
+- preserve long-form progress and reward-label semantics for every item shown by the Module output;
+- avoid hidden complete `media_progress_events`, `study_sessions`, or `xp_transactions` source-row arrays;
+- report any necessary O(`H`) cursor scan honestly under the A0 definitions;
+- execute the logical Module view in one coherent readonly transaction over the exact required stores or an evidenced minimal Dexie-required superset;
+- perform zero passive writes;
+- leave `src/lib/db/database.ts`, migrations, backup format, XP/achievement rules, UI/copy/navigation, service worker, cloud, and auth untouched.
 
-Requirements:
+The likely domain-store family is similar to Map but unit-scoped. Do not freeze an exact A2 store allowlist from this handoff alone; derive and justify the minimal allowlist from the actual current Module output and source during the readiness/design step.
 
-- one coherent Map read transaction over its declared stores;
-- constant query count per required store;
-- no per-item/per-asset N+1 loop;
-- no hidden complete append-only row arrays;
-- exact published Map values/statuses/reward labels/long-form summaries;
-- no writes;
-- schema/index definitions untouched.
+## Required A2 evidence
 
-Run the A0 1,000/10,000 all-three-history fixtures even though Map should not touch sessions; that is deliberate proof that unrelated history does not leak into Map work.
+Before A2 can be accepted:
 
-## Required A1 evidence before `done`
+- corrected/calibrated probe evidence for the actual production Module loader;
+- 1×/10× module-cardinality query-count evidence showing no per-item/per-asset fan-out;
+- rows returned/materialized/scanned for every append-only store touched;
+- semantic equivalence for normal and missing-unit behavior;
+- passive before/after database equivalence;
+- actual-loader transaction-coherence barrier test;
+- preserved A1 access tests;
+- focused repository/read-model/architecture tests;
+- complete repository validation;
+- authoritative Node24/npm11 release evidence bound to the exact A2 candidate SHA/tree.
 
-- exact base/candidate HEAD/tree + clean state;
-- red published-baseline access test;
-- green candidate access log at 1× and 10× history;
-- green 1×/10× catalogue query-count check;
-- value-equivalence and non-mutation tests;
-- transaction coherence/barrier evidence;
-- formatter/lint/typecheck/focused tests/build/architecture checks under Node24/npm11;
-- independent adversarial check against SPEC bypasses.
+## Stop rule
 
-No patch/package for owner application is part of A0. A1 should produce its own candidate only after its evidence is green.
+This handoff makes A2 eligible for readiness assessment only. It does not pre-approve an implementation design and does not authorize A3.
+
+If A2 readiness passes, implement only A2. After A2 acceptance, close and integrate it before A3 begins.

@@ -4,8 +4,8 @@ baseline:
   historical_master: a0581c13a22fdd3387534d2de0eca2591cf13ed6
   tree: d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34
   production_deployment: dpl_H2GkappEu6QPT9w6WYZDw57LdBrr
-readiness: CONCERNS
-state: planned
+readiness: PASS
+state: in_progress
 stories:
   - id: A1
     title: Map read boundary + access measurement harness
@@ -15,7 +15,7 @@ stories:
       Establish mechanism-level read instrumentation and replace only the Campaign Map
       broad-snapshot loader with a narrow coherent read contract. Prove the access test
       red on the published baseline before making it green.
-    readiness: CONCERNS
+    readiness: PASS
     acceptance_summary:
       - no Map logical-read access to unrelated stores
       - no full media/session/XP history materialization for Map
@@ -26,10 +26,25 @@ stories:
       - schema/frozen behavior unchanged
     expected_evidence:
       - baseline red access-contract result
-      - candidate green access log at 1x and 10x fixtures including all three append-only stores
+      - candidate green access evidence at 1x and 10x fixtures including all three append-only stores
       - value-equivalence/read-only tests
       - Node24/npm11 formatter/lint/typecheck/focused tests/build/architecture evidence
-    state: ready_with_concerns
+    accepted_candidate:
+      commit: ec651536e61a7e5d939506069887df32b81b5c0f
+      tree: f401d82dc0d92fea9f3f18a7a1404eca8b3fa5a3
+      parent: 168ccfbca21dfbc5e66ec953a5dbdd42d47fa97d
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      evidence:
+        focused_tests: 92/92
+        unit_integration_tests: 613/613
+        e2e_tests: 74/74
+        release_evidence: artifacts/release-evidence/2026-09-20T21-58-30-862Z-rpg-primary-final-candidate-pass-1.json
+        release_evidence_sha256: 3EAF5A72E985565673443150EDA9248797B56B1CD0938F45AEF533C516B27F2A
+        audit_vulnerabilities: 0
+      closure_record: docs/post-release/epic-a/A1_CLOSURE_RECORD.md
+    state: accepted
 
   - id: A2
     title: Module read boundary
@@ -38,7 +53,7 @@ stories:
     objective: >-
       Replace Module broad snapshot access with unit-scoped bulk/indexed reads without
       per-item/per-asset query growth.
-    readiness: pending_A1
+    readiness: eligible_for_fresh_readiness
     acceptance_summary:
       - requested unit/item scope only
       - query count independent of item/asset count
@@ -47,7 +62,7 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x module cardinality
       - value equivalence and missing-unit behavior
-    state: planned
+    state: ready_for_readiness
 
   - id: A3
     title: Resource read boundary

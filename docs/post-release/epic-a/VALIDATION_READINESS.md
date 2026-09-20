@@ -1,6 +1,10 @@
 # Epic A validation readiness
 
-Result: **CONCERNS**
+Result: **PASS**
+
+Original A0 result: **CONCERNS**
+
+Resolution date: 2026-09-20
 
 ## Required environment
 
@@ -11,50 +15,43 @@ Repository contract:
 - `.nvmrc`: `24`
 - `packageManager`: `npm@11.10.1`
 
-Observed A0 execution environment:
+The original A0 execution environment was Node `v22.16.0` / npm `10.9.2`, so A0 correctly did not certify implementation readiness from that environment.
 
-- Node `v22.16.0`
-- npm `10.9.2`
+## Authoritative validation path
 
-This local environment is **not authoritative** and must not be used to certify formatter/lint/typecheck/tests/build.
+The repository defines an exact-candidate release path through `.github/workflows/test.yml` and `npm run verify:release`. The gate validates a clean committed SHA/tree and executes the repository's formatter, lint, typecheck, build, bundle, complete unit/integration suite, E2E, circular-dependency check, dependency audit, and final clean-state/evidence checks under the required toolchain.
 
-## Explicit authoritative remote path
+## Resolution of the A0 concern
 
-The inspected repository contains `.github/workflows/test.yml`, job `Final candidate`:
+Owner-side execution subsequently proved that the authoritative path is actually invocable locally under the repository contract:
 
-1. `actions/checkout@v5` at exact `${{ github.sha }}`;
-2. `actions/setup-node@v6` using `.nvmrc` (Node 24);
-3. global pin `npm@11.10.1`;
-4. `npm ci`;
-5. Playwright Chromium install;
-6. `npm run verify:release`.
+- Node `v24.19.0`
+- npm `11.10.1`
 
-The release gate itself hard-checks Node 24 and npm 11 and executes:
+The amended A0 commit `168ccfbca21dfbc5e66ec953a5dbdd42d47fa97d` / tree `9f6893f26a4a6eedc2ba35e6c46255e9bd511251` passed the complete authoritative release gate before the A1 story branch was created.
 
-- clean status / `git diff --check`;
-- clean dependency install;
-- lint;
-- format check;
-- typecheck;
-- production build;
-- bundle checks;
-- complete unit/integration tests (therefore architecture/focused tests are included);
-- E2E;
-- circular-dependency check;
-- dependency audit;
-- final clean status;
-- exact commit/tree evidence manifest.
+A1 then passed the same exact-candidate gate on:
 
-Historical release evidence in the source proves this class of gate previously ran successfully under Node 24.19.0/npm 11.10.1 for the certified source tree.
+- commit `ec651536e61a7e5d939506069887df32b81b5c0f`
+- tree `f401d82dc0d92fea9f3f18a7a1404eca8b3fa5a3`
+- release evidence `artifacts/release-evidence/2026-09-20T21-58-30-862Z-rpg-primary-final-candidate-pass-1.json`
+- release evidence SHA-256 `3EAF5A72E985565673443150EDA9248797B56B1CD0938F45AEF533C516B27F2A`
+- 613/613 unit/integration tests
+- 74/74 E2E tests
+- 0 audit vulnerabilities
 
-## Why not PASS
+The original A0 uncertainty about whether authoritative Node24/npm11 validation was actually usable is therefore resolved.
 
-The GitHub repository was not accessible through the assistant connector during A0 (repository lookup returned 404; installed repository search returned no ProgressPal repository). Owner-side Git subsequently proved that `origin/master` is reachable and still identifies the expected published baseline, but ordinary Git fetch/pull access does **not** prove that the Node24/npm11 Actions workflow can be triggered and its exact-candidate evidence inspected.
+## Continuing rule for later stories
 
-## Why not FAIL
+`PASS` here means the validation pathway is proven and available. It does **not** pre-approve future code.
 
-An explicit repository-defined authoritative CI path exists and has prior successful evidence. Implementation may proceed only under the following hard closure rule:
+Every later Epic A story must still:
 
-> Every Epic A story may be developed/reviewed provisionally, but no story becomes `done`, no Epic A candidate is accepted, and no merge occurs unless authoritative Node24/npm11 evidence is produced for the exact candidate bytes through the repository CI/release path (or an equally authoritative owner-controlled Node24/npm11 local run).
+1. establish a fresh clean baseline from the latest accepted Epic A integration commit;
+2. prove the story-specific RED/measurement contract before production edits where required;
+3. run focused validation appropriate to the story;
+4. run the full repository validation required by the SPEC;
+5. produce authoritative Node24/npm11 evidence bound to the exact candidate commit/tree before the story can be accepted and integrated.
 
-If that path cannot be invoked when A1 begins, readiness becomes **FAIL / blocked-before-code** rather than “validate later.”
+If the authoritative path becomes unavailable or the accepted product/integration baseline changes incompatibly, that story returns to `FAIL / blocked-before-code` or to contract reconciliation rather than being validated later.
