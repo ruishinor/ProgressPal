@@ -1,0 +1,150 @@
+epic: A
+title: Deliberate read/application boundaries
+baseline:
+  historical_master: a0581c13a22fdd3387534d2de0eca2591cf13ed6
+  tree: d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34
+  production_deployment: dpl_H2GkappEu6QPT9w6WYZDw57LdBrr
+readiness: CONCERNS
+state: planned
+stories:
+  - id: A1
+    title: Map read boundary + access measurement harness
+    order: 1
+    depends_on: [A0]
+    objective: >-
+      Establish mechanism-level read instrumentation and replace only the Campaign Map
+      broad-snapshot loader with a narrow coherent read contract. Prove the access test
+      red on the published baseline before making it green.
+    readiness: CONCERNS
+    acceptance_summary:
+      - no Map logical-read access to unrelated stores
+      - no full media/session/XP history materialization for Map
+      - constant query count at 1x/10x history and catalogue cardinality
+      - one coherent Map read transaction over declared stores
+      - published Map values and reward/long-form semantics unchanged
+      - instrumentation reports stores, queries, rows returned/scanned, materialization and transaction scope
+      - schema/frozen behavior unchanged
+    expected_evidence:
+      - baseline red access-contract result
+      - candidate green access log at 1x and 10x fixtures including all three append-only stores
+      - value-equivalence/read-only tests
+      - Node24/npm11 formatter/lint/typecheck/focused tests/build/architecture evidence
+    state: ready_with_concerns
+
+  - id: A2
+    title: Module read boundary
+    order: 2
+    depends_on: [A1]
+    objective: >-
+      Replace Module broad snapshot access with unit-scoped bulk/indexed reads without
+      per-item/per-asset query growth.
+    readiness: pending_A1
+    acceptance_summary:
+      - requested unit/item scope only
+      - query count independent of item/asset count
+      - long-form/reward values equivalent
+      - coherent transaction and no passive writes
+    expected_evidence:
+      - access metrics at 1x/10x module cardinality
+      - value equivalence and missing-unit behavior
+    state: planned
+
+  - id: A3
+    title: Resource read boundary
+    order: 3
+    depends_on: [A1, A2]
+    objective: >-
+      Replace Resource broad snapshot access with item/unit-scoped bulk/indexed reads,
+      preserving reward and long-form behavior and post-save reload semantics.
+    readiness: pending_A2
+    acceptance_summary:
+      - selected item/unit/reward context only
+      - no N+1 progress/slice/event/resume queries
+      - no hidden full media/XP history arrays
+      - value equivalence and mutation-summary consistency
+    expected_evidence:
+      - access metrics at 1x/10x unit/content cardinality
+      - reward/long-form fixtures and post-save assertions
+    state: planned
+
+  - id: A4
+    title: Hub, Hero and persistent HUD read boundaries
+    order: 4
+    depends_on: [A1, A3]
+    objective: >-
+      Replace the highest-frequency shell/Hub/Hero broad snapshots, using explicit
+      streaming lifetime aggregation for approved histories and preserving coherent views.
+    readiness: pending_A3
+    acceptance_summary:
+      - no broad snapshot in shell/Hub/Hero
+      - approved O(n) scans measured for XP, sessions and media
+      - hidden history materialization bounded independently of lifetime history
+      - recent activity remains top-5 and values/order are equivalent
+      - Hero adds only unlock data beyond Hub contract
+    expected_evidence:
+      - all-three-history 1k/10k access metrics
+      - shell + Hub + Hero route integration tests
+      - transaction coherence barrier test
+    state: planned
+
+  - id: A5
+    title: Focus actual-route read boundary
+    order: 5
+    depends_on: [A4]
+    objective: >-
+      Validate and narrow the actual RPG Focus composition, not the unused exported RPG
+      Focus loader. Preserve the complete visible study-session ledger exception while
+      ensuring shell work obeys the Hub contract and preserving save feedback.
+    readiness: pending_A4
+    acceptance_summary:
+      - actual StudySessionsSurface path covered
+      - complete session ledger explicitly measured as visible O(H) exception
+      - shell/Hub may perform its approved streaming session aggregate, but may not materialize a second hidden full session array
+      - save result, history refresh and Hub/HUD feedback remain consistent
+      - unused broad RPG Focus loader is narrowed or deliberately removed
+    expected_evidence:
+      - route access log
+      - large session-history fixture
+      - focus save/reload consistency tests
+    state: planned
+
+  - id: A6
+    title: Badges actual-route read boundary
+    order: 6
+    depends_on: [A4]
+    objective: >-
+      Validate and narrow the actual shared AchievementsSurface path; keep code definitions
+      and unlocks while replacing full XP array level calculation with measured lifetime aggregation.
+    readiness: pending_A4
+    acceptance_summary:
+      - actual AchievementsSurface path covered
+      - zero persisted achievement-definition reads for display
+      - unlock semantics unchanged
+      - XP total may scan O(H) but may not bulk-materialize full history
+      - unused broad RPG Badge loader is narrowed or deliberately removed
+    expected_evidence:
+      - badges route access log at 1k/10k XP history
+      - achievement/value/read-only tests
+    state: planned
+
+  - id: A7
+    title: Epic A integration and preservation gate
+    order: 7
+    depends_on: [A2, A3, A4, A5, A6]
+    objective: >-
+      Prove the aggregate route matrix, backup completeness, mutation/read consistency,
+      frozen schema and exact authoritative validation before Epic A acceptance.
+    readiness: pending_prior_stories
+    acceptance_summary:
+      - every required RPG route satisfies SPEC access contract
+      - backup/export/restore/reset completeness preserved
+      - mutation summaries match subsequent reads
+      - no schema/migration/UI/reward/achievement changes
+      - aggregate diff/adversarial review finds no unresolved bypass
+    expected_evidence:
+      - route-wide access matrix
+      - backup round-trip suite
+      - save-outcome/repository suites
+      - full Node24/npm11 release/CI evidence bound to exact candidate
+      - epic adversarial review and retrospective
+    state: planned
