@@ -1,90 +1,117 @@
-# Next-story handoff — A6 readiness only
+# Next-story handoff — A6 RED gate
 
 Next story: **A6 — Badges actual-route read boundary**
-Status: **eligible for fresh readiness only after A5 closure**
+Status: **readiness PASS; ready_for_red only**
+Readiness source baseline: `25ed38da54cf719c151165506c2a3391ae8eb88f`
 Accepted A5 implementation: `0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b`
-Accepted A5 tree: `23cec04b2e92cb110d2c9ce7a40be24f026382a1`
 
-Do not create an A6 implementation or RED commit from this handoff alone. The first A6 action after the A5 documentation-only closure commit is an exact-source readiness assessment.
+Do not write A6 production code until the baseline RED below has been executed and classified as valid.
 
-## Accepted A5 boundary to preserve
+## Governing runtime path
 
-A5 is accepted with:
+Classic:
 
-- one A4 HUD read on Focus with no `study_sessions` HUD ownership;
-- one coherent three-store Focus child read;
-- zero hidden full study-session source materialization;
-- complete visible session ledger retained;
-- one session-only post-save ledger refresh;
-- one shared A4 post-save HUD refresh;
-- unchanged save/XP/achievement/discard/failure semantics;
-- unchanged schema/indexes.
+```text
+/achievements
+└─ AchievementsPage
+   └─ AchievementsSurface(classic)
+```
 
-A6 must not regress A1–A5 while changing the Achievements/Badges read path.
-
-## Known current route composition to re-prove
-
-The exact accepted A5 source currently shows:
+RPG:
 
 ```text
 /rpg/badges
-└─ RpgBadgesPage
-   └─ shared AchievementsSurface(variant="rpg")
-      └─ Promise.all
-         ├─ getAchievementsView()
-         │  └─ persisted achievement_unlocks + code-only definitions
-         └─ getXpSummary()
-            └─ current xp_transactions lifetime read
+└─ RpgRouteShell
+   └─ RpgShell
+      ├─ accepted A4 HUD read
+      └─ RpgBadgesPage
+         └─ AchievementsSurface(rpg)
 ```
 
-The same `AchievementsSurface` is also used by the classic achievements route. Its loading/error/retry semantics and read ownership are therefore shared product behavior, not RPG-only behavior.
+The shared surface currently calls in parallel:
 
-Current source comments and repository code establish that `getAchievementsView()` merges code-only definitions with persisted unlocks, does not evaluate rules and does not create unlocks. Current `getXpSummary()` bulk-materializes `xp_transactions` with `toArray()` before calculating total XP/level.
+- `getAchievementsView()` → persisted `achievement_unlocks` + code definitions;
+- `getXpSummary()` → complete `xp_transactions.toArray()` → total XP/level.
 
-These are readiness observations only. Do not treat the prospective fix as pre-approved before measurement.
+The exported `loadRpgBadgeGallerySummary()` is not the runtime owner.
 
-## Required A6 readiness work
+## Primary RED
 
-1. Export/inspect the exact clean post-A5 closure source and configuration.
-2. Draw the actual route call graph for RPG and classic achievement surfaces, including shell/HUD ownership.
-3. Measure current stores, transactions, queries, rows scanned/materialized and passive writes.
-4. Separate visible achievement rows from hidden XP-history materialization.
-5. Prove whether persisted `achievement_definitions` participates in the actual display path.
-6. Prove existing unlock ordering/content and XP level semantics from product/source oracles.
-7. Inspect error/retry and shared-surface behavior before designing RED.
-8. Check current indexes/schema and explicitly decide whether A6 can remain schema-frozen.
-9. Define separate semantic, access, composition, scale and passive-write evidence roles.
-10. Freeze an A6 acceptance contract before creating an A6 RED-only story branch.
+Create the A6 story branch only after the readiness documentation commit is integrated.
 
-## Likely mechanism requiring investigation
+Suggested branch:
 
-The current source contains a concrete candidate mechanism: `getXpSummary()` calls `xp_transactions.toArray()` before reducing lifetime XP. A6 readiness should determine whether this creates a hidden full XP source array in the actual shared surface and whether a streaming lifetime aggregate can preserve published level semantics.
+`postrelease/a6-badges-read-boundary`
 
-This is a readiness hypothesis, **not** permission to implement it immediately.
+The first production-facing evidence is RED-only.
 
-## Mandatory A5 process lessons
+Primary test role: **actual-route access/materialization mechanism**.
 
-A6 support tooling must apply the strengthened controls from A5:
+Required baseline observation:
 
-- inspect repository-native interfaces and evidence schemas before wrapping them;
-- generated scripts must not guess unsupported CLI arguments;
-- machine evidence should be structural/native before regex parsing;
-- literal Git status checks must be literal;
-- long-running commands must stream output;
-- fixture/API/type consistency must be preflighted before owner execution;
-- storage headroom must be checked before artifact-heavy E2E;
-- only invalidated evidence is rerun after a support-tool or environment failure.
+- actual `/rpg/badges` renders the expected achievement surface;
+- accepted A4 HUD transaction is identifiable separately;
+- A6 child XP read scans `H_xp` rows;
+- baseline child XP source materialization = `H_xp` because current `toArray()` is used;
+- writes observed = 0;
+- future assertion requires XP source materialization = 0.
+
+If that failure is not observed, do not implement GREEN.
+
+## Separate RED/evidence roles
+
+Do not overload one test with every claim.
+
+Use separate tests for:
+
+- child transaction coherence: baseline unlock and XP reads are separate; target one two-store readonly child transaction;
+- semantics: code definitions, locked/unlocked projection, counts, labels, unlock dates, XP level;
+- scale: 1k/10k XP rows, constant child query count, O(H) scan, hidden materialization 0 target;
+- failure/retry: `Try again` repeats child read only and writes zero rows;
+- passive-write: initial/retry/filter interactions never evaluate achievements;
+- shared composition: classic and RPG variants use the same child data semantics;
+- unused broad loader: prove non-runtime status before removing/narrowing it.
+
+## Fixture/instrumentation procedure
+
+1. Start from the exact A6 readiness commit.
+2. Use an uninstrumented writer for fixtures.
+3. Validate every synthetic XP row with `XpTransactionSchema` and unlock row with `AchievementUnlockSchema` before insertion.
+4. Keep code definitions from the real `achievementDefinitions` module.
+5. Close/separate the fixture writer before measurement where needed.
+6. Install the DBCore probe before the measured database reader opens.
+7. Render the actual route/shared surface; do not mock repository access for the primary RED.
+8. Keep broad `getDatabaseSnapshot()` or fixture verification outside the measured access window.
+9. Record transactions, stores, queries, scanned rows, source materialization, visible rows, writes and read duration.
+10. Treat the A4 HUD and A6 child as distinct owners in RPG route evidence.
+
+## Target GREEN contract after valid RED
+
+- code definitions remain authoritative and DB-independent;
+- child persisted stores exactly `achievement_unlocks` + `xp_transactions`;
+- one readonly child transaction;
+- ≤2 child logical queries;
+- zero persisted definition reads;
+- matched unlock source rows ≤ definition count;
+- exact XP total scans all XP rows once but bulk-materializes none;
+- O(1) XP derived accumulator;
+- existing `calculateXpSummary` semantics;
+- zero passive writes;
+- classic/RPG labels, filters, dates and artwork behavior unchanged;
+- A4 HUD unchanged;
+- schema/indexes unchanged.
 
 ## Stop conditions
 
-Stop before RED or production implementation if:
+Stop before GREEN if:
 
-- the exact post-A5 closure source differs materially from the route composition above;
-- the shared classic/RPG surface cannot be tested without substituting a synthetic path;
-- achievement definitions/rules/rewards would need to change;
-- a schema/index migration appears necessary rather than merely convenient;
-- the intended RED depends only on an unused broad helper;
-- A1–A5 accepted read/composition behavior cannot be preserved;
-- integration or published baseline lineage changed unexpectedly.
+- the primary RED targets only the unused broad loader;
+- route ownership differs from the frozen contract;
+- instrumentation/setup contaminates evidence;
+- a new schema/index appears necessary;
+- a proposed change alters achievement rules, XP rules or unlock creation timing;
+- A4 HUD behavior would need redesign;
+- the support-tool recurrence class repeats without strengthened mechanical control.
 
-No push, remote merge or deployment is authorized. A7 remains blocked until A6 is accepted and closed.
+Do not start A7.
+Do not push, remotely merge or deploy.

@@ -225,20 +225,41 @@ stories:
     order: 6
     depends_on:
       - A4
+      - A5
     objective:
-      Validate and narrow the actual shared AchievementsSurface path; keep code definitions and
-      unlocks while replacing full XP array level calculation with measured lifetime aggregation.
-    readiness: eligible_after_A5_closure
+      Validate and narrow the actual shared AchievementsSurface path; preserve code-definition and persisted-unlock
+      authority while replacing hidden complete XP source-array materialization with measured lifetime aggregation.
+    readiness: PASS
+    readiness_record: docs/post-release/epic-a/A6_READINESS_ASSESSMENT.md
+    acceptance_contract: docs/post-release/epic-a/A6_ACCEPTANCE_CONTRACT.md
+    readiness_baseline:
+      branch: postrelease/01-read-architecture
+      head: 25ed38da54cf719c151165506c2a3391ae8eb88f
+      tree: 7b7e381920289515625de8d024dc6d6a0728c2f6
+      a5_implementation: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
+      a5_tree: 23cec04b2e92cb110d2c9ce7a40be24f026382a1
+      readiness_context_zip_sha256: 4E37F60821000F769CE92BB1216C9237EC5C7CFF85E545F63A9B50D34839A010
     acceptance_summary:
-      - actual AchievementsSurface path covered
-      - zero persisted achievement-definition reads for display
-      - unlock semantics unchanged
-      - XP total may scan O(H) but may not bulk-materialize full history
-      - unused broad RPG Badge loader is narrowed or deliberately removed
+      - actual classic and RPG AchievementsSurface paths covered
+      - code achievement definitions remain authoritative; persisted achievement_definitions display reads stay zero
+      - persisted achievement_unlocks remain learner-state authority for locked/unlocked truth
+      - A6 child read uses one coherent readonly transaction across achievement_unlocks and xp_transactions
+      - child logical query count <=2 with at most one unlock query and one XP history scan
+      - exact lifetime XP may scan O(H_xp) but bulk-materializes zero hidden XP source rows
+      - unlock rows materialized are limited to rows that can affect current code definitions
+      - passive reads/retries write zero rows and never evaluate achievement rules
+      - classic/RPG labels, filters, unlock dates, level semantics and RPG artwork role remain unchanged
+      - accepted A4 one-HUD-read composition on /rpg/badges remains separate and unchanged
+      - unused broad RPG Badge loader may be narrowed/removed only after non-runtime status remains proved
+      - schema version and store/index definitions remain unchanged
     expected_evidence:
-      - badges route access log at 1k/10k XP history
-      - achievement/value/read-only tests
-    state: ready_for_readiness
+      - valid actual-route RED for current hidden full xp_transactions source materialization
+      - separate child-transaction coherence evidence
+      - 1k/10k XP history access metrics separating scanned and source-materialized rows
+      - locked/unlocked + XP-level semantic equivalence from source oracles
+      - classic/RPG shared-surface and failure/retry/passive-write tests
+      - A1-A5 regressions and exact-commit Node24/npm11 release evidence before acceptance
+    state: ready_for_red
   - id: A7
     title: Epic A integration and preservation gate
     order: 7
@@ -251,7 +272,7 @@ stories:
     objective:
       Prove the aggregate route matrix, backup completeness, mutation/read consistency, frozen
       schema and exact authoritative validation before Epic A acceptance.
-    readiness: pending_prior_stories
+    readiness: pending_A6_acceptance
     acceptance_summary:
       - every required RPG route satisfies SPEC access contract
       - backup/export/restore/reset completeness preserved
