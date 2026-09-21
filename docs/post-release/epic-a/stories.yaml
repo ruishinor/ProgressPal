@@ -120,20 +120,27 @@ stories:
       - A1
       - A3
     objective:
-      Replace the highest-frequency shell/Hub/Hero broad snapshots, using explicit streaming lifetime
-      aggregation for approved histories and preserving coherent views.
-    readiness: eligible_after_A3_closure
+      Replace the remaining shell/Hub/Hero broad snapshots with explicit coherent HUD, Hub and Hero
+      read contracts, and eliminate duplicate A4 reads within direct Hub/Hero and post-save compositions.
+    readiness: PASS
     acceptance_summary:
-      - no broad snapshot in shell/Hub/Hero
-      - approved O(n) scans measured for XP, sessions and media
-      - hidden history materialization bounded independently of lifetime history
-      - recent activity remains top-5 and values/order are equivalent
-      - Hero adds only unlock data beyond Hub contract
+      - dedicated HUD, Hub and Hero logical store/query contracts
+      - no all-14-store snapshot in shell/Hub/Hero
+      - direct Hub and Hero perform one A4 logical read each
+      - Resource/Focus post-save feedback shares one A4 refresh result
+      - approved O(n) media/session/XP scans are measured and source histories are not materialized
+      - recent activity remains exact top-5 with published ordering
+      - Hero reads unlocks but does not inherit Hub-only recommendation/weekly/reward work
+      - coherent readonly transactions and zero passive writes
     expected_evidence:
-      - all-three-history 1k/10k access metrics
-      - shell + Hub + Hero route integration tests
-      - transaction coherence barrier test
-    state: ready_for_readiness
+      - mechanism RED for broad Hub/Hero reads and route-level duplicate A4 reads
+      - HUD <=10, Hub <=11 and Hero <=11 logical-query evidence
+      - all-three-history 1k/10k access metrics with fixture setup outside measurement
+      - route-sharing and post-save consistency tests
+      - A1/A2/A3 regressions and exact-commit Node24/npm11 release evidence
+    readiness_record: docs/post-release/epic-a/A4_READINESS_ASSESSMENT.md
+    acceptance_contract: docs/post-release/epic-a/A4_ACCEPTANCE_CONTRACT.md
+    state: ready_for_red
   - id: A5
     title: Focus actual-route read boundary
     order: 5
