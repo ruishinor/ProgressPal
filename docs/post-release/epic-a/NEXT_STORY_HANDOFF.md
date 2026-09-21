@@ -1,134 +1,90 @@
-# Next-story handoff — A5 RED gate
+# Next-story handoff — A6 readiness only
 
-Next story: **A5 — Focus actual-route read boundary**  
-Status: **readiness PASS; ready_for_red only**  
-Readiness baseline: `4a87e68a7fe043ac394a9a6694cf95058288d055`
+Next story: **A6 — Badges actual-route read boundary**
+Status: **eligible for fresh readiness only after A5 closure**
+Accepted A5 implementation: `0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b`
+Accepted A5 tree: `23cec04b2e92cb110d2c9ce7a40be24f026382a1`
 
-Do not write A5 production code until the baseline RED below has been executed and classified as valid.
+Do not create an A6 implementation or RED commit from this handoff alone. The first A6 action after the A5 documentation-only closure commit is an exact-source readiness assessment.
 
-## Governing A5 documents
+## Accepted A5 boundary to preserve
 
-- `A5_READINESS_ASSESSMENT.md`
-- `A5_ACCEPTANCE_CONTRACT.md`
-- `A5_ADVERSARIAL_READINESS_REVIEW.md`
-- updated `stories.yaml`
-- updated `VALIDATION_READINESS.md`
+A5 is accepted with:
 
-## Actual runtime ownership to target
+- one A4 HUD read on Focus with no `study_sessions` HUD ownership;
+- one coherent three-store Focus child read;
+- zero hidden full study-session source materialization;
+- complete visible session ledger retained;
+- one session-only post-save ledger refresh;
+- one shared A4 post-save HUD refresh;
+- unchanged save/XP/achievement/discard/failure semantics;
+- unchanged schema/indexes.
 
-```text
-/rpg/focus
-└─ RpgShell
-   ├─ one accepted A4 HUD read (no study_sessions)
-   └─ RpgFocusPage
-      └─ StudySessionsSurface
-         ├─ initial catalogue + complete ledger read
-         ├─ selected itemId context
-         ├─ manual/live save
-         ├─ post-save ledger refresh
-         └─ read-only retry/discard behavior
-```
+A6 must not regress A1–A5 while changing the Achievements/Badges read path.
 
-The exported `loadRpgFocusSessionSummary()` is unused by this runtime path. Do not build RED around it.
+## Known current route composition to re-prove
 
-## Baseline mechanism that RED must observe
-
-Current actual child load reaches `listStudySessions()` → `studySessions.toArray()`.
-
-That bulk-materializes the complete `StudySession[]`, which is then parsed/sorted and transformed into a separate complete visible `SessionLedgerRow[]`.
-
-The ledger itself is allowed complete O(`H_sessions`) visible product data. The hidden complete source-array materialization is not.
-
-The primary valid RED therefore proves all of the following in the same actual-route evidence:
-
-- Focus successfully renders all expected ledger rows;
-- DBCore observes `study_sessions` bulk source materialization equal to session-history size;
-- the acceptance contract expects zero hidden source materialization;
-- the shell performs one A4 HUD read and the HUD does not touch `study_sessions`;
-- passive writes are zero;
-- fixture setup is outside measurement;
-- probe installation occurred before the measured reader opened.
-
-Expected failure classification: `architecture/access`.
-
-## Separate RED/evidence roles
-
-Do not make one test prove everything.
-
-- semantic: ledger order/content/selected-item behavior;
-- access mechanism: hidden source materialization;
-- transaction coherence: one child readonly transaction, three allowed stores;
-- route composition: one HUD + one child contract;
-- scale/fan-out: 1k/10k sessions, one session scan/query, visible O(H), hidden 0;
-- mutation outcome: one save, existing XP/achievement semantics;
-- post-save/retry: one HUD refresh + one ledger refresh, committed-result preservation;
-- failure propagation: initial/ledger/HUD failures remain distinct;
-- passive-write: load/refresh/retry/discard write zero rows.
-
-## Fixture/instrumentation procedure
-
-1. Start from the exact documentation-readiness parent after it is locally integrated.
-2. Use an uninstrumented writer for seed + synthetic fixtures.
-3. Use the bundled course seed for real unit/item context.
-4. Validate each synthetic session with `StudySessionSchema` before insertion.
-5. Close the writer.
-6. Create/get the measured reader for the same DB.
-7. Install the DBCore probe before reader open.
-8. Render actual `RpgShell` + `RpgFocusPage` + `StudySessionsSurface` from an already-ready AppState boundary; do not mock repositories.
-9. Keep `getDatabaseSnapshot()` and mutation setup out of measured access/scale evidence.
-10. Record transaction/query/store/scanned/materialized/visible/hidden/write/duration metrics.
-
-If a registered failure class recurs, mark `RECURRENCE` and stop normal repair-forward work.
-
-## Target GREEN contract after valid RED
-
-Production work, when later authorized by valid RED, must achieve:
-
-- child initial stores: `course_units`, `course_items`, `study_sessions` only;
-- one coherent readonly child transaction;
-- ≤3 child logical queries total, ≤1/store;
-- selected `itemId` resolved from the coherent catalogue with no extra DB query;
-- one O(H) session scan;
-- complete visible ledger retained;
-- zero bulk-materialized hidden session source rows;
-- zero second hidden complete session array;
-- one read-only post-save ledger refresh;
-- one accepted A4 HUD refresh;
-- unchanged save/XP/achievement/discard/retry semantics;
-- no schema/index change.
-
-## Post-save call graph to preserve
+The exact accepted A5 source currently shows:
 
 ```text
-save
-└─ runLocalMutation(invalidateRoute:false)
-   ├─ addStudySessionAndAwardXp() explicit coordinated write
-   └─ AppState stable refresh
-      └─ result returned
-         ├─ RpgFocusPage → exactly one refreshHud()
-         └─ StudySessionsSurface → exactly one ledger refresh
+/rpg/badges
+└─ RpgBadgesPage
+   └─ shared AchievementsSurface(variant="rpg")
+      └─ Promise.all
+         ├─ getAchievementsView()
+         │  └─ persisted achievement_unlocks + code-only definitions
+         └─ getXpSummary()
+            └─ current xp_transactions lifetime read
 ```
 
-A ledger or HUD refresh failure after this point is a read failure, not a failed save.
+The same `AchievementsSurface` is also used by the classic achievements route. Its loading/error/retry semantics and read ownership are therefore shared product behavior, not RPG-only behavior.
 
-## Branching gate
+Current source comments and repository code establish that `getAchievementsView()` merges code-only definitions with persisted unlocks, does not evaluate rules and does not create unlocks. Current `getXpSummary()` bulk-materializes `xp_transactions` with `toArray()` before calculating total XP/level.
 
-After the readiness docs are locally integrated and exact identity is recorded, create the A5 story branch from that exact readiness commit. Suggested name:
+These are readiness observations only. Do not treat the prospective fix as pre-approved before measurement.
 
-`postrelease/a5-focus-read-boundary`
+## Required A6 readiness work
 
-The first A5 story state on that branch is RED-only. Do not include production changes in the RED commit/candidate.
+1. Export/inspect the exact clean post-A5 closure source and configuration.
+2. Draw the actual route call graph for RPG and classic achievement surfaces, including shell/HUD ownership.
+3. Measure current stores, transactions, queries, rows scanned/materialized and passive writes.
+4. Separate visible achievement rows from hidden XP-history materialization.
+5. Prove whether persisted `achievement_definitions` participates in the actual display path.
+6. Prove existing unlock ordering/content and XP level semantics from product/source oracles.
+7. Inspect error/retry and shared-surface behavior before designing RED.
+8. Check current indexes/schema and explicitly decide whether A6 can remain schema-frozen.
+9. Define separate semantic, access, composition, scale and passive-write evidence roles.
+10. Freeze an A6 acceptance contract before creating an A6 RED-only story branch.
+
+## Likely mechanism requiring investigation
+
+The current source contains a concrete candidate mechanism: `getXpSummary()` calls `xp_transactions.toArray()` before reducing lifetime XP. A6 readiness should determine whether this creates a hidden full XP source array in the actual shared surface and whether a streaming lifetime aggregate can preserve published level semantics.
+
+This is a readiness hypothesis, **not** permission to implement it immediately.
+
+## Mandatory A5 process lessons
+
+A6 support tooling must apply the strengthened controls from A5:
+
+- inspect repository-native interfaces and evidence schemas before wrapping them;
+- generated scripts must not guess unsupported CLI arguments;
+- machine evidence should be structural/native before regex parsing;
+- literal Git status checks must be literal;
+- long-running commands must stream output;
+- fixture/API/type consistency must be preflighted before owner execution;
+- storage headroom must be checked before artifact-heavy E2E;
+- only invalidated evidence is rerun after a support-tool or environment failure.
 
 ## Stop conditions
 
-Stop before production implementation if:
+Stop before RED or production implementation if:
 
-- baseline does not fail for hidden actual-route session source materialization/coherence;
-- fixture/schema or instrumentation is invalid;
-- actual route ownership differs from this handoff;
-- a schema/index migration appears necessary;
-- the only RED is an unused broad helper;
-- integration/remote lineage changed unexpectedly;
-- A4 one-HUD composition cannot be preserved.
+- the exact post-A5 closure source differs materially from the route composition above;
+- the shared classic/RPG surface cannot be tested without substituting a synthetic path;
+- achievement definitions/rules/rewards would need to change;
+- a schema/index migration appears necessary rather than merely convenient;
+- the intended RED depends only on an unused broad helper;
+- A1–A5 accepted read/composition behavior cannot be preserved;
+- integration or published baseline lineage changed unexpectedly.
 
-Do not start A6.
+No push, remote merge or deployment is authorized. A7 remains blocked until A6 is accepted and closed.

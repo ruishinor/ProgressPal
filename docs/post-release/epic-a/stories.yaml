@@ -8,8 +8,9 @@ readiness: PASS
 state: in_progress
 integration:
   branch: postrelease/01-read-architecture
-  current_head: 4a87e68a7fe043ac394a9a6694cf95058288d055
-  latest_accepted_implementation: 1bcd1e20374d230cf7425aec91f96ad5c960a3b1
+  current_head: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
+  latest_accepted_implementation: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
+  closure_documentation: committed_after_implementation_fast_forward
   remote_publication: not_performed
 stories:
   - id: A1
@@ -180,6 +181,7 @@ stories:
     readiness_baseline:
       branch: postrelease/01-read-architecture
       head: 4a87e68a7fe043ac394a9a6694cf95058288d055
+      pre_red_integration_head: 4e7a5f4821940c527d51e760c891b6558d25d8c9
       a4_implementation: 1bcd1e20374d230cf7425aec91f96ad5c960a3b1
       a4_tree: a9c25fd7af7020dbb78402d1c699b8800a20b7b7
     acceptance_summary:
@@ -189,18 +191,35 @@ stories:
       - initial child read uses one coherent readonly transaction over course_units, course_items and study_sessions
       - selected itemId is resolved without an extra course_items query and does not filter the ledger
       - accepted A4 one-HUD-read and one-post-save-HUD-refresh composition preserved; HUD never reads study_sessions
-      - one read-only ledger refresh after save/correction; read-only retry preserves committed result
-      - save, XP, achievement, discard and draft-preservation semantics remain unchanged
-      - unused broad RPG Focus loader is narrowed or deliberately removed, but is not used as sole RED evidence
+      - one read-only ledger refresh after save/correction; no normal post-save catalogue reread
+      - save, XP, achievement, discard, draft-preservation and committed-result failure semantics remain unchanged
+      - unused broad RPG Focus loader removed/narrowed from runtime ownership
       - schema version and store/index definitions unchanged
-    expected_evidence:
-      - valid actual-route mechanism RED for hidden full study-session source materialization
-      - separate transaction-coherence and route-composition evidence
-      - 1k/10k valid session-history access metrics separating scanned, source-materialized, visible and hidden rows
-      - focus save/reload/HUD/ledger retry consistency tests
-      - zero-passive-write evidence with fixture/mutation setup outside measured reader instrumentation
-      - A1-A4 regression and exact-commit Node24/npm11 validation before acceptance
-    state: ready_for_red
+    state: accepted
+    accepted_candidate:
+      commit: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
+      tree: 23cec04b2e92cb110d2c9ce7a40be24f026382a1
+      parent: 99ae07e031144ed2a9d29d5c1055040349f3f4d3
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      evidence:
+        focused_green_tests: 6/6
+        focused_coupled_tests: 207/207
+        authoritative_regression_tests: 97/97
+        unit_integration_tests: 659/659
+        e2e_tests: 74/74
+        validated_zip_sha256: 8D4EF226E39A507CB6BE1C2D3B8199842D3F4440A918AB4AD1318FC907A4F6B9
+        closure_source_zip_sha256: E65CDA8004F8E6704B905809CBDFCEF23B1406DC08AA84B2D47BBDBC96EE1761
+        release_evidence: artifacts/release-evidence/2026-09-21T19-02-53-138Z-rpg-primary-final-candidate-pass-1.json
+        release_status: passed
+        release_command_count: 21
+        release_warning_retry_skip_counts: 0/0/0
+        release_review_sha256: 28894F15492F2A279E42A53005EE831A07C0FCDA5BF99C74055718AE11478019
+        release_review_byte_binding: PASS
+        circular_dependency_analysis: PASS
+        audit_vulnerabilities: 0
+      closure_record: docs/post-release/epic-a/A5_CLOSURE_RECORD.md
   - id: A6
     title: Badges actual-route read boundary
     order: 6
@@ -209,7 +228,7 @@ stories:
     objective:
       Validate and narrow the actual shared AchievementsSurface path; keep code definitions and
       unlocks while replacing full XP array level calculation with measured lifetime aggregation.
-    readiness: pending_A5_sequential_order
+    readiness: eligible_after_A5_closure
     acceptance_summary:
       - actual AchievementsSurface path covered
       - zero persisted achievement-definition reads for display
@@ -219,7 +238,7 @@ stories:
     expected_evidence:
       - badges route access log at 1k/10k XP history
       - achievement/value/read-only tests
-    state: planned
+    state: ready_for_readiness
   - id: A7
     title: Epic A integration and preservation gate
     order: 7
