@@ -6,6 +6,11 @@ baseline:
   production_deployment: dpl_H2GkappEu6QPT9w6WYZDw57LdBrr
 readiness: PASS
 state: in_progress
+integration:
+  branch: postrelease/01-read-architecture
+  current_head: 4a87e68a7fe043ac394a9a6694cf95058288d055
+  latest_accepted_implementation: 1bcd1e20374d230cf7425aec91f96ad5c960a3b1
+  remote_publication: not_performed
 stories:
   - id: A1
     title: Map read boundary + access measurement harness
@@ -167,21 +172,35 @@ stories:
       - A4
     objective:
       Validate and narrow the actual RPG Focus composition, not the unused exported RPG Focus loader.
-      Preserve the complete visible study-session ledger exception while ensuring shell work obeys the Hub
-      contract and preserving save feedback.
-    readiness: eligible_after_A4_closure
+      Preserve the complete visible study-session ledger exception while eliminating hidden complete session-source
+      materialization and preserving accepted A4 HUD/save feedback composition.
+    readiness: PASS
+    readiness_record: docs/post-release/epic-a/A5_READINESS_ASSESSMENT.md
+    acceptance_contract: docs/post-release/epic-a/A5_ACCEPTANCE_CONTRACT.md
+    readiness_baseline:
+      branch: postrelease/01-read-architecture
+      head: 4a87e68a7fe043ac394a9a6694cf95058288d055
+      a4_implementation: 1bcd1e20374d230cf7425aec91f96ad5c960a3b1
+      a4_tree: a9c25fd7af7020dbb78402d1c699b8800a20b7b7
     acceptance_summary:
-      - actual StudySessionsSurface path covered
-      - complete session ledger explicitly measured as visible O(H) exception
-      - shell/Hub may perform its approved streaming session aggregate, but may not materialize a second hidden
-        full session array
-      - save result, history refresh and Hub/HUD feedback remain consistent
-      - unused broad RPG Focus loader is narrowed or deliberately removed
+      - actual RpgShell -> RpgFocusPage -> StudySessionsSurface path covered
+      - complete session ledger retained as explicit visible O(H_sessions) product-data exception
+      - passive Focus child reads bulk-materialize zero hidden complete study-session source arrays
+      - initial child read uses one coherent readonly transaction over course_units, course_items and study_sessions
+      - selected itemId is resolved without an extra course_items query and does not filter the ledger
+      - accepted A4 one-HUD-read and one-post-save-HUD-refresh composition preserved; HUD never reads study_sessions
+      - one read-only ledger refresh after save/correction; read-only retry preserves committed result
+      - save, XP, achievement, discard and draft-preservation semantics remain unchanged
+      - unused broad RPG Focus loader is narrowed or deliberately removed, but is not used as sole RED evidence
+      - schema version and store/index definitions unchanged
     expected_evidence:
-      - route access log
-      - large session-history fixture
-      - focus save/reload consistency tests
-    state: ready_for_readiness
+      - valid actual-route mechanism RED for hidden full study-session source materialization
+      - separate transaction-coherence and route-composition evidence
+      - 1k/10k valid session-history access metrics separating scanned, source-materialized, visible and hidden rows
+      - focus save/reload/HUD/ledger retry consistency tests
+      - zero-passive-write evidence with fixture/mutation setup outside measured reader instrumentation
+      - A1-A4 regression and exact-commit Node24/npm11 validation before acceptance
+    state: ready_for_red
   - id: A6
     title: Badges actual-route read boundary
     order: 6
