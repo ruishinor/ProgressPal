@@ -37,16 +37,16 @@ A secondary architecture issue is that initial child data is assembled by indepe
 
 ## 3. Stop-rule evaluation
 
-| Stop rule | Result | Evidence/disposition |
-|---|---|---|
-| exact current source unavailable | clear | exact A5 export is present and identifies `4a87e68a...` |
-| actual Focus composition materially differs and is unreconciled | clear | post-A4 composition reconstructed below |
-| visible ledger ownership ambiguous | clear | shared `StudySessionsSurface` owns and renders the complete ledger |
-| schema/index migration appears necessary | clear | no migration is required for a complete ledger scan plus visible-row ordering |
-| instrumentation interferes with mutation semantics | clear if contract followed | fixtures/mutations must use an uninstrumented writer; measured reader is separately opened and probed before open |
-| RED targets unused helper | clear | primary RED targets actual `RpgShell` → `RpgFocusPage` → `StudySessionsSurface` path |
-| lineage changed unexpectedly | clear | export identity matches required A4 closure lineage |
-| lessons-learned controls cannot be satisfied | clear | controls are mechanically specified in the acceptance contract |
+| Stop rule                                                       | Result                     | Evidence/disposition                                                                                              |
+| --------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| exact current source unavailable                                | clear                      | exact A5 export is present and identifies `4a87e68a...`                                                           |
+| actual Focus composition materially differs and is unreconciled | clear                      | post-A4 composition reconstructed below                                                                           |
+| visible ledger ownership ambiguous                              | clear                      | shared `StudySessionsSurface` owns and renders the complete ledger                                                |
+| schema/index migration appears necessary                        | clear                      | no migration is required for a complete ledger scan plus visible-row ordering                                     |
+| instrumentation interferes with mutation semantics              | clear if contract followed | fixtures/mutations must use an uninstrumented writer; measured reader is separately opened and probed before open |
+| RED targets unused helper                                       | clear                      | primary RED targets actual `RpgShell` → `RpgFocusPage` → `StudySessionsSurface` path                              |
+| lineage changed unexpectedly                                    | clear                      | export identity matches required A4 closure lineage                                                               |
+| lessons-learned controls cannot be satisfied                    | clear                      | controls are mechanically specified in the acceptance contract                                                    |
 
 If any of these facts changes before RED is run, readiness must be re-evaluated.
 

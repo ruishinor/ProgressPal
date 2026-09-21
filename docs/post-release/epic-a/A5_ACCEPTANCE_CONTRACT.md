@@ -314,17 +314,17 @@ Do not accept as RED:
 
 ## 17. Test-role matrix
 
-| Test | Primary role | DBCore read probe? | Mutation/setup inside measured probe? |
-|---|---|---:|---:|
-| complete ledger values/order | semantic | no | no |
-| actual route hidden source materialization | access mechanism | yes | no |
-| one HUD + one Focus child read | route composition | only if needed for stores | no |
-| 1k/10k history growth | scale/fan-out | yes | no |
-| one child transaction | transaction coherence | yes | no |
-| manual/live save semantics | mutation outcome | no by default | explicit mutation is the subject |
-| one HUD + one ledger refresh after save | post-save/retry | composition instrumentation; DBCore only on read branch if isolated | mutation measured separately |
-| failed ledger/HUD refresh retries | failure propagation | no unless read access is the property | no |
-| passive route/retry/discard writes | passive-write | yes | no |
+| Test                                       | Primary role          |                                                  DBCore read probe? | Mutation/setup inside measured probe? |
+| ------------------------------------------ | --------------------- | ------------------------------------------------------------------: | ------------------------------------: |
+| complete ledger values/order               | semantic              |                                                                  no |                                    no |
+| actual route hidden source materialization | access mechanism      |                                                                 yes |                                    no |
+| one HUD + one Focus child read             | route composition     |                                           only if needed for stores |                                    no |
+| 1k/10k history growth                      | scale/fan-out         |                                                                 yes |                                    no |
+| one child transaction                      | transaction coherence |                                                                 yes |                                    no |
+| manual/live save semantics                 | mutation outcome      |                                                       no by default |      explicit mutation is the subject |
+| one HUD + one ledger refresh after save    | post-save/retry       | composition instrumentation; DBCore only on read branch if isolated |          mutation measured separately |
+| failed ledger/HUD refresh retries          | failure propagation   |                               no unless read access is the property |                                    no |
+| passive route/retry/discard writes         | passive-write         |                                                                 yes |                                    no |
 
 ## 18. Acceptance boundary
 
