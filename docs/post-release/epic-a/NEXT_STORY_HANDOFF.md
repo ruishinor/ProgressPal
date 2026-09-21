@@ -1,102 +1,130 @@
-# Next-story handoff — A2 implementation
+# Next-story handoff — A3 readiness only
 
-Next story: **A2 — Module read boundary**
+Next story: **A3 — Resource read boundary**
 
-Readiness: **PASS**
+Status: **eligible for fresh readiness assessment after A2 closure integration**
 
-A2 implementation may begin only after this readiness package is committed documentation-only on the current Epic A integration lineage.
+Do not modify A3 production code from this handoff. Do not create the A3 story branch until the fresh A3 readiness gate passes.
 
-## Branch base
+## Accepted lineage entering A3
 
-The integration commit assessed for readiness was:
+Product baseline remains:
 
-- `postrelease/01-read-architecture`
-- `8a50541c2ad34211c3974714659d016a6e534825`
+- `master`: `a0581c13a22fdd3387534d2de0eca2591cf13ed6`
+- tree: `d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34`
 
-Commit this readiness package on top of that lineage first. Then create:
+Accepted A2 implementation:
 
-`postrelease/a2-module-read-boundary`
+- commit: `e329950bbcce0bae2faa42496f532af13deb7322`
+- tree: `f321357a8f3b087fddc0e25540920d5b3d9c6dc9`
+- parent / A2 readiness commit: `31e611dd934ac2456864949bc3e1e6a7f7748189`
 
-from the resulting readiness-documentation commit.
+A3 must branch from the **current accepted `postrelease/01-read-architecture` HEAD after the A2 documentation-only closure commit**, not directly from `master`, A1, the A2 readiness commit, or the A2 story branch. The integration HEAD must descend from the exact A2 implementation commit above.
 
-Do not branch from `master`, A0, `ec651536...`, or directly from `8a50541...` after the readiness documentation has been committed.
+## A3 objective
 
-## First A2 phase — RED harness only
+Replace only the Resource broad-snapshot logical read with an item/unit-scoped coherent read contract, preserving reward and long-form behavior and post-save reload semantics.
 
-Do not edit production code first.
+The A0 story ledger requires A3 to prove:
 
-Reuse the accepted A1 access probe and calibration tests. Add Module-specific tests that invoke the actual `loadRpgModuleSummary()` production loader.
+- selected item/unit/reward context only;
+- no N+1 progress/slice/event/resume queries;
+- no hidden full media/XP history arrays;
+- value equivalence and mutation-summary consistency;
+- access metrics at 1×/10× unit/content cardinality;
+- reward/long-form fixtures and post-save assertions.
 
-The untouched baseline must fail the A2 access contract because the Module loader still uses the generic 14-store snapshot. The failure must be mechanism evidence from the probe, not a symbol/regex ban.
+## Required fresh A3 context
 
-At minimum, the RED result must observe:
+Load only what is needed to establish the actual current Resource composition after A2:
 
-- unrelated store access;
-- broad transaction scope;
-- complete append-only history materialization through the snapshot path;
-- zero production changes before the RED proof.
+1. repository `AGENTS.md`;
+2. `docs/post-release/epic-a/SPEC.md`;
+3. updated `stories.yaml`;
+4. `A2_CLOSURE_RECORD.md`;
+5. actual current:
+   - `src/features/rpg/model/readModels.ts`;
+   - Resource route/component and save/reload composition;
+   - `src/lib/db/repositories.ts` and `src/lib/db/index.ts`;
+   - `src/lib/db/database.ts` only to confirm frozen schema/index contract;
+   - reward/progress/long-form helpers actually used by Resource;
+   - A1/A2 access probe and calibration tests;
+   - Resource/read-model/save-outcome/repository tests relevant to post-save consistency.
 
-Preserve A1 Map tests as regression guards.
+Do not reuse rejected intermediate A2 packages or infer the A3 contract from A2 alone.
 
-## Second A2 phase — GREEN Module reader
+## Fresh A3 pre-code readiness gate
 
-Only after the RED harness is valid and fails for the intended architecture reason, add a dedicated Module read-data path.
-
-Preferred structure:
+Before creating an A3 story branch or editing production code, prove:
 
 ```text
-loadRpgModuleSummary(unitId)
-  -> getModuleReadData(unitId)
-       -> one coherent readonly Dexie transaction
-       -> keyed unit read
-       -> indexed/bulk module-item dependency reads
-       -> scoped media cursor aggregation
-       -> scoped XP reward-key lookup
-  -> Module-specific pure adapter/builder
+origin/master still identifies the accepted product baseline, or any newer accepted master has been explicitly reconciled
+current postrelease/01-read-architecture HEAD descends from exact accepted A2 commit e329950...
+A2_CLOSURE_RECORD.md and updated stories.yaml are present on that integration HEAD
+worktree is clean
+Node24/npm11 authoritative validation remains invocable in a clean environment
+src/lib/db/database.ts schema/index/version contract is unchanged
+A1/A2 access-probe calibration remains green
+current actual Resource production path still matches the A0/A3 broad-read premise
+post-save Resource reload/composition is understood before the read contract is frozen
 ```
 
-Prefer an explicit `ModuleReadData` contract. Do not fabricate a full `DatabaseSnapshot` with unrelated empty arrays merely to satisfy the legacy builder signature.
+If any condition fails, stop before production code and classify A3 as blocked or reconciliation-required.
+
+## Local tooling constraint entering A3
+
+The primary working tree contains the registered nested worktree `.kilo/worktrees/nova-carnation`, which currently contaminates direct repo-wide ESLint root discovery.
+
+A3 readiness must explicitly choose one of two safe paths:
+
+- deliberately resolve/remove that worktree outside the story if it is genuinely stale; or
+- preserve it and use clean isolated clones for repository-wide gates.
+
+Do not silently delete it as part of A3 setup.
+
+## A3 RED evidence before implementation
+
+Reuse and calibrate the accepted access probe. Invoke the **actual Resource production path**, including the composition that is used after explicit save/reload. The untouched accepted A3 baseline must fail the proposed Resource access contract for an observed mechanism reason before production code is changed.
+
+The RED proof must distinguish:
+
+- logical Resource read access;
+- any shell/Hub work that belongs to A4 rather than A3;
+- explicit mutation work during save from passive reload/read work after the save;
+- source-row scanning from materialization.
+
+Do not use regex/symbol bans as the acceptance oracle.
 
 ## Scope controls
 
-A2 may touch only what is necessary for the Module read boundary and its tests/instrumentation reuse.
+A3 must not change:
 
-Do not change:
-
-- persistent shell/Hub behavior — A4;
-- Resource loader — A3;
-- Focus/Badges/Hero paths;
+- persistent shell/Hub/Hero behavior — A4;
+- Focus or Badges paths;
 - database schema/indexes/migrations;
+- backup/storage format;
 - reward amounts or achievement rules;
 - UI/copy/navigation;
-- backup/storage format;
-- cloud/auth/service-worker architecture.
+- service worker, cloud or authentication architecture.
 
-## Required evidence before A2 acceptance
+## Required A3 evidence before acceptance
 
-- RED access evidence on untouched Module baseline;
-- probe calibration still green;
-- normal and missing-unit semantic equivalence;
-- long-form and reward-label equivalence;
+At minimum:
+
+- calibrated RED mechanism evidence from the actual Resource production path;
+- 1×/10× unit/content-cardinality access metrics with no per-slice/event/resume N+1 growth;
+- explicit rows returned/scanned/materialized for append-only histories;
+- normal/missing-resource and long-form/reward semantic equivalence;
 - zero passive writes;
-- actual-loader transaction-coherence barrier test;
-- 1×/10× module item/asset cardinality with constant query count;
-- explicit scanned/materialized rows for append-only stores;
-- preserved A1 access-contract tests;
-- complete focused and repository validation;
+- post-save mutation-summary/readback consistency;
+- actual-loader transaction-coherence evidence where the Resource read spans multiple stores;
+- preserved A1 Map and A2 Module boundary tests;
+- focused repository/read-model/save-outcome/architecture tests;
+- complete clean-environment repository validation;
 - exact-candidate Node24/npm11 `verify:release` evidence.
 
-## Stop conditions
+## Stop rule
 
-Stop before production changes if:
+This handoff makes A3 eligible for **fresh readiness assessment only**. It does not pre-approve an A3 implementation design.
 
-- integration lineage changed without reconciliation;
-- `origin/master` changed without reconciliation;
-- worktree is dirty;
-- Node24/npm11 validation is unavailable;
-- `src/lib/db/database.ts` changed;
-- A1 probe calibration fails;
-- Module no longer matches the broad-snapshot premise;
-- RED failure is caused by fixture/harness/runtime defects rather than observed access.
-
-Stop before A3. A2 must be accepted, closed and integrated first.
+After A3 acceptance, close and integrate it before A4 begins.

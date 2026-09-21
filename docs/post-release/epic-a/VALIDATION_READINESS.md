@@ -2,9 +2,9 @@
 
 Result: **PASS**
 
-Original A0 result: **CONCERNS**
+Latest accepted story: **A2 — Module read boundary**
 
-Resolution date: 2026-09-20
+Updated: 2026-09-21
 
 ## Required environment
 
@@ -15,43 +15,45 @@ Repository contract:
 - `.nvmrc`: `24`
 - `packageManager`: `npm@11.10.1`
 
-The original A0 execution environment was Node `v22.16.0` / npm `10.9.2`, so A0 correctly did not certify implementation readiness from that environment.
+Authoritative owner-side validation used Node `v24.19.0` and npm `11.10.1`.
 
 ## Authoritative validation path
 
-The repository defines an exact-candidate release path through `.github/workflows/test.yml` and `npm run verify:release`. The gate validates a clean committed SHA/tree and executes the repository's formatter, lint, typecheck, build, bundle, complete unit/integration suite, E2E, circular-dependency check, dependency audit, and final clean-state/evidence checks under the required toolchain.
+The repository's exact-candidate path remains `npm run verify:release`. For A2 it was executed from a fresh clone of the exact local implementation commit, avoiding unrelated nested-worktree contamination in the primary working directory.
 
-## Resolution of the A0 concern
+Accepted A2 exact candidate:
 
-Owner-side execution subsequently proved that the authoritative path is actually invocable locally under the repository contract:
+- commit: `e329950bbcce0bae2faa42496f532af13deb7322`
+- tree: `f321357a8f3b087fddc0e25540920d5b3d9c6dc9`
+- parent: `31e611dd934ac2456864949bc3e1e6a7f7748189`
+- release evidence: `artifacts/release-evidence/2026-09-21T00-09-17-766Z-rpg-primary-final-candidate-pass-1.json`
+- release evidence SHA-256: `E5264824309E8B10282FA1F06C25F9C31A7B152DC8641E95312541FA70D84533`
+- unit/integration: 626/626
+- E2E: 74/74
+- audit: 0 vulnerabilities
 
-- Node `v24.19.0`
-- npm `11.10.1`
+A2 therefore preserves the proven Node24/npm11 validation pathway and extends the accepted Epic A lineage through the exact Module-boundary implementation commit.
 
-The amended A0 commit `168ccfbca21dfbc5e66ec953a5dbdd42d47fa97d` / tree `9f6893f26a4a6eedc2ba35e6c46255e9bd511251` passed the complete authoritative release gate before the A1 story branch was created.
+## Known local-environment constraint
 
-A1 then passed the same exact-candidate gate on:
+The primary working tree currently contains a registered nested Git worktree under `.kilo/worktrees/nova-carnation`. Direct repository-wide `eslint .` in that primary directory detects two candidate TypeScript roots and fails parser-root discovery.
 
-- commit `ec651536e61a7e5d939506069887df32b81b5c0f`
-- tree `f401d82dc0d92fea9f3f18a7a1404eca8b3fa5a3`
-- release evidence `artifacts/release-evidence/2026-09-20T21-58-30-862Z-rpg-primary-final-candidate-pass-1.json`
-- release evidence SHA-256 `3EAF5A72E985565673443150EDA9248797B56B1CD0938F45AEF533C516B27F2A`
-- 613/613 unit/integration tests
-- 74/74 E2E tests
-- 0 audit vulnerabilities
+This does not invalidate A2: the exact candidate passed lint in clean isolated clones before commit and again in the exact-commit release clone. It is nevertheless a real local tooling constraint and must be accounted for during A3 readiness.
 
-The original A0 uncertainty about whether authoritative Node24/npm11 validation was actually usable is therefore resolved.
+Do not delete or rewrite the Kilo worktree as an incidental validation step. Either deliberately resolve it as separate tooling hygiene, or continue to use clean isolated clones for repository-wide gates.
 
-## Continuing rule for later stories
+## Continuing rule for A3 and later stories
 
-`PASS` here means the validation pathway is proven and available. It does **not** pre-approve future code.
+`PASS` here does not pre-approve A3.
 
 Every later Epic A story must still:
 
-1. establish a fresh clean baseline from the latest accepted Epic A integration commit;
-2. prove the story-specific RED/measurement contract before production edits where required;
-3. run focused validation appropriate to the story;
-4. run the full repository validation required by the SPEC;
-5. produce authoritative Node24/npm11 evidence bound to the exact candidate commit/tree before the story can be accepted and integrated.
+1. start from the latest accepted Epic A integration closure HEAD;
+2. reconcile any change to `origin/master`, schema/index contracts or accepted lineage before code;
+3. calibrate the shared access probe and prove the story-specific RED mechanism before production edits where required;
+4. keep scale/measurement fixtures separate from semantic/full-snapshot oracles;
+5. validate candidate behavior in an uncontaminated environment;
+6. run focused real-branch checks appropriate to the story;
+7. produce authoritative Node24/npm11 release evidence bound to the exact candidate commit/tree before acceptance.
 
-If the authoritative path becomes unavailable or the accepted product/integration baseline changes incompatibly, that story returns to `FAIL / blocked-before-code` or to contract reconciliation rather than being validated later.
+A3 remains readiness-only until those fresh checks pass.

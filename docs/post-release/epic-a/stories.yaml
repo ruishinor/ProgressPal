@@ -10,11 +10,12 @@ stories:
   - id: A1
     title: Map read boundary + access measurement harness
     order: 1
-    depends_on: [A0]
-    objective: >-
-      Establish mechanism-level read instrumentation and replace only the Campaign Map
-      broad-snapshot loader with a narrow coherent read contract. Prove the access test
-      red on the published baseline before making it green.
+    depends_on:
+      - A0
+    objective:
+      Establish mechanism-level read instrumentation and replace only the Campaign Map broad-snapshot
+      loader with a narrow coherent read contract. Prove the access test red on the published baseline before
+      making it green.
     readiness: PASS
     acceptance_summary:
       - no Map logical-read access to unrelated stores
@@ -45,14 +46,14 @@ stories:
         audit_vulnerabilities: 0
       closure_record: docs/post-release/epic-a/A1_CLOSURE_RECORD.md
     state: accepted
-
   - id: A2
     title: Module read boundary
     order: 2
-    depends_on: [A1]
-    objective: >-
-      Replace Module broad snapshot access with unit-scoped bulk/indexed reads without
-      per-item/per-asset query growth.
+    depends_on:
+      - A1
+    objective:
+      Replace Module broad snapshot access with unit-scoped bulk/indexed reads without per-item/per-asset
+      query growth.
     readiness: PASS
     acceptance_summary:
       - requested unit/item scope only
@@ -62,16 +63,32 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x module cardinality
       - value equivalence and missing-unit behavior
-    state: ready_for_implementation
-
+    state: accepted
+    accepted_candidate:
+      commit: e329950bbcce0bae2faa42496f532af13deb7322
+      tree: f321357a8f3b087fddc0e25540920d5b3d9c6dc9
+      parent: 31e611dd934ac2456864949bc3e1e6a7f7748189
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      evidence:
+        focused_tests: 87/87
+        unit_integration_tests: 626/626
+        e2e_tests: 74/74
+        release_evidence: artifacts/release-evidence/2026-09-21T00-09-17-766Z-rpg-primary-final-candidate-pass-1.json
+        release_evidence_sha256: E5264824309E8B10282FA1F06C25F9C31A7B152DC8641E95312541FA70D84533
+        audit_vulnerabilities: 0
+      closure_record: docs/post-release/epic-a/A2_CLOSURE_RECORD.md
   - id: A3
     title: Resource read boundary
     order: 3
-    depends_on: [A1, A2]
-    objective: >-
-      Replace Resource broad snapshot access with item/unit-scoped bulk/indexed reads,
-      preserving reward and long-form behavior and post-save reload semantics.
-    readiness: pending_A2
+    depends_on:
+      - A1
+      - A2
+    objective:
+      Replace Resource broad snapshot access with item/unit-scoped bulk/indexed reads, preserving
+      reward and long-form behavior and post-save reload semantics.
+    readiness: eligible_after_A2_closure
     acceptance_summary:
       - selected item/unit/reward context only
       - no N+1 progress/slice/event/resume queries
@@ -80,15 +97,16 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x unit/content cardinality
       - reward/long-form fixtures and post-save assertions
-    state: planned
-
+    state: ready_for_readiness
   - id: A4
     title: Hub, Hero and persistent HUD read boundaries
     order: 4
-    depends_on: [A1, A3]
-    objective: >-
-      Replace the highest-frequency shell/Hub/Hero broad snapshots, using explicit
-      streaming lifetime aggregation for approved histories and preserving coherent views.
+    depends_on:
+      - A1
+      - A3
+    objective:
+      Replace the highest-frequency shell/Hub/Hero broad snapshots, using explicit streaming lifetime
+      aggregation for approved histories and preserving coherent views.
     readiness: pending_A3
     acceptance_summary:
       - no broad snapshot in shell/Hub/Hero
@@ -101,20 +119,21 @@ stories:
       - shell + Hub + Hero route integration tests
       - transaction coherence barrier test
     state: planned
-
   - id: A5
     title: Focus actual-route read boundary
     order: 5
-    depends_on: [A4]
-    objective: >-
-      Validate and narrow the actual RPG Focus composition, not the unused exported RPG
-      Focus loader. Preserve the complete visible study-session ledger exception while
-      ensuring shell work obeys the Hub contract and preserving save feedback.
+    depends_on:
+      - A4
+    objective:
+      Validate and narrow the actual RPG Focus composition, not the unused exported RPG Focus loader.
+      Preserve the complete visible study-session ledger exception while ensuring shell work obeys the Hub
+      contract and preserving save feedback.
     readiness: pending_A4
     acceptance_summary:
       - actual StudySessionsSurface path covered
       - complete session ledger explicitly measured as visible O(H) exception
-      - shell/Hub may perform its approved streaming session aggregate, but may not materialize a second hidden full session array
+      - shell/Hub may perform its approved streaming session aggregate, but may not materialize a second hidden
+        full session array
       - save result, history refresh and Hub/HUD feedback remain consistent
       - unused broad RPG Focus loader is narrowed or deliberately removed
     expected_evidence:
@@ -122,14 +141,14 @@ stories:
       - large session-history fixture
       - focus save/reload consistency tests
     state: planned
-
   - id: A6
     title: Badges actual-route read boundary
     order: 6
-    depends_on: [A4]
-    objective: >-
-      Validate and narrow the actual shared AchievementsSurface path; keep code definitions
-      and unlocks while replacing full XP array level calculation with measured lifetime aggregation.
+    depends_on:
+      - A4
+    objective:
+      Validate and narrow the actual shared AchievementsSurface path; keep code definitions and
+      unlocks while replacing full XP array level calculation with measured lifetime aggregation.
     readiness: pending_A4
     acceptance_summary:
       - actual AchievementsSurface path covered
@@ -141,14 +160,18 @@ stories:
       - badges route access log at 1k/10k XP history
       - achievement/value/read-only tests
     state: planned
-
   - id: A7
     title: Epic A integration and preservation gate
     order: 7
-    depends_on: [A2, A3, A4, A5, A6]
-    objective: >-
-      Prove the aggregate route matrix, backup completeness, mutation/read consistency,
-      frozen schema and exact authoritative validation before Epic A acceptance.
+    depends_on:
+      - A2
+      - A3
+      - A4
+      - A5
+      - A6
+    objective:
+      Prove the aggregate route matrix, backup completeness, mutation/read consistency, frozen
+      schema and exact authoritative validation before Epic A acceptance.
     readiness: pending_prior_stories
     acceptance_summary:
       - every required RPG route satisfies SPEC access contract
