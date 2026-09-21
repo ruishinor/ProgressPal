@@ -1,160 +1,123 @@
-# Next-story handoff — A3 implementation
+# Next-story handoff — A4 readiness
 
-Next story: **A3 — Resource read boundary**
+Next story: **A4 — Hub, Hero and persistent HUD read boundaries**
 
-Status: **ready for RED-first implementation after A3 readiness docs are integrated**
+Status: **eligible for fresh readiness only after A3 closure is integrated**
 
-Do not start A4.
+Do not start A4 implementation from this document alone.
 
-## Branch lineage
+## Required lineage
 
-A3 must branch from the new documentation-only A3 readiness commit created on `postrelease/01-read-architecture`, whose parent must be the accepted A2 closure commit:
+A4 readiness must start from the new documentation-only A3 closure commit on:
 
-- A2 implementation: `e329950bbcce0bae2faa42496f532af13deb7322`
-- A2 closure: `d64c135ed41ffda5530516ffa9bad125abd2f82e`
+`postrelease/01-read-architecture`
 
-Do not branch directly from `master`, A1, A2 readiness, A2 implementation, or the A2 story branch.
+That closure commit must directly descend from accepted A3 implementation:
 
-Suggested story branch:
+- A3 implementation: `7363ec6d70a89e48373d8be81673b94793598cd8`
+- A3 tree: `ba504b77dd98dc3472699631db0a56e82ea0c9f6`
+- A3 readiness parent: `6b5e0d65d5736f8f5c4bb033aee1ea24735d1d83`
 
-```text
-postrelease/a3-resource-read-boundary
-```
+Do not branch A4 from `master`, the A3 readiness commit, or the A3 story branch before closure.
 
-## First implementation phase: RED harness only
+## A4 readiness purpose
 
-Do not edit production code first.
+A4 is the first story that owns the high-frequency persistent shell/Hub/Hero read composition.
 
-Add the smallest A3 access-boundary harness that:
+Fresh readiness must re-inspect the actual current routes and loaders before setting a RED/GREEN contract.
 
-1. recalibrates/reuses the accepted A1/A2 DBCore probe;
-2. seeds a valid Resource fixture with relevant media and XP history;
-3. resets measurement before the operation under test;
-4. invokes the real `loadRpgStudyResourceSummary(itemId)`;
-5. asserts the future A3 store/query/materialization contract;
-6. fails on the untouched accepted A2 baseline for the broad-snapshot mechanism;
-7. prints structured A3 Resource access evidence;
-8. does not use source regex or `getDatabaseSnapshot()` inside the measured operation.
+Do not assume that A3's route observations are sufficient by themselves.
 
-Keep semantic/full-snapshot oracles outside the measured scale operation.
+## Known A4 problem statement
 
-Expected baseline RED mechanism:
+A3 deliberately did not narrow the persistent shell/HUD or Hub/Hero reads.
+
+Resource post-save composition still includes A4-owned work:
 
 ```text
-Resource loader
-  -> readSnapshot()
-  -> getDatabaseSnapshot()
-  -> broad 14-store transaction
-  -> unrelated stores + hidden media/XP materialization
-```
-
-The RED state should remain uncommitted until its evidence is reviewed.
-
-## Preferred GREEN shape
-
-A likely design is:
-
-```text
-loadRpgStudyResourceSummary(itemId)
-  -> getResourceReadData(itemId)
-     -> one coherent readonly Dexie transaction
-     -> selected item get
-     -> selected unit get
-     -> one unit-items bulk query
-     -> one unit-progress bulk query
-     -> selected-item assets/slices/resume bulk queries
-     -> selected-item media cursor aggregation
-     -> selected-preview XP reward-key lookup
-  -> Resource-specific pure adapter/builder
-```
-
-Use an explicit `ResourceReadData`; do not emulate the broad `DatabaseSnapshot` with placeholders.
-
-## Resource-specific warning: detailed reward label
-
-A3 Resource reward lookup differs from A2 Module.
-
-Resource uses `buildQuestRewardLabel(..., true)`, so the finite reward source set must include `week_completed` when completion preview produces it. A2's Module reward-source helper intentionally excluded week-completion sources and therefore must not be copied unchanged.
-
-Also preserve the final README/video shared reward.
-
-## Resource-specific content scope
-
-Reward preview needs the selected unit's items/progress, but long-form content does not.
-
-Do not load content assets, content slices, media history or resume points for every sibling item merely because unit-wide reward context is required. Those content/history reads should remain selected-item scoped.
-
-## Post-save composition
-
-The actual page's post-save refresh is:
-
-```text
-refreshHud()                         # A4 shell/HUD
+refreshHud()                         -> A4
 Promise.all([
-  loadRpgStudyResourceSummary(id),  # A3
-  loadRpgHubSummary(),              # A4
+  loadRpgStudyResourceSummary(id),  -> accepted A3
+  loadRpgHubSummary(),              -> A4
 ])
 ```
 
-A3 must preserve the Resource side and existing save-outcome behavior without modifying or claiming ownership over A4 Hub/HUD reads.
+A4 must therefore distinguish:
 
-Required consistency proof should connect:
+- persistent shell/HUD data needed on RPG routes;
+- Hub page data;
+- Hero page data;
+- overlap/shared aggregation between those surfaces;
+- data that is genuinely lifetime-history dependent.
 
-```text
-saveRpgStudyResourceProgress() mutation result
-  -> committed database state
-  -> narrow Resource readback
-```
+Do not charge accepted A1 Map, A2 Module or A3 Resource reads to A4.
 
-A failed refresh must not repeat or undo the committed mutation.
+## Likely data-pressure areas to inspect
 
-## Query budget
+Readiness should locate the actual current implementations and verify whether they still broadly snapshot:
 
-Default maximum for an existing item:
+- XP lifetime history;
+- study-session lifetime history;
+- media-progress lifetime history;
+- achievement unlocks needed only by Hero;
+- recent activity;
+- current quest/recommendation context;
+- HUD totals/level state.
 
-```text
-course_items           <= 2
-course_units           <= 1
-progress_entries       <= 1
-content_assets         <= 1
-content_slices         <= 1
-media_progress_events  <= 1
-resume_points          <= 1
-xp_transactions        <= 1
-total                  <= 9
-```
+The A0/A3 planning premise allows some O(n) lifetime aggregation where logically required, but source rows must not be bulk-materialized into hidden arrays merely for convenience.
 
-Missing item: one `course_items.get(itemId)` and return `null`.
+## Required readiness questions
 
-## Measurement requirements
+Before RED or production edits, answer from current source:
 
-Record at least:
+1. Which exact loaders/components feed persistent RPG HUD state?
+2. Does Hub reuse the shell/HUD read or execute another broad logical read?
+3. Which fields does Hero add beyond Hub/HUD?
+4. Which histories are lifetime-dependent versus bounded/recent?
+5. Which values require transaction coherence across stores?
+6. Can recent activity remain top-5 without retaining the complete session/media histories?
+7. Which existing indexes support streaming aggregation?
+8. Is any schema/index change actually necessary? Default answer remains no unless proved otherwise.
+9. What query-count contract is meaningful for each logical surface?
+10. How will the harness separate route composition from accepted A1–A3 child-route reads?
 
-- transaction identity/mode/table scope;
-- query count by store;
-- rows returned;
+## Scaling rule carried forward from A3
+
+A3's 10,000-row selected-item media scan took approximately 30–49 seconds under fake-indexeddb.
+
+A4 is expected to touch higher-frequency lifetime aggregates, so readiness must be especially careful not to turn an allowed O(n) scan into a claim of acceptable runtime.
+
+For every approved history scan, record:
+
 - rows scanned;
 - source rows materialized;
-- derived media aggregate peak;
-- writes observed.
+- retained/derived aggregate size;
+- query count;
+- measured fixture read duration where useful.
 
-Do not claim media runtime/memory is constant: exact coverage may scan O(H_selected_item), and disjoint merged-range state can grow with history.
+Performance measurements are evidence, not automatic acceptance targets.
 
-## Local environment
+## Local tooling constraint
 
-Do not silently remove `.kilo/worktrees/nova-carnation`.
+The registered nested worktree remains:
 
-Until it is deliberately resolved, use fresh isolated clones for repository-wide lint/full validation. Focused story tests may run in the primary tree when they do not invoke the contaminated repo-wide ESLint discovery path.
+`.kilo/worktrees/nova-carnation`
+
+Do not delete, move or rewrite it as part of A4 readiness.
+
+Use isolated clones for repository-wide lint/full validation until that tooling state is deliberately resolved.
 
 ## Stop rules
 
-Stop before GREEN implementation if:
+Stop before A4 RED/implementation if:
 
-- A3 RED does not fail for the expected broad-read mechanism;
-- probe calibration fails;
-- current actual Resource composition differs materially from the readiness contract;
-- schema/index change appears necessary;
-- preserving detailed reward/long-form/post-save semantics would require changing frozen behavior;
-- `origin/master` or accepted Epic A lineage changes and has not been reconciled.
+- the actual shell/Hub/Hero composition differs materially from the current Epic A story description;
+- accepted A1–A3 boundaries would need to be changed;
+- a schema/index migration appears necessary without separate justification;
+- route ownership between Hub/HUD/Hero cannot be separated cleanly;
+- the proposed contract would hide full-history arrays behind helper APIs;
+- `origin/master` or accepted Epic A lineage changed and has not been reconciled.
 
-Do not begin A4 until A3 is accepted, closed and integrated.
+A4 readiness PASS should produce a fresh acceptance contract and handoff before any A4 story branch or production edit is created.
+
+Do not begin A5 or A6 during A4 readiness.

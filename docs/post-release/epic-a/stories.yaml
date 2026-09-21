@@ -97,7 +97,22 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x unit/content cardinality
       - reward/long-form fixtures and post-save assertions
-    state: ready_for_implementation
+    state: accepted
+    accepted_candidate:
+      commit: 7363ec6d70a89e48373d8be81673b94793598cd8
+      tree: ba504b77dd98dc3472699631db0a56e82ea0c9f6
+      parent: 6b5e0d65d5736f8f5c4bb033aee1ea24735d1d83
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      evidence:
+        focused_tests: 121/121
+        unit_integration_tests: 644/644
+        e2e_tests: 74/74
+        release_evidence: artifacts/release-evidence/2026-09-21T02-08-39-892Z-rpg-primary-final-candidate-pass-1.json
+        release_evidence_sha256: A706CC38677B564D685A67396637E99736E9C7696589E89CD8CE051F28D9509D
+        audit_vulnerabilities: 0
+      closure_record: docs/post-release/epic-a/A3_CLOSURE_RECORD.md
   - id: A4
     title: Hub, Hero and persistent HUD read boundaries
     order: 4
@@ -107,7 +122,7 @@ stories:
     objective:
       Replace the highest-frequency shell/Hub/Hero broad snapshots, using explicit streaming lifetime
       aggregation for approved histories and preserving coherent views.
-    readiness: pending_A3
+    readiness: eligible_after_A3_closure
     acceptance_summary:
       - no broad snapshot in shell/Hub/Hero
       - approved O(n) scans measured for XP, sessions and media
@@ -118,7 +133,7 @@ stories:
       - all-three-history 1k/10k access metrics
       - shell + Hub + Hero route integration tests
       - transaction coherence barrier test
-    state: planned
+    state: ready_for_readiness
   - id: A5
     title: Focus actual-route read boundary
     order: 5
