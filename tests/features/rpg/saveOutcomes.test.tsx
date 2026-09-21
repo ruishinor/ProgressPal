@@ -263,7 +263,7 @@ describe('Confirmed save outcomes and read recovery', () => {
 
   it('keeps a committed Focus result when the session ledger refresh fails', async () => {
     const save = vi.spyOn(database, 'addStudySessionAndAwardXp');
-    const read = vi.spyOn(database, 'listStudySessions');
+    const read = vi.spyOn(database, 'readStudySessionLedgerRows');
     const errors = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
@@ -635,7 +635,7 @@ describe('Confirmed save outcomes and read recovery', () => {
           await gate.pending;
           return originalSave(input);
         });
-      const read = vi.spyOn(database, 'listStudySessions');
+      const read = vi.spyOn(database, 'readStudySessionLedgerRows');
       const errors = vi
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);

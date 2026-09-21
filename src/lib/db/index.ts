@@ -42,6 +42,8 @@ export {
   listXpTransactions,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  readStudySessionLedgerRows,
+  readStudySessionsSurfaceData,
   recordBackupEvent,
   resetAllData,
   restoreDatabaseFromBackup,

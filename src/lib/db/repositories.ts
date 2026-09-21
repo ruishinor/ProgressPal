@@ -1802,6 +1802,86 @@ export async function listProgressEntries(options: BaseDatabaseOptions = {}) {
   );
 }
 
+type StudySessionLedgerProjection<Context, Row> = {
+  context: Context;
+  projectSession: (session: StudySession) => Row;
+};
+
+async function streamStudySessionLedgerRows<Row>(
+  database: ProgressPalDatabase,
+  projectSession: (session: StudySession) => Row,
+) {
+  const ledgerRows: Row[] = [];
+
+  // `startedAt` is already indexed. A descending index cursor also traverses
+  // duplicate index keys by primary key in descending order, preserving the
+  // published `startedAt DESC, id DESC` ledger order without retaining a
+  // second complete StudySession[] solely for sorting.
+  await database.studySessions
+    .orderBy('startedAt')
+    .reverse()
+    .each((storedSession) => {
+      const session = parseWithSchema(
+        StudySessionSchema,
+        storedSession,
+        'Stored study session',
+      );
+
+      ledgerRows.push(projectSession(session));
+    });
+
+  return ledgerRows;
+}
+
+export async function readStudySessionsSurfaceData<Context, Row>(
+  createProjection: (
+    courseUnits: readonly CourseUnit[],
+    courseItems: readonly CourseItem[],
+  ) => StudySessionLedgerProjection<Context, Row>,
+  options: BaseDatabaseOptions = {},
+): Promise<{ context: Context; ledgerRows: Row[] }> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.studySessions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const [storedUnits, storedItems] = await Promise.all([
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+    ]);
+    const courseUnits = sortCourseUnits(
+      parseStoredArray(storedUnits, 'Stored course unit', CourseUnitSchema),
+    );
+    const courseItems = sortCourseItems(
+      parseStoredArray(storedItems, 'Stored course item', CourseItemSchema),
+    );
+    const { context, projectSession } = createProjection(
+      courseUnits,
+      courseItems,
+    );
+    const ledgerRows = await streamStudySessionLedgerRows(
+      database,
+      projectSession,
+    );
+
+    return { context, ledgerRows };
+  });
+}
+
+export async function readStudySessionLedgerRows<Row>(
+  projectSession: (session: StudySession) => Row,
+  options: BaseDatabaseOptions = {},
+): Promise<Row[]> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  return database.transaction('r', database.studySessions, () =>
+    streamStudySessionLedgerRows(database, projectSession),
+  );
+}
+
 export async function listStudySessions(options: BaseDatabaseOptions = {}) {
   const database = await ensureOpen(resolveDatabase(options.db));
   const studySessions = await database.studySessions.toArray();
