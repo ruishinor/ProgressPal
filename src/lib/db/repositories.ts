@@ -345,7 +345,7 @@ export type DatabaseSnapshot = {
   xpTransactions: XpTransaction[];
 };
 
-export type CourseMapReadData = {
+export type CourseStateReadData = {
   contentAssets: ContentAsset[];
   contentSlices: ContentSlice[];
   courseItems: CourseItem[];
@@ -353,7 +353,50 @@ export type CourseMapReadData = {
   mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
   progressEntries: ProgressEntry[];
   resumePoints: ResumePoint[];
+};
+
+export type CourseMapReadData = CourseStateReadData & {
   earnedRewardSourceKeys: ReadonlySet<string>;
+};
+
+export type RpgRecentStudySession = Pick<
+  StudySession,
+  'id' | 'itemId' | 'startedAt'
+>;
+
+export type RpgRecentXpTransaction = Pick<
+  XpTransaction,
+  'awardedAt' | 'id' | 'reason' | 'xp'
+>;
+
+export type RpgHudReadData = CourseMapReadData & {
+  learnerProfile: LearnerProfile | null;
+  totalXp: number;
+};
+
+export type RpgHubReadData = RpgHudReadData & {
+  recentStudySessions: RpgRecentStudySession[];
+  recentXpTransactions: RpgRecentXpTransaction[];
+  sessionCount: number;
+  totalMinutes: number;
+  weeklySessionCount: number;
+  weeklyTotalMinutes: number;
+  weeklyXpEarned: number;
+};
+
+export type RpgHeroReadData = CourseStateReadData & {
+  achievementUnlocks: AchievementUnlock[];
+  learnerProfile: LearnerProfile | null;
+  recentStudySessions: RpgRecentStudySession[];
+  recentXpTransactions: RpgRecentXpTransaction[];
+  sessionCount: number;
+  totalMinutes: number;
+  totalXp: number;
+};
+
+export type RpgHubReadRange = {
+  nextStartTime: number;
+  startTime: number;
 };
 
 export type ModuleReadData = {
@@ -2997,6 +3040,395 @@ function getResourceRewardSources(
   }
 
   return { sourceIds: [...sourceIds], sourceKeys };
+}
+
+type A4CourseState = CourseStateReadData & {
+  learnerProfile: LearnerProfile | null;
+};
+
+function compareRecentActivityRows(
+  left: { id: string; timestamp: string },
+  right: { id: string; timestamp: string },
+) {
+  return (
+    right.timestamp.localeCompare(left.timestamp) ||
+    left.id.localeCompare(right.id)
+  );
+}
+
+function retainRecentStudySession(
+  recent: RpgRecentStudySession[],
+  session: StudySession,
+) {
+  recent.push({
+    id: session.id,
+    itemId: session.itemId,
+    startedAt: session.startedAt,
+  });
+  recent.sort((left, right) =>
+    compareRecentActivityRows(
+      { id: `study_session:${left.id}`, timestamp: left.startedAt },
+      { id: `study_session:${right.id}`, timestamp: right.startedAt },
+    ),
+  );
+  if (recent.length > 5) recent.pop();
+}
+
+function retainRecentXpTransaction(
+  recent: RpgRecentXpTransaction[],
+  transaction: XpTransaction,
+) {
+  recent.push({
+    awardedAt: transaction.awardedAt,
+    id: transaction.id,
+    reason: transaction.reason,
+    xp: transaction.xp,
+  });
+  recent.sort((left, right) =>
+    compareRecentActivityRows(
+      { id: `xp:${left.id}`, timestamp: left.awardedAt },
+      { id: `xp:${right.id}`, timestamp: right.awardedAt },
+    ),
+  );
+  if (recent.length > 5) recent.pop();
+}
+
+async function readA4CourseState(
+  database: ProgressPalDatabase,
+): Promise<A4CourseState> {
+  const [
+    courseUnits,
+    courseItems,
+    progressEntries,
+    contentAssets,
+    contentSlices,
+    resumePoints,
+    learnerProfileRecord,
+  ] = await Promise.all([
+    database.courseUnits.toArray(),
+    database.courseItems.toArray(),
+    database.progressEntries.toArray(),
+    database.contentAssets.toArray(),
+    database.contentSlices.toArray(),
+    database.resumePoints.toArray(),
+    database.learnerProfile.get(singletonIds.learnerProfile),
+  ]);
+  const parsedCourseUnits = sortCourseUnits(
+    parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+  );
+  const parsedCourseItems = sortCourseItems(
+    parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+  );
+  const parsedProgressEntries = sortProgressEntries(
+    parseStoredArray(
+      progressEntries,
+      'Stored progress entry',
+      ProgressEntrySchema,
+    ),
+  );
+  const parsedContentAssets = sortContentAssets(
+    parseStoredArray(contentAssets, 'Stored content asset', ContentAssetSchema),
+  );
+  const parsedContentSlices = sortContentSlices(
+    parseStoredArray(contentSlices, 'Stored content slice', ContentSliceSchema),
+  );
+  const parsedResumePoints = sortResumePoints(
+    parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+  );
+  const learnerProfile =
+    learnerProfileRecord === undefined
+      ? null
+      : parseWithSchema(
+          LearnerProfileSchema,
+          learnerProfileRecord,
+          'Stored learner profile',
+        );
+  const mediaProgressByAssetId = new Map<
+    string,
+    MutableLongFormEventAggregate
+  >();
+
+  await database.mediaProgressEvents.each((storedEvent) => {
+    const event = parseWithSchema(
+      MediaProgressEventSchema,
+      storedEvent,
+      'Stored media progress event',
+    );
+    const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+      coverageRanges: [],
+      eventCount: 0,
+      lastCreatedAt: null,
+      lastEventEndSecond: null,
+      lastEventId: null,
+    };
+
+    aggregate.eventCount += 1;
+    addCoverageRange(aggregate.coverageRanges, {
+      endSecond: event.endSecond,
+      startSecond: event.startSecond,
+    });
+
+    if (
+      aggregate.lastCreatedAt === null ||
+      event.createdAt > aggregate.lastCreatedAt ||
+      (event.createdAt === aggregate.lastCreatedAt &&
+        (aggregate.lastEventId === null || event.id > aggregate.lastEventId))
+    ) {
+      aggregate.lastCreatedAt = event.createdAt;
+      aggregate.lastEventEndSecond = event.endSecond;
+      aggregate.lastEventId = event.id;
+    }
+
+    mediaProgressByAssetId.set(event.assetId, aggregate);
+  });
+
+  return {
+    contentAssets: parsedContentAssets,
+    contentSlices: parsedContentSlices,
+    courseItems: parsedCourseItems,
+    courseUnits: parsedCourseUnits,
+    learnerProfile,
+    mediaProgressByAssetId: new Map(
+      [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+        assetId,
+        {
+          coverageRanges: aggregate.coverageRanges,
+          eventCount: aggregate.eventCount,
+          lastEventEndSecond: aggregate.lastEventEndSecond,
+        },
+      ]),
+    ),
+    progressEntries: parsedProgressEntries,
+    resumePoints: parsedResumePoints,
+  };
+}
+
+async function readA4EarnedRewardSourceKeys(
+  database: ProgressPalDatabase,
+  courseState: CourseStateReadData,
+) {
+  const rewardSources = getCourseMapRewardSources(
+    courseState.courseUnits,
+    courseState.courseItems,
+    courseState.progressEntries,
+  );
+  const earnedRewardSourceKeys = new Set<string>();
+
+  if (rewardSources.sourceIds.length > 0) {
+    await database.xpTransactions
+      .where('sourceId')
+      .anyOf(rewardSources.sourceIds)
+      .each((storedTransaction) => {
+        const transaction = parseWithSchema(
+          XpTransactionSchema,
+          storedTransaction,
+          'Stored RPG reward XP transaction',
+        );
+        const sourceKey = getXpAwardSourceKey(
+          transaction.sourceType,
+          transaction.sourceId,
+        );
+
+        if (rewardSources.sourceKeys.has(sourceKey)) {
+          earnedRewardSourceKeys.add(sourceKey);
+        }
+      });
+  }
+
+  return earnedRewardSourceKeys;
+}
+
+async function readA4XpHistory(
+  database: ProgressPalDatabase,
+  options: {
+    collectRecent: boolean;
+    range?: RpgHubReadRange;
+  },
+) {
+  let totalXp = 0;
+  let weeklyXpEarned = 0;
+  const recentXpTransactions: RpgRecentXpTransaction[] = [];
+
+  await database.xpTransactions.each((storedTransaction) => {
+    const transaction = parseWithSchema(
+      XpTransactionSchema,
+      storedTransaction,
+      'Stored XP transaction',
+    );
+
+    totalXp += transaction.xp;
+
+    if (
+      options.range !== undefined &&
+      Date.parse(transaction.awardedAt) >= options.range.startTime &&
+      Date.parse(transaction.awardedAt) < options.range.nextStartTime
+    ) {
+      weeklyXpEarned += transaction.xp;
+    }
+
+    if (options.collectRecent) {
+      retainRecentXpTransaction(recentXpTransactions, transaction);
+    }
+  });
+
+  return { recentXpTransactions, totalXp, weeklyXpEarned };
+}
+
+async function readA4SessionHistory(
+  database: ProgressPalDatabase,
+  range?: RpgHubReadRange,
+) {
+  let sessionCount = 0;
+  let totalMinutes = 0;
+  let weeklySessionCount = 0;
+  let weeklyTotalMinutes = 0;
+  const recentStudySessions: RpgRecentStudySession[] = [];
+
+  await database.studySessions.each((storedSession) => {
+    const session = parseWithSchema(
+      StudySessionSchema,
+      storedSession,
+      'Stored study session',
+    );
+
+    sessionCount += 1;
+    totalMinutes += session.durationMinutes;
+    retainRecentStudySession(recentStudySessions, session);
+
+    if (
+      range !== undefined &&
+      Date.parse(session.startedAt) >= range.startTime &&
+      Date.parse(session.startedAt) < range.nextStartTime
+    ) {
+      weeklySessionCount += 1;
+      weeklyTotalMinutes += session.durationMinutes;
+    }
+  });
+
+  return {
+    recentStudySessions,
+    sessionCount,
+    totalMinutes,
+    weeklySessionCount,
+    weeklyTotalMinutes,
+  };
+}
+
+export async function getRpgHudReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHudReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [earnedRewardSourceKeys, xp] = await Promise.all([
+      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4XpHistory(database, { collectRecent: false }),
+    ]);
+
+    return {
+      ...courseState,
+      earnedRewardSourceKeys,
+      totalXp: xp.totalXp,
+    };
+  });
+}
+
+export async function getRpgHubReadData(
+  range: RpgHubReadRange,
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHubReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [earnedRewardSourceKeys, sessions, xp] = await Promise.all([
+      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4SessionHistory(database, range),
+      readA4XpHistory(database, { collectRecent: true, range }),
+    ]);
+
+    return {
+      ...courseState,
+      earnedRewardSourceKeys,
+      recentStudySessions: sessions.recentStudySessions,
+      recentXpTransactions: xp.recentXpTransactions,
+      sessionCount: sessions.sessionCount,
+      totalMinutes: sessions.totalMinutes,
+      totalXp: xp.totalXp,
+      weeklySessionCount: sessions.weeklySessionCount,
+      weeklyTotalMinutes: sessions.weeklyTotalMinutes,
+      weeklyXpEarned: xp.weeklyXpEarned,
+    };
+  });
+}
+
+export async function getRpgHeroReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHeroReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+    database.achievementUnlocks,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [sessions, xp, achievementUnlockRecords] = await Promise.all([
+      readA4SessionHistory(database),
+      readA4XpHistory(database, { collectRecent: true }),
+      database.achievementUnlocks.toArray(),
+    ]);
+    const achievementUnlocks = sortAchievementUnlocks(
+      parseStoredArray(
+        achievementUnlockRecords,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      ),
+    );
+
+    return {
+      ...courseState,
+      achievementUnlocks,
+      recentStudySessions: sessions.recentStudySessions,
+      recentXpTransactions: xp.recentXpTransactions,
+      sessionCount: sessions.sessionCount,
+      totalMinutes: sessions.totalMinutes,
+      totalXp: xp.totalXp,
+    };
+  });
 }
 
 export async function getCourseMapReadData(

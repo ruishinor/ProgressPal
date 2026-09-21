@@ -28,7 +28,7 @@ const appState = vi.hoisted(() => ({
 vi.mock('@/lib/appState', () => ({ useAppState: () => appState }));
 
 function renderRoute(route: string) {
-  const refreshHud = vi.fn();
+  const refreshHud = vi.fn(() => readModels.loadRpgHudSummary());
   const router = createMemoryRouter(
     [
       {
@@ -182,7 +182,7 @@ describe('Confirmed save outcomes and read recovery', () => {
     async (failedRead) => {
       const save = vi.spyOn(progressActions, 'saveRpgStudyResourceProgress');
       const read = vi.spyOn(readModels, 'loadRpgStudyResourceSummary');
-      const hubRead = vi.spyOn(readModels, 'loadRpgHubSummary');
+      const hubRead = vi.spyOn(readModels, 'loadRpgHudSummary');
       const errors = vi
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);
@@ -315,7 +315,7 @@ describe('Confirmed save outcomes and read recovery', () => {
 
   it('labels failed Focus next-work refresh and offers a read-only retry', async () => {
     const save = vi.spyOn(database, 'addStudySessionAndAwardXp');
-    const read = vi.spyOn(readModels, 'loadRpgHubSummary');
+    const read = vi.spyOn(readModels, 'loadRpgHudSummary');
     const errors = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
@@ -437,7 +437,7 @@ describe('Confirmed save outcomes and read recovery', () => {
       const gate = deferredWrite();
       const save = vi.spyOn(progressActions, 'saveRpgStudyResourceProgress');
       const read = vi.spyOn(readModels, 'loadRpgStudyResourceSummary');
-      const hubRead = vi.spyOn(readModels, 'loadRpgHubSummary');
+      const hubRead = vi.spyOn(readModels, 'loadRpgHudSummary');
       const { router } = renderRoute('/rpg/resource/week-0-lecture');
       await screen.findByRole('heading', { name: 'Lecture 0: Scratch' });
       if (pendingStage === 'save') {

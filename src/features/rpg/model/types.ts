@@ -119,6 +119,15 @@ export type RpgHubSummary = {
   };
 };
 
+export type RpgHudSummary = Pick<
+  RpgHubSummary,
+  | 'identity'
+  | 'learnerAvatarConfig'
+  | 'learnerName'
+  | 'recommendation'
+  | 'xpSummary'
+>;
+
 export type RpgCourseMapSummary = {
   completedRequiredItemCount: number;
   completionPercent: number;

@@ -4,11 +4,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   loadRpgHubSummary: vi.fn(),
+  loadRpgHudSummary: vi.fn(),
   refresh: vi.fn(),
 }));
 
 vi.mock('@/features/rpg/model/readModels', () => ({
   loadRpgHubSummary: mocks.loadRpgHubSummary,
+  loadRpgHudSummary: mocks.loadRpgHudSummary,
+  projectRpgHudSummary: (summary: unknown) => summary,
 }));
 
 vi.mock('@/lib/appState', () => ({

@@ -1,5 +1,11 @@
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
-import { startTransition, useCallback, useEffect, useState } from 'react';
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
@@ -10,8 +16,12 @@ import {
   RpgHeroIdentity,
   RpgLevelProgress,
 } from '@/features/rpg/components';
-import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
-import type { RpgHubSummary } from '@/features/rpg/model/types';
+import {
+  loadRpgHubSummary,
+  loadRpgHudSummary,
+  projectRpgHudSummary,
+} from '@/features/rpg/model/readModels';
+import type { RpgHubSummary, RpgHudSummary } from '@/features/rpg/model/types';
 import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import {
@@ -25,19 +35,33 @@ import {
 import { useAppState } from '@/lib/appState';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
-type RpgShellHudStatus = 'error' | 'loading' | 'ready';
+type RpgShellReadStatus = 'error' | 'loading' | 'ready';
 
-type RpgShellHudState = {
+export type RpgShellHudState = {
   error: string | null;
-  status: RpgShellHudStatus;
+  status: RpgShellReadStatus;
+  summary: RpgHudSummary | null;
+};
+
+export type RpgShellHubState = {
+  error: string | null;
+  status: RpgShellReadStatus;
   summary: RpgHubSummary | null;
 };
 
 export type RpgShellOutletContext = {
-  refreshHud: () => void;
+  hubState: RpgShellHubState;
+  refreshHub: () => void;
+  refreshHud: () => Promise<RpgHudSummary>;
 };
 
 const initialHudState: RpgShellHudState = {
+  error: null,
+  status: 'loading',
+  summary: null,
+};
+
+const initialHubState: RpgShellHubState = {
   error: null,
   status: 'loading',
   summary: null,
@@ -157,10 +181,67 @@ function RpgHeroHud({
 export function RpgShell() {
   const { coordination, profile, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
+  const [hubState, setHubState] = useState<RpgShellHubState>(initialHubState);
   const [reloadToken, setReloadToken] = useState(0);
+  const readVersion = useRef(0);
+  const mounted = useRef(true);
   const location = useLocation();
   const mainRef = useMainContentFocus<HTMLElement>();
-  const refreshHud = useCallback(() => {
+  const loadMode =
+    location.pathname === rpgHeroPath
+      ? 'none'
+      : location.pathname === rpgRoutePath ||
+          !location.pathname.startsWith('/rpg')
+        ? 'hub'
+        : 'hud';
+
+  useEffect(() => {
+    mounted.current = true;
+
+    return () => {
+      mounted.current = false;
+      readVersion.current += 1;
+    };
+  }, []);
+
+  const refreshHud = useCallback(async () => {
+    const version = ++readVersion.current;
+
+    startTransition(() => {
+      setHudState((currentState) => ({
+        ...currentState,
+        error: null,
+        status: 'loading',
+      }));
+    });
+
+    try {
+      const summary = await loadRpgHudSummary();
+
+      if (mounted.current && version === readVersion.current) {
+        startTransition(() => {
+          setHudState({ error: null, status: 'ready', summary });
+        });
+      }
+
+      return summary;
+    } catch (loadError) {
+      if (mounted.current && version === readVersion.current) {
+        console.error('RPG shell HUD loading failed.', loadError);
+        startTransition(() => {
+          setHudState({
+            error: 'The persistent RPG HUD could not read local progress.',
+            status: 'error',
+            summary: null,
+          });
+        });
+      }
+
+      throw loadError;
+    }
+  }, []);
+
+  const refreshHub = useCallback(() => {
     setReloadToken((currentToken) => currentToken + 1);
   }, []);
 
@@ -170,54 +251,66 @@ export function RpgShell() {
   }, [location.pathname]);
 
   useEffect(() => {
-    let isActive = true;
+    if (loadMode === 'none') {
+      readVersion.current += 1;
+      return;
+    }
 
-    async function loadHudSummary() {
-      startTransition(() => {
-        setHudState((currentState) => ({
-          ...currentState,
-          error: null,
-          status: 'loading',
-        }));
-      });
+    if (loadMode === 'hud') {
+      void refreshHud().catch(() => undefined);
+      return;
+    }
 
-      try {
-        const summary = await loadRpgHubSummary();
+    const version = ++readVersion.current;
 
-        if (!isActive) {
+    startTransition(() => {
+      setHubState((currentState) => ({
+        ...currentState,
+        error: null,
+        status: 'loading',
+      }));
+      setHudState((currentState) => ({
+        ...currentState,
+        error: null,
+        status: 'loading',
+      }));
+    });
+
+    void loadRpgHubSummary()
+      .then((summary) => {
+        if (!mounted.current || version !== readVersion.current) {
           return;
         }
 
         startTransition(() => {
+          setHubState({ error: null, status: 'ready', summary });
           setHudState({
             error: null,
             status: 'ready',
-            summary,
+            summary: projectRpgHudSummary(summary),
           });
         });
-      } catch (loadError) {
-        if (!isActive) {
+      })
+      .catch((loadError: unknown) => {
+        if (!mounted.current || version !== readVersion.current) {
           return;
         }
 
-        console.error('RPG shell HUD loading failed.', loadError);
-
+        console.error('RPG hub loading failed.', loadError);
         startTransition(() => {
+          setHubState({
+            error: 'The RPG hub summary could not be loaded from local data.',
+            status: 'error',
+            summary: null,
+          });
           setHudState({
             error: 'The persistent RPG HUD could not read local progress.',
             status: 'error',
             summary: null,
           });
         });
-      }
-    }
-
-    void loadHudSummary();
-
-    return () => {
-      isActive = false;
-    };
-  }, [profile?.updatedAt, reloadToken]);
+      });
+  }, [loadMode, profile?.updatedAt, refreshHud, reloadToken]);
 
   return (
     <section className="rpg-shell" data-testid="rpg-shell">
@@ -257,10 +350,11 @@ export function RpgShell() {
               !location.pathname.startsWith('/rpg/resource/')
             }
             onRetry={() => {
-              startTransition(() => {
-                setHudState(initialHudState);
-              });
-              setReloadToken((currentToken) => currentToken + 1);
+              if (loadMode === 'hub') {
+                refreshHub();
+              } else {
+                void refreshHud().catch(() => undefined);
+              }
             }}
             state={hudState}
           />
@@ -335,7 +429,15 @@ export function RpgShell() {
               }}
             />
           ) : null}
-          <Outlet context={{ refreshHud } satisfies RpgShellOutletContext} />
+          <Outlet
+            context={
+              {
+                hubState,
+                refreshHub,
+                refreshHud,
+              } satisfies RpgShellOutletContext
+            }
+          />
         </main>
         <RpgBottomNav />
       </div>

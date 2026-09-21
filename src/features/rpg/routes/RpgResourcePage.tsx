@@ -24,10 +24,7 @@ import {
   type RpgStatusTone,
 } from '@/features/rpg/components';
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
-import {
-  loadRpgHubSummary,
-  loadRpgStudyResourceSummary,
-} from '@/features/rpg/model/readModels';
+import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
@@ -315,12 +312,10 @@ export function RpgResourcePage() {
     setSaveResult((current) =>
       current === null ? current : { ...current, refreshStatus: 'loading' },
     );
-    refreshHud();
-
     try {
-      const [nextSummary, nextHubSummary] = await Promise.all([
+      const [nextSummary, nextHudSummary] = await Promise.all([
         loadRpgStudyResourceSummary(resourceId),
-        loadRpgHubSummary(),
+        refreshHud(),
       ]);
 
       if (version !== pageVersion.current) {
@@ -331,7 +326,7 @@ export function RpgResourcePage() {
         throw new Error('RPG resource disappeared after saving progress.');
       }
 
-      const recommendation = nextHubSummary.recommendation;
+      const recommendation = nextHudSummary.recommendation;
       const nextQuest = recommendation.quest;
       setState({ error: null, status: 'ready', summary: nextSummary });
       setSaveResult((current) =>
@@ -339,10 +334,10 @@ export function RpgResourcePage() {
           ? current
           : {
               ...current,
-              levelProgressLabel: nextHubSummary.xpSummary.levelProgressLabel,
-              level: nextHubSummary.xpSummary.level,
+              levelProgressLabel: nextHudSummary.xpSummary.levelProgressLabel,
+              level: nextHudSummary.xpSummary.level,
               levelProgressPercent:
-                nextHubSummary.xpSummary.levelProgressPercent,
+                nextHudSummary.xpSummary.levelProgressPercent,
               nextActionHref:
                 nextQuest === null
                   ? rpgMapPath
@@ -352,8 +347,8 @@ export function RpgResourcePage() {
                   ? 'Open Campaign Map'
                   : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
               refreshStatus: 'ready',
-              totalXp: nextHubSummary.xpSummary.totalXp,
-              xpToNextLevel: nextHubSummary.xpSummary.xpToNextLevel,
+              totalXp: nextHudSummary.xpSummary.totalXp,
+              xpToNextLevel: nextHudSummary.xpSummary.xpToNextLevel,
             },
       );
     } catch (loadError) {
@@ -483,7 +478,7 @@ export function RpgResourcePage() {
     }
 
     if (version !== pageVersion.current) {
-      refreshHud();
+      void refreshHud().catch(() => undefined);
       return;
     }
 
