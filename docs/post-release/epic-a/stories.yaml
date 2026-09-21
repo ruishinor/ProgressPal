@@ -140,7 +140,26 @@ stories:
       - A1/A2/A3 regressions and exact-commit Node24/npm11 release evidence
     readiness_record: docs/post-release/epic-a/A4_READINESS_ASSESSMENT.md
     acceptance_contract: docs/post-release/epic-a/A4_ACCEPTANCE_CONTRACT.md
-    state: ready_for_red
+    state: accepted
+    accepted_candidate:
+      commit: 1bcd1e20374d230cf7425aec91f96ad5c960a3b1
+      tree: a9c25fd7af7020dbb78402d1c699b8800a20b7b7
+      parent: a54728a8d83d4fb33bffa2d7ee624013e39e7239
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      evidence:
+        focused_green_tests: 10/10
+        focused_regression_tests: 245/245
+        unit_integration_tests: 654/654
+        e2e_tests: 74/74
+        validated_zip_sha256: B2CB00281B6E7EDDD6A29643B4F03AC67AA32C3A176D1525F6A1A1F49DBE46CB
+        full_precommit_transcript_sha256: EE56573C87F76D0CC586E57E4B0E367A55087D54EF8B3EEA7E63E82855B05547
+        release_evidence: artifacts/release-evidence/2026-09-21T11-10-16-851Z-rpg-primary-final-candidate-pass-1.json
+        release_evidence_sha256: 56EE8681237066D9E9A05274DAA40AE91FC565A42A5AF554A25C6389C6B35EA9
+        exact_release_transcript_sha256: 38F37F6771A1E2CAD4B24F31344AA143761237610A01DA148A439E490C3D8CB1
+        audit_vulnerabilities: 0
+      closure_record: docs/post-release/epic-a/A4_CLOSURE_RECORD.md
   - id: A5
     title: Focus actual-route read boundary
     order: 5
@@ -150,7 +169,7 @@ stories:
       Validate and narrow the actual RPG Focus composition, not the unused exported RPG Focus loader.
       Preserve the complete visible study-session ledger exception while ensuring shell work obeys the Hub
       contract and preserving save feedback.
-    readiness: pending_A4
+    readiness: eligible_after_A4_closure
     acceptance_summary:
       - actual StudySessionsSurface path covered
       - complete session ledger explicitly measured as visible O(H) exception
@@ -162,7 +181,7 @@ stories:
       - route access log
       - large session-history fixture
       - focus save/reload consistency tests
-    state: planned
+    state: ready_for_readiness
   - id: A6
     title: Badges actual-route read boundary
     order: 6
@@ -171,7 +190,7 @@ stories:
     objective:
       Validate and narrow the actual shared AchievementsSurface path; keep code definitions and
       unlocks while replacing full XP array level calculation with measured lifetime aggregation.
-    readiness: pending_A4
+    readiness: pending_A5_sequential_order
     acceptance_summary:
       - actual AchievementsSurface path covered
       - zero persisted achievement-definition reads for display

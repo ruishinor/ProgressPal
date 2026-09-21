@@ -2,99 +2,57 @@
 
 Result: **PASS**
 
-Latest accepted story: **A3 — Resource read boundary**
+Latest accepted story: **A4 — Hub, Hero and persistent HUD read boundaries**
 
 Updated: 2026-09-21
 
-## Required environment
+## Environment
 
-Repository contract:
+Authoritative A4 validation used Node `v24.19.0` and npm `11.10.1`.
 
-- Node `>=24 <25`
-- npm `>=11 <12`
-- `.nvmrc`: `24`
-- `packageManager`: `npm@11.10.1`
+## Accepted A4 exact candidate
 
-Authoritative owner-side A3 validation used Node `v24.19.0` and npm `11.10.1`.
-
-## Accepted A3 exact candidate
-
-- commit: `7363ec6d70a89e48373d8be81673b94793598cd8`
-- tree: `ba504b77dd98dc3472699631db0a56e82ea0c9f6`
-- parent / readiness commit: `6b5e0d65d5736f8f5c4bb033aee1ea24735d1d83`
-- normalized validated ZIP: `ProgressPal_A3_GREEN_VALIDATED_harness2_20260921-032756.zip`
-- ZIP SHA-256: `501E15E4F231384DD3148900092921883793A71B395CE592E33553C5ED835F4B`
-- release evidence: `artifacts/release-evidence/2026-09-21T02-08-39-892Z-rpg-primary-final-candidate-pass-1.json`
-- release evidence SHA-256: `A706CC38677B564D685A67396637E99736E9C7696589E89CD8CE051F28D9509D`
-- authoritative transcript SHA-256: `B69614222CB782CB99DC52C7651DDE7B8BCB2929EEE70E2A5B246ABADF550771`
-- unit/integration: 644/644
+- commit: `1bcd1e20374d230cf7425aec91f96ad5c960a3b1`
+- tree: `a9c25fd7af7020dbb78402d1c699b8800a20b7b7`
+- parent/readiness: `a54728a8d83d4fb33bffa2d7ee624013e39e7239`
+- validated ZIP SHA-256: `B2CB00281B6E7EDDD6A29643B4F03AC67AA32C3A176D1525F6A1A1F49DBE46CB`
+- full pre-commit transcript SHA-256: `EE56573C87F76D0CC586E57E4B0E367A55087D54EF8B3EEA7E63E82855B05547`
+- release evidence SHA-256: `56EE8681237066D9E9A05274DAA40AE91FC565A42A5AF554A25C6389C6B35EA9`
+- exact release transcript SHA-256: `38F37F6771A1E2CAD4B24F31344AA143761237610A01DA148A439E490C3D8CB1`
+- unit/integration: 654/654
 - E2E: 74/74
-- audit vulnerabilities: 0
+- vulnerabilities: 0
 
-A3 therefore extends the accepted Epic A lineage through the exact Resource-boundary implementation commit without changing schema, UI, reward rules, achievements, backup format or service-worker/cloud/auth architecture.
+## Accepted A4 behavior
 
-## Accepted Resource contract
+HUD: 9-store readonly transaction, 10 queries.
 
-The logical Resource read now uses one coherent readonly transaction over exactly eight stores:
+Hub: 10-store readonly transaction, 11 queries.
 
-- `content_assets`
-- `content_slices`
-- `course_items`
-- `course_units`
-- `media_progress_events`
-- `progress_entries`
-- `resume_points`
-- `xp_transactions`
+Hero: 11-store readonly transaction, 11 queries.
 
-Normal existing-item budget is nine logical queries, with two on `course_items` and one on each other required store.
+Direct Hub and Hero each use one A4 logical read. Other RPG children use one HUD read plus child-owned reads. Resource/Focus post-save use one A4 refresh.
 
-Missing item behavior returns `null` after one selected-item lookup.
+No media/session/XP source histories are bulk-materialized.
 
-The accepted implementation preserves detailed task, `week_completed` and shared final-project reward semantics, long-form state, mutation-result readback and zero passive writes.
+## Scaling characteristic
 
-## Explicit scaling characteristic
+The frozen schema still requires approved O(history) streaming.
 
-A3 does not establish constant-time history processing.
+The exact-commit 10,000-row simultaneous fixture scanned 10,000 media + 10,000 sessions + 10,000 XP rows, materialized zero source-history rows, and observed about 538 ms focused Hub read time under fake-indexeddb.
 
-Selected-item media progress remains an approved O(`H_selected_item`) cursor scan under the frozen schema.
+This is measured evidence, not a constant-time claim.
 
-Across A3 validation runs, the synthetic 10,000-row Resource media-history case took approximately 30–49 seconds under fake-indexeddb while scanning 10,000 relevant media rows and materializing zero source rows.
+## Tooling constraint
 
-This remains a tracked scaling risk and must not be silently re-described as constant-time or production-latency evidence.
+The nested registered worktree `.kilo/worktrees/nova-carnation` remains. Use clean isolated clones for authoritative repository-wide validation.
 
-Derived exact coverage state may also grow with genuinely disjoint watched ranges.
+## A5 rule
 
-XP reward lookup uses the existing non-unique `sourceId` index. Exact reward-key retention is bounded, but duplicate relevant source IDs can require scanning all matching rows.
+A5 is not pre-approved.
 
-## Known local-environment constraint
+Only after A4 closure on `postrelease/01-read-architecture`, A5 may receive a fresh readiness assessment.
 
-The primary working repository still contains the registered nested Git worktree:
+A5 must inspect the actual Focus route/`StudySessionsSurface`, preserve the complete visible session ledger as an explicit O(H_sessions) exception, preserve the accepted A4 one-HUD-read composition, prevent a second hidden full session history, and preserve save/XP/retry semantics.
 
-`.kilo/worktrees/nova-carnation`
-
-Direct repository-wide `eslint .` in the primary directory can detect multiple TypeScript roots and fail parser-root discovery.
-
-This does not invalidate A3: exact candidate bytes passed repository-wide lint in clean isolated clones before commit and again in the exact-commit release clone.
-
-Do not remove or rewrite the Kilo worktree as incidental validation work. Either resolve it deliberately as separate tooling hygiene or continue repository-wide authoritative validation in fresh isolated clones.
-
-## Continuing rule for A4 and later stories
-
-`PASS` here does not pre-approve A4.
-
-A4 becomes eligible for a fresh readiness assessment only after A3 closure is committed on `postrelease/01-read-architecture`.
-
-Before any A4 implementation work:
-
-1. start from the exact A3 closure/integration HEAD;
-2. re-fetch and reconcile any change to `origin/master`;
-3. re-inspect actual shell/Hub/Hero route composition rather than assuming readiness text remains current;
-4. distinguish persistent shell HUD, Hub page and Hero page logical reads;
-5. preserve A1–A3 accepted boundaries;
-6. measure approved lifetime XP/session/media scans honestly at 1k/10k history;
-7. prohibit hidden full-history materialization even when O(n) streaming scans are allowed;
-8. prove transaction coherence on the actual production path;
-9. use fresh isolated clones for repository-wide validation while `.kilo` remains registered;
-10. bind final acceptance to authoritative Node24/npm11 `verify:release` evidence for the exact A4 implementation commit/tree.
-
-Do not begin A5 or A6 merely because A4 readiness starts.
+Do not start A6 during A5.
