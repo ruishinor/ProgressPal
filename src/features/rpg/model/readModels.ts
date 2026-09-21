@@ -25,8 +25,10 @@ import {
   getCourseMapReadData,
   getDatabaseSnapshot,
   getModuleReadData,
+  getResourceReadData,
   type CourseMapReadData,
   type ModuleReadData,
+  type ResourceReadData,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
@@ -678,6 +680,44 @@ export function buildRpgStudyResourceSummary(
   );
 }
 
+function buildRpgStudyResourceSummaryFromReadData(
+  data: ResourceReadData,
+): RpgStudyResourceSummary {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const progressEntry =
+    data.progressEntries.find((entry) => entry.itemId === data.courseItem.id) ??
+    null;
+  const detail = buildCourseDetailView(
+    data.courseUnit,
+    data.courseItem,
+    progressEntry,
+    longFormByItemId.get(data.courseItem.id) ?? null,
+  );
+
+  return buildStudyResourceFromDetail(
+    detail,
+    data.courseItem,
+    progressEntry,
+    data.courseUnit.id,
+    buildQuestRewardLabel(
+      {
+        courseItems: data.courseItems,
+        courseUnits: [data.courseUnit],
+        earnedRewardSourceKeys: data.earnedRewardSourceKeys,
+        progressEntries: data.progressEntries,
+      },
+      data.courseItem.id,
+      true,
+    ),
+  );
+}
+
 export function buildRpgFocusSessionSummary(
   snapshot: DatabaseSnapshot,
   itemId: string | null,
@@ -741,7 +781,9 @@ export async function loadRpgStudyResourceSummary(
   itemId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgStudyResourceSummary | null> {
-  return buildRpgStudyResourceSummary(await readSnapshot(options), itemId);
+  const data = await getResourceReadData(itemId, options);
+
+  return data === null ? null : buildRpgStudyResourceSummaryFromReadData(data);
 }
 
 export async function loadRpgFocusSessionSummary(
