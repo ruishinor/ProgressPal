@@ -1,130 +1,160 @@
-# Next-story handoff — A3 readiness only
+# Next-story handoff — A3 implementation
 
 Next story: **A3 — Resource read boundary**
 
-Status: **eligible for fresh readiness assessment after A2 closure integration**
+Status: **ready for RED-first implementation after A3 readiness docs are integrated**
 
-Do not modify A3 production code from this handoff. Do not create the A3 story branch until the fresh A3 readiness gate passes.
+Do not start A4.
 
-## Accepted lineage entering A3
+## Branch lineage
 
-Product baseline remains:
+A3 must branch from the new documentation-only A3 readiness commit created on `postrelease/01-read-architecture`, whose parent must be the accepted A2 closure commit:
 
-- `master`: `a0581c13a22fdd3387534d2de0eca2591cf13ed6`
-- tree: `d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34`
+- A2 implementation: `e329950bbcce0bae2faa42496f532af13deb7322`
+- A2 closure: `d64c135ed41ffda5530516ffa9bad125abd2f82e`
 
-Accepted A2 implementation:
+Do not branch directly from `master`, A1, A2 readiness, A2 implementation, or the A2 story branch.
 
-- commit: `e329950bbcce0bae2faa42496f532af13deb7322`
-- tree: `f321357a8f3b087fddc0e25540920d5b3d9c6dc9`
-- parent / A2 readiness commit: `31e611dd934ac2456864949bc3e1e6a7f7748189`
-
-A3 must branch from the **current accepted `postrelease/01-read-architecture` HEAD after the A2 documentation-only closure commit**, not directly from `master`, A1, the A2 readiness commit, or the A2 story branch. The integration HEAD must descend from the exact A2 implementation commit above.
-
-## A3 objective
-
-Replace only the Resource broad-snapshot logical read with an item/unit-scoped coherent read contract, preserving reward and long-form behavior and post-save reload semantics.
-
-The A0 story ledger requires A3 to prove:
-
-- selected item/unit/reward context only;
-- no N+1 progress/slice/event/resume queries;
-- no hidden full media/XP history arrays;
-- value equivalence and mutation-summary consistency;
-- access metrics at 1×/10× unit/content cardinality;
-- reward/long-form fixtures and post-save assertions.
-
-## Required fresh A3 context
-
-Load only what is needed to establish the actual current Resource composition after A2:
-
-1. repository `AGENTS.md`;
-2. `docs/post-release/epic-a/SPEC.md`;
-3. updated `stories.yaml`;
-4. `A2_CLOSURE_RECORD.md`;
-5. actual current:
-   - `src/features/rpg/model/readModels.ts`;
-   - Resource route/component and save/reload composition;
-   - `src/lib/db/repositories.ts` and `src/lib/db/index.ts`;
-   - `src/lib/db/database.ts` only to confirm frozen schema/index contract;
-   - reward/progress/long-form helpers actually used by Resource;
-   - A1/A2 access probe and calibration tests;
-   - Resource/read-model/save-outcome/repository tests relevant to post-save consistency.
-
-Do not reuse rejected intermediate A2 packages or infer the A3 contract from A2 alone.
-
-## Fresh A3 pre-code readiness gate
-
-Before creating an A3 story branch or editing production code, prove:
+Suggested story branch:
 
 ```text
-origin/master still identifies the accepted product baseline, or any newer accepted master has been explicitly reconciled
-current postrelease/01-read-architecture HEAD descends from exact accepted A2 commit e329950...
-A2_CLOSURE_RECORD.md and updated stories.yaml are present on that integration HEAD
-worktree is clean
-Node24/npm11 authoritative validation remains invocable in a clean environment
-src/lib/db/database.ts schema/index/version contract is unchanged
-A1/A2 access-probe calibration remains green
-current actual Resource production path still matches the A0/A3 broad-read premise
-post-save Resource reload/composition is understood before the read contract is frozen
+postrelease/a3-resource-read-boundary
 ```
 
-If any condition fails, stop before production code and classify A3 as blocked or reconciliation-required.
+## First implementation phase: RED harness only
 
-## Local tooling constraint entering A3
+Do not edit production code first.
 
-The primary working tree contains the registered nested worktree `.kilo/worktrees/nova-carnation`, which currently contaminates direct repo-wide ESLint root discovery.
+Add the smallest A3 access-boundary harness that:
 
-A3 readiness must explicitly choose one of two safe paths:
+1. recalibrates/reuses the accepted A1/A2 DBCore probe;
+2. seeds a valid Resource fixture with relevant media and XP history;
+3. resets measurement before the operation under test;
+4. invokes the real `loadRpgStudyResourceSummary(itemId)`;
+5. asserts the future A3 store/query/materialization contract;
+6. fails on the untouched accepted A2 baseline for the broad-snapshot mechanism;
+7. prints structured A3 Resource access evidence;
+8. does not use source regex or `getDatabaseSnapshot()` inside the measured operation.
 
-- deliberately resolve/remove that worktree outside the story if it is genuinely stale; or
-- preserve it and use clean isolated clones for repository-wide gates.
+Keep semantic/full-snapshot oracles outside the measured scale operation.
 
-Do not silently delete it as part of A3 setup.
+Expected baseline RED mechanism:
 
-## A3 RED evidence before implementation
+```text
+Resource loader
+  -> readSnapshot()
+  -> getDatabaseSnapshot()
+  -> broad 14-store transaction
+  -> unrelated stores + hidden media/XP materialization
+```
 
-Reuse and calibrate the accepted access probe. Invoke the **actual Resource production path**, including the composition that is used after explicit save/reload. The untouched accepted A3 baseline must fail the proposed Resource access contract for an observed mechanism reason before production code is changed.
+The RED state should remain uncommitted until its evidence is reviewed.
 
-The RED proof must distinguish:
+## Preferred GREEN shape
 
-- logical Resource read access;
-- any shell/Hub work that belongs to A4 rather than A3;
-- explicit mutation work during save from passive reload/read work after the save;
-- source-row scanning from materialization.
+A likely design is:
 
-Do not use regex/symbol bans as the acceptance oracle.
+```text
+loadRpgStudyResourceSummary(itemId)
+  -> getResourceReadData(itemId)
+     -> one coherent readonly Dexie transaction
+     -> selected item get
+     -> selected unit get
+     -> one unit-items bulk query
+     -> one unit-progress bulk query
+     -> selected-item assets/slices/resume bulk queries
+     -> selected-item media cursor aggregation
+     -> selected-preview XP reward-key lookup
+  -> Resource-specific pure adapter/builder
+```
 
-## Scope controls
+Use an explicit `ResourceReadData`; do not emulate the broad `DatabaseSnapshot` with placeholders.
 
-A3 must not change:
+## Resource-specific warning: detailed reward label
 
-- persistent shell/Hub/Hero behavior — A4;
-- Focus or Badges paths;
-- database schema/indexes/migrations;
-- backup/storage format;
-- reward amounts or achievement rules;
-- UI/copy/navigation;
-- service worker, cloud or authentication architecture.
+A3 Resource reward lookup differs from A2 Module.
 
-## Required A3 evidence before acceptance
+Resource uses `buildQuestRewardLabel(..., true)`, so the finite reward source set must include `week_completed` when completion preview produces it. A2's Module reward-source helper intentionally excluded week-completion sources and therefore must not be copied unchanged.
 
-At minimum:
+Also preserve the final README/video shared reward.
 
-- calibrated RED mechanism evidence from the actual Resource production path;
-- 1×/10× unit/content-cardinality access metrics with no per-slice/event/resume N+1 growth;
-- explicit rows returned/scanned/materialized for append-only histories;
-- normal/missing-resource and long-form/reward semantic equivalence;
-- zero passive writes;
-- post-save mutation-summary/readback consistency;
-- actual-loader transaction-coherence evidence where the Resource read spans multiple stores;
-- preserved A1 Map and A2 Module boundary tests;
-- focused repository/read-model/save-outcome/architecture tests;
-- complete clean-environment repository validation;
-- exact-candidate Node24/npm11 `verify:release` evidence.
+## Resource-specific content scope
 
-## Stop rule
+Reward preview needs the selected unit's items/progress, but long-form content does not.
 
-This handoff makes A3 eligible for **fresh readiness assessment only**. It does not pre-approve an A3 implementation design.
+Do not load content assets, content slices, media history or resume points for every sibling item merely because unit-wide reward context is required. Those content/history reads should remain selected-item scoped.
 
-After A3 acceptance, close and integrate it before A4 begins.
+## Post-save composition
+
+The actual page's post-save refresh is:
+
+```text
+refreshHud()                         # A4 shell/HUD
+Promise.all([
+  loadRpgStudyResourceSummary(id),  # A3
+  loadRpgHubSummary(),              # A4
+])
+```
+
+A3 must preserve the Resource side and existing save-outcome behavior without modifying or claiming ownership over A4 Hub/HUD reads.
+
+Required consistency proof should connect:
+
+```text
+saveRpgStudyResourceProgress() mutation result
+  -> committed database state
+  -> narrow Resource readback
+```
+
+A failed refresh must not repeat or undo the committed mutation.
+
+## Query budget
+
+Default maximum for an existing item:
+
+```text
+course_items           <= 2
+course_units           <= 1
+progress_entries       <= 1
+content_assets         <= 1
+content_slices         <= 1
+media_progress_events  <= 1
+resume_points          <= 1
+xp_transactions        <= 1
+total                  <= 9
+```
+
+Missing item: one `course_items.get(itemId)` and return `null`.
+
+## Measurement requirements
+
+Record at least:
+
+- transaction identity/mode/table scope;
+- query count by store;
+- rows returned;
+- rows scanned;
+- source rows materialized;
+- derived media aggregate peak;
+- writes observed.
+
+Do not claim media runtime/memory is constant: exact coverage may scan O(H_selected_item), and disjoint merged-range state can grow with history.
+
+## Local environment
+
+Do not silently remove `.kilo/worktrees/nova-carnation`.
+
+Until it is deliberately resolved, use fresh isolated clones for repository-wide lint/full validation. Focused story tests may run in the primary tree when they do not invoke the contaminated repo-wide ESLint discovery path.
+
+## Stop rules
+
+Stop before GREEN implementation if:
+
+- A3 RED does not fail for the expected broad-read mechanism;
+- probe calibration fails;
+- current actual Resource composition differs materially from the readiness contract;
+- schema/index change appears necessary;
+- preserving detailed reward/long-form/post-save semantics would require changing frozen behavior;
+- `origin/master` or accepted Epic A lineage changes and has not been reconciled.
+
+Do not begin A4 until A3 is accepted, closed and integrated.

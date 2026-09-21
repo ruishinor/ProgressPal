@@ -88,7 +88,7 @@ stories:
     objective:
       Replace Resource broad snapshot access with item/unit-scoped bulk/indexed reads, preserving
       reward and long-form behavior and post-save reload semantics.
-    readiness: eligible_after_A2_closure
+    readiness: PASS
     acceptance_summary:
       - selected item/unit/reward context only
       - no N+1 progress/slice/event/resume queries
@@ -97,7 +97,7 @@ stories:
     expected_evidence:
       - access metrics at 1x/10x unit/content cardinality
       - reward/long-form fixtures and post-save assertions
-    state: ready_for_readiness
+    state: ready_for_implementation
   - id: A4
     title: Hub, Hero and persistent HUD read boundaries
     order: 4
