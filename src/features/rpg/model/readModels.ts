@@ -24,7 +24,9 @@ import { isItemComplete } from '@/lib/completion';
 import {
   getCourseMapReadData,
   getDatabaseSnapshot,
+  getModuleReadData,
   type CourseMapReadData,
+  type ModuleReadData,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
@@ -504,6 +506,36 @@ export function buildRpgModuleSummary(
   return unit === undefined ? null : buildModuleSummary(unit, snapshot);
 }
 
+function buildRpgModuleSummaryFromReadData(
+  data: ModuleReadData,
+): RpgModuleSummary {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const courseMap = buildCourseMap(
+    [data.courseUnit],
+    data.courseItems,
+    data.progressEntries,
+    longFormByItemId,
+  );
+  const unit = courseMap.units[0];
+
+  if (unit === undefined) {
+    throw new Error('Module read data did not contain its requested unit.');
+  }
+
+  return buildModuleSummary(unit, {
+    courseItems: data.courseItems,
+    courseUnits: [data.courseUnit],
+    earnedRewardSourceKeys: data.earnedRewardSourceKeys,
+    progressEntries: data.progressEntries,
+  });
+}
+
 export function buildRpgHubSummary(
   snapshot: DatabaseSnapshot,
   nowIso = new Date().toISOString(),
@@ -700,7 +732,9 @@ export async function loadRpgModuleSummary(
   unitId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgModuleSummary | null> {
-  return buildRpgModuleSummary(await readSnapshot(options), unitId);
+  const data = await getModuleReadData(unitId, options);
+
+  return data === null ? null : buildRpgModuleSummaryFromReadData(data);
 }
 
 export async function loadRpgStudyResourceSummary(

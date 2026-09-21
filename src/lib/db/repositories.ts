@@ -356,6 +356,17 @@ export type CourseMapReadData = {
   earnedRewardSourceKeys: ReadonlySet<string>;
 };
 
+export type ModuleReadData = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItems: CourseItem[];
+  courseUnit: CourseUnit;
+  mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+  earnedRewardSourceKeys: ReadonlySet<string>;
+};
+
 type BaseDatabaseOptions = {
   appVersion?: string;
   db?: ProgressPalDatabase;
@@ -3094,6 +3105,180 @@ export async function getCourseMapReadData(
       contentSlices: parsedContentSlices,
       courseItems: parsedCourseItems,
       courseUnits: parsedCourseUnits,
+      mediaProgressByAssetId: new Map(
+        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+          assetId,
+          {
+            coverageRanges: aggregate.coverageRanges,
+            eventCount: aggregate.eventCount,
+            lastEventEndSecond: aggregate.lastEventEndSecond,
+          },
+        ]),
+      ),
+      progressEntries: parsedProgressEntries,
+      resumePoints: parsedResumePoints,
+      earnedRewardSourceKeys,
+    };
+  });
+}
+
+export async function getModuleReadData(
+  unitId: string,
+  options: BaseDatabaseOptions = {},
+): Promise<ModuleReadData | null> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const storedUnit = await database.courseUnits.get(unitId);
+
+    if (storedUnit === undefined) {
+      return null;
+    }
+
+    const courseUnit = parseWithSchema(
+      CourseUnitSchema,
+      storedUnit,
+      `Stored course unit "${unitId}"`,
+    );
+    const courseItems = sortCourseItems(
+      parseStoredArray(
+        await database.courseItems.where('unitId').equals(unitId).toArray(),
+        'Stored course item',
+        CourseItemSchema,
+      ),
+    );
+    const itemIds = courseItems.map((item) => item.id);
+    const progressEntries =
+      itemIds.length === 0
+        ? []
+        : await database.progressEntries
+            .where('itemId')
+            .anyOf(itemIds)
+            .toArray();
+    const contentAssets =
+      itemIds.length === 0
+        ? []
+        : await database.contentAssets.where('itemId').anyOf(itemIds).toArray();
+    const contentSlices =
+      itemIds.length === 0
+        ? []
+        : await database.contentSlices.where('itemId').anyOf(itemIds).toArray();
+    const resumePoints =
+      itemIds.length === 0
+        ? []
+        : await database.resumePoints.where('itemId').anyOf(itemIds).toArray();
+    const parsedProgressEntries = sortProgressEntries(
+      parseStoredArray(
+        progressEntries,
+        'Stored progress entry',
+        ProgressEntrySchema,
+      ),
+    );
+    const parsedContentAssets = sortContentAssets(
+      parseStoredArray(
+        contentAssets,
+        'Stored content asset',
+        ContentAssetSchema,
+      ),
+    );
+    const parsedContentSlices = sortContentSlices(
+      parseStoredArray(
+        contentSlices,
+        'Stored content slice',
+        ContentSliceSchema,
+      ),
+    );
+    const parsedResumePoints = sortResumePoints(
+      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+    );
+    const mediaProgressByAssetId = new Map<
+      string,
+      MutableLongFormEventAggregate
+    >();
+
+    if (itemIds.length > 0) {
+      await database.mediaProgressEvents
+        .where('itemId')
+        .anyOf(itemIds)
+        .each((storedEvent) => {
+          const event = parseWithSchema(
+            MediaProgressEventSchema,
+            storedEvent,
+            'Stored media progress event',
+          );
+          const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+            coverageRanges: [],
+            eventCount: 0,
+            lastCreatedAt: null,
+            lastEventEndSecond: null,
+            lastEventId: null,
+          };
+
+          aggregate.eventCount += 1;
+          addCoverageRange(aggregate.coverageRanges, {
+            endSecond: event.endSecond,
+            startSecond: event.startSecond,
+          });
+
+          if (
+            aggregate.lastCreatedAt === null ||
+            event.createdAt > aggregate.lastCreatedAt ||
+            (event.createdAt === aggregate.lastCreatedAt &&
+              (aggregate.lastEventId === null ||
+                event.id > aggregate.lastEventId))
+          ) {
+            aggregate.lastCreatedAt = event.createdAt;
+            aggregate.lastEventEndSecond = event.endSecond;
+            aggregate.lastEventId = event.id;
+          }
+
+          mediaProgressByAssetId.set(event.assetId, aggregate);
+        });
+    }
+
+    const rewardSources = getCourseMapRewardSources(
+      [courseUnit],
+      courseItems,
+      parsedProgressEntries,
+    );
+    const earnedRewardSourceKeys = new Set<string>();
+
+    if (rewardSources.sourceIds.length > 0) {
+      await database.xpTransactions
+        .where('sourceId')
+        .anyOf(rewardSources.sourceIds)
+        .each((storedTransaction) => {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored Module reward XP transaction',
+          );
+          const sourceKey = getXpAwardSourceKey(
+            transaction.sourceType,
+            transaction.sourceId,
+          );
+
+          if (rewardSources.sourceKeys.has(sourceKey)) {
+            earnedRewardSourceKeys.add(sourceKey);
+          }
+        });
+    }
+
+    return {
+      contentAssets: parsedContentAssets,
+      contentSlices: parsedContentSlices,
+      courseItems,
+      courseUnit,
       mediaProgressByAssetId: new Map(
         [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
           assetId,
