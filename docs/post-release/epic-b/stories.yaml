@@ -1,0 +1,24 @@
+epic: B
+baseline_commit: d4b945ba0b024ceb4fbd29d70bcecc8496b3c6c3
+baseline_tree: 434f231404d02fe717a8aae93ceb4d323d845858
+branch: cx/epic-b-shared-contracts
+stories:
+  - id: B0
+    state: pass_ready_for_b1
+    scope: Exact shipped-source dependency inventory and ownership freeze
+  - id: B1
+    state: ready
+    scope: Move formatMinutes and progress-status presentation into lib
+    acceptance: Preserve exact strings and status variants; focused tests, typecheck, lint, format, circular check
+  - id: B2
+    state: provisional
+    scope: Move long-form map builders to lib/progress and use its existing view type
+    acceptance: Preserve map ordering, aggregate equivalence and course/RPG consumers; focused tests and architecture gates
+  - id: B3
+    state: provisional
+    scope: Source the session save result type from lib/db; retain shared UI and compatibility export
+    acceptance: Preserve Focus callback and save payload; focused tests and architecture gates
+  - id: B4
+    state: provisional
+    scope: Aggregate behavior, ownership and release-readiness evidence; local closure only
+    acceptance: Full relevant gates and explicit residual-risk/publication disposition
