@@ -1,92 +1,238 @@
-# Epic C / C0 — closure and readiness record
+# Epic C / C0 — closure and readiness record (v7 reconciliation)
 
-Disposition: **A. C0 ACCEPTED — C1 READY FOR OWNER REVIEW**
+## 1. Disposition
 
-## Baseline
+**`PASS_READY_FOR_C1`**
 
-`master` at `fd5e2d592bb6f5d1724509119147c48ba3a5df59`, tree
-`bc86fd392a5284d9db8821c31a27b8c95ec82a9a`, clean; a fast-forward of
-`origin/master` `d4b945ba0b024ceb4fbd29d70bcecc8496b3c6c3` by the six Epic B
-commits; Epic B not published as of the last fetch. Details and method:
-`C0_IDENTITY_BASELINE.md`.
+Meaning, and only this: the C0 evidence and contracts are coherent, every
+Bootstrap v7 required output exists, the story sequence is frozen enough for
+C1, C1 has a precise handoff, and no unresolved issue blocks C1.
 
-## Deliverables
+It does **not** authorize C1 to start. The owner reviews this C0 package
+first (`NEXT_STORY_HANDOFF_C1.md` §7 states exactly what acceptance
+authorizes).
 
-| #   | Deliverable                                                          | Record                                                 |
-| --- | -------------------------------------------------------------------- | ------------------------------------------------------ |
-| 1   | Identity / baseline                                                  | `C0_IDENTITY_BASELINE.md`                              |
-| 2   | Programme-specific semantic inventory                                | `C0_SEMANTIC_INVENTORY.md` §2, §4                      |
-| 3   | Generic / shared semantic inventory                                  | `C0_SEMANTIC_INVENTORY.md` §3                          |
-| 4   | ProgrammeDefinition ownership proposal                               | `C0_PROGRAMME_DEFINITION_PROPOSAL.md`                  |
-| 5   | Persisted ownership / versioning analysis                            | `C0_PERSISTENCE_OWNERSHIP_ANALYSIS.md`                 |
-| 6   | Migration-readiness contract                                         | `C0_MIGRATION_READINESS_CONTRACT.md`                   |
-| 7   | Visual-preservation prerequisites                                    | `C0_VISUAL_PRESERVATION.md`                            |
-| 8   | Architecture / dependency guard map (incl. destination-layer guards) | `C0_GUARD_MAP.md`                                      |
-| 9   | Deferred concerns, owner decisions, residual limits                  | `C0_DECISIONS_AND_DEFERRALS.md`                        |
-| 10  | C1+ story decomposition                                              | `C0_STORY_DECOMPOSITION.md`, `stories.yaml`, `SPEC.md` |
-| 11  | Validation / readiness matrix                                        | `VALIDATION_READINESS.md`                              |
-| 12  | Closure / readiness                                                  | this record                                            |
-| 13  | Next-story handoff                                                   | `NEXT_STORY_HANDOFF_C1.md`                             |
-| —   | Mechanism probe evidence                                             | `C0_EVIDENCE_PROBES.md`                                |
-| —   | Proposed Lessons Learned additions                                   | `C0_LESSONS_LEARNED_ADDENDUM.md`                       |
+[C] The original Cowork candidate issued "A. C0 ACCEPTED — C1 READY FOR OWNER
+REVIEW", a vocabulary Bootstrap v7 does not permit, while recording that
+Bootstrap v7 and the Lessons Learned register were unavailable to it (its
+residual limitation R-1). That substitute disposition is withdrawn; the
+permitted exit state above replaces it.
 
-## Key findings
+## 2. Identities
 
-1. [F] The structure is already `Programme → Unit → Item`; no deeper
-   hierarchy is needed.
-2. [F] CS50 policy leaks into the generic engine in four places: final-project
-   item IDs in XP and repositories, `week-N` unit IDs in achievements, the
-   `final_project` requirement in the generic seed schema, and the global
-   `final_project` unit lookup.
-3. [F] Programme ownership is explicit only on `course_units`. Probes show a
-   colliding second catalogue silently re-owns CS50 rows and downgrades the
-   single `seedVersion` (P2), and all reads merge catalogues (P3).
-4. [F] XP and unlock identities have no programme dimension (P4); backup
-   validation does not reject duplicate XP source keys (P5).
-5. [F] Two guard gaps would let an Epic C move pass green while escaping
-   protection: the local-only URL guard ignores data files (P6) and a new
-   directory has no layer rule (P7).
-6. [F] No automated oracle exists for appearance, exhaustive XP awards or
-   achievement satisfaction over the real catalogue; C1 fills that gap before
-   any production change.
-7. [D] The target direction holds, split by consumer layer, with rules passed
-   into engines and the active programme passed explicitly.
+| Item                                              | Value                                                                                                                                          |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accepted Epic B baseline                          | `master` `fd5e2d592bb6f5d1724509119147c48ba3a5df59`, tree `bc86fd392a5284d9db8821c31a27b8c95ec82a9a`                                           |
+| Original Cowork C0 candidate                      | `cx/epic-c0-programme-readiness` `137ffde46423a13f07dd8ba4a13a6e0b67b7dd65`, tree `815df73814b7534c8e6d7189af93bef0aa87b9d2`, parent `fd5e2d5` |
+| Reconciliation branch                             | `cx/epic-c0-v7-reconciliation`, started at `137ffde`; the reconciliation commit's parent is `137ffde`                                          |
+| `origin/master` (local tracking ref, not fetched) | `d4b945ba0b024ceb4fbd29d70bcecc8496b3c6c3`; Epic B not remotely published                                                                      |
+| Authority package                                 | `artifacts/c0-authority/ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip` (gitignored, not modified, not staged)                             |
+| Authority SHA-256                                 | `F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7` — verified                                                                  |
+| Authority internal hashes                         | `SHA256SUMS.txt`: 30/30 entries OK after extraction to disposable scratch                                                                      |
 
-## Why the disposition is A
+Product tree bytes outside `docs/post-release/epic-c/**` are identical across
+all three commits.
 
-- The C1 contract is complete, needs no owner product decision, changes no
-  production code and has explicit stop conditions.
-- C2–C5 are specified and need no schema change or product decision.
-- Every product decision that changes the persistence shape (OD-1 to OD-5) is
-  recorded and gates C6 only. Migration is not authorized.
-- The residual limits (R-1 Bootstrap not supplied, R-2 live remote not
-  queried, R-3 cloud probe platform) do not affect C1's safety; R-1 is flagged
-  for owner reconciliation before C1 authorization.
+## 3. Original candidate provenance and method limits
 
-## C0 validation
+- [F] The Cowork session had repository file access but no shell on the owner
+  machine. It verified identity from the object store, refs and index (commit
+  and tree SHA-1 recomputed; 464/464 index entries re-hashed; clean). That
+  evidence is consistent with the reconciliation's direct `git` checks.
+- [F] It could not update local Git metadata. It delivered a Git bundle
+  (`artifacts/epic-c0/epic-c0-programme-readiness.bundle`, 2026-09-26
+  00:09); the owner imported it with `git fetch` at 00:56:54 +0200 (reflog:
+  "fetch …bundle … storing head"). `git bundle verify` exits 0; the bundle
+  requires `fd5e2d5` and contains only `137ffde`.
+- [F] Its probes and guard-liveness run executed in a cloud workspace on the
+  pinned Node 24.21.0 / npm 11.10.1, not on the owner's Windows machine.
+- [F] Bootstrap v7 and the Lessons Learned register were not supplied to it.
+  This reconciliation closes that gap (R-1).
+- [F] The handoff evidence file `integration-evidence/EPIC_B_COMMIT_SEQUENCE.txt`
+  contains literal `` `t `` where tabs were intended and a UTF-8 BOM; the same
+  bytes are in the v7 package. SHAs are correct; C0 does not rely on the
+  file's separators.
 
-| Command / check                                                                               | Outcome                                         |
-| --------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Object/index/worktree identity verification                                                   | PASS                                            |
-| `vitest run tests/architecture tests/domain tests/seed` (Node 24.21.0, npm 11.10.1, `npm ci`) | PASS, 12 files / 36 tests                       |
-| Probes P1–P7                                                                                  | Executed; results in `C0_EVIDENCE_PROBES.md`    |
-| `npm run format:check` on the C0 tree                                                         | PASS                                            |
-| `git diff --check` for the C0 commit                                                          | PASS                                            |
-| `git diff --name-only` for the C0 commit                                                      | 16 files, all under `docs/post-release/epic-c/` |
+## 4. Findings reconciliation
 
-## Behaviour freeze
+### 4a. Retained (re-verified against source)
 
-No production application code, test, configuration, schema, route, style,
-asset, dependency or lockfile changed. Displayed values, ordering, labels,
-completion, XP, achievements, unlocks, saves, reloads, routes and Classic/RPG
-shared capabilities are untouched.
+| Finding                                                                                              | Classification                                |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Curriculum is `Programme → Unit → Item`; no deeper hierarchy needed                                  | source fact                                   |
+| Generic seed schema requires a `final_project` unit                                                  | source fact + probe P1                        |
+| XP final-project milestones hard-code CS50 item IDs; `week` bonus keyed on unit type                 | source fact + probe P4                        |
+| Repositories locate "the" final-project unit by type, whole-store                                    | source fact                                   |
+| 11 of 16 achievements CS50-bound; two engine couplings (`problem_set`, all required units)           | source fact                                   |
+| CS50 links/guides/copy/RPG identity/ID-string ordinal parsing                                        | source fact                                   |
+| Programme ownership explicit only on `course_units`; derived elsewhere; not derivable for XP/unlocks | source fact                                   |
+| A colliding second catalogue re-owns the CS50 unit row and lowers `seedVersion`                      | probe P2 + source; **latent risk**            |
+| Whole-store reads merge catalogues                                                                   | probe P3 + source; **latent risk**            |
+| XP and unlock identities have no programme dimension                                                 | source fact + probe P4                        |
+| Backup validation accepts duplicate XP source keys                                                   | probe P5 + source; **pre-existing gap**       |
+| Local-only guard ignores non-TS files; new directory has no ESLint rule                              | probes P6/P7 + source                         |
+| Screenshots are captured, not compared; no baseline committed                                        | source fact                                   |
+| Definition split by consumer layer; rules passed into lib; active programme passed explicitly        | architectural proposal                        |
+| OD-1 to OD-7                                                                                         | owner decisions (retained, gating re-derived) |
 
-## Publication boundary and owner effort
+### 4b. Changed or rejected
 
-Committed locally on `cx/epic-c0-programme-readiness` with parent
-`fd5e2d5`. `master`, its checkout and the working tree were not changed. No
-push, merge, tag, deployment or remote change occurred. Owner effort during
-C0: **0** clarification or debugging requests.
+| Original claim                                                                                                            | Change and reason                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Disposition "A. C0 ACCEPTED — C1 READY FOR OWNER REVIEW"                                                                  | Replaced by `PASS_READY_FOR_C1` (§1)                                                                                                                            |
+| "Single database, forever" (P-1 / D-6); "CS50 identifiers and the database name are never changed"                        | Bounded to Epic C: Epic C preserves the database identity and does not re-key CS50 IDs; replacement/splitting is outside Epic C and not a permanent decision    |
+| Story ownership in the definition proposal (content C1, rules C2, terminology C3, presentation C7; OD gating "C4 onward") | Contradicted `stories.yaml` (C2 content, C3 rules, C4 terminology, C8 presentation; OD gating C6). One sequence frozen in `stories.yaml`; all documents aligned |
+| Workflow capability grouped with rules (proposal) vs terminology (stories)                                                | Placed in C4 (feature-level configuration, no persisted reward identity) with rationale                                                                         |
+| C1 "golden" tables for every item × every status as oracles                                                               | Split into semantic oracles over reachable states and labelled characterization (`VALIDATION_READINESS.md` §2); reachability derived from source                |
+| Visual captures under gitignored `artifacts/` only                                                                        | Hash-bound, sealed, retained baseline contract with owner review; retention location is OD-8                                                                    |
+| V0 asset hashes presented as visual protection                                                                            | Reclassified as asset/token identity: necessary, not proof of rendered parity                                                                                   |
+| "Owner effort during C0: 0"                                                                                               | Corrected (§7): 0 clarification/debug requests, but ≥1 owner delivery execution and one environment-induced reconciliation pass                                 |
+| P2 "silently re-owns" framed alongside current defects                                                                    | Classified as a latent mechanism; no current production caller; no learner-data-loss claim                                                                      |
+| P4 read as "duplicate XP identity"                                                                                        | Narrowed: no programme dimension exists; no duplicate was demonstrated                                                                                          |
+| `study_sessions` programme linkage described as needing a decision                                                        | Sessions carry required `unitId`/`itemId` and are attributable; only their read scope needs OD-4                                                                |
+| Migration contract lacked explicit unknown/invalid programme ID handling                                                  | Added MR-11; rollback expectation stated in MR-10                                                                                                               |
+| Registry collision validation only in C7                                                                                  | Retained at C7 for multi-registration, plus sync-level collision rejection in C6 (MR-3) for the proven P2 mechanism                                             |
+| Epic B publication dependency not mapped                                                                                  | Added OD-9, gating C2 (Bootstrap `19_EPIC_C_READINESS_DECISION.md`)                                                                                             |
 
-C1 is not started. It begins only on explicit owner authorization within the
-boundary in `NEXT_STORY_HANDOFF_C1.md`.
+## 5. Repairs made in the reconciliation
+
+- **Disposition**: substitute vocabulary removed everywhere; exactly one
+  Bootstrap exit state used.
+- **Required outputs**: the seven v7 outputs plus the C1 handoff now exist;
+  overlapping Cowork files were consolidated and removed (§6b).
+- **Story map**: one sequence (C1–C8) with objective, allowed and forbidden
+  scope, prerequisites, evidence, owner-decision gates and stop conditions
+  (`stories.yaml`).
+- **Owner-decision gating**: each decision mapped to its earliest gate
+  (`SPEC.md` §6); OD-8 (visual retention), OD-9 (Epic B publication baseline)
+  and OD-10 (switching UX) added; none blocks C1 start.
+- **Architectural language**: permanence claims bounded to Epic C; proposals
+  labelled as proposals.
+- **Visual evidence**: durable baseline contract and comparison procedure.
+- **Semantic oracle vs characterization**: four evidence families defined;
+  reachable-state rule for C1.
+- **Owner effort / process**: corrected accounting (§7).
+- **Other evidence-based corrections**: study-session attribution; MR-11;
+  C5 fail-closed requirement for a wrong active programme ID; guard gap G-8
+  (`src/seed/**` has no ESLint rule); type-only import rules must be proved
+  by C2 negative probes rather than assumed.
+
+## 6. Validation of the reconciliation
+
+### 6a. Gates
+
+Run on the staged tree before commit; each gate was a precondition for the
+commit:
+
+| Gate                     | Command                                                                                                                  | Result                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Identity                 | `git rev-parse` of branch/HEAD; `master`; original C0 branch                                                             | PASS: on `cx/epic-c0-v7-reconciliation` at `137ffde`; `master` `fd5e2d5`; original branch `137ffde`           |
+| Path scope               | `git diff --cached --name-status 137ffde`                                                                                | PASS: 20 paths (4 added, 6 modified, 10 deleted), all under `docs/post-release/epic-c/`                       |
+| Required outputs present | existence and non-empty check of the eight required files                                                                | PASS: 8/8                                                                                                     |
+| Format                   | `npm run format:check`                                                                                                   | PASS: exit 0, "All matched files use Prettier code style!"                                                    |
+| Whitespace               | `git diff --cached --check`                                                                                              | PASS: exit 0, no output                                                                                       |
+| Product immutability     | `git diff --cached --name-only 137ffde -- . ':!docs/post-release/epic-c'`                                                | PASS: 0 paths                                                                                                 |
+| YAML validity            | `yaml.safe_load` of `stories.yaml`                                                                                       | PASS: C0–C8 parsed with the states in `stories.yaml`                                                          |
+| Internal consistency     | searches over `docs/post-release/epic-c/**` (story IDs, OD gates, disposition words, permanence, visual-baseline claims) | PASS: remaining occurrences of superseded wording appear only inside explicit correction entries (`[C]` rows) |
+
+Product suites were not rerun (`VALIDATION_READINESS.md` §1). No probe was
+rerun (`C0_EVIDENCE_PROBES.md` §2). No focused repository test was needed to
+resolve a factual uncertainty.
+
+### 6b. Document consolidation map
+
+| Original Cowork file                                                                                     | Disposition                                                                                                      |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `C0_SEMANTIC_INVENTORY.md`                                                                               | Consolidated into `C0_PROGRAMME_ASSUMPTION_INVENTORY.md`; removed                                                |
+| `C0_PERSISTENCE_OWNERSHIP_ANALYSIS.md`                                                                   | Consolidated into `C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md`; removed                                              |
+| `C0_MIGRATION_READINESS_CONTRACT.md`                                                                     | Consolidated into `C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md` §7; removed                                           |
+| `C0_PROGRAMME_DEFINITION_PROPOSAL.md`                                                                    | Superseded by `C0_PROGRAMME_DEFINITION_CONTRACT.md`; removed                                                     |
+| `C0_VISUAL_PRESERVATION.md`                                                                              | Superseded by `C0_VISUAL_PRESERVATION_PLAN.md`; removed                                                          |
+| `C0_GUARD_MAP.md`                                                                                        | Consolidated into `VALIDATION_READINESS.md` §4; removed                                                          |
+| `C0_DECISIONS_AND_DEFERRALS.md`                                                                          | Owner decisions → `SPEC.md` §6; deferrals → inventory §6; proposals → data map §6 / definition contract; removed |
+| `C0_STORY_DECOMPOSITION.md`                                                                              | Sequence → `stories.yaml`; rejected alternatives → `SPEC.md` §7; removed                                         |
+| `C0_IDENTITY_BASELINE.md`                                                                                | Condensed into this record §2–§3; removed                                                                        |
+| `C0_LESSONS_LEARNED_ADDENDUM.md`                                                                         | Condensed into this record §9; removed                                                                           |
+| `C0_EVIDENCE_PROBES.md`                                                                                  | Retained as supplementary evidence with a reconciliation assessment                                              |
+| `C0_CLOSURE_RECORD.md`, `SPEC.md`, `stories.yaml`, `VALIDATION_READINESS.md`, `NEXT_STORY_HANDOFF_C1.md` | Rewritten                                                                                                        |
+
+## 7. Owner effort and process evidence
+
+Original Cowork C0 run:
+
+| Metric                                                   | Value                                                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Owner clarification requests                             | 0 (as recorded)                                                                                                 |
+| Owner debugging requests                                 | 0 (as recorded)                                                                                                 |
+| Owner command executions required for candidate delivery | ≥ 1 (bundle `git fetch` into local refs)                                                                        |
+| Preventable support-tool failures reaching the owner     | 0 known                                                                                                         |
+| Environment-induced handoff burden                       | no local Git write access (bundle delivery); authority package not supplied, requiring this reconciliation pass |
+
+This reconciliation run: 0 owner clarification or debugging requests; 0 owner
+command executions during the run; 0 support scripts; no probe or product
+suite rerun. Pre-run owner setup observed in the reflog (switching to the
+reconciliation branch, placing the authority ZIP) is recorded as setup, not as
+a run failure.
+
+These are process observations, not product defects.
+
+## 8. Multi-perspective closure review
+
+- **Software architecture.** No claim found stronger than its evidence after
+  corrections. Engine rules kept as engine (status model, completion math,
+  long-form slicing, level curve, activity XP, dedupe); only proven CS50
+  policy moves to configuration. C3 combines three rule moves with the same
+  risk type (persisted reward identity) and oracle type; mitigated by
+  mandatory concern-scoped commits rather than more stories.
+- **Data ownership and migration.** Ownership analysed per store; XP, unlocks,
+  sessions and profile are not treated alike. No migration decision is made
+  prematurely: every stored programme field is gated on OD-1/2/4, enrolment on
+  OD-3, rollover on OD-5. Added missing unknown-ID handling (MR-11) and a
+  rollback expectation.
+- **Testing / QA / evidence.** Semantic oracles, characterization,
+  architecture and visual evidence separated; reachable states required;
+  existing coverage mapped before additions; probe conclusions narrowed. C1
+  is broad but tests-only and independently reviewable item by item.
+- **UX/UI visual preservation.** No visual regression protection is claimed.
+  Durable, hash-bound baseline with owner review defined; Epic D redesign
+  explicitly excluded. Open point recorded: whether RPG rendering varies with
+  theme preference is unverified; C1 records it.
+- **Delivery / release / process.** Single disposition vocabulary; publication
+  baseline mapped (OD-9); owner effort corrected. Observations for the owner,
+  not C0 actions: (1) the repository's `docs/post-release/epic-b/` lacks the
+  v7 `OWNER_ACCEPTANCE_RECORD.md`, and its `VALIDATION_READINESS.md` and
+  `stories.yaml` differ from the v7 copies — other Epic docs are out of C0
+  scope; (2) the Lessons Learned register row "theme abstraction before
+  preservation evidence" names enforcement "C3 before C4" in pre-C0 numbering;
+  in the frozen sequence the equivalent control is "C1 baseline accepted
+  before C8".
+- **Adversarial / red-team.** Found one real gap: once C5 scopes reads, a wrong
+  or unmaterialized active programme ID could render an empty-but-plausible
+  course — the A7 failure class. C5 now requires fail-closed behaviour through
+  the actual route. Also checked: PASS cannot be read as C1 authorization (§1,
+  handoff §7); a test-only second catalogue cannot reach production (C5
+  forbidden scope); characterization fixtures cannot be silently updated
+  (definition contract §5); the URL allowlist cannot be widened generically
+  (C2). A new agent following only this package knows what C1 may and may not
+  do (`NEXT_STORY_HANDOFF_C1.md` §3–§7).
+
+## 9. Proposed Lessons Learned register additions (for the owner)
+
+- **A guard protects only what it scans.** File-type and directory scope are
+  part of a guard's contract (P6, P7). Before moving code or data into a new
+  file type or directory, run a negative probe proving each relevant guard
+  fires at the destination, and extend the guard in the same commit. This
+  generalizes the Epic B B3 destination-guard control.
+- **Characterization is not a semantic oracle.** Current-output fixtures
+  detect drift; they do not define correct behaviour. Keep them labelled and
+  separate from reviewed semantic expectations over reachable states.
+- **Delivery constraints are owner effort.** When an execution environment
+  cannot write local Git state, the bundle import is an owner execution and is
+  counted as such.
+
+## 10. Boundary
+
+Documentation-only reconciliation commit on `cx/epic-c0-v7-reconciliation`
+with parent `137ffde`. `master` and `cx/epic-c0-programme-readiness` are
+unchanged. No push, merge, tag, deployment, branch deletion or remote change.
+C1 is not started.

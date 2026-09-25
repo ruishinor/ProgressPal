@@ -1,38 +1,125 @@
 # Epic C validation readiness
 
-Current state: **C0 ACCEPTED — C1 READY FOR OWNER REVIEW**.
+Current state: **C0 `PASS_READY_FOR_C1` — awaiting owner review.** C1 has not
+started.
 
-## C0 validation performed
+This is the canonical C0 record for validation performed, the evidence-role
+taxonomy, the architecture/destination-layer guard map and per-story
+readiness. It consolidates the original Cowork `C0_GUARD_MAP.md`.
 
-C0 changed documentation only, so product suites were not rerun as C0
-acceptance evidence. Each mechanism the analysis relies on was validated
-directly.
+## 1. C0 validation performed
 
-| Check                   | Mechanism                                                                                                                                 | Outcome                                                               |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Baseline identity       | Commit/tree objects re-hashed; index tree recomputed; working files re-hashed with `.gitattributes` normalization; fresh `git write-tree` | PASS: `fd5e2d5` / `bc86fd3`, 464/464 files match, clean               |
-| Remote and ancestry     | Loose/packed refs, `FETCH_HEAD`, reflog, six parent links parsed from objects                                                             | PASS: FF of `origin/master` `d4b945b`; not published as of last fetch |
-| Handoff consistency     | Archive documents diffed against HEAD                                                                                                     | PASS: 13/13 identical; wrapper formatting defect noted                |
-| Guard liveness          | `vitest run tests/architecture tests/domain tests/seed` on pinned Node 24.21.0 / npm 11.10.1 after `npm ci`                               | PASS: 12 files, 36 tests                                              |
-| Ownership and ID claims | Probes P1–P5 against the real repositories and engines                                                                                    | Behaviour observed as recorded in `C0_EVIDENCE_PROBES.md`             |
-| Guard-scope claims      | Probes P6 (local-only guard) and P7 (ESLint layering) with positive and negative cases                                                    | Gaps G-1 and G-2 confirmed                                            |
-| Documentation format    | `npm run format:check` (repository Prettier 3)                                                                                            | PASS (see closure record)                                             |
-| Whitespace              | `git diff --check` on the C0 commit                                                                                                       | PASS (see closure record)                                             |
-| Scope                   | `git diff --name-only fd5e2d5..HEAD`                                                                                                      | only `docs/post-release/epic-c/*`                                     |
+C0 and its reconciliation changed documentation only, so product suites were
+not rerun (Lessons Learned register: a documentation-only change does not
+re-certify product code).
 
-Not run, deliberately: lint/typecheck/build/unit/E2E/bundle/audit for product
-behaviour. No production file changed, so those results would re-certify
-Epic B, not C0.
+| Check                                 | Mechanism                                                                                                                                                           | Outcome                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Baseline identity (reconciliation)    | `git rev-parse` of `master`, `master^{tree}`, both C0 branches, `137ffde^`; `git merge-base --is-ancestor fd5e2d5 HEAD`                                             | PASS: identities exactly as expected; ancestry proved                                               |
+| Delivery provenance                   | `git reflog`; `git bundle verify artifacts/epic-c0/epic-c0-programme-readiness.bundle` (exit 0)                                                                     | Cowork commit entered local refs by owner `git fetch` from that bundle at 2026-09-26 00:56:54 +0200 |
+| Authority package                     | SHA-256 of the ZIP; extraction to disposable scratch; `sha256sum -c SHA256SUMS.txt`                                                                                 | PASS: ZIP hash matches; 30/30 internal entries OK                                                   |
+| Source re-verification (findings A–I) | Direct reads of seed, schemas, constants, XP/achievement engines, repositories sync/read/restore paths, backup envelope, ESLint config, local-only guard, e2e specs | Findings confirmed with classification corrections (`C0_CLOSURE_RECORD.md` §4)                      |
+| Probe evidence P1–P7                  | Mechanism, fixture and path review against source (`C0_EVIDENCE_PROBES.md` §2)                                                                                      | Retained; none rerun (all mechanisms establishable from source)                                     |
+| Seed cardinality cross-check          | `node -e` count over `src/seed/cs50x-2026.json`                                                                                                                     | 14 units / 68 items / 26 required — consistent with P3 numbers                                      |
+| Original Cowork guard-liveness run    | `vitest run tests/architecture tests/domain tests/seed`, Node 24.21.0 / npm 11.10.1 after `npm ci`, cloud workspace                                                 | Retained as recorded by Cowork: 12 files / 36 tests PASS (not rerun)                                |
+| Path scope                            | `git diff --name-status 137ffde..HEAD`                                                                                                                              | Recorded in `C0_CLOSURE_RECORD.md` §6                                                               |
+| Format                                | `npm run format:check` (repository Prettier 3)                                                                                                                      | Recorded in `C0_CLOSURE_RECORD.md` §6                                                               |
+| Whitespace                            | `git diff --check` (separate gate)                                                                                                                                  | Recorded in `C0_CLOSURE_RECORD.md` §6                                                               |
+| Internal consistency                  | Searches over `docs/post-release/epic-c/**` for story IDs, OD gates, disposition vocabulary, permanence and visual-baseline claims                                  | Recorded in `C0_CLOSURE_RECORD.md` §6                                                               |
 
-## Readiness matrix for Epic C
+Not run, deliberately: lint, typecheck, build, unit, E2E, bundle, circular and
+audit for product behaviour. No product file changed; those results would
+re-certify Epic B (717/717 unit, 74/74 E2E recorded at `fd5e2d5`), not C0.
 
-| Story | Behavior oracle                       | Architecture guards (destination included)            | Persistence evidence                  | Visual evidence                 | Owner input                      | Ready    |
-| ----- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------- | ------------------------------- | -------------------------------- | -------- |
-| C1    | Unchanged baseline code               | ESLint, circular, format, typecheck                   | None needed (read-only fixtures)      | V0 oracles created              | Authorization only               | **Yes**  |
-| C2    | C1 link/guide tables                  | G-1, G-2, G-3, sharedContracts, localOnly, bundle     | Seed sync tests                       | Not needed (no visual change)   | None                             | After C1 |
-| C3    | C1 golden XP/achievement tables       | Engine purity, G-7, sessions                          | Repository award paths, save outcomes | Not needed                      | None                             | After C2 |
-| C4    | C1 label tables, App/RPG text tests   | Route contract, rpgFeature, a11y                      | None                                  | Text oracles; captures optional | OD-6 only if brand text changes  | After C3 |
-| C5    | P3 red→green with test-only catalogue | Epic A read boundaries and access probes              | Read-only                             | Not needed                      | None                             | After C4 |
-| C6    | MR-1..MR-15                           | Persistence, backup, coordination, multi-tab, offline | Schema-2 fixture set (MR-0d)          | Not needed                      | **OD-1..OD-5 + schema decision** | Blocked  |
-| C7    | Isolation tests                       | Route contract, coordination, read boundaries         | C6 state                              | Captures for any new control    | **OD-3 + switching UX**          | Blocked  |
-| C8    | V0 oracles                            | CSS/asset guards, CSP, service worker, bundle         | None                                  | Owner capture comparison        | **Visual identity decision**     | Deferred |
+## 2. Evidence roles
+
+Every later Epic C test addition declares one primary role (Lessons Learned
+test-role taxonomy). The four families below must not be conflated.
+
+| Family                          | Definition                                                                                                                                                                              | Authority                                                                  | May a later story update it?                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **A. Semantic oracle**          | Expected externally meaningful behaviour derived from accepted rules, public behaviour, validated seed/config authority or deliberately reviewed expectations; reachable product states | The accepted rule or source authority, reviewed by the owner in C1 closure | Only by a story whose contract explicitly changes that product semantic  |
+| **B. Characterization**         | Output captured from the current implementation to detect drift, including unreachable engine inputs                                                                                    | The baseline implementation; not independent semantic truth                | Only with an explicit, owner-reviewed reason in the story closure record |
+| **C. Architecture / mechanism** | Ownership, dependency direction, reads/writes, stores, transactions, mutation path                                                                                                      | Accepted architecture contracts and existing guards                        | Extended deliberately with a reviewed reason; never relaxed to pass      |
+| **D. Visual preservation**      | Rendered appearance evidence (retained hash-bound captures + owner review) and asset/token identity                                                                                     | Owner-accepted C1 baseline (`C0_VISUAL_PRESERVATION_PLAN.md` §4)           | Only through owner visual review                                         |
+
+[C] The original C0 described generated current-output tables as "golden"
+oracles. Output generated from the current code is characterization (B). It
+becomes part of a semantic oracle (A) only for reachable product states whose
+expected values are traceable to the rule source and owner-reviewed. C1 keeps
+the two separate.
+
+## 3. Existing coverage relevant to Epic C (mapped before any C1 addition)
+
+| Area                         | Existing tests                                                                            | Coverage                                                           | Gap C1 fills                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Curriculum identity/ordering | `tests/seed/bundledCourseSeed.test.ts` (3)                                                | catalogue shape and selected titles                                | full ordered unit/item identity table (A)                                                |
+| XP rules                     | `tests/lib/xpEngine.test.ts` (9, synthetic)                                               | type completion, problem-set milestones, week bonus, ID derivation | reachable-state awards over the real catalogue incl. final-project pair (A); preview (B) |
+| Achievements                 | `tests/lib/achievementsEngine.test.ts` (15, synthetic)                                    | rule types incl. final-project and pset-chain                      | definition snapshot (B); satisfaction over staged real-catalogue states (A)              |
+| Persisted reward identity    | `tests/db/repositories.test.ts` award paths; `insightsModel` alignment test               | dedupe, ledger writes                                              | full `sourceType`/`sourceId`/tx-ID/unlock-ID table for reachable awards (A)              |
+| Links / guides               | `tests/features/cs50Links.test.ts` (10), `guideContent.test.ts` (10)                      | shape, selected IDs, nulls, allowed URLs                           | total lookup table over every seed unit/item ID (B)                                      |
+| Labels / copy                | `tests/app/App.test.tsx`, `tests/features/*Model.test.ts`, RPG presentation tests         | rendered text across routes                                        | label tables only where not already pinned (B)                                           |
+| Status workflow              | `tests/features/courseDetailModel.test.ts`                                                | status options                                                     | reachability table used by the XP oracle (A)                                             |
+| Routes                       | `tests/architecture/routeDefinitions.test.ts`                                             | exact route list, nav labels, helpers                              | none                                                                                     |
+| Backup/restore               | `tests/lib/backup.test.ts`, `tests/db/backupCompatibility.test.ts`, two schema-2 fixtures | envelope, invariants, adversarial rejects, fixture imports         | baseline-built realistic schema-2 fixture for C6 (migration)                             |
+| Visual                       | B2–B4 capture specs                                                                       | transient captures only                                            | retained hash-bound baseline (D); asset/token identity (D)                               |
+
+## 4. Architecture guard map
+
+### 4a. Existing guards
+
+| Guard                    | Mechanism                                                                                                                                          | Protects                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Layer rules              | ESLint `no-restricted-imports` (`eslint.config.js`)                                                                                                | app → feature entrypoints only; components feature-agnostic; features ↛ app; lib ↛ app/components/features                                       |
+| Circular dependencies    | `npm run check:circular` (dpdm)                                                                                                                    | no import cycles                                                                                                                                 |
+| Module surface           | `tests/domain/moduleBoundaries.test.ts`                                                                                                            | exact file lists of `src/lib/db` (4) and `src/seed` (3)                                                                                          |
+| Local-only source safety | `tests/architecture/localOnly.test.ts`                                                                                                             | no network/eval/HTML sinks in `src/**/*.{ts,tsx}`; external URLs only from an allowlist (`https://cs50.harvard.edu/`)                            |
+| RPG UI ↛ DB              | `tests/architecture/rpgFeature.test.ts`                                                                                                            | RPG components/routes/shell never import `@/lib/db` (even type-only); no raw IndexedDB escapes; RPG CSS has no `@import`, remote or `data:` URLs |
+| Achievement purity       | `tests/architecture/achievementsFeature.test.ts`                                                                                                   | engine and definitions free of Dexie/DB imports; achievement surfaces read-only                                                                  |
+| Sessions purity          | `tests/architecture/sessionsFeature.test.ts`                                                                                                       | session flows do not write XP/progress                                                                                                           |
+| Shared contracts         | `tests/architecture/sharedContracts.test.ts`                                                                                                       | Epic B moved symbols stay sourced from lib                                                                                                       |
+| Route contract           | `tests/architecture/routeDefinitions.test.ts`                                                                                                      | exact route list, nav labels, path helpers                                                                                                       |
+| Service worker / headers | `tests/architecture/serviceWorker.test.ts`, `securityHeaders.test.ts`                                                                              | offline shell, CSP                                                                                                                               |
+| Epic A read boundaries   | `tests/features/rpg/{map,module,resource}ReadBoundary.test.ts`, `a4*`, `a5*`, `a6*`, `a7*`; `tests/db/accessProbe.ts`                              | exact store allowlists, one read-only transaction, forbidden stores, bounded fan-out, no full-history materialization                            |
+| Persistence              | `tests/db/migrations.test.ts`, `databaseInitialization.test.ts`, `repositories.test.ts`, `backupCompatibility.test.ts`, `tests/lib/backup.test.ts` | v1→v2 upgrade, idempotent init/sync, atomic restore/reset, fixtures, adversarial rejects                                                         |
+| Coordination             | `tests/lib/localDataCoordination*.test.ts`, `localDataWebLocks.test.ts`, `tests/db/*WriteCoordination.test.ts`, `e2e/multi-tab.spec.ts`            | single writer, fail-closed writes, destructive-write exclusivity                                                                                 |
+| Bundle budget            | `npm run check:bundle`                                                                                                                             | ≤ 500 kB raw per chunk, no source maps                                                                                                           |
+
+### 4b. Gaps (destination-layer risks)
+
+| Gap                                                                                    | Evidence | Owning story and required action                                                                                                                     |
+| -------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G-1 New `src/programmes/` has no layer rule; `lib → programmes → features` passes lint | [F] [P7] | C2 adds the rules in `C0_PROGRAMME_DEFINITION_CONTRACT.md` §4 in the commit that creates the directory, with negative probes incl. type-only imports |
+| G-2 Local-only URL guard scans only `.ts`/`.tsx`; a URL in `src/**/*.json` passes      | [F] [P6] | C2 keeps links in `.ts`, or extends the scan to the data format in the same commit. The allowlist is never widened generically                       |
+| G-3 `moduleBoundaries.test.ts` pins `src/seed` to three files                          | [F]      | Any seed relocation replaces the assertion with an equivalent narrow-surface assertion; never deleted                                                |
+| G-4 No retained visual baseline, no hash binding, no comparison                        | [F]      | C1 (retained baseline) and C8 (comparison procedure)                                                                                                 |
+| G-5 No real-catalogue reachable-state XP/achievement/identity evidence                 | [F]      | C1                                                                                                                                                   |
+| G-6 Backup accepts duplicate XP source keys despite the documented must-reject         | [F] [P5] | C6 at the latest, RED first                                                                                                                          |
+| G-7 No guard prevents lib from hard-coding programme catalogue IDs                     | [F]      | C3 adds an architecture test: `src/lib/**` contains no catalogue unit/item/achievement/milestone ID literal of a registered programme                |
+| G-8 `src/seed/**` has no ESLint layer rule (today imports only `@/lib/domain`)         | [F]      | C2 decides whether seed moves under `src/programmes/` rules or gains an equivalent rule; low risk today                                              |
+
+### 4c. Source/destination map per story
+
+| Story | Source layer → destination layer                                                             | Source-layer guards                                                    | Destination-layer guards                                     | Missing guard (added by the story) | Runtime consumers to exercise                                                                   | Formats / import kinds                    |
+| ----- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| C1    | none (tests/e2e/docs only)                                                                   | —                                                                      | —                                                            | —                                  | real engines, repositories, routes                                                              | test fixtures (JSON), PNG captures        |
+| C2    | `features/course` (links, guides), `seed` → `programmes`                                     | features rules, localOnly, moduleBoundaries                            | none today → G-1, G-2, G-8                                   | G-1, G-2 (if non-TS), G-8          | `CourseUnitCard`, `ContentDetailPage`, `rpg/model/readModels.ts`, composition roots             | TS; JSON only with G-2; type-only imports |
+| C3    | `lib/xp`, `lib/achievements`, `lib/domain`, `lib/db` → `programmes` (data) passed into `lib` | lib rules, achievementsFeature, sessionsFeature, rpgFeature (RPG ↛ DB) | programmes rules (G-1), lib ↛ programmes rule                | G-7                                | repositories award paths, `questRewards`, insights model, achievement evaluation, save outcomes | TS; type-only imports of definition types |
+| C4    | `features/*` labels, `app/*` copy, `rpg/model/types.ts` literals → `programmes` content      | features/app rules, routeDefinitions, rpgFeature                       | programmes rules                                             | —                                  | Classic and RPG routes via App/RPG tests; accessibility E2E                                     | TS; type-only (literal types)             |
+| C5    | `lib/db` reads, `features/rpg` read models                                                   | Epic A read boundaries, rpgFeature                                     | same (reads stay in place)                                   | —                                  | every Epic A route read path                                                                    | TS                                        |
+| C6    | `lib/db` schema, `lib/backup`                                                                | persistence, backup, coordination, SW                                  | same                                                         | G-6                                | `AppStateProvider` init, restore, reset, multi-tab, offline                                     | IndexedDB schema; backup JSON             |
+| C7    | `programmes` registry; enrolment in `lib/db`; one shell control                              | programmes rules, route contract, coordination                         | route contract, read boundaries, components feature-agnostic | —                                  | switching flow in both shells                                                                   | TS                                        |
+| C8    | `features/rpg/assets`, `styles` → UI-layer programme presentation                            | rpgFeature CSS, securityHeaders, SW, bundle                            | same + programmes core must not import assets                | —                                  | RPG badges, hero, hub; Classic shell                                                            | WebP/SVG `?inline`, CSS                   |
+
+## 5. Readiness matrix
+
+| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                       |
+| ----- | ------------------------------------------------ | ------------------------------------------- | --------------------------- |
+| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | **Yes, after owner review** |
+| C2    | C1 link/guide/identity evidence                  | OD-9                                        | After C1                    |
+| C3    | C1 XP/achievement/identity evidence              | none                                        | After C2                    |
+| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | After C3                    |
+| C5    | P3 RED with test-only catalogue; Epic A probes   | none                                        | After C4                    |
+| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                     |
+| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                     |
+| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed       |

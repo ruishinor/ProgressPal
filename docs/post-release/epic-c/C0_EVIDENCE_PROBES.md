@@ -1,12 +1,16 @@
 # Epic C / C0 — mechanism probe evidence
 
-Status: **EXECUTED**. Probes ran against a detached checkout of HEAD
-`fd5e2d5` (tree `bc86fd3`) in the C0 cloud workspace with Node `v24.21.0`,
-npm `11.10.1` and `npm ci`. Probe files were scratch only: they are not part of
-this commit and the probe checkout was discarded. They observe current
-behaviour; they are not tests that Epic C should keep in this form.
+Status: **Supplementary evidence, retained and reconciled.** This file holds
+probe results, reproduction and source only. It defines no story numbering,
+ownership or disposition; those live in the canonical C0 records.
 
-## Results
+Probes were executed by the original Cowork C0 run against a detached checkout
+of `fd5e2d5` (tree `bc86fd3`) in its cloud workspace with Node `v24.21.0`,
+npm `11.10.1` and `npm ci`. Probe files were scratch only and were never
+committed. They observe current behaviour; they are not tests that Epic C
+keeps in this form. The v7 reconciliation did not rerun them (§2).
+
+## 1. Results (as recorded by the original run)
 
 | ID  | Question                                                    | Observed result                                                                                                                                                                                                                                                                                                           |
 | --- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -21,7 +25,28 @@ behaviour; they are not tests that Epic C should keep in this form.
 Run summary: probe suite 5/5 assertions held; P6 and P7 executed as shown.
 Baseline guard suites in the same environment: 12 files / 36 tests passed.
 
-## Reproduction
+## 2. Reconciliation assessment
+
+Each probe was re-examined against source at the same baseline. "What it
+proves" is the narrowest conclusion the evidence supports.
+
+| ID  | Mechanism exercised                                                              | Fixture valid?                                                             | Real code path?                                                                                                   | What it proves (narrowed)                                                                                                                                                                                                                                                          | Source cross-check                                                                                                                   | Rerun? |
+| --- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| P1  | `parseCourseSeed` `superRefine`                                                  | Yes: otherwise schema-valid seed minus its `final_project` unit            | Yes (same parser as the bundled seed and sync)                                                                    | The generic seed parser embeds a CS50 rule. Architecture/validation fact.                                                                                                                                                                                                          | `schemas.ts:444-450`                                                                                                                 | No     |
+| P2  | `ensureCourseCatalogFromSeed` with a second seed reusing `week-0`                | Yes: sync parses the seed, so an invalid seed would have thrown            | Yes (real repository sync) — but no production caller passes any seed other than `bundledCourseSeed`              | A colliding second catalogue rewrites the CS50 unit row and lowers `seedVersion`. **Latent risk**, not a current product defect. Learner rows were not examined; no data-loss claim.                                                                                               | `courseUnitNeedsUpdate` compares `courseId`; `seedVersion` overwritten when different (`repositories.ts:790-799`, `1480-1520`)       | No     |
+| P3  | `loadRpgCourseMapSummary`, `getCourseMapReadData` after a non-colliding sync     | Yes                                                                        | Yes (real read models)                                                                                            | Whole-store reads merge catalogues. Latent risk, reachable only with a second catalogue.                                                                                                                                                                                           | whole-store `toArray()` reads; seed counts 14/26 (+2/+2) match                                                                       | No     |
+| P4  | `deriveXpTransactionId` (pure); `evaluateProgressXp`; `upsertProgressAndAwardXp` | Yes                                                                        | Partly: ID derivation and engine are pure helpers; P4b uses the real mutation path but only **logged** its result | XP identity has no programme dimension, so cross-programme uniqueness depends entirely on catalogue ID uniqueness; final-project milestones are keyed to CS50 item IDs; the `week` bonus applies to any programme's `week` unit. It does **not** show a duplicate award occurring. | `engine.ts` derivation and rule branches                                                                                             | No     |
+| P5  | `assertBackupDataInvariants`                                                     | Yes for this validator: minimal data with two XP rows sharing a source key | Yes (shared by preview and restore)                                                                               | The documented "XP source collisions must reject" contract is not enforced. Pre-existing gap; reachable only via edited/foreign backups; not multi-programme-specific.                                                                                                             | no source-key check in `envelope.ts`; `XpTransactionSchema` does not bind `id` to source; no such test in `tests/lib/backup.test.ts` | No     |
+| P6  | `tests/architecture/localOnly.test.ts` with a JSON and a TS file under `src/`    | Yes                                                                        | Yes (the real guard)                                                                                              | The guard scans only `.ts`/`.tsx`. No current `src/**/*.json` contains a URL (the seed has none), so there is no current violation.                                                                                                                                                | `listAppSourceFiles` regex `\.(ts\|tsx)$`                                                                                            | No     |
+| P7  | `eslint --max-warnings 0` over a new `src/programmes/` file and a lib importer   | Yes                                                                        | Yes (the real ESLint config)                                                                                      | A new top-level directory inherits no layer rule, and `src/lib → @/programmes` is not forbidden. It also follows that `src/seed/**` has no rule (G-8).                                                                                                                             | `eslint.config.js` file globs                                                                                                        | No     |
+
+No probe was rerun. Every mechanism is deterministic and fully establishable
+from the source at the same immutable baseline, the fixtures are valid, and
+no conclusion in the reconciled contract depends on a numeric result that the
+source cannot reproduce. Rerunning would add disposable `src/` files for no
+additional certainty.
+
+## 3. Reproduction
 
 ```bash
 git worktree add --detach ../c0-probe fd5e2d592bb6f5d1724509119147c48ba3a5df59
@@ -41,7 +66,7 @@ npx eslint --max-warnings 0 src/programmes/probe.ts src/lib/c0LibProbe.ts   # ex
 # then remove the worktree
 ```
 
-## P1–P5 probe source
+## 4. P1–P5 probe source
 
 ```ts
 // C0 scratch probes. Not committed. Each probe observes current runtime

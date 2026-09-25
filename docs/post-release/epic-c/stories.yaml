@@ -1,50 +1,205 @@
 epic: C
-title: Programme platform
+title: Programme platform foundation
+authority: ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip (SHA-256 F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7)
 baseline_commit: fd5e2d592bb6f5d1724509119147c48ba3a5df59
 baseline_tree: bc86fd392a5284d9db8821c31a27b8c95ec82a9a
-c0_branch: cx/epic-c0-programme-readiness
+remote_publication_of_epic_b: not_performed_at_c0 (OD-9)
+c0_original_candidate:
+  branch: cx/epic-c0-programme-readiness
+  commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
+c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
+current_state: c0_pass_ready_for_c1_awaiting_owner_review
+owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
-    state: accepted_c1_ready_for_owner_review
-    scope: Programme-platform readiness; documentation and evidence only
-    acceptance: Identity verified; inventories, ownership, migration contract, guard map, visual prerequisites and decomposition recorded; probes executed
+    title: Programme-platform readiness and contract freeze
+    state: pass_ready_for_c1
+    disposition: PASS_READY_FOR_C1
+    scope: Evidence, contracts and story freeze; documentation under docs/post-release/epic-c only
+    note: PASS does not authorize C1; the owner reviews C0 before C1 starts
+
   - id: C1
-    state: ready_for_owner_review
-    scope: Baseline characterization oracles (tests and fixtures only, no src change)
-    acceptance: Golden XP award table for every CS50 item x status; achievement definition and satisfaction snapshot; link and guide lookup table; label tables; V0 token and asset-identity oracles; all captured from the unchanged baseline and passing
-    gates: []
+    title: Baseline preservation evidence
+    state: ready_after_owner_review_of_c0
+    objective: Capture semantic oracles, characterization evidence, a baseline-built schema-2 fixture and the retained visual baseline from the unchanged baseline, before any ownership change
+    prerequisites: [owner review of C0 PASS]
+    allowed_scope:
+      - new test files and fixtures under tests/**
+      - one new capture-only spec under e2e/ following the B2-B4 pattern
+      - docs/post-release/epic-c/** (closure record, visual manifest)
+    forbidden_scope:
+      - any change under src/**, public/**, scripts/**
+      - modifying, skipping or weakening any existing test, spec or guard
+      - configuration, package/lockfile, schema, seed data, CSS or assets
+      - dependencies; push, merge, tag, deploy, remote change
+    delivery: may use concern-scoped commits; one closure record
+    required_evidence: NEXT_STORY_HANDOFF_C1.md section 4 items 1-10 with the primary role of each addition recorded
+    owner_decision_gates: [OD-8 at C1 acceptance only]
+    stop_conditions:
+      - an oracle cannot be produced without changing src/**
+      - the baseline suite fails before C1 changes
+      - a fixture would contain real learner data
+      - reachability of a status combination cannot be derived from source
+
   - id: C2
+    title: Programme layer, registry boundary and content ownership
     state: planned
-    scope: Programme layer and CS50 content definition (identity, catalogue reference, external links, study guide) with compatibility re-exports
-    acceptance: Programme-layer ESLint rules with negative probes (G-1); local-only URL coverage kept (G-2); module-boundary assertion kept equivalent (G-3); C1 oracles unchanged
-    gates: [C1]
+    objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor for cs50x-2026, and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
+    prerequisites: [C1 accepted, OD-9 recorded]
+    allowed_scope:
+      - new src/programmes/**
+      - eslint.config.js additions for the new layer (additive only)
+      - localOnly guard extension to any data format introduced (additive only)
+      - moduleBoundaries seed assertion replaced by an equivalent narrow assertion only if seed files move
+      - features/course link and guide modules reduced to compatibility re-exports
+    forbidden_scope:
+      - XP, achievement, catalogue-rule, terminology or read-scope changes
+      - schema, persisted values, CSS, assets, routes
+      - widening the external-URL allowlist beyond the existing CS50 prefix
+    required_evidence:
+      - C1 link, guide and identity evidence unchanged
+      - negative probes for every new ESLint rule, including a type-only import case (G-1)
+      - local-only guard coverage of the moved content's file type (G-2)
+      - moduleBoundaries equivalent (G-3); sharedContracts; circular; bundle budget
+    owner_decision_gates: [OD-9]
+    stop_conditions:
+      - a guard would have to be weakened
+      - a C1 oracle would change
+
   - id: C3
+    title: Programme reward and catalogue rules passed into lib engines
     state: planned
-    scope: Programme rules into the definition (XP policy, achievement definitions, catalogue rules, final-project lookup); lib engines parameterised
-    acceptance: C1 golden tables byte-identical; no persisted ID, source key, reason or amount changes; lib contains no programme ID literals (G-7)
-    gates: [C2]
+    objective: Move XP configuration, achievement definitions, the final_project seed requirement and the final-project unit lookup into the CS50 definition; lib engines and repositories receive them as parameters
+    prerequisites: [C2 accepted]
+    delivery: concern-scoped commits (XP; achievements; catalogue validation and lookup), each passing the C1 evidence
+    allowed_scope:
+      - src/lib/xp, src/lib/achievements, src/lib/domain seed validation, src/lib/db award paths (parameterisation only)
+      - src/programmes/** CS50 core definition
+      - composition roots passing the definition
+    forbidden_scope:
+      - any change to amounts, sourceType, sourceId, reason, unlock IDs or trigger IDs
+      - read scoping; schema; terminology; CSS; assets
+    required_evidence:
+      - C1 XP, preview, persisted-identity and achievement evidence identical
+      - P1 as RED then green with a test-only definition lacking final_project; CS50 still requires it
+      - lib contains no programme catalogue ID literal (G-7)
+      - achievementsFeature and sessionsFeature purity guards; repositories award paths; saveOutcomes; insights alignment test
+    owner_decision_gates: []
+    stop_conditions:
+      - any persisted reward identity would change
+      - a lib engine would need to import src/programmes/**
+
   - id: C4
+    title: Programme terminology and feature-level course configuration
     state: planned
-    scope: Programme terminology, RPG identity labels, map ordinal label, workflow capability, achievement category labels
-    acceptance: Rendered text and label tables identical; route contract unchanged; lab/problem_set asymmetry preserved
-    gates: [C3]
+    objective: Move type/category/mode labels, CS50 curriculum copy, RPG identity labels (including their literal types), the map ordinal label and the submission-workflow capability into CS50 definition content
+    prerequisites: [C3 accepted]
+    allowed_scope:
+      - src/programmes/** CS50 content
+      - features/app consumers reading labels and workflow capability from the definition
+    forbidden_scope:
+      - brand text change (OD-6); route contract change; layout or CSS change
+      - rule, reward or read-scope changes
+    required_evidence:
+      - C1 label evidence and existing rendered-text tests identical
+      - lab/problem_set status asymmetry preserved (courseDetailModel tests)
+      - routeDefinitions unchanged; rpgFeature; accessibility E2E
+      - C1 capture spec re-run; differing captures go to owner review
+    owner_decision_gates: []
+    stop_conditions:
+      - any rendered string or offered status would change
+
   - id: C5
+    title: Programme-scoped catalogue reads
     state: planned
-    scope: Programme-scoped catalogue reads with the active programme passed explicitly; no schema change
-    acceptance: Probe P3 as a red test with a test-only second catalogue, then green; CS50 outputs identical; every Epic A read-boundary guard passes with deliberately reviewed expectations
-    gates: [C4]
+    objective: Pass the active programme explicitly from bootstrap and scope catalogue-derived reads (units, items, progress by item, derived media, achievement catalogue context, XP preview context) to it, with no schema change
+    prerequisites: [C4 accepted]
+    allowed_scope:
+      - src/lib/db read paths and features/rpg read models (scoping only)
+      - composition roots passing the active programme
+      - Epic A read-boundary test expectations extended deliberately with a reviewed reason
+    forbidden_scope:
+      - scoping the XP ledger or level (OD-1), unlocks (OD-2), sessions/insights/profile (OD-4)
+      - reading the active programme inside a passive read transaction
+      - schema; persisted values; relaxing an access-probe expectation to pass
+    required_evidence:
+      - P3 as RED then green with a test-only second catalogue that is never registered in production
+      - CS50 outputs identical to C1 evidence
+      - every Epic A read-boundary suite and access probe
+      - an unregistered or unmaterialized active programme fails closed through the actual route (error state), never an empty-but-plausible map (A7 control)
+    owner_decision_gates: []
+    stop_conditions:
+      - a read boundary would have to be weakened
+      - scoping would require an owner decision
+      - a scoped read can return plausible partial or empty data for a wrong programme ID
+
   - id: C6
+    title: Persisted programme ownership, catalogue/version state and migration
     state: blocked_on_owner_decisions
-    scope: Persisted programme ownership, enrolment state, per-programme catalogue version and schema migration
-    acceptance: C0_MIGRATION_READINESS_CONTRACT.md MR-0 to MR-15
-    gates: [C5, OD-1, OD-2, OD-3, OD-4, OD-5, schema_decision_record]
+    objective: Introduce per-programme catalogue version, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
+    prerequisites:
+      [
+        C5 accepted,
+        OD-1,
+        OD-2,
+        OD-3,
+        OD-4,
+        OD-5,
+        accepted schema-change decision record,
+        C6 readiness record (MR-0e),
+      ]
+    allowed_scope: defined by the C6 readiness record within C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md section 7
+    forbidden_scope:
+      - re-keying CS50 identifiers; database rename
+      - XP or unlock writes by the migration
+      - cloud/provider concepts
+    required_evidence: MR-0a to MR-15, including the restore-time duplicate XP source-key invariant (RED first)
+    owner_decision_gates: [OD-1, OD-2, OD-3, OD-4, OD-5, schema_decision_record]
+    stop_conditions: C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md section 7 stop conditions
+
   - id: C7
-    state: planned
-    scope: Programme registry with fail-closed identifier-collision validation, enrolment and switching
-    acceptance: Registry rejects any colliding ID; switching writes only enrolment state; isolation tests both ways
-    gates: [C6, OD-3, switching_ux_decision]
+    title: Multi-programme registration, enrolment and switching
+    state: blocked_on_owner_decisions
+    objective: Allow more than one registered definition with fail-closed cross-definition ID-collision validation; switching writes only enrolment/active state
+    prerequisites: [C6 accepted, OD-3, OD-10]
+    allowed_scope: registry validation, enrolment/switching mutation, one switching control within the existing shell
+    forbidden_scope:
+      - navigation/HUD redesign (Epic D); a production second programme (Epic E)
+    required_evidence:
+      - registry rejects every collision class with a test-only second definition
+      - switching write probe shows no progress, XP or unlock writes
+      - isolation tests in both directions; route contract; coordination; read boundaries
+    owner_decision_gates: [OD-3, OD-10]
+    stop_conditions:
+      - switching would need a layout or navigation change
+
   - id: C8
+    title: Programme presentation abstraction
     state: deferred_until_needed
-    scope: Programme presentation (badge art, emblem, optional theme tokens)
-    acceptance: V0 oracles unchanged for CS50; owner capture comparison; bundle and CSS guards
-    gates: [C1, C4, second_programme_visual_identity_decision]
+    objective: Make badge art, emblem and token overrides programme presentation so a new programme needs no copied frames or components; CS50 appearance unchanged
+    prerequisites:
+      [
+        C1 visual baseline accepted and retained (OD-8),
+        C4 accepted,
+        OD-7 or another owner-confirmed need for a distinct appearance,
+      ]
+    allowed_scope: UI-layer presentation modules, asset relocation, token override mechanism
+    forbidden_scope:
+      - navigation/HUD redesign; changing CS50 token values or asset bytes
+      - remote or data CSS URLs; lazy asset chunks
+    required_evidence:
+      - C1 asset/token identity unchanged
+      - C1 capture comparison per C0_VISUAL_PRESERVATION_PLAN.md section 6 with owner verdicts
+      - rpgFeature CSS rules, securityHeaders, serviceWorker, bundle budget
+    owner_decision_gates: [OD-7, OD-8]
+    stop_conditions:
+      - any CS50 capture differs without owner acceptance
+
+forbidden_in_epic_c:
+  - first additional programme content
+  - navigation_or_hud_redesign
+  - firebase_or_cloud_auth_analytics_telemetry_sync
+  - speculative_hierarchy
+  - copying_the_cs50_source_tree
+  - database_rename_or_split
+  - unrelated_maintenance
