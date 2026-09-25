@@ -19,6 +19,6 @@ stories:
     scope: Source the session save result type from lib/db; retain shared UI and compatibility export
     acceptance: Preserve Focus callback and save payload; focused tests and architecture gates
   - id: B4
-    state: ready
+    state: ready_for_owner_review
     scope: Aggregate behavior, ownership and release-readiness evidence; local closure only
     acceptance: Full relevant gates and explicit residual-risk/publication disposition
