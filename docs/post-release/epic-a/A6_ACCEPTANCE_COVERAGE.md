@@ -1,6 +1,6 @@
 # A6 implementation acceptance coverage
 
-Date: 2026-09-24. State: full isolated precommit PASS; exact-release gate pending implementation commit.
+Date: 2026-09-24. State: ACCEPTED; isolated precommit and fresh exact-commit release PASS (2026-09-25).
 
 The owner's restart objective authorizes local A6 implementation and acceptance,
 then A7 after A6 closure. Earlier readiness-only authorization remains historical.
@@ -39,7 +39,7 @@ Logs live outside tracked source under
 | 12: 1k/10k scale                             | Both sizes: one transaction, two queries, H XP scanned, zero XP materialization, two relevant unlocks, 16 output definitions, zero writes                                                 | F                                       | PASS; read durations 16/199 ms, fixture setup 62/387 ms in corrected focused run |
 | 14: optional unused loader                   | Existing `loadRpgBadgeGallerySummary` has no runtime route caller; intentionally unchanged                                                                                                | Source reference search; actual route F | PASS for actual-path scope; optional removal deferred                            |
 | 15, 17: schema, mutations and scope          | Diff restricted to passive repository boundary/export and surface call, tests/docs; database/domain/XP/achievement definitions, backup, UI markup unchanged                               | Exact diff review; R, P                 | Source, R and P PASS                                                             |
-| 16: regressions and certification            | Architecture/probe 4/4, A6 14/14; coupled/full native gates; fresh exact-commit gate and review hash binding                                                                              | F, R, P, E                              | F 18/18, R 107/107, P PASS; E pending commit                                     |
+| 16: regressions and certification            | Architecture/probe 4/4, A6 14/14; coupled/full native gates; fresh exact-commit gate and review hash binding                                                                              | F, R, P, E                              | F 18/18, R 107/107, P and E PASS                                                 |
 | 18: stop conditions                          | Baseline, integration and fetched origin match; no owner changes; frozen schema supports design                                                                                           | Git and source checks                   | PASS                                                                             |
 
 The access probe counts DBCore bulk materialization, not arrays assembled by
@@ -69,3 +69,5 @@ The native review schema and runner were read before preparing certification.
 
 R and P passed before authoritative apply: 673/673 unit/integration tests, 74/74 E2E, lint, format, typecheck, build, bundle, circular and audit (zero vulnerabilities). E2E inherited color-variable diagnostics are non-product environment warnings; the native release runner sanitizes those variables and its zero-warning rule remains unchanged. Acceptance additionally
 requires E and documentation-only closure/local integration. No remote mutation.
+
+Exact-release acceptance: see A6_CLOSURE_RECORD.md. Native evidence binds implementation d7c591e6c2fc15475f375007705b717b203b00dd / tree 0d77438da16aaafe75135fe15e892af240356ef2, 21 successful commands, 0 warnings/retries/skips. All frozen A6 criteria are covered. Local integration and this documentation-only closure complete the A6 state transition.

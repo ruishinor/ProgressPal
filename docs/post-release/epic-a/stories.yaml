@@ -8,8 +8,8 @@ readiness: PASS
 state: in_progress
 integration:
   branch: postrelease/01-read-architecture
-  current_head: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
-  latest_accepted_implementation: 0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b
+  implementation_head: d7c591e6c2fc15475f375007705b717b203b00dd
+  latest_accepted_implementation: d7c591e6c2fc15475f375007705b717b203b00dd
   closure_documentation: committed_after_implementation_fast_forward
   remote_publication: not_performed
 stories:
@@ -259,7 +259,25 @@ stories:
       - locked/unlocked + XP-level semantic equivalence from source oracles
       - classic/RPG shared-surface and failure/retry/passive-write tests
       - A1-A5 regressions and exact-commit Node24/npm11 release evidence before acceptance
-    state: ready_for_red
+    accepted_candidate:
+      commit: d7c591e6c2fc15475f375007705b717b203b00dd
+      tree: 0d77438da16aaafe75135fe15e892af240356ef2
+      parent: 24b4fe43ddf656febf090eed6fd66eccd5786535
+      validation:
+        focused: 18/18
+        coupled: 107/107
+        unit_integration: 673/673
+        e2e: 74/74
+        exact_release: PASS
+        native_commands: 21
+        warnings: 0
+        retries: 0
+        skips: 0
+        release_evidence: artifacts/release-evidence/2026-09-25T06-33-49-570Z-epic-a-a6-pass-1.json
+        release_evidence_sha256: A3331F7C67F4F4C1B151A61EDDA05D72A773E9BADC6CC7A6070EAE8BA9D68455
+        release_review_sha256: 6ADE8195311CAD7E361806B5AB98C7D1647583016A07B4424354C0077A6EF73A
+    closure_record: docs/post-release/epic-a/A6_CLOSURE_RECORD.md
+    state: accepted
   - id: A7
     title: Epic A integration and preservation gate
     order: 7
@@ -272,7 +290,7 @@ stories:
     objective:
       Prove the aggregate route matrix, backup completeness, mutation/read consistency, frozen
       schema and exact authoritative validation before Epic A acceptance.
-    readiness: pending_A6_acceptance
+    readiness: eligible_after_A6_closure_commit
     acceptance_summary:
       - every required RPG route satisfies SPEC access contract
       - backup/export/restore/reset completeness preserved

@@ -1,106 +1,30 @@
 # Epic A validation readiness
 
-Result: **PASS — A6 readiness is complete; story is ready for RED only**
+Date: 2026-09-25. **A6 ACCEPTED; A7 eligible after A6 closure commit.**
 
-Latest accepted story: **A5 — Focus actual-route read boundary**
-Next active story: **A6 — Badges actual-route read boundary**
-A6 state: `ready_for_red`
-Updated: 2026-09-21
+A6 implementation: `d7c591e6c2fc15475f375007705b717b203b00dd`.
+Tree: `0d77438da16aaafe75135fe15e892af240356ef2`.
+The local integration branch has fast-forwarded to this implementation. The
+current documentation-only commit records closure; verify its resulting exact
+HEAD/tree and clean state before A7 readiness.
 
-## Exact baseline
+Executed A6 evidence:
 
-- integration branch: `postrelease/01-read-architecture`
-- post-A5 closure HEAD: `25ed38da54cf719c151165506c2a3391ae8eb88f`
-- post-A5 closure tree: `7b7e381920289515625de8d024dc6d6a0728c2f6`
-- accepted A5 implementation: `0b03c334f91d9946ddbb9577a5daa9ee0ed16b4b`
-- accepted A5 tree: `23cec04b2e92cb110d2c9ce7a40be24f026382a1`
-- published `master`: `a0581c13a22fdd3387534d2de0eca2591cf13ed6`
-- published tree: `d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34`
-- A6 readiness-context ZIP SHA-256: `4E37F60821000F769CE92BB1216C9237EC5C7CFF85E545F63A9B50D34839A010`
-- code/config/test archive SHA-256: `D122D6E0270BD80AC5E6547645A8BD1AD25E65C21C56A7219306446D757D1023`
-- Node: `v24.19.0`
-- npm: `11.10.1`
+- Valid baseline mechanism RED: 7 XP rows materialized; expected target 0.
+- Corrected focused A6/probe/architecture: 18/18; coupled A1–A5: 107/107.
+- Full isolated precommit: 673/673 unit/integration; 74/74 E2E.
+- Fresh exact-commit native release: PASS; 21 commands; 0 warnings/retries/skips.
+- Native formatter/lint/typecheck/build/bundle/circular/audit: PASS; 0 vulnerabilities.
+- One coherent two-store child transaction, two queries, targeted unlocks,
+  O(H_xp) scan, no XP bulk array, O(1) accumulator/error state, zero passive writes.
+- Both shared variants and independent child/HUD retries preserved.
 
-No A6 branch or production edit existed at readiness export.
+Release evidence and hashes: `A6_CLOSURE_RECORD.md`.
+Coverage: `A6_ACCEPTANCE_COVERAGE.md`.
+Toolchain: Node v24.19.0/npm 11.10.1.
 
-## Source/readiness result
-
-Actual shared runtime owner:
-
-`AchievementsSurface`.
-
-Classic:
-
-`/achievements` → `AchievementsPage` → `AchievementsSurface(classic)`.
-
-RPG:
-
-`/rpg/badges` → `RpgShell` + accepted A4 HUD → `RpgBadgesPage` → `AchievementsSurface(rpg)`.
-
-The child currently runs `getAchievementsView()` and `getXpSummary()` independently.
-
-`getAchievementsView()` uses code-only achievement definitions plus persisted unlocks. It does not read persisted `achievement_definitions`, evaluate rules or create unlocks.
-
-`getXpSummary()` currently bulk-materializes the complete `xp_transactions` history with `toArray()` before reducing it to total XP/level. That hidden source array is the primary A6 RED mechanism.
-
-`loadRpgBadgeGallerySummary()` remains a broad snapshot-based exported helper but is not the actual route owner. It cannot be the sole RED target.
-
-## A6 frozen target
-
-Shared child read:
-
-- stores exactly `achievement_unlocks`, `xp_transactions`;
-- one readonly child transaction;
-- ≤1 unlock query and exactly one XP scan/query; ≤2 total;
-- zero persisted `achievement_definitions` reads;
-- unlock source materialization limited to rows affecting current code definitions;
-- XP scan remains O(`H_xp`);
-- hidden XP source materialization: 0;
-- passive writes: 0.
-
-RPG shell A4 HUD remains separate and unchanged.
-
-## Schema decision
-
-A6 remains schema-frozen.
-
-No new index or persisted XP aggregate is needed. Exact lifetime XP can be streamed through the existing store with O(`H_xp`) scan and O(1) derived accumulator.
-
-## RED requirements
-
-Valid RED must:
-
-- invoke the actual shared surface, preferably through `/rpg/badges` for route composition evidence;
-- use schema-valid fixtures and an uninstrumented writer;
-- install the DBCore probe before the measured reader opens;
-- distinguish A4 HUD work from A6 child work;
-- observe current hidden XP source materialization on the child;
-- preserve successful surface rendering;
-- fail for the intended materialization mechanism, not fixture/instrumentation error.
-
-Separate tests should cover coherence, semantics, 1k/10k scale, failure/retry, passive writes and classic/RPG shared behavior.
-
-## Exporter control recurrence
-
-The readiness exporter used native `git archive`, but `.gitattributes` excludes `docs/**`. Its claim of a "complete tracked repository" was therefore inaccurate.
-
-Classification: `RECURRENCE — support-tool scope/assertion`.
-
-No rerun is needed for A6 readiness because exact runtime/source/config/tests are present and governance is separately bound to the accepted A5 closure package. Future exporters must mechanically verify archive scope or state export-ignore exclusions explicitly.
-
-## Authorization state
-
-This PASS authorizes:
-
-- integration of A6 readiness governance only;
-- local A6 branch creation from the exact readiness commit;
-- RED-only harness/test work.
-
-It does **not** authorize:
-
-- GREEN production implementation before valid RED;
-- A7;
-- schema migration;
-- push;
-- remote merge;
-- deployment.
+A7 readiness must be fresh and aggregate; the previous A0 observations are
+historical. Investigate stored-row validation error propagation in existing
+streaming paths using actual reads, then freeze A7 coverage before implementation.
+Local acceptance does not claim remote CI or authorize publication. No remote
+mutation has occurred.

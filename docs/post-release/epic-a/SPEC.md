@@ -1,5 +1,16 @@
 # ProgressPal Epic A — SPEC
 
+## Current local status — 2026-09-25
+
+A1–A6 are accepted locally. A6 implementation is
+`d7c591e6c2fc15475f375007705b717b203b00dd`, certified tree
+`0d77438da16aaafe75135fe15e892af240356ef2`; see `A6_CLOSURE_RECORD.md`.
+The owner's restart objective authorizes fresh A7 readiness only after this
+documentation-only A6 closure is committed. A7 must prove the aggregate criteria
+below from the integrated source; no production change is presumed necessary.
+The A0 observations below describe the historical starting point, not the current
+runtime implementation. Frozen acceptance criteria remain in force.
+
 ## A0 contract and measurement definition
 
 - Status: **A0 complete — implementation readiness = CONCERNS**
