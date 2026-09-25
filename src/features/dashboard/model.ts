@@ -1,6 +1,4 @@
 import {
-  formatMinutes,
-  getItemStatusLabel,
   type CourseMapItem,
   type CourseMapView,
 } from '@/features/course/model';
@@ -15,6 +13,8 @@ import type {
   XpTransaction,
 } from '@/lib/domain';
 import type { XpSummary } from '@/lib/xp/engine';
+import { getItemStatusLabel } from '@/lib/progress';
+import { formatMinutes } from '@/lib/time';
 
 /**
  * Module 14 dashboard model. This file is intentionally pure: it takes

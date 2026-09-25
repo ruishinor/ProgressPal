@@ -1,17 +1,17 @@
 import type { CourseLongFormProgress } from '@/features/progress';
-import {
-  courseItemTypeLabels,
-  formatMinutes,
-  getItemStatusLabel,
-  getItemStatusVariant,
-  type CourseStatusVariant,
-} from '@/features/course/model';
+import { courseItemTypeLabels } from '@/features/course/model';
 import type {
   CourseItem,
   CourseUnit,
   ProgressEntry,
   ProgressStatus,
 } from '@/lib/domain';
+import {
+  getItemStatusLabel,
+  getItemStatusVariant,
+  type CourseStatusVariant,
+} from '@/lib/progress';
+import { formatMinutes } from '@/lib/time';
 
 export type CourseDetailView = {
   estimatedMinutesLabel: string;

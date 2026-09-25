@@ -7,11 +7,11 @@ stories:
     state: pass_ready_for_b1
     scope: Exact shipped-source dependency inventory and ownership freeze
   - id: B1
-    state: ready
+    state: pass_ready_for_b2
     scope: Move formatMinutes and progress-status presentation into lib
     acceptance: Preserve exact strings and status variants; focused tests, typecheck, lint, format, circular check
   - id: B2
-    state: provisional
+    state: ready
     scope: Move long-form map builders to lib/progress and use its existing view type
     acceptance: Preserve map ordering, aggregate equivalence and course/RPG consumers; focused tests and architecture gates
   - id: B3

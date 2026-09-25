@@ -6,7 +6,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { buildCourseMap, formatMinutes } from '@/features/course/model';
+import { buildCourseMap } from '@/features/course/model';
 import {
   buildInsightsModel,
   type InsightsModel,
@@ -29,6 +29,7 @@ import {
   rpgMapPath,
   rpgRoutePath,
 } from '@/lib/routing/rpgRoutePaths';
+import { formatMinutes } from '@/lib/time';
 
 // The same insights surface renders in two shells: the classic Insights route
 // and the RPG route (/rpg/log). Insights is the product concept; the RPG view

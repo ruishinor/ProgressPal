@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { formatMinutes } from '@/features/course/model';
+import { formatMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgPanel,

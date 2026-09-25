@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapView } from '@/features/course/model';
-import { formatMinutes } from '@/features/course/model';
+import { formatMinutes } from '@/lib/time';
 
 type CourseMapSummaryProps = {
   courseMap: CourseMapView;

@@ -10,6 +10,7 @@ Current responsibilities:
 - generate deterministic time slices from estimated long-form durations
 - merge overlapping watched ranges through interval union
 - build read-only watched-time and resume summaries from immutable media events
+- present saved progress statuses with shared labels and display variants
 
 Still deferred:
 

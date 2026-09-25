@@ -6,13 +6,18 @@ import type {
   ProgressEntry,
   ProgressStatus,
 } from '@/lib/domain';
+import {
+  getItemStatusLabel,
+  getItemStatusVariant,
+  type CourseStatusVariant,
+} from '@/lib/progress';
 
-export type CourseStatusVariant =
-  | 'notStarted'
-  | 'inProgress'
-  | 'completed'
-  | 'blocked'
-  | 'optional';
+export {
+  getItemStatusLabel,
+  getItemStatusVariant,
+  type CourseStatusVariant,
+} from '@/lib/progress';
+export { formatMinutes } from '@/lib/time';
 
 export type CourseMapItem = {
   estimatedMinutes: number;
@@ -102,56 +107,6 @@ function sortItems(items: readonly CourseItem[]) {
   );
 }
 
-export function getItemStatusVariant(
-  required: boolean,
-  status: ProgressStatus | 'not_started',
-): CourseStatusVariant {
-  if (status === 'blocked') {
-    return 'blocked';
-  }
-
-  if (status === 'started') {
-    return 'inProgress';
-  }
-
-  if (
-    status === 'completed' ||
-    status === 'submitted' ||
-    status === 'accepted'
-  ) {
-    return 'completed';
-  }
-
-  if (status === 'skipped_optional' || !required) {
-    return 'optional';
-  }
-
-  return 'notStarted';
-}
-
-export function getItemStatusLabel(
-  required: boolean,
-  status: ProgressStatus | 'not_started',
-) {
-  switch (status) {
-    case 'accepted':
-      return 'Accepted';
-    case 'blocked':
-      return 'Blocked';
-    case 'completed':
-      return 'Completed';
-    case 'skipped_optional':
-      return 'Skipped optional';
-    case 'started':
-      return 'Started';
-    case 'submitted':
-      return 'Submitted';
-    case 'not_started':
-    default:
-      return required ? 'Not started' : 'Optional';
-  }
-}
-
 function getUnitStatus(
   unit: CourseUnit,
   requiredItemCount: number,
@@ -213,22 +168,6 @@ function inferStatusFromLongFormProgress(
   }
 
   return longFormProgress.isComplete ? 'completed' : 'started';
-}
-
-export function formatMinutes(totalMinutes: number) {
-  const safeMinutes = Math.max(0, Math.round(totalMinutes));
-  const hours = Math.floor(safeMinutes / 60);
-  const minutes = safeMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes} min`;
-  }
-
-  if (minutes === 0) {
-    return `${hours}h`;
-  }
-
-  return `${hours}h ${minutes}m`;
 }
 
 export function buildCourseMap(

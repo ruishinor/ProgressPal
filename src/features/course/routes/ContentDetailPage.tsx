@@ -33,7 +33,7 @@ import {
   validateCourseDetailProgressForm,
   type CourseDetailProgressFormValues,
 } from '@/features/course/detailModel';
-import { formatMinutes } from '@/features/course/model';
+import { formatMinutes } from '@/lib/time';
 import {
   buildLongFormDetailView,
   type LongFormDetailView,

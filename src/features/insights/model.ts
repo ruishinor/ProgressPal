@@ -1,4 +1,4 @@
-import { formatMinutes, type CourseMapView } from '@/features/course/model';
+import type { CourseMapView } from '@/features/course/model';
 import { getModeLabel } from '@/features/sessions/model';
 import type { AchievementsView } from '@/lib/db';
 import type {
@@ -8,7 +8,7 @@ import type {
   StudySessionMode,
   XpTransaction,
 } from '@/lib/domain';
-import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
+import { formatLocalDate, formatMinutes, getLocalWeekStart } from '@/lib/time';
 
 /**
  * Module 15 insights model. Like the dashboard model this file is intentionally

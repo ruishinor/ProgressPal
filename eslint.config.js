@@ -11,6 +11,7 @@ export default tseslint.config(
       'design-artifacts/**',
       'artifacts/publish-readiness/**',
       'artifacts/rpg-primary/**',
+      '.kilo/worktrees/**',
       'dist/**',
       'coverage/**',
       'node_modules/**',

@@ -1,4 +1,4 @@
-import type { CourseStatusVariant } from '@/features/course/model';
+import type { CourseStatusVariant } from '@/lib/progress';
 import type { CourseLongFormProgress } from '@/features/progress';
 import type {
   AchievementCategory,

@@ -14,7 +14,7 @@ import {
   validateCourseDetailProgressForm,
   type CourseDetailProgressFormValues,
 } from '@/features/course/detailModel';
-import { getItemStatusLabel } from '@/features/course/model';
+import { getItemStatusLabel } from '@/lib/progress';
 import {
   RpgButton,
   RpgPanel,

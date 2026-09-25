@@ -9,7 +9,7 @@ import {
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
-import { formatMinutes } from '@/features/course/model';
+import { formatMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgPanel,
