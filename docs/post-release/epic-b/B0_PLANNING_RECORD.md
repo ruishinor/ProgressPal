@@ -35,3 +35,8 @@ long-form map ordering and legacy completion could silently drift; the session
 result alias must not change the write payload. No schema, persistence format,
 UI, route, XP rule, achievement rule, service worker or runtime network change
 is required. No dependency is required.
+
+Post-B0 correction: the B4 full suite exposed an existing architecture guard
+that forbids _even type-only_ DB imports from RPG UI. The B3 result therefore
+uses a neutral `lib/sessions` alias of the DB-owned result shape. This preserves
+the DB semantic owner and the RPG UI boundary without copying the shape.

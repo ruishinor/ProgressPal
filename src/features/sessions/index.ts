@@ -1,6 +1,6 @@
 export { SessionsPage } from '@/features/sessions/routes/SessionsPage';
 export { StudySessionsSurface } from '@/features/sessions/components/StudySessionsSurface';
-export type { AddStudySessionWithXpResult as StudySessionSaveResult } from '@/lib/db';
+export type { StudySessionSaveResult } from '@/lib/sessions';
 export {
   buildSessionCatalog,
   buildSessionLedgerRows,

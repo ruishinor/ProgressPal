@@ -55,8 +55,8 @@ import {
   addStudySessionAndAwardXp,
   readStudySessionLedgerRows,
   readStudySessionsSurfaceData,
-  type AddStudySessionWithXpResult,
 } from '@/lib/db';
+import type { StudySessionSaveResult } from '@/lib/sessions';
 import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same study-session surface renders in two shells: the classic Study
@@ -66,7 +66,7 @@ import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
 type StudySessionsSurfaceProps = {
-  onProgressSaved?: (result: AddStudySessionWithXpResult) => void;
+  onProgressSaved?: (result: StudySessionSaveResult) => void;
   saveFeedback?: ReactNode;
   variant?: StudySessionsSurfaceVariant;
 };
@@ -450,7 +450,7 @@ export function StudySessionsSurface({
     }
   }
 
-  function showSavedSession(result: AddStudySessionWithXpResult) {
+  function showSavedSession(result: StudySessionSaveResult) {
     const xpAdded = result.awardedTransactions.reduce(
       (sum, tx) => sum + tx.xp,
       0,
@@ -497,7 +497,7 @@ export function StudySessionsSurface({
     const version = pageVersion.current;
     saveInFlight.current = true;
 
-    let xpResult: AddStudySessionWithXpResult;
+    let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
@@ -558,7 +558,7 @@ export function StudySessionsSurface({
     const version = pageVersion.current;
     saveInFlight.current = true;
 
-    let xpResult: AddStudySessionWithXpResult;
+    let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
