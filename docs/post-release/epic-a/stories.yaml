@@ -5,12 +5,12 @@ baseline:
   tree: d4124b4576acf7e6f6ba7ed52f0249b0e9a78a34
   production_deployment: dpl_H2GkappEu6QPT9w6WYZDw57LdBrr
 readiness: PASS
-state: in_progress
+state: accepted
 integration:
   branch: postrelease/01-read-architecture
-  implementation_head: d7c591e6c2fc15475f375007705b717b203b00dd
-  latest_accepted_implementation: d7c591e6c2fc15475f375007705b717b203b00dd
-  closure_documentation: committed_after_implementation_fast_forward
+  implementation_head: 5068bb6b6cfd30407a003f2856a3ee00b0f0819a
+  latest_accepted_implementation: 5068bb6b6cfd30407a003f2856a3ee00b0f0819a
+  closure_documentation: committed_after_A7_implementation_fast_forward
   remote_publication: not_performed
 stories:
   - id: A1
@@ -290,17 +290,42 @@ stories:
     objective:
       Prove the aggregate route matrix, backup completeness, mutation/read consistency, frozen
       schema and exact authoritative validation before Epic A acceptance.
-    readiness: eligible_after_A6_closure_commit
+    readiness: PASS
     acceptance_summary:
       - every required RPG route satisfies SPEC access contract
       - backup/export/restore/reset completeness preserved
       - mutation summaries match subsequent reads
       - no schema/migration/UI/reward/achievement changes
       - aggregate diff/adversarial review finds no unresolved bypass
+      - malformed persisted streaming rows and projection errors reject instead of returning partial summaries
     expected_evidence:
       - route-wide access matrix
       - backup round-trip suite
       - save-outcome/repository suites
       - full Node24/npm11 release/CI evidence bound to exact candidate
       - epic adversarial review and retrospective
-    state: planned
+    accepted_candidate:
+      commit: 5068bb6b6cfd30407a003f2856a3ee00b0f0819a
+      tree: 084e4a4345431bdad0832184d6712c41be884731
+      parent: bb6c3e052bdeeba3734e96dfc2f657e26c0b2e7e
+      toolchain:
+        node: v24.19.0
+        npm: 11.10.1
+      validation:
+        focused_authoritative: 38/38
+        coupled_candidate: 209/209
+        unit_integration: 706/706
+        e2e: 74/74
+        exact_release: PASS
+        native_commands: 21
+        warnings: 0
+        retries: 0
+        skips: 0
+        circular_dependency_analysis: PASS
+        audit_vulnerabilities: 0
+        release_evidence: artifacts/release-evidence/2026-09-25T13-34-18-555Z-epic-a-a7-pass-1.json
+        release_evidence_sha256: E51913F90ED401C41C98DD3A46CA7302CC50A16E0349500BE8D1ADF831C2AFE2
+        release_review_sha256: 5A57CB76B38DABA4415F4EE5636542AA37F3992D763B063BD8C2521A8C51661A
+        release_review_byte_binding: PASS
+    closure_record: docs/post-release/epic-a/A7_CLOSURE_RECORD.md
+    state: accepted

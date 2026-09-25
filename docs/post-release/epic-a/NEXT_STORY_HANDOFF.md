@@ -1,27 +1,52 @@
-# Next-story handoff — A7 fresh readiness
+# Next-story handoff — Epic A closed
 
-Date: 2026-09-25. A6 is accepted and locally fast-forwarded; this
-documentation-only closure commit completes its integration.
+Date: 2026-09-25. **A7 is accepted and Epic A is locally closed.**
 
-Accepted A6 implementation: `d7c591e6c2fc15475f375007705b717b203b00dd`.
-Certified tree: `0d77438da16aaafe75135fe15e892af240356ef2`.
-See `A6_CLOSURE_RECORD.md` for exact evidence and review hashes.
+Accepted A7 implementation:
+`5068bb6b6cfd30407a003f2856a3ee00b0f0819a`
 
-The owner's restart objective authorizes autonomous local A7 after A6 closure.
-First verify the clean integration HEAD/tree. Read the SPEC, stories and actual
-integrated source. Freeze an aggregate acceptance matrix before production edits.
+Certified tree:
+`084e4a4345431bdad0832184d6712c41be884731`
 
-Required evidence: actual Hub/Map/Module/Resource/Focus/Badges/Hero composition;
-A1–A6 access, semantics, scale and coherence; complete backup/export/restore/reset;
-mutation summaries consistent with subsequent targeted reads; frozen schema,
-indexes, rules, UI and publication boundaries; full native exact-commit release.
+Accepted parent / A6 closure integration state:
+`bb6c3e052bdeeba3734e96dfc2f657e26c0b2e7e`
 
-Investigate the A6-discovered Dexie callback exception behavior in existing
-A1–A5 streaming reads. It is an inferred concern outside A6, not a proved defect
-in every loader. Use a small discriminating test before any repair. Any real
-product defect needs an A7 branch from this exact closure state and valid RED.
-Repair only the invalidated layer. Do not manufacture production changes if the
-aggregate evidence is already green.
+The integration branch `postrelease/01-read-architecture` was verified as an
+ancestor of the A7 story branch and fast-forwarded only to the accepted A7
+implementation. This documentation-only commit records final Epic A closure.
 
-Stop after local A7 acceptance/closure. No push, remote merge, deployment, tag,
-version change, cloud work, schema/index change, UI redesign or Epic B.
+A7 acceptance evidence:
+
+- focused authoritative tests: 38/38
+- coupled candidate tests: 209/209
+- exact-release unit/integration: 706/706
+- exact-release E2E: 74/74
+- native release commands: 21
+- warnings/retries/skips: 0/0/0
+- circular dependency analysis: PASS
+- dependency audit: 0 vulnerabilities
+- release review byte binding: PASS
+
+Release evidence:
+`artifacts/release-evidence/2026-09-25T13-34-18-555Z-epic-a-a7-pass-1.json`
+
+Release evidence SHA-256:
+`E51913F90ED401C41C98DD3A46CA7302CC50A16E0349500BE8D1ADF831C2AFE2`
+
+Release review SHA-256:
+`5A57CB76B38DABA4415F4EE5636542AA37F3992D763B063BD8C2521A8C51661A`
+
+See `A7_CLOSURE_RECORD.md` and `A7_ACCEPTANCE_COVERAGE.md` for the closure and
+criterion-level evidence.
+
+Failure disposition retained for auditability: the first exact-release attempt
+was blocked by `ENOSPC`. That attempt did not establish a product failure and was
+not used for acceptance. After restoring disk headroom, a new fresh clone of the
+same exact commit/tree passed the complete native release gate.
+
+Remote actions: none.
+
+There is no automatically authorized next story from this handoff. Stop here.
+Do not push, remotely merge, deploy, tag, change versions, begin cloud work,
+change schema/indexes, redesign UI or begin Epic B unless the owner explicitly
+starts a new phase.
