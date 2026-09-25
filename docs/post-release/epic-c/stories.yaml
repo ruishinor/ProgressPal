@@ -1,0 +1,50 @@
+epic: C
+title: Programme platform
+baseline_commit: fd5e2d592bb6f5d1724509119147c48ba3a5df59
+baseline_tree: bc86fd392a5284d9db8821c31a27b8c95ec82a9a
+c0_branch: cx/epic-c0-programme-readiness
+stories:
+  - id: C0
+    state: accepted_c1_ready_for_owner_review
+    scope: Programme-platform readiness; documentation and evidence only
+    acceptance: Identity verified; inventories, ownership, migration contract, guard map, visual prerequisites and decomposition recorded; probes executed
+  - id: C1
+    state: ready_for_owner_review
+    scope: Baseline characterization oracles (tests and fixtures only, no src change)
+    acceptance: Golden XP award table for every CS50 item x status; achievement definition and satisfaction snapshot; link and guide lookup table; label tables; V0 token and asset-identity oracles; all captured from the unchanged baseline and passing
+    gates: []
+  - id: C2
+    state: planned
+    scope: Programme layer and CS50 content definition (identity, catalogue reference, external links, study guide) with compatibility re-exports
+    acceptance: Programme-layer ESLint rules with negative probes (G-1); local-only URL coverage kept (G-2); module-boundary assertion kept equivalent (G-3); C1 oracles unchanged
+    gates: [C1]
+  - id: C3
+    state: planned
+    scope: Programme rules into the definition (XP policy, achievement definitions, catalogue rules, final-project lookup); lib engines parameterised
+    acceptance: C1 golden tables byte-identical; no persisted ID, source key, reason or amount changes; lib contains no programme ID literals (G-7)
+    gates: [C2]
+  - id: C4
+    state: planned
+    scope: Programme terminology, RPG identity labels, map ordinal label, workflow capability, achievement category labels
+    acceptance: Rendered text and label tables identical; route contract unchanged; lab/problem_set asymmetry preserved
+    gates: [C3]
+  - id: C5
+    state: planned
+    scope: Programme-scoped catalogue reads with the active programme passed explicitly; no schema change
+    acceptance: Probe P3 as a red test with a test-only second catalogue, then green; CS50 outputs identical; every Epic A read-boundary guard passes with deliberately reviewed expectations
+    gates: [C4]
+  - id: C6
+    state: blocked_on_owner_decisions
+    scope: Persisted programme ownership, enrolment state, per-programme catalogue version and schema migration
+    acceptance: C0_MIGRATION_READINESS_CONTRACT.md MR-0 to MR-15
+    gates: [C5, OD-1, OD-2, OD-3, OD-4, OD-5, schema_decision_record]
+  - id: C7
+    state: planned
+    scope: Programme registry with fail-closed identifier-collision validation, enrolment and switching
+    acceptance: Registry rejects any colliding ID; switching writes only enrolment state; isolation tests both ways
+    gates: [C6, OD-3, switching_ux_decision]
+  - id: C8
+    state: deferred_until_needed
+    scope: Programme presentation (badge art, emblem, optional theme tokens)
+    acceptance: V0 oracles unchanged for CS50; owner capture comparison; bundle and CSS guards
+    gates: [C1, C4, second_programme_visual_identity_decision]
