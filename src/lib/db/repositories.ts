@@ -1807,6 +1807,29 @@ type StudySessionLedgerProjection<Context, Row> = {
   projectSession: (session: StudySession) => Row;
 };
 
+function forEachValidatedRow<Row>(
+  source: { each: (visitor: (row: Row) => void) => PromiseLike<unknown> },
+  visit: (row: Row) => void,
+) {
+  // Dexie's cursor callback wrapper can swallow thrown errors. Retain the first
+  // failure in constant space and reject outside that wrapper so callers never
+  // receive a partial aggregate or ledger. The cursor still visits every row.
+  let failure: { error: unknown } | undefined;
+  // Keep the collection's transaction-aware promise chain; an extra native
+  // async wrapper can let an otherwise idle transaction commit too early.
+  return source
+    .each((row) => {
+      try {
+        visit(row);
+      } catch (error) {
+        failure ??= { error };
+      }
+    })
+    .then(() => {
+      if (failure !== undefined) throw failure.error;
+    });
+}
+
 async function streamStudySessionLedgerRows<Row>(
   database: ProgressPalDatabase,
   projectSession: (session: StudySession) => Row,
@@ -1817,10 +1840,9 @@ async function streamStudySessionLedgerRows<Row>(
   // duplicate index keys by primary key in descending order, preserving the
   // published `startedAt DESC, id DESC` ledger order without retaining a
   // second complete StudySession[] solely for sorting.
-  await database.studySessions
-    .orderBy('startedAt')
-    .reverse()
-    .each((storedSession) => {
+  await forEachValidatedRow(
+    database.studySessions.orderBy('startedAt').reverse(),
+    (storedSession) => {
       const session = parseWithSchema(
         StudySessionSchema,
         storedSession,
@@ -1828,7 +1850,8 @@ async function streamStudySessionLedgerRows<Row>(
       );
 
       ledgerRows.push(projectSession(session));
-    });
+    },
+  );
 
   return ledgerRows;
 }
@@ -3286,7 +3309,7 @@ async function readA4CourseState(
     MutableLongFormEventAggregate
   >();
 
-  await database.mediaProgressEvents.each((storedEvent) => {
+  await forEachValidatedRow(database.mediaProgressEvents, (storedEvent) => {
     const event = parseWithSchema(
       MediaProgressEventSchema,
       storedEvent,
@@ -3353,10 +3376,9 @@ async function readA4EarnedRewardSourceKeys(
   const earnedRewardSourceKeys = new Set<string>();
 
   if (rewardSources.sourceIds.length > 0) {
-    await database.xpTransactions
-      .where('sourceId')
-      .anyOf(rewardSources.sourceIds)
-      .each((storedTransaction) => {
+    await forEachValidatedRow(
+      database.xpTransactions.where('sourceId').anyOf(rewardSources.sourceIds),
+      (storedTransaction) => {
         const transaction = parseWithSchema(
           XpTransactionSchema,
           storedTransaction,
@@ -3370,7 +3392,8 @@ async function readA4EarnedRewardSourceKeys(
         if (rewardSources.sourceKeys.has(sourceKey)) {
           earnedRewardSourceKeys.add(sourceKey);
         }
-      });
+      },
+    );
   }
 
   return earnedRewardSourceKeys;
@@ -3387,7 +3410,7 @@ async function readA4XpHistory(
   let weeklyXpEarned = 0;
   const recentXpTransactions: RpgRecentXpTransaction[] = [];
 
-  await database.xpTransactions.each((storedTransaction) => {
+  await forEachValidatedRow(database.xpTransactions, (storedTransaction) => {
     const transaction = parseWithSchema(
       XpTransactionSchema,
       storedTransaction,
@@ -3422,7 +3445,7 @@ async function readA4SessionHistory(
   let weeklyTotalMinutes = 0;
   const recentStudySessions: RpgRecentStudySession[] = [];
 
-  await database.studySessions.each((storedSession) => {
+  await forEachValidatedRow(database.studySessions, (storedSession) => {
     const session = parseWithSchema(
       StudySessionSchema,
       storedSession,
@@ -3637,10 +3660,9 @@ export async function getCourseMapReadData(
     const assetIds = parsedContentAssets.map((asset) => asset.id);
 
     if (assetIds.length > 0) {
-      await database.mediaProgressEvents
-        .where('assetId')
-        .anyOf(assetIds)
-        .each((storedEvent) => {
+      await forEachValidatedRow(
+        database.mediaProgressEvents.where('assetId').anyOf(assetIds),
+        (storedEvent) => {
           const event = parseWithSchema(
             MediaProgressEventSchema,
             storedEvent,
@@ -3673,7 +3695,8 @@ export async function getCourseMapReadData(
           }
 
           mediaProgressByAssetId.set(event.assetId, aggregate);
-        });
+        },
+      );
     }
 
     const rewardSources = getCourseMapRewardSources(
@@ -3684,10 +3707,11 @@ export async function getCourseMapReadData(
     const earnedRewardSourceKeys = new Set<string>();
 
     if (rewardSources.sourceIds.length > 0) {
-      await database.xpTransactions
-        .where('sourceId')
-        .anyOf(rewardSources.sourceIds)
-        .each((storedTransaction) => {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
           const transaction = parseWithSchema(
             XpTransactionSchema,
             storedTransaction,
@@ -3701,7 +3725,8 @@ export async function getCourseMapReadData(
           if (rewardSources.sourceKeys.has(sourceKey)) {
             earnedRewardSourceKeys.add(sourceKey);
           }
-        });
+        },
+      );
     }
 
     return {
@@ -3811,10 +3836,9 @@ export async function getModuleReadData(
     >();
 
     if (itemIds.length > 0) {
-      await database.mediaProgressEvents
-        .where('itemId')
-        .anyOf(itemIds)
-        .each((storedEvent) => {
+      await forEachValidatedRow(
+        database.mediaProgressEvents.where('itemId').anyOf(itemIds),
+        (storedEvent) => {
           const event = parseWithSchema(
             MediaProgressEventSchema,
             storedEvent,
@@ -3847,7 +3871,8 @@ export async function getModuleReadData(
           }
 
           mediaProgressByAssetId.set(event.assetId, aggregate);
-        });
+        },
+      );
     }
 
     const rewardSources = getCourseMapRewardSources(
@@ -3858,10 +3883,11 @@ export async function getModuleReadData(
     const earnedRewardSourceKeys = new Set<string>();
 
     if (rewardSources.sourceIds.length > 0) {
-      await database.xpTransactions
-        .where('sourceId')
-        .anyOf(rewardSources.sourceIds)
-        .each((storedTransaction) => {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
           const transaction = parseWithSchema(
             XpTransactionSchema,
             storedTransaction,
@@ -3875,7 +3901,8 @@ export async function getModuleReadData(
           if (rewardSources.sourceKeys.has(sourceKey)) {
             earnedRewardSourceKeys.add(sourceKey);
           }
-        });
+        },
+      );
     }
 
     return {
@@ -3998,10 +4025,9 @@ export async function getResourceReadData(
       MutableLongFormEventAggregate
     >();
 
-    await database.mediaProgressEvents
-      .where('itemId')
-      .equals(itemId)
-      .each((storedEvent) => {
+    await forEachValidatedRow(
+      database.mediaProgressEvents.where('itemId').equals(itemId),
+      (storedEvent) => {
         const event = parseWithSchema(
           MediaProgressEventSchema,
           storedEvent,
@@ -4034,7 +4060,8 @@ export async function getResourceReadData(
         }
 
         mediaProgressByAssetId.set(event.assetId, aggregate);
-      });
+      },
+    );
 
     const rewardSources = getResourceRewardSources(
       courseUnit,
@@ -4045,10 +4072,11 @@ export async function getResourceReadData(
     const earnedRewardSourceKeys = new Set<string>();
 
     if (rewardSources.sourceIds.length > 0) {
-      await database.xpTransactions
-        .where('sourceId')
-        .anyOf(rewardSources.sourceIds)
-        .each((storedTransaction) => {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
           const transaction = parseWithSchema(
             XpTransactionSchema,
             storedTransaction,
@@ -4062,7 +4090,8 @@ export async function getResourceReadData(
           if (rewardSources.sourceKeys.has(sourceKey)) {
             earnedRewardSourceKeys.add(sourceKey);
           }
-        });
+        },
+      );
     }
 
     return {

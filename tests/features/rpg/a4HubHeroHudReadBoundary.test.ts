@@ -419,6 +419,31 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
         data.contentAssets.length,
       );
       emitAccessEvidence('hub', access, readDurationMs);
+
+      for (const surface of ['hud', 'hero'] as const) {
+        probe.reset();
+        const surfaceStarted = performance.now();
+        const summary = await (surface === 'hud'
+          ? loadRpgHudSummary({ db: reader })
+          : loadRpgHeroProfileSummary({ db: reader }));
+        const surfaceAccess = probe.snapshot();
+        assertA4AccessContract(surface, surfaceAccess);
+        expect(summary.xpSummary.totalXp).toBe(historyCount);
+        expect(
+          sumRows(surfaceAccess, 'media_progress_events', 'rowsScanned'),
+        ).toBe(historyCount);
+        expect(sumRows(surfaceAccess, 'xp_transactions', 'rowsScanned')).toBe(
+          historyCount,
+        );
+        expect(sumRows(surfaceAccess, 'study_sessions', 'rowsScanned')).toBe(
+          surface === 'hero' ? historyCount : 0,
+        );
+        emitAccessEvidence(
+          surface,
+          surfaceAccess,
+          Math.round(performance.now() - surfaceStarted),
+        );
+      }
     },
     240_000,
   );

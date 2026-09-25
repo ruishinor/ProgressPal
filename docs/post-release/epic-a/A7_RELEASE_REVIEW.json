@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "module": "epic-a-a7",
+  "reviewer": "Codex: source review and executed acceptance evidence (not an independent reviewer)",
+  "adversarialFindings": [
+    {
+      "id": "A7-01",
+      "severity": "P1",
+      "description": "Previously accepted streaming readers can silently omit malformed rows or failed projections because the installed Dexie cursor wrapper swallows callback exceptions.",
+      "resolution": "A valid mechanism RED failed 17 cases while the A6 Badges control passed. A private cursor helper retains the first error in constant space and rejects through Dexie's promise chain. All 18 malformed-row/projection cases and all seven actual routes pass after repair. Query predicates, transactions and valid-data projections are unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "A7-02",
+      "severity": "P1",
+      "description": "A seemingly harmless native async wrapper can cause premature transaction commits under real route composition.",
+      "resolution": "The first candidate failed actual route tests; the same Hub test passed against exact baseline source. Retaining the collection's transaction-aware promise chain corrected the candidate. Route composition, error propagation and competing-writer barriers exercise the final implementation.",
+      "status": "resolved"
+    },
+    {
+      "id": "A7-03",
+      "severity": "P2",
+      "description": "Passing unused loaders can conceal broad reads, duplicate HUD ownership, history arrays or fan-out in actual routes.",
+      "resolution": "The seven real route components render through RpgRouteShell and RpgShell with actual IndexedDB reads. Exact store/transaction and per-store query assertions, all-14-store equality, retained A1-A6 scale tests, expanded A4 HUD/Hero history checks and 1x/10x catalogue/asset checks cover the active paths. Source review finds no active route invoking the remaining unused broad Badge loader.",
+      "status": "resolved"
+    },
+    {
+      "id": "A7-04",
+      "severity": "P2",
+      "description": "Narrow passive reads could weaken complete backup operations or disagree with committed mutation summaries.",
+      "resolution": "Snapshot completeness remains explicit for Settings export and restore validation. Existing full-store round-trip, reset, rollback and compatibility suites are retained. Resource and Focus save tests compare Hub/Badges with authoritative save results, verify committed progress and once-only awards/unlocks, and assert zero passive writes.",
+      "status": "resolved"
+    },
+    {
+      "id": "A7-05",
+      "severity": "P3",
+      "description": "History scans still cost O(H), disjoint media coverage intervals can grow with history, and Focus intentionally retains the full visible ledger.",
+      "resolution": "These are explicit SPEC allowances, measured and disclosed rather than described as constant-time or constant-memory routes. No schema, retention or UI change is introduced.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "A7-06",
+      "severity": "P3",
+      "description": "Local acceptance does not establish remote CI or publication readiness in an untested hosting environment.",
+      "resolution": "The owner authorized local completion only. Exact native local certification is mandatory; remote CI dispatch, push, PR, merge, tags, deployment and Epic B remain unperformed and unauthorized.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to exact-commit native certification only after full isolated precommit validation and byte-verified authoritative apply. Acceptance criteria were frozen before A7 production edits. A real error-propagation RED led to a bounded repair; actual-route evidence then caught a transaction-lifetime regression that direct repository tests missed. One production correction preserved the Dexie promise chain. A test property-name preflight failure was corrected from the source contract. The approval reviewer briefly exhausted usage, then the same action passed after fresh usage showed availability. No approval control was bypassed. Preserve native failed evidence, do not weaken gates, and close Epic A only after the generated manifest proves the exact commit/tree/review hash and zero warning/retry/skip counts."
+  }
+}
