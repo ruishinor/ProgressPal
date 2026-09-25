@@ -2409,6 +2409,12 @@ export async function getAchievementsView(
   options: BaseDatabaseOptions = {},
 ): Promise<AchievementsView> {
   const unlocks = await listAchievementUnlocks(options);
+  return buildAchievementsView(unlocks);
+}
+
+function buildAchievementsView(
+  unlocks: readonly AchievementUnlock[],
+): AchievementsView {
   const unlockByAchievementId = new Map(
     unlocks.map((unlock) => [unlock.achievementId, unlock]),
   );
@@ -2436,6 +2442,58 @@ export async function getAchievementsView(
     unlockedCount: achievements.filter((achievement) => achievement.unlocked)
       .length,
   };
+}
+
+/**
+ * One passive snapshot for the shared classic/RPG achievements surface. Only
+ * unlocks for code definitions are retained; lifetime XP is validated and
+ * accumulated one row at a time, with no hidden source-history array.
+ */
+export async function readAchievementsSurfaceData(
+  options: BaseDatabaseOptions = {},
+): Promise<{ view: AchievementsView; xpSummary: XpSummary }> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  return database.transaction(
+    'r',
+    [database.achievementUnlocks, database.xpTransactions],
+    async () => {
+      const records = await database.achievementUnlocks
+        .where('achievementId')
+        .anyOf(achievementDefinitions.map((definition) => definition.id))
+        .toArray();
+      const unlocks = parseStoredArray(
+        records,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      );
+      let totalXp = 0;
+      let validationError: unknown;
+
+      await database.xpTransactions.each((storedTransaction) => {
+        // Dexie's cursor callback wrapper can swallow thrown exceptions. Keep
+        // the first validation error and reject outside that callback so a
+        // corrupt row cannot silently produce a partial lifetime summary.
+        try {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored XP transaction',
+          );
+          totalXp += transaction.xp;
+        } catch (error) {
+          validationError ??= error;
+        }
+      });
+
+      if (validationError !== undefined) throw validationError;
+
+      return {
+        view: buildAchievementsView(unlocks),
+        xpSummary: calculateXpSummary(totalXp),
+      };
+    },
+  );
 }
 
 /**

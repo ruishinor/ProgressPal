@@ -42,6 +42,7 @@ export {
   listXpTransactions,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  readAchievementsSurfaceData,
   readStudySessionLedgerRows,
   readStudySessionsSurfaceData,
   recordBackupEvent,

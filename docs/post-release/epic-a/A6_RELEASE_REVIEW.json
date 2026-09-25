@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "module": "epic-a-a6",
+  "reviewer": "Codex: source review and executed acceptance evidence (not an independent reviewer)",
+  "adversarialFindings": [
+    {
+      "id": "A6-01",
+      "severity": "P1",
+      "description": "A cursor can hide complete XP materialization or silently return a partial total on malformed rows.",
+      "resolution": "The actual shared surface uses one validated XP cursor and a scalar accumulator. The first schema error is retained and thrown outside Dexie's callback wrapper. Access, scale and malformed-tail tests execute this path.",
+      "status": "resolved"
+    },
+    {
+      "id": "A6-02",
+      "severity": "P1",
+      "description": "Separately read unlock and XP values could represent different committed states.",
+      "resolution": "One readonly transaction covers exactly achievement_unlocks and xp_transactions; a barrier test blocks a competing two-store write and verifies coherent before/after results.",
+      "status": "resolved"
+    },
+    {
+      "id": "A6-03",
+      "severity": "P2",
+      "description": "Persisted definitions, unrelated unlocks or retry composition could broaden the surface or alter semantics.",
+      "resolution": "Code definitions remain authoritative, unlock access uses the existing unique achievementId index, and actual classic/RPG surface and independent child/HUD retry tests preserve labels, filtering, dates and zero passive writes.",
+      "status": "resolved"
+    },
+    {
+      "id": "A6-04",
+      "severity": "P3",
+      "description": "The RPG route still scans XP once for the separate A4 HUD and once for the A6 child.",
+      "resolution": "Explicitly allowed by the frozen A6 contract; both scans are visible in evidence and neither materializes complete XP history. Schema and ownership remain unchanged.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to native exact-commit certification only after full isolated precommit gates and exact-byte apply. Focused evidence includes a valid baseline RED and 18/18 corrected tests. One correction round separated a semantic-test selector recurrence from a real cursor validation defect. Native commands and review schema are used directly; local acceptance requires the generated release manifest to pass and bind this file's bytes. No remote publication is authorized."
+  }
+}
