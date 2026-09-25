@@ -13,11 +13,9 @@ import { useLocation, useOutletContext } from 'react-router-dom';
 
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
-import {
-  StudySessionsSurface,
-  type StudySessionSaveResult,
-} from '@/features/sessions';
+import { StudySessionsSurface } from '@/features/sessions';
 import { achievementDefinitionsById } from '@/lib/achievements';
+import type { AddStudySessionWithXpResult } from '@/lib/db';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 
 type RpgFocusSaveFeedback = {
@@ -92,7 +90,7 @@ export function RpgFocusPage() {
     [refreshHud],
   );
   const handleProgressSaved = useCallback(
-    (result: StudySessionSaveResult) => {
+    (result: AddStudySessionWithXpResult) => {
       if (activePageKey.current !== pageKey) {
         refreshHud();
         return;

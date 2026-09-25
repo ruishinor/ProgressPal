@@ -65,10 +65,8 @@ import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 // engine writes are identical.
 type StudySessionsSurfaceVariant = 'classic' | 'rpg';
 
-export type StudySessionSaveResult = AddStudySessionWithXpResult;
-
 type StudySessionsSurfaceProps = {
-  onProgressSaved?: (result: StudySessionSaveResult) => void;
+  onProgressSaved?: (result: AddStudySessionWithXpResult) => void;
   saveFeedback?: ReactNode;
   variant?: StudySessionsSurfaceVariant;
 };
@@ -452,7 +450,7 @@ export function StudySessionsSurface({
     }
   }
 
-  function showSavedSession(result: StudySessionSaveResult) {
+  function showSavedSession(result: AddStudySessionWithXpResult) {
     const xpAdded = result.awardedTransactions.reduce(
       (sum, tx) => sum + tx.xp,
       0,
@@ -499,7 +497,7 @@ export function StudySessionsSurface({
     const version = pageVersion.current;
     saveInFlight.current = true;
 
-    let xpResult: StudySessionSaveResult;
+    let xpResult: AddStudySessionWithXpResult;
     try {
       xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),
@@ -560,7 +558,7 @@ export function StudySessionsSurface({
     const version = pageVersion.current;
     saveInFlight.current = true;
 
-    let xpResult: StudySessionSaveResult;
+    let xpResult: AddStudySessionWithXpResult;
     try {
       xpResult = await runLocalMutation(
         () => addStudySessionAndAwardXp(validation.input),

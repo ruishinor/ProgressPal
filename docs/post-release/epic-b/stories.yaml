@@ -15,10 +15,10 @@ stories:
     scope: Move long-form map builders to lib/progress and use its existing view type
     acceptance: Preserve map ordering, aggregate equivalence and course/RPG consumers; focused tests and architecture gates
   - id: B3
-    state: ready
+    state: pass_ready_for_b4
     scope: Source the session save result type from lib/db; retain shared UI and compatibility export
     acceptance: Preserve Focus callback and save payload; focused tests and architecture gates
   - id: B4
-    state: provisional
+    state: ready
     scope: Aggregate behavior, ownership and release-readiness evidence; local closure only
     acceptance: Full relevant gates and explicit residual-risk/publication disposition
