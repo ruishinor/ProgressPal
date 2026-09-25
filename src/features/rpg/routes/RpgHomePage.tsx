@@ -1,5 +1,5 @@
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
-import { startTransition, useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -11,26 +11,12 @@ import {
   RpgStatusPill,
   type RpgStatusTone,
 } from '@/features/rpg/components';
-import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type {
   RpgHubSummary,
   RpgQuestSummary,
 } from '@/features/rpg/model/types';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
-
-type RpgHomePageStatus = 'error' | 'loading' | 'ready';
-
-type RpgHomePageState = {
-  error: string | null;
-  status: RpgHomePageStatus;
-  summary: RpgHubSummary | null;
-};
-
-const initialState: RpgHomePageState = {
-  error: null,
-  status: 'loading',
-  summary: null,
-};
+import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
@@ -54,58 +40,8 @@ function hasLocalActivity(summary: RpgHubSummary) {
 }
 
 export function RpgHomePage() {
-  const [state, setState] = useState<RpgHomePageState>(initialState);
-  const [reloadToken, setReloadToken] = useState(0);
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function loadSummary() {
-      startTransition(() => {
-        setState((currentState) => ({
-          ...currentState,
-          error: null,
-          status: 'loading',
-        }));
-      });
-
-      try {
-        const summary = await loadRpgHubSummary();
-
-        if (!isActive) {
-          return;
-        }
-
-        startTransition(() => {
-          setState({
-            error: null,
-            status: 'ready',
-            summary,
-          });
-        });
-      } catch (loadError) {
-        console.error('RPG hub loading failed.', loadError);
-
-        if (!isActive) {
-          return;
-        }
-
-        startTransition(() => {
-          setState({
-            error: 'The RPG hub summary could not be loaded from local data.',
-            status: 'error',
-            summary: null,
-          });
-        });
-      }
-    }
-
-    void loadSummary();
-
-    return () => {
-      isActive = false;
-    };
-  }, [reloadToken]);
+  const { hubState: state, refreshHub } =
+    useOutletContext<RpgShellOutletContext>();
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -119,10 +55,7 @@ export function RpgHomePage() {
             action={
               <RpgButton
                 onClick={() => {
-                  startTransition(() => {
-                    setState(initialState);
-                  });
-                  setReloadToken((currentToken) => currentToken + 1);
+                  refreshHub();
                 }}
                 variant="secondary"
               >

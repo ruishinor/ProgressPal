@@ -15,25 +15,41 @@ import {
   getCs50UnitLink,
   type Cs50Link,
 } from '@/features/course/cs50Links';
-import { buildLongFormProgressMap } from '@/features/progress/model';
+import {
+  buildLongFormProgressMap,
+  buildLongFormProgressMapFromEventAggregates,
+} from '@/features/progress/model';
 import { achievementDefinitions } from '@/lib/achievements';
 import { isItemComplete } from '@/lib/completion';
 import {
+  getCourseMapReadData,
   getDatabaseSnapshot,
+  getModuleReadData,
+  getResourceReadData,
+  getRpgHeroReadData,
+  getRpgHubReadData,
+  getRpgHudReadData,
+  type CourseMapReadData,
+  type CourseStateReadData,
+  type ModuleReadData,
+  type RpgHeroReadData,
+  type RpgHubReadData,
+  type RpgHudReadData,
+  type ResourceReadData,
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
-import { buildQuestRewardLabel } from './questRewards';
+import { buildQuestRewardLabel, type QuestRewardData } from './questRewards';
 
 import type {
   RpgBadgeGallerySummary,
   RpgCourseMapSummary,
-  RpgFocusSessionSummary,
   RpgHeroProfileSummary,
   RpgHubSummary,
+  RpgHudSummary,
   RpgHubWeeklyProgress,
   RpgModuleSummary,
   RpgOfficialLink,
@@ -119,10 +135,37 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
   };
 }
 
+function buildCourseMapContextFromReadData(
+  data: CourseStateReadData,
+): CourseMapContext {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const courseMap = buildCourseMap(
+    data.courseUnits,
+    data.courseItems,
+    data.progressEntries,
+    longFormByItemId,
+  );
+
+  return {
+    courseMap,
+    itemById: new Map(data.courseItems.map((item) => [item.id, item])),
+    progressByItemId: new Map(
+      data.progressEntries.map((entry) => [entry.itemId, entry]),
+    ),
+    unitById: new Map(data.courseUnits.map((unit) => [unit.id, unit])),
+  };
+}
+
 function buildQuestSummary(
   unit: CourseMapUnit,
   item: CourseMapItem,
-  snapshot: DatabaseSnapshot,
+  snapshot: QuestRewardData,
 ): RpgQuestSummary {
   return {
     rewardLabel: buildQuestRewardLabel(snapshot, item.id),
@@ -146,7 +189,7 @@ function buildQuestSummary(
 
 function buildModuleSummary(
   unit: CourseMapUnit,
-  snapshot: DatabaseSnapshot,
+  snapshot: QuestRewardData,
 ): RpgModuleSummary {
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
@@ -166,7 +209,7 @@ function buildModuleSummary(
 
 function selectQuestRecommendation(
   modules: readonly RpgModuleSummary[],
-  snapshot: DatabaseSnapshot,
+  snapshot: Pick<QuestRewardData, 'courseItems' | 'courseUnits'>,
 ): RpgQuestRecommendation {
   const quests = modules.flatMap((module) => module.quests);
   const requiredQuests = quests.filter((quest) => quest.required);
@@ -232,7 +275,10 @@ function selectCurrentModule(
 function getRankLabel({
   completedRequiredItemCount,
   requiredItemCount,
-}: RpgCourseMapSummary) {
+}: {
+  completedRequiredItemCount: number;
+  requiredItemCount: number;
+}) {
   if (requiredItemCount <= 0 || completedRequiredItemCount <= 0) {
     return 'New Learner';
   }
@@ -359,6 +405,88 @@ function buildRecentActivity(snapshot: DatabaseSnapshot) {
   return entries.slice(0, rpgHubRecentActivityLimit);
 }
 
+function buildRecentActivityFromReadData(
+  data: Pick<
+    RpgHubReadData | RpgHeroReadData,
+    | 'courseItems'
+    | 'progressEntries'
+    | 'recentStudySessions'
+    | 'recentXpTransactions'
+  >,
+) {
+  const itemTitleById = new Map(
+    data.courseItems.map((item) => [item.id, item.title]),
+  );
+  const entries = [
+    ...data.progressEntries.map((entry) => ({
+      date: toDateOnly(entry.updatedAt),
+      id: `progress:${entry.id}`,
+      label: `Saved progress - ${itemTitleById.get(entry.itemId) ?? entry.itemId} (${entry.status})`,
+      timestamp: entry.updatedAt,
+    })),
+    ...data.recentStudySessions.map((session) => ({
+      date: toDateOnly(session.startedAt),
+      id: `study_session:${session.id}`,
+      label: `Saved study session - ${itemTitleById.get(session.itemId) ?? session.itemId}`,
+      timestamp: session.startedAt,
+    })),
+    ...data.recentXpTransactions.map((transaction) => ({
+      date: toDateOnly(transaction.awardedAt),
+      id: `xp:${transaction.id}`,
+      label: `Earned ${transaction.xp} XP - ${transaction.reason}`,
+      timestamp: transaction.awardedAt,
+    })),
+  ];
+
+  entries.sort(
+    (left, right) =>
+      right.timestamp.localeCompare(left.timestamp) ||
+      left.id.localeCompare(right.id),
+  );
+
+  return entries.slice(0, rpgHubRecentActivityLimit);
+}
+
+function buildXpPresentation(totalXp: number) {
+  const xpSummary = calculateXpSummary(totalXp);
+
+  return {
+    ...getLevelProgressDisplay(xpSummary),
+    level: xpSummary.level,
+    levelProgressPercent: getLevelProgressPercent(xpSummary),
+    totalXp: xpSummary.totalXp,
+    xpToNextLevel: xpSummary.xpToNextLevel,
+  };
+}
+
+function buildWeeklyProgressFromReadData(
+  data: RpgHubReadData,
+  nowIso: string,
+): RpgHubWeeklyProgress {
+  const { endDate, nextStartTime, startDate, startTime } =
+    getWeekBounds(nowIso);
+  const completedRequiredItemIds = new Set(
+    data.courseItems.filter((item) => item.required).map((item) => item.id),
+  );
+  const thisWeeksProgress = data.progressEntries.filter((entry) =>
+    isIsoInRange(entry.updatedAt, startTime, nextStartTime),
+  );
+
+  return {
+    completedRequiredItemCount: thisWeeksProgress.filter(
+      (entry) =>
+        completedRequiredItemIds.has(entry.itemId) &&
+        entry.status === 'completed',
+    ).length,
+    savedProgressCount: thisWeeksProgress.length,
+    sessionCount: data.weeklySessionCount,
+    totalMinutes: data.weeklyTotalMinutes,
+    weekEndDate: endDate,
+    weekStartDate: startDate,
+    xpEarned: data.weeklyXpEarned,
+  };
+}
+
 export function buildRpgBadgeGallerySummary(
   snapshot: DatabaseSnapshot,
 ): RpgBadgeGallerySummary {
@@ -443,6 +571,25 @@ export function buildRpgCourseMapSummary(
   };
 }
 
+function buildRpgCourseMapSummaryFromReadData(
+  data: CourseMapReadData,
+): RpgCourseMapSummary {
+  const { courseMap } = buildCourseMapContextFromReadData(data);
+  const modules = courseMap.units.map((unit) => buildModuleSummary(unit, data));
+  const recommendation = selectQuestRecommendation(modules, data);
+
+  return {
+    completedRequiredItemCount: courseMap.completedRequiredItemCount,
+    completionPercent: courseMap.completionPercent,
+    currentModule: selectCurrentModule(modules, recommendation),
+    modules,
+    requiredItemCount: courseMap.requiredItemCount,
+    unitCount: courseMap.unitCount,
+    weekFour:
+      modules.find((module) => module.id === RPG_WEEK_FOUR_UNIT_ID) ?? null,
+  };
+}
+
 export function buildRpgModuleSummary(
   snapshot: DatabaseSnapshot,
   unitId: string,
@@ -451,6 +598,36 @@ export function buildRpgModuleSummary(
   const unit = courseMap.units.find((candidate) => candidate.id === unitId);
 
   return unit === undefined ? null : buildModuleSummary(unit, snapshot);
+}
+
+function buildRpgModuleSummaryFromReadData(
+  data: ModuleReadData,
+): RpgModuleSummary {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const courseMap = buildCourseMap(
+    [data.courseUnit],
+    data.courseItems,
+    data.progressEntries,
+    longFormByItemId,
+  );
+  const unit = courseMap.units[0];
+
+  if (unit === undefined) {
+    throw new Error('Module read data did not contain its requested unit.');
+  }
+
+  return buildModuleSummary(unit, {
+    courseItems: data.courseItems,
+    courseUnits: [data.courseUnit],
+    earnedRewardSourceKeys: data.earnedRewardSourceKeys,
+    progressEntries: data.progressEntries,
+  });
 }
 
 export function buildRpgHubSummary(
@@ -504,6 +681,124 @@ export function buildRpgHubSummary(
       totalXp: xpSummary.totalXp,
       xpToNextLevel: xpSummary.xpToNextLevel,
     },
+  };
+}
+
+function buildRpgHudSummaryFromReadData(data: RpgHudReadData): RpgHudSummary {
+  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(data);
+  const recommendation = selectQuestRecommendation(
+    courseMapSummary.modules,
+    data,
+  );
+
+  return {
+    recommendation,
+    identity: {
+      classLabel: 'Generalist',
+      guildLabel: 'Code Knights',
+      pathLabel: 'CS Foundations',
+      rankLabel: getRankLabel(courseMapSummary),
+    },
+    learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
+    learnerName: data.learnerProfile?.displayName ?? 'Learner',
+    xpSummary: buildXpPresentation(data.totalXp),
+  };
+}
+
+function buildRpgHubSummaryFromReadData(
+  data: RpgHubReadData,
+  nowIso: string,
+): RpgHubSummary {
+  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(data);
+  const recommendation = selectQuestRecommendation(
+    courseMapSummary.modules,
+    data,
+  );
+
+  return {
+    recommendation,
+    courseProgress: {
+      completedRequiredItemCount: courseMapSummary.completedRequiredItemCount,
+      completionPercent: courseMapSummary.completionPercent,
+      requiredItemCount: courseMapSummary.requiredItemCount,
+    },
+    currentModule: selectCurrentModule(
+      courseMapSummary.modules,
+      recommendation,
+    ),
+    identity: {
+      classLabel: 'Generalist',
+      guildLabel: 'Code Knights',
+      pathLabel: 'CS Foundations',
+      rankLabel: getRankLabel(courseMapSummary),
+    },
+    learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
+    learnerName: data.learnerProfile?.displayName ?? 'Learner',
+    recentActivity: buildRecentActivityFromReadData(data),
+    studySummary: {
+      sessionCount: data.sessionCount,
+      totalMinutes: data.totalMinutes,
+    },
+    weeklyProgress: buildWeeklyProgressFromReadData(data, nowIso),
+    weekFour: courseMapSummary.weekFour,
+    xpSummary: buildXpPresentation(data.totalXp),
+  };
+}
+
+function buildRpgHeroProfileSummaryFromReadData(
+  data: RpgHeroReadData,
+): RpgHeroProfileSummary {
+  const { courseMap } = buildCourseMapContextFromReadData(data);
+  const courseProgress = {
+    completedRequiredItemCount: courseMap.completedRequiredItemCount,
+    completionPercent: courseMap.completionPercent,
+    requiredItemCount: courseMap.requiredItemCount,
+  };
+  const recentActivity = buildRecentActivityFromReadData(data);
+  const earnedAchievementIds = new Set(
+    data.achievementUnlocks.map((unlock) => unlock.achievementId),
+  );
+  const earnedBadgeCount = achievementDefinitions.filter((definition) =>
+    earnedAchievementIds.has(definition.id),
+  ).length;
+  const xpSummary = buildXpPresentation(data.totalXp);
+
+  return {
+    badges: {
+      earnedBadgeCount,
+      totalBadgeCount: achievementDefinitions.length,
+    },
+    courseProgress,
+    hasLocalActivity:
+      courseProgress.completedRequiredItemCount > 0 ||
+      recentActivity.length > 0 ||
+      data.sessionCount > 0 ||
+      xpSummary.totalXp > 0 ||
+      earnedBadgeCount > 0,
+    identity: {
+      classLabel: 'Generalist',
+      guildLabel: 'Code Knights',
+      pathLabel: 'CS Foundations',
+      rankLabel: getRankLabel(courseProgress),
+    },
+    learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
+    learnerName: data.learnerProfile?.displayName ?? 'Learner',
+    recentActivity,
+    studySummary: {
+      sessionCount: data.sessionCount,
+      totalMinutes: data.totalMinutes,
+    },
+    xpSummary,
+  };
+}
+
+export function projectRpgHudSummary(summary: RpgHubSummary): RpgHudSummary {
+  return {
+    recommendation: summary.recommendation,
+    identity: summary.identity,
+    learnerAvatarConfig: summary.learnerAvatarConfig,
+    learnerName: summary.learnerName,
+    xpSummary: summary.xpSummary,
   };
 }
 
@@ -595,73 +890,90 @@ export function buildRpgStudyResourceSummary(
   );
 }
 
-export function buildRpgFocusSessionSummary(
-  snapshot: DatabaseSnapshot,
-  itemId: string | null,
-): RpgFocusSessionSummary {
-  return {
-    items: snapshot.courseItems.map((item) => ({
-      estimatedMinutes: item.estimatedMinutes,
-      id: item.id,
-      order: item.order,
-      required: item.required,
-      title: item.title,
-      type: item.type,
-      unitId: item.unitId,
-    })),
-    requestedItemId: itemId,
-    selectedResource:
-      itemId === null ? null : buildRpgStudyResourceSummary(snapshot, itemId),
-    units: snapshot.courseUnits.map((unit) => ({
-      courseId: unit.courseId,
-      id: unit.id,
-      order: unit.order,
-      required: unit.required,
-      sourceYear: unit.sourceYear,
-      title: unit.title,
-      type: unit.type,
-    })),
-  };
+function buildRpgStudyResourceSummaryFromReadData(
+  data: ResourceReadData,
+): RpgStudyResourceSummary {
+  const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
+    data.contentAssets,
+    data.contentSlices,
+    data.mediaProgressByAssetId,
+    data.resumePoints,
+    data.progressEntries,
+  );
+  const progressEntry =
+    data.progressEntries.find((entry) => entry.itemId === data.courseItem.id) ??
+    null;
+  const detail = buildCourseDetailView(
+    data.courseUnit,
+    data.courseItem,
+    progressEntry,
+    longFormByItemId.get(data.courseItem.id) ?? null,
+  );
+
+  return buildStudyResourceFromDetail(
+    detail,
+    data.courseItem,
+    progressEntry,
+    data.courseUnit.id,
+    buildQuestRewardLabel(
+      {
+        courseItems: data.courseItems,
+        courseUnits: [data.courseUnit],
+        earnedRewardSourceKeys: data.earnedRewardSourceKeys,
+        progressEntries: data.progressEntries,
+      },
+      data.courseItem.id,
+      true,
+    ),
+  );
 }
 
 async function readSnapshot(options: RpgReadModelOptions = {}) {
   return getDatabaseSnapshot(options);
 }
 
+export async function loadRpgHudSummary(
+  options: RpgReadModelOptions = {},
+): Promise<RpgHudSummary> {
+  return buildRpgHudSummaryFromReadData(await getRpgHudReadData(options));
+}
+
 export async function loadRpgHubSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgHubSummary> {
-  return buildRpgHubSummary(
-    await readSnapshot(options),
-    options.now?.() ?? new Date().toISOString(),
+  const nowIso = options.now?.() ?? new Date().toISOString();
+  const { nextStartTime, startTime } = getWeekBounds(nowIso);
+
+  return buildRpgHubSummaryFromReadData(
+    await getRpgHubReadData({ nextStartTime, startTime }, options),
+    nowIso,
   );
 }
 
 export async function loadRpgCourseMapSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgCourseMapSummary> {
-  return buildRpgCourseMapSummary(await readSnapshot(options));
+  return buildRpgCourseMapSummaryFromReadData(
+    await getCourseMapReadData(options),
+  );
 }
 
 export async function loadRpgModuleSummary(
   unitId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgModuleSummary | null> {
-  return buildRpgModuleSummary(await readSnapshot(options), unitId);
+  const data = await getModuleReadData(unitId, options);
+
+  return data === null ? null : buildRpgModuleSummaryFromReadData(data);
 }
 
 export async function loadRpgStudyResourceSummary(
   itemId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgStudyResourceSummary | null> {
-  return buildRpgStudyResourceSummary(await readSnapshot(options), itemId);
-}
+  const data = await getResourceReadData(itemId, options);
 
-export async function loadRpgFocusSessionSummary(
-  itemId: string | null,
-  options: RpgReadModelOptions = {},
-): Promise<RpgFocusSessionSummary> {
-  return buildRpgFocusSessionSummary(await readSnapshot(options), itemId);
+  return data === null ? null : buildRpgStudyResourceSummaryFromReadData(data);
 }
 
 export async function loadRpgBadgeGallerySummary(
@@ -673,8 +985,7 @@ export async function loadRpgBadgeGallerySummary(
 export async function loadRpgHeroProfileSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgHeroProfileSummary> {
-  return buildRpgHeroProfileSummary(
-    await readSnapshot(options),
-    options.now?.() ?? new Date().toISOString(),
+  return buildRpgHeroProfileSummaryFromReadData(
+    await getRpgHeroReadData(options),
   );
 }

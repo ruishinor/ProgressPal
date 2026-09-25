@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({ load: vi.fn() }));
 vi.mock('@/features/rpg/model/readModels', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/rpg/model/readModels')>()),
   loadRpgHubSummary: mocks.load,
+  loadRpgHudSummary: mocks.load,
 }));
 vi.mock('@/lib/appState', () => ({
   useAppState: () => ({
@@ -160,7 +161,7 @@ describe('recommendation presentation', () => {
     expect(
       screen.queryByText('Required tasks complete in ProgressPal'),
     ).not.toBeInTheDocument();
-    expect(errors).toHaveBeenCalledTimes(2);
+    expect(errors).toHaveBeenCalledTimes(1);
     errors.mockRestore();
   });
 });

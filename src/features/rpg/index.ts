@@ -1,7 +1,6 @@
 export {
   RPG_WEEK_FOUR_UNIT_ID,
   buildRpgBadgeGallerySummary,
-  buildRpgFocusSessionSummary,
   buildRpgCourseMapSummary,
   buildRpgHeroProfileSummary,
   buildRpgHubSummary,
@@ -9,7 +8,6 @@ export {
   buildRpgStudyResourceSummary,
   loadRpgBadgeGallerySummary,
   loadRpgCourseMapSummary,
-  loadRpgFocusSessionSummary,
   loadRpgHeroProfileSummary,
   loadRpgHubSummary,
   loadRpgModuleSummary,
@@ -52,7 +50,6 @@ export type {
   RpgBadgeSummary,
   RpgCourseMapSummary,
   RpgCourseProgressSummary,
-  RpgFocusSessionSummary,
   RpgHeroProfileSummary,
   RpgHubSummary,
   RpgModuleSummary,

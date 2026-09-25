@@ -24,11 +24,7 @@ import {
   type AchievementCategoryFilter,
   type AchievementStatusFilter,
 } from '@/features/achievements/model';
-import {
-  getAchievementsView,
-  getXpSummary,
-  type AchievementsView,
-} from '@/lib/db';
+import { readAchievementsSurfaceData, type AchievementsView } from '@/lib/db';
 import { rpgMapPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same achievements surface renders in two shells: the classic Achievements
@@ -98,10 +94,7 @@ export function AchievementsSurface({
       try {
         // Read-only: this merges code definitions with persisted unlocks. It
         // never evaluates rules and never creates unlocks.
-        const [view, xpSummary] = await Promise.all([
-          getAchievementsView(),
-          getXpSummary(),
-        ]);
+        const { view, xpSummary } = await readAchievementsSurfaceData();
 
         if (!isActive) {
           return;

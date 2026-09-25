@@ -2,9 +2,7 @@ import type { CourseStatusVariant } from '@/features/course/model';
 import type { CourseLongFormProgress } from '@/features/progress';
 import type {
   AchievementCategory,
-  CourseItem,
   CourseItemType,
-  CourseUnit,
   LearnerAvatarConfig,
   ProgressStatus,
 } from '@/lib/domain';
@@ -119,6 +117,15 @@ export type RpgHubSummary = {
   };
 };
 
+export type RpgHudSummary = Pick<
+  RpgHubSummary,
+  | 'identity'
+  | 'learnerAvatarConfig'
+  | 'learnerName'
+  | 'recommendation'
+  | 'xpSummary'
+>;
+
 export type RpgCourseMapSummary = {
   completedRequiredItemCount: number;
   completionPercent: number;
@@ -203,23 +210,4 @@ export type RpgStudyResourceSummary = {
   typeLabel: string;
   unitId: string;
   unitTitle: string;
-};
-
-export type RpgFocusSessionSummary = {
-  items: Pick<
-    CourseItem,
-    | 'estimatedMinutes'
-    | 'id'
-    | 'order'
-    | 'required'
-    | 'title'
-    | 'type'
-    | 'unitId'
-  >[];
-  requestedItemId: string | null;
-  selectedResource: RpgStudyResourceSummary | null;
-  units: Pick<
-    CourseUnit,
-    'courseId' | 'id' | 'order' | 'required' | 'sourceYear' | 'title' | 'type'
-  >[];
 };

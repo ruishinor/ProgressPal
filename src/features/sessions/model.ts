@@ -674,6 +674,33 @@ export function buildStudySessionInput(
   };
 }
 
+export function buildSessionLedgerRow(
+  session: StudySession,
+  catalog: SessionCatalog,
+): SessionLedgerRow {
+  const item = catalog.itemById.get(session.itemId);
+  const unit = catalog.unitById.get(session.unitId);
+  const blockerCount = session.blockers.length;
+
+  return {
+    blockerSummary:
+      blockerCount === 0
+        ? null
+        : blockerCount === 1
+          ? `1 blocker: ${session.blockers[0]}`
+          : `${blockerCount} blockers`,
+    durationLabel: formatDurationMinutes(session.durationMinutes),
+    id: session.id,
+    itemId: session.itemId,
+    itemTitle: item?.title ?? session.itemId,
+    modeLabel: getModeLabel(session.mode),
+    notesPreview:
+      session.notes === undefined ? null : truncateText(session.notes, 120),
+    startedAtLabel: formatLocalDateTimeLabel(session.startedAt),
+    unitTitle: unit?.title ?? session.unitId,
+  };
+}
+
 export function buildSessionLedgerRows(
   sessions: readonly StudySession[],
   catalog: SessionCatalog,
@@ -684,27 +711,5 @@ export function buildSessionLedgerRows(
         right.startedAt.localeCompare(left.startedAt) ||
         right.id.localeCompare(left.id),
     )
-    .map((session) => {
-      const item = catalog.itemById.get(session.itemId);
-      const unit = catalog.unitById.get(session.unitId);
-      const blockerCount = session.blockers.length;
-
-      return {
-        blockerSummary:
-          blockerCount === 0
-            ? null
-            : blockerCount === 1
-              ? `1 blocker: ${session.blockers[0]}`
-              : `${blockerCount} blockers`,
-        durationLabel: formatDurationMinutes(session.durationMinutes),
-        id: session.id,
-        itemId: session.itemId,
-        itemTitle: item?.title ?? session.itemId,
-        modeLabel: getModeLabel(session.mode),
-        notesPreview:
-          session.notes === undefined ? null : truncateText(session.notes, 120),
-        startedAtLabel: formatLocalDateTimeLabel(session.startedAt),
-        unitTitle: unit?.title ?? session.unitId,
-      };
-    });
+    .map((session) => buildSessionLedgerRow(session, catalog));
 }

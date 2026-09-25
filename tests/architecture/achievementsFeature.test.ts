@@ -31,7 +31,7 @@ describe('achievements engine boundaries', () => {
     );
     const combinedSource = `${pageSource}\n${surfaceSource}`;
 
-    // The surface may only read via getAchievementsView; it must never evaluate
+    // The surface may only use its passive read boundary; it must never evaluate
     // or run any XP-aware save wrapper that could create unlocks.
     expect(combinedSource).not.toMatch(/evaluateAchievements/);
     expect(combinedSource).not.toMatch(/AndAwardXp/);

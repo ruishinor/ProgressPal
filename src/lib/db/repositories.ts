@@ -51,6 +51,7 @@ import {
   getLongFormAssetDefinition,
   mergeCoveredRanges,
   type CoveredRange,
+  type LongFormEventAggregate,
   type LongFormProgressView,
 } from '@/lib/progress';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
@@ -62,7 +63,9 @@ import {
 import {
   calculateXpSummary,
   deriveXpTransactionId,
+  evaluateCompletionPreviewXp,
   evaluateProgressXp,
+  getXpAwardSourceKey,
   getCrossedBlocks,
   type XpSummary,
 } from '@/lib/xp/engine';
@@ -340,6 +343,83 @@ export type DatabaseSnapshot = {
   resumePoints: ResumePoint[];
   studySessions: StudySession[];
   xpTransactions: XpTransaction[];
+};
+
+export type CourseStateReadData = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItems: CourseItem[];
+  courseUnits: CourseUnit[];
+  mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+};
+
+export type CourseMapReadData = CourseStateReadData & {
+  earnedRewardSourceKeys: ReadonlySet<string>;
+};
+
+export type RpgRecentStudySession = Pick<
+  StudySession,
+  'id' | 'itemId' | 'startedAt'
+>;
+
+export type RpgRecentXpTransaction = Pick<
+  XpTransaction,
+  'awardedAt' | 'id' | 'reason' | 'xp'
+>;
+
+export type RpgHudReadData = CourseMapReadData & {
+  learnerProfile: LearnerProfile | null;
+  totalXp: number;
+};
+
+export type RpgHubReadData = RpgHudReadData & {
+  recentStudySessions: RpgRecentStudySession[];
+  recentXpTransactions: RpgRecentXpTransaction[];
+  sessionCount: number;
+  totalMinutes: number;
+  weeklySessionCount: number;
+  weeklyTotalMinutes: number;
+  weeklyXpEarned: number;
+};
+
+export type RpgHeroReadData = CourseStateReadData & {
+  achievementUnlocks: AchievementUnlock[];
+  learnerProfile: LearnerProfile | null;
+  recentStudySessions: RpgRecentStudySession[];
+  recentXpTransactions: RpgRecentXpTransaction[];
+  sessionCount: number;
+  totalMinutes: number;
+  totalXp: number;
+};
+
+export type RpgHubReadRange = {
+  nextStartTime: number;
+  startTime: number;
+};
+
+export type ModuleReadData = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItems: CourseItem[];
+  courseUnit: CourseUnit;
+  mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+  earnedRewardSourceKeys: ReadonlySet<string>;
+};
+
+export type ResourceReadData = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItem: CourseItem;
+  courseItems: CourseItem[];
+  courseUnit: CourseUnit;
+  mediaProgressByAssetId: ReadonlyMap<string, LongFormEventAggregate>;
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+  earnedRewardSourceKeys: ReadonlySet<string>;
 };
 
 type BaseDatabaseOptions = {
@@ -1722,6 +1802,109 @@ export async function listProgressEntries(options: BaseDatabaseOptions = {}) {
   );
 }
 
+type StudySessionLedgerProjection<Context, Row> = {
+  context: Context;
+  projectSession: (session: StudySession) => Row;
+};
+
+function forEachValidatedRow<Row>(
+  source: { each: (visitor: (row: Row) => void) => PromiseLike<unknown> },
+  visit: (row: Row) => void,
+) {
+  // Dexie's cursor callback wrapper can swallow thrown errors. Retain the first
+  // failure in constant space and reject outside that wrapper so callers never
+  // receive a partial aggregate or ledger. The cursor still visits every row.
+  let failure: { error: unknown } | undefined;
+  // Keep the collection's transaction-aware promise chain; an extra native
+  // async wrapper can let an otherwise idle transaction commit too early.
+  return source
+    .each((row) => {
+      try {
+        visit(row);
+      } catch (error) {
+        failure ??= { error };
+      }
+    })
+    .then(() => {
+      if (failure !== undefined) throw failure.error;
+    });
+}
+
+async function streamStudySessionLedgerRows<Row>(
+  database: ProgressPalDatabase,
+  projectSession: (session: StudySession) => Row,
+) {
+  const ledgerRows: Row[] = [];
+
+  // `startedAt` is already indexed. A descending index cursor also traverses
+  // duplicate index keys by primary key in descending order, preserving the
+  // published `startedAt DESC, id DESC` ledger order without retaining a
+  // second complete StudySession[] solely for sorting.
+  await forEachValidatedRow(
+    database.studySessions.orderBy('startedAt').reverse(),
+    (storedSession) => {
+      const session = parseWithSchema(
+        StudySessionSchema,
+        storedSession,
+        'Stored study session',
+      );
+
+      ledgerRows.push(projectSession(session));
+    },
+  );
+
+  return ledgerRows;
+}
+
+export async function readStudySessionsSurfaceData<Context, Row>(
+  createProjection: (
+    courseUnits: readonly CourseUnit[],
+    courseItems: readonly CourseItem[],
+  ) => StudySessionLedgerProjection<Context, Row>,
+  options: BaseDatabaseOptions = {},
+): Promise<{ context: Context; ledgerRows: Row[] }> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.studySessions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const [storedUnits, storedItems] = await Promise.all([
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+    ]);
+    const courseUnits = sortCourseUnits(
+      parseStoredArray(storedUnits, 'Stored course unit', CourseUnitSchema),
+    );
+    const courseItems = sortCourseItems(
+      parseStoredArray(storedItems, 'Stored course item', CourseItemSchema),
+    );
+    const { context, projectSession } = createProjection(
+      courseUnits,
+      courseItems,
+    );
+    const ledgerRows = await streamStudySessionLedgerRows(
+      database,
+      projectSession,
+    );
+
+    return { context, ledgerRows };
+  });
+}
+
+export async function readStudySessionLedgerRows<Row>(
+  projectSession: (session: StudySession) => Row,
+  options: BaseDatabaseOptions = {},
+): Promise<Row[]> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  return database.transaction('r', database.studySessions, () =>
+    streamStudySessionLedgerRows(database, projectSession),
+  );
+}
+
 export async function listStudySessions(options: BaseDatabaseOptions = {}) {
   const database = await ensureOpen(resolveDatabase(options.db));
   const studySessions = await database.studySessions.toArray();
@@ -2249,6 +2432,12 @@ export async function getAchievementsView(
   options: BaseDatabaseOptions = {},
 ): Promise<AchievementsView> {
   const unlocks = await listAchievementUnlocks(options);
+  return buildAchievementsView(unlocks);
+}
+
+function buildAchievementsView(
+  unlocks: readonly AchievementUnlock[],
+): AchievementsView {
   const unlockByAchievementId = new Map(
     unlocks.map((unlock) => [unlock.achievementId, unlock]),
   );
@@ -2276,6 +2465,58 @@ export async function getAchievementsView(
     unlockedCount: achievements.filter((achievement) => achievement.unlocked)
       .length,
   };
+}
+
+/**
+ * One passive snapshot for the shared classic/RPG achievements surface. Only
+ * unlocks for code definitions are retained; lifetime XP is validated and
+ * accumulated one row at a time, with no hidden source-history array.
+ */
+export async function readAchievementsSurfaceData(
+  options: BaseDatabaseOptions = {},
+): Promise<{ view: AchievementsView; xpSummary: XpSummary }> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  return database.transaction(
+    'r',
+    [database.achievementUnlocks, database.xpTransactions],
+    async () => {
+      const records = await database.achievementUnlocks
+        .where('achievementId')
+        .anyOf(achievementDefinitions.map((definition) => definition.id))
+        .toArray();
+      const unlocks = parseStoredArray(
+        records,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      );
+      let totalXp = 0;
+      let validationError: unknown;
+
+      await database.xpTransactions.each((storedTransaction) => {
+        // Dexie's cursor callback wrapper can swallow thrown exceptions. Keep
+        // the first validation error and reject outside that callback so a
+        // corrupt row cannot silently produce a partial lifetime summary.
+        try {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored XP transaction',
+          );
+          totalXp += transaction.xp;
+        } catch (error) {
+          validationError ??= error;
+        }
+      });
+
+      if (validationError !== undefined) throw validationError;
+
+      return {
+        view: buildAchievementsView(unlocks),
+        xpSummary: calculateXpSummary(totalXp),
+      };
+    },
+  );
 }
 
 /**
@@ -2862,6 +3103,1018 @@ export async function addStudySessionAndAwardXp(
     unlockedAchievements,
     xpSummary: xpSummary!,
   };
+}
+
+type MutableLongFormEventAggregate = LongFormEventAggregate & {
+  lastCreatedAt: string | null;
+  lastEventId: string | null;
+};
+
+function addCoverageRange(ranges: CoveredRange[], range: CoveredRange): void {
+  let startSecond = Math.floor(range.startSecond);
+  let endSecond = Math.floor(range.endSecond);
+
+  if (endSecond <= startSecond) {
+    return;
+  }
+
+  let lower = 0;
+  let upper = ranges.length;
+
+  while (lower < upper) {
+    const middle = Math.floor((lower + upper) / 2);
+
+    if (ranges[middle]!.endSecond < startSecond) {
+      lower = middle + 1;
+    } else {
+      upper = middle;
+    }
+  }
+
+  const index = lower;
+  let removeCount = 0;
+
+  while (
+    index + removeCount < ranges.length &&
+    ranges[index + removeCount]!.startSecond <= endSecond
+  ) {
+    const current = ranges[index + removeCount]!;
+    startSecond = Math.min(startSecond, current.startSecond);
+    endSecond = Math.max(endSecond, current.endSecond);
+    removeCount += 1;
+  }
+
+  ranges.splice(index, removeCount, { endSecond, startSecond });
+}
+
+function getCourseMapRewardSources(
+  courseUnits: readonly CourseUnit[],
+  courseItems: readonly CourseItem[],
+  progressEntries: readonly ProgressEntry[],
+) {
+  const sourceIds = new Set<string>();
+  const sourceKeys = new Set<string>();
+  const unitById = new Map(courseUnits.map((unit) => [unit.id, unit]));
+
+  for (const item of courseItems) {
+    const unit = unitById.get(item.unitId);
+
+    if (unit === undefined) {
+      continue;
+    }
+
+    for (const award of evaluateCompletionPreviewXp({
+      allCourseItems: courseItems,
+      allProgress: progressEntries,
+      item,
+      unit,
+    })) {
+      if (award.sourceType === 'week_completed') {
+        continue;
+      }
+
+      sourceIds.add(award.sourceId);
+      sourceKeys.add(getXpAwardSourceKey(award.sourceType, award.sourceId));
+    }
+  }
+
+  return { sourceIds: [...sourceIds], sourceKeys };
+}
+
+function getResourceRewardSources(
+  courseUnit: CourseUnit,
+  courseItems: readonly CourseItem[],
+  progressEntries: readonly ProgressEntry[],
+  courseItem: CourseItem,
+) {
+  const sourceIds = new Set<string>();
+  const sourceKeys = new Set<string>();
+
+  for (const award of evaluateCompletionPreviewXp({
+    allCourseItems: courseItems,
+    allProgress: progressEntries,
+    item: courseItem,
+    unit: courseUnit,
+  })) {
+    sourceIds.add(award.sourceId);
+    sourceKeys.add(getXpAwardSourceKey(award.sourceType, award.sourceId));
+  }
+
+  return { sourceIds: [...sourceIds], sourceKeys };
+}
+
+type A4CourseState = CourseStateReadData & {
+  learnerProfile: LearnerProfile | null;
+};
+
+function compareRecentActivityRows(
+  left: { id: string; timestamp: string },
+  right: { id: string; timestamp: string },
+) {
+  return (
+    right.timestamp.localeCompare(left.timestamp) ||
+    left.id.localeCompare(right.id)
+  );
+}
+
+function retainRecentStudySession(
+  recent: RpgRecentStudySession[],
+  session: StudySession,
+) {
+  recent.push({
+    id: session.id,
+    itemId: session.itemId,
+    startedAt: session.startedAt,
+  });
+  recent.sort((left, right) =>
+    compareRecentActivityRows(
+      { id: `study_session:${left.id}`, timestamp: left.startedAt },
+      { id: `study_session:${right.id}`, timestamp: right.startedAt },
+    ),
+  );
+  if (recent.length > 5) recent.pop();
+}
+
+function retainRecentXpTransaction(
+  recent: RpgRecentXpTransaction[],
+  transaction: XpTransaction,
+) {
+  recent.push({
+    awardedAt: transaction.awardedAt,
+    id: transaction.id,
+    reason: transaction.reason,
+    xp: transaction.xp,
+  });
+  recent.sort((left, right) =>
+    compareRecentActivityRows(
+      { id: `xp:${left.id}`, timestamp: left.awardedAt },
+      { id: `xp:${right.id}`, timestamp: right.awardedAt },
+    ),
+  );
+  if (recent.length > 5) recent.pop();
+}
+
+async function readA4CourseState(
+  database: ProgressPalDatabase,
+): Promise<A4CourseState> {
+  const [
+    courseUnits,
+    courseItems,
+    progressEntries,
+    contentAssets,
+    contentSlices,
+    resumePoints,
+    learnerProfileRecord,
+  ] = await Promise.all([
+    database.courseUnits.toArray(),
+    database.courseItems.toArray(),
+    database.progressEntries.toArray(),
+    database.contentAssets.toArray(),
+    database.contentSlices.toArray(),
+    database.resumePoints.toArray(),
+    database.learnerProfile.get(singletonIds.learnerProfile),
+  ]);
+  const parsedCourseUnits = sortCourseUnits(
+    parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+  );
+  const parsedCourseItems = sortCourseItems(
+    parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+  );
+  const parsedProgressEntries = sortProgressEntries(
+    parseStoredArray(
+      progressEntries,
+      'Stored progress entry',
+      ProgressEntrySchema,
+    ),
+  );
+  const parsedContentAssets = sortContentAssets(
+    parseStoredArray(contentAssets, 'Stored content asset', ContentAssetSchema),
+  );
+  const parsedContentSlices = sortContentSlices(
+    parseStoredArray(contentSlices, 'Stored content slice', ContentSliceSchema),
+  );
+  const parsedResumePoints = sortResumePoints(
+    parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+  );
+  const learnerProfile =
+    learnerProfileRecord === undefined
+      ? null
+      : parseWithSchema(
+          LearnerProfileSchema,
+          learnerProfileRecord,
+          'Stored learner profile',
+        );
+  const mediaProgressByAssetId = new Map<
+    string,
+    MutableLongFormEventAggregate
+  >();
+
+  await forEachValidatedRow(database.mediaProgressEvents, (storedEvent) => {
+    const event = parseWithSchema(
+      MediaProgressEventSchema,
+      storedEvent,
+      'Stored media progress event',
+    );
+    const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+      coverageRanges: [],
+      eventCount: 0,
+      lastCreatedAt: null,
+      lastEventEndSecond: null,
+      lastEventId: null,
+    };
+
+    aggregate.eventCount += 1;
+    addCoverageRange(aggregate.coverageRanges, {
+      endSecond: event.endSecond,
+      startSecond: event.startSecond,
+    });
+
+    if (
+      aggregate.lastCreatedAt === null ||
+      event.createdAt > aggregate.lastCreatedAt ||
+      (event.createdAt === aggregate.lastCreatedAt &&
+        (aggregate.lastEventId === null || event.id > aggregate.lastEventId))
+    ) {
+      aggregate.lastCreatedAt = event.createdAt;
+      aggregate.lastEventEndSecond = event.endSecond;
+      aggregate.lastEventId = event.id;
+    }
+
+    mediaProgressByAssetId.set(event.assetId, aggregate);
+  });
+
+  return {
+    contentAssets: parsedContentAssets,
+    contentSlices: parsedContentSlices,
+    courseItems: parsedCourseItems,
+    courseUnits: parsedCourseUnits,
+    learnerProfile,
+    mediaProgressByAssetId: new Map(
+      [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+        assetId,
+        {
+          coverageRanges: aggregate.coverageRanges,
+          eventCount: aggregate.eventCount,
+          lastEventEndSecond: aggregate.lastEventEndSecond,
+        },
+      ]),
+    ),
+    progressEntries: parsedProgressEntries,
+    resumePoints: parsedResumePoints,
+  };
+}
+
+async function readA4EarnedRewardSourceKeys(
+  database: ProgressPalDatabase,
+  courseState: CourseStateReadData,
+) {
+  const rewardSources = getCourseMapRewardSources(
+    courseState.courseUnits,
+    courseState.courseItems,
+    courseState.progressEntries,
+  );
+  const earnedRewardSourceKeys = new Set<string>();
+
+  if (rewardSources.sourceIds.length > 0) {
+    await forEachValidatedRow(
+      database.xpTransactions.where('sourceId').anyOf(rewardSources.sourceIds),
+      (storedTransaction) => {
+        const transaction = parseWithSchema(
+          XpTransactionSchema,
+          storedTransaction,
+          'Stored RPG reward XP transaction',
+        );
+        const sourceKey = getXpAwardSourceKey(
+          transaction.sourceType,
+          transaction.sourceId,
+        );
+
+        if (rewardSources.sourceKeys.has(sourceKey)) {
+          earnedRewardSourceKeys.add(sourceKey);
+        }
+      },
+    );
+  }
+
+  return earnedRewardSourceKeys;
+}
+
+async function readA4XpHistory(
+  database: ProgressPalDatabase,
+  options: {
+    collectRecent: boolean;
+    range?: RpgHubReadRange;
+  },
+) {
+  let totalXp = 0;
+  let weeklyXpEarned = 0;
+  const recentXpTransactions: RpgRecentXpTransaction[] = [];
+
+  await forEachValidatedRow(database.xpTransactions, (storedTransaction) => {
+    const transaction = parseWithSchema(
+      XpTransactionSchema,
+      storedTransaction,
+      'Stored XP transaction',
+    );
+
+    totalXp += transaction.xp;
+
+    if (
+      options.range !== undefined &&
+      Date.parse(transaction.awardedAt) >= options.range.startTime &&
+      Date.parse(transaction.awardedAt) < options.range.nextStartTime
+    ) {
+      weeklyXpEarned += transaction.xp;
+    }
+
+    if (options.collectRecent) {
+      retainRecentXpTransaction(recentXpTransactions, transaction);
+    }
+  });
+
+  return { recentXpTransactions, totalXp, weeklyXpEarned };
+}
+
+async function readA4SessionHistory(
+  database: ProgressPalDatabase,
+  range?: RpgHubReadRange,
+) {
+  let sessionCount = 0;
+  let totalMinutes = 0;
+  let weeklySessionCount = 0;
+  let weeklyTotalMinutes = 0;
+  const recentStudySessions: RpgRecentStudySession[] = [];
+
+  await forEachValidatedRow(database.studySessions, (storedSession) => {
+    const session = parseWithSchema(
+      StudySessionSchema,
+      storedSession,
+      'Stored study session',
+    );
+
+    sessionCount += 1;
+    totalMinutes += session.durationMinutes;
+    retainRecentStudySession(recentStudySessions, session);
+
+    if (
+      range !== undefined &&
+      Date.parse(session.startedAt) >= range.startTime &&
+      Date.parse(session.startedAt) < range.nextStartTime
+    ) {
+      weeklySessionCount += 1;
+      weeklyTotalMinutes += session.durationMinutes;
+    }
+  });
+
+  return {
+    recentStudySessions,
+    sessionCount,
+    totalMinutes,
+    weeklySessionCount,
+    weeklyTotalMinutes,
+  };
+}
+
+export async function getRpgHudReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHudReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [earnedRewardSourceKeys, xp] = await Promise.all([
+      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4XpHistory(database, { collectRecent: false }),
+    ]);
+
+    return {
+      ...courseState,
+      earnedRewardSourceKeys,
+      totalXp: xp.totalXp,
+    };
+  });
+}
+
+export async function getRpgHubReadData(
+  range: RpgHubReadRange,
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHubReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [earnedRewardSourceKeys, sessions, xp] = await Promise.all([
+      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4SessionHistory(database, range),
+      readA4XpHistory(database, { collectRecent: true, range }),
+    ]);
+
+    return {
+      ...courseState,
+      earnedRewardSourceKeys,
+      recentStudySessions: sessions.recentStudySessions,
+      recentXpTransactions: xp.recentXpTransactions,
+      sessionCount: sessions.sessionCount,
+      totalMinutes: sessions.totalMinutes,
+      totalXp: xp.totalXp,
+      weeklySessionCount: sessions.weeklySessionCount,
+      weeklyTotalMinutes: sessions.weeklyTotalMinutes,
+      weeklyXpEarned: xp.weeklyXpEarned,
+    };
+  });
+}
+
+export async function getRpgHeroReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<RpgHeroReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.learnerProfile,
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+    database.achievementUnlocks,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const courseState = await readA4CourseState(database);
+    const [sessions, xp, achievementUnlockRecords] = await Promise.all([
+      readA4SessionHistory(database),
+      readA4XpHistory(database, { collectRecent: true }),
+      database.achievementUnlocks.toArray(),
+    ]);
+    const achievementUnlocks = sortAchievementUnlocks(
+      parseStoredArray(
+        achievementUnlockRecords,
+        'Stored achievement unlock',
+        AchievementUnlockSchema,
+      ),
+    );
+
+    return {
+      ...courseState,
+      achievementUnlocks,
+      recentStudySessions: sessions.recentStudySessions,
+      recentXpTransactions: xp.recentXpTransactions,
+      sessionCount: sessions.sessionCount,
+      totalMinutes: sessions.totalMinutes,
+      totalXp: xp.totalXp,
+    };
+  });
+}
+
+export async function getCourseMapReadData(
+  options: BaseDatabaseOptions = {},
+): Promise<CourseMapReadData> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const [
+      courseUnits,
+      courseItems,
+      progressEntries,
+      contentAssets,
+      contentSlices,
+      resumePoints,
+    ] = await Promise.all([
+      database.courseUnits.toArray(),
+      database.courseItems.toArray(),
+      database.progressEntries.toArray(),
+      database.contentAssets.toArray(),
+      database.contentSlices.toArray(),
+      database.resumePoints.toArray(),
+    ]);
+    const parsedCourseUnits = sortCourseUnits(
+      parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+    );
+    const parsedCourseItems = sortCourseItems(
+      parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+    );
+    const parsedProgressEntries = sortProgressEntries(
+      parseStoredArray(
+        progressEntries,
+        'Stored progress entry',
+        ProgressEntrySchema,
+      ),
+    );
+    const parsedContentAssets = sortContentAssets(
+      parseStoredArray(
+        contentAssets,
+        'Stored content asset',
+        ContentAssetSchema,
+      ),
+    );
+    const parsedContentSlices = sortContentSlices(
+      parseStoredArray(
+        contentSlices,
+        'Stored content slice',
+        ContentSliceSchema,
+      ),
+    );
+    const parsedResumePoints = sortResumePoints(
+      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+    );
+    const mediaProgressByAssetId = new Map<
+      string,
+      MutableLongFormEventAggregate
+    >();
+    const assetIds = parsedContentAssets.map((asset) => asset.id);
+
+    if (assetIds.length > 0) {
+      await forEachValidatedRow(
+        database.mediaProgressEvents.where('assetId').anyOf(assetIds),
+        (storedEvent) => {
+          const event = parseWithSchema(
+            MediaProgressEventSchema,
+            storedEvent,
+            'Stored media progress event',
+          );
+          const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+            coverageRanges: [],
+            eventCount: 0,
+            lastCreatedAt: null,
+            lastEventEndSecond: null,
+            lastEventId: null,
+          };
+
+          aggregate.eventCount += 1;
+          addCoverageRange(aggregate.coverageRanges, {
+            endSecond: event.endSecond,
+            startSecond: event.startSecond,
+          });
+
+          if (
+            aggregate.lastCreatedAt === null ||
+            event.createdAt > aggregate.lastCreatedAt ||
+            (event.createdAt === aggregate.lastCreatedAt &&
+              (aggregate.lastEventId === null ||
+                event.id > aggregate.lastEventId))
+          ) {
+            aggregate.lastCreatedAt = event.createdAt;
+            aggregate.lastEventEndSecond = event.endSecond;
+            aggregate.lastEventId = event.id;
+          }
+
+          mediaProgressByAssetId.set(event.assetId, aggregate);
+        },
+      );
+    }
+
+    const rewardSources = getCourseMapRewardSources(
+      parsedCourseUnits,
+      parsedCourseItems,
+      parsedProgressEntries,
+    );
+    const earnedRewardSourceKeys = new Set<string>();
+
+    if (rewardSources.sourceIds.length > 0) {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored Map reward XP transaction',
+          );
+          const sourceKey = getXpAwardSourceKey(
+            transaction.sourceType,
+            transaction.sourceId,
+          );
+
+          if (rewardSources.sourceKeys.has(sourceKey)) {
+            earnedRewardSourceKeys.add(sourceKey);
+          }
+        },
+      );
+    }
+
+    return {
+      contentAssets: parsedContentAssets,
+      contentSlices: parsedContentSlices,
+      courseItems: parsedCourseItems,
+      courseUnits: parsedCourseUnits,
+      mediaProgressByAssetId: new Map(
+        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+          assetId,
+          {
+            coverageRanges: aggregate.coverageRanges,
+            eventCount: aggregate.eventCount,
+            lastEventEndSecond: aggregate.lastEventEndSecond,
+          },
+        ]),
+      ),
+      progressEntries: parsedProgressEntries,
+      resumePoints: parsedResumePoints,
+      earnedRewardSourceKeys,
+    };
+  });
+}
+
+export async function getModuleReadData(
+  unitId: string,
+  options: BaseDatabaseOptions = {},
+): Promise<ModuleReadData | null> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const storedUnit = await database.courseUnits.get(unitId);
+
+    if (storedUnit === undefined) {
+      return null;
+    }
+
+    const courseUnit = parseWithSchema(
+      CourseUnitSchema,
+      storedUnit,
+      `Stored course unit "${unitId}"`,
+    );
+    const courseItems = sortCourseItems(
+      parseStoredArray(
+        await database.courseItems.where('unitId').equals(unitId).toArray(),
+        'Stored course item',
+        CourseItemSchema,
+      ),
+    );
+    const itemIds = courseItems.map((item) => item.id);
+    const progressEntries =
+      itemIds.length === 0
+        ? []
+        : await database.progressEntries
+            .where('itemId')
+            .anyOf(itemIds)
+            .toArray();
+    const contentAssets =
+      itemIds.length === 0
+        ? []
+        : await database.contentAssets.where('itemId').anyOf(itemIds).toArray();
+    const contentSlices =
+      itemIds.length === 0
+        ? []
+        : await database.contentSlices.where('itemId').anyOf(itemIds).toArray();
+    const resumePoints =
+      itemIds.length === 0
+        ? []
+        : await database.resumePoints.where('itemId').anyOf(itemIds).toArray();
+    const parsedProgressEntries = sortProgressEntries(
+      parseStoredArray(
+        progressEntries,
+        'Stored progress entry',
+        ProgressEntrySchema,
+      ),
+    );
+    const parsedContentAssets = sortContentAssets(
+      parseStoredArray(
+        contentAssets,
+        'Stored content asset',
+        ContentAssetSchema,
+      ),
+    );
+    const parsedContentSlices = sortContentSlices(
+      parseStoredArray(
+        contentSlices,
+        'Stored content slice',
+        ContentSliceSchema,
+      ),
+    );
+    const parsedResumePoints = sortResumePoints(
+      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+    );
+    const mediaProgressByAssetId = new Map<
+      string,
+      MutableLongFormEventAggregate
+    >();
+
+    if (itemIds.length > 0) {
+      await forEachValidatedRow(
+        database.mediaProgressEvents.where('itemId').anyOf(itemIds),
+        (storedEvent) => {
+          const event = parseWithSchema(
+            MediaProgressEventSchema,
+            storedEvent,
+            'Stored media progress event',
+          );
+          const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+            coverageRanges: [],
+            eventCount: 0,
+            lastCreatedAt: null,
+            lastEventEndSecond: null,
+            lastEventId: null,
+          };
+
+          aggregate.eventCount += 1;
+          addCoverageRange(aggregate.coverageRanges, {
+            endSecond: event.endSecond,
+            startSecond: event.startSecond,
+          });
+
+          if (
+            aggregate.lastCreatedAt === null ||
+            event.createdAt > aggregate.lastCreatedAt ||
+            (event.createdAt === aggregate.lastCreatedAt &&
+              (aggregate.lastEventId === null ||
+                event.id > aggregate.lastEventId))
+          ) {
+            aggregate.lastCreatedAt = event.createdAt;
+            aggregate.lastEventEndSecond = event.endSecond;
+            aggregate.lastEventId = event.id;
+          }
+
+          mediaProgressByAssetId.set(event.assetId, aggregate);
+        },
+      );
+    }
+
+    const rewardSources = getCourseMapRewardSources(
+      [courseUnit],
+      courseItems,
+      parsedProgressEntries,
+    );
+    const earnedRewardSourceKeys = new Set<string>();
+
+    if (rewardSources.sourceIds.length > 0) {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored Module reward XP transaction',
+          );
+          const sourceKey = getXpAwardSourceKey(
+            transaction.sourceType,
+            transaction.sourceId,
+          );
+
+          if (rewardSources.sourceKeys.has(sourceKey)) {
+            earnedRewardSourceKeys.add(sourceKey);
+          }
+        },
+      );
+    }
+
+    return {
+      contentAssets: parsedContentAssets,
+      contentSlices: parsedContentSlices,
+      courseItems,
+      courseUnit,
+      mediaProgressByAssetId: new Map(
+        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+          assetId,
+          {
+            coverageRanges: aggregate.coverageRanges,
+            eventCount: aggregate.eventCount,
+            lastEventEndSecond: aggregate.lastEventEndSecond,
+          },
+        ]),
+      ),
+      progressEntries: parsedProgressEntries,
+      resumePoints: parsedResumePoints,
+      earnedRewardSourceKeys,
+    };
+  });
+}
+
+export async function getResourceReadData(
+  itemId: string,
+  options: BaseDatabaseOptions = {},
+): Promise<ResourceReadData | null> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.xpTransactions,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const storedItem = await database.courseItems.get(itemId);
+
+    if (storedItem === undefined) {
+      return null;
+    }
+
+    const courseItem = parseWithSchema(
+      CourseItemSchema,
+      storedItem,
+      `Stored course item "${itemId}"`,
+    );
+    const storedUnit = await database.courseUnits.get(courseItem.unitId);
+
+    if (storedUnit === undefined) {
+      return null;
+    }
+
+    const courseUnit = parseWithSchema(
+      CourseUnitSchema,
+      storedUnit,
+      `Stored course unit "${courseItem.unitId}"`,
+    );
+    const courseItems = sortCourseItems(
+      parseStoredArray(
+        await database.courseItems
+          .where('unitId')
+          .equals(courseItem.unitId)
+          .toArray(),
+        'Stored course item',
+        CourseItemSchema,
+      ),
+    );
+    const unitItemIds = courseItems.map((item) => item.id);
+    const progressEntries =
+      unitItemIds.length === 0
+        ? []
+        : await database.progressEntries
+            .where('itemId')
+            .anyOf(unitItemIds)
+            .toArray();
+    const contentAssets = await database.contentAssets
+      .where('itemId')
+      .equals(itemId)
+      .toArray();
+    const contentSlices = await database.contentSlices
+      .where('itemId')
+      .equals(itemId)
+      .toArray();
+    const resumePoints = await database.resumePoints
+      .where('itemId')
+      .equals(itemId)
+      .toArray();
+    const parsedProgressEntries = sortProgressEntries(
+      parseStoredArray(
+        progressEntries,
+        'Stored progress entry',
+        ProgressEntrySchema,
+      ),
+    );
+    const parsedContentAssets = sortContentAssets(
+      parseStoredArray(
+        contentAssets,
+        'Stored content asset',
+        ContentAssetSchema,
+      ),
+    );
+    const parsedContentSlices = sortContentSlices(
+      parseStoredArray(
+        contentSlices,
+        'Stored content slice',
+        ContentSliceSchema,
+      ),
+    );
+    const parsedResumePoints = sortResumePoints(
+      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
+    );
+    const mediaProgressByAssetId = new Map<
+      string,
+      MutableLongFormEventAggregate
+    >();
+
+    await forEachValidatedRow(
+      database.mediaProgressEvents.where('itemId').equals(itemId),
+      (storedEvent) => {
+        const event = parseWithSchema(
+          MediaProgressEventSchema,
+          storedEvent,
+          'Stored Resource media progress event',
+        );
+        const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+          coverageRanges: [],
+          eventCount: 0,
+          lastCreatedAt: null,
+          lastEventEndSecond: null,
+          lastEventId: null,
+        };
+
+        aggregate.eventCount += 1;
+        addCoverageRange(aggregate.coverageRanges, {
+          endSecond: event.endSecond,
+          startSecond: event.startSecond,
+        });
+
+        if (
+          aggregate.lastCreatedAt === null ||
+          event.createdAt > aggregate.lastCreatedAt ||
+          (event.createdAt === aggregate.lastCreatedAt &&
+            (aggregate.lastEventId === null ||
+              event.id > aggregate.lastEventId))
+        ) {
+          aggregate.lastCreatedAt = event.createdAt;
+          aggregate.lastEventEndSecond = event.endSecond;
+          aggregate.lastEventId = event.id;
+        }
+
+        mediaProgressByAssetId.set(event.assetId, aggregate);
+      },
+    );
+
+    const rewardSources = getResourceRewardSources(
+      courseUnit,
+      courseItems,
+      parsedProgressEntries,
+      courseItem,
+    );
+    const earnedRewardSourceKeys = new Set<string>();
+
+    if (rewardSources.sourceIds.length > 0) {
+      await forEachValidatedRow(
+        database.xpTransactions
+          .where('sourceId')
+          .anyOf(rewardSources.sourceIds),
+        (storedTransaction) => {
+          const transaction = parseWithSchema(
+            XpTransactionSchema,
+            storedTransaction,
+            'Stored Resource reward XP transaction',
+          );
+          const sourceKey = getXpAwardSourceKey(
+            transaction.sourceType,
+            transaction.sourceId,
+          );
+
+          if (rewardSources.sourceKeys.has(sourceKey)) {
+            earnedRewardSourceKeys.add(sourceKey);
+          }
+        },
+      );
+    }
+
+    return {
+      contentAssets: parsedContentAssets,
+      contentSlices: parsedContentSlices,
+      courseItem,
+      courseItems,
+      courseUnit,
+      mediaProgressByAssetId: new Map(
+        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
+          assetId,
+          {
+            coverageRanges: aggregate.coverageRanges,
+            eventCount: aggregate.eventCount,
+            lastEventEndSecond: aggregate.lastEventEndSecond,
+          },
+        ]),
+      ),
+      progressEntries: parsedProgressEntries,
+      resumePoints: parsedResumePoints,
+      earnedRewardSourceKeys,
+    };
+  });
 }
 
 export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {

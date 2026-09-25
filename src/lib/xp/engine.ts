@@ -275,3 +275,44 @@ export function evaluateProgressXp(params: {
 
   return awards;
 }
+
+export function getXpAwardSourceKey(sourceType: string, sourceId: string) {
+  return JSON.stringify([sourceType, sourceId]);
+}
+
+export function evaluateCompletionPreviewXp(params: {
+  allCourseItems: readonly CourseItem[];
+  allProgress: readonly ProgressEntry[];
+  item: CourseItem;
+  unit: CourseUnit;
+}): PotentialXpAward[] {
+  const { allCourseItems, allProgress, item, unit } = params;
+  const completion: ProgressEntry = {
+    id: `preview-${item.id}`,
+    itemId: item.id,
+    status: item.type === 'problem_set' ? 'accepted' : 'completed',
+    confidence: 0,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  };
+  const sharedFinalReward =
+    item.id === 'final-project-readme' ||
+    item.id === 'final-project-video-demo';
+  const finalProjectProgress = sharedFinalReward
+    ? ['final-project-readme', 'final-project-video-demo'].map((id) => ({
+        ...completion,
+        itemId: id,
+      }))
+    : [...allProgress];
+
+  return evaluateProgressXp({
+    item,
+    unit,
+    progressEntry: completion,
+    allUnitItems: allCourseItems.filter(
+      (candidate) => candidate.unitId === unit.id,
+    ),
+    allUnitProgress: [...allProgress],
+    finalProjectProgress,
+  });
+}

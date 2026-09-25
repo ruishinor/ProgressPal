@@ -12,7 +12,6 @@ import {
 import { useLocation, useOutletContext } from 'react-router-dom';
 
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
-import { loadRpgHubSummary } from '@/features/rpg/model/readModels';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import {
   StudySessionsSurface,
@@ -58,20 +57,18 @@ export function RpgFocusPage() {
     async (feedback: RpgFocusSaveFeedback) => {
       const version = ++refreshVersion.current;
       setSaveFeedback({ ...feedback, refreshStatus: 'loading' });
-      refreshHud();
-
       try {
-        const hubSummary = await loadRpgHubSummary();
+        const hudSummary = await refreshHud();
         if (version !== refreshVersion.current) {
           return;
         }
-        const recommendation = hubSummary.recommendation;
+        const recommendation = hudSummary.recommendation;
         const nextQuest = recommendation.quest;
         setSaveFeedback({
           ...feedback,
-          levelProgressLabel: hubSummary.xpSummary.levelProgressLabel,
-          level: hubSummary.xpSummary.level,
-          levelProgressPercent: hubSummary.xpSummary.levelProgressPercent,
+          levelProgressLabel: hudSummary.xpSummary.levelProgressLabel,
+          level: hudSummary.xpSummary.level,
+          levelProgressPercent: hudSummary.xpSummary.levelProgressPercent,
           nextActionHref:
             nextQuest === null ? rpgMapPath : getRpgResourcePath(nextQuest.id),
           nextActionLabel:
@@ -79,8 +76,8 @@ export function RpgFocusPage() {
               ? 'Open Campaign Map'
               : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
           refreshStatus: 'ready',
-          totalXp: hubSummary.xpSummary.totalXp,
-          xpToNextLevel: hubSummary.xpSummary.xpToNextLevel,
+          totalXp: hudSummary.xpSummary.totalXp,
+          xpToNextLevel: hudSummary.xpSummary.xpToNextLevel,
         });
       } catch (loadError) {
         console.error(

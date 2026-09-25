@@ -31,7 +31,7 @@ import {
 } from '@/features/course/paths';
 import {
   buildSessionCatalog,
-  buildSessionLedgerRows,
+  buildSessionLedgerRow,
   buildStudySessionInput,
   createIdleLiveSession,
   createManualSessionFormValues,
@@ -53,10 +53,8 @@ import {
 } from '@/features/sessions/model';
 import {
   addStudySessionAndAwardXp,
-  getCourseItem,
-  listCourseItems,
-  listCourseUnits,
-  listStudySessions,
+  readStudySessionLedgerRows,
+  readStudySessionsSurfaceData,
   type AddStudySessionWithXpResult,
 } from '@/lib/db';
 import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
@@ -135,15 +133,19 @@ function nowClockSnapshot() {
 async function loadSessionsPageData(
   prefilledItemId: string | null,
 ): Promise<SessionsPageData> {
-  const [units, items, sessions] = await Promise.all([
-    listCourseUnits(),
-    listCourseItems(),
-    listStudySessions(),
-  ]);
-  const catalog = buildSessionCatalog(units, items);
+  const { context: catalog, ledgerRows } = await readStudySessionsSurfaceData(
+    (units, items) => {
+      const catalog = buildSessionCatalog(units, items);
+
+      return {
+        context: catalog,
+        projectSession: (session) => buildSessionLedgerRow(session, catalog),
+      };
+    },
+  );
 
   if (prefilledItemId !== null && prefilledItemId.trim().length > 0) {
-    const item = await getCourseItem(prefilledItemId);
+    const item = catalog.itemById.get(prefilledItemId) ?? null;
 
     if (item === null) {
       throw new Error(
@@ -153,7 +155,7 @@ async function loadSessionsPageData(
 
     return {
       catalog,
-      ledgerRows: buildSessionLedgerRows(sessions, catalog),
+      ledgerRows,
       lockedUnitId: item.unitId,
       prefilledItemId: item.id,
       prefillItemTitle: item.title,
@@ -162,7 +164,7 @@ async function loadSessionsPageData(
 
   return {
     catalog,
-    ledgerRows: buildSessionLedgerRows(sessions, catalog),
+    ledgerRows,
     lockedUnitId: null,
     prefilledItemId: '',
     prefillItemTitle: null,
@@ -416,9 +418,17 @@ export function StudySessionsSurface({
 
   async function refreshSessionHistory() {
     const version = ++historyRefreshVersion.current;
+    const currentCatalog = pageState.data?.catalog ?? null;
+
+    if (currentCatalog === null) {
+      return;
+    }
+
     setHistoryRefreshStatus('loading');
     try {
-      const sessions = await listStudySessions();
+      const ledgerRows = await readStudySessionLedgerRows((session) =>
+        buildSessionLedgerRow(session, currentCatalog),
+      );
       if (version !== historyRefreshVersion.current) {
         return;
       }
@@ -429,10 +439,7 @@ export function StudySessionsSurface({
               ...current,
               data: {
                 ...current.data,
-                ledgerRows: buildSessionLedgerRows(
-                  sessions,
-                  current.data.catalog,
-                ),
+                ledgerRows,
               },
             },
       );

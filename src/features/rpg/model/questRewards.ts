@@ -1,10 +1,33 @@
-import type { DatabaseSnapshot } from '@/lib/db';
-import type { ProgressEntry } from '@/lib/domain';
-import { evaluateProgressXp } from '@/lib/xp/engine';
+import type {
+  CourseItem,
+  CourseUnit,
+  ProgressEntry,
+  XpTransaction,
+} from '@/lib/domain';
+import {
+  evaluateCompletionPreviewXp,
+  getXpAwardSourceKey,
+} from '@/lib/xp/engine';
+
+type QuestRewardLedger =
+  | {
+      earnedRewardSourceKeys?: never;
+      xpTransactions: readonly XpTransaction[];
+    }
+  | {
+      earnedRewardSourceKeys: ReadonlySet<string>;
+      xpTransactions?: never;
+    };
+
+export type QuestRewardData = {
+  courseItems: readonly CourseItem[];
+  courseUnits: readonly CourseUnit[];
+  progressEntries: readonly ProgressEntry[];
+} & QuestRewardLedger;
 
 /** A read-only incentive from the existing engine and earned-reward ledger. */
 export function buildQuestRewardLabel(
-  snapshot: DatabaseSnapshot,
+  snapshot: QuestRewardData,
   itemId: string,
   detailed = false,
 ) {
@@ -16,41 +39,29 @@ export function buildQuestRewardLabel(
   );
   if (!item || !unit) return 'No task XP';
 
-  const completion: ProgressEntry = {
-    id: `preview-${item.id}`,
-    itemId: item.id,
-    status: item.type === 'problem_set' ? 'accepted' : 'completed',
-    confidence: 0,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-  };
   const sharedFinalReward =
     item.id === 'final-project-readme' ||
     item.id === 'final-project-video-demo';
-  const finalProjectProgress = sharedFinalReward
-    ? ['final-project-readme', 'final-project-video-demo'].map((id) => ({
-        ...completion,
-        itemId: id,
-      }))
-    : snapshot.progressEntries;
-  const awards = evaluateProgressXp({
+  const awards = evaluateCompletionPreviewXp({
+    allCourseItems: snapshot.courseItems,
+    allProgress: snapshot.progressEntries,
     item,
     unit,
-    progressEntry: completion,
-    allUnitItems: snapshot.courseItems.filter(
-      (candidate) => candidate.unitId === unit.id,
-    ),
-    allUnitProgress: snapshot.progressEntries,
-    finalProjectProgress,
   });
-  const remaining = awards.filter(
-    (award) =>
-      !snapshot.xpTransactions.some(
-        (earned) =>
-          earned.sourceType === award.sourceType &&
-          earned.sourceId === award.sourceId,
-      ),
-  );
+  const remaining = awards.filter((award) => {
+    const earned =
+      snapshot.earnedRewardSourceKeys !== undefined
+        ? snapshot.earnedRewardSourceKeys.has(
+            getXpAwardSourceKey(award.sourceType, award.sourceId),
+          )
+        : snapshot.xpTransactions.some(
+            (transaction) =>
+              transaction.sourceType === award.sourceType &&
+              transaction.sourceId === award.sourceId,
+          );
+
+    return !earned;
+  });
   const taskAwards = awards.filter(
     (award) => award.sourceType !== 'week_completed',
   );
