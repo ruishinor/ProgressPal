@@ -11,7 +11,7 @@ import {
   buildInsightsModel,
   type InsightsModel,
 } from '@/features/insights/model';
-import { buildLongFormProgressMap } from '@/features/progress';
+import { buildLongFormProgressMap } from '@/lib/progress';
 import {
   getAchievementsView,
   listContentAssets,

@@ -16,7 +16,7 @@ import {
   type DashboardCourseProgress,
   type DashboardModel,
 } from '@/features/dashboard/model';
-import { buildLongFormProgressMap } from '@/features/progress';
+import { buildLongFormProgressMap } from '@/lib/progress';
 import {
   getAchievementsView,
   getXpSummary,

@@ -1,4 +1,4 @@
-import type { CourseLongFormProgress } from '@/features/progress';
+import type { LongFormProgressView } from '@/lib/progress';
 import { courseItemTypeLabels } from '@/features/course/model';
 import type {
   CourseItem,
@@ -16,7 +16,7 @@ import { formatMinutes } from '@/lib/time';
 export type CourseDetailView = {
   estimatedMinutesLabel: string;
   itemId: string;
-  longFormProgress: CourseLongFormProgress | null;
+  longFormProgress: LongFormProgressView | null;
   progressStatus: ProgressStatus | 'not_started';
   required: boolean;
   statusLabel: string;
@@ -47,7 +47,7 @@ type ProgressStatusOptionContext = {
   correction?: boolean;
   currentStatus: ProgressStatus | 'not_started';
   itemType: CourseItem['type'];
-  longFormProgress: CourseLongFormProgress | null;
+  longFormProgress: LongFormProgressView | null;
   required: boolean;
 };
 
@@ -104,7 +104,7 @@ export function buildCourseDetailView(
   unit: CourseUnit,
   item: CourseItem,
   progressEntry: ProgressEntry | null,
-  longFormProgress: CourseLongFormProgress | null,
+  longFormProgress: LongFormProgressView | null,
 ): CourseDetailView {
   const progressStatus =
     progressEntry?.status ??

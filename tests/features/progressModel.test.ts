@@ -8,15 +8,13 @@ import type {
   ResumePoint,
 } from '@/lib/domain';
 import {
+  buildLongFormProgressMap,
+  buildLongFormProgressMapFromEventAggregates,
   createSlicePlan,
   deriveLongFormAssetId,
   deriveLongFormSliceId,
 } from '@/lib/progress';
-import {
-  buildLongFormDetailView,
-  buildLongFormProgressMap,
-  buildLongFormProgressMapFromEventAggregates,
-} from '@/features/progress';
+import { buildLongFormDetailView } from '@/features/progress';
 
 const timestamp = '2026-06-12T09:00:00.000Z';
 const assetId = deriveLongFormAssetId('week-0-lecture');
@@ -146,6 +144,25 @@ describe('progress feature model', () => {
       hasProgress: false,
       summaryLine: '6 segments planned',
     });
+  });
+
+  it('keeps the first ordered asset for an item in both map paths', () => {
+    const earlier = { ...asset, id: 'asset-earlier', order: 0 };
+    const later = { ...asset, id: 'asset-later', order: 1 };
+    const assets = [later, earlier];
+
+    expect(
+      buildLongFormProgressMap(assets, [], [], [], []).get(asset.itemId),
+    ).toMatchObject({ assetId: earlier.id });
+    expect(
+      buildLongFormProgressMapFromEventAggregates(
+        assets,
+        [],
+        new Map(),
+        [],
+        [],
+      ).get(asset.itemId),
+    ).toMatchObject({ assetId: earlier.id });
   });
 
   it('builds the same long-form view from a streaming event aggregate', () => {

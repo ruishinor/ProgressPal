@@ -11,6 +11,8 @@ Current responsibilities:
 - merge overlapping watched ranges through interval union
 - build read-only watched-time and resume summaries from immutable media events
 - present saved progress statuses with shared labels and display variants
+- assemble item-keyed long-form progress maps for course, dashboard, insights,
+  and RPG reads using the same engine and stable asset/event/slice ordering
 
 Still deferred:
 

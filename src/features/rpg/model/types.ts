@@ -1,5 +1,5 @@
 import type { CourseStatusVariant } from '@/lib/progress';
-import type { CourseLongFormProgress } from '@/features/progress';
+import type { LongFormProgressView } from '@/lib/progress';
 import type {
   AchievementCategory,
   CourseItemType,
@@ -46,7 +46,7 @@ export type RpgQuestSummary = {
   rewardLabel: string;
   estimatedMinutes: number;
   id: string;
-  longFormProgress: CourseLongFormProgress | null;
+  longFormProgress: LongFormProgressView | null;
   officialLink: RpgOfficialLink | null;
   required: boolean;
   status: ProgressStatus | 'not_started';
@@ -191,7 +191,7 @@ export type RpgStudyResourceSummary = {
   estimatedMinutesLabel: string;
   itemId: string;
   itemType: CourseItemType;
-  longFormProgress: CourseLongFormProgress | null;
+  longFormProgress: LongFormProgressView | null;
   officialLink: RpgOfficialLink | null;
   progressStatus: ProgressStatus | 'not_started';
   required: boolean;

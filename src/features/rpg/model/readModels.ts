@@ -18,7 +18,7 @@ import {
 import {
   buildLongFormProgressMap,
   buildLongFormProgressMapFromEventAggregates,
-} from '@/features/progress/model';
+} from '@/lib/progress';
 import { achievementDefinitions } from '@/lib/achievements';
 import { isItemComplete } from '@/lib/completion';
 import {

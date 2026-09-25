@@ -9,7 +9,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { CourseMapSummary } from '@/features/course/components/CourseMapSummary';
 import { CourseUnitCard } from '@/features/course/components/CourseUnitCard';
 import { buildCourseMap, type CourseMapView } from '@/features/course/model';
-import { buildLongFormProgressMap } from '@/features/progress';
+import { buildLongFormProgressMap } from '@/lib/progress';
 import {
   getXpSummary,
   listContentAssets,

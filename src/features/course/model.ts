@@ -1,4 +1,4 @@
-import type { CourseLongFormProgress } from '@/features/progress';
+import type { LongFormProgressView } from '@/lib/progress';
 import type {
   CourseItem,
   CourseItemType,
@@ -22,7 +22,7 @@ export { formatMinutes } from '@/lib/time';
 export type CourseMapItem = {
   estimatedMinutes: number;
   id: string;
-  longFormProgress: CourseLongFormProgress | null;
+  longFormProgress: LongFormProgressView | null;
   required: boolean;
   status: ProgressStatus | 'not_started';
   statusLabel: string;
@@ -161,7 +161,7 @@ function roundPercent(value: number) {
 }
 
 function inferStatusFromLongFormProgress(
-  longFormProgress: CourseLongFormProgress | null,
+  longFormProgress: LongFormProgressView | null,
 ): ProgressStatus | 'not_started' {
   if (longFormProgress === null || !longFormProgress.hasProgress) {
     return 'not_started';
@@ -176,7 +176,7 @@ export function buildCourseMap(
   progressEntries: readonly ProgressEntry[],
   longFormProgressByItemId: ReadonlyMap<
     string,
-    CourseLongFormProgress
+    LongFormProgressView
   > = new Map(),
 ): CourseMapView {
   const progressByItemId = new Map(

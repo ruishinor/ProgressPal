@@ -11,11 +11,11 @@ stories:
     scope: Move formatMinutes and progress-status presentation into lib
     acceptance: Preserve exact strings and status variants; focused tests, typecheck, lint, format, circular check
   - id: B2
-    state: ready
+    state: pass_ready_for_b3
     scope: Move long-form map builders to lib/progress and use its existing view type
     acceptance: Preserve map ordering, aggregate equivalence and course/RPG consumers; focused tests and architecture gates
   - id: B3
-    state: provisional
+    state: ready
     scope: Source the session save result type from lib/db; retain shared UI and compatibility export
     acceptance: Preserve Focus callback and save payload; focused tests and architecture gates
   - id: B4

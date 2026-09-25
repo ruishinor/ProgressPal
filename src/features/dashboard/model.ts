@@ -2,7 +2,7 @@ import {
   type CourseMapItem,
   type CourseMapView,
 } from '@/features/course/model';
-import type { CourseLongFormProgress } from '@/features/progress';
+import type { LongFormProgressView } from '@/lib/progress';
 import { getModeLabel } from '@/features/sessions/model';
 import type { AchievementsView } from '@/lib/db';
 import type {
@@ -139,7 +139,7 @@ export type DashboardModel = {
 export type DashboardModelInput = {
   achievements: AchievementsView;
   courseMap: CourseMapView;
-  longFormByItemId: ReadonlyMap<string, CourseLongFormProgress>;
+  longFormByItemId: ReadonlyMap<string, LongFormProgressView>;
   mediaProgressEvents: readonly MediaProgressEvent[];
   progressEntries: readonly ProgressEntry[];
   resumePoints: readonly ResumePoint[];
