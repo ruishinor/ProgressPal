@@ -21,7 +21,7 @@ stories:
   - id: C1
     title: Baseline preservation evidence
     state: ready_after_owner_review_of_c0
-    objective: Capture semantic oracles, characterization evidence, a baseline-built schema-2 fixture and the retained visual baseline from the unchanged baseline, before any ownership change
+    objective: Freeze semantic oracles for every externally meaningful value SPEC.md section 4 preserves (curriculum, XP, reward identity, achievement definitions and order, links, guides, labels, CS50 copy), keep characterization only for internal or unreachable outputs, and capture a baseline-built schema-2 fixture and the retained visual baseline from the unchanged baseline, before any ownership change
     prerequisites: [owner review of C0 PASS]
     allowed_scope:
       - new test files and fixtures under tests/**
@@ -69,20 +69,23 @@ stories:
   - id: C3
     title: Programme reward and catalogue rules passed into lib engines
     state: planned
-    objective: Move XP configuration, achievement definitions, the final_project seed requirement and the final-project unit lookup into the CS50 definition; lib engines and repositories receive them as parameters
+    objective: Move only the CS50-bound rules into the cs50x-2026 definition - the two final-project XP milestones, the 10 CS50-bound achievement definitions and the programme's achievement display order, the final_project seed requirement and the final-project pair lookup; lib engines and repositories receive them as parameters. Shared XP policy and the 6 shared achievement definitions stay in lib (C0_PROGRAMME_DEFINITION_CONTRACT.md section 3)
     prerequisites: [C2 accepted]
     delivery: concern-scoped commits (XP; achievements; catalogue validation and lookup), each passing the C1 evidence
     allowed_scope:
       - src/lib/xp, src/lib/achievements, src/lib/domain seed validation, src/lib/db award paths (parameterisation only)
+      - features/rpg/model/questRewards.ts and other consumers of the final-project pair or achievementDefinitions (sourcing only)
       - src/programmes/** CS50 core definition
       - composition roots passing the definition
     forbidden_scope:
-      - any change to amounts, sourceType, sourceId, reason, unlock IDs or trigger IDs
+      - any change to amounts, sourceType, sourceId, reason, unlock IDs, trigger IDs or achievement display order
+      - moving shared XP policy or the 6 shared achievement definitions into programme configuration
       - read scoping; schema; terminology; CSS; assets
     required_evidence:
-      - C1 XP, preview, persisted-identity and achievement evidence identical
+      - C1 semantic oracles for XP, preview labels, persisted reward identity, the ordered 16-definition table and achievement satisfaction identical
       - P1 as RED then green with a test-only definition lacking final_project; CS50 still requires it
-      - lib contains no programme catalogue ID literal (G-7)
+      - lib contains no CS50-owned identifier literal; shared achievement IDs exempt (G-7)
+      - order-list validation rejects omitted, duplicate and unknown achievement IDs
       - achievementsFeature and sessionsFeature purity guards; repositories award paths; saveOutcomes; insights alignment test
     owner_decision_gates: []
     stop_conditions:
@@ -90,18 +93,19 @@ stories:
       - a lib engine would need to import src/programmes/**
 
   - id: C4
-    title: Programme terminology and feature-level course configuration
+    title: CS50 programme terminology
     state: planned
-    objective: Move type/category/mode labels, CS50 curriculum copy, RPG identity labels (including their literal types), the map ordinal label and the submission-workflow capability into CS50 definition content
+    objective: Move only CS50-dependent terminology into cs50x-2026 definition content - CS50 copy, the curriculum-unit noun in unit-level copy, the RPG identity tuple (including its literal types) and the per-unit map ordinal label replacing week- ID parsing. Shared type, asset-type, category, session-mode and rank labels and the submission workflow stay in place
     prerequisites: [C3 accepted]
     allowed_scope:
       - src/programmes/** CS50 content
-      - features/app consumers reading labels and workflow capability from the definition
+      - features/app consumers reading CS50 terminology from the definition
     forbidden_scope:
       - brand text change (OD-6); route contract change; layout or CSS change
       - rule, reward or read-scope changes
+      - moving shared labels or the submission workflow into programme configuration
     required_evidence:
-      - C1 label evidence and existing rendered-text tests identical
+      - C1 label and copy semantic oracles (shared and CS50-owned rows) and existing rendered-text tests identical
       - lab/problem_set status asymmetry preserved (courseDetailModel tests)
       - routeDefinitions unchanged; rpgFeature; accessibility E2E
       - C1 capture spec re-run; differing captures go to owner review

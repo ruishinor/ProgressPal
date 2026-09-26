@@ -57,10 +57,10 @@ requirement known to C0.**
 | Semantic                                                             | Location                                                                                                                                             | Evidence | Class                                                 |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
 | Generic seed schema requires a `final_project` unit                  | `src/lib/domain/schemas.ts:444-450`                                                                                                                  | [F] [P1] | programme configuration embedded in shared validation |
-| Unit-type vocabulary `week`, `special`, `final_project`              | `src/lib/domain/constants.ts:1-5`; persisted `course_units.type`                                                                                     | [F]      | persisted enum; labels are programme configuration    |
-| Item-type vocabulary incl. `problem_set`, `lab`, `shorts`, `section` | `src/lib/domain/constants.ts:7-18`; persisted `course_items.type`                                                                                    | [F]      | persisted enum; labels are programme configuration    |
-| Study-session mode `final_project`                                   | `src/lib/domain/constants.ts:62`; persisted `study_sessions.mode`                                                                                    | [F]      | persisted enum                                        |
-| Achievement category vocabulary `problem_sets`, `final_project`      | `src/lib/domain/constants.ts:89-97`                                                                                                                  | [F]      | persisted enum; labels are programme configuration    |
+| Unit-type vocabulary `week`, `special`, `final_project`              | `src/lib/domain/constants.ts:1-5`; persisted `course_units.type`                                                                                     | [F]      | shared persisted enum; shared labels (X-5, X-10)      |
+| Item-type vocabulary incl. `problem_set`, `lab`, `shorts`, `section` | `src/lib/domain/constants.ts:7-18`; persisted `course_items.type`                                                                                    | [F]      | shared persisted enum; shared labels (X-5, X-10)      |
+| Study-session mode `final_project`                                   | `src/lib/domain/constants.ts:62`; persisted `study_sessions.mode`                                                                                    | [F]      | shared persisted enum; shared label (X-5, X-10)       |
+| Achievement category vocabulary `problem_sets`, `final_project`      | `src/lib/domain/constants.ts:89-97`                                                                                                                  | [F]      | shared persisted enum; shared labels (X-5, X-10)      |
 | Seed composition roots (only callers pass `bundledCourseSeed`)       | `lib/appState/AppStateProvider.tsx:228`, `features/profile/routes/OnboardingPage.tsx:79`, `features/settings/components/SettingsSurface.tsx:173,198` | [F]      | composition roots                                     |
 
 [F] The type vocabularies are closed Zod enums validated on every stored-row
@@ -71,9 +71,9 @@ and is not proposed by Epic C ([X] X-5).
 
 | Rule                                                                                                | Evidence | Programme coupling                                                                                                                 |
 | --------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Completion XP by item type: lecture 40, section 20, shorts 15, practice 30, notes 15, reflection 15 | [F]      | Amounts are programme policy keyed on the shared type vocabulary. `reading`, `lab`, `project_task` earn no completion XP.          |
-| Problem-set workflow XP: started 20, submitted 75, accepted 125                                     | [F]      | Keyed on item type `problem_set`                                                                                                   |
-| Unit completion bonus 150 for required units of type `week`                                         | [F] [P4] | Keyed on unit type `week`; applies to any programme using that type                                                                |
+| Completion XP by item type: lecture 40, section 20, shorts 15, practice 30, notes 15, reflection 15 | [F]      | Shared policy keyed only on the shared type vocabulary; no CS50 input. `reading`, `lab`, `project_task` earn no completion XP.     |
+| Problem-set workflow XP: started 20, submitted 75, accepted 125                                     | [F]      | Shared policy keyed on the shared type `problem_set`                                                                               |
+| Unit completion bonus 150 for required units of type `week`                                         | [F] [P4] | Shared policy keyed on the shared unit type `week`; applies to any programme using that type                                       |
 | Final-project milestones 250 (build) and 200 (README + demo pair)                                   | [F] [P4] | Hard-coded CS50 item IDs `final-project-build`, `final-project-readme`, `final-project-video-demo` and fixed milestone `sourceId`s |
 | Preview completion status (`accepted` for problem sets)                                             | [F]      | Item-type keyed                                                                                                                    |
 | Level curve `floor(sqrt(xp/100)) + 1`                                                               | [F]      | Shared engine                                                                                                                      |
@@ -88,8 +88,16 @@ single-programme lookup.
 `week_completed`) into item/unit award counts, with an alignment test
 (`tests/features/insightsModel.test.ts`).
 
-[F] `src/features/rpg/model/questRewards.ts:43-72` repeats the final-project
-pair IDs and the `week_completed` classification for reward labels.
+[F] `src/features/rpg/model/questRewards.ts:43-72` and the preview in
+`src/lib/xp/engine.ts` (`sharedFinalReward`) repeat the final-project pair IDs;
+`questRewards.ts` also uses the shared `week_completed` source type for reward
+labels.
+
+Classification (reconciled in the ownership split,
+`C0_PROGRAMME_DEFINITION_CONTRACT.md` §3): only the final-project milestones
+and their pair lookups are CS50-bound. Type amounts, the problem-set workflow
+and the `week` bonus are shared policy, and the `sourceType` names are shared
+persisted vocabulary.
 
 [F] Activity XP (10-minute media blocks, clean stop, slice, 25-minute session)
 lives in repository award paths and is programme-neutral in rule; its source
@@ -98,21 +106,30 @@ IDs derive from learner-activity IDs. Class: shared engine.
 ### 2c. Achievements (`src/lib/achievements/`)
 
 [F] 16 code-only definitions (`definitions.ts`), validated at module load; the
-`achievement_definitions` store is never read or written. Eleven are
-CS50-bound: seven `unit_required_completed` on `week-0/4/5/6/7/8/9`, one
-`course_required_completed`, `pset-chain` (`problem_set_status_count`), and
-two final-project definitions bound to CS50 item IDs. Titles and descriptions
-name CS50 topics.
+`achievement_definitions` store is never read or written. Ten are
+CS50-bound: seven `unit_required_completed` on `week-0/4/5/6/7/8/9` naming CS50
+topics, `pset-chain` (CS50 wording and threshold), and two final-project
+definitions bound to CS50 item IDs.
 
-[F] Five are programme-neutral in rule and wording: `first-step`,
-`first-slice`, `clean-stop`, `three-deep-sessions`, `bug-hunter`. Whether they
-are earned once per learner or once per programme is [O] OD-2.
+[F] Six are platform-neutral in rule and wording: `first-step`,
+`first-slice`, `clean-stop`, `three-deep-sessions`, `bug-hunter`, and
+`course-complete`, whose rule and copy are generic but whose evaluation
+context is whole-catalogue today (scoped by C5). Whether any of them is earned
+once per learner or once per programme is [O] OD-2.
 
-[F] The rule evaluator (`engine.ts`) is generic except two couplings:
-`problem_set_status_count` hard-codes item type `problem_set` (`engine.ts:289`)
-and `course_required_completed` requires every required unit in its evaluation
-context (`engine.ts:233-253`), which is currently the whole `course_units`
-store; its trigger source is the lexicographically smallest `courseId`.
+[F] Declaration order is user-visible: the RPG badge list iterates
+`achievementDefinitions` in order (`features/rpg/model/readModels.ts:496`), and
+that order interleaves neutral and CS50-bound definitions.
+
+[C] The 64462f6 reconciliation counted `course-complete` as CS50-bound (eleven)
+while listing only five neutral definitions; the ownership split corrects this.
+
+[F] The rule evaluator (`engine.ts`) is shared. `problem_set_status_count`
+is keyed on the shared type `problem_set` (`engine.ts:289`), which is shared
+vocabulary, not a CS50 identifier. `course_required_completed` requires every
+required unit in its evaluation context (`engine.ts:233-253`), which is
+currently the whole `course_units` store (a read-scope coupling, C5); its
+trigger source is the lexicographically smallest `courseId`.
 
 [F] Category labels live in `src/features/achievements/model.ts:7-15`. Badge
 artwork is keyed by achievement ID (`src/features/rpg/components/RpgAchievementArt.tsx`).
@@ -126,8 +143,9 @@ engine (`lib/completion.ts`, `features/course/model.ts`).
 `lab` and `problem_set` in the status sequence
 (`src/features/course/detailModel.ts:58-65`), while the correction path offers
 them only for `problem_set` (`detailModel.ts:141-152`). `skipped_optional` is
-offered only for non-required items. This asymmetry is frozen as-is; a
-programme workflow capability must reproduce it exactly ([X] X-2).
+offered only for non-required items. The rule is keyed on shared item types,
+not CS50 identifiers, so it stays shared and in place; the asymmetry is
+frozen as-is ([X] X-2).
 
 [I] Therefore not every item × status combination is a reachable product
 state. C1 must derive reachability from the actual status-option producers
@@ -179,8 +197,12 @@ programme configuration.
 - Route segment `week` in `/rpg/week/:unitId` inside the frozen route
   contract (`tests/architecture/routeDefinitions.test.ts`) ([X] X-4).
 
-Class: programme configuration (terminology), except the brand, which is
-[O] OD-6 and is not changed by any frozen Epic C story.
+Class, per item: CS50 copy, unit-noun "week" copy, the RPG identity tuple
+and the ID-parsed map ordinal are programme configuration (terminology, C4).
+Type, asset-type, category and session-mode labels translate shared persisted
+enum values and stay shared; rank labels are generic thresholds
+(`readModels.ts:275-305`) and stay shared. The brand is [O] OD-6 and is not
+changed by any frozen Epic C story.
 
 ### 2h. Theme and assets
 
@@ -227,18 +249,18 @@ is materialized.
 
 ## 4. Legitimate shared engine and shell semantics
 
-| Semantic                                                                                                  | Owner                                                                   | Class                                                  |
-| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| Progress status set, `completeStatuses`, status labels and variants                                       | `lib/domain`, `lib/completion.ts`, `lib/progress/statusPresentation.ts` | shared engine                                          |
-| Unit/course completion percentages from `required` flags                                                  | `features/course/model.ts`                                              | shared engine                                          |
-| Long-form asset derivation, slice plan, coverage union, resume                                            | `lib/progress/engine.ts`, `map.ts`                                      | shared engine; [X] X-1 eligibility map                 |
-| XP level curve; activity XP rules                                                                         | `lib/xp/engine.ts`, repository award paths                              | shared engine                                          |
-| Deterministic ID derivation (XP tx, unlock, asset, slice, resume)                                         | `lib/xp`, `lib/achievements`, `lib/progress`                            | shared mechanism; programme dimension: see data map    |
-| Achievement rule evaluator (10 rule types)                                                                | `lib/achievements/engine.ts`                                            | shared engine except the two couplings in §2c          |
-| Calendar-week bucketing (insights, hub weekly progress)                                                   | `lib/time`, `features/insights/model.ts`                                | shared — calendar week, unrelated to curriculum `week` |
-| Backup/restore/reset, cross-tab coordination                                                              | `lib/backup`, `lib/storage`, `lib/db`                                   | shared engine                                          |
-| Classic/RPG shared capabilities (ProfileAvatar, Achievements, StudySessions, Insights, Settings surfaces) | features, rendered by both shells                                       | intentional shared UI (Epic B ownership retained)      |
-| Routes and shells                                                                                         | `src/app/**`, `routeDefinitions.ts`                                     | shared shell; route vocabulary frozen                  |
+| Semantic                                                                                                  | Owner                                                                   | Class                                                                      |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Progress status set, `completeStatuses`, status labels and variants                                       | `lib/domain`, `lib/completion.ts`, `lib/progress/statusPresentation.ts` | shared engine                                                              |
+| Unit/course completion percentages from `required` flags                                                  | `features/course/model.ts`                                              | shared engine                                                              |
+| Long-form asset derivation, slice plan, coverage union, resume                                            | `lib/progress/engine.ts`, `map.ts`                                      | shared engine; [X] X-1 eligibility map                                     |
+| XP level curve; activity XP rules                                                                         | `lib/xp/engine.ts`, repository award paths                              | shared engine                                                              |
+| Deterministic ID derivation (XP tx, unlock, asset, slice, resume)                                         | `lib/xp`, `lib/achievements`, `lib/progress`                            | shared mechanism; programme dimension: see data map                        |
+| Achievement rule evaluator (10 rule types)                                                                | `lib/achievements/engine.ts`                                            | shared engine; `course_required_completed` context is whole-catalogue (C5) |
+| Calendar-week bucketing (insights, hub weekly progress)                                                   | `lib/time`, `features/insights/model.ts`                                | shared — calendar week, unrelated to curriculum `week`                     |
+| Backup/restore/reset, cross-tab coordination                                                              | `lib/backup`, `lib/storage`, `lib/db`                                   | shared engine                                                              |
+| Classic/RPG shared capabilities (ProfileAvatar, Achievements, StudySessions, Insights, Settings surfaces) | features, rendered by both shells                                       | intentional shared UI (Epic B ownership retained)                          |
+| Routes and shells                                                                                         | `src/app/**`, `routeDefinitions.ts`                                     | shared shell; route vocabulary frozen                                      |
 
 [I] The shared engine is sound. Epic C's work is to stop programme policy
 leaking into it (XP IDs, achievement IDs, seed rule, final-project lookup,
@@ -247,33 +269,34 @@ the engine.
 
 ## 5. Summary by concern
 
-| Concern             | CS50-bound today                                                                           | Target owner (see definition contract) |
-| ------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------- |
-| Identity            | `courseId` `cs50x-2026`; brand copy                                                        | programme definition (brand: OD-6)     |
-| Curriculum          | seed JSON; `final_project` seed rule                                                       | programme definition                   |
-| XP                  | type amounts, problem-set workflow, `week` bonus, final-project milestones                 | programme definition, passed into lib  |
-| Achievements        | 11 of 16 definitions; category vocabulary labels                                           | programme definition, passed into lib  |
-| Completion/workflow | submission workflow for lab/problem_set; `course_required_completed` over all stored units | programme definition + scoped reads    |
-| External resources  | `cs50Links.ts` + local-only allowlist                                                      | programme definition content           |
-| Study guide         | `guideContent.ts`                                                                          | programme definition content           |
-| Terminology         | CS50 copy, week wording, type labels, RPG identity literals, ID-string parsing             | programme definition content           |
-| Theme/assets        | badge art map, emblem, token values                                                        | programme presentation (UI layer only) |
-| Feature flags       | none                                                                                       | none                                   |
-| Active programme    | implicit: one bundled seed, whole-store reads                                              | registry accessor, passed explicitly   |
+| Concern             | CS50-bound today                                                                            | Target owner (see definition contract) |
+| ------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Identity            | `courseId` `cs50x-2026`; brand copy                                                         | programme definition (brand: OD-6)     |
+| Curriculum          | seed JSON; `final_project` seed rule                                                        | programme definition                   |
+| XP                  | final-project milestones and pair lookups (type amounts, workflow, `week` bonus are shared) | programme definition, passed into lib  |
+| Achievements        | 10 of 16 definitions; display order (6 shared definitions and all category labels shared)   | programme definition, passed into lib  |
+| Completion/workflow | `course_required_completed` over all stored units (workflow statuses are shared)            | scoped reads (C5)                      |
+| External resources  | `cs50Links.ts` + local-only allowlist                                                       | programme definition content           |
+| Study guide         | `guideContent.ts`                                                                           | programme definition content           |
+| Terminology         | CS50 copy, unit-noun week wording, RPG identity literals, ID-string ordinal parsing         | programme definition content           |
+| Theme/assets        | CS50 badge art, emblem, token values                                                        | programme presentation (UI layer only) |
+| Feature flags       | none                                                                                        | none                                   |
+| Active programme    | implicit: one bundled seed, whole-store reads                                               | registry accessor, passed explicitly   |
 
 ## 6. Deferred concerns
 
-| ID  | Concern                                                                                                                                | Deferred to                                              |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| X-1 | Long-form eligibility map (lecture/reading/section/shorts) may need to become programme policy                                         | Only if a registered programme needs a different mapping |
-| X-2 | `lab` vs `problem_set` asymmetry between status sequence and correction path                                                           | Frozen; reproduced exactly by C4                         |
-| X-3 | Vestigial `weekFour` / `RPG_WEEK_FOUR_UNIT_ID` (exported, tested, not rendered)                                                        | Owner-approved cleanup; not Epic C by default            |
-| X-4 | Route segment `week` in `/rpg/week/:unitId`                                                                                            | Kept; any rename needs a route decision                  |
-| X-5 | Closed persisted type vocabularies (`week`, `final_project`, `problem_set`, session mode `final_project`)                              | Kept; programmes supply labels                           |
-| X-6 | Multi-tab upgrade behaviour (no explicit `versionchange`/`blocked` handling)                                                           | C6 (migration contract MR-13)                            |
-| X-7 | Firebase/cloud persistence                                                                                                             | Epic F/G                                                 |
-| X-8 | Repository hygiene: `git count-objects -vH` reports ≈831 MiB loose objects and ≈166 MiB garbage (one temp object); unrelated to Epic C | Owner housekeeping                                       |
-| X-9 | Seed sync never deletes removed catalogue rows; per-programme sync must decide orphan handling                                         | C6                                                       |
+| ID   | Concern                                                                                                                                                                                      | Deferred to                                                                                              |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| X-1  | Long-form eligibility map (lecture/reading/section/shorts) may need to become programme policy                                                                                               | Only if a registered programme needs a different mapping                                                 |
+| X-2  | `lab` vs `problem_set` asymmetry between status sequence and correction path                                                                                                                 | Frozen in place (shared); protected by C1 reachability                                                   |
+| X-3  | Vestigial `weekFour` / `RPG_WEEK_FOUR_UNIT_ID` (exported, tested, not rendered)                                                                                                              | Owner-approved cleanup; not Epic C by default                                                            |
+| X-4  | Route segment `week` in `/rpg/week/:unitId`                                                                                                                                                  | Kept; any rename needs a route decision                                                                  |
+| X-5  | Closed persisted type vocabularies (`week`, `final_project`, `problem_set`, session mode `final_project`)                                                                                    | Kept; labels stay shared                                                                                 |
+| X-6  | Multi-tab upgrade behaviour (no explicit `versionchange`/`blocked` handling)                                                                                                                 | C6 (migration contract MR-13)                                                                            |
+| X-7  | Firebase/cloud persistence                                                                                                                                                                   | Epic F/G                                                                                                 |
+| X-8  | Repository hygiene: `git count-objects -vH` reports ≈831 MiB loose objects and ≈166 MiB garbage (one temp object); unrelated to Epic C                                                       | Owner housekeeping                                                                                       |
+| X-9  | Seed sync never deletes removed catalogue rows; per-programme sync must decide orphan handling                                                                                               | C6                                                                                                       |
+| X-10 | Programme-specific overrides of shared values (labels of shared enum values, type-keyed XP amounts, the item type behind `problem_set_status_count`, which session modes a programme offers) | Only when a registered programme needs different wording or policy (Epic E trigger); not built in Epic C |
 
 Known unrelated issues (not reopened by C0): KI-01 `Preparing RPG`
 hard-refresh flash, KI-02 service-worker fetch rejection, KI-03 CI Node

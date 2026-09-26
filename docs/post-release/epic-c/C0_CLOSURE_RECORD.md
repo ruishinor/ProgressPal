@@ -57,23 +57,23 @@ all three commits.
 
 ### 4a. Retained (re-verified against source)
 
-| Finding                                                                                              | Classification                                |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Curriculum is `Programme → Unit → Item`; no deeper hierarchy needed                                  | source fact                                   |
-| Generic seed schema requires a `final_project` unit                                                  | source fact + probe P1                        |
-| XP final-project milestones hard-code CS50 item IDs; `week` bonus keyed on unit type                 | source fact + probe P4                        |
-| Repositories locate "the" final-project unit by type, whole-store                                    | source fact                                   |
-| 11 of 16 achievements CS50-bound; two engine couplings (`problem_set`, all required units)           | source fact                                   |
-| CS50 links/guides/copy/RPG identity/ID-string ordinal parsing                                        | source fact                                   |
-| Programme ownership explicit only on `course_units`; derived elsewhere; not derivable for XP/unlocks | source fact                                   |
-| A colliding second catalogue re-owns the CS50 unit row and lowers `seedVersion`                      | probe P2 + source; **latent risk**            |
-| Whole-store reads merge catalogues                                                                   | probe P3 + source; **latent risk**            |
-| XP and unlock identities have no programme dimension                                                 | source fact + probe P4                        |
-| Backup validation accepts duplicate XP source keys                                                   | probe P5 + source; **pre-existing gap**       |
-| Local-only guard ignores non-TS files; new directory has no ESLint rule                              | probes P6/P7 + source                         |
-| Screenshots are captured, not compared; no baseline committed                                        | source fact                                   |
-| Definition split by consumer layer; rules passed into lib; active programme passed explicitly        | architectural proposal                        |
-| OD-1 to OD-7                                                                                         | owner decisions (retained, gating re-derived) |
+| Finding                                                                                                           | Classification                                |
+| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Curriculum is `Programme → Unit → Item`; no deeper hierarchy needed                                               | source fact                                   |
+| Generic seed schema requires a `final_project` unit                                                               | source fact + probe P1                        |
+| XP final-project milestones hard-code CS50 item IDs; `week` bonus keyed on unit type                              | source fact + probe P4                        |
+| Repositories locate "the" final-project unit by type, whole-store                                                 | source fact                                   |
+| 10 of 16 achievements CS50-bound, 6 platform-neutral; evaluator shared; `course-complete` context whole-catalogue | source fact (corrected in §11)                |
+| CS50 links/guides/copy/RPG identity/ID-string ordinal parsing                                                     | source fact                                   |
+| Programme ownership explicit only on `course_units`; derived elsewhere; not derivable for XP/unlocks              | source fact                                   |
+| A colliding second catalogue re-owns the CS50 unit row and lowers `seedVersion`                                   | probe P2 + source; **latent risk**            |
+| Whole-store reads merge catalogues                                                                                | probe P3 + source; **latent risk**            |
+| XP and unlock identities have no programme dimension                                                              | source fact + probe P4                        |
+| Backup validation accepts duplicate XP source keys                                                                | probe P5 + source; **pre-existing gap**       |
+| Local-only guard ignores non-TS files; new directory has no ESLint rule                                           | probes P6/P7 + source                         |
+| Screenshots are captured, not compared; no baseline committed                                                     | source fact                                   |
+| Definition split by consumer layer; rules passed into lib; active programme passed explicitly                     | architectural proposal                        |
+| OD-1 to OD-7                                                                                                      | owner decisions (retained, gating re-derived) |
 
 ### 4b. Changed or rejected
 
@@ -82,7 +82,7 @@ all three commits.
 | Disposition "A. C0 ACCEPTED — C1 READY FOR OWNER REVIEW"                                                                  | Replaced by `PASS_READY_FOR_C1` (§1)                                                                                                                            |
 | "Single database, forever" (P-1 / D-6); "CS50 identifiers and the database name are never changed"                        | Bounded to Epic C: Epic C preserves the database identity and does not re-key CS50 IDs; replacement/splitting is outside Epic C and not a permanent decision    |
 | Story ownership in the definition proposal (content C1, rules C2, terminology C3, presentation C7; OD gating "C4 onward") | Contradicted `stories.yaml` (C2 content, C3 rules, C4 terminology, C8 presentation; OD gating C6). One sequence frozen in `stories.yaml`; all documents aligned |
-| Workflow capability grouped with rules (proposal) vs terminology (stories)                                                | Placed in C4 (feature-level configuration, no persisted reward identity) with rationale                                                                         |
+| Workflow capability grouped with rules (proposal) vs terminology (stories)                                                | 64462f6 placed it in C4; superseded by §11: it is keyed on shared item types, so it stays shared and in place                                                   |
 | C1 "golden" tables for every item × every status as oracles                                                               | Split into semantic oracles over reachable states and labelled characterization (`VALIDATION_READINESS.md` §2); reachability derived from source                |
 | Visual captures under gitignored `artifacts/` only                                                                        | Hash-bound, sealed, retained baseline contract with owner review; retention location is OD-8                                                                    |
 | V0 asset hashes presented as visual protection                                                                            | Reclassified as asset/token identity: necessary, not proof of rendered parity                                                                                   |
@@ -232,7 +232,91 @@ These are process observations, not product defects.
 
 ## 10. Boundary
 
-Documentation-only reconciliation commit on `cx/epic-c0-v7-reconciliation`
-with parent `137ffde`. `master` and `cx/epic-c0-programme-readiness` are
-unchanged. No push, merge, tag, deployment, branch deletion or remote change.
+Documentation-only reconciliation commit `64462f6` on
+`cx/epic-c0-v7-reconciliation` with parent `137ffde`, followed by the
+independent-review repair commit in §11 with parent `64462f6`. `master` and
+`cx/epic-c0-programme-readiness` are unchanged. Neither existing commit was
+amended. No push, merge, tag, deployment, branch deletion or remote change.
 C1 is not started.
+
+## 11. Independent-review repair (follow-up commit on top of 64462f6)
+
+An independent review reconstructed the `64462f6` tree exactly and confirmed
+it is documentation-only. It found three remaining defects, which this
+follow-up commit repairs. No source, probe or product evidence was rerun;
+each repair was resolved by source inspection at the same baseline.
+
+### 11a. Semantic oracle vs characterization
+
+- Defect: `NEXT_STORY_HANDOFF_C1.md` classified achievement-definition
+  snapshots, links, guides and labels as characterization, and the contract let
+  characterization be updated with an owner-reviewed reason. That weakened the
+  `SPEC.md` §4 freeze.
+- Repair: family is now assigned by product authority. Every externally
+  meaningful value that `SPEC.md` §4 freezes is a semantic oracle (family A)
+  once reviewed in C1. This covers achievement definitions (fields and display
+  order), CS50 links, study guides, labels and CS50 copy. A frozen semantic
+  oracle can change only in a later story whose accepted contract explicitly
+  authorizes the product change; a recorded reason is never enough.
+  Characterization (B) is limited to internal outputs (for example the
+  definitions' timestamp constant) and deliberately retained unreachable
+  inputs. The preview label is family A in every document. Updated: `SPEC.md`
+  §4, `VALIDATION_READINESS.md` §2–§3, `NEXT_STORY_HANDOFF_C1.md` §4,
+  `C0_PROGRAMME_DEFINITION_CONTRACT.md` §5, `stories.yaml` C1/C3/C4.
+
+### 11b. Minimal programme ownership
+
+- Defect: the inventory listed neutral achievements and label vocabularies,
+  but the contract assigned all achievement definitions and broad label tables
+  (plus all type-keyed XP amounts and the submission workflow) to programme
+  configuration. The inventory also counted `course-complete` as CS50-bound
+  (eleven) while listing only five neutral definitions.
+- Repair: the smallest-definition rule is applied
+  (`C0_PROGRAMME_DEFINITION_CONTRACT.md` §3–§3a).
+
+Ownership conclusions changed from `64462f6`:
+
+| Concern                                                           | 64462f6                                             | Now                                                                                                                         |
+| ----------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Achievement definitions                                           | all 16 programme-owned                              | 10 CS50-owned; 6 shared (`first-step`, `first-slice`, `clean-stop`, `three-deep-sessions`, `bug-hunter`, `course-complete`) |
+| Achievement display order                                         | implicit                                            | programme-owned ordered ID list (the one override: order is user-visible and interleaved)                                   |
+| `course-complete`                                                 | counted CS50-bound                                  | shared definition; whole-catalogue context scoped by C5; per-programme earning is OD-2                                      |
+| `pset-chain` evaluator rule                                       | listed as an engine coupling                        | definition CS50-owned; evaluator shared (keyed on the shared `problem_set` type)                                            |
+| XP configuration                                                  | type amounts, workflow, `week` bonus and milestones | only the final-project milestones and pair lookups; the rest stays shared policy                                            |
+| Type/asset/category/mode labels                                   | programme-owned terminology                         | shared (labels of shared enum values)                                                                                       |
+| Rank labels                                                       | in C1 label tables, owner unstated                  | shared (generic thresholds)                                                                                                 |
+| Submission workflow                                               | programme config in C4                              | shared, stays in place                                                                                                      |
+| CS50 copy, unit-noun "week" copy, RPG identity tuple, map ordinal | programme-owned (C4)                                | unchanged: programme-owned (C4), with the concrete reason recorded                                                          |
+
+- OD-1 and OD-2 are not answered. OD-2's scope now names all six neutral
+  achievements. Shared ownership of a definition does not decide whether it is
+  unlocked once per learner or once per programme.
+- New deferred concern X-10: programme-specific overrides of shared values are
+  built only when a registered programme needs them.
+- Complete CS50 output stays protected. The C1 semantic tables cover every
+  definition, label and copy string regardless of owner and mark each row
+  shared or CS50-owned. C3 and C4 forbid moving shared values into programme
+  configuration, and G-7 exempts shared achievement IDs.
+- C3/C4 scopes narrowed accordingly (`stories.yaml`,
+  `VALIDATION_READINESS.md` §4c), and C3's runtime consumers now include the
+  `achievementDefinitions` consumers in RPG and course features.
+
+### 11c. Programme ID ambiguity
+
+- Defect: the contract gave `programmeId` as `cs50x-2026` but later called the
+  initial programme `cs50x`.
+- Repair: the programme ID is `cs50x-2026` everywhere; any module or folder
+  name C2 chooses is an implementation name only. A search of every Epic C
+  document found no remaining bare `cs50x` identifier. "CS50x" survives only
+  as the course name in OD-5, and `cs50x-2026.json` only as the seed filename.
+
+### 11d. Validation of the repair
+
+Recorded in the repair commit message and the owner report: path scope,
+required outputs, consistency searches, repository `format:check`, separate
+`git diff --check`, and unchanged `master` and original C0 branch.
+
+### 11e. Disposition after repair
+
+**`PASS_READY_FOR_C1`** (unchanged). All three defects are resolved and no new
+C1-blocking contradiction was found. This still does not authorize C1.
