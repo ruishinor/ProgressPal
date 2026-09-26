@@ -19,6 +19,16 @@ product behaviour.
   product tree bytes outside `docs/post-release/epic-c/**`.
 - Record in the C1 closure record: branch, starting commit/tree, and that
   `master` and both C0 branches are unchanged.
+- Two identities are recorded and must not be conflated
+  (`C0_VISUAL_PRESERVATION_PLAN.md` §4a):
+  - the **product baseline identity**: the accepted C0 commit/tree and the
+    accepted Epic B product commit `fd5e2d5` / tree `bc86fd3`;
+  - the **evidence-harness identity**: the clean C1 commit `H` that adds the
+    tests, fixtures, capture spec and C1 docs.
+
+  C1 proves that the production subset of `H` is byte-identical to the product
+  baseline before any capture or oracle run is treated as baseline evidence.
+
 - Epic B remote publication (OD-9) does not gate C1, because C1 adds no
   production code. It gates C2.
 
@@ -57,7 +67,7 @@ authorizes that product change; a recorded reason is never enough.
 outputs and for deliberately retained unreachable inputs.
 
 Each semantic table records, per row, whether the value is shared or
-CS50-owned after C3/C4 (`C0_PROGRAMME_DEFINITION_CONTRACT.md` §3), so a later
+CS50-owned after C3/C4 (`C0_PROGRAMME_DEFINITION_CONTRACT.md` §4), so a later
 story that moves a value to the wrong layer is visible in review. Ownership
 never changes a value's family.
 
@@ -71,7 +81,9 @@ never changes a value's family.
    sequence, the correction path and RPG status actions, derived from the real
    option producers (`features/course/detailModel.ts` and RPG mutation
    controls). Include the lab/problem_set asymmetry (X-2) even though the seed
-   has no `lab` item.
+   has no `lab` item. This table protects the C3 move of the submission
+   workflow into CS50 configuration; the offered statuses are semantic, the
+   configuration shape is not.
 3. **XP awards over the real catalogue** (semantic for reachable states). For
    every CS50 item and every reachable status from item 2: `evaluateProgressXp`
    output with the real unit and unit items (`sourceType`, `sourceId`, `xp`,
@@ -82,24 +94,35 @@ never changes a value's family.
    (mutation). Unreachable engine inputs, if kept, are labelled
    characterization and kept in a separate table; they are not platform
    semantics. XP rules for types absent from the CS50 seed (`notes`,
-   `reflection`) stay covered by the existing synthetic engine tests.
+   `reflection`) stay covered by the existing synthetic engine tests. Each row
+   names the CS50 policy it exercises (type amount, problem-set workflow,
+   `week` bonus, final-project milestone; contract §4b), so C3 has complete
+   coverage for every policy it moves.
 4. **Preview XP** (semantic for the displayed label). `evaluateCompletionPreviewXp`
    and the RPG reward label (`questRewards`) for every CS50 item from a fresh
    state and after its award is earned.
 5. **Persisted reward identity** (semantic). For every reachable award from
    item 3: `sourceType`, `sourceId`, derived transaction ID; for every
    achievement satisfied in item 6: unlock ID and trigger source ID.
-6. **Achievements** (semantic). The ordered table of all 16 definitions
-   with their externally meaningful and rule fields (`id`, `title`,
-   `description`, `category`, `ruleType`, `ruleConfig`, `xpReward`) and
-   display order, each row marked shared (6) or CS50-owned (10); the badge
-   list order and counts through `rpg/model/readModels.ts`. The internal
-   `createdAt`/`updatedAt` definition timestamp is characterization. Also the
-   satisfied set with trigger IDs through the real evaluation path for
-   staged real-catalogue states: none; week 0 complete; three problem sets
-   submitted; final-project build; README + demo; all required complete; plus
-   the programme-neutral achievements where staging is cheap (first slice,
-   clean stop, deep sessions, debugging session).
+6. **Achievements.**
+   - _Definition table_ (semantic): the ordered table of all 16 definitions
+     with `id`, `title`, `description`, `category` and `xpReward`, and the
+     display order, each row marked shared (6) or CS50-owned (10). Include
+     the badge list order and counts through `rpg/model/readModels.ts`.
+   - _Unlock behaviour_ (semantic): for **each** of the 16 definitions,
+     through the real evaluation and persistence path over the real catalogue,
+     at least one minimal satisfying state and the nearest non-satisfying
+     state. Examples: two vs three submitted/accepted problem sets; a week
+     unit with one required item missing; README without demo; a 44- vs
+     45-minute session; a clean stop just under vs at 900 watched seconds.
+     Assert the satisfied set, unlock ID and trigger source ID, and that
+     re-evaluation unlocks nothing new.
+   - _Rule encoding_ (characterization, optional): a `ruleType`/`ruleConfig`
+     snapshot may be kept only to make C3 re-encoding reviewable. It is not a
+     semantic oracle, and C3 may replace the encoding (for example
+     generalising `problem_set_status_count`) while the two semantic tables
+     above stay identical. The internal `createdAt`/`updatedAt` timestamp is
+     also characterization.
 7. **Baseline-built schema-2 fixture** (migration). Build a synthetic
    progressed database with the real repositories (content listed in
    `C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md` §7 "Required fixtures"), export it
@@ -128,9 +151,12 @@ never changes a value's family.
     both viewports, Classic light/dark, exact filenames. Immediately after the
     baseline run, seal the captures into one ZIP, write the committed manifest
     (per-file SHA-256, route, state, viewport, theme, Playwright/Chromium
-    versions, OS/font environment, baseline commit/tree, ZIP SHA-256), and
-    present the set for owner review. Retention location is OD-8, decided at
-    C1 acceptance.
+    versions, OS/font environment, product baseline identity, evidence-harness
+    identity `H` with the capture spec's blob SHA, the three §4a proofs, and
+    the ZIP SHA-256), and present the set for owner review. Captures are
+    produced from the clean commit `H`; the manifest is committed afterwards in
+    a docs-only commit `M`. Retention location is OD-8, decided at C1
+    acceptance.
 
 Avoid broad ambiguous snapshots and tests of private structure. Prefer
 explicit tables whose rows name what they protect.
@@ -151,6 +177,9 @@ explicit tables whose rows name what they protect.
   files under `tests/**`, the one added `e2e/` spec, and
   `docs/post-release/epic-c/**`; no existing file outside
   `docs/post-release/epic-c/**` is modified.
+- Production-subset identity: the three proofs in
+  `C0_VISUAL_PRESERVATION_PLAN.md` §4a pass for the harness commit `H`, and
+  `git diff --name-status H M` lists only `docs/post-release/epic-c/**`.
 - The closure record states exact counts, commands, outcomes, the ZIP SHA-256,
   owner-effort metrics and the evidence role of every addition.
 

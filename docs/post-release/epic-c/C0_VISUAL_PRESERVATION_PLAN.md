@@ -55,8 +55,11 @@ C0 does not claim visual regression protection exists.
 
 ## 3. When visual evidence is required
 
-- Visual evidence must be **captured at the unchanged accepted baseline**
-  before any Epic C production change, so the reference is pristine: C1.
+- Visual evidence must be **captured from unchanged accepted product bytes**
+  before any Epic C production change, so the reference is pristine: C1. The
+  capture spec itself is new C1 evidence code, so the capture runs from a C1
+  commit whose production subset is byte-identical to the product baseline
+  (§4a).
 - It must be **accepted and retained** before any theme/asset abstraction:
   C8 may not start without it.
 - Text-only terminology work (C4) is protected by text oracles and existing
@@ -67,12 +70,56 @@ C0 does not claim visual regression protection exists.
 
 ## 4. Baseline evidence contract (implemented by C1)
 
+### 4a. Two identities
+
+[C] The `ca8fe96` plan required capture "at the owner-accepted C0 commit" with
+a clean worktree, using a capture spec that only C1 adds. That is mechanically
+impossible: the spec does not exist in the C0 commit. Two identities replace
+the single one.
+
+**A. Product baseline identity.** The product bytes against which parity is
+claimed:
+
+- the owner-accepted C0 commit and tree (the reconciliation branch head the
+  owner accepts); and
+- the accepted Epic B product commit `fd5e2d592bb6f5d1724509119147c48ba3a5df59`
+  (tree `bc86fd392a5284d9db8821c31a27b8c95ec82a9a`). Its production subset is
+  byte-identical to the accepted C0 commit, because C0 changed only
+  `docs/post-release/epic-c/**`.
+
+**B. Evidence-harness identity.** The exact clean C1 commit `H` (and its tree)
+from which the captures are produced. It adds only new test files and fixtures
+under `tests/**`, the one new capture spec under `e2e/`, and C1 documentation
+under `docs/post-release/epic-c/**`.
+
+The **production subset** is every tracked path except those C1 additions and
+`docs/post-release/epic-c/**`. It includes `src/**`, `public/**`, `index.html`,
+`scripts/**`, all configuration, package files and every pre-existing test
+and spec. Before capturing, C1 must prove:
+
+1. `git diff --name-status <accepted C0 commit> H` lists only added paths under
+   `tests/**`, the one added `e2e/` spec, and added or modified paths under
+   `docs/post-release/epic-c/**`; nothing modified or deleted elsewhere;
+2. `git diff --quiet fd5e2d592bb6f5d1724509119147c48ba3a5df59 H -- .
+':(exclude)tests' ':(exclude)e2e' ':(exclude)docs/post-release/epic-c'`
+   exits 0; together with (1), the production subset of `H` is byte-identical
+   to the product baseline;
+3. `git status --porcelain` is empty at `H` when the capture starts (the
+   gitignored capture output directory is not tracked).
+
+Capture is produced from `H`. The manifest is written afterwards and committed
+in a later C1 commit `M`; `git diff --name-status H M` must list only
+`docs/post-release/epic-c/**`. The manifest therefore names `H`, not `M`, as
+the harness identity.
+
+### 4b. Binding
+
 A capture is accepted visual baseline evidence only when all of the following
 are recorded and bound:
 
 | Element           | Requirement                                                                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Baseline identity | Git commit and tree of the capture run (the owner-accepted C0 commit, before any C1+ production change); clean worktree proved at capture time                                       |
+| Identities        | Product baseline: accepted C0 commit/tree and `fd5e2d5`/`bc86fd3`. Evidence harness: `H` commit/tree, capture-spec path and blob SHA at `H`. The outputs of the three §4a proofs     |
 | Surface / route   | Exact route path for each capture (§5)                                                                                                                                               |
 | State / fixture   | Named synthetic state (`fresh` = onboarded, no progress; `progressed` = defined synthetic actions) produced by code in the capture spec; no real learner data                        |
 | Viewport          | 390×844 and 1280×900 (existing B2–B4 convention); `fullPage` capture                                                                                                                 |
@@ -81,15 +128,16 @@ are recorded and bound:
 | Environment       | OS name/version and the fact that fonts are system fonts (no bundled webfont); captures are comparable only within the same environment                                              |
 | Determinism       | Fixed clock via `page.clock.install`; no running timers or time-relative copy on captured surfaces (or the state is recorded); animations disabled where practicable                 |
 | Filenames         | `<viewport>-<shell>-<surface>-<state>[-<theme>].png`, e.g. `390-rpg-hub-progressed.png`, `1280-classic-dashboard-progressed-dark.png`                                                |
-| Manifest          | A committed manifest under `docs/post-release/epic-c/` listing every file with SHA-256, route, state, viewport, theme, browser, environment, baseline commit/tree                    |
+| Manifest          | A committed manifest under `docs/post-release/epic-c/` (in commit `M`) listing every file with SHA-256, route, state, viewport, theme, browser, environment, and both identities     |
 | Archive           | All captures sealed into one ZIP **immediately after** the baseline run, before any later E2E run can overwrite the working directory; the ZIP's SHA-256 is in the manifest          |
 | Retention         | The ZIP is retained at a location the owner selects ([O] OD-8): committed to the repository, or held outside the working tree. A gitignored working directory alone is not retention |
 | Owner review      | The owner reviews the capture set and records acceptance in the C1 closure record; acceptance binds the ZIP SHA-256                                                                  |
 
 What each layer proves:
 
-- The manifest proves **which** bytes were accepted and at which baseline. It
-  makes the baseline tamper-evident; it does not by itself make it durable.
+- The manifest proves **which** bytes were accepted, which harness produced
+  them, and that the harness ran over unchanged product bytes. It makes the
+  baseline tamper-evident; it does not by itself make it durable.
 - Identical capture SHA-256 between baseline and a later candidate, **on the
   same environment**, is strong evidence that that capture rendered
   identically. Differing hashes do not by themselves prove a regression
@@ -120,7 +168,8 @@ C1 may add a surface only if it carries programme identity not listed in §2.
 
 ## 6. Comparison procedure for later stories
 
-1. Re-run the same C1 capture spec at the candidate commit, in the same
+1. Re-run the same C1 capture spec (same blob SHA, or a recorded reviewed
+   successor) at the candidate commit, in the same
    environment recorded in the manifest, into a **different** output
    directory (never overwriting the retained baseline).
 2. Hash every candidate capture and diff against the manifest.

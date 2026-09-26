@@ -23,8 +23,9 @@ consumer layer (core rules, content, presentation); lib engines receive
 programme rules as parameters instead of importing a programme; the active
 programme is resolved once and passed explicitly, never read inside passive
 read transactions. Persisted learner state and the materialized catalogue with
-its per-programme version sit in the database, beside the runtime path, and
-reference a programme rather than being part of its definition.
+its per-catalogue version sit in the database, beside the runtime path. They
+reference a catalogue (today) and, from C6, a persisted programme ownership
+identity; they are never part of a definition.
 
 The curriculum stays `Programme → Unit → Item`. "Week", "problem set" and
 "final project" are CS50 terminology and policy, not engine structure. No
@@ -36,7 +37,7 @@ These layers are delivered by separate stories (`stories.yaml`):
 
 1. evidence before change (C1);
 2. programme layer, registry boundary and content (C2);
-3. reward and catalogue rules passed into lib engines (C3);
+3. CS50 reward, workflow and catalogue policy passed into shared engines (C3);
 4. CS50 programme terminology (C4);
 5. programme-scoped catalogue reads (C5);
 6. persisted ownership, catalogue/version state and migration (C6);
@@ -47,9 +48,11 @@ These layers are delivered by separate stories (`stories.yaml`):
 
 Unless a story contract explicitly changes product semantics, every story
 preserves: curriculum identity, ordering and labels; progress, completion and
-status behaviour; XP amounts, `sourceType`, `sourceId` and `reason` strings;
-achievement definitions (IDs, titles, descriptions, categories, rules,
-`xpReward`, display order), unlock IDs and trigger IDs; user-visible labels and
+status behaviour and the statuses offered per item type; XP amounts,
+`sourceType`, `sourceId` and `reason` strings; achievement IDs, titles,
+descriptions, categories, `xpReward`, display order and **exact unlock
+behaviour** over reachable learner states, with unlock IDs and trigger IDs;
+user-visible labels and
 copy (item/unit/asset type, item-context titles, achievement category labels
 and order, session-mode, RPG identity, map ordinal, rank labels and
 thresholds, CS50 copy); session/save behaviour; CS50 links and study content;
@@ -60,15 +63,36 @@ C1 freezes these values as **semantic oracles** (`VALIDATION_READINESS.md`
 §2, family A). An extraction or refactoring story cannot change a frozen
 semantic oracle by recording a reason; it stops instead. Only a later story
 whose accepted contract explicitly authorizes the product-semantic change may
-update one.
+update one. Internal representation is not frozen: achievement
+`ruleType`/`ruleConfig` values and the shape of XP/workflow configuration are
+characterization and architecture evidence. C3 may re-encode them while every
+semantic oracle stays identical.
 
-Ownership follows the smallest-definition rule
-(`C0_PROGRAMME_DEFINITION_CONTRACT.md` §3): only values that depend on CS50
-identifiers, topics or wording move into the `cs50x-2026` definition. Shared
-platform semantics (six achievement definitions, type-keyed XP policy, labels
-of shared enum values, rank labels, the submission workflow and the rule
-evaluator) stay shared. The freeze applies equally to shared and
+Ownership (`C0_PROGRAMME_DEFINITION_CONTRACT.md` §4) keeps three things
+apart: shared persisted vocabulary (never renamed in Epic C), shared engine
+mechanisms, and programme policy. A rule keyed on a shared enum value is not
+thereby shared policy. Following the authoritative control to move "week/
+final-project/problem-set/specific-ID semantics into validated programme
+configuration", the CS50 definition owns:
+
+- completion XP by item type, the problem-set workflow XP, the required-week
+  bonus and the final-project milestones;
+- the submission-workflow configuration, from which the preview terminal
+  status derives;
+- the 10 CS50-bound achievement definitions, including the problem-set
+  counting policy, and the achievement display order;
+- the `final_project` seed rule;
+- CS50 terminology.
+
+What stays shared, and why, is evidenced in contract §4d: the level curve,
+activity XP, the status model, six achievement definitions, canonical
+vocabulary labels and rank labels. The freeze applies equally to shared and
 programme-owned values.
+
+Identity (contract §2): the current catalogue identity and definition key is
+`cs50x-2026`. The persisted programme ownership identity is **not** frozen
+before C6 and depends on OD-5; C2–C5 use only the definition key and catalogue
+identity.
 
 Bounded identity rules for Epic C (not permanent roadmap decisions): Epic C
 preserves the existing local database identity `progresspal-cs50-edition` and
@@ -81,8 +105,8 @@ C (`C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md` §6).
 - No persisted ownership change ships without the migration acceptance
   contract in `C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md` §7 (old-database
   fixtures, idempotency, reopen, transaction failure, backup/restore, no
-  duplicate XP or unlock rewards, unknown/missing programme handling,
-  per-programme catalogue version).
+  duplicate XP or unlock rewards, unknown/missing identity handling,
+  per-catalogue version state).
 - Every cross-layer story maps and runs the architecture guards of **both**
   source and destination layers, including type-only and configuration-only
   moves (`VALIDATION_READINESS.md` §4).
@@ -96,18 +120,18 @@ None of these is asked tonight; none blocks C1 start. "Earliest gate" is the
 earliest story that cannot start (or, for OD-8, be accepted) without the
 decision.
 
-| ID    | Decision                                                                                                                                                                                     | Why source cannot resolve it                                                                                   | Earliest gate     | Safe to proceed without it                                                               |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------- |
-| OD-1  | Are XP and level learner-global across programmes, or per programme?                                                                                                                         | Product meaning of the HUD level; today one ledger and one level exist, which is consistent with either answer | C6                | C1–C5 (C5 must not scope the XP ledger or level)                                         |
-| OD-2  | Are the six platform-neutral achievements (`first-step`, `first-slice`, `clean-stop`, `three-deep-sessions`, `bug-hunter`, `course-complete`) earned once per learner or once per programme? | Unique `achievementId` index works for either; product policy                                                  | C6                | C1–C5 (C3 preserves unlock IDs; C5 must not scope unlocks)                               |
-| OD-3  | Enrolment model: one active programme at a time or concurrent enrolments; what onboarding selects for a fresh database; legacy-database default                                              | No enrolment concept exists in source                                                                          | C6 (and C7)       | C1–C5 (single registered programme is implicitly active)                                 |
-| OD-4  | Are study sessions, insights, weekly targets and the learner profile global or programme-scoped?                                                                                             | Sessions are attributable through `itemId`; the read/display scope is product policy                           | C6                | C1–C5 (C5 must not scope sessions/insights/profile)                                      |
-| OD-5  | Is a new CS50x edition (e.g. 2027) a new programme or a new catalogue version of the same programme, and does progress carry over?                                                           | `courseId` embeds the year; sync is additive and never deletes; no rollover rule exists                        | C6                | C1–C5                                                                                    |
-| OD-6  | Product brand "ProgressPal CS50 Edition": keep, or make it programme-neutral?                                                                                                                | Product/branding policy                                                                                        | none in C1–C8     | All frozen stories preserve the brand text byte-identically; any brand change needs OD-6 |
-| OD-7  | Which first additional programme, with what content licence and link hosts?                                                                                                                  | Outside engineering evidence                                                                                   | Epic E; C8 need   | C1–C7                                                                                    |
-| OD-8  | Visual baseline retention: commit the C1 capture archive to the repository, or retain it outside the working tree?                                                                           | Repository content policy for ≈8 MB of binaries                                                                | C1 **acceptance** | C1 start and capture; the archive is sealed and hashed either way                        |
-| OD-9  | Epic B remote publication / intended branch baseline before Epic C production-code stories (Bootstrap `19_EPIC_C_READINESS_DECISION.md`, publication dependency)                             | Release decision                                                                                               | C2                | C1 (tests/fixtures/docs only; branch baseline recorded in the C1 handoff)                |
-| OD-10 | Switching UX: where the learner switches programme and how the current programme is shown, without Epic D redesign                                                                           | Interaction design decision                                                                                    | C7                | C1–C6                                                                                    |
+| ID    | Decision                                                                                                                                                                                                 | Why source cannot resolve it                                                                                   | Earliest gate     | Safe to proceed without it                                                                                       |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| OD-1  | Are XP and level learner-global across programmes, or per programme?                                                                                                                                     | Product meaning of the HUD level; today one ledger and one level exist, which is consistent with either answer | C6                | C1–C5 (C5 must not scope the XP ledger or level)                                                                 |
+| OD-2  | Are the six platform-neutral achievements (`first-step`, `first-slice`, `clean-stop`, `three-deep-sessions`, `bug-hunter`, `course-complete`) earned once per learner or once per programme?             | Unique `achievementId` index works for either; product policy                                                  | C6                | C1–C5 (C3 preserves unlock IDs; C5 must not scope unlocks)                                                       |
+| OD-3  | Enrolment model: one active programme at a time or concurrent enrolments; what onboarding selects for a fresh database; legacy-database default                                                          | No enrolment concept exists in source                                                                          | C6 (and C7)       | C1–C5 (single registered programme is implicitly active)                                                         |
+| OD-4  | Are study sessions, insights, weekly targets and the learner profile global or programme-scoped?                                                                                                         | Sessions are attributable through `itemId`; the read/display scope is product policy                           | C6                | C1–C5 (C5 must not scope sessions/insights/profile)                                                              |
+| OD-5  | Is a new CS50x edition (e.g. 2027) a new programme or a new catalogue version of the same programme, and does progress carry over? This decides the persisted programme ownership identity (contract §2) | `courseId` embeds the year; sync is additive and never deletes; no rollover rule exists                        | C6                | C1–C5 (they use only the definition key / catalogue identity `cs50x-2026`, never a persisted programme identity) |
+| OD-6  | Product brand "ProgressPal CS50 Edition": keep, or make it programme-neutral?                                                                                                                            | Product/branding policy                                                                                        | none in C1–C8     | All frozen stories preserve the brand text byte-identically; any brand change needs OD-6                         |
+| OD-7  | Which first additional programme, with what content licence and link hosts?                                                                                                                              | Outside engineering evidence                                                                                   | Epic E; C8 need   | C1–C7                                                                                                            |
+| OD-8  | Visual baseline retention: commit the C1 capture archive to the repository, or retain it outside the working tree?                                                                                       | Repository content policy for ≈8 MB of binaries                                                                | C1 **acceptance** | C1 start and capture; the archive is sealed and hashed either way                                                |
+| OD-9  | Epic B remote publication / intended branch baseline before Epic C production-code stories (Bootstrap `19_EPIC_C_READINESS_DECISION.md`, publication dependency)                                         | Release decision                                                                                               | C2                | C1 (tests/fixtures/docs only; branch baseline recorded in the C1 handoff)                                        |
+| OD-10 | Switching UX: where the learner switches programme and how the current programme is shown, without Epic D redesign                                                                                       | Interaction design decision                                                                                    | C7                | C1–C6                                                                                                            |
 
 Additionally, C6 requires an **accepted schema-change decision record**
 (`AGENTS.md` forbids schema changes without one).
@@ -127,13 +151,20 @@ Additionally, C6 requires an **accepted schema-change decision record**
   single-entry registry plus C6's sync-level collision rejection cover the
   proven risk (P2) without speculative machinery.
 - **All achievement definitions and all label tables as programme
-  configuration** (the 64462f6 contract). Six definitions and every label of a
-  shared enum value carry no CS50 identifier, topic or wording; making them
-  programme-owned would turn platform semantics into configuration without a
-  proven need. The programme instead owns only its CS50-bound definitions,
-  its achievement display order and its CS50 terminology.
-- **Type-keyed XP amounts as programme configuration.** They are keyed only on
-  shared vocabulary; only the final-project milestones depend on CS50 IDs.
+  configuration** (the `64462f6` contract). The six neutral definitions,
+  canonical vocabulary labels and rank labels have positive evidence of
+  platform scope (contract §4d); making them programme-owned would add
+  configuration without a proven need.
+- **Treating type-keyed rules as shared because they are keyed on shared
+  enums** (the `ca8fe96` contract). Vocabulary is not policy; the
+  authoritative control names week, problem-set and final-project semantics
+  as programme configuration.
+- **Freezing the achievement rule encoding.** `ruleType`/`ruleConfig` are not
+  a public or persisted contract; freezing them would block the C3
+  generalisation of `problem_set_status_count` without protecting any
+  learner-visible behaviour.
+- **Equating the persisted programme identity with `courseId` now.** That
+  would pre-answer OD-5.
 - **A deeper curriculum hierarchy.** No consumer needs it.
 
 ## 8. Out of scope for Epic C

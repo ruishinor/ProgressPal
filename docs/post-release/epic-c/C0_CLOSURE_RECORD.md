@@ -77,22 +77,22 @@ all three commits.
 
 ### 4b. Changed or rejected
 
-| Original claim                                                                                                            | Change and reason                                                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Disposition "A. C0 ACCEPTED — C1 READY FOR OWNER REVIEW"                                                                  | Replaced by `PASS_READY_FOR_C1` (§1)                                                                                                                            |
-| "Single database, forever" (P-1 / D-6); "CS50 identifiers and the database name are never changed"                        | Bounded to Epic C: Epic C preserves the database identity and does not re-key CS50 IDs; replacement/splitting is outside Epic C and not a permanent decision    |
-| Story ownership in the definition proposal (content C1, rules C2, terminology C3, presentation C7; OD gating "C4 onward") | Contradicted `stories.yaml` (C2 content, C3 rules, C4 terminology, C8 presentation; OD gating C6). One sequence frozen in `stories.yaml`; all documents aligned |
-| Workflow capability grouped with rules (proposal) vs terminology (stories)                                                | 64462f6 placed it in C4; superseded by §11: it is keyed on shared item types, so it stays shared and in place                                                   |
-| C1 "golden" tables for every item × every status as oracles                                                               | Split into semantic oracles over reachable states and labelled characterization (`VALIDATION_READINESS.md` §2); reachability derived from source                |
-| Visual captures under gitignored `artifacts/` only                                                                        | Hash-bound, sealed, retained baseline contract with owner review; retention location is OD-8                                                                    |
-| V0 asset hashes presented as visual protection                                                                            | Reclassified as asset/token identity: necessary, not proof of rendered parity                                                                                   |
-| "Owner effort during C0: 0"                                                                                               | Corrected (§7): 0 clarification/debug requests, but ≥1 owner delivery execution and one environment-induced reconciliation pass                                 |
-| P2 "silently re-owns" framed alongside current defects                                                                    | Classified as a latent mechanism; no current production caller; no learner-data-loss claim                                                                      |
-| P4 read as "duplicate XP identity"                                                                                        | Narrowed: no programme dimension exists; no duplicate was demonstrated                                                                                          |
-| `study_sessions` programme linkage described as needing a decision                                                        | Sessions carry required `unitId`/`itemId` and are attributable; only their read scope needs OD-4                                                                |
-| Migration contract lacked explicit unknown/invalid programme ID handling                                                  | Added MR-11; rollback expectation stated in MR-10                                                                                                               |
-| Registry collision validation only in C7                                                                                  | Retained at C7 for multi-registration, plus sync-level collision rejection in C6 (MR-3) for the proven P2 mechanism                                             |
-| Epic B publication dependency not mapped                                                                                  | Added OD-9, gating C2 (Bootstrap `19_EPIC_C_READINESS_DECISION.md`)                                                                                             |
+| Original claim                                                                                                            | Change and reason                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Disposition "A. C0 ACCEPTED — C1 READY FOR OWNER REVIEW"                                                                  | Replaced by `PASS_READY_FOR_C1` (§1)                                                                                                                                       |
+| "Single database, forever" (P-1 / D-6); "CS50 identifiers and the database name are never changed"                        | Bounded to Epic C: Epic C preserves the database identity and does not re-key CS50 IDs; replacement/splitting is outside Epic C and not a permanent decision               |
+| Story ownership in the definition proposal (content C1, rules C2, terminology C3, presentation C7; OD gating "C4 onward") | Contradicted `stories.yaml` (C2 content, C3 rules, C4 terminology, C8 presentation; OD gating C6). One sequence frozen in `stories.yaml`; all documents aligned            |
+| Workflow capability grouped with rules (proposal) vs terminology (stories)                                                | `64462f6` placed it in C4; `ca8fe96` kept it shared in place; final (§12): CS50 progress/completion policy moved into configuration by C3, offered statuses frozen exactly |
+| C1 "golden" tables for every item × every status as oracles                                                               | Split into semantic oracles over reachable states and labelled characterization (`VALIDATION_READINESS.md` §2); reachability derived from source                           |
+| Visual captures under gitignored `artifacts/` only                                                                        | Hash-bound, sealed, retained baseline contract with owner review; retention location is OD-8                                                                               |
+| V0 asset hashes presented as visual protection                                                                            | Reclassified as asset/token identity: necessary, not proof of rendered parity                                                                                              |
+| "Owner effort during C0: 0"                                                                                               | Corrected (§7): 0 clarification/debug requests, but ≥1 owner delivery execution and one environment-induced reconciliation pass                                            |
+| P2 "silently re-owns" framed alongside current defects                                                                    | Classified as a latent mechanism; no current production caller; no learner-data-loss claim                                                                                 |
+| P4 read as "duplicate XP identity"                                                                                        | Narrowed: no programme dimension exists; no duplicate was demonstrated                                                                                                     |
+| `study_sessions` programme linkage described as needing a decision                                                        | Sessions carry required `unitId`/`itemId` and are attributable; only their read scope needs OD-4                                                                           |
+| Migration contract lacked explicit unknown/invalid programme ID handling                                                  | Added MR-11; rollback expectation stated in MR-10                                                                                                                          |
+| Registry collision validation only in C7                                                                                  | Retained at C7 for multi-registration, plus sync-level collision rejection in C6 (MR-3) for the proven P2 mechanism                                                        |
+| Epic B publication dependency not mapped                                                                                  | Added OD-9, gating C2 (Bootstrap `19_EPIC_C_READINESS_DECISION.md`)                                                                                                        |
 
 ## 5. Repairs made in the reconciliation
 
@@ -241,6 +241,11 @@ C1 is not started.
 
 ## 11. Independent-review repair (follow-up commit on top of 64462f6)
 
+> Historical record of commit `ca8fe96`. Several conclusions below (§11a
+> achievement rule fields as family A; §11b classification of type-keyed XP
+> and the workflow as shared; §11c "programme ID is `cs50x-2026`") are
+> superseded by §12. The current canonical contracts reflect §12.
+
 An independent review reconstructed the `64462f6` tree exactly and confirmed
 it is documentation-only. It found three remaining defects, which this
 follow-up commit repairs. No source, probe or product evidence was rerun;
@@ -320,3 +325,111 @@ required outputs, consistency searches, repository `format:check`, separate
 
 **`PASS_READY_FOR_C1`** (unchanged). All three defects are resolved and no new
 C1-blocking contradiction was found. This still does not authorize C1.
+
+## 12. Architecture-contract correction (follow-up commit on top of ca8fe96)
+
+A further independent review reconstructed the `ca8fe96` tree exactly and
+found five contract defects. This commit corrects them in documentation only.
+No probe or product suite was rerun; every point was resolved by source
+inspection at the same baseline.
+
+### 12a. Rule encoding is not product semantics
+
+- Defect: C1 froze achievement `ruleType`/`ruleConfig` as family-A oracles.
+  That would have blocked a legitimate C3 re-encoding of
+  `problem_set_status_count`, whose evaluator hard-codes
+  `item.type === 'problem_set'`.
+- Source: `ruleType`/`ruleConfig` travel in the internal `AchievementView`
+  type but are rendered by no feature or app code. The `achievement_definitions`
+  store is never written, and backups type them as generic strings/objects.
+  They are not a public or persisted contract.
+- Correction: family A now covers achievement ID, title, description,
+  category, `xpReward`, display order, **exact unlock behaviour** over
+  reachable states, unlock ID and trigger identity. C1 adds a per-definition
+  satisfying/nearest-unsatisfying behaviour table for all 16 definitions,
+  which is stronger than a field snapshot. The rule encoding is
+  characterization/architecture (B/C). Updated: `SPEC.md` §4,
+  `VALIDATION_READINESS.md` §2–§3, `NEXT_STORY_HANDOFF_C1.md` item 6, contract
+  §7, `stories.yaml` C1/C3.
+
+### 12b. Shared vocabulary does not prove shared policy
+
+- Defect: `ca8fe96` classified type-keyed rules as shared because they are keyed
+  on shared enum values, and read P4 as proof that the `week` bonus is
+  neutral. Both conflict with the authoritative control "move
+  week/final-project/problem-set/specific-ID semantics into validated programme
+  configuration".
+- Correction: contract §4a–§4b separate A (shared storage vocabulary), B
+  (shared mechanism) and C (programme policy). They classify as CS50 policy:
+  completion XP by item type, problem-set workflow XP, the required-week
+  bonus, the final-project milestones, the submission workflow (with its
+  asymmetry), the preview terminal status (derived from the workflow), the
+  problem-set counting in `pset-chain` and the `final_project` seed rule. P4
+  is re-read as proof that the current engine applies CS50 policy to every
+  catalogue using `week`. §4d documents positive evidence for what stays
+  global: the level curve, activity XP, the status model (Epic B-accepted
+  neutral contract), six neutral achievements, canonical vocabulary labels and
+  rank labels. The long-form eligibility map is explicitly not claimed as
+  platform policy (X-1).
+
+Ownership conclusions changed from `ca8fe96`:
+
+| Concern                                                                                         | `ca8fe96`               | Now                                                                                        |
+| ----------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| Completion XP by item type                                                                      | shared policy           | CS50 XP configuration (C3)                                                                 |
+| Problem-set workflow XP                                                                         | shared policy           | CS50 XP configuration (C3)                                                                 |
+| Required `week` bonus                                                                           | shared policy           | CS50 XP configuration (C3)                                                                 |
+| Submission workflow and preview status                                                          | shared, stays in place  | CS50 progress/completion configuration (C3); offered statuses frozen exactly               |
+| `problem_set_status_count` counting                                                             | shared evaluator branch | counted type is CS50 policy in `pset-chain`; evaluator mechanism shared; C3 may generalise |
+| Long-form eligibility map                                                                       | not revisited           | possibly programme policy; deferred as a migration concern (X-1)                           |
+| Six neutral achievements, canonical labels, rank labels, level curve, activity XP, status model | shared                  | shared, now with positive evidence (contract §4d)                                          |
+
+- C3 is retitled "CS50 reward, workflow and catalogue policy passed into shared
+  engines" and gains the workflow move, the evaluator re-encoding allowance and
+  a test-only-definition proof that policy is configuration. C4 no longer
+  mentions the workflow.
+
+### 12c. Identity does not pre-answer OD-5
+
+- Defect: `programmeId = courseId = cs50x-2026` implied the persisted
+  cross-edition programme identity while OD-5 is open.
+- Correction: contract §2 separates catalogue identity (`courseId`
+  `cs50x-2026`, a source fact), catalogue version, **definition key**
+  (`cs50x-2026`, runtime only) and **persisted programme ownership identity**
+  (frozen in C6 after OD-5; not assumed to equal `cs50x-2026`, and not
+  `cs50x`). The name `programmeId` is reserved for the latter. C2 keys the
+  registry by definition key; C5 scopes by catalogue identity; C2–C5 forbid a
+  persisted `programmeId`. The data map now uses per-catalogue version state
+  (P-5, new P-7) and makes MR-1, MR-2, MR-3 and MR-11 refer to the OD-5
+  identity. OD-5 is not answered.
+
+### 12d. Visual baseline identity
+
+- Defect: capture was required "at the owner-accepted C0 commit" with a clean
+  worktree, using a spec that only C1 adds.
+- Correction: `C0_VISUAL_PRESERVATION_PLAN.md` §4a defines the **product
+  baseline identity** (accepted C0 commit/tree plus `fd5e2d5`/`bc86fd3`) and
+  the **evidence-harness identity** (clean C1 commit `H`). Three git proofs
+  show that `H`'s production subset is byte-identical to the product baseline.
+  Captures come from `H`; the manifest, committed afterwards in docs-only
+  commit `M`, binds both identities and the spec blob SHA.
+
+### 12e. Achievement-order validation boundary
+
+- Defect: the programme's order list references shared definitions that the
+  proposed C2 rules did not let `src/programmes/**` import.
+- Correction (contract §5): the smallest legal path is for `src/programmes/**`
+  to import the `@/lib/achievements` public entrypoint. That module is DB-free
+  and imports only `lib/domain`, `lib/validation` and `lib/completion`. The
+  dependency is downward, and `lib ↛ programmes` plus `check:circular` rule out
+  a cycle. The CS50 definition validates its composed catalogue at module load
+  (structural validation plus exact-permutation and disjointness
+  cross-reference) and the registry re-asserts it. Consumers pass the composed
+  catalogue into lib as a parameter. C2's rule list and negative probes include
+  this allowance.
+
+### 12f. Disposition after correction
+
+**`PASS_READY_FOR_C1`** (unchanged). All five defects are resolved and no new
+C1-blocking contradiction was found. OD-1, OD-2 and OD-5 remain unanswered and
+gate only C6. This still does not authorize C1.

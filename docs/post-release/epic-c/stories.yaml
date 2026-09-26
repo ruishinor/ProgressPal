@@ -21,7 +21,7 @@ stories:
   - id: C1
     title: Baseline preservation evidence
     state: ready_after_owner_review_of_c0
-    objective: Freeze semantic oracles for every externally meaningful value SPEC.md section 4 preserves (curriculum, XP, reward identity, achievement definitions and order, links, guides, labels, CS50 copy), keep characterization only for internal or unreachable outputs, and capture a baseline-built schema-2 fixture and the retained visual baseline from the unchanged baseline, before any ownership change
+    objective: Freeze semantic oracles for every externally meaningful value SPEC.md section 4 preserves (curriculum, XP, reward identity, offered statuses, achievement fields, order and exact unlock behaviour, links, guides, labels, CS50 copy); keep internal rule encoding, internal outputs and unreachable inputs as characterization; capture a baseline-built schema-2 fixture and the retained visual baseline from a clean evidence-harness commit whose production subset is byte-identical to the product baseline, before any ownership change
     prerequisites: [owner review of C0 PASS]
     allowed_scope:
       - new test files and fixtures under tests/**
@@ -40,11 +40,12 @@ stories:
       - the baseline suite fails before C1 changes
       - a fixture would contain real learner data
       - reachability of a status combination cannot be derived from source
+      - the harness commit's production subset differs from the product baseline (C0_VISUAL_PRESERVATION_PLAN.md section 4a)
 
   - id: C2
     title: Programme layer, registry boundary and content ownership
     state: planned
-    objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor for cs50x-2026, and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
+    objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor keyed by definition key cs50x-2026 (the current catalogue identity; not a persisted programme ownership identity, which waits for OD-5 in C6), and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
     prerequisites: [C1 accepted, OD-9 recorded]
     allowed_scope:
       - new src/programmes/**
@@ -55,10 +56,12 @@ stories:
     forbidden_scope:
       - XP, achievement, catalogue-rule, terminology or read-scope changes
       - schema, persisted values, CSS, assets, routes
+      - any persisted programmeId field, stored key or backup field
       - widening the external-URL allowlist beyond the existing CS50 prefix
     required_evidence:
       - C1 link, guide and identity evidence unchanged
       - negative probes for every new ESLint rule, including a type-only import case (G-1)
+      - programmes may import only the @/lib/achievements public entrypoint among lib feature modules; a lib/achievements -> programmes probe is rejected; check:circular passes
       - local-only guard coverage of the moved content's file type (G-2)
       - moduleBoundaries equivalent (G-3); sharedContracts; circular; bundle budget
     owner_decision_gates: [OD-9]
@@ -67,25 +70,29 @@ stories:
       - a C1 oracle would change
 
   - id: C3
-    title: Programme reward and catalogue rules passed into lib engines
+    title: CS50 reward, workflow and catalogue policy passed into shared engines
     state: planned
-    objective: Move only the CS50-bound rules into the cs50x-2026 definition - the two final-project XP milestones, the 10 CS50-bound achievement definitions and the programme's achievement display order, the final_project seed requirement and the final-project pair lookup; lib engines and repositories receive them as parameters. Shared XP policy and the 6 shared achievement definitions stay in lib (C0_PROGRAMME_DEFINITION_CONTRACT.md section 3)
+    objective: Move CS50 policy (C0_PROGRAMME_DEFINITION_CONTRACT.md section 4b) into validated cs50x-2026 definition configuration - completion XP by item type, problem-set workflow XP, the required-week bonus, the final-project milestones and pair lookup, the submission-workflow configuration (including the correction-path asymmetry) from which the preview terminal status derives, the 10 CS50-bound achievement definitions with the problem-set counting policy, the achievement display order, and the final_project seed requirement. Shared engines receive them as parameters. Mechanisms, the level curve, activity XP, the status model and the 6 shared achievement definitions stay shared (section 4d)
     prerequisites: [C2 accepted]
-    delivery: concern-scoped commits (XP; achievements; catalogue validation and lookup), each passing the C1 evidence
+    delivery: concern-scoped commits (catalogue validation; XP configuration; submission workflow; achievements, order and evaluator), each passing the C1 evidence
     allowed_scope:
       - src/lib/xp, src/lib/achievements, src/lib/domain seed validation, src/lib/db award paths (parameterisation only)
       - features/rpg/model/questRewards.ts and other consumers of the final-project pair or achievementDefinitions (sourcing only)
+      - features/course/detailModel.ts and RPG status controls (sourcing workflow configuration only)
+      - re-encoding achievement ruleType/ruleConfig, e.g. generalising problem_set_status_count to a configured item type, with unlock behaviour unchanged
       - src/programmes/** CS50 core definition
       - composition roots passing the definition
     forbidden_scope:
-      - any change to amounts, sourceType, sourceId, reason, unlock IDs, trigger IDs or achievement display order
-      - moving shared XP policy or the 6 shared achievement definitions into programme configuration
+      - any change to amounts, sourceType, sourceId, reason, offered statuses, unlock behaviour, unlock IDs, trigger IDs or achievement display order
+      - renaming or re-keying persisted enum values
+      - moving the section 4d shared rules or the 6 shared achievement definitions into programme configuration
       - read scoping; schema; terminology; CSS; assets
     required_evidence:
-      - C1 semantic oracles for XP, preview labels, persisted reward identity, the ordered 16-definition table and achievement satisfaction identical
+      - C1 semantic oracles for XP, preview labels, persisted reward identity, status reachability, the ordered 16-definition table and per-definition unlock behaviour identical (rule-encoding characterization may change with a named reason)
+      - a test-only definition with different policy (e.g. no week bonus) changes only its own awards, proving policy is configuration rather than engine code
       - P1 as RED then green with a test-only definition lacking final_project; CS50 still requires it
       - lib contains no CS50-owned identifier literal; shared achievement IDs exempt (G-7)
-      - order-list validation rejects omitted, duplicate and unknown achievement IDs
+      - composed-catalogue validation (contract section 5) rejects omitted, duplicate, unknown and shared-colliding achievement IDs
       - achievementsFeature and sessionsFeature purity guards; repositories award paths; saveOutcomes; insights alignment test
     owner_decision_gates: []
     stop_conditions:
@@ -95,7 +102,7 @@ stories:
   - id: C4
     title: CS50 programme terminology
     state: planned
-    objective: Move only CS50-dependent terminology into cs50x-2026 definition content - CS50 copy, the curriculum-unit noun in unit-level copy, the RPG identity tuple (including its literal types) and the per-unit map ordinal label replacing week- ID parsing. Shared type, asset-type, category, session-mode and rank labels and the submission workflow stay in place
+    objective: Move only CS50-dependent terminology into cs50x-2026 definition content - CS50 copy, the curriculum-unit noun in unit-level copy, the RPG identity tuple (including its literal types) and the per-unit map ordinal label replacing week- ID parsing. Canonical vocabulary labels and rank labels stay shared
     prerequisites: [C3 accepted]
     allowed_scope:
       - src/programmes/** CS50 content
@@ -103,7 +110,7 @@ stories:
     forbidden_scope:
       - brand text change (OD-6); route contract change; layout or CSS change
       - rule, reward or read-scope changes
-      - moving shared labels or the submission workflow into programme configuration
+      - moving canonical vocabulary labels or rank labels into programme configuration
     required_evidence:
       - C1 label and copy semantic oracles (shared and CS50-owned rows) and existing rendered-text tests identical
       - lab/problem_set status asymmetry preserved (courseDetailModel tests)
@@ -116,31 +123,32 @@ stories:
   - id: C5
     title: Programme-scoped catalogue reads
     state: planned
-    objective: Pass the active programme explicitly from bootstrap and scope catalogue-derived reads (units, items, progress by item, derived media, achievement catalogue context, XP preview context) to it, with no schema change
+    objective: Pass the active definition explicitly from bootstrap and scope catalogue-derived reads (units, items, progress by item, derived media, achievement catalogue context, XP preview context) by its catalogue identity (course_units.courseId, cs50x-2026), with no schema change and no persisted programme identity
     prerequisites: [C4 accepted]
     allowed_scope:
       - src/lib/db read paths and features/rpg read models (scoping only)
-      - composition roots passing the active programme
+      - composition roots passing the active definition
       - Epic A read-boundary test expectations extended deliberately with a reviewed reason
     forbidden_scope:
       - scoping the XP ledger or level (OD-1), unlocks (OD-2), sessions/insights/profile (OD-4)
-      - reading the active programme inside a passive read transaction
+      - reading the active definition inside a passive read transaction
+      - introducing a persisted programmeId (C6, after OD-5)
       - schema; persisted values; relaxing an access-probe expectation to pass
     required_evidence:
       - P3 as RED then green with a test-only second catalogue that is never registered in production
       - CS50 outputs identical to C1 evidence
       - every Epic A read-boundary suite and access probe
-      - an unregistered or unmaterialized active programme fails closed through the actual route (error state), never an empty-but-plausible map (A7 control)
+      - an unregistered definition key or unmaterialized catalogue fails closed through the actual route (error state), never an empty-but-plausible map (A7 control)
     owner_decision_gates: []
     stop_conditions:
       - a read boundary would have to be weakened
       - scoping would require an owner decision
-      - a scoped read can return plausible partial or empty data for a wrong programme ID
+      - a scoped read can return plausible partial or empty data for a wrong definition key or catalogue identity
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
     state: blocked_on_owner_decisions
-    objective: Introduce per-programme catalogue version, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
+    objective: Freeze the persisted programme ownership identity (after OD-5) and introduce per-catalogue version state, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
     prerequisites:
       [
         C5 accepted,
