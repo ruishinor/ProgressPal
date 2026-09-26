@@ -1,0 +1,1299 @@
+[
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 1: Debug",
+        "sourceId": "practice-debug-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-debug-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-debug"
+  },
+  {
+    "awards": [
+      {
+        "policy": "final_project_milestone",
+        "reason": "Completed final project build",
+        "sourceId": "final-project-build-completed",
+        "sourceType": "final_project_build_completed",
+        "transactionId": "xp-final_project_build_completed-final-project-build-completed",
+        "xp": 250
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +250 XP",
+    "freshLabelDetailed": "Up to 250 XP remaining for this task",
+    "itemId": "final-project-build"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 0: Scratch",
+        "sourceId": "week-0-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-0-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-0-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 1: C",
+        "sourceId": "week-1-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-1-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-1-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 10: The End",
+        "sourceId": "week-10-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-10-lecture-completed",
+        "xp": 40
+      },
+      {
+        "policy": "week_bonus",
+        "reason": "Completed all required items for Week 10: The End",
+        "sourceId": "week-10",
+        "sourceType": "week_completed",
+        "transactionId": "xp-week_completed-week-10",
+        "xp": 150
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task · +150 XP when Week 10: The End is complete",
+    "itemId": "week-10-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 2: Arrays",
+        "sourceId": "week-2-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-2-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-2-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 3: Algorithms",
+        "sourceId": "week-3-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-3-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-3-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 4: Memory",
+        "sourceId": "week-4-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-4-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-4-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 5: Data Structures",
+        "sourceId": "week-5-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-5-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-5-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 6: Python",
+        "sourceId": "week-6-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-6-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-6-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 7: SQL",
+        "sourceId": "week-7-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-7-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-7-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 8: HTML, CSS, JavaScript",
+        "sourceId": "week-8-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-8-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-8-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture 9: Flask",
+        "sourceId": "week-9-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-week-9-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "week-9-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed lecture: Lecture: Artificial Intelligence",
+        "sourceId": "artificial-intelligence-lecture-completed",
+        "sourceType": "lecture_completed",
+        "transactionId": "xp-lecture_completed-artificial-intelligence-lecture-completed",
+        "xp": 40
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +40 XP",
+    "freshLabelDetailed": "Up to 40 XP remaining for this task",
+    "itemId": "artificial-intelligence-lecture"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 1: Half",
+        "sourceId": "practice-half-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-half-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-half"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 0: Scratch",
+        "sourceId": "week-0-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-0-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 0: Scratch",
+        "sourceId": "week-0-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-0-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 0: Scratch",
+        "sourceId": "week-0-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-0-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-0-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "final_project_milestone",
+        "reason": "Completed both final project README and video demo",
+        "sourceId": "final-project-readme-demo-combined",
+        "sourceType": "final_project_readme_demo_completed",
+        "transactionId": "xp-final_project_readme_demo_completed-final-project-readme-demo-combined",
+        "xp": 200
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +200 XP",
+    "freshLabelDetailed": "Up to 200 XP remaining for this task (shared with README + demo)",
+    "itemId": "final-project-video-demo"
+  },
+  {
+    "awards": [],
+    "earnedLabel": "No task XP",
+    "earnedLabelDetailed": "No task XP",
+    "freshLabel": "No task XP",
+    "freshLabelDetailed": "No task XP",
+    "itemId": "week-10-seminars"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Algorithms",
+        "sourceId": "week-3-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-3-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-3-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Arrays",
+        "sourceId": "week-2-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-2-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-2-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: C",
+        "sourceId": "week-1-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-1-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-1-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Data Structures",
+        "sourceId": "week-5-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-5-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-5-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Flask",
+        "sourceId": "week-9-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-9-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-9-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: HTML, CSS, JavaScript",
+        "sourceId": "week-8-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-8-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-8-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Memory",
+        "sourceId": "week-4-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-4-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-4-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: Python",
+        "sourceId": "week-6-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-6-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-6-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed shorts: Shorts: SQL",
+        "sourceId": "week-7-shorts-completed",
+        "sourceType": "shorts_completed",
+        "transactionId": "xp-shorts_completed-week-7-shorts-completed",
+        "xp": 15
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +15 XP",
+    "freshLabelDetailed": "Up to 15 XP remaining for this task",
+    "itemId": "week-7-shorts"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 1: Prime",
+        "sourceId": "practice-prime-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-prime-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-prime"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Algorithms",
+        "sourceId": "week-3-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-3-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-3-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Arrays",
+        "sourceId": "week-2-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-2-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-2-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: C",
+        "sourceId": "week-1-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-1-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-1-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Data Structures",
+        "sourceId": "week-5-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-5-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-5-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Flask",
+        "sourceId": "week-9-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-9-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-9-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: HTML, CSS, JavaScript",
+        "sourceId": "week-8-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-8-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-8-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Memory",
+        "sourceId": "week-4-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-4-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-4-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: Python",
+        "sourceId": "week-6-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-6-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-6-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed section: Section: SQL",
+        "sourceId": "week-7-section-completed",
+        "sourceType": "section_completed",
+        "transactionId": "xp-section_completed-week-7-section-completed",
+        "xp": 20
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +20 XP",
+    "freshLabelDetailed": "Up to 20 XP remaining for this task",
+    "itemId": "week-7-section"
+  },
+  {
+    "awards": [
+      {
+        "policy": "final_project_milestone",
+        "reason": "Completed both final project README and video demo",
+        "sourceId": "final-project-readme-demo-combined",
+        "sourceType": "final_project_readme_demo_completed",
+        "transactionId": "xp-final_project_readme_demo_completed-final-project-readme-demo-combined",
+        "xp": 200
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +200 XP",
+    "freshLabelDetailed": "Up to 200 XP remaining for this task (shared with README + demo)",
+    "itemId": "final-project-readme"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 2: Hours",
+        "sourceId": "practice-hours-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-hours-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-hours"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 1: C",
+        "sourceId": "week-1-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-1-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 1: C",
+        "sourceId": "week-1-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-1-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 1: C",
+        "sourceId": "week-1-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-1-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-1-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 2: Arrays",
+        "sourceId": "week-2-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-2-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 2: Arrays",
+        "sourceId": "week-2-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-2-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 2: Arrays",
+        "sourceId": "week-2-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-2-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-2-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 3: Algorithms",
+        "sourceId": "week-3-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-3-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 3: Algorithms",
+        "sourceId": "week-3-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-3-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 3: Algorithms",
+        "sourceId": "week-3-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-3-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-3-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 4: Memory",
+        "sourceId": "week-4-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-4-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 4: Memory",
+        "sourceId": "week-4-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-4-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 4: Memory",
+        "sourceId": "week-4-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-4-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-4-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 5: Data Structures",
+        "sourceId": "week-5-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-5-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 5: Data Structures",
+        "sourceId": "week-5-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-5-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 5: Data Structures",
+        "sourceId": "week-5-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-5-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-5-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 6: Python",
+        "sourceId": "week-6-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-6-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 6: Python",
+        "sourceId": "week-6-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-6-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 6: Python",
+        "sourceId": "week-6-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-6-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-6-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 7: SQL",
+        "sourceId": "week-7-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-7-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 7: SQL",
+        "sourceId": "week-7-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-7-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 7: SQL",
+        "sourceId": "week-7-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-7-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-7-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 8: HTML, CSS, JavaScript",
+        "sourceId": "week-8-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-8-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 8: HTML, CSS, JavaScript",
+        "sourceId": "week-8-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-8-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 8: HTML, CSS, JavaScript",
+        "sourceId": "week-8-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-8-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-8-problem-set"
+  },
+  {
+    "awards": [
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Started problem set: Problem Set 9: Flask",
+        "sourceId": "week-9-problem-set-started",
+        "sourceType": "problem_set_started",
+        "transactionId": "xp-problem_set_started-week-9-problem-set-started",
+        "xp": 20
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Submitted problem set: Problem Set 9: Flask",
+        "sourceId": "week-9-problem-set-submitted",
+        "sourceType": "problem_set_submitted",
+        "transactionId": "xp-problem_set_submitted-week-9-problem-set-submitted",
+        "xp": 75
+      },
+      {
+        "policy": "problem_set_workflow",
+        "reason": "Accepted problem set: Problem Set 9: Flask",
+        "sourceId": "week-9-problem-set-accepted",
+        "sourceType": "problem_set_accepted",
+        "transactionId": "xp-problem_set_accepted-week-9-problem-set-accepted",
+        "xp": 125
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +220 XP",
+    "freshLabelDetailed": "Up to 220 XP remaining for this task",
+    "itemId": "week-9-problem-set"
+  },
+  {
+    "awards": [],
+    "earnedLabel": "No task XP",
+    "earnedLabelDetailed": "No task XP",
+    "freshLabel": "No task XP",
+    "freshLabelDetailed": "No task XP",
+    "itemId": "final-project-submit50"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 2: N0 V0w3ls",
+        "sourceId": "practice-no-vowels-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-no-vowels-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-no-vowels"
+  },
+  {
+    "awards": [],
+    "earnedLabel": "No task XP",
+    "earnedLabelDetailed": "No task XP",
+    "freshLabel": "No task XP",
+    "freshLabelDetailed": "No task XP",
+    "itemId": "final-project-gradebook-check"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 2: Password",
+        "sourceId": "practice-password-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-password-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-password"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 3: Recursive atoi",
+        "sourceId": "practice-recursive-atoi-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-recursive-atoi-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-recursive-atoi"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 3: Average Temperatures",
+        "sourceId": "practice-average-temperatures-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-average-temperatures-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-average-temperatures"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 3: Max",
+        "sourceId": "practice-max-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-max-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-max"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 3: Snackbar",
+        "sourceId": "practice-snackbar-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-snackbar-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-snackbar"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 4: Bottom Up",
+        "sourceId": "practice-bottom-up-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-bottom-up-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-bottom-up"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 4: License",
+        "sourceId": "practice-license-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-license-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-license"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 5: Trie",
+        "sourceId": "practice-trie-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-trie-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-trie"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 6: Bank",
+        "sourceId": "practice-bank-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-bank-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-bank"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 6: Frank, Ian and Glen's Letters",
+        "sourceId": "practice-frank-ian-and-glens-letters-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-frank-ian-and-glens-letters-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-frank-ian-and-glens-letters"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 6: Jar",
+        "sourceId": "practice-jar-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-jar-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-jar"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 6: Seven Day Average",
+        "sourceId": "practice-seven-day-average-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-seven-day-average-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-seven-day-average"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 6: Taqueria",
+        "sourceId": "practice-taqueria-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-taqueria-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-taqueria"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 7: Favorites",
+        "sourceId": "practice-favorites-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-favorites-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-favorites"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 7: Hall of Prophecy",
+        "sourceId": "practice-hall-of-prophecy-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-hall-of-prophecy-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-hall-of-prophecy"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 8: Radio Shack Redo",
+        "sourceId": "practice-radio-shack-redo-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-radio-shack-redo-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-radio-shack-redo"
+  },
+  {
+    "awards": [
+      {
+        "policy": "type_amount",
+        "reason": "Completed practice: After Week 9: Hello, Flask",
+        "sourceId": "practice-hello-flask-completed",
+        "sourceType": "practice_completed",
+        "transactionId": "xp-practice_completed-practice-hello-flask-completed",
+        "xp": 30
+      }
+    ],
+    "earnedLabel": "Task XP earned",
+    "earnedLabelDetailed": "Task XP earned",
+    "freshLabel": "Up to +30 XP",
+    "freshLabelDetailed": "Up to 30 XP remaining for this task",
+    "itemId": "practice-hello-flask"
+  }
+]

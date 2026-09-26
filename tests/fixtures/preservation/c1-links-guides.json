@@ -1,0 +1,601 @@
+{
+  "items": [
+    {
+      "guide": {
+        "summary": "Lecture 0 is your first tour of how programs work, using Scratch so you can think about logic before syntax.",
+        "whatToDo": [
+          "Watch in short sittings and pause to try each demo yourself.",
+          "Note any new term so you can revisit it later."
+        ],
+        "doneLooksLike": [
+          "You can describe what a loop and a conditional do.",
+          "You feel ready to start building in Scratch."
+        ],
+        "checklist": [
+          "Sequence and the order of steps",
+          "Loops and repetition",
+          "Conditions and branching",
+          "Variables and simple events"
+        ],
+        "reflectionPrompt": "What is one thing from the lecture you want to try yourself before moving on?"
+      },
+      "id": "week-0-lecture",
+      "link": null
+    },
+    {
+      "guide": {
+        "summary": "Problem Set 0 asks you to build your own Scratch project that uses the ideas from the lecture. It is meant to be playful, not a test of typing.",
+        "whatToDo": [
+          "Pick a simple idea you actually want to build.",
+          "Add at least one loop and one condition so your project reacts to something.",
+          "Test it a few times and adjust until it behaves the way you expect."
+        ],
+        "doneLooksLike": [
+          "Your project runs without getting stuck.",
+          "It uses a loop and a condition on purpose.",
+          "You submitted it where the course asks you to."
+        ],
+        "checklist": [
+          "Project has a clear, small goal",
+          "Uses at least one loop",
+          "Uses at least one condition",
+          "Tested and behaves as expected"
+        ],
+        "reflectionPrompt": "Where did you submit it, and what would you add if you had more time?"
+      },
+      "id": "week-0-problem-set",
+      "link": {
+        "label": "Problem Set 0 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/0/"
+      }
+    },
+    {
+      "guide": {
+        "summary": "Lecture 1 connects the Scratch ideas you already know to real C syntax, including printing, variables, types, and loops.",
+        "whatToDo": [
+          "Type the examples yourself instead of only watching.",
+          "Run each small program so you can see the output change."
+        ],
+        "doneLooksLike": [
+          "You can write a short program that prints output.",
+          "You recognize common types and a basic loop."
+        ],
+        "checklist": [
+          "Compiling and running a program",
+          "Printing output",
+          "Variables and types",
+          "Loops and conditions in C"
+        ],
+        "reflectionPrompt": "Which Scratch idea mapped most cleanly onto C for you?"
+      },
+      "id": "week-1-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-1-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-1-section",
+      "link": null
+    },
+    {
+      "guide": {
+        "summary": "Problem Set 1 gives you small C programs to write so you can practice the basics: input, output, simple math, and loops.",
+        "whatToDo": [
+          "Read each task slowly and restate it in your own words first.",
+          "Build up your program in small steps and compile often.",
+          "Check your output against the examples each task describes."
+        ],
+        "doneLooksLike": [
+          "Each program compiles and runs.",
+          "Your output matches what each task asks for.",
+          "You submitted your work where the course asks you to."
+        ],
+        "checklist": [
+          "Program compiles cleanly",
+          "Handles the example inputs",
+          "Output format matches the task",
+          "Submitted where required"
+        ],
+        "reflectionPrompt": "Where did you submit it, and which part took the most tries to get right?"
+      },
+      "id": "week-1-problem-set",
+      "link": {
+        "label": "Problem Set 1 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/1/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-2-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-2-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-2-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-2-problem-set",
+      "link": {
+        "label": "Problem Set 2 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/2/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-3-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-3-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-3-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-3-problem-set",
+      "link": {
+        "label": "Problem Set 3 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/3/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-4-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-4-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-4-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-4-problem-set",
+      "link": {
+        "label": "Problem Set 4 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/4/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-5-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-5-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-5-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-5-problem-set",
+      "link": {
+        "label": "Problem Set 5 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/5/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-6-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-6-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-6-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-6-problem-set",
+      "link": {
+        "label": "Problem Set 6 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/6/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-7-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-7-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-7-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-7-problem-set",
+      "link": {
+        "label": "Problem Set 7 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/7/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "artificial-intelligence-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-8-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-8-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-8-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-8-problem-set",
+      "link": {
+        "label": "Problem Set 8 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/8/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-9-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-9-shorts",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-9-section",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-9-problem-set",
+      "link": {
+        "label": "Problem Set 9 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/psets/9/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-10-lecture",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "week-10-seminars",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-debug",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-half",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-prime",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-hours",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-no-vowels",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-password",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-recursive-atoi",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-average-temperatures",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-max",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-snackbar",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-bottom-up",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-license",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-trie",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-bank",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-frank-ian-and-glens-letters",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-jar",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-seven-day-average",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-taqueria",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-favorites",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-hall-of-prophecy",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-radio-shack-redo",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "practice-hello-flask",
+      "link": null
+    },
+    {
+      "guide": null,
+      "id": "final-project-build",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "final-project-video-demo",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "final-project-readme",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "final-project-submit50",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "final-project-gradebook-check",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    }
+  ],
+  "units": [
+    {
+      "guide": {
+        "summary": "Week 0 introduces computer-science thinking using Scratch, a drag-and-drop language. You focus on ideas like sequence, loops, conditions, and variables without worrying about typing code yet.",
+        "whatToDo": [
+          "Watch the Week 0 lecture and follow along with the Scratch demos.",
+          "Open Scratch and rebuild a small example to get comfortable with the blocks.",
+          "Start Problem Set 0 once the core ideas feel familiar."
+        ],
+        "doneLooksLike": [
+          "You can explain sequence, loops, and conditions in plain words.",
+          "You have a working Scratch project that does something on purpose.",
+          "Problem Set 0 is finished and submitted."
+        ],
+        "reflectionPrompt": "Which programming idea finally clicked for you this week, and what made it click?"
+      },
+      "id": "week-0",
+      "link": {
+        "label": "Week 0 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/0/"
+      }
+    },
+    {
+      "guide": {
+        "summary": "Week 1 moves from Scratch to C, a text-based language. The ideas are the same as Week 0, but now you write them as code and compile the program before you run it.",
+        "whatToDo": [
+          "Watch the Week 1 lecture and retype the small examples yourself.",
+          "Get comfortable compiling and running a simple program.",
+          "Begin Problem Set 1 once printing and variables make sense."
+        ],
+        "doneLooksLike": [
+          "You can write, compile, and run a small C program.",
+          "You understand variables, types, and basic loops in C.",
+          "Problem Set 1 is finished and submitted."
+        ],
+        "reflectionPrompt": "What felt different about writing code in C compared with building in Scratch?"
+      },
+      "id": "week-1",
+      "link": {
+        "label": "Week 1 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/1/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-2",
+      "link": {
+        "label": "Week 2 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/2/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-3",
+      "link": {
+        "label": "Week 3 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/3/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-4",
+      "link": {
+        "label": "Week 4 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/4/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-5",
+      "link": {
+        "label": "Week 5 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/5/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-6",
+      "link": {
+        "label": "Week 6 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/6/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-7",
+      "link": {
+        "label": "Week 7 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/7/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "artificial-intelligence",
+      "link": {
+        "label": "AI Week on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/ai/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-8",
+      "link": {
+        "label": "Week 8 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/8/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-9",
+      "link": {
+        "label": "Week 9 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/9/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "week-10",
+      "link": {
+        "label": "Week 10 on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/weeks/10/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "additional-practice",
+      "link": {
+        "label": "Practice Problems on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/practice/"
+      }
+    },
+    {
+      "guide": null,
+      "id": "final-project",
+      "link": {
+        "label": "Final Project on CS50.harvard.edu",
+        "url": "https://cs50.harvard.edu/x/project/"
+      }
+    }
+  ]
+}
