@@ -8,7 +8,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c0_pass_ready_for_c1_awaiting_owner_review
+current_state: c1_candidate_ready_for_owner_review
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -20,7 +20,16 @@ stories:
 
   - id: C1
     title: Baseline preservation evidence
-    state: ready_after_owner_review_of_c0
+    state: candidate_ready_for_owner_review
+    evidence_harness_commit: b9ae4f3f087d106e3e7cb24403e96e1506e98e3d
+    visual_baseline_archive_sha256: b87c8f5f93b3b3ee5efda66791c8eaea266f3cdd2d85dfca7c958bb19de9a67a
+    open_gates: [owner visual review, OD-8, independent C1 review]
+    records:
+      [
+        C1_EVIDENCE_COVERAGE.md,
+        C1_VISUAL_BASELINE_MANIFEST.md,
+        C1_CLOSURE_RECORD.md,
+      ]
     objective: Freeze semantic oracles for every externally meaningful value SPEC.md section 4 preserves (curriculum, XP, reward identity, offered statuses, achievement fields, order and exact unlock behaviour, links, guides, labels, CS50 copy); keep internal rule encoding, internal outputs and unreachable inputs as characterization; capture a baseline-built schema-2 fixture and the retained visual baseline from a clean evidence-harness commit whose production subset is byte-identical to the product baseline, before any ownership change
     prerequisites: [owner review of C0 PASS]
     allowed_scope:

@@ -1,7 +1,8 @@
 # Epic C validation readiness
 
-Current state: **C0 `PASS_READY_FOR_C1` — awaiting owner review.** C1 has not
-started.
+Current state: **C1 `C1_CANDIDATE_READY_FOR_OWNER_REVIEW`** (evidence harness
+`b9ae4f3`; see `C1_CLOSURE_RECORD.md` and `C1_EVIDENCE_COVERAGE.md`). The C0
+validation below is historical and unchanged.
 
 This is the canonical C0 record for validation performed, the evidence-role
 taxonomy, the architecture/destination-layer guard map and per-story
@@ -136,13 +137,13 @@ protected by a stronger family-A behaviour table instead.
 
 ## 5. Readiness matrix
 
-| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                       |
-| ----- | ------------------------------------------------ | ------------------------------------------- | --------------------------- |
-| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | **Yes, after owner review** |
-| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | After C1                    |
-| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | After C2                    |
-| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | After C3                    |
-| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | After C4                    |
-| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                     |
-| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                     |
-| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed       |
+| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                                   |
+| ----- | ------------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------- |
+| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Candidate ready; awaiting owner visual review, OD-8, independent review |
+| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | After C1                                                                |
+| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | After C2                                                                |
+| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | After C3                                                                |
+| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | After C4                                                                |
+| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                                                                 |
+| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                                 |
+| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                                   |

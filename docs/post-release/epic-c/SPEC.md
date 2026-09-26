@@ -1,7 +1,9 @@
 # Epic C — programme platform foundation
 
-Status: **C0 `PASS_READY_FOR_C1` — awaiting owner review.** C1 is not
-authorized until the owner reviews this C0 package. Authority: Bootstrap v7.0
+Status: **C0 accepted by owner review; C1 `C1_CANDIDATE_READY_FOR_OWNER_REVIEW`**
+(`C1_CLOSURE_RECORD.md`). C1 is not accepted until owner visual review, the
+OD-8 retention decision and independent C1 review. C2 is not authorized.
+Authority: Bootstrap v7.0
 (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
 `F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7`),
 `epic-c/SPEC.md`, `C0_READINESS_PLAN.md`, `NEXT_STORY_HANDOFF_C0.md`.
