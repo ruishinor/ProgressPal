@@ -49,7 +49,7 @@ test('captures the B2 shell and interface transition for owner visual review', a
   await captureInterfaceCard(page, '390-rpg-settings-interface.png');
 
   await page.goto('/settings');
-  await expect(page.getByLabel('Classic appearance')).toBeVisible();
+  await expect(page.getByLabel('Theme', { exact: true })).toBeVisible();
   await captureInterfaceCard(page, '390-classic-settings-interface.png');
 
   await page.setViewportSize({ height: 900, width: 1280 });
@@ -63,6 +63,6 @@ test('captures the B2 shell and interface transition for owner visual review', a
   await captureInterfaceCard(page, '1280-rpg-settings-interface.png');
 
   await page.goto('/settings');
-  await expect(page.getByLabel('Classic appearance')).toBeVisible();
+  await expect(page.getByLabel('Theme', { exact: true })).toBeVisible();
   await captureInterfaceCard(page, '1280-classic-settings-interface.png');
 });

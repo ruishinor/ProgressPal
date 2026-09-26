@@ -369,10 +369,10 @@ const renderedCs50Copy: Array<[route: string, strings: string[]]> = [
 ];
 
 /**
- * CS50 copy shown only in transient loading/error states or before onboarding.
- * Protected by exact presence in runtime source (moves within src stay
- * green; any text change fails). C4 must add rendered evidence for any of
- * these strings it moves.
+ * SECONDARY CHARACTERIZATION ONLY (source evidence, not the semantic oracle):
+ * the same transient-state CS50 strings must still exist verbatim somewhere in
+ * runtime source. The semantic oracle for these strings is their real rendered
+ * state in c1TransientCopy.test.tsx.
  */
 const transientCs50Copy = [
   'Preparing local profile data and the bundled CS50 catalog.',
@@ -401,7 +401,7 @@ describe('C1 CS50 copy and curriculum-unit noun (semantic, CS50-owned)', () => {
     }, 30_000);
   }
 
-  it('keeps the transient-state CS50 copy verbatim in runtime source', () => {
+  it('keeps the transient-state CS50 copy verbatim in runtime source (characterization)', () => {
     for (const value of transientCs50Copy) {
       expect(runtimeSourceText, value).toContain(value);
     }

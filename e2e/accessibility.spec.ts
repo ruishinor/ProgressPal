@@ -72,10 +72,13 @@ type FixtureNode = {
 const MEASURE = (selector: string) => {
   const parse = (value: string) => {
     const parts = (value.match(/[\d.]+/g) ?? []).map(Number);
+    // Chrome serialises `color-mix()` results as `color(srgb r g b / a)` with
+    // 0-1 channels; scale them so they are not misread as near-black.
+    const scale = value.startsWith('color(srgb') ? 255 : 1;
     return {
-      r: parts[0] ?? 0,
-      g: parts[1] ?? 0,
-      b: parts[2] ?? 0,
+      r: (parts[0] ?? 0) * scale,
+      g: (parts[1] ?? 0) * scale,
+      b: (parts[2] ?? 0) * scale,
       a: parts.length >= 4 ? (parts[3] ?? 1) : 1,
     };
   };
@@ -378,47 +381,65 @@ test('design-system fixture surfaces meet dark-theme contrast with no light grad
   await unmountFixture(page);
 });
 
-test('shared RPG capability surfaces keep measured dark contrast under a light profile preference', async ({
-  page,
-}) => {
-  await completeOnboardingLight(page);
+const rpgCapabilitySurfaces = [
+  {
+    heading: 'Focus',
+    path: '/rpg/focus?itemId=week-0-lecture',
+    selector: '.rpg-focus .card--accent .card__description',
+  },
+  {
+    heading: 'Achievements',
+    path: '/rpg/badges',
+    selector: '.rpg-badges .achievement-card__how',
+  },
+  {
+    heading: 'Insights',
+    path: '/rpg/log',
+    selector: '.rpg-log .card__description',
+  },
+  {
+    heading: 'Settings',
+    path: '/rpg/settings',
+    selector: '.rpg-settings .card__title',
+  },
+] as const;
 
-  const surfaces = [
-    {
-      heading: 'Focus',
-      path: '/rpg/focus?itemId=week-0-lecture',
-      selector: '.rpg-focus .card--accent .card__description',
-    },
-    {
-      heading: 'Achievements',
-      path: '/rpg/badges',
-      selector: '.rpg-badges .achievement-card__how',
-    },
-    {
-      heading: 'Insights',
-      path: '/rpg/log',
-      selector: '.rpg-log .card__description',
-    },
-    {
-      heading: 'Settings',
-      path: '/rpg/settings',
-      selector: '.rpg-settings .card__title',
-    },
-  ] as const;
+// The one learner theme preference themes RPG too (owner decision, Epic C /
+// C1 theme repair). Contrast is measured on the real RPG canvas of each theme.
+for (const theme of ['light', 'dark'] as const) {
+  test(`shared RPG capability surfaces meet measured contrast in the ${theme} RPG theme`, async ({
+    page,
+  }) => {
+    if (theme === 'light') {
+      await completeOnboardingLight(page);
+    } else {
+      await completeOnboardingDark(page);
+    }
 
-  for (const surface of surfaces) {
-    await page.goto(surface.path);
-    await expect(
-      page.getByRole('heading', { exact: true, name: surface.heading }),
-    ).toBeVisible({ timeout: 15000 });
-    await expect(page.locator(surface.selector).first()).toBeVisible();
+    for (const surface of rpgCapabilitySurfaces) {
+      await page.goto(surface.path);
+      await expect(
+        page.getByRole('heading', { exact: true, name: surface.heading }),
+      ).toBeVisible({ timeout: 15000 });
+      await expect(page.locator(surface.selector).first()).toBeVisible();
 
-    const contrast = await measureContrast(page, surface.selector);
+      // Guard against a vacuous pass: the RPG canvas must match the theme.
+      const canvas = await page.evaluate(
+        () => getComputedStyle(document.body).backgroundColor,
+      );
+      if (theme === 'dark') {
+        expect(canvas).toBe('rgb(17, 25, 35)');
+      } else {
+        expect(canvas).not.toBe('rgb(17, 25, 35)');
+      }
 
-    expect(contrast.gradientBehind).toBe(false);
-    expect(contrast.ratio).toBeGreaterThanOrEqual(MIN_CONTRAST);
-  }
-});
+      const contrast = await measureContrast(page, surface.selector);
+
+      expect(contrast.gradientBehind).toBe(false);
+      expect(contrast.ratio).toBeGreaterThanOrEqual(MIN_CONTRAST);
+    }
+  });
+}
 
 test('primary and danger buttons stay readable on hover in dark theme', async ({
   page,
@@ -680,19 +701,25 @@ test('key classic routes pass axe in light theme', async ({ page }) => {
   }
 });
 
-test('RPG routes pass axe', async ({ page }) => {
-  await completeOnboardingDark(page);
+for (const theme of ['dark', 'light'] as const) {
+  test(`RPG routes pass axe in the ${theme} theme`, async ({ page }) => {
+    if (theme === 'light') {
+      await completeOnboardingLight(page);
+    } else {
+      await completeOnboardingDark(page);
+    }
 
-  for (const route of rpgAxeRoutes) {
-    await page.goto(route.path);
-    await expect(
-      page.getByRole('heading', { exact: true, name: route.heading }),
-    ).toBeVisible({ timeout: 15000 });
+    for (const route of rpgAxeRoutes) {
+      await page.goto(route.path);
+      await expect(
+        page.getByRole('heading', { exact: true, name: route.heading }),
+      ).toBeVisible({ timeout: 15000 });
 
-    const scan = await new AxeBuilder({ page }).analyze();
-    expect(scan.violations).toEqual([]);
-  }
-});
+      const scan = await new AxeBuilder({ page }).analyze();
+      expect(scan.violations).toEqual([]);
+    }
+  });
+}
 
 test('route changes move focus to the main content region', async ({
   page,

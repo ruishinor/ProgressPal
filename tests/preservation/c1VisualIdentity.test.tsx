@@ -81,6 +81,39 @@ describe('C1 visual source identity (visual, identity only)', () => {
     );
   });
 
+  it('keeps the accepted dark RPG palette exactly under the app-wide dark theme', () => {
+    // Theme repair: RPG follows the one app theme. The dark block must keep
+    // the 14 pre-repair RPG tokens exactly, and each new token's dark value
+    // must equal the hard-coded literal it replaced in rpg-shell/components.
+    expect(
+      extractTokens()[
+        "src/styles/rpg-tokens.css | :root[data-theme='dark'] body.rpg-route-active"
+      ],
+    ).toEqual({
+      '--rpg-accent': '#d6ad5c',
+      '--rpg-accent-strong': '#f1d28b',
+      '--rpg-bg': '#111923',
+      '--rpg-border': '#405064',
+      '--rpg-border-strong': '#8b7951',
+      '--rpg-danger': '#d8897e',
+      '--rpg-focus-ring': '#f3cf7d',
+      '--rpg-nav-hub-shade': '#090d12',
+      '--rpg-nav-ring': 'rgb(9 13 18 / 0.72)',
+      '--rpg-nav-shade': '#080c11',
+      '--rpg-on-accent': '#17202b',
+      '--rpg-on-success': '#17202b',
+      '--rpg-overlay': 'rgba(5, 9, 14, 0.72)',
+      '--rpg-progress': '#c9943e',
+      '--rpg-success': '#78b98c',
+      '--rpg-surface': '#172331',
+      '--rpg-surface-raised': '#203041',
+      '--rpg-text': '#f4f1e8',
+      '--rpg-text-muted': '#c7d0d6',
+      '--rpg-track': 'rgba(244, 241, 232, 0.1)',
+      '--rpg-warning': '#d8a84f',
+    });
+  });
+
   it('keeps every CSS custom property name and value unchanged', () => {
     const tokens = extractTokens();
     expect(Object.keys(tokens)).toEqual(Object.keys(committedIdentity.tokens));

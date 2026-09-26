@@ -390,7 +390,7 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
 
   await page.getByRole('link', { name: 'Open Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
-  await expect(page.getByLabel('Classic appearance')).toBeVisible();
+  await expect(page.getByLabel('Theme', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Open Classic interface' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();

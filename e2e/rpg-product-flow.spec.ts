@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
-test('RPG settings separate Classic appearance from the deliberate interface switch', async ({
+test('RPG settings save the one app-wide theme and keep the deliberate interface switch', async ({
   page,
 }) => {
   await completeOnboarding(page);
@@ -18,12 +18,12 @@ test('RPG settings separate Classic appearance from the deliberate interface swi
   ).toBeVisible();
   await expect(
     page.getByText(
-      'Applies to the Classic interface. RPG keeps its dark study theme. System follows your device.',
+      'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.',
     ),
   ).toBeVisible();
 
   await page.getByLabel('Display name').fill('Morgan');
-  await page.getByLabel('Classic appearance').selectOption('light');
+  await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
     page.getByText('Local profile saved', { exact: true }),

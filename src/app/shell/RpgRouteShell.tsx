@@ -16,7 +16,8 @@ export function RpgRouteShell() {
 
   // Single owner of the RPG body class: every /rpg render — including the
   // loading and error states below, which mount before RpgShell — keeps the
-  // dark RPG canvas on <body> so the light app background never flashes.
+  // RPG canvas on <body>. Its light or dark palette follows the app theme
+  // (preferredTheme via html[data-theme]); see rpg-tokens.css.
   useEffect(() => {
     document.body.classList.add('rpg-route-active');
 

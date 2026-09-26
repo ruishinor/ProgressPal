@@ -28,7 +28,6 @@ type ProfileFormProps = {
   onSubmit: (input: SaveLearnerProfileInput) => Promise<void>;
   profile: LearnerProfile | null;
   submitLabel: string;
-  variant?: 'classic' | 'rpg';
 };
 
 type ProfileFormErrors = Partial<
@@ -103,7 +102,6 @@ export function ProfileForm({
   onSubmit,
   profile,
   submitLabel,
-  variant = 'classic',
 }: ProfileFormProps) {
   const fieldPrefix = `profile-${mode}`;
   const [errors, setErrors] = useState<ProfileFormErrors>({});
@@ -264,9 +262,7 @@ export function ProfileForm({
             />
             <dl className="profile-summary-list">
               <div>
-                <dt>
-                  {mode === 'onboarding' ? 'Theme' : 'Classic appearance'}
-                </dt>
+                <dt>Theme</dt>
                 <dd>{values.preferredTheme}</dd>
               </div>
               <div>
@@ -281,11 +277,9 @@ export function ProfileForm({
               description={
                 mode === 'onboarding'
                   ? 'System follows the device preference. Light and dark stay local to this app.'
-                  : variant === 'rpg'
-                    ? 'Applies to the Classic interface. RPG keeps its dark study theme. System follows your device.'
-                    : 'Controls the Classic interface. System follows your device. Light and dark stay local to this app.'
+                  : 'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.'
               }
-              label={mode === 'onboarding' ? 'Theme' : 'Classic appearance'}
+              label="Theme"
               required
             >
               {({ describedBy, inputId, invalid }) => (

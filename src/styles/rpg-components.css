@@ -64,7 +64,7 @@
   );
   --color-neutral-soft: color-mix(in srgb, var(--rpg-text) 18%, transparent);
   --color-focus: var(--rpg-focus-ring);
-  --color-overlay: rgba(5, 9, 14, 0.72);
+  --color-overlay: var(--rpg-overlay);
 }
 
 .rpg-shell
@@ -102,7 +102,7 @@
   :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings)
   .button--primary:not(:disabled) {
   background: var(--rpg-accent);
-  color: #17202b;
+  color: var(--rpg-on-accent);
 }
 
 .rpg-shell
@@ -625,13 +625,13 @@
 }
 
 .rpg-map__node[data-current='true'] .rpg-map__node-index {
-  color: #17202b;
+  color: var(--rpg-on-accent);
   background: var(--rpg-accent);
   border-color: var(--rpg-accent);
 }
 
 .rpg-map__node[data-status='completed'] .rpg-map__node-index {
-  color: #17202b;
+  color: var(--rpg-on-success);
   background: var(--rpg-success);
   border-color: var(--rpg-success);
 }
@@ -776,7 +776,7 @@
 
 .rpg-button--primary {
   background: var(--rpg-accent);
-  color: #17202b;
+  color: var(--rpg-on-accent);
 }
 
 .rpg-button--primary:hover:not(:disabled) {
@@ -831,7 +831,7 @@
 }
 
 .rpg-progress-bar__track {
-  background: rgba(244, 241, 232, 0.1);
+  background: var(--rpg-track);
   border: 1px solid var(--rpg-border);
   border-radius: var(--radius-pill);
   height: 0.85rem;
@@ -1427,7 +1427,7 @@
 .rpg-map__quest-preview-item[data-status='completed'] .rpg-map__quest-marker {
   background: var(--rpg-success);
   border-color: var(--rpg-success);
-  color: #17202b;
+  color: var(--rpg-on-success);
 }
 
 .rpg-map__quest-preview-item[data-status='inProgress'] .rpg-map__quest-marker {

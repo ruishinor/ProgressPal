@@ -10,9 +10,11 @@ import { completeOnboarding } from './support/onboarding';
  *
  * Implements C0_VISUAL_PRESERVATION_PLAN.md sections 4-5: fixed clock,
  * synthetic learner state produced through the real UI, both viewports,
- * full-page captures, animations disabled, no running Focus timer. RPG surfaces
- * are captured in BOTH themes because rpg-components.css and rpg-shell.css
- * consume the Classic --color-* tokens that change under data-theme='dark'.
+ * full-page captures, animations disabled, no running Focus timer. The one
+ * learner theme preference is app-wide (owner decision, C1 theme repair), so
+ * every Classic AND RPG surface is captured in light and dark. Before each RPG
+ * capture the computed RPG canvas token and body background are asserted, so
+ * a capture labelled light cannot silently render the dark RPG palette.
  *
  * States:
  * - fresh: onboarded through the real onboarding form, no progress;
@@ -27,6 +29,20 @@ import { completeOnboarding } from './support/onboarding';
 interface FontScope {
   document: { fonts: { ready: Promise<unknown> } };
 }
+
+interface CanvasScope {
+  document: { body: unknown };
+  getComputedStyle(element: unknown): {
+    backgroundColor: string;
+    getPropertyValue(name: string): string;
+  };
+}
+
+/** Computed RPG canvas per app theme (rpg-tokens.css). */
+const rpgCanvas = {
+  dark: { background: 'rgb(17, 25, 35)', token: '#111923' },
+  light: { background: 'rgb(243, 238, 226)', token: '#f3eee2' },
+} as const;
 
 const captureDirectory = path.resolve(
   'artifacts/epic-c1-visual-baseline/captures',
@@ -160,6 +176,18 @@ async function capture(
   await surface.ready?.(page);
   await expect(page.locator('.loading-state')).toHaveCount(0);
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  if (surface.shell === 'rpg') {
+    await expect(page.locator('body')).toHaveClass(/rpg-route-active/);
+    const canvas = await page.evaluate(() => {
+      const scope = globalThis as unknown as CanvasScope;
+      const style = scope.getComputedStyle(scope.document.body);
+      return {
+        background: style.backgroundColor,
+        token: style.getPropertyValue('--rpg-bg').trim(),
+      };
+    });
+    expect(canvas).toEqual(rpgCanvas[theme]);
+  }
   await page.evaluate(async () => {
     await (globalThis as unknown as FontScope).document.fonts.ready;
   });

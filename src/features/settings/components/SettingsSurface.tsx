@@ -272,7 +272,6 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
       </Card>
       <ProfileForm
-        variant={variant}
         cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
         disabled={!coordination.canWrite}
         key={profile.updatedAt}

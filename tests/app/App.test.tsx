@@ -3606,7 +3606,7 @@ describe('RPG routes', () => {
     expect(
       screen.getByRole('link', { name: 'Open Classic interface' }),
     ).toHaveAttribute('href', '/dashboard');
-    expect(screen.getByLabelText('Classic appearance')).toBeInTheDocument();
+    expect(screen.getByLabelText('Theme')).toBeInTheDocument();
 
     // The same authoritative data controls as classic Settings, rendered inside
     // the RPG shell — not a hand-off link to a separate settings screen.

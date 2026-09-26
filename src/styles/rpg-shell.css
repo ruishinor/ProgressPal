@@ -1,5 +1,6 @@
 /* While any /rpg route is mounted, RpgRouteShell adds this class to <body>
-   so the dark RPG canvas covers the full viewport. This stops the light app
+   so the RPG canvas (light or dark, following the app theme) covers the full
+   viewport. This stops the light app
    background from flashing through during internal RPG route transitions,
    including the loading and error states that render before RpgShell mounts.
    The background reads the same --rpg-bg token declared in rpg-tokens.css,
@@ -203,7 +204,7 @@ html:has(body.rpg-route-active) {
   background: var(--rpg-accent);
   border: 1px solid var(--rpg-accent);
   border-radius: var(--radius-sm);
-  color: #17202b;
+  color: var(--rpg-on-accent);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
@@ -225,7 +226,7 @@ html:has(body.rpg-route-active) {
 
 .rpg-bottom-nav {
   align-self: end;
-  background: color-mix(in srgb, var(--rpg-surface) 94%, #080c11);
+  background: color-mix(in srgb, var(--rpg-surface) 94%, var(--rpg-nav-shade));
   border: 1px solid var(--rpg-border);
   border-radius: var(--radius-lg);
   bottom: var(--space-3);
@@ -318,11 +319,15 @@ html:has(body.rpg-route-active) {
 }
 
 .rpg-bottom-nav__link--hub .rpg-bottom-nav__icon-frame {
-  background: color-mix(in srgb, var(--rpg-surface) 90%, #090d12);
+  background: color-mix(
+    in srgb,
+    var(--rpg-surface) 90%,
+    var(--rpg-nav-hub-shade)
+  );
   border: 2px solid var(--rpg-border-strong);
   border-radius: 50%;
   box-shadow:
-    0 0 0 0.18rem rgb(9 13 18 / 0.72),
+    0 0 0 0.18rem var(--rpg-nav-ring),
     0 0.35rem 1rem rgb(0 0 0 / 0.35);
   color: var(--rpg-accent);
   height: 3.25rem;
@@ -339,7 +344,7 @@ html:has(body.rpg-route-active) {
   .rpg-bottom-nav__icon-frame {
   border-color: var(--rpg-accent);
   box-shadow:
-    0 0 0 0.18rem rgb(9 13 18 / 0.72),
+    0 0 0 0.18rem var(--rpg-nav-ring),
     0 0 0 0.28rem color-mix(in srgb, var(--rpg-accent) 20%, transparent),
     0 0.35rem 1rem rgb(0 0 0 / 0.35);
 }

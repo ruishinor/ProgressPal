@@ -1,4 +1,33 @@
 body.rpg-route-active {
+  /* RPG palette. The single learner preference (preferredTheme) themes the
+     whole app, Classic and RPG alike: this RPG light palette is the default,
+     and the accepted dark RPG palette applies under :root[data-theme='dark'].
+     Both keep the RPG identity (gold accent hierarchy on a parchment or night
+     canvas). */
+  --rpg-bg: #f3eee2;
+  --rpg-surface: #fffbf3;
+  --rpg-surface-raised: #f0e7d4;
+  --rpg-border: #c9b995;
+  --rpg-border-strong: #9c7a3f;
+  --rpg-text: #1b2430;
+  --rpg-text-muted: #4a5260;
+  --rpg-accent: #855510;
+  --rpg-accent-strong: #663f05;
+  --rpg-progress: #a86f1c;
+  --rpg-success: #286640;
+  --rpg-warning: #835a0c;
+  --rpg-danger: #a33c2c;
+  --rpg-focus-ring: #855510;
+  --rpg-on-accent: #fffaf0;
+  --rpg-on-success: #fffaf0;
+  --rpg-nav-shade: #d9ccb0;
+  --rpg-nav-hub-shade: #d9ccb0;
+  --rpg-nav-ring: rgb(243 238 226 / 0.72);
+  --rpg-track: rgba(27, 36, 48, 0.08);
+  --rpg-overlay: rgba(22, 31, 39, 0.6);
+}
+
+:root[data-theme='dark'] body.rpg-route-active {
   --rpg-bg: #111923;
   --rpg-surface: #172331;
   --rpg-surface-raised: #203041;
@@ -13,4 +42,11 @@ body.rpg-route-active {
   --rpg-warning: #d8a84f;
   --rpg-danger: #d8897e;
   --rpg-focus-ring: #f3cf7d;
+  --rpg-on-accent: #17202b;
+  --rpg-on-success: #17202b;
+  --rpg-nav-shade: #080c11;
+  --rpg-nav-hub-shade: #090d12;
+  --rpg-nav-ring: rgb(9 13 18 / 0.72);
+  --rpg-track: rgba(244, 241, 232, 0.1);
+  --rpg-overlay: rgba(5, 9, 14, 0.72);
 }
