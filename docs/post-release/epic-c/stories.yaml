@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c1_accepted_closed_od9_resolved_c2_not_started
+current_state: c2_implemented_ready_for_owner_review
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -69,7 +69,10 @@ stories:
 
   - id: C2
     title: Programme layer, registry boundary and content ownership
-    state: planned
+    state: implemented_ready_for_owner_review
+    branch: cx/epic-c2-programme-layer
+    branch_point: db5f795c562f5847a5ad7bffa737751e4d952382
+    records: [C2_CLOSURE_RECORD.md]
     objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor keyed by definition key cs50x-2026 (the current catalogue identity; not a persisted programme ownership identity, which waits for OD-5 in C6), and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
     prerequisites: [C1 accepted, OD-9 recorded]
     prerequisite_status: satisfied (C1 accepted and closed; OD-9 resolved 2026-09-27, baseline cac8f23); C2 start still needs a separate owner instruction

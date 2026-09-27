@@ -7,7 +7,9 @@ Current state: **C1 `C1_ACCEPTED_CLOSED`**.
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, bound in `C1_VISUAL_BASELINE_MANIFEST.md`.
 - OD-9 is resolved. C2's baseline is the local C1 lineage at `cac8f23`
-  (`SPEC.md` §6). C2 has not started.
+  (`SPEC.md` §6).
+- C2 is implemented locally and is a candidate ready for owner review
+  (`C2_CLOSURE_RECORD.md`). It is not accepted.
 
 The C0 validation below is historical and unchanged.
 
@@ -144,13 +146,13 @@ protected by a stronger family-A behaviour table instead.
 
 ## 5. Readiness matrix
 
-| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                              |
-| ----- | ------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------ |
-| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)                       |
-| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Prerequisites met (OD-9 resolved: baseline `cac8f23`); not started |
-| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | After C2                                                           |
-| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | After C3                                                           |
-| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | After C4                                                           |
-| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                                                            |
-| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                            |
-| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                              |
+| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                                  |
+| ----- | ------------------------------------------------ | ------------------------------------------- | ---------------------------------------------------------------------- |
+| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)                           |
+| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Implemented; candidate ready for owner review (`C2_CLOSURE_RECORD.md`) |
+| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | After C2                                                               |
+| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | After C3                                                               |
+| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | After C4                                                               |
+| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                                                                |
+| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                                |
+| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                                  |

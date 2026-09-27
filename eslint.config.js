@@ -63,6 +63,11 @@ export default tseslint.config(
               message:
                 'App-layer files must import features through each feature public entrypoint.',
             },
+            {
+              group: ['@/programmes/*'],
+              message:
+                'App-layer files must import programmes through the @/programmes entrypoint.',
+            },
           ],
         },
       ],
@@ -83,6 +88,10 @@ export default tseslint.config(
               group: ['@/features/*'],
               message: 'Shared components must stay feature-agnostic.',
             },
+            {
+              group: ['@/programmes', '@/programmes/*'],
+              message: 'Shared components must stay programme-agnostic.',
+            },
           ],
         },
       ],
@@ -98,6 +107,11 @@ export default tseslint.config(
             {
               group: ['@/app/*'],
               message: 'Feature code must not depend on the app layer.',
+            },
+            {
+              group: ['@/programmes/*'],
+              message:
+                'Feature code must import programmes through the @/programmes entrypoint.',
             },
           ],
         },
@@ -115,6 +129,70 @@ export default tseslint.config(
               group: ['@/app/*', '@/components/*', '@/features/*'],
               message:
                 'Library code must stay independent from app, component, and feature layers.',
+            },
+            {
+              group: ['@/programmes', '@/programmes/*'],
+              message:
+                'Library code receives programme policy as parameters; it must not import the programme layer.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Epic C / C2 programme layer (C0 programme definition contract §6).
+    files: ['src/programmes/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@/app',
+                '@/app/*',
+                '@/components',
+                '@/components/*',
+                '@/features',
+                '@/features/*',
+                '@/styles',
+                '@/styles/*',
+              ],
+              message:
+                'The programme layer must not depend on app, component, feature, or style layers.',
+            },
+            {
+              group: [
+                '@/lib/*',
+                '!@/lib/domain',
+                '!@/lib/validation',
+                '!@/lib/achievements',
+              ],
+              message:
+                'The programme layer may import only @/lib/domain, @/lib/validation, and the @/lib/achievements entrypoint from lib.',
+            },
+            {
+              group: [
+                '@/lib/*/*',
+                '@/seed/*',
+                '@/programmes',
+                '@/programmes/*',
+              ],
+              message:
+                'The programme layer uses lower-layer entrypoints only and imports its own modules relatively.',
+            },
+            {
+              group: [
+                '*.css',
+                '*.png',
+                '*.jpg',
+                '*.svg',
+                '*.webp',
+                '*?inline',
+                '*?url',
+              ],
+              message: 'The programme layer must not import asset files.',
             },
           ],
         },

@@ -11,7 +11,9 @@ Status: **C0 accepted by owner review; C1 accepted and closed locally**
 - OD-9 is resolved (§6): C2's development baseline is the local C1 lineage
   `cx/epic-c1-rpg-theme-repair` at `cac8f23`, which contains accepted Epic B
   `fd5e2d5`. `origin/master` and Production stay unchanged.
-- C2 has not started, and starting it needs a separate owner instruction.
+- C2 is implemented locally on `cx/epic-c2-programme-layer`, branched from
+  `db5f795`. It is a candidate ready for owner review (`C2_CLOSURE_RECORD.md`)
+  and is not accepted. C3 has not started.
 
 Authority: Bootstrap v7.0
 (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
