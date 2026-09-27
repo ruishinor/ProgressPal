@@ -157,6 +157,10 @@ unnumbered marker (`+` without required tasks, `◆` with them); see §9.
 | `git diff --check`       | exit 0                                                                                    |
 
 - No test was skipped, retried or weakened, and no timeout changed.
+- This product validation belongs to implementation candidate
+  `80c97e861a1c71d5f624bb144fa2e7082fface21`. It was not rerun for the
+  documentation-only readiness commit `14c554e3` or acceptance commit
+  `7489dd4d`, which change no code, test or configuration.
 - `verify:release` was not run, because publication is a separate decision.
 - The bundle grew about 2.8 kB, from the terminology schema and the CS50
   terminology data. No chunk and no lazy import were added.
@@ -194,6 +198,10 @@ active-key state exists. No C5–C8 work was done.
   this residual on 2026-09-28** as the bounded consequence of removing
   `week-*` ID parsing. That acceptance does not authorize broader copy,
   backup, read-scope or C5 changes.
+  - The accepted residual does not restore `week-*` ID parsing.
+  - Every active catalogue unit's ordinal output remains exactly preserved
+    against the accepted C1 baseline (all 14 units). The fallback difference
+    applies only to stored units outside the active catalogue.
 - Diagnostic text that is never rendered keeps its wording:
   `console.error('RPG week loading failed.')` and the route-configuration
   error in `routeDefinitions.ts` (route contract, unchanged).
