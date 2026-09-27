@@ -48,7 +48,7 @@ import {
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 describe('database repositories', () => {
   let testDatabase: TestDatabaseContext | null = null;
@@ -1040,7 +1040,11 @@ describe('database repositories', () => {
           itemId: 'missing-item',
           status: 'started',
         },
-        { policy: cs50Policy, db: testDatabase.db },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+        },
       );
       expect(missingItemResult.xpSummary).toMatchObject({
         level: 1,
@@ -1064,7 +1068,11 @@ describe('database repositories', () => {
           itemId: 'item-with-missing-unit',
           status: 'started',
         },
-        { policy: cs50Policy, db: testDatabase.db },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+        },
       );
       expect(missingUnitResult.xpSummary).toMatchObject({
         level: 1,
@@ -1092,6 +1100,7 @@ describe('database repositories', () => {
           mode: 'watching',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:15:00.000Z'),
@@ -1113,6 +1122,7 @@ describe('database repositories', () => {
           mode: 'watching',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:50:00.000Z'),
@@ -1140,6 +1150,7 @@ describe('database repositories', () => {
           mode: 'watching',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:50:00.000Z'),
@@ -1177,6 +1188,7 @@ describe('database repositories', () => {
           confidence: 3,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:10:00.000Z'),
@@ -1197,6 +1209,7 @@ describe('database repositories', () => {
           confidence: 4,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:15:00.000Z'),
@@ -1213,6 +1226,7 @@ describe('database repositories', () => {
           confidence: 4,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:20:00.000Z'),
@@ -1232,6 +1246,7 @@ describe('database repositories', () => {
           confidence: 5,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:30:00.000Z'),
@@ -1252,6 +1267,7 @@ describe('database repositories', () => {
           confidence: 2,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:40:00.000Z'),
@@ -1291,6 +1307,7 @@ describe('database repositories', () => {
           stoppedBecause: 'interruption',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:10:00.000Z'),
@@ -1316,6 +1333,7 @@ describe('database repositories', () => {
           stoppedBecause: 'completed_slice',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:25:00.000Z'),
@@ -1347,6 +1365,7 @@ describe('database repositories', () => {
           stoppedBecause: 'reached_limit', // clean stop stopReason
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:40:00.000Z'),
@@ -1395,6 +1414,7 @@ describe('database repositories', () => {
           confidence: 5,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:10:00.000Z'),
@@ -1417,6 +1437,7 @@ describe('database repositories', () => {
           confidence: 5,
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:20:00.000Z'),
@@ -1455,6 +1476,7 @@ describe('database repositories', () => {
           mode: 'debugging',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:30:00.000Z'),
@@ -1526,6 +1548,7 @@ describe('database repositories', () => {
           mode: 'coding',
         },
         {
+          catalogueId: cs50CatalogueId,
           policy: cs50Policy,
           db: testDatabase.db,
           now: createClock('2026-06-12T16:30:00.000Z'),
@@ -1620,6 +1643,7 @@ describe('backup, restore, and reset', () => {
         notes: '<script>alert(1)</script>',
       },
       {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
         now: createClock('2026-06-12T10:30:00.000Z'),
@@ -1648,6 +1672,7 @@ describe('backup, restore, and reset', () => {
         confidence: 5,
       },
       {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
         now: createClock('2026-06-12T11:00:00.000Z'),

@@ -24,7 +24,7 @@ import { bundledCourseSeed } from '@/seed';
 
 import committedLinksAndGuides from '../fixtures/preservation/c1-links-guides.json';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 8 — links, guides, labels and CS50 copy.
@@ -153,6 +153,7 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
     const context = await createSeededDatabase('labels-unit-types');
     try {
       const data = await getCourseMapReadData({
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
       });

@@ -30,7 +30,7 @@ import {
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 const legacyVersionOneStoreDefinitions = {
   app_meta: '&id, schemaVersion, seedVersion',
@@ -903,7 +903,11 @@ describe('repository local-write coordination', () => {
           itemId: 'week-0-lecture',
           status: 'completed',
         },
-        { policy: cs50Policy, db: testDatabase.db },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+        },
       ),
     ).rejects.toThrow('Injected XP summary failure.');
     xpRead.mockRestore();
@@ -938,6 +942,7 @@ describe('repository local-write coordination', () => {
 
     await expect(
       logMediaProgressAndAwardXp(input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: testDatabase.db,
       }),
@@ -949,6 +954,7 @@ describe('repository local-write coordination', () => {
 
     await expect(
       logMediaProgressAndAwardXp(input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: testDatabase.db,
       }),
@@ -979,7 +985,7 @@ describe('repository local-write coordination', () => {
         startedAt: '2026-07-15T10:00:00.000Z',
         unitId: 'week-0',
       },
-      { policy: cs50Policy, db: testDatabase.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: testDatabase.db },
     );
     const before = await getDatabaseSnapshot({ db: testDatabase.db });
     const session = startLocalDataCoordination(() => undefined);
@@ -1000,6 +1006,7 @@ describe('repository local-write coordination', () => {
 
     await expect(
       addStudySessionAndAwardXp(input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: testDatabase.db,
       }),
@@ -1011,6 +1018,7 @@ describe('repository local-write coordination', () => {
 
     await expect(
       addStudySessionAndAwardXp(input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: testDatabase.db,
       }),
@@ -1042,7 +1050,7 @@ describe('repository local-write coordination', () => {
         startedAt: '2026-07-16T10:00:00.000Z',
         endedAt: '2026-07-16T10:30:00.000Z',
       },
-      { policy: cs50Policy, db: testDatabase.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: testDatabase.db },
     );
     const session = startLocalDataCoordination(() => undefined);
     stopCoordination = session.stop;
@@ -1072,6 +1080,7 @@ describe('repository local-write coordination', () => {
       unitId: 'week-0',
     };
     await addStudySessionAndAwardXp(input, {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: testDatabase.db,
     });
@@ -1082,6 +1091,7 @@ describe('repository local-write coordination', () => {
 
     await expect(
       addStudySessionAndAwardXp(input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: testDatabase.db,
       }),

@@ -670,6 +670,7 @@ export function ContentDetailPage() {
     );
 
     const timestamp = new Date().toISOString();
+    const { catalogueId, policy } = getActiveProgrammeDefinition();
 
     try {
       const xpResult = await runLocalMutation(
@@ -705,7 +706,7 @@ export function ContentDetailPage() {
                   ? undefined
                   : progressForm.values.evidenceText.trim(),
             },
-            { policy: getActiveProgrammeDefinition().policy },
+            { catalogueId, policy },
           ),
         { invalidateRoute: false },
       );
@@ -832,6 +833,8 @@ export function ContentDetailPage() {
           },
     );
 
+    const { catalogueId, policy } = getActiveProgrammeDefinition();
+
     try {
       const xpResult = await runLocalMutation(
         () =>
@@ -848,7 +851,7 @@ export function ContentDetailPage() {
               startSecond,
               stoppedBecause: logForm.stoppedBecause,
             } satisfies LogMediaProgressInput,
-            { policy: getActiveProgrammeDefinition().policy },
+            { catalogueId, policy },
           ),
         { invalidateRoute: false },
       );

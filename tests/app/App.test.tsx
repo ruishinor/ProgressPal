@@ -40,7 +40,7 @@ import {
 } from '@/lib/storage';
 import { bundledCourseSeed } from '@/seed';
 import { FakeLockManager } from '../lib/localDataCoordinationFakes';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 function dispatchPeerMessage(
   kind: LocalCoordinationMessage['kind'],
@@ -1021,7 +1021,11 @@ describe('App', () => {
         status: 'completed',
         confidence: 5,
       },
-      { policy: cs50Policy, now: () => '2026-06-12T12:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T12:00:00.000Z',
+      },
     );
 
     await renderAppAtRoute('/achievements');
@@ -1536,7 +1540,11 @@ describe('App', () => {
         confidence: 2,
         notes: 'Initial save.',
       },
-      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T11:00:00.000Z',
+      },
     );
 
     await renderAppAtRoute('/course/week-0-problem-set');
@@ -1570,7 +1578,11 @@ describe('App', () => {
         confidence: 2,
         notes: 'First save.',
       },
-      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T11:00:00.000Z',
+      },
     );
     const snapshotAfterFirst = await getDatabaseSnapshot();
 
@@ -1609,7 +1621,11 @@ describe('App', () => {
         confidence: 2,
         notes: 'Setup note.',
       },
-      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T11:00:00.000Z',
+      },
     );
     const before = await getDatabaseSnapshot();
 
@@ -1669,7 +1685,11 @@ describe('App', () => {
         notes: 'Submitted first attempt.',
         evidenceText: 'submit50 run.',
       },
-      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T11:00:00.000Z',
+      },
     );
     const snapshotBeforeEdit = await getDatabaseSnapshot();
 
@@ -2026,7 +2046,11 @@ describe('App', () => {
     // Seed some XP so a level is established
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
-      { policy: cs50Policy, now: () => '2026-06-18T10:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T10:00:00.000Z',
+      },
     );
 
     await renderAppAtRoute('/achievements');
@@ -2051,7 +2075,11 @@ describe('App', () => {
     // Seed some XP so a level is established
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
-      { policy: cs50Policy, now: () => '2026-06-18T10:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-18T10:00:00.000Z',
+      },
     );
 
     await renderAppAtRoute('/course');
@@ -2186,7 +2214,7 @@ describe('RPG routes', () => {
         startedAt,
         status: 'completed',
       },
-      { policy: cs50Policy },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy },
     );
     await upsertProgress({
       completedAt: undefined,
@@ -2208,7 +2236,7 @@ describe('RPG routes', () => {
         startedAt,
         unitId: 'week-4',
       },
-      { policy: cs50Policy },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy },
     );
   }
 
@@ -2266,7 +2294,11 @@ describe('RPG routes', () => {
         startedAt: '2026-06-21T10:00:00.000Z',
         status: 'started',
       },
-      { policy: cs50Policy, now: () => '2026-06-21T10:05:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-21T10:05:00.000Z',
+      },
     );
     await addStudySessionAndAwardXp(
       {
@@ -2278,7 +2310,11 @@ describe('RPG routes', () => {
         startedAt: '2026-06-21T10:05:00.000Z',
         unitId: 'week-4',
       },
-      { policy: cs50Policy, now: () => '2026-06-21T10:31:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-21T10:31:00.000Z',
+      },
     );
   }
 
@@ -2296,7 +2332,11 @@ describe('RPG routes', () => {
         startedAt: '2026-06-12T11:00:00.000Z',
         status: 'completed',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T12:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T12:00:00.000Z',
+      },
     );
   }
 
@@ -4133,11 +4173,19 @@ describe('Dashboard route', () => {
         energyAfter: 3,
         stoppedBecause: 'reached_limit',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T10:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T10:00:00.000Z',
+      },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T11:00:00.000Z',
+      },
     );
     await addStudySessionAndAwardXp(
       {
@@ -4148,7 +4196,11 @@ describe('Dashboard route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T08:45:00.000Z',
+      },
     );
   }
 
@@ -4307,11 +4359,19 @@ describe('Insights route', () => {
         energyAfter: 3,
         stoppedBecause: 'reached_limit',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T10:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T10:00:00.000Z',
+      },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T11:00:00.000Z',
+      },
     );
     await addStudySessionAndAwardXp(
       {
@@ -4322,7 +4382,11 @@ describe('Insights route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T08:45:00.000Z',
+      },
     );
   }
 
@@ -4412,11 +4476,19 @@ describe('Settings route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T08:45:00.000Z',
+      },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        now: () => '2026-06-12T11:00:00.000Z',
+      },
     );
   }
 

@@ -497,13 +497,15 @@ export function StudySessionsSurface({
     setManualIsSaving(true);
     const version = pageVersion.current;
     saveInFlight.current = true;
+    const { catalogueId, policy } = getActiveProgrammeDefinition();
 
     let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
         () =>
           addStudySessionAndAwardXp(validation.input, {
-            policy: getActiveProgrammeDefinition().policy,
+            catalogueId,
+            policy,
           }),
         { invalidateRoute: false },
       );
@@ -561,13 +563,15 @@ export function StudySessionsSurface({
     setLiveIsSaving(true);
     const version = pageVersion.current;
     saveInFlight.current = true;
+    const { catalogueId, policy } = getActiveProgrammeDefinition();
 
     let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
         () =>
           addStudySessionAndAwardXp(validation.input, {
-            policy: getActiveProgrammeDefinition().policy,
+            catalogueId,
+            policy,
           }),
         { invalidateRoute: false },
       );

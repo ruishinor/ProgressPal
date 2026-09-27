@@ -10,7 +10,7 @@ export type SaveRpgStudyResourceProgressInput = UpsertProgressInput;
 export async function saveRpgStudyResourceProgress(
   input: SaveRpgStudyResourceProgressInput,
 ): Promise<UpsertProgressWithXpResult> {
-  return upsertProgressAndAwardXp(input, {
-    policy: getActiveProgrammeDefinition().policy,
-  });
+  const { catalogueId, policy } = getActiveProgrammeDefinition();
+
+  return upsertProgressAndAwardXp(input, { catalogueId, policy });
 }

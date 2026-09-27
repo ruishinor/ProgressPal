@@ -7,7 +7,7 @@ import {
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
 import { bundledCourseSeed } from '@/seed';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 const original = {
   id: 'correction-session',
@@ -23,7 +23,10 @@ const original = {
 
 beforeEach(async () => {
   await initializeDatabase({ seed: bundledCourseSeed });
-  await addStudySessionAndAwardXp(original, { policy: cs50Policy });
+  await addStudySessionAndAwardXp(original, {
+    catalogueId: cs50CatalogueId,
+    policy: cs50Policy,
+  });
 });
 
 describe('saved session assignment correction', () => {
@@ -51,7 +54,10 @@ describe('saved session assignment correction', () => {
     );
     expect(after.achievementUnlocks).toEqual(before.achievementUnlocks);
     expect(after.progressEntries).toEqual(before.progressEntries);
-    await addStudySessionAndAwardXp(original, { policy: cs50Policy });
+    await addStudySessionAndAwardXp(original, {
+      catalogueId: cs50CatalogueId,
+      policy: cs50Policy,
+    });
     const repeated = await getDatabaseSnapshot();
     expect(repeated.xpTransactions).toEqual(after.xpTransactions);
     expect(repeated.studySessions).toEqual(after.studySessions);
@@ -90,7 +96,7 @@ describe('saved session assignment correction', () => {
         id: 'short-session',
         durationMinutes: 5,
       },
-      { policy: cs50Policy },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy },
     );
     const before = await getDatabaseSnapshot();
     await correctStudySessionAssignment({

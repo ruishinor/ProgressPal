@@ -35,7 +35,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const courseStores = [
   'content_assets',
@@ -164,7 +164,7 @@ describe('A7 actual route and shell access matrix', () => {
           mode: 'coding',
           notes: 'A7 visible session',
         },
-        { policy: cs50Policy, db: writer },
+        { catalogueId: cs50CatalogueId, policy: cs50Policy, db: writer },
       );
       const before = await getDatabaseSnapshot({ db: writer });
       expect(Object.keys(before)).toHaveLength(14);

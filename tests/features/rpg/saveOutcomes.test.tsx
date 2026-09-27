@@ -17,7 +17,7 @@ import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { StudySessionsSurface } from '@/features/sessions';
 import * as database from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const appState = vi.hoisted(() => ({
   coordination: { canWrite: true },
@@ -117,7 +117,7 @@ describe('Confirmed save outcomes and read recovery', () => {
           evidenceText: 'Synthetic submission note',
           evidenceType: 'self_report',
         },
-        { policy: cs50Policy },
+        { catalogueId: cs50CatalogueId, policy: cs50Policy },
       );
       const before = await database.getDatabaseSnapshot();
       renderRoute('/rpg/resource/' + itemId);
@@ -176,7 +176,7 @@ describe('Confirmed save outcomes and read recovery', () => {
           evidenceText: 'Synthetic submission note',
           evidenceType: 'self_report',
         },
-        { policy: cs50Policy },
+        { catalogueId: cs50CatalogueId, policy: cs50Policy },
       );
       expect((await database.getDatabaseSnapshot()).xpTransactions).toEqual(
         before.xpTransactions,

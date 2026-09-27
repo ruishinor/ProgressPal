@@ -25,7 +25,7 @@ import {
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 function createLease() {
   return {
@@ -198,7 +198,11 @@ describe('destructive repository write coordination', () => {
           itemId: 'week-0-lecture',
           status: 'completed',
         },
-        { policy: cs50Policy, db: testDatabase.db },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+        },
       ),
     ).rejects.toThrow(
       'Destructive repository writes cannot inherit an ordinary coordinated transaction.',

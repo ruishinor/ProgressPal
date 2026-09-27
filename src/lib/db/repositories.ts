@@ -438,6 +438,17 @@ type ProgrammePolicyOptions = BaseDatabaseOptions & {
   policy: ProgrammePolicy;
 };
 
+/**
+ * Options for catalogue-derived reads (Epic C / C5). The caller passes the
+ * active definition's catalogue identity (`course_units.courseId`)
+ * explicitly; there is no default catalogue.
+ */
+type CatalogueScopeOptions = BaseDatabaseOptions & {
+  catalogueId: string;
+};
+
+type ScopedProgrammeOptions = ProgrammePolicyOptions & CatalogueScopeOptions;
+
 type InitializeDatabaseOptions = BaseDatabaseOptions & {
   seed?: CourseSeed | null;
 };
@@ -2547,18 +2558,23 @@ async function evaluateAndUnlockAchievements(
   database: ProgressPalDatabase,
   now: DatabaseClock,
   achievementDefinitions: readonly AchievementDefinition[],
+  catalogueId: string,
 ): Promise<AchievementUnlock[]> {
+  // The catalogue context (units and items) is the active catalogue's
+  // (Epic C / C5). Learner activity - progress, slices, media events and
+  // sessions - stays whole-store, so activity achievements and global unlock
+  // ownership (OD-2) are unchanged.
+  const { courseItems, courseUnits } = await readScopedCatalogue(
+    database,
+    catalogueId,
+  );
   const [
     progressEntryRecords,
-    courseItemRecords,
-    courseUnitRecords,
     contentSliceRecords,
     mediaProgressEventRecords,
     studySessionRecords,
   ] = await Promise.all([
     database.progressEntries.toArray(),
-    database.courseItems.toArray(),
-    database.courseUnits.toArray(),
     database.contentSlices.toArray(),
     database.mediaProgressEvents.toArray(),
     database.studySessions.toArray(),
@@ -2570,16 +2586,8 @@ async function evaluateAndUnlockAchievements(
       'Stored progress entry',
       ProgressEntrySchema,
     ),
-    courseItems: parseStoredArray(
-      courseItemRecords,
-      'Stored course item',
-      CourseItemSchema,
-    ),
-    courseUnits: parseStoredArray(
-      courseUnitRecords,
-      'Stored course unit',
-      CourseUnitSchema,
-    ),
+    courseItems,
+    courseUnits,
     contentSlices: parseStoredArray(
       contentSliceRecords,
       'Stored content slice',
@@ -2633,7 +2641,7 @@ async function evaluateAndUnlockAchievements(
 
 export async function upsertProgressAndAwardXp(
   input: UpsertProgressInput,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<UpsertProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -2741,6 +2749,7 @@ export async function upsertProgressAndAwardXp(
           database,
           now,
           options.policy.achievements,
+          options.catalogueId,
         );
         xpSummary = await calculateStoredXpSummary(database);
       },
@@ -2757,7 +2766,7 @@ export async function upsertProgressAndAwardXp(
 
 export async function logMediaProgressAndAwardXp(
   input: LogMediaProgressInput,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<LogMediaProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -2986,6 +2995,7 @@ export async function logMediaProgressAndAwardXp(
           database,
           now,
           options.policy.achievements,
+          options.catalogueId,
         );
         xpSummary = await calculateStoredXpSummary(database);
       },
@@ -3002,7 +3012,7 @@ export async function logMediaProgressAndAwardXp(
 
 export async function addStudySessionAndAwardXp(
   input: AddStudySessionInput,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<AddStudySessionWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -3081,6 +3091,7 @@ export async function addStudySessionAndAwardXp(
           database,
           now,
           options.policy.achievements,
+          options.catalogueId,
         );
         changed ||= unlockedAchievements.length > 0;
         xpSummary = await calculateStoredXpSummary(database);
@@ -3260,32 +3271,71 @@ function retainRecentXpTransaction(
   if (recent.length > 5) recent.pop();
 }
 
-async function readA4CourseState(
+/**
+ * The units and items of one materialized catalogue (Epic C / C5): units by
+ * the `courseId` index, items by those units' IDs. A catalogue with no
+ * materialized unit fails closed; it is never read as an empty course. Runs
+ * inside the caller's transaction.
+ */
+async function readScopedCatalogue(
   database: ProgressPalDatabase,
-): Promise<A4CourseState> {
-  const [
-    courseUnits,
-    courseItems,
-    progressEntries,
-    contentAssets,
-    contentSlices,
-    resumePoints,
-    learnerProfileRecord,
-  ] = await Promise.all([
-    database.courseUnits.toArray(),
-    database.courseItems.toArray(),
-    database.progressEntries.toArray(),
-    database.contentAssets.toArray(),
-    database.contentSlices.toArray(),
-    database.resumePoints.toArray(),
-    database.learnerProfile.get(singletonIds.learnerProfile),
-  ]);
-  const parsedCourseUnits = sortCourseUnits(
-    parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+  catalogueId: string,
+) {
+  const courseUnits = sortCourseUnits(
+    parseStoredArray(
+      await database.courseUnits
+        .where('courseId')
+        .equals(catalogueId)
+        .toArray(),
+      'Stored course unit',
+      CourseUnitSchema,
+    ),
   );
-  const parsedCourseItems = sortCourseItems(
-    parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
+
+  if (courseUnits.length === 0) {
+    throw new Error(
+      `Catalogue "${catalogueId}" has no materialized course units.`,
+    );
+  }
+
+  const courseItems = sortCourseItems(
+    parseStoredArray(
+      await database.courseItems
+        .where('unitId')
+        .anyOf(courseUnits.map((unit) => unit.id))
+        .toArray(),
+      'Stored course item',
+      CourseItemSchema,
+    ),
   );
+
+  return { courseItems, courseUnits };
+}
+
+/**
+ * Catalogue-derived course state for one catalogue (Epic C / C5). Progress,
+ * long-form rows and media history are bounded by the scoped item and asset
+ * IDs, one query per store; media history is aggregated without retaining
+ * source rows.
+ */
+async function readScopedCourseState(
+  database: ProgressPalDatabase,
+  catalogueId: string,
+): Promise<CourseStateReadData> {
+  const { courseItems, courseUnits } = await readScopedCatalogue(
+    database,
+    catalogueId,
+  );
+  const itemIds = courseItems.map((item) => item.id);
+  const [progressEntries, contentAssets, contentSlices, resumePoints] =
+    itemIds.length === 0
+      ? [[], [], [], []]
+      : await Promise.all([
+          database.progressEntries.where('itemId').anyOf(itemIds).toArray(),
+          database.contentAssets.where('itemId').anyOf(itemIds).toArray(),
+          database.contentSlices.where('itemId').anyOf(itemIds).toArray(),
+          database.resumePoints.where('itemId').anyOf(itemIds).toArray(),
+        ]);
   const parsedProgressEntries = sortProgressEntries(
     parseStoredArray(
       progressEntries,
@@ -3302,59 +3352,57 @@ async function readA4CourseState(
   const parsedResumePoints = sortResumePoints(
     parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
   );
-  const learnerProfile =
-    learnerProfileRecord === undefined
-      ? null
-      : parseWithSchema(
-          LearnerProfileSchema,
-          learnerProfileRecord,
-          'Stored learner profile',
-        );
   const mediaProgressByAssetId = new Map<
     string,
     MutableLongFormEventAggregate
   >();
+  const assetIds = parsedContentAssets.map((asset) => asset.id);
 
-  await forEachValidatedRow(database.mediaProgressEvents, (storedEvent) => {
-    const event = parseWithSchema(
-      MediaProgressEventSchema,
-      storedEvent,
-      'Stored media progress event',
+  if (assetIds.length > 0) {
+    await forEachValidatedRow(
+      database.mediaProgressEvents.where('assetId').anyOf(assetIds),
+      (storedEvent) => {
+        const event = parseWithSchema(
+          MediaProgressEventSchema,
+          storedEvent,
+          'Stored media progress event',
+        );
+        const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
+          coverageRanges: [],
+          eventCount: 0,
+          lastCreatedAt: null,
+          lastEventEndSecond: null,
+          lastEventId: null,
+        };
+
+        aggregate.eventCount += 1;
+        addCoverageRange(aggregate.coverageRanges, {
+          endSecond: event.endSecond,
+          startSecond: event.startSecond,
+        });
+
+        if (
+          aggregate.lastCreatedAt === null ||
+          event.createdAt > aggregate.lastCreatedAt ||
+          (event.createdAt === aggregate.lastCreatedAt &&
+            (aggregate.lastEventId === null ||
+              event.id > aggregate.lastEventId))
+        ) {
+          aggregate.lastCreatedAt = event.createdAt;
+          aggregate.lastEventEndSecond = event.endSecond;
+          aggregate.lastEventId = event.id;
+        }
+
+        mediaProgressByAssetId.set(event.assetId, aggregate);
+      },
     );
-    const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
-      coverageRanges: [],
-      eventCount: 0,
-      lastCreatedAt: null,
-      lastEventEndSecond: null,
-      lastEventId: null,
-    };
-
-    aggregate.eventCount += 1;
-    addCoverageRange(aggregate.coverageRanges, {
-      endSecond: event.endSecond,
-      startSecond: event.startSecond,
-    });
-
-    if (
-      aggregate.lastCreatedAt === null ||
-      event.createdAt > aggregate.lastCreatedAt ||
-      (event.createdAt === aggregate.lastCreatedAt &&
-        (aggregate.lastEventId === null || event.id > aggregate.lastEventId))
-    ) {
-      aggregate.lastCreatedAt = event.createdAt;
-      aggregate.lastEventEndSecond = event.endSecond;
-      aggregate.lastEventId = event.id;
-    }
-
-    mediaProgressByAssetId.set(event.assetId, aggregate);
-  });
+  }
 
   return {
     contentAssets: parsedContentAssets,
     contentSlices: parsedContentSlices,
-    courseItems: parsedCourseItems,
-    courseUnits: parsedCourseUnits,
-    learnerProfile,
+    courseItems,
+    courseUnits,
     mediaProgressByAssetId: new Map(
       [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
         assetId,
@@ -3370,10 +3418,31 @@ async function readA4CourseState(
   };
 }
 
+async function readA4CourseState(
+  database: ProgressPalDatabase,
+  catalogueId: string,
+): Promise<A4CourseState> {
+  const [courseState, learnerProfileRecord] = await Promise.all([
+    readScopedCourseState(database, catalogueId),
+    database.learnerProfile.get(singletonIds.learnerProfile),
+  ]);
+  const learnerProfile =
+    learnerProfileRecord === undefined
+      ? null
+      : parseWithSchema(
+          LearnerProfileSchema,
+          learnerProfileRecord,
+          'Stored learner profile',
+        );
+
+  return { ...courseState, learnerProfile };
+}
+
 async function readA4EarnedRewardSourceKeys(
   database: ProgressPalDatabase,
   courseState: CourseStateReadData,
   policy: ProgrammePolicy,
+  validationLabel = 'Stored RPG reward XP transaction',
 ) {
   const rewardSources = getCourseMapRewardSources(
     policy,
@@ -3390,7 +3459,7 @@ async function readA4EarnedRewardSourceKeys(
         const transaction = parseWithSchema(
           XpTransactionSchema,
           storedTransaction,
-          'Stored RPG reward XP transaction',
+          validationLabel,
         );
         const sourceKey = getXpAwardSourceKey(
           transaction.sourceType,
@@ -3484,7 +3553,7 @@ async function readA4SessionHistory(
 }
 
 export async function getRpgHudReadData(
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<RpgHudReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3500,7 +3569,7 @@ export async function getRpgHudReadData(
   ] as const;
 
   return database.transaction('r', [...tables], async () => {
-    const courseState = await readA4CourseState(database);
+    const courseState = await readA4CourseState(database, options.catalogueId);
     const [earnedRewardSourceKeys, xp] = await Promise.all([
       readA4EarnedRewardSourceKeys(database, courseState, options.policy),
       readA4XpHistory(database, { collectRecent: false }),
@@ -3516,7 +3585,7 @@ export async function getRpgHudReadData(
 
 export async function getRpgHubReadData(
   range: RpgHubReadRange,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<RpgHubReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3533,7 +3602,7 @@ export async function getRpgHubReadData(
   ] as const;
 
   return database.transaction('r', [...tables], async () => {
-    const courseState = await readA4CourseState(database);
+    const courseState = await readA4CourseState(database, options.catalogueId);
     const [earnedRewardSourceKeys, sessions, xp] = await Promise.all([
       readA4EarnedRewardSourceKeys(database, courseState, options.policy),
       readA4SessionHistory(database, range),
@@ -3556,7 +3625,7 @@ export async function getRpgHubReadData(
 }
 
 export async function getRpgHeroReadData(
-  options: BaseDatabaseOptions = {},
+  options: CatalogueScopeOptions,
 ): Promise<RpgHeroReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3574,7 +3643,7 @@ export async function getRpgHeroReadData(
   ] as const;
 
   return database.transaction('r', [...tables], async () => {
-    const courseState = await readA4CourseState(database);
+    const courseState = await readA4CourseState(database, options.catalogueId);
     const [sessions, xp, achievementUnlockRecords] = await Promise.all([
       readA4SessionHistory(database),
       readA4XpHistory(database, { collectRecent: true }),
@@ -3601,7 +3670,7 @@ export async function getRpgHeroReadData(
 }
 
 export async function getCourseMapReadData(
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<CourseMapReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3616,153 +3685,24 @@ export async function getCourseMapReadData(
   ] as const;
 
   return database.transaction('r', [...tables], async () => {
-    const [
-      courseUnits,
-      courseItems,
-      progressEntries,
-      contentAssets,
-      contentSlices,
-      resumePoints,
-    ] = await Promise.all([
-      database.courseUnits.toArray(),
-      database.courseItems.toArray(),
-      database.progressEntries.toArray(),
-      database.contentAssets.toArray(),
-      database.contentSlices.toArray(),
-      database.resumePoints.toArray(),
-    ]);
-    const parsedCourseUnits = sortCourseUnits(
-      parseStoredArray(courseUnits, 'Stored course unit', CourseUnitSchema),
+    const courseState = await readScopedCourseState(
+      database,
+      options.catalogueId,
     );
-    const parsedCourseItems = sortCourseItems(
-      parseStoredArray(courseItems, 'Stored course item', CourseItemSchema),
-    );
-    const parsedProgressEntries = sortProgressEntries(
-      parseStoredArray(
-        progressEntries,
-        'Stored progress entry',
-        ProgressEntrySchema,
-      ),
-    );
-    const parsedContentAssets = sortContentAssets(
-      parseStoredArray(
-        contentAssets,
-        'Stored content asset',
-        ContentAssetSchema,
-      ),
-    );
-    const parsedContentSlices = sortContentSlices(
-      parseStoredArray(
-        contentSlices,
-        'Stored content slice',
-        ContentSliceSchema,
-      ),
-    );
-    const parsedResumePoints = sortResumePoints(
-      parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
-    );
-    const mediaProgressByAssetId = new Map<
-      string,
-      MutableLongFormEventAggregate
-    >();
-    const assetIds = parsedContentAssets.map((asset) => asset.id);
-
-    if (assetIds.length > 0) {
-      await forEachValidatedRow(
-        database.mediaProgressEvents.where('assetId').anyOf(assetIds),
-        (storedEvent) => {
-          const event = parseWithSchema(
-            MediaProgressEventSchema,
-            storedEvent,
-            'Stored media progress event',
-          );
-          const aggregate = mediaProgressByAssetId.get(event.assetId) ?? {
-            coverageRanges: [],
-            eventCount: 0,
-            lastCreatedAt: null,
-            lastEventEndSecond: null,
-            lastEventId: null,
-          };
-
-          aggregate.eventCount += 1;
-          addCoverageRange(aggregate.coverageRanges, {
-            endSecond: event.endSecond,
-            startSecond: event.startSecond,
-          });
-
-          if (
-            aggregate.lastCreatedAt === null ||
-            event.createdAt > aggregate.lastCreatedAt ||
-            (event.createdAt === aggregate.lastCreatedAt &&
-              (aggregate.lastEventId === null ||
-                event.id > aggregate.lastEventId))
-          ) {
-            aggregate.lastCreatedAt = event.createdAt;
-            aggregate.lastEventEndSecond = event.endSecond;
-            aggregate.lastEventId = event.id;
-          }
-
-          mediaProgressByAssetId.set(event.assetId, aggregate);
-        },
-      );
-    }
-
-    const rewardSources = getCourseMapRewardSources(
+    const earnedRewardSourceKeys = await readA4EarnedRewardSourceKeys(
+      database,
+      courseState,
       options.policy,
-      parsedCourseUnits,
-      parsedCourseItems,
-      parsedProgressEntries,
+      'Stored Map reward XP transaction',
     );
-    const earnedRewardSourceKeys = new Set<string>();
 
-    if (rewardSources.sourceIds.length > 0) {
-      await forEachValidatedRow(
-        database.xpTransactions
-          .where('sourceId')
-          .anyOf(rewardSources.sourceIds),
-        (storedTransaction) => {
-          const transaction = parseWithSchema(
-            XpTransactionSchema,
-            storedTransaction,
-            'Stored Map reward XP transaction',
-          );
-          const sourceKey = getXpAwardSourceKey(
-            transaction.sourceType,
-            transaction.sourceId,
-          );
-
-          if (rewardSources.sourceKeys.has(sourceKey)) {
-            earnedRewardSourceKeys.add(sourceKey);
-          }
-        },
-      );
-    }
-
-    return {
-      contentAssets: parsedContentAssets,
-      contentSlices: parsedContentSlices,
-      courseItems: parsedCourseItems,
-      courseUnits: parsedCourseUnits,
-      mediaProgressByAssetId: new Map(
-        [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
-          assetId,
-          {
-            coverageRanges: aggregate.coverageRanges,
-            eventCount: aggregate.eventCount,
-            lastEventEndSecond: aggregate.lastEventEndSecond,
-          },
-        ]),
-      ),
-      progressEntries: parsedProgressEntries,
-      resumePoints: parsedResumePoints,
-      earnedRewardSourceKeys,
-    };
+    return { ...courseState, earnedRewardSourceKeys };
   });
 }
 
 export async function getModuleReadData(
   unitId: string,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<ModuleReadData | null> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3788,6 +3728,11 @@ export async function getModuleReadData(
       storedUnit,
       `Stored course unit "${unitId}"`,
     );
+
+    // A unit of another catalogue is not a unit of this one (Epic C / C5).
+    if (courseUnit.courseId !== options.catalogueId) {
+      return null;
+    }
     const courseItems = sortCourseItems(
       parseStoredArray(
         await database.courseItems.where('unitId').equals(unitId).toArray(),
@@ -3939,7 +3884,7 @@ export async function getModuleReadData(
 
 export async function getResourceReadData(
   itemId: string,
-  options: ProgrammePolicyOptions,
+  options: ScopedProgrammeOptions,
 ): Promise<ResourceReadData | null> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3976,6 +3921,11 @@ export async function getResourceReadData(
       storedUnit,
       `Stored course unit "${courseItem.unitId}"`,
     );
+
+    // An item of another catalogue is not an item of this one (Epic C / C5).
+    if (courseUnit.courseId !== options.catalogueId) {
+      return null;
+    }
     const courseItems = sortCourseItems(
       parseStoredArray(
         await database.courseItems

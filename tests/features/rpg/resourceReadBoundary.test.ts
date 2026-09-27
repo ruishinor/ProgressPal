@@ -32,7 +32,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const resourceStores = [
   'content_assets',
@@ -285,7 +285,9 @@ function assertMissingItemAccess(access: DatabaseAccessSnapshot) {
 
 function createSyntheticResourceSeed(itemCount: number): CourseSeed {
   return {
-    courseId: 'a3-resource-scale-course',
+    // Materialized under the active catalogue identity: loaders read only
+    // that catalogue (Epic C / C5).
+    courseId: cs50CatalogueId,
     title: 'A3 Resource Scale Course',
     dataVersion: 1,
     sourceCheckedDate: '2026-09-21',
@@ -570,6 +572,7 @@ describe('RPG Resource read boundary', () => {
 
       const readStartedAt = Date.now();
       const data = await getResourceReadData('week-4-lecture', {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: database,
       });
@@ -631,6 +634,7 @@ describe('RPG Resource read boundary', () => {
       probe.reset();
 
       const data = await getResourceReadData('scale-week-lecture-0', {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
       });
@@ -685,6 +689,7 @@ describe('RPG Resource read boundary', () => {
     probe.reset();
 
     const oneData = await getResourceReadData('week-4-lecture', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -714,6 +719,7 @@ describe('RPG Resource read boundary', () => {
     probe.reset();
 
     const tenData = await getResourceReadData('week-4-lecture', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -768,6 +774,7 @@ describe('RPG Resource read boundary', () => {
     const { database, probe } = await openProbedResourceReader(context);
 
     const data = await getResourceReadData('week-4-lecture', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: database,
     });
@@ -822,6 +829,7 @@ describe('RPG Resource read boundary', () => {
     probe.reset();
 
     const data = await getResourceReadData('week-4-lecture', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -882,7 +890,7 @@ describe('RPG Resource read boundary', () => {
 
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-lecture', status: 'completed', confidence: 3 },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
 
     expect(await expectPublishedRewardLabel()).toContain(
@@ -891,7 +899,7 @@ describe('RPG Resource read boundary', () => {
 
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'accepted', confidence: 3 },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
     await upsertProgress(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
@@ -915,7 +923,7 @@ describe('RPG Resource read boundary', () => {
 
     await upsertProgressAndAwardXp(
       { itemId: 'final-project-readme', status: 'completed', confidence: 3 },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
     await upsertProgressAndAwardXp(
       {
@@ -923,7 +931,7 @@ describe('RPG Resource read boundary', () => {
         status: 'completed',
         confidence: 3,
       },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
 
     expect(
@@ -941,7 +949,7 @@ describe('RPG Resource read boundary', () => {
     );
     const result = await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 4 },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
     const committedSnapshot = await getDatabaseSnapshot({ db: context.db });
     const expected = buildRpgStudyResourceSummary(

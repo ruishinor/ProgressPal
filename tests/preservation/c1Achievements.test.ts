@@ -19,6 +19,7 @@ import type { TestDatabaseContext } from '../db/testDatabase';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
 import {
   cs50AchievementDefinitions as achievementDefinitions,
+  cs50CatalogueId,
   cs50Policy,
 } from '../programmes/cs50Policy';
 
@@ -329,10 +330,16 @@ async function apply(
             ? { evidenceText: 'Synthetic C1 submission note.' }
             : {}),
         },
-        { policy: cs50Policy, db: context.db, now },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: context.db,
+          now,
+        },
       );
     } else if (action.kind === 'media') {
       await logMediaProgressAndAwardXp(action.input, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
         now,
@@ -351,6 +358,7 @@ async function apply(
         unitId: 'week-0',
       };
       await addStudySessionAndAwardXp(session, {
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
         now,
@@ -374,7 +382,7 @@ async function unlocksAfter(label: string, actions: readonly Action[]) {
     // Re-evaluation through another real mutation path unlocks nothing new.
     const reEvaluation = await upsertProgressAndAwardXp(
       { confidence: 1, itemId: 'week-2-shorts', status: 'started' },
-      { policy: cs50Policy, db: context.db, now },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db, now },
     );
     expect(reEvaluation.unlockedAchievements).toEqual([]);
     expect(await listAchievementUnlocks({ db: context.db })).toEqual(unlocks);

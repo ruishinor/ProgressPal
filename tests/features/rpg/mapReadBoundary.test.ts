@@ -26,7 +26,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const mapStores = [
   'content_assets',
@@ -204,7 +204,9 @@ function assertMapAccessContract(access: DatabaseAccessSnapshot) {
 
 function createSyntheticCourseSeed(scaleFactor: number): CourseSeed {
   return {
-    courseId: 'a1-map-scale-course',
+    // Materialized under the active catalogue identity: loaders read only
+    // that catalogue (Epic C / C5).
+    courseId: cs50CatalogueId,
     title: 'A1 Map Scale Course',
     dataVersion: 1,
     sourceCheckedDate: '2026-09-20',
@@ -498,6 +500,7 @@ describe('RPG Campaign Map read boundary', () => {
     probe.reset();
 
     const data = await getCourseMapReadData({
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -552,6 +555,7 @@ describe('RPG Campaign Map read boundary', () => {
     probe.reset();
 
     const data = await getCourseMapReadData({
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -586,9 +590,10 @@ describe('RPG Campaign Map read boundary', () => {
     const before = await getDatabaseSnapshot({ db: context.db });
     const readFailure = new Error('Synthetic A1 Map catalog read failure');
 
-    vi.spyOn(context.db.courseUnits, 'toArray').mockRejectedValueOnce(
-      readFailure,
-    );
+    // Epic C / C5: the catalogue read is the scoped `courseId` query.
+    vi.spyOn(context.db.courseUnits, 'where').mockReturnValueOnce({
+      equals: () => ({ toArray: () => Promise.reject(readFailure) }),
+    } as unknown as ReturnType<typeof context.db.courseUnits.where>);
 
     await expect(loadRpgCourseMapSummary({ db: context.db })).rejects.toBe(
       readFailure,

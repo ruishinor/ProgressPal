@@ -921,9 +921,15 @@ function buildRpgStudyResourceSummaryFromReadData(
   );
 }
 
-/** Read paths apply the active programme's policy (Epic C / C3). */
-function withActivePolicy(options: RpgReadModelOptions) {
-  return { ...options, policy: getActiveProgrammeDefinition().policy };
+/**
+ * Read paths apply the active programme's policy (Epic C / C3) and read only
+ * its catalogue (C5). The definition is resolved here, before any read
+ * transaction opens.
+ */
+function withActiveProgramme(options: RpgReadModelOptions) {
+  const { catalogueId, policy } = getActiveProgrammeDefinition();
+
+  return { ...options, catalogueId, policy };
 }
 
 async function readSnapshot(options: RpgReadModelOptions = {}) {
@@ -934,7 +940,7 @@ export async function loadRpgHudSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgHudSummary> {
   return buildRpgHudSummaryFromReadData(
-    await getRpgHudReadData(withActivePolicy(options)),
+    await getRpgHudReadData(withActiveProgramme(options)),
   );
 }
 
@@ -947,7 +953,7 @@ export async function loadRpgHubSummary(
   return buildRpgHubSummaryFromReadData(
     await getRpgHubReadData(
       { nextStartTime, startTime },
-      withActivePolicy(options),
+      withActiveProgramme(options),
     ),
     nowIso,
   );
@@ -957,7 +963,7 @@ export async function loadRpgCourseMapSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgCourseMapSummary> {
   return buildRpgCourseMapSummaryFromReadData(
-    await getCourseMapReadData(withActivePolicy(options)),
+    await getCourseMapReadData(withActiveProgramme(options)),
   );
 }
 
@@ -965,7 +971,7 @@ export async function loadRpgModuleSummary(
   unitId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgModuleSummary | null> {
-  const data = await getModuleReadData(unitId, withActivePolicy(options));
+  const data = await getModuleReadData(unitId, withActiveProgramme(options));
 
   return data === null ? null : buildRpgModuleSummaryFromReadData(data);
 }
@@ -974,7 +980,7 @@ export async function loadRpgStudyResourceSummary(
   itemId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgStudyResourceSummary | null> {
-  const data = await getResourceReadData(itemId, withActivePolicy(options));
+  const data = await getResourceReadData(itemId, withActiveProgramme(options));
 
   return data === null ? null : buildRpgStudyResourceSummaryFromReadData(data);
 }
@@ -989,6 +995,6 @@ export async function loadRpgHeroProfileSummary(
   options: RpgReadModelOptions = {},
 ): Promise<RpgHeroProfileSummary> {
   return buildRpgHeroProfileSummaryFromReadData(
-    await getRpgHeroReadData(options),
+    await getRpgHeroReadData(withActiveProgramme(options)),
   );
 }

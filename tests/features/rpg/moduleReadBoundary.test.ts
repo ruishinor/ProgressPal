@@ -27,7 +27,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const moduleStores = [
   'content_assets',
@@ -255,7 +255,9 @@ function assertMissingModuleAccess(access: DatabaseAccessSnapshot) {
 
 function createSyntheticModuleSeed(itemCount: number): CourseSeed {
   return {
-    courseId: 'a2-module-scale-course',
+    // Materialized under the active catalogue identity: loaders read only
+    // that catalogue (Epic C / C5).
+    courseId: cs50CatalogueId,
     title: 'A2 Module Scale Course',
     dataVersion: 1,
     sourceCheckedDate: '2026-09-21',
@@ -595,6 +597,7 @@ describe('RPG Module read boundary', () => {
     probe.reset();
 
     const data = await getModuleReadData('week-4', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -649,6 +652,7 @@ describe('RPG Module read boundary', () => {
     probe.reset();
 
     const data = await getModuleReadData('week-4', {
+      catalogueId: cs50CatalogueId,
       policy: cs50Policy,
       db: context.db,
     });
@@ -690,7 +694,7 @@ describe('RPG Module read boundary', () => {
 
     await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
-      { policy: cs50Policy, db: context.db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
     );
     await upsertProgress(
       { itemId: 'week-4-lecture', status: 'started', confidence: 3 },
@@ -720,7 +724,7 @@ describe('RPG Module read boundary', () => {
       ).toBe('Up to +200 XP');
       await upsertProgressAndAwardXp(
         { itemId, status: 'completed', confidence: 3 },
-        { policy: cs50Policy, db: context.db },
+        { catalogueId: cs50CatalogueId, policy: cs50Policy, db: context.db },
       );
     }
 

@@ -6,7 +6,7 @@ import { getCourseMapReadData } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
 
 import { createSeededDatabase } from './c1Support';
-import { cs50Policy } from '../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 1 — curriculum identity and order.
@@ -174,6 +174,7 @@ describe('C1 curriculum identity and order (semantic)', () => {
     const context = await createSeededDatabase('curriculum-classic');
     try {
       const data = await getCourseMapReadData({
+        catalogueId: cs50CatalogueId,
         policy: cs50Policy,
         db: context.db,
       });

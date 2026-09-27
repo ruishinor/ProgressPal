@@ -30,7 +30,7 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 describe('RPG read models', () => {
   let testDatabase: TestDatabaseContext | null = null;
@@ -405,7 +405,10 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
     const before = await getDatabaseSnapshot({ db });
     const readFailure = new Error('Synthetic catalog read failure');
-    vi.spyOn(db.courseUnits, 'toArray').mockRejectedValueOnce(readFailure);
+    // Epic C / C5: the catalogue read is the scoped `courseId` query.
+    vi.spyOn(db.courseUnits, 'where').mockReturnValueOnce({
+      equals: () => ({ toArray: () => Promise.reject(readFailure) }),
+    } as unknown as ReturnType<typeof db.courseUnits.where>);
 
     await expect(loadRpgHubSummary({ db })).rejects.toBe(readFailure);
     expect(await getDatabaseSnapshot({ db })).toEqual(before);
@@ -427,7 +430,7 @@ describe('RPG read models', () => {
     ).toBe('Up to +40 XP');
     await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
-      { policy: cs50Policy, db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     // Moving progress backwards never makes the once-only award available again.
     await upsertProgress(
@@ -453,7 +456,7 @@ describe('RPG read models', () => {
     );
     await upsertProgressAndAwardXp(
       { itemId, status: 'started', confidence: 3 },
-      { policy: cs50Policy, db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
@@ -462,14 +465,14 @@ describe('RPG read models', () => {
     );
     await upsertProgressAndAwardXp(
       { itemId, status: 'submitted', confidence: 3 },
-      { policy: cs50Policy, db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
     ).toBe('Up to 125 XP remaining for this task');
     await upsertProgressAndAwardXp(
       { itemId, status: 'accepted', confidence: 3 },
-      { policy: cs50Policy, db },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
       (await expectReadOnly(() => loadRpgStudyResourceSummary(itemId, { db })))
@@ -492,7 +495,7 @@ describe('RPG read models', () => {
       );
       await upsertProgressAndAwardXp(
         { itemId, status: 'completed', confidence: 3 },
-        { policy: cs50Policy, db },
+        { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
       );
     }
     for (const itemId of itemIds) {
@@ -674,7 +677,12 @@ describe('RPG read models', () => {
         startedAt: '2026-06-21T09:00:00.000Z',
         status: 'completed',
       },
-      { policy: cs50Policy, db, now: createClock('2026-06-21T10:05:00.000Z') },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db,
+        now: createClock('2026-06-21T10:05:00.000Z'),
+      },
     );
 
     const badgeGallery = await expectReadOnly(() =>
@@ -728,7 +736,12 @@ describe('RPG read models', () => {
         startedAt: '2026-06-21T09:00:00.000Z',
         status: 'completed',
       },
-      { policy: cs50Policy, db, now: createClock('2026-06-21T10:05:00.000Z') },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db,
+        now: createClock('2026-06-21T10:05:00.000Z'),
+      },
     );
 
     const hero = await expectReadOnly(() =>

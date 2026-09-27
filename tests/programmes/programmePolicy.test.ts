@@ -219,7 +219,7 @@ describe('policy isolation: a test-only policy changes only its own awards', () 
               status: item.type === 'problem_set' ? 'accepted' : 'completed',
               evidenceText: 'Synthetic submission note',
             },
-            { db: context.db, now, policy },
+            { catalogueId: cs50.catalogueId, db: context.db, now, policy },
           );
           awarded.push(...result.awardedTransactions.map((tx) => tx.id));
         }

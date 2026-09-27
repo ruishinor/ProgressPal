@@ -24,7 +24,7 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
-import { cs50Policy } from '../../programmes/cs50Policy';
+import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const now = '2026-09-21T12:00:00.000Z';
 type History = 'media' | 'xp' | 'sessions';
@@ -75,7 +75,7 @@ describe('A7 passive cursor error propagation', () => {
     await initializeDatabase({ db, seed: bundledCourseSeed, now: () => now });
     const save = await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
-      { policy: cs50Policy, db, now: () => now },
+      { catalogueId: cs50CatalogueId, policy: cs50Policy, db, now: () => now },
     );
     const award = save.awardedTransactions[0];
     const asset = await db.contentAssets
