@@ -19,11 +19,13 @@ import {
   restoreDatabaseFromBackup,
 } from '@/lib/db';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import { bundledCourseSeed } from '@/seed';
 
 type OnboardingMode = 'quick' | 'customize';
 
 export function OnboardingPage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const location = useLocation();
   const navigate = useNavigate();
   const { coordination, profile, runLocalMutation, saveProfile } =
@@ -92,7 +94,7 @@ export function OnboardingPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="Track CS50 work, sessions, XP, achievements, notes, and progress on this device."
+        description={copy.onboardingDescription}
         eyebrow="Setup"
         meta={
           <>
@@ -100,7 +102,7 @@ export function OnboardingPage() {
             <Badge tone="accent">Stored only on this device</Badge>
           </>
         }
-        title="Start tracking CS50 locally"
+        title={copy.onboardingTitle}
       />
       {mode === 'quick' ? (
         <Card

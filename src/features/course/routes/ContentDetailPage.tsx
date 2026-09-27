@@ -290,7 +290,10 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
   ]);
 
   if (unit === null) {
-    throw new Error('The week for this course task could not be found.');
+    const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+    throw new Error(
+      `The ${unitNoun.lowercase} for this course task could not be found.`,
+    );
   }
 
   const asset = assets[0] ?? null;

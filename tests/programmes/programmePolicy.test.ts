@@ -93,6 +93,10 @@ function testDefinition(
         itemLinks: {},
       },
       studyGuides: { unitGuides: {}, itemGuides: {} },
+      terminology: {
+        ...cs50.content.terminology,
+        unitMapOrdinals: { 'module-a': '1' },
+      },
     },
     ...overrides,
   };

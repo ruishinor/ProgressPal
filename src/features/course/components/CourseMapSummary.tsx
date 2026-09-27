@@ -4,12 +4,14 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapView } from '@/features/course/model';
 import { formatMinutes } from '@/lib/time';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type CourseMapSummaryProps = {
   courseMap: CourseMapView;
 };
 
 export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const remainingRequiredItems = Math.max(
     courseMap.requiredItemCount - courseMap.completedRequiredItemCount,
     0,
@@ -36,10 +38,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
           ) : null}
         </div>
       </Card>
-      <Card
-        description="The CS50x 2026 course list is built in and ready to track."
-        title="Catalog"
-      >
+      <Card description={copy.catalogueDescription} title="Catalog">
         <dl className="course-map-stat-list">
           <div>
             <dt>Units</dt>

@@ -1,6 +1,6 @@
 # Programme layer
 
-Epic C / C2–C3. Immutable, compile-time programme definitions and the
+Epic C / C2–C4. Immutable, compile-time programme definitions and the
 registry that lists them. Contract: `docs/post-release/epic-c/C0_PROGRAMME_DEFINITION_CONTRACT.md`.
 
 Current responsibilities:
@@ -15,7 +15,11 @@ Current responsibilities:
   final-project milestones), the submission workflow, and the ten CS50-bound
   achievements composed with the six shared ones in CS50 display order;
 - CS50 content: official external resource links with their declared URL
-  prefix, and the locally authored study guides;
+  prefix, the locally authored study guides, and CS50 terminology (C4,
+  `cs50x-2026/terminology.ts`): programme copy, the unit noun "week", the RPG
+  identity tuple and the campaign-map ordinal of every catalogue unit.
+  Canonical vocabulary labels and rank labels stay shared in their feature
+  modules; the brand text is outside Epic C (OD-6);
 - a one-entry registry with `getProgrammeDefinition` and
   `getActiveProgrammeDefinition`, both failing closed.
 
@@ -32,7 +36,6 @@ contracts, `@/lib/xp`, `@/lib/achievements`); lib receives policy as a
 parameter and never imports this layer. Features and composition roots pass
 `getActiveProgrammeDefinition().policy`.
 
-Not here: terminology (C4),
-scoped reads (C5), and any persisted programme identity, enrolment, active
-key, schema or backup field (C6/C7). `programmeId` is reserved for the future
+Not here: scoped reads (C5), and any persisted programme identity,
+enrolment, active key, schema or backup field (C6/C7). `programmeId` is reserved for the future
 persisted ownership identity.

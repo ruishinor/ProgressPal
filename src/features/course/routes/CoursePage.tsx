@@ -20,6 +20,7 @@ import {
   listProgressEntries,
   listResumePoints,
 } from '@/lib/db';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type CoursePageStatus = 'error' | 'loading' | 'ready';
 
@@ -38,6 +39,7 @@ const initialState: CoursePageState = {
 };
 
 export function CoursePage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<CoursePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -129,8 +131,8 @@ export function CoursePage() {
       return (
         <section className="page-section">
           <PageHeader
-            description="This page uses the built-in CS50 course list and your saved progress."
-            eyebrow="CS50 course map"
+            description={copy.courseMapErrorDescription}
+            eyebrow={copy.courseMapEyebrow}
             title="Course Map"
           />
           <ErrorState
@@ -158,8 +160,8 @@ export function CoursePage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is opening the CS50 course list and your saved progress."
-          eyebrow="CS50 course map"
+          description={copy.courseMapLoadingDescription}
+          eyebrow={copy.courseMapEyebrow}
           title="Course Map"
         />
         <LoadingState
@@ -184,7 +186,7 @@ export function CoursePage() {
           </div>
         }
         description="Open any task to save your progress, notes, and video history. Saves update your course map, dashboard, and insights."
-        eyebrow="CS50 course map"
+        eyebrow={copy.courseMapEyebrow}
         meta={
           <>
             {state.xpLevel !== null ? (

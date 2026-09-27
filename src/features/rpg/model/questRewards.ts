@@ -37,7 +37,8 @@ export function buildQuestRewardLabel(
   itemId: string,
   detailed = false,
 ) {
-  const { xp: policy, workflow } = getActiveProgrammeDefinition().policy;
+  const { policy: programmePolicy, content } = getActiveProgrammeDefinition();
+  const { xp: policy, workflow } = programmePolicy;
   const item = snapshot.courseItems.find(
     (candidate) => candidate.id === itemId,
   );
@@ -82,7 +83,7 @@ export function buildQuestRewardLabel(
   const taskLabel =
     taskXp > 0
       ? detailed
-        ? `Up to ${taskXp} XP remaining for this task${sharedFinalReward ? ' (shared with README + demo)' : ''}`
+        ? `Up to ${taskXp} XP remaining for this task${sharedFinalReward ? ` (${content.terminology.copy.sharedMilestoneRewardNote})` : ''}`
         : `Up to +${taskXp} XP`
       : taskAwards.length > 0
         ? 'Task XP earned'

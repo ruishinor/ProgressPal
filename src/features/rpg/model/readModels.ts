@@ -50,6 +50,7 @@ import type {
   RpgHeroProfileSummary,
   RpgHubSummary,
   RpgHudSummary,
+  RpgHubIdentity,
   RpgHubWeeklyProgress,
   RpgModuleSummary,
   RpgOfficialLink,
@@ -303,6 +304,14 @@ function getRankLabel({
   }
 
   return 'Initiate';
+}
+
+/** The programme's identity tuple with the shared rank label (Epic C / C4). */
+function buildIdentity(rankLabel: string): RpgHubIdentity {
+  const { classLabel, guildLabel, pathLabel } =
+    getActiveProgrammeDefinition().content.terminology.rpgIdentity;
+
+  return { classLabel, guildLabel, pathLabel, rankLabel };
 }
 
 function roundToSingleDecimal(value: number) {
@@ -661,12 +670,7 @@ export function buildRpgHubSummary(
       courseMapSummary.modules,
       recommendation,
     ),
-    identity: {
-      classLabel: 'Generalist',
-      guildLabel: 'Code Knights',
-      pathLabel: 'CS Foundations',
-      rankLabel: getRankLabel(courseMapSummary),
-    },
+    identity: buildIdentity(getRankLabel(courseMapSummary)),
     learnerAvatarConfig: snapshot.learnerProfile?.avatarConfig ?? null,
     learnerName: snapshot.learnerProfile?.displayName ?? 'Learner',
     recentActivity: buildRecentActivity(snapshot),
@@ -695,12 +699,7 @@ function buildRpgHudSummaryFromReadData(data: RpgHudReadData): RpgHudSummary {
 
   return {
     recommendation,
-    identity: {
-      classLabel: 'Generalist',
-      guildLabel: 'Code Knights',
-      pathLabel: 'CS Foundations',
-      rankLabel: getRankLabel(courseMapSummary),
-    },
+    identity: buildIdentity(getRankLabel(courseMapSummary)),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     xpSummary: buildXpPresentation(data.totalXp),
@@ -728,12 +727,7 @@ function buildRpgHubSummaryFromReadData(
       courseMapSummary.modules,
       recommendation,
     ),
-    identity: {
-      classLabel: 'Generalist',
-      guildLabel: 'Code Knights',
-      pathLabel: 'CS Foundations',
-      rankLabel: getRankLabel(courseMapSummary),
-    },
+    identity: buildIdentity(getRankLabel(courseMapSummary)),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     recentActivity: buildRecentActivityFromReadData(data),
@@ -779,12 +773,7 @@ function buildRpgHeroProfileSummaryFromReadData(
       data.sessionCount > 0 ||
       xpSummary.totalXp > 0 ||
       earnedBadgeCount > 0,
-    identity: {
-      classLabel: 'Generalist',
-      guildLabel: 'Code Knights',
-      pathLabel: 'CS Foundations',
-      rankLabel: getRankLabel(courseProgress),
-    },
+    identity: buildIdentity(getRankLabel(courseProgress)),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     recentActivity,

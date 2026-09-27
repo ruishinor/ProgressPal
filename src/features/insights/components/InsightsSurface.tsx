@@ -75,9 +75,6 @@ function bar(value: number, max: number, variant: BarVariant) {
   );
 }
 
-const readyDescription =
-  "Your CS50 study activity over time. Saved sessions, watched video, and earned XP appear here. Days and weeks use this device's local time.";
-
 function InsightsSection({ rpg, ...props }: CardProps & { rpg: boolean }) {
   const [open, setOpen] = useState(props.title === 'Course progress');
   if (!rpg) return <Card {...props} />;
@@ -96,6 +93,7 @@ function InsightsSection({ rpg, ...props }: CardProps & { rpg: boolean }) {
 }
 
 export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-log'
@@ -216,7 +214,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           </div>
         ) : (
           <PageHeader
-            description="This page shows your CS50 study activity."
+            description={copy.insightsErrorDescription}
             title="Insights"
           />
         )}
@@ -303,7 +301,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           </div>
         </div>
       ) : (
-        <PageHeader description={readyDescription} title="Insights" />
+        <PageHeader description={copy.insightsDescription} title="Insights" />
       )}
 
       <div className="insights-grid">

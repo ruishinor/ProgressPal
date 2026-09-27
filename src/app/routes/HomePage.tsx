@@ -10,6 +10,7 @@ import {
   studyDayOptions,
 } from '@/features/profile';
 import { useAppState } from '@/lib/appState';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 function formatStudyDays(days: readonly string[]) {
   return studyDayOptions
@@ -19,6 +20,7 @@ function formatStudyDays(days: readonly string[]) {
 }
 
 export function HomePage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const { appMeta, profile } = useAppState();
 
   if (profile === null) {
@@ -44,7 +46,7 @@ export function HomePage() {
             </Link>
           </div>
         }
-        description="Your local CS50 profile is the starting point for ProgressPal. It keeps your study target, theme preference, reduced-motion preference, and learning identity on this device."
+        description={copy.profileDescription}
         eyebrow="Local profile"
         meta={
           <>

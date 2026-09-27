@@ -17,6 +17,7 @@ import type {
 } from '@/features/rpg/model/types';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
@@ -40,6 +41,7 @@ function hasLocalActivity(summary: RpgHubSummary) {
 }
 
 export function RpgHomePage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
 
@@ -121,7 +123,7 @@ export function RpgHomePage() {
                 </h3>
                 <p className="rpg-hub__note">
                   {recommendation.state === 'required_complete'
-                    ? 'All required tasks are marked complete locally. This does not confirm official CS50 completion.'
+                    ? copy.rpgRequiredCompleteNote
                     : 'The course could not be summarized. This does not mean your required work is complete.'}
                 </p>
                 {recommendation.state === 'required_complete' &&

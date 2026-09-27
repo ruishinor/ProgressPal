@@ -9,12 +9,14 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapUnit } from '@/features/course/model';
 import { formatMinutes } from '@/lib/time';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type CourseUnitCardProps = {
   unit: CourseMapUnit;
 };
 
 export function CourseUnitCard({ unit }: CourseUnitCardProps) {
+  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
   const cs50Link = getCs50UnitLink(unit.id);
   const guide = getUnitGuide(unit.id);
 
@@ -29,7 +31,7 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
       <div className="course-unit-card__header">
         <ProgressBar
           helperText={`${unit.completedRequiredItemCount} of ${unit.requiredItemCount} required tasks complete`}
-          label="Week progress"
+          label={`${unitNoun.capitalized} progress`}
           showValue={unit.requiredItemCount > 0}
           tone={unit.statusVariant === 'blocked' ? 'warning' : 'accent'}
           value={unit.completionPercent}

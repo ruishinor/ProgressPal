@@ -16,8 +16,10 @@ import { useAppState } from '@/lib/appState';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 export function AppShell() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const location = useLocation();
   const { coordination, error, profile, refresh, requiresOnboarding, status } =
     useAppState();
@@ -49,7 +51,7 @@ export function AppShell() {
             value: 'Loading local data',
           },
         ]}
-        summary="Preparing local profile data and the bundled CS50 catalog."
+        summary={copy.startupLoadingSummary}
         title="ProgressPal CS50 Edition"
       >
         <section className="page-section">
@@ -190,7 +192,7 @@ export function AppShell() {
       summary={
         requiresOnboarding
           ? 'Create the local learner profile before opening the rest of the app. Nothing is synced or sent anywhere.'
-          : 'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, backup, restore, reset, and offline support all run on this device.'
+          : copy.shellActiveSummary
       }
       title="ProgressPal CS50 Edition"
     >

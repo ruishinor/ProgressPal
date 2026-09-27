@@ -12,6 +12,7 @@ import {
   cs50XpPolicy,
 } from './policy';
 import { cs50StudyGuides } from './studyGuides';
+import { cs50Terminology } from './terminology';
 
 /**
  * The CS50x definition. Its definition key equals its catalogue identity
@@ -35,5 +36,6 @@ export const cs50x2026Definition: ProgrammeDefinition =
     content: {
       externalResources: cs50ExternalResources,
       studyGuides: cs50StudyGuides,
+      terminology: cs50Terminology,
     },
   });

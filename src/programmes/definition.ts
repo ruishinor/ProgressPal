@@ -13,10 +13,11 @@ import {
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
 
 /**
- * Programme definition (Epic C / C2, C3). Immutable, compile-time
+ * Programme definition (Epic C / C2–C4). Immutable, compile-time
  * configuration for one registered programme. It holds identity, a reference
  * to the bundled catalogue, core policy that shared engines receive as
- * parameters (C3), and content (external resources and study guides).
+ * parameters (C3), and content (external resources, study guides and
+ * terminology, C4).
  *
  * Identity terms (C0 contract §2): `definitionKey` is a registry key and is
  * never persisted; `catalogueId` is the catalogue identity already persisted
@@ -56,6 +57,56 @@ export type ProgrammeStudyGuides = {
   readonly itemGuides: Readonly<Record<string, ItemGuide>>;
 };
 
+/**
+ * Programme-owned copy (Epic C / C4): rendered strings whose wording belongs
+ * to the programme. Shared UI supplies the surrounding layout and every
+ * programme-neutral label.
+ */
+export type ProgrammeCopy = {
+  readonly startupLoadingSummary: string;
+  readonly shellActiveSummary: string;
+  readonly profileDescription: string;
+  readonly onboardingTitle: string;
+  readonly onboardingDescription: string;
+  readonly dashboardDescription: string;
+  readonly dashboardErrorDescription: string;
+  readonly courseMapEyebrow: string;
+  readonly courseMapLoadingDescription: string;
+  readonly courseMapErrorDescription: string;
+  readonly catalogueDescription: string;
+  readonly insightsDescription: string;
+  readonly insightsErrorDescription: string;
+  readonly rpgRequiredCompleteNote: string;
+  readonly rpgHeroProgressNote: string;
+  readonly rpgCourseBoundary: string;
+  readonly officialResourceOpenLabel: string;
+  readonly officialResourceReviewLabel: string;
+  /** Appended in parentheses to a task reward shared by linked milestone items. */
+  readonly sharedMilestoneRewardNote: string;
+};
+
+/**
+ * Programme terminology (Epic C / C4). Canonical vocabulary labels (item,
+ * unit and asset types, achievement categories, session modes) and rank
+ * labels stay shared in their feature modules.
+ */
+export type ProgrammeTerminology = {
+  /** The curriculum-unit noun used in unit-level copy ("Back to week"). */
+  readonly unitNoun: {
+    readonly lowercase: string;
+    readonly capitalized: string;
+  };
+  /** The RPG hero identity tuple; the rank label is shared. */
+  readonly rpgIdentity: {
+    readonly guildLabel: string;
+    readonly classLabel: string;
+    readonly pathLabel: string;
+  };
+  /** Campaign-map node ordinal label for every catalogue unit, by unit ID. */
+  readonly unitMapOrdinals: Readonly<Record<string, string>>;
+  readonly copy: ProgrammeCopy;
+};
+
 export type ProgrammeDefinition = {
   readonly definitionKey: string;
   readonly catalogueId: string;
@@ -66,6 +117,7 @@ export type ProgrammeDefinition = {
   readonly content: {
     readonly externalResources: ProgrammeExternalResources;
     readonly studyGuides: ProgrammeStudyGuides;
+    readonly terminology: ProgrammeTerminology;
   };
 };
 
@@ -86,6 +138,45 @@ const unitGuideSchema = z
   })
   .strict();
 const itemGuideSchema = unitGuideSchema.extend({ checklist: guideLines });
+
+const terminologySchema = z
+  .object({
+    unitNoun: z
+      .object({ lowercase: nonEmptyString, capitalized: nonEmptyString })
+      .strict(),
+    rpgIdentity: z
+      .object({
+        guildLabel: nonEmptyString,
+        classLabel: nonEmptyString,
+        pathLabel: nonEmptyString,
+      })
+      .strict(),
+    unitMapOrdinals: z.record(z.string(), nonEmptyString),
+    copy: z
+      .object({
+        startupLoadingSummary: nonEmptyString,
+        shellActiveSummary: nonEmptyString,
+        profileDescription: nonEmptyString,
+        onboardingTitle: nonEmptyString,
+        onboardingDescription: nonEmptyString,
+        dashboardDescription: nonEmptyString,
+        dashboardErrorDescription: nonEmptyString,
+        courseMapEyebrow: nonEmptyString,
+        courseMapLoadingDescription: nonEmptyString,
+        courseMapErrorDescription: nonEmptyString,
+        catalogueDescription: nonEmptyString,
+        insightsDescription: nonEmptyString,
+        insightsErrorDescription: nonEmptyString,
+        rpgRequiredCompleteNote: nonEmptyString,
+        rpgHeroProgressNote: nonEmptyString,
+        rpgCourseBoundary: nonEmptyString,
+        officialResourceOpenLabel: nonEmptyString,
+        officialResourceReviewLabel: nonEmptyString,
+        sharedMilestoneRewardNote: nonEmptyString,
+      })
+      .strict(),
+  })
+  .strict();
 
 const definitionSchema = z
   .object({
@@ -118,6 +209,7 @@ const definitionSchema = z
             itemGuides: z.record(z.string(), itemGuideSchema),
           })
           .strict(),
+        terminology: terminologySchema,
       })
       .strict(),
   })
@@ -143,7 +235,8 @@ function guideStrings(guide: UnitGuide | ItemGuide): string[] {
  * achievement unchanged, that
  * every link and guide is keyed to a
  * real catalogue unit or item, that every link stays within a declared URL
- * prefix, and that guides embed no URLs (guide authoring rule).
+ * prefix, that guides embed no URLs (guide authoring rule), and that every
+ * catalogue unit, and only a catalogue unit, has a map ordinal label.
  */
 export function validateProgrammeDefinition(
   definition: ProgrammeDefinition,
@@ -237,6 +330,18 @@ export function validateProgrammeDefinition(
   };
   checkGuides('unit', content.studyGuides.unitGuides, unitIds);
   checkGuides('item', content.studyGuides.itemGuides, itemIds);
+
+  const { unitMapOrdinals } = content.terminology;
+  for (const unitId of unitIds) {
+    if (!Object.hasOwn(unitMapOrdinals, unitId)) {
+      issues.push(`catalogue unit "${unitId}" has no map ordinal label`);
+    }
+  }
+  for (const unitId of Object.keys(unitMapOrdinals)) {
+    if (!unitIds.has(unitId)) {
+      issues.push(`map ordinal "${unitId}" is not a catalogue unit`);
+    }
+  }
 
   if (issues.length > 0) {
     throw new SchemaValidationError(label, issues);

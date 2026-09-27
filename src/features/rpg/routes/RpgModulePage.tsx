@@ -22,6 +22,7 @@ import {
   getRpgResourcePath,
   rpgMapPath,
 } from '@/lib/routing/rpgRoutePaths';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgModulePageStatus = 'error' | 'loading' | 'ready';
 
@@ -74,21 +75,24 @@ function getResourceActionLabel(quest: RpgQuestSummary) {
 }
 
 function RpgWeekLoadingState() {
+  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+
   return (
     <section className="page-section rpg-week">
       <div className="rpg-week__header rpg-page-header">
-        <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
-        <h1>RPG Week</h1>
+        <p className="rpg-week__eyebrow rpg-page-eyebrow">{`RPG ${unitNoun.lowercase}`}</p>
+        <h1>{`RPG ${unitNoun.capitalized}`}</h1>
       </div>
       <LoadingState
-        description="Building the RPG week from local progress."
-        title="Loading RPG week"
+        description={`Building the RPG ${unitNoun.lowercase} from local progress.`}
+        title={`Loading RPG ${unitNoun.lowercase}`}
       />
     </section>
   );
 }
 
 export function RpgModulePage() {
+  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
   const { unitId } = useParams();
   const [state, setState] = useState<RpgModulePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -97,6 +101,8 @@ export function RpgModulePage() {
     let isActive = true;
 
     async function loadSummary() {
+      const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+
       startTransition(() => {
         setState((currentState) => ({
           ...currentState,
@@ -108,7 +114,7 @@ export function RpgModulePage() {
       if (unitId === undefined || unitId.trim().length === 0) {
         startTransition(() => {
           setState({
-            error: 'RPG week route is missing a unit id.',
+            error: `RPG ${unitNoun.lowercase} route is missing a unit id.`,
             status: 'error',
             summary: null,
           });
@@ -126,7 +132,7 @@ export function RpgModulePage() {
         if (summary === null) {
           startTransition(() => {
             setState({
-              error: `No RPG week was found for "${unitId}".`,
+              error: `No RPG ${unitNoun.lowercase} was found for "${unitId}".`,
               status: 'error',
               summary: null,
             });
@@ -150,7 +156,7 @@ export function RpgModulePage() {
 
         startTransition(() => {
           setState({
-            error: 'The RPG week could not be loaded from local data.',
+            error: `The RPG ${unitNoun.lowercase} could not be loaded from local data.`,
             status: 'error',
             summary: null,
           });
@@ -171,8 +177,8 @@ export function RpgModulePage() {
         <section className="page-section rpg-week">
           <div className="rpg-week__header rpg-page-header">
             <div>
-              <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
-              <h1>RPG Week</h1>
+              <p className="rpg-week__eyebrow rpg-page-eyebrow">{`RPG ${unitNoun.lowercase}`}</p>
+              <h1>{`RPG ${unitNoun.capitalized}`}</h1>
             </div>
             <RpgButton href={rpgMapPath} variant="secondary">
               Back to Campaign Map
@@ -194,8 +200,10 @@ export function RpgModulePage() {
                 </RpgButton>
               ) : null
             }
-            description={state.error ?? 'Unknown RPG week error.'}
-            title="RPG week not found"
+            description={
+              state.error ?? `Unknown RPG ${unitNoun.lowercase} error.`
+            }
+            title={`RPG ${unitNoun.lowercase} not found`}
           />
         </section>
       );
@@ -210,7 +218,7 @@ export function RpgModulePage() {
     <section className="page-section rpg-week">
       <div className="rpg-week__header rpg-page-header">
         <div>
-          <p className="rpg-week__eyebrow rpg-page-eyebrow">RPG week</p>
+          <p className="rpg-week__eyebrow rpg-page-eyebrow">{`RPG ${unitNoun.lowercase}`}</p>
           <h1>{summary.title}</h1>
           <p className="rpg-week__lede rpg-page-lede">
             {`${summary.typeLabel} - ${formatMinutes(

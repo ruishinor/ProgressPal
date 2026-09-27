@@ -186,6 +186,7 @@ function RpgResourceLoadingState() {
 }
 
 export function RpgResourcePage() {
+  const { copy, unitNoun } = getActiveProgrammeDefinition().content.terminology;
   const { coordination, runLocalMutation } = useAppState();
   const { itemId } = useParams();
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
@@ -624,15 +625,15 @@ export function RpgResourcePage() {
               target="_blank"
             >
               {summary.statusVariant === 'completed'
-                ? 'Review official CS50x resource'
-                : 'Open official CS50x resource'}
+                ? copy.officialResourceReviewLabel
+                : copy.officialResourceOpenLabel}
             </RpgButton>
           ) : null}
           <RpgButton href={getRpgFocusPath(summary.itemId)} variant="secondary">
             Start focus session
           </RpgButton>
           <RpgButton href={getRpgWeekPath(summary.unitId)} variant="quiet">
-            Back to week
+            {`Back to ${unitNoun.lowercase}`}
           </RpgButton>
         </div>
       </div>

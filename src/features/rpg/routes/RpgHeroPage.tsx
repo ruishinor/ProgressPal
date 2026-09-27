@@ -19,6 +19,7 @@ import {
   rpgRoutePath,
   rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgHeroPageStatus = 'error' | 'loading' | 'ready';
 
@@ -35,6 +36,7 @@ const initialState: RpgHeroPageState = {
 };
 
 export function RpgHeroPage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<RpgHeroPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -185,9 +187,7 @@ export function RpgHeroPage() {
             showValue={summary.courseProgress.requiredItemCount > 0}
             value={summary.courseProgress.completionPercent}
           />
-          <p className="rpg-hero__note">
-            Local ProgressPal progress, not official CS50 completion.
-          </p>
+          <p className="rpg-hero__note">{copy.rpgHeroProgressNote}</p>
         </RpgPanel>
 
         <RpgPanel title="Local activity totals" titleAs="h2">

@@ -23,3 +23,20 @@ export function getLevelProgressDisplay(xp: XpSummary) {
     levelProgressLabel: `${currentLevelXp} / ${currentLevelTargetXp} XP to Level ${xp.level + 1}`,
   };
 }
+
+/**
+ * Campaign-map node ordinal (Epic C / C4). The active programme labels every
+ * unit of its catalogue; the unit ID is never parsed. A stored unit outside
+ * that catalogue (possible until reads are scoped in C5) shows the shared
+ * unnumbered marker: "+" without required tasks, "◆" with them.
+ */
+export function getMapNodeOrdinal(
+  unit: { id: string; requiredItemCount: number },
+  unitMapOrdinals: Readonly<Record<string, string>>,
+) {
+  if (Object.hasOwn(unitMapOrdinals, unit.id)) {
+    return unitMapOrdinals[unit.id]!;
+  }
+
+  return unit.requiredItemCount === 0 ? '+' : '◆';
+}

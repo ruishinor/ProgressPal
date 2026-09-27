@@ -19,9 +19,9 @@ export type RpgCourseProgressSummary = {
 };
 
 export type RpgHubIdentity = {
-  classLabel: 'Generalist';
-  guildLabel: 'Code Knights';
-  pathLabel: 'CS Foundations';
+  classLabel: string;
+  guildLabel: string;
+  pathLabel: string;
   rankLabel: string;
 };
 

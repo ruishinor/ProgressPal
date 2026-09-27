@@ -4,6 +4,7 @@ export type {
   ProgrammeDefinition,
   ProgrammeExternalResources,
   ProgrammeStudyGuides,
+  ProgrammeTerminology,
   UnitGuide,
 } from './definition';
 export {

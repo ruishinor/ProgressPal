@@ -75,6 +75,7 @@ function continueNextReasonLabel(reason: DashboardContinueNextReason) {
 }
 
 export function DashboardPage() {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<DashboardPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -181,7 +182,7 @@ export function DashboardPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="This page shows your CS50 progress on this device."
+          description={copy.dashboardErrorDescription}
           title="Dashboard"
         />
         <ErrorState
@@ -260,7 +261,7 @@ export function DashboardPage() {
             </Link>
           </div>
         }
-        description="Your CS50 progress on this device. Nothing is synced or stored remotely."
+        description={copy.dashboardDescription}
         meta={
           <>
             <StatusPill variant={courseStatusVariant(courseProgress)}>

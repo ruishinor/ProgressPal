@@ -29,6 +29,7 @@ import {
   restoreDatabaseFromBackup,
 } from '@/lib/db';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import { bundledCourseSeed } from '@/seed';
 
 // The same settings surface renders in two shells: the classic Settings route
@@ -66,6 +67,7 @@ function downloadJson(fileName: string, contents: string) {
 }
 
 export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
+  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-settings'
@@ -384,12 +386,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             be cleared by you, your browser, or your device, so export a backup
             before clearing data or switching devices.
           </p>
-          <p className="card__description">
-            RPG ranks, badges, and profile summaries are local ProgressPal
-            interpretations, not CS50, Harvard, edX, or OpenCourseWare status.
-            Use official course systems for enrollment, submission, grading, and
-            certificates.
-          </p>
+          <p className="card__description">{copy.rpgCourseBoundary}</p>
         </Card>
       ) : null}
       {toast ? (

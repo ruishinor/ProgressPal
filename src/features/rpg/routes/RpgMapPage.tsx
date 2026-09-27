@@ -11,12 +11,14 @@ import {
   RpgStatusPill,
   type RpgStatusTone,
 } from '@/features/rpg/components';
+import { getMapNodeOrdinal } from '@/features/rpg/model/presentation';
 import { loadRpgCourseMapSummary } from '@/features/rpg/model/readModels';
 import type {
   RpgCourseMapSummary,
   RpgModuleSummary,
 } from '@/features/rpg/model/types';
 import { getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgMapPageStatus = 'error' | 'loading' | 'ready';
 
@@ -107,6 +109,8 @@ function RpgMapLoadingState() {
 }
 
 export function RpgMapPage() {
+  const { unitMapOrdinals, unitNoun } =
+    getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<RpgMapPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -203,7 +207,7 @@ export function RpgMapPage() {
           </p>
           <h1>Campaign Map</h1>
           <p className="rpg-map__lede rpg-page-lede">
-            Pick up where you left off, or open any week.
+            {`Pick up where you left off, or open any ${unitNoun.lowercase}.`}
           </p>
         </div>
         <div className="rpg-map__summary" aria-label="Campaign map summary">
@@ -273,11 +277,7 @@ export function RpgMapPage() {
                             className="rpg-map__node-index"
                             aria-hidden="true"
                           >
-                            {module.id.startsWith('week-')
-                              ? module.id.slice(5)
-                              : module.requiredItemCount === 0
-                                ? '+'
-                                : '◆'}
+                            {getMapNodeOrdinal(module, unitMapOrdinals)}
                           </span>
                           <span className="rpg-map__node-copy">
                             <span className="rpg-map__node-type">
@@ -331,11 +331,7 @@ export function RpgMapPage() {
                             className="rpg-map__node-index"
                             aria-hidden="true"
                           >
-                            {module.id.startsWith('week-')
-                              ? module.id.slice(5)
-                              : module.requiredItemCount === 0
-                                ? '+'
-                                : '◆'}
+                            {getMapNodeOrdinal(module, unitMapOrdinals)}
                           </span>
                           <span className="rpg-map__node-copy">
                             <span className="rpg-map__node-type">

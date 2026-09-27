@@ -85,6 +85,7 @@ describe('definition validation fails closed', () => {
     change: (content: {
       externalResources: ProgrammeDefinition['content']['externalResources'];
       studyGuides: ProgrammeDefinition['content']['studyGuides'];
+      terminology: ProgrammeDefinition['content']['terminology'];
     }) => void,
     top: Partial<ProgrammeDefinition> = {},
   ): ProgrammeDefinition {
@@ -97,6 +98,11 @@ describe('definition validation fails closed', () => {
       studyGuides: {
         unitGuides: { ...valid.content.studyGuides.unitGuides },
         itemGuides: { ...valid.content.studyGuides.itemGuides },
+      },
+      terminology: {
+        ...valid.content.terminology,
+        unitMapOrdinals: { ...valid.content.terminology.unitMapOrdinals },
+        copy: { ...valid.content.terminology.copy },
       },
     };
     change(content);
@@ -154,6 +160,42 @@ describe('definition validation fails closed', () => {
       variant((content) => {
         (content.studyGuides.unitGuides as Record<string, unknown>)['week-0'] =
           { summary: '   ' };
+      }),
+      /validation failed/,
+    ],
+    [
+      'a catalogue unit without a map ordinal label',
+      variant((content) => {
+        delete (content.terminology.unitMapOrdinals as Record<string, string>)[
+          'week-3'
+        ];
+      }),
+      /catalogue unit "week-3" has no map ordinal label/,
+    ],
+    [
+      'a map ordinal keyed to a unit outside the catalogue',
+      variant((content) => {
+        (content.terminology.unitMapOrdinals as Record<string, string>)[
+          'week-99'
+        ] = '99';
+      }),
+      /map ordinal "week-99" is not a catalogue unit/,
+    ],
+    [
+      'a missing programme copy string',
+      variant((content) => {
+        delete (content.terminology.copy as Partial<Record<string, string>>)
+          .courseMapEyebrow;
+      }),
+      /validation failed/,
+    ],
+    [
+      'an empty unit noun',
+      variant((content) => {
+        content.terminology = {
+          ...content.terminology,
+          unitNoun: { lowercase: ' ', capitalized: 'Week' },
+        };
       }),
       /validation failed/,
     ],
