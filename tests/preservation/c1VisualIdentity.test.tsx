@@ -84,7 +84,8 @@ describe('C1 visual source identity (visual, identity only)', () => {
   it('keeps the accepted dark RPG palette exactly under the app-wide dark theme', () => {
     // Theme repair: RPG follows the one app theme. The dark block must keep
     // the 14 pre-repair RPG tokens exactly, and each new token's dark value
-    // must equal the hard-coded literal it replaced in rpg-shell/components.
+    // must equal the hard-coded literal it replaced in rpg-shell/components
+    // (R2 adds --rpg-emblem-blend, whose dark value is the former literal).
     expect(
       extractTokens()[
         "src/styles/rpg-tokens.css | :root[data-theme='dark'] body.rpg-route-active"
@@ -96,6 +97,7 @@ describe('C1 visual source identity (visual, identity only)', () => {
       '--rpg-border': '#405064',
       '--rpg-border-strong': '#8b7951',
       '--rpg-danger': '#d8897e',
+      '--rpg-emblem-blend': 'screen',
       '--rpg-focus-ring': '#f3cf7d',
       '--rpg-nav-hub-shade': '#090d12',
       '--rpg-nav-ring': 'rgb(9 13 18 / 0.72)',
@@ -117,6 +119,80 @@ describe('C1 visual source identity (visual, identity only)', () => {
   it('keeps every CSS custom property name and value unchanged', () => {
     const tokens = extractTokens();
     expect(Object.keys(tokens)).toEqual(Object.keys(committedIdentity.tokens));
-    expect(tokens).toEqual(committedIdentity.tokens);
+    // The RPG light values are a provisional candidate until owner visual
+    // acceptance (C1-R2): their token names are pinned here and their
+    // character is checked below; every other block stays value-exact.
+    const { [lightRpgBlock]: light, ...pinned } = tokens;
+    const { [lightRpgBlock]: committedLight, ...committedPinned } =
+      committedIdentity.tokens as Record<string, Record<string, string>>;
+    expect(pinned).toEqual(committedPinned);
+    expect(Object.keys(light!)).toEqual(Object.keys(committedLight!));
+  });
+
+  it('keeps the provisional RPG light palette light, readable and neutral-to-cool', () => {
+    const light = extractTokens()[lightRpgBlock]!;
+    for (const name of [
+      '--rpg-bg',
+      '--rpg-surface',
+      '--rpg-surface-raised',
+      '--rpg-border',
+      '--rpg-nav-shade',
+      '--rpg-nav-hub-shade',
+    ]) {
+      const { b, chroma } = oklab(light[name]!);
+      // OKLab b > 0 leans yellow: cream, beige, parchment or yellow-white.
+      expect(b, `${name} ${light[name]} leans warm`).toBeLessThanOrEqual(0);
+      expect(chroma, `${name} ${light[name]} chroma`).toBeLessThanOrEqual(
+        0.025,
+      );
+    }
+    for (const name of ['--rpg-bg', '--rpg-surface', '--rpg-surface-raised']) {
+      expect(luminance(light[name]!), name).toBeGreaterThan(0.7);
+      expect(
+        contrast(light['--rpg-text']!, light[name]!),
+        `text on ${name}`,
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(
+        contrast(light['--rpg-text-muted']!, light[name]!),
+        `muted text on ${name}`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
+
+const lightRpgBlock = 'src/styles/rpg-tokens.css | body.rpg-route-active';
+
+function linearChannels(hex: string) {
+  return [1, 3, 5].map((offset) => {
+    const c = Number.parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+}
+
+function luminance(hex: string) {
+  const [r, g, b] = linearChannels(hex);
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+
+function contrast(foreground: string, background: string) {
+  const [high, low] = [luminance(foreground), luminance(background)].sort(
+    (x, y) => y - x,
+  );
+  return (high! + 0.05) / (low! + 0.05);
+}
+
+function oklab(hex: string) {
+  const [r, g, b] = linearChannels(hex);
+  const l = Math.cbrt(
+    0.4122214708 * r! + 0.5363325363 * g! + 0.0514459929 * b!,
+  );
+  const m = Math.cbrt(
+    0.2119034982 * r! + 0.6806995451 * g! + 0.1073969566 * b!,
+  );
+  const s = Math.cbrt(
+    0.0883024619 * r! + 0.2817188376 * g! + 0.6299787005 * b!,
+  );
+  const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const labB = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return { b: labB, chroma: Math.hypot(a, labB) };
+}

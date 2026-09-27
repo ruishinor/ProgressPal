@@ -38,11 +38,19 @@ interface CanvasScope {
   };
 }
 
-/** Computed RPG canvas per app theme (rpg-tokens.css). */
-const rpgCanvas = {
-  dark: { background: 'rgb(17, 25, 35)', token: '#111923' },
-  light: { background: 'rgb(243, 238, 226)', token: '#f3eee2' },
-} as const;
+/** Accepted dark RPG canvas (rpg-tokens.css); kept exact. */
+const rpgDarkCanvas = { background: 'rgb(17, 25, 35)', token: '#111923' };
+
+/** WCAG relative luminance of a computed `rgb(r, g, b)` colour. */
+function rgbLuminance(value: string) {
+  const [r, g, b] = (value.match(/\d+(\.\d+)?/g) ?? [])
+    .slice(0, 3)
+    .map((part) => {
+      const c = Number(part) / 255;
+      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
 
 const captureDirectory = path.resolve(
   'artifacts/epic-c1-visual-baseline/captures',
@@ -186,7 +194,14 @@ async function capture(
         token: style.getPropertyValue('--rpg-bg').trim(),
       };
     });
-    expect(canvas).toEqual(rpgCanvas[theme]);
+    if (theme === 'dark') {
+      expect(canvas).toEqual(rpgDarkCanvas);
+    } else {
+      // The light candidate is provisional until owner visual acceptance, so
+      // it is guarded structurally: a genuinely light RPG canvas.
+      expect(rgbLuminance(canvas.background)).toBeGreaterThan(0.7);
+      expect(canvas.token).not.toBe(rpgDarkCanvas.token);
+    }
   }
   await page.evaluate(async () => {
     await (globalThis as unknown as FontScope).document.fonts.ready;

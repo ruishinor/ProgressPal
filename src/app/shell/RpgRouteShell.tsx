@@ -28,7 +28,10 @@ export function RpgRouteShell() {
 
   if (status === 'loading') {
     return (
-      <section className="rpg-shell" data-testid="rpg-route-shell-loading">
+      <section
+        className="rpg-shell rpg-shell--preparing"
+        data-testid="rpg-route-shell-loading"
+      >
         <div className="rpg-shell__frame">
           <main className="rpg-shell__main">
             <LoadingState

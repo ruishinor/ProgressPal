@@ -9,6 +9,35 @@ body.rpg-route-active {
   background: var(--rpg-bg);
 }
 
+/* On a hard refresh the saved theme is known only once the verified local
+   profile is read; until then html[data-theme] is absent. The RPG
+   preparation screen stays theme-neutral in that window, asserting neither
+   the light nor the dark palette, so a learner never sees the opposite of
+   the theme that loads. The neutral sits between both canvases in lightness
+   with text at >= 4.5:1. Once the preference applies html[data-theme], the
+   themed palette takes over; later reloads keep their resolved theme. */
+:root:not([data-theme]) body:has(.rpg-shell--preparing) {
+  background: #6a6f76;
+}
+
+:root:not([data-theme]) .rpg-shell--preparing .loading-state {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+:root:not([data-theme])
+  .rpg-shell--preparing
+  :is(.loading-state__title, .loading-state__description) {
+  color: #fbfcfe;
+}
+
+:root:not([data-theme])
+  .rpg-shell--preparing
+  :is(.loading-state__bar, .loading-state__line) {
+  background: rgb(251 252 254 / 0.35);
+}
+
 /* Reserve the fixed navigation area when the browser scrolls keyboard focus. */
 html:has(body.rpg-route-active) {
   --rpg-bottom-nav-height: 6rem;

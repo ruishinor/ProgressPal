@@ -988,7 +988,7 @@
   width: 1.5rem;
   height: 1.5rem;
   align-self: center;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--rpg-emblem-blend);
 }
 .rpg-identity--profile .rpg-identity__portrait {
   width: 7rem;
