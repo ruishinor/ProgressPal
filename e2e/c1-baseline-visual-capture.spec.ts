@@ -22,8 +22,11 @@ import { completeOnboarding } from './support/onboarding';
  *   resource "Mark locally complete" control (real XP/unlock write path), so
  *   the badge gallery shows one earned (First Step) and fifteen locked badges.
  *
- * The retained baseline is only the run from the clean evidence-harness
- * commit H; captures from any other run are disposable.
+ * No retained corrected C1 baseline run is currently authorized. A retained
+ * capture needs separate authorization after owner acceptance and must bind
+ * the exact accepted candidate commit; every other run, including review-only
+ * runs, is disposable and non-retained. A successful capture is not visual
+ * acceptance.
  */
 
 interface FontScope {

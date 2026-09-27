@@ -256,10 +256,12 @@ test('switching between Classic and RPG keeps the one saved preference', async (
  */
 type StartupFrame = {
   canvasLuminance: number;
+  canvasRgb: number[];
   contrast: number | null;
   phase: 'loaded' | 'other' | 'pre-app' | 'preparing';
   rootTheme: string | null;
   surfaceLuminance: number | null;
+  surfaceRgb: number[] | null;
 };
 
 const STARTUP_FRAME_LIMIT = 900;
@@ -325,6 +327,7 @@ function installStartupSampler(page: Page) {
           ? [255, 255, 255]
           : parse(scope.getComputedStyle(body).backgroundColor).rgb;
       let surfaceLuminance: number | null = null;
+      let surfaceRgb: number[] | null = null;
       let contrast: number | null = null;
       const card =
         preparing === null ? null : document.querySelector('.loading-state');
@@ -337,11 +340,13 @@ function installStartupSampler(page: Page) {
         const effective = over(fill, canvas);
         // A mostly opaque card is a painted surface of its own.
         surfaceLuminance = fill.a >= 0.5 ? luminance(effective) : null;
+        surfaceRgb = fill.a >= 0.5 ? effective : null;
         const ink = parse(scope.getComputedStyle(text).color);
         contrast = ratio(luminance(over(ink, effective)), luminance(effective));
       }
       state.frames.push({
         canvasLuminance: luminance(canvas),
+        canvasRgb: canvas,
         contrast,
         phase: loaded
           ? 'loaded'
@@ -352,6 +357,7 @@ function installStartupSampler(page: Page) {
               : 'other',
         rootTheme: document.documentElement.dataset.theme ?? null,
         surfaceLuminance,
+        surfaceRgb,
       });
       loadedFrames += loaded ? 1 : 0;
       if (loadedFrames >= 3 || state.frames.length >= limit) {
@@ -368,6 +374,32 @@ function installStartupSampler(page: Page) {
 // every accepted dark one below 0.05, so these bands separate the themes.
 const isLightClass = (luminance: number) => luminance >= 0.5;
 const isDarkClass = (luminance: number) => luminance <= 0.05;
+
+/**
+ * Luminance classes only say "not the opposite theme"; a saturated
+ * mid-luminance colour would pass them. While the theme is unresolved the
+ * preparation canvas/surface must also be neutral in hue: OKLab chroma at
+ * most 0.02 (the R2 preparation `#6a6f76` is about 0.013).
+ */
+const PREPARATION_NEUTRAL_MAX_CHROMA = 0.02;
+const preparationChroma = (rgb: number[]) =>
+  oklabWarmth(`rgb(${rgb.join(', ')})`).chroma;
+
+test('the preparation neutral bound rejects saturated mid-luminance colours', () => {
+  expect(preparationChroma(channelsOf('#6a6f76'))).toBeLessThanOrEqual(
+    PREPARATION_NEUTRAL_MAX_CHROMA,
+  );
+  for (const saturated of ['#c0392b', '#2e7d32', '#5b6fb0', '#8a6d00']) {
+    const luminance = hexLuminance(saturated);
+    // Neither a light nor a dark class, so luminance alone would accept it.
+    expect(isLightClass(luminance) || isDarkClass(luminance), saturated).toBe(
+      false,
+    );
+    expect(preparationChroma(channelsOf(saturated)), saturated).toBeGreaterThan(
+      PREPARATION_NEUTRAL_MAX_CHROMA,
+    );
+  }
+});
 
 const startupScenarios = [
   // OS set opposite to the saved choice: a startup that guessed from the
@@ -424,6 +456,23 @@ for (const scenario of startupScenarios) {
     const preparing = sampled.filter((frame) => frame.phase === 'preparing');
     expect(preparing.length).toBeGreaterThan(0);
 
+    // While the theme is unresolved (no html[data-theme]) the painted
+    // preparation canvas and any opaque surface are neutral in hue.
+    const unresolved = preparing.filter((frame) => frame.rootTheme === null);
+    expect(unresolved.length).toBeGreaterThan(0);
+    for (const frame of unresolved) {
+      expect(
+        preparationChroma(frame.canvasRgb),
+        JSON.stringify(frame),
+      ).toBeLessThanOrEqual(PREPARATION_NEUTRAL_MAX_CHROMA);
+      if (frame.surfaceRgb !== null) {
+        expect(
+          preparationChroma(frame.surfaceRgb),
+          JSON.stringify(frame),
+        ).toBeLessThanOrEqual(PREPARATION_NEUTRAL_MAX_CHROMA);
+      }
+    }
+
     for (const frame of sampled) {
       // The static document before any app code runs has no preparation UI
       // and no theme source; it is shared with Classic and reported, not
@@ -462,7 +511,7 @@ for (const scenario of startupScenarios) {
     expectLightOrDark(await sampleRpgPalette(page), scenario.expected);
 
     test.info().annotations.push({
-      description: `${sampled.filter((frame) => frame.phase === 'pre-app').length} pre-app, ${preparing.length} preparing, ${loaded.length} loaded frame(s)`,
+      description: `${sampled.filter((frame) => frame.phase === 'pre-app').length} pre-app, ${preparing.length} preparing (${unresolved.length} unresolved), ${loaded.length} loaded frame(s)`,
       type: 'startup-frames',
     });
   });
