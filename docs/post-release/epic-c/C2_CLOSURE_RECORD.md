@@ -2,11 +2,17 @@
 
 ## 1. State
 
-**`C2_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
+**`C2_ACCEPTED_CLOSED_LOCALLY`**
 
-- C2 is **not accepted**. Acceptance is a separate owner gate.
-- C3 has not started.
-- Nothing was pushed, merged, tagged or deployed.
+- On 2026-09-27 the owner directly accepted the C2 implementation candidate
+  `35604093c01307937d3b2b958ed908abdf0fe76c`.
+- The acceptance is recorded by a documentation-only acceptance commit on top
+  of that candidate. That commit does not change the accepted implementation
+  bytes.
+- C3 has not started and is not authorized. Starting it needs a separate
+  direct owner instruction.
+- Publication is deferred. Nothing was pushed, merged, tagged or deployed, and
+  `origin/master` and Production are unchanged.
 
 ## 2. Identities
 
@@ -15,7 +21,8 @@
 | Owner authorization | direct owner instruction, 2026-09-27: C2 from `db5f795`, local commits only     |
 | Branch              | `cx/epic-c2-programme-layer`                                                    |
 | Branch point        | `db5f795c562f5847a5ad7bffa737751e4d952382` (OD-9 record; `src` = C1 `a8f71739`) |
-| C2 commit           | the commit that adds this record (parent `db5f795`)                             |
+| Accepted candidate  | `35604093c01307937d3b2b958ed908abdf0fe76c` (parent `db5f795`; `src` `7b5b5a51`) |
+| Acceptance commit   | the documentation-only commit recording acceptance (parent `35604093`)          |
 | `master` / `origin` | `fd5e2d5` / `d4b945b`, unchanged                                                |
 
 ## 3. What C2 implements
@@ -41,10 +48,15 @@ What the validation checks, all failing closed:
 
 Compatibility: `features/course/cs50Links.ts` (`getCs50UnitLink`,
 `getCs50ItemLink`, `Cs50Link`) and `features/course/guideContent.ts`
-(`getUnitGuide`, `getItemGuide`, `UnitGuide`, `ItemGuide`) keep their names and
-`?? null` behaviour. They now read from the active definition. Their
-consumers (`CourseUnitCard`, `ContentDetailPage`, `rpg/model/readModels.ts`)
-and every existing test are unchanged.
+(`getUnitGuide`, `getItemGuide`, `UnitGuide`, `ItemGuide`) keep their
+exported names, their lookup behaviour (`?? null` for unknown IDs) and the
+returned values. They now read from the active definition. Their consumers
+(`CourseUnitCard`, `ContentDetailPage`, `rpg/model/readModels.ts`) and every
+existing test are unchanged.
+
+The compatibility is consumer-facing, not a byte-identical module or type.
+`Cs50Link` is now an alias of the programme-owned `ExternalResourceLink`,
+whose fields are `readonly`.
 
 Deliberately not done (and why):
 
@@ -92,9 +104,23 @@ allowed form passed as a positive control:
 - From the programme layer, all 16 forbidden specifiers were rejected and the
   4 permitted entrypoints were allowed.
 
-ESLint alias patterns cannot see relative paths or dynamic `import()`, so
-`tests/architecture/programmesLayer.test.ts` resolves every specifier to its
-real path. Disposable probes confirmed it catches all of these:
+ESLint covers the normal alias-based static import restrictions. It does not
+see relative paths or dynamic `import()`. The committed
+`tests/architecture/programmesLayer.test.ts` fills that gap:
+
+- It reads source text and resolves specifiers to paths, including relative
+  paths.
+- It covers static `import`/`export … from` (including `import type`),
+  side-effect imports, and dynamic `import()` with a string-literal
+  specifier.
+- It is a **bounded guard for the import forms in the current tree**, not an
+  exhaustive TypeScript/JavaScript parser. It does not claim to catch computed
+  dynamic imports, CommonJS `require`, or future syntax.
+- If future import patterns need stronger coverage, use compiler, linter, AST
+  or dependency-graph enforcement rather than extending its regular
+  expressions.
+
+Disposable probes confirmed it catches all of these:
 
 - a relative type import from features;
 - a relative re-export of `lib/db`;
@@ -139,7 +165,11 @@ package-lock.json vite.config.ts tsconfig*.json playwright*.ts` is empty.
   accepted inventory in `c1-visual-baseline-69b1db7.zip`. The ZIP itself is
   unchanged (SHA-256 `cb404591…917c`) and was not regenerated.
 
-## 8. Validation (final candidate)
+## 8. Validation (implementation candidate `35604093`)
+
+These results are the implementation evidence of candidate `35604093`. The
+documentation-only acceptance commit changes no code or test, so none was
+rerun for acceptance.
 
 | Check                    | Result                                              |
 | ------------------------ | --------------------------------------------------- |
@@ -168,8 +198,9 @@ Material findings and their disposition:
 1. **Flat-config rule override.** Separate overlapping blocks would silently
    replace existing layer rules, so the patterns were folded into each
    layer's rule. The probes prove both the old and the new patterns fire.
-2. **Relative and dynamic escapes are invisible to ESLint.** Closed by the
-   architecture test, which was probed.
+2. **Relative and dynamic escapes are invisible to ESLint.** Covered for the
+   current tree's import forms by the bounded architecture test (§4), which
+   was probed. It is not an exhaustive parser.
 3. **Passive-read resolution.** The accessor is in-memory and never touches a
    store. The read-boundary suites pass.
 
@@ -182,8 +213,15 @@ Residual notes:
   prototype keys such as `constructor` are not guarded. That is unchanged
   behaviour; no seed ID can collide with one.
 - The ESLint path patterns rely on the `@/` alias, as the existing rules do.
-  The architecture test covers the rest.
+  The bounded architecture test covers relative and literal dynamic imports
+  in the current tree (§4).
 
-## 10. Owner decision required
+## 10. Disposition
 
-Accept or reject the C2 candidate. C3 needs C2 accepted.
+- **C2:** accepted and closed locally. The owner accepted candidate
+  `35604093` on 2026-09-27.
+- **C3:** planned, not started and not authorized. Its prerequisite (C2
+  accepted) is now met, but starting it needs a separate direct owner
+  instruction.
+- **OD-8 and OD-9:** resolved. Publication of Epic B/C is a separate, later
+  release decision.

@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c2_implemented_ready_for_owner_review
+current_state: c2_accepted_closed_c3_not_started
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -69,13 +69,15 @@ stories:
 
   - id: C2
     title: Programme layer, registry boundary and content ownership
-    state: implemented_ready_for_owner_review
+    state: accepted_closed
+    disposition: C2_ACCEPTED_CLOSED_LOCALLY
     branch: cx/epic-c2-programme-layer
     branch_point: db5f795c562f5847a5ad7bffa737751e4d952382
+    accepted_implementation_commit: 35604093c01307937d3b2b958ed908abdf0fe76c
     records: [C2_CLOSURE_RECORD.md]
     objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor keyed by definition key cs50x-2026 (the current catalogue identity; not a persisted programme ownership identity, which waits for OD-5 in C6), and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
     prerequisites: [C1 accepted, OD-9 recorded]
-    prerequisite_status: satisfied (C1 accepted and closed; OD-9 resolved 2026-09-27, baseline cac8f23); C2 start still needs a separate owner instruction
+    prerequisite_status: satisfied (C1 accepted and closed; OD-9 resolved 2026-09-27, baseline cac8f23; direct owner C2-start authorization received before implementation)
     allowed_scope:
       - new src/programmes/**
       - eslint.config.js additions for the new layer (additive only)
@@ -103,6 +105,7 @@ stories:
     state: planned
     objective: Move CS50 policy (C0_PROGRAMME_DEFINITION_CONTRACT.md section 4b) into validated cs50x-2026 definition configuration - completion XP by item type, problem-set workflow XP, the required-week bonus, the final-project milestones and pair lookup, the submission-workflow configuration (including the correction-path asymmetry) from which the preview terminal status derives, the 10 CS50-bound achievement definitions with the problem-set counting policy, the achievement display order, and the final_project seed requirement. Shared engines receive them as parameters. Mechanisms, the level curve, activity XP, the status model and the 6 shared achievement definitions stay shared (section 4d)
     prerequisites: [C2 accepted]
+    prerequisite_status: satisfied (C2 accepted 2026-09-27); C3 start still needs a separate direct owner instruction
     delivery: concern-scoped commits (catalogue validation; XP configuration; submission workflow; achievements, order and evaluator), each passing the C1 evidence
     allowed_scope:
       - src/lib/xp, src/lib/achievements, src/lib/domain seed validation, src/lib/db award paths (parameterisation only)
