@@ -1,11 +1,12 @@
 # Epic C — programme platform foundation
 
-Status: **C0 accepted by owner review; C1, C2 and C3 accepted and closed
-locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
+Status: **C0 accepted by owner review; C1, C2, C3 and C4 accepted and
+closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
-`C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`). C5 has not started and
-is not authorized.
+`C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`). **C5 implemented and
+validated locally, ready for owner review, not accepted**
+(`C5_CLOSURE_RECORD.md`). C6 has not started and is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -28,9 +29,13 @@ is not authorized.
   The owner accepted implementation candidate `80c97e86`, including the
   stored-unit ordinal residual, and C4 is closed locally
   (`C4_CLOSURE_RECORD.md`).
-- C5 has not started and is not authorized. Its prerequisite (C4 accepted) is
-  met, but starting it needs a separate direct owner instruction.
-- Publication is deferred: neither C2, C3 nor C4 acceptance changes
+- C5 was implemented on `cx/epic-c5-programme-scoped-reads`, branched from the
+  C4 clarification tip `609cb607`, under a direct owner instruction.
+  Implementation candidate `9c704f0f` passed every required final gate and
+  awaits owner acceptance (`C5_CLOSURE_RECORD.md`).
+- C6 has not started and is not authorized. It needs C5 accepted and owner
+  decisions OD-1 to OD-5.
+- Publication is deferred: neither C2, C3 nor C4 acceptance nor C5 changes
   `origin/master` or Production.
 
 Authority: Bootstrap v7.0
