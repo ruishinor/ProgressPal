@@ -1,10 +1,15 @@
 # Epic C / C1 — RPG app-wide theme repair record
 
-Status: **R2 candidate for owner review** (sections 1–5 record repair R;
-section 6 records R2). The corrected visual candidate and its archive are bound
-later, in the docs-only commit D, only after owner review of R2 and a
-separately authorized retained capture. C1 is not accepted. C2 is not
-authorized.
+Status: **Repair history. R2 was owner-accepted, and C1 is accepted and
+closed** (`C1_CLOSURE_RECORD.md`). Sections 1–5 record repair R, and section
+6 records R2.
+
+- The corrected retained capture was taken at S `69b1db7`, whose product
+  bytes equal R2.
+- Its archive `c1-visual-baseline-69b1db7.zip` is bound in
+  `C1_VISUAL_BASELINE_MANIFEST.md`.
+- The archive is committed in the docs/evidence-binding closure commit D.
+- C2 is not authorized; it is blocked on OD-9.
 
 ## 1. Owner decision
 
@@ -122,7 +127,11 @@ Unaffected C1 evidence was not regenerated: curriculum, reachability, XP
 tables and ledger, preview, reward identities, achievements, the schema-2
 fixture, links, guides and non-theme labels.
 
-## 5. Expected visual comparison (verified after capture in D)
+## 5. Expected visual comparison
+
+The expectations below were verified at S with 0 unexpected rows: 36
+identical and 28 expected-different captures. Details are in
+`C1_VISUAL_BASELINE_MANIFEST.md` §6.
 
 - Classic: identical to the pre-fix archive, except Settings (the theme field
   label and description changed; this is a required copy correction).
@@ -210,8 +219,10 @@ border, track, overlay and the entire dark palette are unchanged.
   (`b` +0.011 to +0.052); the candidate passes. It runs on the source tokens
   (`tests/preservation/c1VisualIdentity.test.tsx`) and on the computed tokens
   and painted canvas (`e2e/rpg-app-theme.spec.ts`).
-- **Not frozen:** the exact light values are provisional until owner visual
-  acceptance. The identity test pins the light token names and checks
+- **Owner-accepted:** the owner accepted these light values at C1 closure.
+  Their rendered appearance is bound by the retained baseline
+  (`C1_VISUAL_BASELINE_MANIFEST.md`). The test oracles below were not changed
+  at closure. The identity test pins the light token names and checks
   lightness, text contrast and neutrality; the dark block and every Classic
   block stay value-exact. The capture spec keeps the exact dark canvas and
   checks the light canvas structurally.

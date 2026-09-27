@@ -4,9 +4,13 @@ Status: **C1 evidence harness, corrected by the RPG theme repair (commit R,
 `C1_THEME_REPAIR_RECORD.md`).** This file defines what the C1 harness protects
 and why. It was first written for H (`b9ae4f3`). The repair corrects area 8
 (transient copy is now rendered-state evidence), area 9 (RPG token blocks) and
-area 10 (RPG captured in a genuine light theme). The corrected capture results
-are bound in `C1_VISUAL_BASELINE_MANIFEST.md` and `C1_CLOSURE_RECORD.md` in the
-docs-only commit D.
+area 10 (RPG captured in a genuine light theme).
+
+The corrected capture results (S `69b1db7`, archive
+`c1-visual-baseline-69b1db7.zip`) are bound in `C1_VISUAL_BASELINE_MANIFEST.md`
+and `C1_CLOSURE_RECORD.md`. That binding is in the docs/evidence-binding
+closure commit D, which also commits the accepted archive. C1 is accepted and
+closed.
 
 Authority: `NEXT_STORY_HANDOFF_C1.md` §4 items 1–10, evidence families in
 `VALIDATION_READINESS.md` §2, ownership in `C0_PROGRAMME_DEFINITION_CONTRACT.md`
@@ -67,7 +71,7 @@ Families: A semantic, B characterization, M mutation, Mig migration, V visual.
 | 8 Labels                    | `tests/app/App.test.tsx` ("Log Lecture", "Problem Set Progress", …)                                                                                             | item-type, unit-type, category (and filter order), session-mode, rank at every threshold boundary, item-context titles, asset labels                                                                                                                                                                                                                   | A            | label tables in their feature modules and the rendered routes                                                       | shared (canonical vocabulary and rank labels)                                 |
 | 8 CS50 copy                 | `App.test.tsx` pins "Start tracking CS50 locally", "RPG week", "Back to week", "Open official CS50x resource"; `readModels.test.ts` pins the RPG identity tuple | map ordinals for all 14 units (rendered); rendered CS50 copy on 7 routes; the 7 transient-state strings in their real rendered states (startup loading, onboarding, three repository-read error states, RPG required-complete note, completed-resource link) in `c1TransientCopy.test.tsx`; the runtime-source scan is secondary characterization only | A            | rendered routes and states                                                                                          | CS50-owned (C4)                                                               |
 | 9 Asset/token identity      | `tests/architecture/rpgFeature.test.ts` (CSS URL rules)                                                                                                         | SHA-256 of all 17 RPG assets; rendered achievement → badge-file mapping; fallback glyph; exact custom properties in 5 token blocks                                                                                                                                                                                                                     | V (identity) | file bytes and CSS source                                                                                           | CS50 badges/emblem → presentation (C8)                                        |
-| 10 Rendered baseline        | B2–B4 capture specs (transient, overwritten)                                                                                                                    | 64 retained captures (§4)                                                                                                                                                                                                                                                                                                                              | V            | owner visual review (pending)                                                                                       | —                                                                             |
+| 10 Rendered baseline        | B2–B4 capture specs (transient, overwritten)                                                                                                                    | 64 retained captures (§4)                                                                                                                                                                                                                                                                                                                              | V            | owner visual review (accepted; `C1_VISUAL_BASELINE_MANIFEST.md`)                                                    | —                                                                             |
 
 ## 3. Findings recorded while building the evidence
 
@@ -113,9 +117,10 @@ Families: A semantic, B characterization, M mutation, Mig migration, V visual.
   - loading states must be gone before each capture.
 - **Development evidence:** disposable runs on this machine produced
   byte-identical PNGs across runs. Those runs are not the baseline.
-- **Retained run:** `npm run test:e2e` from clean R only (the pre-fix H run is
-  rejected evidence). It is sealed immediately into one new ZIP and bound in
+- **Retained run:** `npm run test:e2e` from clean S `69b1db7` (product bytes
+  equal to R2 `9bdbce8`); 90/90 passed. The pre-fix H run is rejected
+  evidence. The run was sealed immediately into
+  `c1-visual-baseline-69b1db7.zip` and bound in
   `C1_VISUAL_BASELINE_MANIFEST.md`.
-- **OD-8 policy:** the owner-accepted corrected ZIP will be committed to the
-  repository after owner visual acceptance; the candidate ZIP is not committed
-  before then.
+- **OD-8 (resolved):** the owner-accepted corrected ZIP is committed to the
+  repository in the closure commit D.

@@ -1,7 +1,13 @@
 # C1 handoff — baseline preservation evidence
 
-Status: **Not started. C1 begins only after the owner reviews and accepts
-C0 `PASS_READY_FOR_C1`.** This handoff does not itself authorize C1.
+Status: **Historical pre-C1 handoff.** C1 was delivered under this contract
+and is now accepted and closed (`C1_ACCEPTED_CLOSED`). For the current C1
+disposition see `C1_CLOSURE_RECORD.md`; for the accepted retained visual
+baseline see `C1_VISUAL_BASELINE_MANIFEST.md`.
+
+This file keeps its original C1 contract text unchanged. As written, it said
+that C1 would begin only after the owner accepted C0 `PASS_READY_FOR_C1`. It
+authorizes nothing further; C2 is blocked on OD-9.
 
 ## 1. Goal
 

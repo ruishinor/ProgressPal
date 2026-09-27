@@ -1,12 +1,18 @@
 # Epic C — programme platform foundation
 
-Status: **C0 accepted by owner review; C1 `C1_CANDIDATE_READY_FOR_OWNER_REVIEW`**
-(`C1_CLOSURE_RECORD.md`). C1 is not accepted until owner visual review, the
-OD-8 retention decision and independent C1 review. C2 is not authorized.
-Authority: Bootstrap v7.0
-(`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
-`F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7`),
-`epic-c/SPEC.md`, `C0_READINESS_PLAN.md`, `NEXT_STORY_HANDOFF_C0.md`.
+Status: **C0 accepted by owner review; C1 accepted and closed locally**
+(`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`).
+
+- The accepted retained visual baseline is
+  `c1-visual-baseline-69b1db7.zip`, SHA-256
+  `cb40459103140f0de7de562e7c84d244ab6826d668952e7d06af0dea7c42917c`
+  (`C1_VISUAL_BASELINE_MANIFEST.md`).
+- OD-8 is resolved: the archive is committed.
+- C2 is not authorized. It is blocked on OD-9.
+  Authority: Bootstrap v7.0
+  (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
+  `F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7`),
+  `epic-c/SPEC.md`, `C0_READINESS_PLAN.md`, `NEXT_STORY_HANDOFF_C0.md`.
 
 ## 1. Purpose
 
@@ -134,6 +140,12 @@ decision.
 | OD-8  | Visual baseline retention: commit the C1 capture archive to the repository, or retain it outside the working tree?                                                                                       | Repository content policy for ≈8 MB of binaries                                                                | C1 **acceptance** | C1 start and capture; the archive is sealed and hashed either way                                                |
 | OD-9  | Epic B remote publication / intended branch baseline before Epic C production-code stories (Bootstrap `19_EPIC_C_READINESS_DECISION.md`, publication dependency)                                         | Release decision                                                                                               | C2                | C1 (tests/fixtures/docs only; branch baseline recorded in the C1 handoff)                                        |
 | OD-10 | Switching UX: where the learner switches programme and how the current programme is shown, without Epic D redesign                                                                                       | Interaction design decision                                                                                    | C7                | C1–C6                                                                                                            |
+
+Resolution status:
+
+- **OD-8** was resolved at C1 acceptance. The owner-accepted archive is
+  committed to the repository (`C1_VISUAL_BASELINE_MANIFEST.md` §5).
+- **OD-9** is unresolved and still gates C2.
 
 Additionally, C6 requires an **accepted schema-change decision record**
 (`AGENTS.md` forbids schema changes without one).

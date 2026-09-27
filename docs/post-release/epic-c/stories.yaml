@@ -8,7 +8,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c1_candidate_ready_for_owner_review
+current_state: c1_accepted_closed_c2_blocked_on_od9
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -20,13 +20,23 @@ stories:
 
   - id: C1
     title: Baseline preservation evidence
-    state: candidate_ready_for_owner_review
+    state: accepted_closed
+    disposition: C1_ACCEPTED_CLOSED
     evidence_harness_commit: b9ae4f3f087d106e3e7cb24403e96e1506e98e3d
-    visual_baseline_archive_sha256: b87c8f5f93b3b3ee5efda66791c8eaea266f3cdd2d85dfca7c958bb19de9a67a
-    open_gates: [owner visual review, OD-8, independent C1 review]
+    rejected_prefix_archive_sha256: b87c8f5f93b3b3ee5efda66791c8eaea266f3cdd2d85dfca7c958bb19de9a67a
+    repair_commits:
+      [
+        8e49ee203a2c3c36baba5aad319176261f513d20,
+        9bdbce8ee6985cc38d11744b0ab203da077c18d6,
+      ]
+    retained_capture_commit: 69b1db7db3889af82265d2430e45ff3f074db02d
+    visual_baseline_archive: artifacts/epic-c1-visual-baseline/c1-visual-baseline-69b1db7.zip
+    visual_baseline_archive_sha256: cb40459103140f0de7de562e7c84d244ab6826d668952e7d06af0dea7c42917c
+    open_gates: []
     records:
       [
         C1_EVIDENCE_COVERAGE.md,
+        C1_THEME_REPAIR_RECORD.md,
         C1_VISUAL_BASELINE_MANIFEST.md,
         C1_CLOSURE_RECORD.md,
       ]

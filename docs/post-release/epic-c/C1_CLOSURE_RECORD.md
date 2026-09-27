@@ -2,15 +2,27 @@
 
 ## 1. State
 
-**`C1_CANDIDATE_READY_FOR_OWNER_REVIEW`**
+**`C1_ACCEPTED_CLOSED`** — the owner accepted C1 on 2026-09-27, and it is
+closed locally by this docs/evidence-binding closure commit D. Sections 3–11
+are the historical record of the first candidate (H/M). Section 12 records
+the correction and closure.
 
-The automation completed, and every gate below passed. That is **not** C1
-acceptance:
-
-- Owner visual review of the capture set has **not** happened.
-- OD-8 (permanent retention of the capture archive) is **unresolved**.
-- Independent C1 review has **not** happened.
-- C2 remains **unauthorized**.
+- **Accepted visual baseline:**
+  `artifacts/epic-c1-visual-baseline/c1-visual-baseline-69b1db7.zip`, SHA-256
+  `cb40459103140f0de7de562e7c84d244ab6826d668952e7d06af0dea7c42917c`. It was
+  captured at S `69b1db7`, whose product bytes equal R2 `9bdbce8`. It is
+  bound in `C1_VISUAL_BASELINE_MANIFEST.md` and committed in D under OD-8.
+- **Rejected:** the first capture (`c1-visual-baseline-b9ae4f3.zip`, H/M). It
+  is pre-fix comparison evidence only.
+- **Owner acceptance:** the owner directly accepted the retained baseline and
+  the completed independent review. The cool-neutral RPG light palette and the
+  temporary neutral-grey unresolved-theme preparation state (a bounded C1
+  compromise) were approved at the earlier visual-decision gate.
+- **Independent C1 review:** completed. It concluded that the retained
+  baseline is valid and required one reporting correction (§12.4).
+- **Not authorized by this state:** C2 is not authorized and stays blocked on
+  OD-9. C1 closure is local and is not publication. It does not authorize
+  push, merge, tag or deployment.
 
 ## 2. Objective
 
@@ -27,7 +39,10 @@ no product behaviour (`NEXT_STORY_HANDOFF_C1.md`).
 | Starting commit / tree (accepted C0) | `9c6d1b45b5f5b22afa0b8d009101b378c1df363a` / `ffd85d6e61c2a8fe11dc5b6dd331b1203b0cf968`                        |
 | Accepted Epic B product              | `fd5e2d592bb6f5d1724509119147c48ba3a5df59` / `bc86fd392a5284d9db8821c31a27b8c95ec82a9a`                        |
 | Evidence harness H                   | `b9ae4f3f087d106e3e7cb24403e96e1506e98e3d` / tree `4525b3b0fdbe7588ab5255995d20358fcb07bf02`, parent `9c6d1b4` |
-| Docs-only binding commit M           | the commit that adds this file (parent H); identity reported with the branch                                   |
+| Docs-only binding commit M           | `e9da87a` (parent H); bound the first capture, later rejected                                                  |
+| Theme repair R / corrected R2        | `8e49ee2` / `9bdbce8` (tree `93681e27`) on `cx/epic-c1-rpg-theme-repair` (§12)                                 |
+| Retained-capture candidate S         | `69b1db7db3889af82265d2430e45ff3f074db02d` / tree `7a0a8a0f`, parent R2; `src` subtree `a8f71739` equals R2    |
+| Closure binding commit D             | the commit that adds §12 and the accepted archive (parent S); identity reported with the branch                |
 | `master`                             | `fd5e2d592bb6f5d1724509119147c48ba3a5df59` (unchanged)                                                         |
 | `cx/epic-c0-v7-reconciliation`       | `9c6d1b45b5f5b22afa0b8d009101b378c1df363a` (unchanged)                                                         |
 | `cx/epic-c0-programme-readiness`     | `137ffde46423a13f07dd8ba4a13a6e0b67b7dd65` (unchanged)                                                         |
@@ -133,7 +148,10 @@ is semantic, mutation, migration or visual evidence.
 No test was skipped or retried by C1, no existing test or guard was modified,
 and no dependency, configuration, schema, seed, CSS or asset changed.
 
-## 9. Identity proofs and retained capture
+## 9. Identity proofs and first capture (rejected; see §12)
+
+This capture was later **rejected** by owner visual review: captures labelled
+RPG light rendered the RPG UI dark. It is kept as comparison evidence only.
 
 The three `C0_VISUAL_PRESERVATION_PLAN.md` §4a proofs passed at H (details in
 `C1_VISUAL_BASELINE_MANIFEST.md` §2):
@@ -162,7 +180,7 @@ Capture set:
 
 Manifest: `docs/post-release/epic-c/C1_VISUAL_BASELINE_MANIFEST.md`.
 
-## 10. Validation of M
+## 10. Validation of M (historical)
 
 M changes only `docs/post-release/epic-c/**`: this file, the manifest, and the
 state lines in `stories.yaml`, `SPEC.md` and `VALIDATION_READINESS.md`. Before
@@ -194,9 +212,116 @@ Results are in the final report and are reproducible with the same commands.
 - No valid evidence was rerun unnecessarily. The pre-C1 E2E and the retained
   E2E are distinct required runs.
 
-## 12. Open gates
+## 12. Correction, retained capture and closure
 
-1. Owner visual review of the 64 captures, bound to the ZIP SHA-256 above.
-2. **OD-8**: permanent retention location of the ZIP.
-3. Independent C1 review.
-4. C2 remains unauthorized; it is also gated by OD-9.
+### 12.1 Rejection and repair
+
+- **Rejection:** owner visual review of M found that captures labelled RPG
+  light rendered the RPG UI dark. RPG ignored the app-wide theme preference.
+- **Owner decision:** theme is app-wide, with RPG keeping its own identity in
+  both themes. Root cause, implementation and evidence changes are in
+  `C1_THEME_REPAIR_RECORD.md`.
+- **R `8e49ee2`:** app-wide theme repair.
+- **R2 `9bdbce8`:** cool-neutral RPG light palette and the neutral-grey
+  unresolved-theme preparation state.
+- **S `69b1db7`:** evidence stabilization only. The preparation-state oracle
+  now checks OKLab chroma neutrality directly, and a stale capture-harness
+  comment is corrected. `git diff 9bdbce8 69b1db7 -- src` is empty.
+
+### 12.2 Retained aggregate and capture at S
+
+- **Command:** `npm run test:e2e` from clean S, 2026-09-27 12:25:29–12:31:28
+  UTC. Result **90/90 passed**, 0 failed, 0 skipped, 0 retries, exit 0.
+- **Capture set:** exactly 64 PNGs, with 0 missing, unexpected, duplicate or
+  misnamed files.
+- **Sealing:** sealed immediately into
+  `c1-visual-baseline-69b1db7.zip`: 65 entries, 15,176,163 bytes, SHA-256
+  `cb40459103140f0de7de562e7c84d244ab6826d668952e7d06af0dea7c42917c`.
+  The inventory SHA-256 is
+  `2bbb32f69e0d4276b4960084e1762b8bf0be4a18c4beedbbe1adc3a7d5820f34`.
+- **Extraction check:** 64/64 match the inventory and the pre-archive
+  captures.
+- **Environment:** the same toolchain as H (manifest §3).
+
+### 12.3 Comparison with the rejected archive
+
+The comparison matches `C1_THEME_REPAIR_RECORD.md` §5 with **0 unexpected**
+rows:
+
+| Group                     | Captures | Result    |
+| ------------------------- | -------: | --------- |
+| Classic, except Settings  |       16 | identical |
+| Classic Settings          |        4 | different |
+| RPG dark, except Settings |       20 | identical |
+| RPG dark Settings         |        2 | different |
+| RPG light                 |       22 | different |
+
+That is 36 identical and 28 expected-different captures. No new RPG
+light/dark pair is byte-identical. Details are in manifest §6.
+
+### 12.4 Independent review
+
+The independent review concluded that the retained baseline is valid. It
+found two defects in the untracked run report, and both are corrected in the
+reporting layer only; nothing was rerun or regenerated:
+
+- The report claimed no new capture equals an old capture under a different
+  name. That is false: there are **20 intentional cross-name matches**. Each
+  preserved RPG dark capture also equals the old rejected same-surface "light"
+  capture, because that archive's RPG "light" captures were byte-identical to
+  RPG dark. This confirms the defect diagnosis and is not contamination.
+- "No environment drift" is narrowed to: no material rendering drift was
+  detected on the preserved comparison surfaces.
+
+The run's one tooling incident was a report-writing shell quoting failure
+before any file was written. It had no effect on the evidence.
+
+### 12.5 Owner acceptance and OD-8
+
+- On 2026-09-27 the owner directly accepted the retained visual baseline and
+  the completed independent review, and authorized this closure commit D.
+- The owner had already approved the cool-neutral RPG light palette and the
+  temporary neutral-grey preparation state (a bounded C1 compromise) at the
+  earlier visual-decision gate.
+- It does not cover Navigation/HUD/Map redesign, C2, publication or broader
+  UI work.
+- **OD-8 is resolved.** The exact accepted ZIP bytes are committed in D at
+  `artifacts/epic-c1-visual-baseline/c1-visual-baseline-69b1db7.zip`,
+  force-added because `artifacts/` is gitignored.
+- Only the ZIP is retained. The loose PNGs, the inventory copy, and the
+  machine-readable comparison and verification files are not committed. The
+  ZIP contains the inventory, and the manifest carries every capture hash and
+  its comparison relation.
+
+### 12.6 Validation of D
+
+D changes only `docs/post-release/epic-c/**` and adds the one archive. No
+product, test, e2e, CSS, configuration or package byte changed, and the `src`
+subtree is `a8f71739` at R2, S and D.
+
+Only the gates that D could invalidate were run:
+
+- Git identity and ancestry;
+- the archive SHA-256 before and after staging, including the staged blob;
+- the inventory and per-capture hash consistency of the manifest against the
+  sealed archive;
+- YAML parse of `stories.yaml`;
+- Prettier check of the changed documents;
+- `git diff --check`;
+- the exact staged path set.
+
+The E2E, unit, accessibility and capture suites were not rerun, because D
+changes no code or test.
+
+## 13. Disposition
+
+- **C1: accepted and closed** (locally, in D).
+- **OD-8:** resolved; the accepted archive is committed.
+- **C2:** not authorized. It is blocked by **OD-9** (Epic B remote
+  publication / intended branch baseline), which remains unresolved.
+- Nothing is pushed, merged, tagged or deployed.
+
+Recorded limitation (backlog, non-blocking): `.gitattributes` marks
+`docs/**` as `export-ignore` but not `artifacts/**`. A `git archive` source
+archive therefore includes the 15 MB accepted ZIP. Changing that is a
+configuration change outside C1 closure.
