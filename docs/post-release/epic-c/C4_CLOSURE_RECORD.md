@@ -2,16 +2,20 @@
 
 ## 1. State
 
-**`C4_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
+**`C4_ACCEPTED_CLOSED_LOCALLY`**
+
+- On 2026-09-28 the owner directly accepted C4 implementation candidate
+  `80c97e861a1c71d5f624bb144fa2e7082fface21`, and explicitly accepted the
+  stored-unit ordinal residual (§9). The acceptance is recorded by a
+  documentation-only acceptance commit, which does not change the accepted
+  implementation bytes.
 
 - C4 was implemented on 2026-09-27 under a direct owner instruction: C4 from
   the C3 acceptance tip `663796e5`, local commits only.
 - The implementation candidate is `80c97e86` (§2). Every required final gate
   passed on that exact commit (§7).
-- **C4 is not accepted.** The owner decides whether to accept or reject the
-  candidate.
-- C5 has not started and is not authorized. Its prerequisite (C4 accepted) is
-  not met.
+- C5 has not started and is not authorized. Its prerequisite (C4 accepted)
+  is now met, but starting it needs a separate direct owner instruction.
 - Publication is deferred. Nothing was pushed, merged, tagged or deployed, and
   `origin/master` and Production are unchanged.
 
@@ -24,7 +28,8 @@
 | Branch point             | `663796e5097a0210c62b50639aa88faf5c3b2496` (C3 acceptance tip; tree `6d2930d4`, `src` `5ee5559a`) |
 | Implementation candidate | `80c97e861a1c71d5f624bb144fa2e7082fface21` (tree `69922bbd`, parent `663796e5`)                   |
 | Candidate `src` subtree  | `4eac5095d9003cd2aba193344cda725cd331d2ca`                                                        |
-| Readiness record         | the documentation-only commit that adds this file (parent `80c97e86`)                             |
+| Readiness record         | `14c554e31b111f5a3b6a5103815462b407b711c1` (docs only, parent `80c97e86`)                         |
+| Acceptance record        | the documentation-only commit that records the acceptance (parent `14c554e3`)                     |
 
 ## 3. What C4 implements
 
@@ -185,7 +190,10 @@ active-key state exists. No C5–C8 work was done.
   `week-N` ID, it showed `N` before C4. Every bundled catalogue in history has
   the same 14 units, so only a hand-edited backup can create one. C5 scopes
   reads to the active catalogue. This follows the contract ("replacing week-
-  ID parsing") and changes no catalogue unit.
+  ID parsing") and changes no catalogue unit. **The owner explicitly accepted
+  this residual on 2026-09-28** as the bounded consequence of removing
+  `week-*` ID parsing. That acceptance does not authorize broader copy,
+  backup, read-scope or C5 changes.
 - Diagnostic text that is never rendered keeps its wording:
   `console.error('RPG week loading failed.')` and the route-configuration
   error in `routeDefinitions.ts` (route contract, unchanged).
@@ -197,8 +205,10 @@ active-key state exists. No C5–C8 work was done.
 
 ## 10. Disposition
 
-- **C4:** implemented and validated locally; ready for owner review; **not
-  accepted**.
-- **C5:** not started and not authorized. Its prerequisite (C4 accepted) is
-  not met.
+- **C4:** accepted and closed locally. The owner accepted implementation
+  candidate `80c97e86` on 2026-09-28, including the §9 stored-unit ordinal
+  residual.
+- **C5:** planned, not started and not authorized. Its prerequisite (C4
+  accepted) is met, but starting it needs a separate direct owner
+  instruction.
 - **Publication:** deferred; `origin/master` and Production are unchanged.

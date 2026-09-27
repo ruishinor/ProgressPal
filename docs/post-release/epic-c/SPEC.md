@@ -3,9 +3,9 @@
 Status: **C0 accepted by owner review; C1, C2 and C3 accepted and closed
 locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
-`C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`). **C4 implemented and
-validated locally, ready for owner review, not accepted**
-(`C4_CLOSURE_RECORD.md`). C5 has not started and is not authorized.
+`C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
+`C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`). C5 has not started and
+is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -25,11 +25,12 @@ validated locally, ready for owner review, not accepted**
   locally (`C3_CLOSURE_RECORD.md`).
 - C4 was implemented on `cx/epic-c4-programme-terminology`, branched from the
   C3 acceptance tip `663796e5`, under a direct owner instruction.
-  Implementation candidate `80c97e86` passed every required final gate and
-  awaits owner acceptance (`C4_CLOSURE_RECORD.md`).
+  The owner accepted implementation candidate `80c97e86`, including the
+  stored-unit ordinal residual, and C4 is closed locally
+  (`C4_CLOSURE_RECORD.md`).
 - C5 has not started and is not authorized. Its prerequisite (C4 accepted) is
-  not met.
-- Publication is deferred: neither C2 nor C3 acceptance nor C4 changes
+  met, but starting it needs a separate direct owner instruction.
+- Publication is deferred: neither C2, C3 nor C4 acceptance changes
   `origin/master` or Production.
 
 Authority: Bootstrap v7.0

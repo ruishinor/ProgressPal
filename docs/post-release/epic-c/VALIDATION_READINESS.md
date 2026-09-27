@@ -1,9 +1,8 @@
 # Epic C validation readiness
 
-Current state: **C4 `C4_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
-(C3 `C3_ACCEPTED_CLOSED_LOCALLY`, C2 `C2_ACCEPTED_CLOSED_LOCALLY`, C1
-`C1_ACCEPTED_CLOSED`). C4 is not accepted. C5 has not started and is not
-authorized.
+Current state: **C4 `C4_ACCEPTED_CLOSED_LOCALLY`** (C3
+`C3_ACCEPTED_CLOSED_LOCALLY`, C2 `C2_ACCEPTED_CLOSED_LOCALLY`, C1
+`C1_ACCEPTED_CLOSED`). C5 has not started and is not authorized.
 
 - C1 was accepted and closed locally in the docs/evidence-binding closure
   commit D (`C1_CLOSURE_RECORD.md`).
@@ -19,9 +18,10 @@ authorized.
   accepted it; C3 is closed locally (`C3_CLOSURE_RECORD.md`). Guard G-7 is in
   place.
 - The owner authorized C4 from `663796e5`. Implementation candidate
-  `80c97e86` passed every required final gate and awaits owner review
+  `80c97e86` passed every required final gate, and the owner accepted it with
+  the stored-unit ordinal residual; C4 is closed locally
   (`C4_CLOSURE_RECORD.md`).
-- C5's prerequisite (C4 accepted) is not met, and starting it needs a separate
+- C5's prerequisite (C4 accepted) is met, but starting it needs a separate
   direct owner instruction.
 
 The C0 validation below is historical and unchanged.
@@ -159,13 +159,13 @@ protected by a stronger family-A behaviour table instead.
 
 ## 5. Readiness matrix
 
-| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                                     |
-| ----- | ------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------- |
-| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)                              |
-| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Accepted and closed (`C2_CLOSURE_RECORD.md`)                              |
-| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | Accepted and closed (`C3_CLOSURE_RECORD.md`)                              |
-| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | Implemented and validated; awaiting owner review (`C4_CLOSURE_RECORD.md`) |
-| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | After C4 acceptance; not started, not authorized                          |
-| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                                                                   |
-| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                                   |
-| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                                     |
+| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                   |
+| ----- | ------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------- |
+| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)            |
+| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Accepted and closed (`C2_CLOSURE_RECORD.md`)            |
+| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | Accepted and closed (`C3_CLOSURE_RECORD.md`)            |
+| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | Accepted and closed (`C4_CLOSURE_RECORD.md`)            |
+| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | Prerequisite met; not started (needs owner instruction) |
+| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked                                                 |
+| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                 |
+| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                   |
