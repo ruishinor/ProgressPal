@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c3_accepted_closed_c4_not_started
+current_state: c4_implemented_ready_for_owner_review_c5_not_started
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -149,8 +149,14 @@ stories:
 
   - id: C4
     title: CS50 programme terminology
-    state: planned
-    prerequisite_status: satisfied (C3 accepted 2026-09-27); C4 start still needs a separate direct owner instruction
+    state: implemented_ready_for_owner_review
+    disposition: C4_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW
+    branch: cx/epic-c4-programme-terminology
+    branch_point: 663796e5097a0210c62b50639aa88faf5c3b2496
+    implementation_candidate: 80c97e861a1c71d5f624bb144fa2e7082fface21
+    records: [C4_CLOSURE_RECORD.md]
+    acceptance: not accepted; owner decision required
+    prerequisite_status: satisfied (C3 accepted 2026-09-27; direct owner C4-start authorization received before implementation)
     objective: Move only CS50-dependent terminology into cs50x-2026 definition content - CS50 copy, the curriculum-unit noun in unit-level copy, the RPG identity tuple (including its literal types) and the per-unit map ordinal label replacing week- ID parsing. Canonical vocabulary labels and rank labels stay shared
     prerequisites: [C3 accepted]
     allowed_scope:
@@ -172,6 +178,7 @@ stories:
   - id: C5
     title: Programme-scoped catalogue reads
     state: planned
+    prerequisite_status: not met (C4 not accepted); C5 start needs a separate direct owner instruction
     objective: Pass the active definition explicitly from bootstrap and scope catalogue-derived reads (units, items, progress by item, derived media, achievement catalogue context, XP preview context) by its catalogue identity (course_units.courseId, cs50x-2026), with no schema change and no persisted programme identity
     prerequisites: [C4 accepted]
     allowed_scope:
