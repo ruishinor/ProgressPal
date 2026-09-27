@@ -3,12 +3,16 @@ title: Programme platform foundation
 authority: ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip (SHA-256 F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7)
 baseline_commit: fd5e2d592bb6f5d1724509119147c48ba3a5df59
 baseline_tree: bc86fd392a5284d9db8821c31a27b8c95ec82a9a
-remote_publication_of_epic_b: not_performed_at_c0 (OD-9)
+remote_publication_of_epic_b: not_performed; deferred to a later separate release decision (OD-9 resolved 2026-09-27; origin/master remains d4b945ba0b024ceb4fbd29d70bcecc8496b3c6c3)
+c2_development_baseline:
+  branch: cx/epic-c1-rpg-theme-repair
+  commit: cac8f23bb9c43d47c4c0a96d8bd27797d48ef56d
+  contains_accepted_epic_b: fd5e2d592bb6f5d1724509119147c48ba3a5df59
 c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c1_accepted_closed_c2_blocked_on_od9
+current_state: c1_accepted_closed_od9_resolved_c2_not_started
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -68,6 +72,7 @@ stories:
     state: planned
     objective: Create src/programmes/ with its public entrypoint and dependency rules in the same commit, a single-entry registry and active-definition accessor keyed by definition key cs50x-2026 (the current catalogue identity; not a persisted programme ownership identity, which waits for OD-5 in C6), and move CS50 identity, catalogue reference, external links and study guides into the CS50 definition with compatibility re-exports
     prerequisites: [C1 accepted, OD-9 recorded]
+    prerequisite_status: satisfied (C1 accepted and closed; OD-9 resolved 2026-09-27, baseline cac8f23); C2 start still needs a separate owner instruction
     allowed_scope:
       - new src/programmes/**
       - eslint.config.js additions for the new layer (additive only)

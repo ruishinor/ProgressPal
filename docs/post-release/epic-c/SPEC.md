@@ -8,11 +8,15 @@ Status: **C0 accepted by owner review; C1 accepted and closed locally**
   `cb40459103140f0de7de562e7c84d244ab6826d668952e7d06af0dea7c42917c`
   (`C1_VISUAL_BASELINE_MANIFEST.md`).
 - OD-8 is resolved: the archive is committed.
-- C2 is not authorized. It is blocked on OD-9.
-  Authority: Bootstrap v7.0
-  (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
-  `F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7`),
-  `epic-c/SPEC.md`, `C0_READINESS_PLAN.md`, `NEXT_STORY_HANDOFF_C0.md`.
+- OD-9 is resolved (§6): C2's development baseline is the local C1 lineage
+  `cx/epic-c1-rpg-theme-repair` at `cac8f23`, which contains accepted Epic B
+  `fd5e2d5`. `origin/master` and Production stay unchanged.
+- C2 has not started, and starting it needs a separate owner instruction.
+
+Authority: Bootstrap v7.0
+(`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
+`F09B6798E04DA4173A72CADF635AAA6F944D5E2E2E732CE506A5898F39685DC7`),
+`epic-c/SPEC.md`, `C0_READINESS_PLAN.md`, `NEXT_STORY_HANDOFF_C0.md`.
 
 ## 1. Purpose
 
@@ -145,7 +149,16 @@ Resolution status:
 
 - **OD-8** was resolved at C1 acceptance. The owner-accepted archive is
   committed to the repository (`C1_VISUAL_BASELINE_MANIFEST.md` §5).
-- **OD-9** is unresolved and still gates C2.
+- **OD-9** was resolved by the owner on 2026-09-27. C2 uses the accepted local
+  C1 lineage on `cx/epic-c1-rpg-theme-repair` at
+  `cac8f23bb9c43d47c4c0a96d8bd27797d48ef56d` as its development baseline.
+  - That lineage contains accepted Epic B
+    `fd5e2d592bb6f5d1724509119147c48ba3a5df59`.
+  - `origin/master` (`d4b945b`, the Epic A publication line) and the current
+    Production publication stay unchanged at this gate.
+  - Publishing Epic B or C1 is a later, separate release decision and is not
+    authorized. On this repository a push to `master` deploys to Production
+    automatically, and CI runs without gating the merge.
 
 Additionally, C6 requires an **accepted schema-change decision record**
 (`AGENTS.md` forbids schema changes without one).
