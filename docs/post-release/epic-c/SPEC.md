@@ -18,9 +18,10 @@ is not authorized.
   `db5f795`. The owner accepted implementation candidate `35604093`, and C2
   is closed locally (`C2_CLOSURE_RECORD.md`).
 - C3 was implemented on `cx/epic-c3-programme-policy`, branched from the C2
-  acceptance tip `be40f839`, under a direct owner instruction. Implementation
-  candidate `78ae22e6` passed every required final gate and awaits owner
-  acceptance (`C3_CLOSURE_RECORD.md`).
+  acceptance tip `be40f839`, under a direct owner instruction. The first
+  candidate `78ae22e6` was rejected by independent owner review (lab preview
+  status). Repaired candidate `b12352b3` passed every required final gate and
+  awaits owner acceptance (`C3_CLOSURE_RECORD.md`).
 - C4 has not started and is not authorized. Its prerequisite (C3 accepted) is
   not met.
 - Publication is deferred: neither C2 acceptance nor C3 changes

@@ -12,9 +12,10 @@ C4 has not started and is not authorized.
   (`SPEC.md` §6).
 - The owner accepted C2 implementation candidate `35604093`, and C2 is closed
   locally (`C2_CLOSURE_RECORD.md`).
-- The owner authorized C3 from `be40f839`. Implementation candidate
-  `78ae22e6` passed every required final gate and awaits owner review
-  (`C3_CLOSURE_RECORD.md`). Guard G-7 is in place.
+- The owner authorized C3 from `be40f839`. The first candidate `78ae22e6`
+  was rejected by independent owner review (lab preview status). Repaired
+  candidate `b12352b3` passed every required final gate and awaits owner
+  review (`C3_CLOSURE_RECORD.md`). Guard G-7 is in place.
 - C4's prerequisite (C3 accepted) is not met, and starting it needs a separate
   direct owner instruction.
 

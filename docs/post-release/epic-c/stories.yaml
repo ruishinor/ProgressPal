@@ -106,13 +106,16 @@ stories:
     disposition: C3_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW
     branch: cx/epic-c3-programme-policy
     branch_point: be40f839019a2ae0b652542d7418dd6cd5d87763
-    implementation_candidate: 78ae22e62e841af852ada6a0c1a937196d2f18ed
+    implementation_candidate: b12352b35acc2f40a5c3b71d37ec362cd069fe81
+    rejected_candidate: 78ae22e62e841af852ada6a0c1a937196d2f18ed
+    rejection: 'independent owner review - lab preview status changed from the frozen C1 completed; readiness record ebfed334 invalidated'
     concern_commits:
       [
         9d390bfef63aa45c823dd599c5aeafb613634bd4,
         b83ff4777482acbc77f3b7a2815f3ae8a85b2916,
         e8b4addfbecd03d6b84ac116b50d2123e68d6b7c,
         78ae22e62e841af852ada6a0c1a937196d2f18ed,
+        b12352b35acc2f40a5c3b71d37ec362cd069fe81,
       ]
     records: [C3_CLOSURE_RECORD.md]
     acceptance: not accepted; owner decision required
