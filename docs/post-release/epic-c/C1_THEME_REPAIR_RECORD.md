@@ -219,8 +219,9 @@ border, track, overlay and the entire dark palette are unchanged.
   (`b` +0.011 to +0.052); the candidate passes. It runs on the source tokens
   (`tests/preservation/c1VisualIdentity.test.tsx`) and on the computed tokens
   and painted canvas (`e2e/rpg-app-theme.spec.ts`).
-- **Owner-accepted:** the owner accepted these light values at C1 closure.
-  Their rendered appearance is bound by the retained baseline
+- **Owner-accepted:** the owner approved these R2 light values during the
+  preceding owner visual-review gate. Their rendered appearance was
+  subsequently bound by the retained baseline accepted at C1 closure
   (`C1_VISUAL_BASELINE_MANIFEST.md`). The test oracles below were not changed
   at closure. The identity test pins the light token names and checks
   lightness, text contrast and neutrality; the dark block and every Classic

@@ -42,6 +42,8 @@ stories:
       ]
     objective: Freeze semantic oracles for every externally meaningful value SPEC.md section 4 preserves (curriculum, XP, reward identity, offered statuses, achievement fields, order and exact unlock behaviour, links, guides, labels, CS50 copy); keep internal rule encoding, internal outputs and unreachable inputs as characterization; capture a baseline-built schema-2 fixture and the retained visual baseline from a clean evidence-harness commit whose production subset is byte-identical to the product baseline, before any ownership change
     prerequisites: [owner review of C0 PASS]
+    scope_status: original_pre_repair_contract
+    scope_history: Original C1 preservation contract. The allowed_scope, forbidden_scope and stop_conditions below predate owner-authorized R/R2; the repair_commits field records the later bounded src/** exception. Retained as history, not as a claim that final C1 execution was product-code-free.
     allowed_scope:
       - new test files and fixtures under tests/**
       - one new capture-only spec under e2e/ following the B2-B4 pattern
