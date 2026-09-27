@@ -2,7 +2,9 @@
 
 Status: **C0 accepted by owner review; C1 and C2 accepted and closed locally**
 (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`; `C2_ACCEPTED_CLOSED_LOCALLY`,
-`C2_CLOSURE_RECORD.md`). C3 has not started and is not authorized.
+`C2_CLOSURE_RECORD.md`). **C3 implemented and validated locally, ready for
+owner review, not accepted** (`C3_CLOSURE_RECORD.md`). C4 has not started and
+is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -15,10 +17,14 @@ Status: **C0 accepted by owner review; C1 and C2 accepted and closed locally**
 - C2 was implemented on `cx/epic-c2-programme-layer`, branched from
   `db5f795`. The owner accepted implementation candidate `35604093`, and C2
   is closed locally (`C2_CLOSURE_RECORD.md`).
-- C3 has not started and is not authorized. Its prerequisite (C2 accepted) is
-  met, but starting it needs a separate direct owner instruction.
-- Publication is deferred: C2 acceptance does not change `origin/master` or
-  Production.
+- C3 was implemented on `cx/epic-c3-programme-policy`, branched from the C2
+  acceptance tip `be40f839`, under a direct owner instruction. Implementation
+  candidate `78ae22e6` passed every required final gate and awaits owner
+  acceptance (`C3_CLOSURE_RECORD.md`).
+- C4 has not started and is not authorized. Its prerequisite (C3 accepted) is
+  not met.
+- Publication is deferred: neither C2 acceptance nor C3 changes
+  `origin/master` or Production.
 
 Authority: Bootstrap v7.0
 (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
