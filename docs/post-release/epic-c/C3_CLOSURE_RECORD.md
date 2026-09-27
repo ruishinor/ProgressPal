@@ -2,7 +2,12 @@
 
 ## 1. State
 
-**`C3_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
+**`C3_ACCEPTED_CLOSED_LOCALLY`**
+
+- On 2026-09-27 the owner directly accepted the repaired C3 implementation
+  candidate `b12352b35acc2f40a5c3b71d37ec362cd069fe81`. The acceptance is
+  recorded by a documentation-only acceptance commit, which does not change
+  the accepted implementation bytes.
 
 - C3 was implemented on 2026-09-27 under a direct owner instruction: C3 from
   the accepted C2 closure tip `be40f839`, local commits only.
@@ -13,8 +18,8 @@
   readiness statement in `ebfed334` is therefore invalidated and superseded by
   this revision. The earlier validation of `78ae22e6` does not certify the
   repaired bytes.
-- C3 is **not accepted**. Owner acceptance is a separate gate.
-- C4 has not started and is not authorized.
+- C4 has not started and is not authorized. Its prerequisite (C3 accepted)
+  is now met, but starting it needs a separate direct owner instruction.
 - Publication is deferred. Nothing was pushed, merged, tagged or deployed, and
   `origin/master` and Production are unchanged.
 
@@ -32,7 +37,9 @@
 | First readiness record   | `ebfed334fa83df1a8f429811660d84be84088630` (docs only), **invalidated** by the rejection                      |
 | Repair — lab preview     | `b12352b35acc2f40a5c3b71d37ec362cd069fe81` (tree `8750cf41`, parent `ebfed334`), **implementation candidate** |
 | Candidate `src` subtree  | `5ee5559afb9f8d1388e86361f8264117e4f5a80a`                                                                    |
-| Readiness record         | the documentation-only commit revising this record (parent `b12352b3`)                                        |
+| Readiness record         | `1a87fee1d7854e3ccab0442037ff0f90aa6a8b62` (docs only, parent `b12352b3`)                                     |
+| Accepted candidate       | `b12352b35acc2f40a5c3b71d37ec362cd069fe81`, accepted by the owner on 2026-09-27                               |
+| Acceptance commit        | the documentation-only commit recording acceptance (parent `1a87fee1`)                                        |
 | `master` / `origin`      | `fd5e2d5` / `d4b945b`, unchanged                                                                              |
 
 Outside `docs/post-release/epic-c`, the candidate changes 55 paths from
@@ -258,7 +265,9 @@ Process recurrence and controls:
 ## 8. Final validation (repaired implementation candidate `b12352b3`)
 
 Every gate below was rerun on `b12352b3`. The results recorded for `78ae22e6`
-before the rejection are superseded and do not certify these bytes.
+before the rejection are superseded and do not certify these bytes. The
+documentation-only readiness and acceptance commits change no code or test,
+so none was rerun for them.
 
 | Check                    | Result                                                     |
 | ------------------------ | ---------------------------------------------------------- |
@@ -310,8 +319,9 @@ Therefore:
 
 ## 11. Disposition
 
-- **C3:** implemented and validated locally, ready for owner review, **not
-  accepted**. The owner decides whether to accept repaired candidate
-  `b12352b3`; `78ae22e6` is rejected.
-- **C4:** planned, not started and not authorized.
+- **C3:** accepted and closed locally. The owner accepted repaired candidate
+  `b12352b3` on 2026-09-27; `78ae22e6` remains rejected.
+- **C4:** planned, not started and not authorized. Its prerequisite (C3
+  accepted) is met, but starting it needs a separate direct owner
+  instruction.
 - **Publication:** deferred; `origin/master` and Production are unchanged.

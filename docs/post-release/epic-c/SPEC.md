@@ -1,9 +1,9 @@
 # Epic C — programme platform foundation
 
-Status: **C0 accepted by owner review; C1 and C2 accepted and closed locally**
-(`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`; `C2_ACCEPTED_CLOSED_LOCALLY`,
-`C2_CLOSURE_RECORD.md`). **C3 implemented and validated locally, ready for
-owner review, not accepted** (`C3_CLOSURE_RECORD.md`). C4 has not started and
+Status: **C0 accepted by owner review; C1, C2 and C3 accepted and closed
+locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
+`C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
+`C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`). C4 has not started and
 is not authorized.
 
 - The accepted retained visual baseline is
@@ -20,11 +20,11 @@ is not authorized.
 - C3 was implemented on `cx/epic-c3-programme-policy`, branched from the C2
   acceptance tip `be40f839`, under a direct owner instruction. The first
   candidate `78ae22e6` was rejected by independent owner review (lab preview
-  status). Repaired candidate `b12352b3` passed every required final gate and
-  awaits owner acceptance (`C3_CLOSURE_RECORD.md`).
+  status). The owner accepted repaired candidate `b12352b3`, and C3 is closed
+  locally (`C3_CLOSURE_RECORD.md`).
 - C4 has not started and is not authorized. Its prerequisite (C3 accepted) is
-  not met.
-- Publication is deferred: neither C2 acceptance nor C3 changes
+  met, but starting it needs a separate direct owner instruction.
+- Publication is deferred: neither C2 nor C3 acceptance changes
   `origin/master` or Production.
 
 Authority: Bootstrap v7.0
