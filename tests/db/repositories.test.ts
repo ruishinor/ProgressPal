@@ -48,6 +48,7 @@ import {
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 describe('database repositories', () => {
   let testDatabase: TestDatabaseContext | null = null;
@@ -1039,7 +1040,7 @@ describe('database repositories', () => {
           itemId: 'missing-item',
           status: 'started',
         },
-        { db: testDatabase.db },
+        { policy: cs50Policy, db: testDatabase.db },
       );
       expect(missingItemResult.xpSummary).toMatchObject({
         level: 1,
@@ -1063,7 +1064,7 @@ describe('database repositories', () => {
           itemId: 'item-with-missing-unit',
           status: 'started',
         },
-        { db: testDatabase.db },
+        { policy: cs50Policy, db: testDatabase.db },
       );
       expect(missingUnitResult.xpSummary).toMatchObject({
         level: 1,
@@ -1163,7 +1164,11 @@ describe('database repositories', () => {
           status: 'started',
           confidence: 3,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:10:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:10:00.000Z'),
+        },
       );
 
       expect(res1.awardedTransactions).toHaveLength(1);
@@ -1179,7 +1184,11 @@ describe('database repositories', () => {
           status: 'started',
           confidence: 4,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:15:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:15:00.000Z'),
+        },
       );
       expect(res2.awardedTransactions).toHaveLength(0);
       expect(res2.xpSummary.totalXp).toBe(20);
@@ -1191,7 +1200,11 @@ describe('database repositories', () => {
           status: 'submitted',
           confidence: 4,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:20:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:20:00.000Z'),
+        },
       );
       expect(res3.awardedTransactions).toHaveLength(1);
       expect(res3.awardedTransactions[0].sourceType).toBe(
@@ -1206,7 +1219,11 @@ describe('database repositories', () => {
           status: 'accepted',
           confidence: 5,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:30:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:30:00.000Z'),
+        },
       );
       expect(res4.awardedTransactions).toHaveLength(1);
       expect(res4.awardedTransactions[0].sourceType).toBe(
@@ -1222,7 +1239,11 @@ describe('database repositories', () => {
           status: 'started',
           confidence: 2,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:40:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:40:00.000Z'),
+        },
       );
       expect(res5.awardedTransactions).toHaveLength(0);
       expect(res5.xpSummary.totalXp).toBe(220);
@@ -1257,7 +1278,11 @@ describe('database repositories', () => {
           energyAfter: 4,
           stoppedBecause: 'interruption',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:10:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:10:00.000Z'),
+        },
       );
 
       expect(res1.awardedTransactions).toHaveLength(1);
@@ -1278,7 +1303,11 @@ describe('database repositories', () => {
           energyAfter: 3,
           stoppedBecause: 'completed_slice',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:25:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:25:00.000Z'),
+        },
       );
 
       // Expect slice complete (+10) and block 2 crossed (+4) -> 2 transactions
@@ -1305,7 +1334,11 @@ describe('database repositories', () => {
           energyAfter: 4,
           stoppedBecause: 'reached_limit', // clean stop stopReason
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:40:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:40:00.000Z'),
+        },
       );
 
       // Awarded:
@@ -1349,7 +1382,11 @@ describe('database repositories', () => {
           status: 'completed',
           confidence: 5,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:10:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:10:00.000Z'),
+        },
       );
 
       expect(
@@ -1367,7 +1404,11 @@ describe('database repositories', () => {
           status: 'completed',
           confidence: 5,
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:20:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:20:00.000Z'),
+        },
       );
 
       expect(second.unlockedAchievements).toHaveLength(0);
@@ -1573,7 +1614,11 @@ describe('backup, restore, and reset', () => {
         status: 'completed',
         confidence: 5,
       },
-      { db: context.db, now: createClock('2026-06-12T11:00:00.000Z') },
+      {
+        policy: cs50Policy,
+        db: context.db,
+        now: createClock('2026-06-12T11:00:00.000Z'),
+      },
     );
   }
 

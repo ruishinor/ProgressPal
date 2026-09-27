@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   CatalogueRulesSchema,
+  XpPolicySchema,
   findCatalogueRuleIssues,
   type CourseSeed,
   type ProgrammePolicy,
@@ -91,7 +92,12 @@ const definitionSchema = z
     catalogue: z.custom<CourseSeed>(
       (value) => typeof value === 'object' && value !== null,
     ),
-    policy: z.object({ catalogueRules: CatalogueRulesSchema }).strict(),
+    policy: z
+      .object({
+        catalogueRules: CatalogueRulesSchema,
+        xp: XpPolicySchema,
+      })
+      .strict(),
     content: z
       .object({
         externalResources: z
@@ -127,7 +133,8 @@ function guideStrings(guide: UnitGuide | ItemGuide): string[] {
 /**
  * Validates a definition and fails closed. Beyond shape, it checks that the
  * definition matches its catalogue, that the catalogue satisfies the
- * programme's catalogue rules, that every link and guide is keyed to a
+ * programme's catalogue rules, that XP milestones name catalogue items, that
+ * every link and guide is keyed to a
  * real catalogue unit or item, that every link stays within a declared URL
  * prefix, and that guides embed no URLs (guide authoring rule).
  */
@@ -153,6 +160,16 @@ export function validateProgrammeDefinition(
   }
 
   issues.push(...findCatalogueRuleIssues(catalogue, policy.catalogueRules));
+
+  for (const milestone of policy.xp.itemMilestones) {
+    for (const itemId of milestone.itemIds) {
+      if (!itemIds.has(itemId)) {
+        issues.push(
+          `XP milestone "${milestone.sourceId}" item "${itemId}" is not a catalogue item`,
+        );
+      }
+    }
+  }
 
   const checkLinks = (
     kind: 'unit' | 'item',

@@ -28,6 +28,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const fixedNow = '2026-09-21T12:00:00.000Z';
 
@@ -398,7 +399,7 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
           startTime: Date.parse('2026-09-21T00:00:00.000Z'),
           nextStartTime: Date.parse('2026-09-28T00:00:00.000Z'),
         },
-        { db: reader },
+        { policy: cs50Policy, db: reader },
       );
       const readDurationMs = Math.round(performance.now() - start);
       const access = probe.snapshot();

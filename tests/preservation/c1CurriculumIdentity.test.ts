@@ -6,6 +6,7 @@ import { getCourseMapReadData } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
 
 import { createSeededDatabase } from './c1Support';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 1 — curriculum identity and order.
@@ -172,7 +173,10 @@ describe('C1 curriculum identity and order (semantic)', () => {
   it('renders the same unit and item order through the Classic course map model', async () => {
     const context = await createSeededDatabase('curriculum-classic');
     try {
-      const data = await getCourseMapReadData({ db: context.db });
+      const data = await getCourseMapReadData({
+        policy: cs50Policy,
+        db: context.db,
+      });
       const map = buildCourseMap(
         data.courseUnits,
         data.courseItems,

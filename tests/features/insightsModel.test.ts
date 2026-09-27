@@ -16,6 +16,7 @@ import type {
 } from '@/lib/domain';
 import type { CourseMapView } from '@/features/course/model';
 import { evaluateProgressXp } from '@/lib/xp/engine';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 const TS = '2026-06-01T00:00:00.000';
 
@@ -572,6 +573,7 @@ function collectEngineSourceTypes(): Set<string> {
 
     record(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         progressEntry,
         item,
         unit,
@@ -600,6 +602,7 @@ function collectEngineSourceTypes(): Set<string> {
 
     record(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         progressEntry,
         item,
         unit,
@@ -625,6 +628,7 @@ function collectEngineSourceTypes(): Set<string> {
 
     record(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         progressEntry,
         item,
         unit,
@@ -654,6 +658,7 @@ function collectEngineSourceTypes(): Set<string> {
 
     record(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         progressEntry,
         item,
         unit,
@@ -688,12 +693,13 @@ function collectEngineSourceTypes(): Set<string> {
 
     record(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         progressEntry,
         item,
         unit,
         allUnitItems: [item],
         allUnitProgress: [progressEntry],
-        finalProjectProgress: [progressEntry, demoProgress],
+        milestoneProgress: [progressEntry, demoProgress],
       }),
     );
   }

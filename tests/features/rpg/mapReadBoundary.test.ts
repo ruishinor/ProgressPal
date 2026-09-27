@@ -26,6 +26,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const mapStores = [
   'content_assets',
@@ -496,7 +497,10 @@ describe('RPG Campaign Map read boundary', () => {
     ]);
     probe.reset();
 
-    const data = await getCourseMapReadData({ db: context.db });
+    const data = await getCourseMapReadData({
+      policy: cs50Policy,
+      db: context.db,
+    });
     const access = probe.snapshot();
     const xpOperation = access.operations.find(
       (operation) => operation.store === 'xp_transactions',
@@ -547,7 +551,10 @@ describe('RPG Campaign Map read boundary', () => {
     );
     probe.reset();
 
-    const data = await getCourseMapReadData({ db: context.db });
+    const data = await getCourseMapReadData({
+      policy: cs50Policy,
+      db: context.db,
+    });
     const access = probe.snapshot();
     const aggregate = data.mediaProgressByAssetId.get(asset.id);
     const mediaOperation = access.operations.find(

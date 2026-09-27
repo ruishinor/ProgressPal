@@ -20,6 +20,7 @@ import type { ProgressStatus, StudySessionMode } from '@/lib/domain';
 
 import type { TestDatabaseContext } from '../db/testDatabase';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 6 — achievements.
@@ -315,10 +316,14 @@ async function apply(
             ? { evidenceText: 'Synthetic C1 submission note.' }
             : {}),
         },
-        { db: context.db, now },
+        { policy: cs50Policy, db: context.db, now },
       );
     } else if (action.kind === 'media') {
-      await logMediaProgressAndAwardXp(action.input, { db: context.db, now });
+      await logMediaProgressAndAwardXp(action.input, {
+        policy: cs50Policy,
+        db: context.db,
+        now,
+      });
     } else {
       const startedAt = now();
       const session: AddStudySessionInput = {
@@ -352,7 +357,7 @@ async function unlocksAfter(label: string, actions: readonly Action[]) {
     // Re-evaluation through another real mutation path unlocks nothing new.
     const reEvaluation = await upsertProgressAndAwardXp(
       { confidence: 1, itemId: 'week-2-shorts', status: 'started' },
-      { db: context.db, now },
+      { policy: cs50Policy, db: context.db, now },
     );
     expect(reEvaluation.unlockedAchievements).toEqual([]);
     expect(await listAchievementUnlocks({ db: context.db })).toEqual(unlocks);

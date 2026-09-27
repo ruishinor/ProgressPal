@@ -1,4 +1,12 @@
-import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
+import {
+  completionAwardSourceType,
+  statusMilestoneSourceType,
+  unitCompletionSourceType,
+  type CourseItem,
+  type CourseUnit,
+  type ProgressEntry,
+  type XpPolicy,
+} from '@/lib/domain';
 import { isItemComplete } from '@/lib/completion';
 import { mergeCoveredRanges } from '@/lib/progress';
 
@@ -109,115 +117,104 @@ export type PotentialXpAward = {
 };
 
 /**
- * Evaluates progress entry updates to derive potential XP awards.
- * Pure function with no database side effects.
+ * Item IDs that share a multi-item milestone with `itemId`, including
+ * `itemId` itself; empty when the item is in no multi-item milestone.
+ */
+export function getLinkedMilestoneItemIds(
+  policy: XpPolicy,
+  itemId: string,
+): string[] {
+  const linked = new Set<string>();
+
+  for (const milestone of policy.itemMilestones) {
+    if (milestone.itemIds.length > 1 && milestone.itemIds.includes(itemId)) {
+      for (const id of milestone.itemIds) linked.add(id);
+    }
+  }
+
+  return [...linked];
+}
+
+/** Whether an award is a unit-completion bonus rather than a task award. */
+export function isUnitCompletionAward(
+  policy: XpPolicy,
+  award: Pick<PotentialXpAward, 'sourceType'>,
+): boolean {
+  return policy.unitCompletionBonuses.some(
+    (bonus) => unitCompletionSourceType(bonus.unitType) === award.sourceType,
+  );
+}
+
+/**
+ * Evaluates progress entry updates to derive potential XP awards. Pure
+ * function with no database side effects. Every amount, type, status and
+ * milestone comes from the programme's XP policy; award identity follows the
+ * shared vocabulary formats in `@/lib/domain`.
+ *
+ * `milestoneProgress` must contain the saved progress of the other items in
+ * the saved item's multi-item milestones (see
+ * {@link getLinkedMilestoneItemIds}).
  */
 export function evaluateProgressXp(params: {
+  policy: XpPolicy;
   progressEntry: ProgressEntry;
   item: CourseItem;
   unit: CourseUnit;
   allUnitItems: CourseItem[];
   allUnitProgress: ProgressEntry[];
-  finalProjectProgress?: ProgressEntry[];
+  milestoneProgress?: ProgressEntry[];
 }): PotentialXpAward[] {
   const {
+    policy,
     progressEntry,
     item,
     unit,
     allUnitItems,
     allUnitProgress,
-    finalProjectProgress = [],
+    milestoneProgress = [],
   } = params;
   const awards: PotentialXpAward[] = [];
   const status = progressEntry.status;
 
-  // 1. Completion awards for specific item types
+  // 1. Completion awards by item type
   if (isItemComplete(status)) {
-    if (item.type === 'lecture') {
+    const completion = policy.completionAwards.find(
+      (award) => award.itemType === item.type,
+    );
+
+    if (completion !== undefined) {
       awards.push({
-        sourceType: 'lecture_completed',
+        sourceType: completionAwardSourceType(item.type),
         sourceId: `${item.id}-completed`,
-        xp: 40,
-        reason: `Completed lecture: ${item.title}`,
-      });
-    } else if (item.type === 'section') {
-      awards.push({
-        sourceType: 'section_completed',
-        sourceId: `${item.id}-completed`,
-        xp: 20,
-        reason: `Completed section: ${item.title}`,
-      });
-    } else if (item.type === 'shorts') {
-      awards.push({
-        sourceType: 'shorts_completed',
-        sourceId: `${item.id}-completed`,
-        xp: 15,
-        reason: `Completed shorts: ${item.title}`,
-      });
-    } else if (item.type === 'practice') {
-      awards.push({
-        sourceType: 'practice_completed',
-        sourceId: `${item.id}-completed`,
-        xp: 30,
-        reason: `Completed practice: ${item.title}`,
-      });
-    } else if (item.type === 'notes') {
-      awards.push({
-        sourceType: 'notes_completed',
-        sourceId: `${item.id}-completed`,
-        xp: 15,
-        reason: `Completed notes: ${item.title}`,
-      });
-    } else if (item.type === 'reflection') {
-      awards.push({
-        sourceType: 'reflection_completed',
-        sourceId: `${item.id}-completed`,
-        xp: 15,
-        reason: `Completed reflection: ${item.title}`,
+        xp: completion.xp,
+        reason: `Completed ${item.type}: ${item.title}`,
       });
     }
   }
 
-  // 2. Problem set milestones
-  if (item.type === 'problem_set') {
-    const startedStatuses = [
-      'started',
-      'blocked',
-      'completed',
-      'submitted',
-      'accepted',
-    ];
-    if (startedStatuses.includes(status)) {
+  // 2. Status milestones by item type
+  for (const milestone of policy.statusMilestones) {
+    if (
+      milestone.itemType === item.type &&
+      milestone.statuses.includes(status)
+    ) {
       awards.push({
-        sourceType: 'problem_set_started',
-        sourceId: `${item.id}-started`,
-        xp: 20,
-        reason: `Started problem set: ${item.title}`,
-      });
-    }
-
-    const submittedStatuses = ['submitted', 'accepted'];
-    if (submittedStatuses.includes(status)) {
-      awards.push({
-        sourceType: 'problem_set_submitted',
-        sourceId: `${item.id}-submitted`,
-        xp: 75,
-        reason: `Submitted problem set: ${item.title}`,
-      });
-    }
-
-    if (status === 'accepted') {
-      awards.push({
-        sourceType: 'problem_set_accepted',
-        sourceId: `${item.id}-accepted`,
-        xp: 125,
-        reason: `Accepted problem set: ${item.title}`,
+        sourceType: statusMilestoneSourceType(
+          milestone.itemType,
+          milestone.milestone,
+        ),
+        sourceId: `${item.id}-${milestone.milestone}`,
+        xp: milestone.xp,
+        reason: `${milestone.reasonLabel}: ${item.title}`,
       });
     }
   }
 
-  // 3. Required week unit completion
-  if (unit.type === 'week' && unit.required) {
+  // 3. Required unit completion bonus
+  const unitBonus = policy.unitCompletionBonuses.find(
+    (bonus) => bonus.unitType === unit.type,
+  );
+  if (unitBonus !== undefined && unit.required) {
     const requiredItems = allUnitItems.filter((i) => i.required);
     if (requiredItems.length > 0) {
       const allRequiredCompleted = requiredItems.every((ui) => {
@@ -230,46 +227,38 @@ export function evaluateProgressXp(params: {
 
       if (allRequiredCompleted) {
         awards.push({
-          sourceType: 'week_completed',
+          sourceType: unitCompletionSourceType(unit.type),
           sourceId: unit.id,
-          xp: 150,
+          xp: unitBonus.xp,
           reason: `Completed all required items for ${unit.title}`,
         });
       }
     }
   }
 
-  // 4. Final project milestones
-  if (item.id === 'final-project-build' && isItemComplete(status)) {
-    awards.push({
-      sourceType: 'final_project_build_completed',
-      sourceId: 'final-project-build-completed',
-      xp: 250,
-      reason: 'Completed final project build',
-    });
-  }
+  // 4. Item milestones
+  if (isItemComplete(status)) {
+    for (const milestone of policy.itemMilestones) {
+      if (!milestone.itemIds.includes(item.id)) continue;
 
-  if (
-    (item.id === 'final-project-readme' ||
-      item.id === 'final-project-video-demo') &&
-    isItemComplete(status)
-  ) {
-    const otherId =
-      item.id === 'final-project-readme'
-        ? 'final-project-video-demo'
-        : 'final-project-readme';
-    const otherProgress = finalProjectProgress.find(
-      (p) => p.itemId === otherId,
-    );
-    const otherComplete = otherProgress && isItemComplete(otherProgress.status);
-
-    if (otherComplete) {
-      awards.push({
-        sourceType: 'final_project_readme_demo_completed',
-        sourceId: 'final-project-readme-demo-combined',
-        xp: 200,
-        reason: 'Completed both final project README and video demo',
+      const othersComplete = milestone.itemIds.every((otherId) => {
+        if (otherId === item.id) return true;
+        const otherProgress = milestoneProgress.find(
+          (p) => p.itemId === otherId,
+        );
+        return (
+          otherProgress !== undefined && isItemComplete(otherProgress.status)
+        );
       });
+
+      if (othersComplete) {
+        awards.push({
+          sourceType: milestone.sourceType,
+          sourceId: milestone.sourceId,
+          xp: milestone.xp,
+          reason: milestone.reason,
+        });
+      }
     }
   }
 
@@ -281,12 +270,13 @@ export function getXpAwardSourceKey(sourceType: string, sourceId: string) {
 }
 
 export function evaluateCompletionPreviewXp(params: {
+  policy: XpPolicy;
   allCourseItems: readonly CourseItem[];
   allProgress: readonly ProgressEntry[];
   item: CourseItem;
   unit: CourseUnit;
 }): PotentialXpAward[] {
-  const { allCourseItems, allProgress, item, unit } = params;
+  const { policy, allCourseItems, allProgress, item, unit } = params;
   const completion: ProgressEntry = {
     id: `preview-${item.id}`,
     itemId: item.id,
@@ -295,17 +285,18 @@ export function evaluateCompletionPreviewXp(params: {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   };
-  const sharedFinalReward =
-    item.id === 'final-project-readme' ||
-    item.id === 'final-project-video-demo';
-  const finalProjectProgress = sharedFinalReward
-    ? ['final-project-readme', 'final-project-video-demo'].map((id) => ({
-        ...completion,
-        itemId: id,
-      }))
-    : [...allProgress];
+  // A shared milestone is previewed as if every linked item were complete.
+  const linkedItemIds = getLinkedMilestoneItemIds(policy, item.id);
+  const milestoneProgress =
+    linkedItemIds.length > 0
+      ? linkedItemIds.map((id) => ({
+          ...completion,
+          itemId: id,
+        }))
+      : [...allProgress];
 
   return evaluateProgressXp({
+    policy,
     item,
     unit,
     progressEntry: completion,
@@ -313,6 +304,6 @@ export function evaluateCompletionPreviewXp(params: {
       (candidate) => candidate.unitId === unit.id,
     ),
     allUnitProgress: [...allProgress],
-    finalProjectProgress,
+    milestoneProgress,
   });
 }

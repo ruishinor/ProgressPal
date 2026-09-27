@@ -17,6 +17,7 @@ import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { StudySessionsSurface } from '@/features/sessions';
 import * as database from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const appState = vi.hoisted(() => ({
   coordination: { canWrite: true },
@@ -108,13 +109,16 @@ describe('Confirmed save outcomes and read recovery', () => {
   ] as const)(
     'corrects %s backwards without replaying rewards',
     async (itemId, originalStatus, correctedStatus) => {
-      await database.upsertProgressAndAwardXp({
-        itemId,
-        status: originalStatus,
-        confidence: 3,
-        evidenceText: 'Synthetic submission note',
-        evidenceType: 'self_report',
-      });
+      await database.upsertProgressAndAwardXp(
+        {
+          itemId,
+          status: originalStatus,
+          confidence: 3,
+          evidenceText: 'Synthetic submission note',
+          evidenceType: 'self_report',
+        },
+        { policy: cs50Policy },
+      );
       const before = await database.getDatabaseSnapshot();
       renderRoute('/rpg/resource/' + itemId);
       const progress = await screen.findByLabelText('Progress');
@@ -164,13 +168,16 @@ describe('Confirmed save outcomes and read recovery', () => {
       expect(corrected.xpTransactions).toEqual(before.xpTransactions);
       expect(corrected.achievementUnlocks).toEqual(before.achievementUnlocks);
       expect(screen.getByText('Task XP earned')).toBeInTheDocument();
-      await database.upsertProgressAndAwardXp({
-        itemId,
-        status: originalStatus,
-        confidence: 3,
-        evidenceText: 'Synthetic submission note',
-        evidenceType: 'self_report',
-      });
+      await database.upsertProgressAndAwardXp(
+        {
+          itemId,
+          status: originalStatus,
+          confidence: 3,
+          evidenceText: 'Synthetic submission note',
+          evidenceType: 'self_report',
+        },
+        { policy: cs50Policy },
+      );
       expect((await database.getDatabaseSnapshot()).xpTransactions).toEqual(
         before.xpTransactions,
       );

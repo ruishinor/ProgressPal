@@ -27,6 +27,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const moduleStores = [
   'content_assets',
@@ -593,7 +594,10 @@ describe('RPG Module read boundary', () => {
     ]);
     probe.reset();
 
-    const data = await getModuleReadData('week-4', { db: context.db });
+    const data = await getModuleReadData('week-4', {
+      policy: cs50Policy,
+      db: context.db,
+    });
     const access = probe.snapshot();
     const xpOperation = access.operations.find(
       (operation) => operation.store === 'xp_transactions',
@@ -644,7 +648,10 @@ describe('RPG Module read boundary', () => {
     );
     probe.reset();
 
-    const data = await getModuleReadData('week-4', { db: context.db });
+    const data = await getModuleReadData('week-4', {
+      policy: cs50Policy,
+      db: context.db,
+    });
     const access = probe.snapshot();
     const aggregate = data?.mediaProgressByAssetId.get(asset.id);
     const mediaOperation = access.operations.find(
@@ -683,7 +690,7 @@ describe('RPG Module read boundary', () => {
 
     await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
-      { db: context.db },
+      { policy: cs50Policy, db: context.db },
     );
     await upsertProgress(
       { itemId: 'week-4-lecture', status: 'started', confidence: 3 },
@@ -713,7 +720,7 @@ describe('RPG Module read boundary', () => {
       ).toBe('Up to +200 XP');
       await upsertProgressAndAwardXp(
         { itemId, status: 'completed', confidence: 3 },
-        { db: context.db },
+        { policy: cs50Policy, db: context.db },
       );
     }
 

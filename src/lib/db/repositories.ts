@@ -30,6 +30,7 @@ import {
   type LearnerProfile,
   type MediaProgressEvent,
   type MediaStopReason,
+  type ProgrammePolicy,
   type ProgressEntry,
   type ResumePoint,
   type StudySession,
@@ -65,8 +66,10 @@ import {
   deriveXpTransactionId,
   evaluateCompletionPreviewXp,
   evaluateProgressXp,
+  getLinkedMilestoneItemIds,
   getXpAwardSourceKey,
   getCrossedBlocks,
+  isUnitCompletionAward,
   type XpSummary,
 } from '@/lib/xp/engine';
 
@@ -426,6 +429,14 @@ type BaseDatabaseOptions = {
   appVersion?: string;
   db?: ProgressPalDatabase;
   now?: DatabaseClock;
+};
+
+/**
+ * Options for paths that apply programme policy. The caller passes the active
+ * programme's policy explicitly (Epic C / C3); there is no default policy.
+ */
+type ProgrammePolicyOptions = BaseDatabaseOptions & {
+  policy: ProgrammePolicy;
 };
 
 type InitializeDatabaseOptions = BaseDatabaseOptions & {
@@ -2620,7 +2631,7 @@ async function evaluateAndUnlockAchievements(
 
 export async function upsertProgressAndAwardXp(
   input: UpsertProgressInput,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<UpsertProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -2673,34 +2684,26 @@ export async function upsertProgressAndAwardXp(
           .anyOf(allUnitItems.map((i) => i.id))
           .toArray();
 
-        let finalProjectProgress: ProgressEntry[] = [];
-        if (
-          item.id === 'final-project-readme' ||
-          item.id === 'final-project-video-demo'
-        ) {
-          const finalProjectUnit = await database.courseUnits
-            .where('type')
-            .equals('final_project')
-            .first();
-          if (finalProjectUnit) {
-            const finalProjectItems = await database.courseItems
-              .where('unitId')
-              .equals(finalProjectUnit.id)
-              .toArray();
-            finalProjectProgress = await database.progressEntries
-              .where('itemId')
-              .anyOf(finalProjectItems.map((i) => i.id))
-              .toArray();
-          }
-        }
+        const linkedItemIds = getLinkedMilestoneItemIds(
+          options.policy.xp,
+          item.id,
+        );
+        const milestoneProgress =
+          linkedItemIds.length > 0
+            ? await database.progressEntries
+                .where('itemId')
+                .anyOf(linkedItemIds)
+                .toArray()
+            : [];
 
         const potentialAwards = evaluateProgressXp({
+          policy: options.policy.xp,
           progressEntry: progressEntry!,
           item,
           unit,
           allUnitItems,
           allUnitProgress,
-          finalProjectProgress,
+          milestoneProgress,
         });
 
         for (const award of potentialAwards) {
@@ -2751,7 +2754,7 @@ export async function upsertProgressAndAwardXp(
 
 export async function logMediaProgressAndAwardXp(
   input: LogMediaProgressInput,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<LogMediaProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -2923,34 +2926,26 @@ export async function logMediaProgressAndAwardXp(
               .anyOf(allUnitItems.map((i) => i.id))
               .toArray();
 
-            let finalProjectProgress: ProgressEntry[] = [];
-            if (
-              item.id === 'final-project-readme' ||
-              item.id === 'final-project-video-demo'
-            ) {
-              const finalProjectUnit = await database.courseUnits
-                .where('type')
-                .equals('final_project')
-                .first();
-              if (finalProjectUnit) {
-                const finalProjectItems = await database.courseItems
-                  .where('unitId')
-                  .equals(finalProjectUnit.id)
-                  .toArray();
-                finalProjectProgress = await database.progressEntries
-                  .where('itemId')
-                  .anyOf(finalProjectItems.map((i) => i.id))
-                  .toArray();
-              }
-            }
+            const linkedItemIds = getLinkedMilestoneItemIds(
+              options.policy.xp,
+              item.id,
+            );
+            const milestoneProgress =
+              linkedItemIds.length > 0
+                ? await database.progressEntries
+                    .where('itemId')
+                    .anyOf(linkedItemIds)
+                    .toArray()
+                : [];
 
             const progressAwards = evaluateProgressXp({
+              policy: options.policy.xp,
               progressEntry,
               item,
               unit,
               allUnitItems,
               allUnitProgress,
-              finalProjectProgress,
+              milestoneProgress,
             });
 
             for (const award of progressAwards) {
@@ -3148,6 +3143,7 @@ function addCoverageRange(ranges: CoveredRange[], range: CoveredRange): void {
 }
 
 function getCourseMapRewardSources(
+  policy: ProgrammePolicy,
   courseUnits: readonly CourseUnit[],
   courseItems: readonly CourseItem[],
   progressEntries: readonly ProgressEntry[],
@@ -3164,12 +3160,13 @@ function getCourseMapRewardSources(
     }
 
     for (const award of evaluateCompletionPreviewXp({
+      policy: policy.xp,
       allCourseItems: courseItems,
       allProgress: progressEntries,
       item,
       unit,
     })) {
-      if (award.sourceType === 'week_completed') {
+      if (isUnitCompletionAward(policy.xp, award)) {
         continue;
       }
 
@@ -3182,6 +3179,7 @@ function getCourseMapRewardSources(
 }
 
 function getResourceRewardSources(
+  policy: ProgrammePolicy,
   courseUnit: CourseUnit,
   courseItems: readonly CourseItem[],
   progressEntries: readonly ProgressEntry[],
@@ -3191,6 +3189,7 @@ function getResourceRewardSources(
   const sourceKeys = new Set<string>();
 
   for (const award of evaluateCompletionPreviewXp({
+    policy: policy.xp,
     allCourseItems: courseItems,
     allProgress: progressEntries,
     item: courseItem,
@@ -3367,8 +3366,10 @@ async function readA4CourseState(
 async function readA4EarnedRewardSourceKeys(
   database: ProgressPalDatabase,
   courseState: CourseStateReadData,
+  policy: ProgrammePolicy,
 ) {
   const rewardSources = getCourseMapRewardSources(
+    policy,
     courseState.courseUnits,
     courseState.courseItems,
     courseState.progressEntries,
@@ -3476,7 +3477,7 @@ async function readA4SessionHistory(
 }
 
 export async function getRpgHudReadData(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<RpgHudReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3494,7 +3495,7 @@ export async function getRpgHudReadData(
   return database.transaction('r', [...tables], async () => {
     const courseState = await readA4CourseState(database);
     const [earnedRewardSourceKeys, xp] = await Promise.all([
-      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4EarnedRewardSourceKeys(database, courseState, options.policy),
       readA4XpHistory(database, { collectRecent: false }),
     ]);
 
@@ -3508,7 +3509,7 @@ export async function getRpgHudReadData(
 
 export async function getRpgHubReadData(
   range: RpgHubReadRange,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<RpgHubReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3527,7 +3528,7 @@ export async function getRpgHubReadData(
   return database.transaction('r', [...tables], async () => {
     const courseState = await readA4CourseState(database);
     const [earnedRewardSourceKeys, sessions, xp] = await Promise.all([
-      readA4EarnedRewardSourceKeys(database, courseState),
+      readA4EarnedRewardSourceKeys(database, courseState, options.policy),
       readA4SessionHistory(database, range),
       readA4XpHistory(database, { collectRecent: true, range }),
     ]);
@@ -3593,7 +3594,7 @@ export async function getRpgHeroReadData(
 }
 
 export async function getCourseMapReadData(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<CourseMapReadData> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3700,6 +3701,7 @@ export async function getCourseMapReadData(
     }
 
     const rewardSources = getCourseMapRewardSources(
+      options.policy,
       parsedCourseUnits,
       parsedCourseItems,
       parsedProgressEntries,
@@ -3753,7 +3755,7 @@ export async function getCourseMapReadData(
 
 export async function getModuleReadData(
   unitId: string,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<ModuleReadData | null> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -3876,6 +3878,7 @@ export async function getModuleReadData(
     }
 
     const rewardSources = getCourseMapRewardSources(
+      options.policy,
       [courseUnit],
       courseItems,
       parsedProgressEntries,
@@ -3929,7 +3932,7 @@ export async function getModuleReadData(
 
 export async function getResourceReadData(
   itemId: string,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<ResourceReadData | null> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const tables = [
@@ -4064,6 +4067,7 @@ export async function getResourceReadData(
     );
 
     const rewardSources = getResourceRewardSources(
+      options.policy,
       courseUnit,
       courseItems,
       parsedProgressEntries,

@@ -19,6 +19,7 @@ import {
 import type { ProgressStatus, StudySessionMode } from '@/lib/domain';
 
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 7 — baseline schema-2 migration fixture builder.
@@ -138,7 +139,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
             ? { evidenceText: syntheticEvidence }
             : {}),
         },
-        options,
+        { ...options, policy: cs50Policy },
       );
     }
 
@@ -156,7 +157,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
         startSecond: 0,
         stoppedBecause: 'reached_limit',
       },
-      options,
+      { ...options, policy: cs50Policy },
     );
     await logMediaProgressAndAwardXp(
       {
@@ -167,7 +168,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
         startSecond: 900,
         stoppedBecause: 'completed_slice',
       },
-      options,
+      { ...options, policy: cs50Policy },
     );
     await logMediaProgressAndAwardXp(
       {
@@ -178,7 +179,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
         startSecond: 1200,
         stoppedBecause: 'completed_slice',
       },
-      options,
+      { ...options, policy: cs50Policy },
     );
     await logMediaProgressAndAwardXp(
       {
@@ -189,7 +190,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
         startSecond: 0,
         stoppedBecause: 'interruption',
       },
-      options,
+      { ...options, policy: cs50Policy },
     );
 
     for (const [id, unitId, itemId, mode, minutes] of sessionSteps) {

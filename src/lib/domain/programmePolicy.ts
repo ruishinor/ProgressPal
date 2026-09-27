@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { courseUnitTypeValues } from '@/lib/domain/constants';
+import {
+  courseItemTypeValues,
+  courseUnitTypeValues,
+  progressStatusValues,
+} from '@/lib/domain/constants';
 import type { CourseSeed } from '@/lib/domain/types';
 
 /**
@@ -28,6 +32,137 @@ export function findCatalogueRuleIssues(
     .map((unitType) => `catalogue must contain a ${unitType} unit`);
 }
 
+/*
+ * XP award vocabulary. These formats are shared persisted vocabulary (C0
+ * contract §4a): a changed `sourceType` or `sourceId` would re-award XP,
+ * because dedupe is by `sourceType` + `sourceId`.
+ */
+
+export function completionAwardSourceType(itemType: string): string {
+  return `${itemType}_completed`;
+}
+
+export function statusMilestoneSourceType(
+  itemType: string,
+  milestone: string,
+): string {
+  return `${itemType}_${milestone}`;
+}
+
+export function unitCompletionSourceType(unitType: string): string {
+  return `${unitType}_completed`;
+}
+
+const xpAmountSchema = z.number().int().positive();
+const vocabularyKeySchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:_[a-z0-9]+)*$/, 'must be snake_case');
+const entityIdSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/, 'must be an entity id');
+const reasonSchema = z.string().trim().min(1);
+
+export const XpPolicySchema = z
+  .object({
+    /**
+     * Completion XP by item type. Award identity: `sourceType`
+     * `<itemType>_completed`, `sourceId` `<itemId>-completed`, reason
+     * `Completed <itemType>: <item title>`.
+     */
+    completionAwards: z.array(
+      z
+        .object({
+          itemType: z.enum(courseItemTypeValues),
+          xp: xpAmountSchema,
+        })
+        .strict(),
+    ),
+    /**
+     * Awards when an item of a type reaches one of the listed statuses.
+     * Award identity: `sourceType` `<itemType>_<milestone>`, `sourceId`
+     * `<itemId>-<milestone>`, reason `<reasonLabel>: <item title>`.
+     */
+    statusMilestones: z.array(
+      z
+        .object({
+          itemType: z.enum(courseItemTypeValues),
+          milestone: vocabularyKeySchema,
+          statuses: z.array(z.enum(progressStatusValues)).min(1),
+          xp: xpAmountSchema,
+          reasonLabel: reasonSchema,
+        })
+        .strict(),
+    ),
+    /**
+     * Bonus when every required item of a required unit of this type is
+     * complete. Award identity: `sourceType` `<unitType>_completed`,
+     * `sourceId` the unit ID, reason
+     * `Completed all required items for <unit title>`.
+     */
+    unitCompletionBonuses: z.array(
+      z
+        .object({
+          unitType: z.enum(courseUnitTypeValues),
+          xp: xpAmountSchema,
+        })
+        .strict(),
+    ),
+    /**
+     * Fixed-identity milestones, awarded when a listed item is saved complete
+     * and every other listed item is already complete.
+     */
+    itemMilestones: z.array(
+      z
+        .object({
+          sourceType: vocabularyKeySchema,
+          sourceId: entityIdSchema,
+          itemIds: z.array(entityIdSchema).min(1),
+          xp: xpAmountSchema,
+          reason: reasonSchema,
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+  .superRefine((policy, ctx) => {
+    const sourceTypes = [
+      ...policy.completionAwards.map((award) =>
+        completionAwardSourceType(award.itemType),
+      ),
+      ...policy.statusMilestones.map((milestone) =>
+        statusMilestoneSourceType(milestone.itemType, milestone.milestone),
+      ),
+      ...policy.unitCompletionBonuses.map((bonus) =>
+        unitCompletionSourceType(bonus.unitType),
+      ),
+      ...policy.itemMilestones.map((milestone) => milestone.sourceType),
+    ];
+    const report = (values: readonly string[], label: string) => {
+      const seen = new Set<string>();
+      for (const value of values) {
+        if (seen.has(value)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Duplicate ${label} "${value}" is not allowed.`,
+          });
+        }
+        seen.add(value);
+      }
+    };
+
+    report(sourceTypes, 'XP sourceType');
+    report(
+      policy.itemMilestones.map((milestone) => milestone.sourceId),
+      'item milestone sourceId',
+    );
+    for (const milestone of policy.itemMilestones) {
+      report(milestone.itemIds, `item in milestone "${milestone.sourceId}"`);
+    }
+  });
+
+export type XpPolicy = z.infer<typeof XpPolicySchema>;
+
 export type ProgrammePolicy = {
   readonly catalogueRules: CatalogueRules;
+  readonly xp: XpPolicy;
 };

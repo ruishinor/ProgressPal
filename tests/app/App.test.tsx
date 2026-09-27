@@ -40,6 +40,7 @@ import {
 } from '@/lib/storage';
 import { bundledCourseSeed } from '@/seed';
 import { FakeLockManager } from '../lib/localDataCoordinationFakes';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 function dispatchPeerMessage(
   kind: LocalCoordinationMessage['kind'],
@@ -1020,7 +1021,7 @@ describe('App', () => {
         status: 'completed',
         confidence: 5,
       },
-      { now: () => '2026-06-12T12:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T12:00:00.000Z' },
     );
 
     await renderAppAtRoute('/achievements');
@@ -1535,7 +1536,7 @@ describe('App', () => {
         confidence: 2,
         notes: 'Initial save.',
       },
-      { now: () => '2026-06-18T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
     );
 
     await renderAppAtRoute('/course/week-0-problem-set');
@@ -1569,7 +1570,7 @@ describe('App', () => {
         confidence: 2,
         notes: 'First save.',
       },
-      { now: () => '2026-06-18T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
     );
     const snapshotAfterFirst = await getDatabaseSnapshot();
 
@@ -1608,7 +1609,7 @@ describe('App', () => {
         confidence: 2,
         notes: 'Setup note.',
       },
-      { now: () => '2026-06-18T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
     );
     const before = await getDatabaseSnapshot();
 
@@ -1668,7 +1669,7 @@ describe('App', () => {
         notes: 'Submitted first attempt.',
         evidenceText: 'submit50 run.',
       },
-      { now: () => '2026-06-18T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T11:00:00.000Z' },
     );
     const snapshotBeforeEdit = await getDatabaseSnapshot();
 
@@ -2025,7 +2026,7 @@ describe('App', () => {
     // Seed some XP so a level is established
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
-      { now: () => '2026-06-18T10:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T10:00:00.000Z' },
     );
 
     await renderAppAtRoute('/achievements');
@@ -2050,7 +2051,7 @@ describe('App', () => {
     // Seed some XP so a level is established
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-problem-set', status: 'started', confidence: 3 },
-      { now: () => '2026-06-18T10:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-18T10:00:00.000Z' },
     );
 
     await renderAppAtRoute('/course');
@@ -2174,16 +2175,19 @@ describe('RPG routes', () => {
     const endedAt = new Date(now.getTime() - 5 * 60_000).toISOString();
 
     await seedOnboardedLearner();
-    await upsertProgressAndAwardXp({
-      completedAt: now.toISOString(),
-      confidence: 3,
-      evidenceText: undefined,
-      evidenceType: undefined,
-      itemId: 'week-0-lecture',
-      notes: 'Completed from the RPG route fixture.',
-      startedAt,
-      status: 'completed',
-    });
+    await upsertProgressAndAwardXp(
+      {
+        completedAt: now.toISOString(),
+        confidence: 3,
+        evidenceText: undefined,
+        evidenceType: undefined,
+        itemId: 'week-0-lecture',
+        notes: 'Completed from the RPG route fixture.',
+        startedAt,
+        status: 'completed',
+      },
+      { policy: cs50Policy },
+    );
     await upsertProgress({
       completedAt: undefined,
       confidence: 2,
@@ -2259,7 +2263,7 @@ describe('RPG routes', () => {
         startedAt: '2026-06-21T10:00:00.000Z',
         status: 'started',
       },
-      { now: () => '2026-06-21T10:05:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-21T10:05:00.000Z' },
     );
     await addStudySessionAndAwardXp(
       {
@@ -2289,7 +2293,7 @@ describe('RPG routes', () => {
         startedAt: '2026-06-12T11:00:00.000Z',
         status: 'completed',
       },
-      { now: () => '2026-06-12T12:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T12:00:00.000Z' },
     );
   }
 
@@ -4126,11 +4130,11 @@ describe('Dashboard route', () => {
         energyAfter: 3,
         stoppedBecause: 'reached_limit',
       },
-      { now: () => '2026-06-12T10:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T10:00:00.000Z' },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { now: () => '2026-06-12T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
     );
     await addStudySessionAndAwardXp(
       {
@@ -4300,11 +4304,11 @@ describe('Insights route', () => {
         energyAfter: 3,
         stoppedBecause: 'reached_limit',
       },
-      { now: () => '2026-06-12T10:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T10:00:00.000Z' },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { now: () => '2026-06-12T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
     );
     await addStudySessionAndAwardXp(
       {
@@ -4409,7 +4413,7 @@ describe('Settings route', () => {
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },
-      { now: () => '2026-06-12T11:00:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T11:00:00.000Z' },
     );
   }
 

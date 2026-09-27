@@ -30,6 +30,7 @@ import {
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 const legacyVersionOneStoreDefinitions = {
   app_meta: '&id, schemaVersion, seedVersion',
@@ -902,7 +903,7 @@ describe('repository local-write coordination', () => {
           itemId: 'week-0-lecture',
           status: 'completed',
         },
-        { db: testDatabase.db },
+        { policy: cs50Policy, db: testDatabase.db },
       ),
     ).rejects.toThrow('Injected XP summary failure.');
     xpRead.mockRestore();
@@ -936,7 +937,10 @@ describe('repository local-write coordination', () => {
     );
 
     await expect(
-      logMediaProgressAndAwardXp(input, { db: testDatabase.db }),
+      logMediaProgressAndAwardXp(input, {
+        policy: cs50Policy,
+        db: testDatabase.db,
+      }),
     ).rejects.toThrow('Injected XP summary failure.');
     expect(await getDatabaseSnapshot({ db: testDatabase.db })).toEqual(before);
     expect(
@@ -944,7 +948,10 @@ describe('repository local-write coordination', () => {
     ).toBe(0);
 
     await expect(
-      logMediaProgressAndAwardXp(input, { db: testDatabase.db }),
+      logMediaProgressAndAwardXp(input, {
+        policy: cs50Policy,
+        db: testDatabase.db,
+      }),
     ).resolves.toMatchObject({
       event: { assetId: 'week-0-lecture-asset' },
     });

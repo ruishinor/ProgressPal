@@ -6,8 +6,11 @@ import type {
 } from '@/lib/domain';
 import {
   evaluateCompletionPreviewXp,
+  getLinkedMilestoneItemIds,
   getXpAwardSourceKey,
+  isUnitCompletionAward,
 } from '@/lib/xp/engine';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 type QuestRewardLedger =
   | {
@@ -25,12 +28,16 @@ export type QuestRewardData = {
   progressEntries: readonly ProgressEntry[];
 } & QuestRewardLedger;
 
-/** A read-only incentive from the existing engine and earned-reward ledger. */
+/**
+ * A read-only incentive from the existing engine and earned-reward ledger.
+ * The XP policy is the active programme's (Epic C / C3).
+ */
 export function buildQuestRewardLabel(
   snapshot: QuestRewardData,
   itemId: string,
   detailed = false,
 ) {
+  const policy = getActiveProgrammeDefinition().policy.xp;
   const item = snapshot.courseItems.find(
     (candidate) => candidate.id === itemId,
   );
@@ -40,9 +47,9 @@ export function buildQuestRewardLabel(
   if (!item || !unit) return 'No task XP';
 
   const sharedFinalReward =
-    item.id === 'final-project-readme' ||
-    item.id === 'final-project-video-demo';
+    getLinkedMilestoneItemIds(policy, item.id).length > 0;
   const awards = evaluateCompletionPreviewXp({
+    policy,
     allCourseItems: snapshot.courseItems,
     allProgress: snapshot.progressEntries,
     item,
@@ -63,13 +70,13 @@ export function buildQuestRewardLabel(
     return !earned;
   });
   const taskAwards = awards.filter(
-    (award) => award.sourceType !== 'week_completed',
+    (award) => !isUnitCompletionAward(policy, award),
   );
   const taskXp = remaining
-    .filter((award) => award.sourceType !== 'week_completed')
+    .filter((award) => !isUnitCompletionAward(policy, award))
     .reduce((sum, award) => sum + award.xp, 0);
   const weekXp = remaining
-    .filter((award) => award.sourceType === 'week_completed')
+    .filter((award) => isUnitCompletionAward(policy, award))
     .reduce((sum, award) => sum + award.xp, 0);
   const taskLabel =
     taskXp > 0

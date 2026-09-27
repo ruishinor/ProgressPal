@@ -5,7 +5,7 @@ import {
   type ProgrammeDefinition,
 } from '../definition';
 import { cs50ExternalResources } from './externalResources';
-import { cs50CatalogueRules } from './policy';
+import { cs50CatalogueRules, cs50XpPolicy } from './policy';
 import { cs50StudyGuides } from './studyGuides';
 
 /**
@@ -23,6 +23,7 @@ export const cs50x2026Definition: ProgrammeDefinition =
     catalogue: bundledCourseSeed,
     policy: {
       catalogueRules: cs50CatalogueRules,
+      xp: cs50XpPolicy,
     },
     content: {
       externalResources: cs50ExternalResources,

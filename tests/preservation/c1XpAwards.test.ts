@@ -14,6 +14,7 @@ import {
   readMaterializedCatalogue,
 } from './c1Support';
 import { buildC1XpRows, type C1Award, type C1XpRow } from './c1XpTable';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence areas 3 and 5 — XP awards and persisted reward
@@ -282,7 +283,7 @@ describe('C1 XP ledger through the real mutation path (mutation)', () => {
     const save = (input: Omit<UpsertProgressInput, 'confidence'>) =>
       upsertProgressAndAwardXp(
         { confidence: 3, ...input },
-        { db: context.db, now },
+        { policy: cs50Policy, db: context.db, now },
       );
     const awarded = async (input: Omit<UpsertProgressInput, 'confidence'>) =>
       (await save(input)).awardedTransactions.map(

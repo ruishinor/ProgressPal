@@ -6,6 +6,7 @@ import {
   evaluateProgressXp,
 } from '@/lib/xp/engine';
 import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 describe('XP Engine Formulas', () => {
   it('correctly maps XP thresholds to levels', () => {
@@ -172,6 +173,7 @@ describe('Course Progress Milestones Evaluation', () => {
     const progress = dummyProgress('lecture-1', 'completed');
 
     const awards = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progress,
       item: lecture,
       unit,
@@ -194,6 +196,7 @@ describe('Course Progress Milestones Evaluation', () => {
     // Started status
     const progressStart = dummyProgress('pset-1', 'started');
     const startAwards = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progressStart,
       item: pset,
       unit,
@@ -212,6 +215,7 @@ describe('Course Progress Milestones Evaluation', () => {
     // Submitted status (triggers both started and submitted)
     const progressSubmit = dummyProgress('pset-1', 'submitted');
     const submitAwards = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progressSubmit,
       item: pset,
       unit,
@@ -234,6 +238,7 @@ describe('Course Progress Milestones Evaluation', () => {
     // Accepted status (triggers all three)
     const progressAccept = dummyProgress('pset-1', 'accepted');
     const acceptAwards = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progressAccept,
       item: pset,
       unit,
@@ -272,6 +277,7 @@ describe('Course Progress Milestones Evaluation', () => {
 
     // Item 1 complete, Item 2 in progress -> Week NOT complete
     const awards1 = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progress1,
       item: item1,
       unit,
@@ -283,6 +289,7 @@ describe('Course Progress Milestones Evaluation', () => {
     // Item 1 complete, Item 2 complete -> Week is complete (even though item3 is not complete since it is optional)
     const progress2Complete = dummyProgress('item-2', 'accepted');
     const awards2 = evaluateProgressXp({
+      policy: cs50Policy.xp,
       progressEntry: progress2Complete,
       item: item2,
       unit,

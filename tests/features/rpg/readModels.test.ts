@@ -30,6 +30,7 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 describe('RPG read models', () => {
   let testDatabase: TestDatabaseContext | null = null;
@@ -426,7 +427,7 @@ describe('RPG read models', () => {
     ).toBe('Up to +40 XP');
     await upsertProgressAndAwardXp(
       { itemId: 'week-4-lecture', status: 'completed', confidence: 3 },
-      { db },
+      { policy: cs50Policy, db },
     );
     // Moving progress backwards never makes the once-only award available again.
     await upsertProgress(
@@ -452,7 +453,7 @@ describe('RPG read models', () => {
     );
     await upsertProgressAndAwardXp(
       { itemId, status: 'started', confidence: 3 },
-      { db },
+      { policy: cs50Policy, db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
@@ -461,14 +462,14 @@ describe('RPG read models', () => {
     );
     await upsertProgressAndAwardXp(
       { itemId, status: 'submitted', confidence: 3 },
-      { db },
+      { policy: cs50Policy, db },
     );
     expect(
       (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
     ).toBe('Up to 125 XP remaining for this task');
     await upsertProgressAndAwardXp(
       { itemId, status: 'accepted', confidence: 3 },
-      { db },
+      { policy: cs50Policy, db },
     );
     expect(
       (await expectReadOnly(() => loadRpgStudyResourceSummary(itemId, { db })))
@@ -491,7 +492,7 @@ describe('RPG read models', () => {
       );
       await upsertProgressAndAwardXp(
         { itemId, status: 'completed', confidence: 3 },
-        { db },
+        { policy: cs50Policy, db },
       );
     }
     for (const itemId of itemIds) {
@@ -673,10 +674,7 @@ describe('RPG read models', () => {
         startedAt: '2026-06-21T09:00:00.000Z',
         status: 'completed',
       },
-      {
-        db,
-        now: createClock('2026-06-21T10:05:00.000Z'),
-      },
+      { policy: cs50Policy, db, now: createClock('2026-06-21T10:05:00.000Z') },
     );
 
     const badgeGallery = await expectReadOnly(() =>
@@ -730,10 +728,7 @@ describe('RPG read models', () => {
         startedAt: '2026-06-21T09:00:00.000Z',
         status: 'completed',
       },
-      {
-        db,
-        now: createClock('2026-06-21T10:05:00.000Z'),
-      },
+      { policy: cs50Policy, db, now: createClock('2026-06-21T10:05:00.000Z') },
     );
 
     const hero = await expectReadOnly(() =>

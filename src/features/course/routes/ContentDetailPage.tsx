@@ -25,6 +25,7 @@ import { achievementDefinitionsById } from '@/lib/achievements';
 import { useAppState } from '@/lib/appState';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { getItemGuide, type ItemGuide } from '@/features/course/guideContent';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
   buildCourseDetailView,
@@ -671,36 +672,39 @@ export function ContentDetailPage() {
     try {
       const xpResult = await runLocalMutation(
         () =>
-          upsertProgressAndAwardXp({
-            itemId: detail.item.id,
-            status: progressForm.values.status,
-            startedAt: getDefaultStartedAt(
-              detail.progressEntry,
-              progressForm.values.status,
-              timestamp,
-            ),
-            completedAt: getDefaultCompletedAt(
-              detail.progressEntry,
-              progressForm.values.status,
-              timestamp,
-            ),
-            confidence:
-              progressForm.values.status === 'skipped_optional'
-                ? 0
-                : parsedConfidence,
-            notes:
-              progressForm.values.notes.trim().length === 0
-                ? undefined
-                : progressForm.values.notes.trim(),
-            evidenceType:
-              progressForm.values.evidenceText.trim().length === 0
-                ? undefined
-                : 'self_report',
-            evidenceText:
-              progressForm.values.evidenceText.trim().length === 0
-                ? undefined
-                : progressForm.values.evidenceText.trim(),
-          }),
+          upsertProgressAndAwardXp(
+            {
+              itemId: detail.item.id,
+              status: progressForm.values.status,
+              startedAt: getDefaultStartedAt(
+                detail.progressEntry,
+                progressForm.values.status,
+                timestamp,
+              ),
+              completedAt: getDefaultCompletedAt(
+                detail.progressEntry,
+                progressForm.values.status,
+                timestamp,
+              ),
+              confidence:
+                progressForm.values.status === 'skipped_optional'
+                  ? 0
+                  : parsedConfidence,
+              notes:
+                progressForm.values.notes.trim().length === 0
+                  ? undefined
+                  : progressForm.values.notes.trim(),
+              evidenceType:
+                progressForm.values.evidenceText.trim().length === 0
+                  ? undefined
+                  : 'self_report',
+              evidenceText:
+                progressForm.values.evidenceText.trim().length === 0
+                  ? undefined
+                  : progressForm.values.evidenceText.trim(),
+            },
+            { policy: getActiveProgrammeDefinition().policy },
+          ),
         { invalidateRoute: false },
       );
 
@@ -827,18 +831,21 @@ export function ContentDetailPage() {
     try {
       const xpResult = await runLocalMutation(
         () =>
-          logMediaProgressAndAwardXp({
-            assetId: asset.id,
-            endSecond,
-            energyAfter: Number.parseInt(logForm.energyAfter, 10),
-            energyBefore: Number.parseInt(logForm.energyBefore, 10),
-            notes:
-              logForm.notes.trim().length === 0
-                ? undefined
-                : logForm.notes.trim(),
-            startSecond,
-            stoppedBecause: logForm.stoppedBecause,
-          } satisfies LogMediaProgressInput),
+          logMediaProgressAndAwardXp(
+            {
+              assetId: asset.id,
+              endSecond,
+              energyAfter: Number.parseInt(logForm.energyAfter, 10),
+              energyBefore: Number.parseInt(logForm.energyBefore, 10),
+              notes:
+                logForm.notes.trim().length === 0
+                  ? undefined
+                  : logForm.notes.trim(),
+              startSecond,
+              stoppedBecause: logForm.stoppedBecause,
+            } satisfies LogMediaProgressInput,
+            { policy: getActiveProgrammeDefinition().policy },
+          ),
         { invalidateRoute: false },
       );
 

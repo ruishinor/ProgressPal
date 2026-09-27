@@ -26,6 +26,7 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const now = '2026-09-21T12:00:00.000Z';
 type Snapshot = Awaited<ReturnType<typeof getDatabaseSnapshot>>;
@@ -289,7 +290,7 @@ describe('A7 aggregate preservation', () => {
                 confidence: 5,
                 evidenceText: 'A7 synthetic completed work',
               },
-              options,
+              { ...options, policy: cs50Policy },
             )
           : addStudySessionAndAwardXp(
               {

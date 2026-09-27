@@ -12,6 +12,7 @@ import {
 } from '@/lib/xp/engine';
 
 import { c1Timestamp } from './c1Support';
+import { cs50Policy } from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 XP evidence builder (test-only). Evaluates the REAL XP engine
@@ -111,6 +112,7 @@ export function buildC1XpRows(catalogue: {
     const unit = unitsById.get(item.unitId)!;
     return toC1Awards(
       evaluateProgressXp({
+        policy: cs50Policy.xp,
         allUnitItems: itemsByUnit(unit.id),
         allUnitProgress: [...others],
         item,
@@ -118,7 +120,7 @@ export function buildC1XpRows(catalogue: {
         unit,
         ...(finalProjectProgress === undefined
           ? {}
-          : { finalProjectProgress: [...finalProjectProgress] }),
+          : { milestoneProgress: [...finalProjectProgress] }),
       }),
     );
   };
@@ -191,6 +193,7 @@ export function buildC1PreviewRows(catalogue: {
   return catalogue.items.map((item) => ({
     awards: toC1Awards(
       evaluateCompletionPreviewXp({
+        policy: cs50Policy.xp,
         allCourseItems: catalogue.items,
         allProgress: [],
         item,
