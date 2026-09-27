@@ -29,7 +29,7 @@ import {
   type SaveLearnerProfileInput,
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
 import { router } from '@/app/router/router';
 import { App } from '@/app/App';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
@@ -2198,15 +2198,18 @@ describe('RPG routes', () => {
       startedAt,
       status: 'started',
     });
-    await addStudySessionAndAwardXp({
-      durationMinutes: 30,
-      endedAt,
-      itemId: 'week-4-lecture',
-      mode: 'watching',
-      notes: 'Hub fixture session.',
-      startedAt,
-      unitId: 'week-4',
-    });
+    await addStudySessionAndAwardXp(
+      {
+        durationMinutes: 30,
+        endedAt,
+        itemId: 'week-4-lecture',
+        mode: 'watching',
+        notes: 'Hub fixture session.',
+        startedAt,
+        unitId: 'week-4',
+      },
+      { policy: cs50Policy },
+    );
   }
 
   async function seedOnboardedLearnerWithRpgMapProgress() {
@@ -2275,7 +2278,7 @@ describe('RPG routes', () => {
         startedAt: '2026-06-21T10:05:00.000Z',
         unitId: 'week-4',
       },
-      { now: () => '2026-06-21T10:31:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-21T10:31:00.000Z' },
     );
   }
 
@@ -4145,7 +4148,7 @@ describe('Dashboard route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { now: () => '2026-06-12T08:45:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
     );
   }
 
@@ -4319,7 +4322,7 @@ describe('Insights route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { now: () => '2026-06-12T08:45:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
     );
   }
 
@@ -4409,7 +4412,7 @@ describe('Settings route', () => {
         durationMinutes: 45,
         mode: 'debugging',
       },
-      { now: () => '2026-06-12T08:45:00.000Z' },
+      { policy: cs50Policy, now: () => '2026-06-12T08:45:00.000Z' },
     );
     await upsertProgressAndAwardXp(
       { itemId: 'week-0-pset', status: 'submitted', confidence: 4 },

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+  composeAchievementCatalogue,
+  defineAchievement,
+  sharedAchievementDefinitions,
+} from '@/lib/achievements';
 import { upsertProgressAndAwardXp } from '@/lib/db';
 import {
   courseItemTypeValues,
@@ -63,6 +68,7 @@ const testPolicy: ProgrammePolicy = {
   ...cs50.policy,
   catalogueRules: { requiredUnitTypes: [] },
   xp: { ...cs50.policy.xp, itemMilestones: [] },
+  achievements: sharedAchievementDefinitions,
 };
 
 /** A test-only definition; it is never registered. */
@@ -268,5 +274,140 @@ describe('submission workflow is programme policy', () => {
         }),
       ),
     ).toThrow(/Correction item type "lab" has no submission workflow/);
+  });
+});
+
+describe('composed achievement catalogue (C0 contract §5)', () => {
+  const sharedIds = sharedAchievementDefinitions.map(
+    (definition) => definition.id,
+  );
+  const programmeDefinition = defineAchievement({
+    id: 'test-only-badge',
+    title: 'Test Only',
+    description: 'A test-only programme achievement.',
+    category: 'course_progress',
+    ruleType: 'item_completed',
+    ruleConfig: { itemId: 'module-a-reading' },
+  });
+  const compose = (
+    programmeDefinitions: Parameters<
+      typeof composeAchievementCatalogue
+    >[0]['programmeDefinitions'],
+    order: readonly string[],
+  ) => composeAchievementCatalogue({ programmeDefinitions, order });
+
+  it('keeps the six shared definitions shared and the CS50 catalogue at 16', () => {
+    expect(sharedIds).toEqual([
+      'first-step',
+      'first-slice',
+      'course-complete',
+      'clean-stop',
+      'three-deep-sessions',
+      'bug-hunter',
+    ]);
+    expect(cs50.policy.achievements).toHaveLength(16);
+    for (const shared of sharedAchievementDefinitions) {
+      expect(cs50.policy.achievements).toContain(shared);
+    }
+  });
+
+  it('composes a valid test-only catalogue in the given order', () => {
+    const order = ['test-only-badge', ...sharedIds];
+    expect(
+      compose([programmeDefinition], order).map((definition) => definition.id),
+    ).toEqual(order);
+  });
+
+  it.each([
+    ['an omitted ID', sharedIds, /achievement order omits "test-only-badge"/],
+    [
+      'a duplicated ID',
+      ['test-only-badge', 'test-only-badge', ...sharedIds],
+      /lists "test-only-badge" more than once/,
+    ],
+    [
+      'an unknown ID',
+      ['test-only-badge', 'not-an-achievement', ...sharedIds],
+      /unknown achievement "not-an-achievement"/,
+    ],
+    [
+      'an omitted shared ID',
+      ['test-only-badge', ...sharedIds.slice(1)],
+      /achievement order omits "first-step"/,
+    ],
+  ])('rejects an order with %s', (_label, order, message) => {
+    expect(() => compose([programmeDefinition], order)).toThrow(message);
+  });
+
+  it('rejects a programme achievement that collides with a shared ID', () => {
+    const colliding = defineAchievement({
+      id: 'first-step',
+      title: 'Programme First Step',
+      description: 'Collides with the shared definition.',
+      category: 'course_progress',
+      ruleType: 'first_item_completed',
+      ruleConfig: {},
+    });
+    expect(() => compose([colliding], sharedIds)).toThrow(
+      /programme achievement "first-step" collides with a shared achievement/,
+    );
+  });
+
+  it('rejects a programme achievement defined twice', () => {
+    expect(() =>
+      compose(
+        [programmeDefinition, programmeDefinition],
+        ['test-only-badge', ...sharedIds],
+      ),
+    ).toThrow(/"test-only-badge" is defined more than once/);
+  });
+
+  it('rejects an unsupported rule type', () => {
+    expect(() =>
+      defineAchievement({
+        ...programmeDefinition,
+        ruleType: 'problem_set_status_count' as never,
+      }),
+    ).toThrow(/Unsupported rule type "problem_set_status_count"/);
+  });
+
+  it('fails closed when a definition omits or redefines a shared achievement', () => {
+    const withoutBugHunter = cs50.policy.achievements.filter(
+      (definition) => definition.id !== 'bug-hunter',
+    );
+    expect(() =>
+      validateProgrammeDefinition({
+        ...cs50,
+        policy: { ...cs50.policy, achievements: withoutBugHunter },
+      }),
+    ).toThrow(/shared achievement "bug-hunter" is missing/);
+
+    const redefined = cs50.policy.achievements.map((definition) =>
+      definition.id === 'bug-hunter'
+        ? { ...definition, title: 'Renamed' }
+        : definition,
+    );
+    expect(() =>
+      validateProgrammeDefinition({
+        ...cs50,
+        policy: { ...cs50.policy, achievements: redefined },
+      }),
+    ).toThrow(/shared achievement "bug-hunter" is redefined/);
+  });
+
+  it('fails closed when an achievement references a unit outside the catalogue', () => {
+    const achievements = cs50.policy.achievements.map((definition) =>
+      definition.id === 'scratch-initiate'
+        ? { ...definition, ruleConfig: { unitId: 'week-99' } }
+        : definition,
+    );
+    expect(() =>
+      validateProgrammeDefinition({
+        ...cs50,
+        policy: { ...cs50.policy, achievements },
+      }),
+    ).toThrow(
+      /achievement "scratch-initiate" unit "week-99" is not a catalogue unit/,
+    );
   });
 });

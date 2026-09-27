@@ -9,8 +9,6 @@ import type {
   StudySession,
 } from '@/lib/domain';
 
-import { achievementDefinitions } from './definitions';
-
 /**
  * Read-only source-of-truth data the pure evaluator reasons over. The engine
  * never imports Dexie and never mutates any of these collections — it only
@@ -278,7 +276,8 @@ function evaluateDefinition(
       };
     }
 
-    case 'problem_set_status_count': {
+    case 'item_type_status_count': {
+      const itemType = readString(ruleConfig, 'itemType', ruleType);
       const statuses = new Set(
         readStringArray(ruleConfig, 'statuses', ruleType),
       );
@@ -286,7 +285,7 @@ function evaluateDefinition(
       const qualifyingItemIds = context.progressEntries
         .filter((entry) => {
           const item = index.itemsById.get(entry.itemId);
-          return item?.type === 'problem_set' && statuses.has(entry.status);
+          return item?.type === itemType && statuses.has(entry.status);
         })
         .map((entry) => entry.itemId)
         .sort();
@@ -403,13 +402,17 @@ function evaluateDefinition(
  * full satisfied set (sorted by achievement id for determinism). Re-running the
  * evaluator over identical input yields an identical result, which is what makes
  * the persistence layer idempotent. No Dexie, no clock, no side effects.
+ *
+ * `definitions` is the active programme's composed achievement catalogue
+ * (Epic C / C3); the engine holds no definitions of its own.
  */
 export function evaluateAchievements(
+  definitions: readonly AchievementDefinition[],
   context: AchievementEvaluationContext,
 ): SatisfiedAchievement[] {
   const index = buildIndex(context);
 
-  return achievementDefinitions
+  return definitions
     .map((definition) => evaluateDefinition(definition, context, index))
     .filter(
       (satisfied): satisfied is SatisfiedAchievement => satisfied !== null,

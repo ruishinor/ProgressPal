@@ -2,28 +2,31 @@ import {
   AchievementDefinitionSchema,
   type AchievementDefinition,
 } from '@/lib/domain';
-import { parseWithSchema } from '@/lib/validation';
+import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
 
 /**
  * Deterministic rule types evaluated by the pure achievement engine. Each maps
  * to a branch in {@link evaluateAchievements}; the matching `ruleConfig` shape is
  * documented inline and validated at evaluation time.
  */
-export type AchievementRuleType =
-  | 'first_item_completed' // any progress entry is complete; ruleConfig: {}
-  | 'unit_required_completed' // ruleConfig: { unitId } — all required items of a unit complete
-  | 'course_required_completed' // ruleConfig: {} — all required items of all required units complete
-  | 'item_completed' // ruleConfig: { itemId }
-  | 'items_all_completed' // ruleConfig: { itemIds: string[] }
-  | 'problem_set_status_count' // ruleConfig: { statuses: string[]; minCount: number }
-  | 'content_slice_completed_count' // ruleConfig: { minCount: number }
-  | 'media_clean_stop' // ruleConfig: { minWatchedSeconds: number; stopReasons: string[] }
-  | 'study_session_duration_count' // ruleConfig: { minMinutes: number; minCount: number }
-  | 'study_session_mode_count'; // ruleConfig: { mode: string; minCount: number }
+export const achievementRuleTypes = [
+  'first_item_completed', // any progress entry is complete; ruleConfig: {}
+  'unit_required_completed', // ruleConfig: { unitId } — all required items of a unit complete
+  'course_required_completed', // ruleConfig: {} — all required items of all required units complete
+  'item_completed', // ruleConfig: { itemId }
+  'items_all_completed', // ruleConfig: { itemIds: string[] }
+  'item_type_status_count', // ruleConfig: { itemType: string; statuses: string[]; minCount: number }
+  'content_slice_completed_count', // ruleConfig: { minCount: number }
+  'media_clean_stop', // ruleConfig: { minWatchedSeconds: number; stopReasons: string[] }
+  'study_session_duration_count', // ruleConfig: { minMinutes: number; minCount: number }
+  'study_session_mode_count', // ruleConfig: { mode: string; minCount: number }
+] as const;
+
+export type AchievementRuleType = (typeof achievementRuleTypes)[number];
 
 /**
  * Achievement definitions are a code-only source of truth (Module 13). They are
- * validated against the domain schema at module load so a malformed constant
+ * validated against the domain schema when defined, so a malformed constant
  * fails fast. The `achievement_definitions` Dexie store is left as deferred
  * persistence and is never read from or written to by this module.
  *
@@ -32,7 +35,7 @@ export type AchievementRuleType =
  */
 const definitionTimestamp = '2026-01-01T00:00:00.000Z';
 
-type RawAchievementDefinition = {
+export type AchievementDefinitionInput = {
   id: string;
   title: string;
   description: string;
@@ -41,7 +44,43 @@ type RawAchievementDefinition = {
   ruleConfig: Record<string, unknown>;
 };
 
-const rawAchievementDefinitions: RawAchievementDefinition[] = [
+/** Validates one definition; an invalid definition throws. */
+export function defineAchievement(
+  definition: AchievementDefinitionInput,
+): AchievementDefinition {
+  const label = `Achievement definition "${definition.id}"`;
+
+  if (
+    !(achievementRuleTypes as readonly string[]).includes(definition.ruleType)
+  ) {
+    throw new SchemaValidationError(label, [
+      `Unsupported rule type "${definition.ruleType}".`,
+    ]);
+  }
+
+  return parseWithSchema(
+    AchievementDefinitionSchema,
+    {
+      id: definition.id,
+      title: definition.title,
+      description: definition.description,
+      category: definition.category,
+      xpReward: 0,
+      ruleType: definition.ruleType,
+      ruleConfig: definition.ruleConfig,
+      createdAt: definitionTimestamp,
+      updatedAt: definitionTimestamp,
+    },
+    label,
+  );
+}
+
+/**
+ * The platform-neutral achievements (C0 contract §4d). They reference no
+ * curriculum unit, item or topic and stay shared; programme definitions own
+ * every other achievement and the display order.
+ */
+export const sharedAchievementDefinitions: readonly AchievementDefinition[] = [
   {
     id: 'first-step',
     title: 'First Step',
@@ -59,63 +98,6 @@ const rawAchievementDefinitions: RawAchievementDefinition[] = [
     ruleConfig: { minCount: 1 },
   },
   {
-    id: 'scratch-initiate',
-    title: 'Scratch Initiate',
-    description: 'Complete every required item of Week 0 (Scratch).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-0' },
-  },
-  {
-    id: 'pointer-survivor',
-    title: 'Pointer Survivor',
-    description: 'Complete every required item of Week 4 (Memory).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-4' },
-  },
-  {
-    id: 'data-structure-builder',
-    title: 'Data Structure Builder',
-    description: 'Complete every required item of Week 5 (Data Structures).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-5' },
-  },
-  {
-    id: 'python-shift',
-    title: 'Python Shift',
-    description: 'Complete every required item of Week 6 (Python).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-6' },
-  },
-  {
-    id: 'query-builder',
-    title: 'Query Builder',
-    description: 'Complete every required item of Week 7 (SQL).',
-    category: 'problem_sets',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-7' },
-  },
-  {
-    id: 'browser-builder',
-    title: 'Browser Builder',
-    description:
-      'Complete every required item of Week 8 (HTML, CSS, JavaScript).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-8' },
-  },
-  {
-    id: 'flask-route-maker',
-    title: 'Flask Route Maker',
-    description: 'Complete every required item of Week 9 (Flask).',
-    category: 'course_progress',
-    ruleType: 'unit_required_completed',
-    ruleConfig: { unitId: 'week-9' },
-  },
-  {
     id: 'course-complete',
     title: 'Course Complete',
     description:
@@ -123,14 +105,6 @@ const rawAchievementDefinitions: RawAchievementDefinition[] = [
     category: 'course_progress',
     ruleType: 'course_required_completed',
     ruleConfig: {},
-  },
-  {
-    id: 'pset-chain',
-    title: 'Pset Chain',
-    description: 'Submit or get accepted on at least three problem sets.',
-    category: 'problem_sets',
-    ruleType: 'problem_set_status_count',
-    ruleConfig: { statuses: ['submitted', 'accepted'], minCount: 3 },
   },
   {
     id: 'clean-stop',
@@ -157,52 +131,97 @@ const rawAchievementDefinitions: RawAchievementDefinition[] = [
     ruleType: 'study_session_mode_count',
     ruleConfig: { mode: 'debugging', minCount: 1 },
   },
-  {
-    id: 'final-project-mvp',
-    title: 'Final Project MVP',
-    description: 'Complete the "Build the project" final-project task.',
-    category: 'final_project',
-    ruleType: 'item_completed',
-    ruleConfig: { itemId: 'final-project-build' },
-  },
-  {
-    id: 'final-project-shipped',
-    title: 'Final Project Shipped',
-    description: 'Complete both the final-project README and the video demo.',
-    category: 'final_project',
-    ruleType: 'items_all_completed',
-    ruleConfig: {
-      itemIds: ['final-project-readme', 'final-project-video-demo'],
-    },
-  },
-];
+].map((definition) =>
+  defineAchievement(definition as AchievementDefinitionInput),
+);
+
+function findDuplicates(values: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) duplicates.add(value);
+    seen.add(value);
+  }
+  return [...duplicates];
+}
 
 /**
- * Validated, immutable achievement definitions. Parsing happens once at module
- * load; any schema violation throws and prevents the module from initializing.
+ * Checks a composed, ordered achievement catalogue: unique IDs, and every
+ * shared definition present exactly as shared (a programme may neither omit
+ * nor redefine one). Returns one issue per violation.
  */
-export const achievementDefinitions: readonly AchievementDefinition[] =
-  rawAchievementDefinitions.map((definition) =>
-    parseWithSchema(
-      AchievementDefinitionSchema,
-      {
-        id: definition.id,
-        title: definition.title,
-        description: definition.description,
-        category: definition.category,
-        xpReward: 0,
-        ruleType: definition.ruleType,
-        ruleConfig: definition.ruleConfig,
-        createdAt: definitionTimestamp,
-        updatedAt: definitionTimestamp,
-      },
-      `Achievement definition "${definition.id}"`,
-    ),
-  );
+export function findAchievementCatalogueIssues(
+  catalogue: readonly AchievementDefinition[],
+): string[] {
+  const issues = findDuplicates(
+    catalogue.map((definition) => definition.id),
+  ).map((id) => `achievement "${id}" appears more than once`);
 
-export const achievementDefinitionsById: ReadonlyMap<
-  string,
-  AchievementDefinition
-> = new Map(
-  achievementDefinitions.map((definition) => [definition.id, definition]),
-);
+  for (const shared of sharedAchievementDefinitions) {
+    const entry = catalogue.find((definition) => definition.id === shared.id);
+    if (entry === undefined) {
+      issues.push(`shared achievement "${shared.id}" is missing`);
+    } else if (entry !== shared) {
+      issues.push(`shared achievement "${shared.id}" is redefined`);
+    }
+  }
+
+  return issues;
+}
+
+/**
+ * Composes a programme's ordered achievement catalogue from its own
+ * definitions and the shared ones (C0 contract §5). The order must list every
+ * programme-owned and shared ID exactly once; programme IDs must not collide
+ * with shared IDs. Fails closed.
+ */
+export function composeAchievementCatalogue(params: {
+  programmeDefinitions: readonly AchievementDefinition[];
+  order: readonly string[];
+}): readonly AchievementDefinition[] {
+  const { programmeDefinitions, order } = params;
+  const sharedIds = new Set(
+    sharedAchievementDefinitions.map((definition) => definition.id),
+  );
+  const available = new Map<string, AchievementDefinition>(
+    sharedAchievementDefinitions.map((definition) => [
+      definition.id,
+      definition,
+    ]),
+  );
+  const issues: string[] = [];
+
+  for (const id of findDuplicates(
+    programmeDefinitions.map((definition) => definition.id),
+  )) {
+    issues.push(`programme achievement "${id}" is defined more than once`);
+  }
+  for (const definition of programmeDefinitions) {
+    if (sharedIds.has(definition.id)) {
+      issues.push(
+        `programme achievement "${definition.id}" collides with a shared achievement`,
+      );
+    } else {
+      available.set(definition.id, definition);
+    }
+  }
+  for (const id of findDuplicates(order)) {
+    issues.push(`achievement order lists "${id}" more than once`);
+  }
+  for (const id of order) {
+    if (!available.has(id)) {
+      issues.push(`achievement order lists unknown achievement "${id}"`);
+    }
+  }
+  for (const id of available.keys()) {
+    if (!order.includes(id)) {
+      issues.push(`achievement order omits "${id}"`);
+    }
+  }
+
+  if (issues.length > 0) {
+    throw new SchemaValidationError('Achievement catalogue', issues);
+  }
+
+  return order.map((id) => available.get(id)!);
+}

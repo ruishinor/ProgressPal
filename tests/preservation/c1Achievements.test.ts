@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { loadRpgBadgeGallerySummary } from '@/features/rpg';
-import {
-  achievementDefinitions,
-  deriveAchievementUnlockId,
-} from '@/lib/achievements';
+import { deriveAchievementUnlockId } from '@/lib/achievements';
 import {
   addStudySessionAndAwardXp,
   getAchievementsView,
@@ -20,13 +17,19 @@ import type { ProgressStatus, StudySessionMode } from '@/lib/domain';
 
 import type { TestDatabaseContext } from '../db/testDatabase';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
-import { cs50Policy } from '../programmes/cs50Policy';
+import {
+  cs50AchievementDefinitions as achievementDefinitions,
+  cs50Policy,
+} from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 6 — achievements.
  *
  * Definition table and unlock behaviour: SEMANTIC ORACLE. Authority:
- * src/lib/achievements/definitions.ts (the code-only definition authority) and
+ * src/lib/achievements/definitions.ts (the code-only definition authority;
+ * since C3 the six shared definitions there plus the ten CS50 definitions and
+ * the display order in src/programmes/cs50x-2026/achievements.ts, read here
+ * as the registered CS50 catalogue) and
  * the real evaluation/persistence path (`upsertProgressAndAwardXp`,
  * `logMediaProgressAndAwardXp`, `addStudySessionAndAwardXp`, each of which
  * evaluates and persists unlocks) over the real CS50 catalogue.
@@ -203,9 +206,16 @@ const characterizedRuleEncoding: Record<string, [string, unknown]> = {
   'first-step': ['first_item_completed', {}],
   'flask-route-maker': ['unit_required_completed', { unitId: 'week-9' }],
   'pointer-survivor': ['unit_required_completed', { unitId: 'week-4' }],
+  // C3 re-encoding (C0 contract §4b/§7): the problem-set-only rule became the
+  // programme-neutral item_type_status_count with the item type in config.
+  // Unlock behaviour, unlock ID and trigger ID are unchanged (oracle below).
   'pset-chain': [
-    'problem_set_status_count',
-    { minCount: 3, statuses: ['submitted', 'accepted'] },
+    'item_type_status_count',
+    {
+      itemType: 'problem_set',
+      minCount: 3,
+      statuses: ['submitted', 'accepted'],
+    },
   ],
   'python-shift': ['unit_required_completed', { unitId: 'week-6' }],
   'query-builder': ['unit_required_completed', { unitId: 'week-7' }],
@@ -260,7 +270,10 @@ describe('C1 achievement definitions (semantic)', () => {
       expect(gallery.earnedBadgeCount).toBe(0);
       expect(gallery.lockedBadgeCount).toBe(16);
 
-      const classic = await getAchievementsView({ db: context.db });
+      const classic = await getAchievementsView({
+        policy: cs50Policy,
+        db: context.db,
+      });
       expect(classic.achievements.map((achievement) => achievement.id)).toEqual(
         expectedDefinitions.map((row) => row[0]),
       );
@@ -337,7 +350,11 @@ async function apply(
         startedAt,
         unitId: 'week-0',
       };
-      await addStudySessionAndAwardXp(session, { db: context.db, now });
+      await addStudySessionAndAwardXp(session, {
+        policy: cs50Policy,
+        db: context.db,
+        now,
+      });
     }
   }
 }

@@ -186,7 +186,9 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
     const context = await createSeededDatabase('labels-categories');
     try {
       expect(
-        buildCategoryOptions(await getAchievementsView({ db: context.db })),
+        buildCategoryOptions(
+          await getAchievementsView({ policy: cs50Policy, db: context.db }),
+        ),
       ).toEqual([
         { label: 'All categories', value: 'all' },
         { label: 'Course progress', value: 'course_progress' },

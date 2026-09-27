@@ -15,6 +15,8 @@ import type {
   StudySession,
 } from '@/lib/domain';
 
+import { cs50Policy } from '../programmes/cs50Policy';
+
 const timestamp = '2026-06-12T20:00:00.000Z';
 
 function item(
@@ -137,7 +139,9 @@ function contextWith(
 }
 
 function idsFrom(context: AchievementEvaluationContext): string[] {
-  return evaluateAchievements(context).map((entry) => entry.achievementId);
+  return evaluateAchievements(cs50Policy.achievements, context).map(
+    (entry) => entry.achievementId,
+  );
 }
 
 describe('deriveAchievementUnlockId', () => {
@@ -151,7 +155,9 @@ describe('deriveAchievementUnlockId', () => {
 
 describe('evaluateAchievements - empty source data', () => {
   it('returns no satisfied achievements for an empty context', () => {
-    expect(evaluateAchievements(emptyContext)).toEqual([]);
+    expect(evaluateAchievements(cs50Policy.achievements, emptyContext)).toEqual(
+      [],
+    );
   });
 });
 
@@ -170,9 +176,10 @@ describe('first_item_completed', () => {
         progress('week-0-lecture', 'completed'),
       ],
     });
-    const satisfied = evaluateAchievements(context).find(
-      (entry) => entry.achievementId === 'first-step',
-    );
+    const satisfied = evaluateAchievements(
+      cs50Policy.achievements,
+      context,
+    ).find((entry) => entry.achievementId === 'first-step');
     expect(satisfied).toBeDefined();
     // Lexicographically smallest completed item id wins, independent of order.
     expect(satisfied?.triggerSourceId).toBe('week-0-lecture');
@@ -204,7 +211,7 @@ describe('unit_required_completed', () => {
         progress('week-0-problem-set', 'accepted'),
       ],
     });
-    const satisfied = evaluateAchievements(done).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, done).find(
       (entry) => entry.achievementId === 'scratch-initiate',
     );
     expect(satisfied?.triggerSourceId).toBe('week-0');
@@ -234,7 +241,7 @@ describe('course_required_completed', () => {
         progress('week-5-lecture', 'completed'),
       ],
     });
-    const satisfied = evaluateAchievements(full).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, full).find(
       (entry) => entry.achievementId === 'course-complete',
     );
     expect(satisfied?.triggerSourceId).toBe('cs50x-2026');
@@ -254,9 +261,10 @@ describe('item_completed and items_all_completed', () => {
     const context = contextWith({
       progressEntries: [progress('final-project-build', 'completed')],
     });
-    const satisfied = evaluateAchievements(context).find(
-      (entry) => entry.achievementId === 'final-project-mvp',
-    );
+    const satisfied = evaluateAchievements(
+      cs50Policy.achievements,
+      context,
+    ).find((entry) => entry.achievementId === 'final-project-mvp');
     expect(satisfied?.triggerSourceId).toBe('final-project-build');
   });
 
@@ -272,7 +280,7 @@ describe('item_completed and items_all_completed', () => {
         progress('final-project-readme', 'completed'),
       ],
     });
-    const satisfied = evaluateAchievements(both).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, both).find(
       (entry) => entry.achievementId === 'final-project-shipped',
     );
     expect(satisfied?.triggerSourceId).toBe(
@@ -281,7 +289,7 @@ describe('item_completed and items_all_completed', () => {
   });
 });
 
-describe('problem_set_status_count', () => {
+describe('item_type_status_count (pset-chain, problem_set)', () => {
   it('unlocks pset-chain only at three submitted/accepted problem sets', () => {
     const courseItems = [
       item('week-0-problem-set', 'week-0', 'problem_set'),
@@ -306,7 +314,7 @@ describe('problem_set_status_count', () => {
         progress('week-2-problem-set', 'submitted'),
       ],
     });
-    const satisfied = evaluateAchievements(three).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, three).find(
       (entry) => entry.achievementId === 'pset-chain',
     );
     expect(satisfied?.triggerSourceId).toBe(
@@ -344,7 +352,7 @@ describe('content_slice_completed_count', () => {
         slice('asset-1-slice-0', 'active'),
       ],
     });
-    const satisfied = evaluateAchievements(one).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, one).find(
       (entry) => entry.achievementId === 'first-slice',
     );
     expect(satisfied?.triggerSourceId).toBe('asset-1-slice-1');
@@ -366,7 +374,7 @@ describe('media_clean_stop', () => {
     const clean = contextWith({
       mediaProgressEvents: [mediaEvent('media-event-1', 900, 'reached_limit')],
     });
-    const satisfied = evaluateAchievements(clean).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, clean).find(
       (entry) => entry.achievementId === 'clean-stop',
     );
     expect(satisfied?.triggerSourceId).toBe('media-event-1');
@@ -391,7 +399,7 @@ describe('study_session_duration_count', () => {
         session('study-session-short', 20, 'coding'),
       ],
     });
-    const satisfied = evaluateAchievements(three).find(
+    const satisfied = evaluateAchievements(cs50Policy.achievements, three).find(
       (entry) => entry.achievementId === 'three-deep-sessions',
     );
     expect(satisfied?.triggerSourceId).toBe(
@@ -410,9 +418,10 @@ describe('study_session_mode_count', () => {
     const debugging = contextWith({
       studySessions: [session('study-session-debug', 30, 'debugging')],
     });
-    const satisfied = evaluateAchievements(debugging).find(
-      (entry) => entry.achievementId === 'bug-hunter',
-    );
+    const satisfied = evaluateAchievements(
+      cs50Policy.achievements,
+      debugging,
+    ).find((entry) => entry.achievementId === 'bug-hunter');
     expect(satisfied?.triggerSourceId).toBe('study-session-debug');
   });
 });
@@ -426,8 +435,8 @@ describe('determinism and idempotency', () => {
       studySessions: [session('study-session-debug', 30, 'debugging')],
     });
 
-    const first = evaluateAchievements(context);
-    const second = evaluateAchievements(context);
+    const first = evaluateAchievements(cs50Policy.achievements, context);
+    const second = evaluateAchievements(cs50Policy.achievements, context);
 
     expect(first).toEqual(second);
     // Sorted by achievement id. week-0 is the only required unit and it is fully

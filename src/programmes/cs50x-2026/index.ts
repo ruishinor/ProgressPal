@@ -4,6 +4,7 @@ import {
   validateProgrammeDefinition,
   type ProgrammeDefinition,
 } from '../definition';
+import { cs50AchievementCatalogue } from './achievements';
 import { cs50ExternalResources } from './externalResources';
 import {
   cs50CatalogueRules,
@@ -29,6 +30,7 @@ export const cs50x2026Definition: ProgrammeDefinition =
       catalogueRules: cs50CatalogueRules,
       xp: cs50XpPolicy,
       workflow: cs50SubmissionWorkflow,
+      achievements: cs50AchievementCatalogue,
     },
     content: {
       externalResources: cs50ExternalResources,

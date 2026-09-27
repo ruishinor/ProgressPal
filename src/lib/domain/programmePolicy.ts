@@ -6,10 +6,14 @@ import {
   progressStatusValues,
 } from '@/lib/domain/constants';
 import type {
+  AchievementDefinition,
   CourseItemType,
   CourseSeed,
   ProgressStatus,
 } from '@/lib/domain/types';
+// Importing @/lib/validation also applies its jitless Zod configuration before
+// the schemas below are created (app CSP: no dynamic code).
+import { getDuplicateValues } from '@/lib/validation';
 
 /**
  * Programme policy contracts (Epic C / C3). These are neutral shapes only: the
@@ -142,15 +146,11 @@ export const XpPolicySchema = z
       ...policy.itemMilestones.map((milestone) => milestone.sourceType),
     ];
     const report = (values: readonly string[], label: string) => {
-      const seen = new Set<string>();
-      for (const value of values) {
-        if (seen.has(value)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Duplicate ${label} "${value}" is not allowed.`,
-          });
-        }
-        seen.add(value);
+      for (const value of getDuplicateValues(values)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Duplicate ${label} "${value}" is not allowed.`,
+        });
       }
     };
 
@@ -182,7 +182,7 @@ export const SubmissionWorkflowSchema = z
       ['sequenceItemTypes', workflow.sequenceItemTypes],
       ['correctionItemTypes', workflow.correctionItemTypes],
     ] as const) {
-      if (new Set(values).size !== values.length) {
+      if (getDuplicateValues(values).length > 0) {
         ctx.addIssue({
           code: 'custom',
           path: [key],
@@ -217,4 +217,9 @@ export type ProgrammePolicy = {
   readonly catalogueRules: CatalogueRules;
   readonly xp: XpPolicy;
   readonly workflow: SubmissionWorkflow;
+  /**
+   * The composed, ordered achievement catalogue: the programme's own
+   * definitions and the shared ones, in display order.
+   */
+  readonly achievements: readonly AchievementDefinition[];
 };

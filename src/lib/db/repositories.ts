@@ -38,7 +38,6 @@ import {
 } from '@/lib/domain';
 import { assertBackupDataInvariants } from '@/lib/backup';
 import {
-  achievementDefinitions,
   deriveAchievementUnlockId,
   evaluateAchievements,
   type AchievementEvaluationContext,
@@ -2435,19 +2434,20 @@ export async function listAchievementUnlocks(
 }
 
 /**
- * Merges the validated code-only achievement definitions with persisted
+ * Merges the programme's validated achievement catalogue with persisted
  * `achievement_unlocks` into a locked/unlocked view for the Achievements page.
  * Pure read: it evaluates no rules and writes nothing.
  */
 export async function getAchievementsView(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<AchievementsView> {
   const unlocks = await listAchievementUnlocks(options);
-  return buildAchievementsView(unlocks);
+  return buildAchievementsView(unlocks, options.policy.achievements);
 }
 
 function buildAchievementsView(
   unlocks: readonly AchievementUnlock[],
+  achievementDefinitions: readonly AchievementDefinition[],
 ): AchievementsView {
   const unlockByAchievementId = new Map(
     unlocks.map((unlock) => [unlock.achievementId, unlock]),
@@ -2484,9 +2484,10 @@ function buildAchievementsView(
  * accumulated one row at a time, with no hidden source-history array.
  */
 export async function readAchievementsSurfaceData(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<{ view: AchievementsView; xpSummary: XpSummary }> {
   const database = await ensureOpen(resolveDatabase(options.db));
+  const achievementDefinitions = options.policy.achievements;
 
   return database.transaction(
     'r',
@@ -2523,7 +2524,7 @@ export async function readAchievementsSurfaceData(
       if (validationError !== undefined) throw validationError;
 
       return {
-        view: buildAchievementsView(unlocks),
+        view: buildAchievementsView(unlocks, achievementDefinitions),
         xpSummary: calculateXpSummary(totalXp),
       };
     },
@@ -2545,6 +2546,7 @@ export async function readAchievementsSurfaceData(
 async function evaluateAndUnlockAchievements(
   database: ProgressPalDatabase,
   now: DatabaseClock,
+  achievementDefinitions: readonly AchievementDefinition[],
 ): Promise<AchievementUnlock[]> {
   const [
     progressEntryRecords,
@@ -2595,7 +2597,7 @@ async function evaluateAndUnlockAchievements(
     ),
   };
 
-  const satisfied = evaluateAchievements(context);
+  const satisfied = evaluateAchievements(achievementDefinitions, context);
   const newlyUnlocked: AchievementUnlock[] = [];
 
   for (const { achievementId, triggerSourceId } of satisfied) {
@@ -2738,6 +2740,7 @@ export async function upsertProgressAndAwardXp(
         unlockedAchievements = await evaluateAndUnlockAchievements(
           database,
           now,
+          options.policy.achievements,
         );
         xpSummary = await calculateStoredXpSummary(database);
       },
@@ -2982,6 +2985,7 @@ export async function logMediaProgressAndAwardXp(
         unlockedAchievements = await evaluateAndUnlockAchievements(
           database,
           now,
+          options.policy.achievements,
         );
         xpSummary = await calculateStoredXpSummary(database);
       },
@@ -2998,7 +3002,7 @@ export async function logMediaProgressAndAwardXp(
 
 export async function addStudySessionAndAwardXp(
   input: AddStudySessionInput,
-  options: BaseDatabaseOptions = {},
+  options: ProgrammePolicyOptions,
 ): Promise<AddStudySessionWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
@@ -3076,6 +3080,7 @@ export async function addStudySessionAndAwardXp(
         unlockedAchievements = await evaluateAndUnlockAchievements(
           database,
           now,
+          options.policy.achievements,
         );
         changed ||= unlockedAchievements.length > 0;
         xpSummary = await calculateStoredXpSummary(database);

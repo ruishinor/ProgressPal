@@ -1,6 +1,10 @@
 export {
-  achievementDefinitions,
-  achievementDefinitionsById,
+  achievementRuleTypes,
+  composeAchievementCatalogue,
+  defineAchievement,
+  findAchievementCatalogueIssues,
+  sharedAchievementDefinitions,
+  type AchievementDefinitionInput,
   type AchievementRuleType,
 } from './definitions';
 export {

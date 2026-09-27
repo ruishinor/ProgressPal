@@ -14,7 +14,7 @@ import { AchievementsPage } from '@/features/achievements/routes/AchievementsPag
 import { buildCategoryOptions } from '@/features/achievements/model';
 import { RpgBadgesPage } from '@/features/rpg/routes/RpgBadgesPage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
 import {
   AppStateContext,
   type AppStateContextValue,
@@ -39,6 +39,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const fixtureXpCount = 7;
 const childStores = ['achievement_unlocks', 'xp_transactions'].sort();
@@ -403,11 +404,15 @@ describe('A6 Badges actual-route read boundary', () => {
     },
   ])('preserves $name semantics', async ({ xp, ids }) => {
     await seedSharedDatabase(xp, ids);
-    const legacyView = await database.getAchievementsView();
+    const legacyView = await database.getAchievementsView({
+      policy: cs50Policy,
+    });
     closeSharedDatabase();
     const reader = getSharedDatabase();
     const probe = installDatabaseAccessProbe(reader);
-    const result = await database.readAchievementsSurfaceData();
+    const result = await database.readAchievementsSurfaceData({
+      policy: cs50Policy,
+    });
     expect(result).toEqual({
       view: legacyView,
       xpSummary: calculateXpSummary(xp.reduce((sum, row) => sum + row.xp, 0)),
@@ -521,7 +526,9 @@ describe('A6 Badges actual-route read boundary', () => {
       const reader = getSharedDatabase();
       const probe = installDatabaseAccessProbe(reader);
       const started = performance.now();
-      const result = await database.readAchievementsSurfaceData();
+      const result = await database.readAchievementsSurfaceData({
+        policy: cs50Policy,
+      });
       const readDurationMs = Math.round(performance.now() - started);
       const access = probe.snapshot();
       assertChildAccess(access, count);
@@ -574,7 +581,7 @@ describe('A6 Badges actual-route read boundary', () => {
     });
     let writerState: 'pending' | 'fulfilled' | 'rejected' = 'pending';
     let writerError: unknown;
-    const read = database.readAchievementsSurfaceData();
+    const read = database.readAchievementsSurfaceData({ policy: cs50Policy });
     let write: Promise<void> | undefined;
     try {
       await reached;
@@ -611,7 +618,9 @@ describe('A6 Badges actual-route read boundary', () => {
       expect(before.view.unlockedCount).toBe(1);
       expect(before.xpSummary).toEqual(calculateXpSummary(25));
       assertChildAccess(probe.snapshot(), 1);
-      const after = await database.readAchievementsSurfaceData();
+      const after = await database.readAchievementsSurfaceData({
+        policy: cs50Policy,
+      });
       expect(after.view.unlockedCount).toBe(2);
       expect(after.xpSummary).toEqual(calculateXpSummary(400));
     } finally {
@@ -637,7 +646,7 @@ describe('A6 Badges actual-route read boundary', () => {
       writer.close();
       const probe = installDatabaseAccessProbe(getSharedDatabase());
       await expect(
-        database.readAchievementsSurfaceData(),
+        database.readAchievementsSurfaceData({ policy: cs50Policy }),
       ).rejects.toBeInstanceOf(SchemaValidationError);
       expect(probe.snapshot().writesObserved).toBe(0);
     },

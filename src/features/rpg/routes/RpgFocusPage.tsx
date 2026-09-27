@@ -14,8 +14,8 @@ import { useLocation, useOutletContext } from 'react-router-dom';
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { StudySessionsSurface } from '@/features/sessions';
-import { achievementDefinitionsById } from '@/lib/achievements';
 import type { StudySessionSaveResult } from '@/lib/sessions';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 
 type RpgFocusSaveFeedback = {
@@ -103,7 +103,9 @@ export function RpgFocusPage() {
       const achievementNames = result.unlockedAchievements
         .map(
           (unlock) =>
-            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+            getActiveProgrammeDefinition().policy.achievements.find(
+              (definition) => definition.id === unlock.achievementId,
+            )?.title ?? '',
         )
         .filter(Boolean);
       const baseFeedback = {

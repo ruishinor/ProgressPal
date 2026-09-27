@@ -24,6 +24,7 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   rpgBadgesPath,
   rpgMapPath,
@@ -138,7 +139,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           listResumePoints(),
           listStudySessions(),
           listXpTransactions(),
-          getAchievementsView(),
+          getAchievementsView({
+            policy: getActiveProgrammeDefinition().policy,
+          }),
         ]);
 
         if (!isActive) {

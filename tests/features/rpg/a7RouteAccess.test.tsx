@@ -11,7 +11,7 @@ import { RpgMapPage } from '@/features/rpg/routes/RpgMapPage';
 import { RpgModulePage } from '@/features/rpg/routes/RpgModulePage';
 import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
 import {
   AppStateContext,
   type AppStateContextValue,
@@ -35,6 +35,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Policy } from '../../programmes/cs50Policy';
 
 const courseStores = [
   'content_assets',
@@ -163,7 +164,7 @@ describe('A7 actual route and shell access matrix', () => {
           mode: 'coding',
           notes: 'A7 visible session',
         },
-        { db: writer },
+        { policy: cs50Policy, db: writer },
       );
       const before = await getDatabaseSnapshot({ db: writer });
       expect(Object.keys(before)).toHaveLength(14);

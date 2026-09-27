@@ -30,6 +30,7 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 type DashboardPageStatus = 'error' | 'loading' | 'ready';
@@ -115,7 +116,9 @@ export function DashboardPage() {
           listStudySessions(),
           listXpTransactions(),
           getXpSummary(),
-          getAchievementsView(),
+          getAchievementsView({
+            policy: getActiveProgrammeDefinition().policy,
+          }),
         ]);
 
         if (!isActive) {

@@ -979,7 +979,7 @@ describe('repository local-write coordination', () => {
         startedAt: '2026-07-15T10:00:00.000Z',
         unitId: 'week-0',
       },
-      { db: testDatabase.db },
+      { policy: cs50Policy, db: testDatabase.db },
     );
     const before = await getDatabaseSnapshot({ db: testDatabase.db });
     const session = startLocalDataCoordination(() => undefined);
@@ -999,7 +999,10 @@ describe('repository local-write coordination', () => {
     );
 
     await expect(
-      addStudySessionAndAwardXp(input, { db: testDatabase.db }),
+      addStudySessionAndAwardXp(input, {
+        policy: cs50Policy,
+        db: testDatabase.db,
+      }),
     ).rejects.toThrow('Injected XP summary failure.');
     expect(await getDatabaseSnapshot({ db: testDatabase.db })).toEqual(before);
     expect(
@@ -1007,7 +1010,10 @@ describe('repository local-write coordination', () => {
     ).toBe(0);
 
     await expect(
-      addStudySessionAndAwardXp(input, { db: testDatabase.db }),
+      addStudySessionAndAwardXp(input, {
+        policy: cs50Policy,
+        db: testDatabase.db,
+      }),
     ).resolves.toMatchObject({
       studySession: { id: 'study-session-rollback' },
     });
@@ -1036,7 +1042,7 @@ describe('repository local-write coordination', () => {
         startedAt: '2026-07-16T10:00:00.000Z',
         endedAt: '2026-07-16T10:30:00.000Z',
       },
-      { db: testDatabase.db },
+      { policy: cs50Policy, db: testDatabase.db },
     );
     const session = startLocalDataCoordination(() => undefined);
     stopCoordination = session.stop;
@@ -1065,14 +1071,20 @@ describe('repository local-write coordination', () => {
       startedAt: '2026-07-16T10:00:00.000Z',
       unitId: 'week-0',
     };
-    await addStudySessionAndAwardXp(input, { db: testDatabase.db });
+    await addStudySessionAndAwardXp(input, {
+      policy: cs50Policy,
+      db: testDatabase.db,
+    });
     const before = await getDatabaseSnapshot({ db: testDatabase.db });
     const session = startLocalDataCoordination(() => undefined);
     stopCoordination = session.stop;
     await session.ready;
 
     await expect(
-      addStudySessionAndAwardXp(input, { db: testDatabase.db }),
+      addStudySessionAndAwardXp(input, {
+        policy: cs50Policy,
+        db: testDatabase.db,
+      }),
     ).resolves.toMatchObject({
       studySession: { id: 'study-session-idempotent' },
     });

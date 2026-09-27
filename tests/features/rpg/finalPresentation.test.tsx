@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { RpgAchievementArt } from '@/features/rpg/components/RpgAchievementArt';
 import { InsightsSurface } from '@/features/insights/components/InsightsSurface';
 import { InlineInfo } from '@/components/ui/InlineInfo';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
 import { initializeDatabase } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
 

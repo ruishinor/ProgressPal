@@ -519,9 +519,9 @@ describe('Confirmed save outcomes and read recovery', () => {
       const gate = deferredWrite();
       const save = vi
         .spyOn(database, 'addStudySessionAndAwardXp')
-        .mockImplementationOnce(async (input) => {
+        .mockImplementationOnce(async (input, options) => {
           await gate.pending;
-          return originalSave(input);
+          return originalSave(input, options);
         });
       const path = variant === 'rpg' ? '/rpg/focus' : '/sessions';
       const { router, refreshHud } = await prepareLiveSession(
@@ -586,9 +586,9 @@ describe('Confirmed save outcomes and read recovery', () => {
       const save = vi
         .spyOn(database, 'addStudySessionAndAwardXp')
         .mockRejectedValueOnce(new Error('Injected session write failure.'))
-        .mockImplementationOnce(async (input) => {
+        .mockImplementationOnce(async (input, options) => {
           await gate.pending;
-          return originalSave(input);
+          return originalSave(input, options);
         });
       await prepareLiveSession(
         variant === 'rpg'
@@ -638,9 +638,9 @@ describe('Confirmed save outcomes and read recovery', () => {
       const save = vi
         .spyOn(database, 'addStudySessionAndAwardXp')
         .mockRejectedValueOnce(new Error('Injected manual write failure.'))
-        .mockImplementationOnce(async (input) => {
+        .mockImplementationOnce(async (input, options) => {
           await gate.pending;
-          return originalSave(input);
+          return originalSave(input, options);
         });
       const read = vi.spyOn(database, 'readStudySessionLedgerRows');
       const errors = vi

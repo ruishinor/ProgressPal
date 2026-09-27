@@ -23,7 +23,7 @@ import {
   type DatabaseSnapshot,
 } from '@/lib/db';
 import type { CourseItem, ProgressStatus } from '@/lib/domain';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
 import { bundledCourseSeed } from '@/seed';
 import {
   createClock,

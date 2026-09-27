@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
+import { findAchievementCatalogueIssues } from '@/lib/achievements';
 import {
+  AchievementDefinitionSchema,
   CatalogueRulesSchema,
   SubmissionWorkflowSchema,
   XpPolicySchema,
@@ -98,6 +100,7 @@ const definitionSchema = z
         catalogueRules: CatalogueRulesSchema,
         xp: XpPolicySchema,
         workflow: SubmissionWorkflowSchema,
+        achievements: z.array(AchievementDefinitionSchema).min(1),
       })
       .strict(),
     content: z
@@ -135,7 +138,9 @@ function guideStrings(guide: UnitGuide | ItemGuide): string[] {
 /**
  * Validates a definition and fails closed. Beyond shape, it checks that the
  * definition matches its catalogue, that the catalogue satisfies the
- * programme's catalogue rules, that XP milestones name catalogue items, that
+ * programme's catalogue rules, that XP milestones and achievement rules name
+ * catalogue units and items, that the achievement catalogue keeps every shared
+ * achievement unchanged, that
  * every link and guide is keyed to a
  * real catalogue unit or item, that every link stays within a declared URL
  * prefix, and that guides embed no URLs (guide authoring rule).
@@ -162,6 +167,32 @@ export function validateProgrammeDefinition(
   }
 
   issues.push(...findCatalogueRuleIssues(catalogue, policy.catalogueRules));
+
+  issues.push(...findAchievementCatalogueIssues(policy.achievements));
+
+  for (const achievement of policy.achievements) {
+    const {
+      unitId,
+      itemId: ruleItemId,
+      itemIds: ruleItemIds,
+    } = achievement.ruleConfig;
+    const referencedItems: unknown[] = [
+      ...(typeof ruleItemId === 'string' ? [ruleItemId] : []),
+      ...(Array.isArray(ruleItemIds) ? ruleItemIds : []),
+    ];
+    if (typeof unitId === 'string' && !unitIds.has(unitId)) {
+      issues.push(
+        `achievement "${achievement.id}" unit "${unitId}" is not a catalogue unit`,
+      );
+    }
+    for (const id of referencedItems) {
+      if (typeof id !== 'string' || !itemIds.has(id)) {
+        issues.push(
+          `achievement "${achievement.id}" item "${String(id)}" is not a catalogue item`,
+        );
+      }
+    }
+  }
 
   for (const milestone of policy.xp.itemMilestones) {
     for (const itemId of milestone.itemIds) {

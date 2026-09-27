@@ -302,7 +302,7 @@ describe('A7 aggregate preservation', () => {
                 durationMinutes: 25,
                 mode: 'debugging',
               },
-              options,
+              { ...options, policy: cs50Policy },
             );
       const result = await mutate();
       expect(result.awardedTransactions.length).toBeGreaterThan(0);
@@ -311,7 +311,10 @@ describe('A7 aggregate preservation', () => {
       const reader = makeReader(context);
       const probe = installDatabaseAccessProbe(reader);
       const hub = await loadRpgHubSummary({ db: reader, now: () => now });
-      const badges = await readAchievementsSurfaceData({ db: reader });
+      const badges = await readAchievementsSurfaceData({
+        policy: cs50Policy,
+        db: reader,
+      });
       expect(badges.xpSummary).toEqual(result.xpSummary);
       expect(hub.xpSummary).toMatchObject({
         totalXp: result.xpSummary.totalXp,

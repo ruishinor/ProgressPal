@@ -56,6 +56,7 @@ import {
   readStudySessionLedgerRows,
   readStudySessionsSurfaceData,
 } from '@/lib/db';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import type { StudySessionSaveResult } from '@/lib/sessions';
 import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
@@ -500,7 +501,10 @@ export function StudySessionsSurface({
     let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
-        () => addStudySessionAndAwardXp(validation.input),
+        () =>
+          addStudySessionAndAwardXp(validation.input, {
+            policy: getActiveProgrammeDefinition().policy,
+          }),
         { invalidateRoute: false },
       );
     } catch (saveError) {
@@ -561,7 +565,10 @@ export function StudySessionsSurface({
     let xpResult: StudySessionSaveResult;
     try {
       xpResult = await runLocalMutation(
-        () => addStudySessionAndAwardXp(validation.input),
+        () =>
+          addStudySessionAndAwardXp(validation.input, {
+            policy: getActiveProgrammeDefinition().policy,
+          }),
         { invalidateRoute: false },
       );
     } catch (saveError) {

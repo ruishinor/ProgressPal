@@ -21,7 +21,6 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
-import { achievementDefinitionsById } from '@/lib/achievements';
 import { useAppState } from '@/lib/appState';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { getItemGuide, type ItemGuide } from '@/features/course/guideContent';
@@ -715,7 +714,9 @@ export function ContentDetailPage() {
       const achievementNames = xpResult.unlockedAchievements
         .map(
           (unlock) =>
-            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+            getActiveProgrammeDefinition().policy.achievements.find(
+              (definition) => definition.id === unlock.achievementId,
+            )?.title ?? '',
         )
         .filter(Boolean);
       const xpToastSuffix = xpAdded > 0 ? ` (+${xpAdded} XP!)` : '';
@@ -856,7 +857,9 @@ export function ContentDetailPage() {
       const achievementNames = xpResult.unlockedAchievements
         .map(
           (unlock) =>
-            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+            getActiveProgrammeDefinition().policy.achievements.find(
+              (definition) => definition.id === unlock.achievementId,
+            )?.title ?? '',
         )
         .filter(Boolean);
       const watchedMin = Math.round((endSecond - startSecond) / 60);

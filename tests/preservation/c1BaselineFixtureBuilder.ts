@@ -208,7 +208,7 @@ export async function buildC1BaselineEnvelope(): Promise<BackupEnvelope> {
           startedAt,
           unitId,
         },
-        options,
+        { ...options, policy: cs50Policy },
       );
     }
     await correctStudySessionAssignment(

@@ -28,8 +28,8 @@ import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
-import { achievementDefinitionsById } from '@/lib/achievements';
 import type { ProgressStatus } from '@/lib/domain';
+import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   getRpgFocusPath,
   getRpgResourcePath,
@@ -494,7 +494,9 @@ export function RpgResourcePage() {
       achievementNames: result.unlockedAchievements
         .map(
           (unlock) =>
-            achievementDefinitionsById.get(unlock.achievementId)?.title ?? '',
+            getActiveProgrammeDefinition().policy.achievements.find(
+              (definition) => definition.id === unlock.achievementId,
+            )?.title ?? '',
         )
         .filter(Boolean),
       isUpdate: summary.savedProgress !== null,

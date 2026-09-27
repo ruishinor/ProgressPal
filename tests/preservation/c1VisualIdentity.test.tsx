@@ -5,7 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { RpgAchievementArt } from '@/features/rpg/components/RpgAchievementArt';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
 
 import committedIdentity from '../fixtures/preservation/c1-visual-identity.json';
 import {

@@ -19,7 +19,6 @@ import {
   buildLongFormProgressMap,
   buildLongFormProgressMapFromEventAggregates,
 } from '@/lib/progress';
-import { achievementDefinitions } from '@/lib/achievements';
 import { isItemComplete } from '@/lib/completion';
 import {
   getCourseMapReadData,
@@ -494,6 +493,8 @@ export function buildRpgBadgeGallerySummary(
   const unlockByAchievementId = new Map(
     snapshot.achievementUnlocks.map((unlock) => [unlock.achievementId, unlock]),
   );
+  const achievementDefinitions =
+    getActiveProgrammeDefinition().policy.achievements;
   const badges = achievementDefinitions.map((definition, index) => {
     const unlock = unlockByAchievementId.get(definition.id) ?? null;
     const earned = unlock !== null;
@@ -759,6 +760,8 @@ function buildRpgHeroProfileSummaryFromReadData(
   const earnedAchievementIds = new Set(
     data.achievementUnlocks.map((unlock) => unlock.achievementId),
   );
+  const achievementDefinitions =
+    getActiveProgrammeDefinition().policy.achievements;
   const earnedBadgeCount = achievementDefinitions.filter((definition) =>
     earnedAchievementIds.has(definition.id),
   ).length;

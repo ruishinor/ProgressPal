@@ -1091,7 +1091,11 @@ describe('database repositories', () => {
           durationMinutes: 15,
           mode: 'watching',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:15:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:15:00.000Z'),
+        },
       );
 
       expect(res1.awardedTransactions).toHaveLength(0);
@@ -1108,7 +1112,11 @@ describe('database repositories', () => {
           durationMinutes: 30,
           mode: 'watching',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:50:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:50:00.000Z'),
+        },
       );
 
       expect(res2.awardedTransactions).toHaveLength(1);
@@ -1131,7 +1139,11 @@ describe('database repositories', () => {
           durationMinutes: 30,
           mode: 'watching',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:50:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:50:00.000Z'),
+        },
       );
       expect(res3.awardedTransactions).toHaveLength(0);
       expect(res3.xpSummary.totalXp).toBe(10);
@@ -1442,7 +1454,11 @@ describe('database repositories', () => {
           durationMinutes: 20,
           mode: 'debugging',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:30:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:30:00.000Z'),
+        },
       );
 
       expect(result.awardedTransactions).toHaveLength(0);
@@ -1486,7 +1502,10 @@ describe('database repositories', () => {
       );
 
       // Reads must not create any unlocks even though the criteria are met.
-      const viewBefore = await getAchievementsView({ db: testDatabase.db });
+      const viewBefore = await getAchievementsView({
+        policy: cs50Policy,
+        db: testDatabase.db,
+      });
       const unlocksBefore = await listAchievementUnlocks({
         db: testDatabase.db,
       });
@@ -1506,14 +1525,21 @@ describe('database repositories', () => {
           durationMinutes: 20,
           mode: 'coding',
         },
-        { db: testDatabase.db, now: createClock('2026-06-12T16:30:00.000Z') },
+        {
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-12T16:30:00.000Z'),
+        },
       );
 
       expect(
         save.unlockedAchievements.map((u) => u.achievementId).sort(),
       ).toEqual(['first-step', 'scratch-initiate']);
 
-      const viewAfter = await getAchievementsView({ db: testDatabase.db });
+      const viewAfter = await getAchievementsView({
+        policy: cs50Policy,
+        db: testDatabase.db,
+      });
       expect(viewAfter.unlockedCount).toBe(2);
       expect(
         viewAfter.achievements.find((a) => a.id === 'first-step')?.unlocked,
@@ -1522,7 +1548,10 @@ describe('database repositories', () => {
       expect(viewAfter.achievements.every((a) => a.xpReward === 0)).toBe(true);
 
       // A second read still does not create or change anything.
-      const viewRepeat = await getAchievementsView({ db: testDatabase.db });
+      const viewRepeat = await getAchievementsView({
+        policy: cs50Policy,
+        db: testDatabase.db,
+      });
       expect(viewRepeat.unlockedCount).toBe(2);
     });
   });
@@ -1590,7 +1619,11 @@ describe('backup, restore, and reset', () => {
         mode: 'coding',
         notes: '<script>alert(1)</script>',
       },
-      { db: context.db, now: createClock('2026-06-12T10:30:00.000Z') },
+      {
+        policy: cs50Policy,
+        db: context.db,
+        now: createClock('2026-06-12T10:30:00.000Z'),
+      },
     );
 
     await logMediaProgress(

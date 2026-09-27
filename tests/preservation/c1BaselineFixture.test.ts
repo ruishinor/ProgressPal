@@ -12,7 +12,7 @@ import {
   getDatabaseSnapshot,
   restoreDatabaseFromBackup,
 } from '@/lib/db';
-import { achievementDefinitions } from '@/lib/achievements';
+import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
 import { bundledCourseSeed } from '@/seed';
 
 import committedFixture from '../fixtures/backups/c1-baseline-envelope1-schema2.json';
