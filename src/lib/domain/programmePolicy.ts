@@ -5,7 +5,11 @@ import {
   courseUnitTypeValues,
   progressStatusValues,
 } from '@/lib/domain/constants';
-import type { CourseSeed } from '@/lib/domain/types';
+import type {
+  CourseItemType,
+  CourseSeed,
+  ProgressStatus,
+} from '@/lib/domain/types';
 
 /**
  * Programme policy contracts (Epic C / C3). These are neutral shapes only: the
@@ -162,7 +166,55 @@ export const XpPolicySchema = z
 
 export type XpPolicy = z.infer<typeof XpPolicySchema>;
 
+/**
+ * Which item types use the submission workflow (`submitted`, `accepted`). The
+ * status sequence offers it for `sequenceItemTypes`; the correction path
+ * offers it only for `correctionItemTypes`, which must be a subset.
+ */
+export const SubmissionWorkflowSchema = z
+  .object({
+    sequenceItemTypes: z.array(z.enum(courseItemTypeValues)),
+    correctionItemTypes: z.array(z.enum(courseItemTypeValues)),
+  })
+  .strict()
+  .superRefine((workflow, ctx) => {
+    for (const [key, values] of [
+      ['sequenceItemTypes', workflow.sequenceItemTypes],
+      ['correctionItemTypes', workflow.correctionItemTypes],
+    ] as const) {
+      if (new Set(values).size !== values.length) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: 'Duplicate item types are not allowed.',
+        });
+      }
+    }
+    for (const itemType of workflow.correctionItemTypes) {
+      if (!workflow.sequenceItemTypes.includes(itemType)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['correctionItemTypes'],
+          message: `Correction item type "${itemType}" has no submission workflow.`,
+        });
+      }
+    }
+  });
+
+export type SubmissionWorkflow = z.infer<typeof SubmissionWorkflowSchema>;
+
+/** The status an item type ends its workflow at; used by completion previews. */
+export function getWorkflowTerminalStatus(
+  workflow: SubmissionWorkflow,
+  itemType: CourseItemType,
+): ProgressStatus {
+  return workflow.sequenceItemTypes.includes(itemType)
+    ? 'accepted'
+    : 'completed';
+}
+
 export type ProgrammePolicy = {
   readonly catalogueRules: CatalogueRules;
   readonly xp: XpPolicy;
+  readonly workflow: SubmissionWorkflow;
 };

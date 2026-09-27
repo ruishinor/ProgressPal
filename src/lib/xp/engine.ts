@@ -1,10 +1,12 @@
 import {
   completionAwardSourceType,
+  getWorkflowTerminalStatus,
   statusMilestoneSourceType,
   unitCompletionSourceType,
   type CourseItem,
   type CourseUnit,
   type ProgressEntry,
+  type SubmissionWorkflow,
   type XpPolicy,
 } from '@/lib/domain';
 import { isItemComplete } from '@/lib/completion';
@@ -269,18 +271,23 @@ export function getXpAwardSourceKey(sourceType: string, sourceId: string) {
   return JSON.stringify([sourceType, sourceId]);
 }
 
+/**
+ * Previews the awards for completing an item: the item is evaluated at its
+ * workflow's terminal status (from the programme's submission workflow).
+ */
 export function evaluateCompletionPreviewXp(params: {
   policy: XpPolicy;
+  workflow: SubmissionWorkflow;
   allCourseItems: readonly CourseItem[];
   allProgress: readonly ProgressEntry[];
   item: CourseItem;
   unit: CourseUnit;
 }): PotentialXpAward[] {
-  const { policy, allCourseItems, allProgress, item, unit } = params;
+  const { policy, workflow, allCourseItems, allProgress, item, unit } = params;
   const completion: ProgressEntry = {
     id: `preview-${item.id}`,
     itemId: item.id,
-    status: item.type === 'problem_set' ? 'accepted' : 'completed',
+    status: getWorkflowTerminalStatus(workflow, item.type),
     confidence: 0,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,

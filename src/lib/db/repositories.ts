@@ -3161,6 +3161,7 @@ function getCourseMapRewardSources(
 
     for (const award of evaluateCompletionPreviewXp({
       policy: policy.xp,
+      workflow: policy.workflow,
       allCourseItems: courseItems,
       allProgress: progressEntries,
       item,
@@ -3190,6 +3191,7 @@ function getResourceRewardSources(
 
   for (const award of evaluateCompletionPreviewXp({
     policy: policy.xp,
+    workflow: policy.workflow,
     allCourseItems: courseItems,
     allProgress: progressEntries,
     item: courseItem,

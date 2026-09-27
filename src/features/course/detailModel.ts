@@ -12,6 +12,7 @@ import {
   type CourseStatusVariant,
 } from '@/lib/progress';
 import { formatMinutes } from '@/lib/time';
+import { getActiveProgrammeDefinition } from '@/programmes';
 
 export type CourseDetailView = {
   estimatedMinutesLabel: string;
@@ -55,13 +56,21 @@ type ProgressValidationContext = ProgressStatusOptionContext & {
   selectedStatus: ProgressStatus;
 };
 
-const problemWorkflowItemTypes = new Set<CourseItem['type']>([
-  'lab',
-  'problem_set',
-]);
+/**
+ * The submission workflow (which item types may be `submitted`/`accepted`) is
+ * the active programme's policy (Epic C / C3); the sequence and correction
+ * mechanisms below are shared.
+ */
+function getSubmissionWorkflow() {
+  return getActiveProgrammeDefinition().policy.workflow;
+}
 
 function canUseSubmittedStatuses(itemType: CourseItem['type']) {
-  return problemWorkflowItemTypes.has(itemType);
+  return getSubmissionWorkflow().sequenceItemTypes.includes(itemType);
+}
+
+function offersSubmittedStatusesOnCorrection(itemType: CourseItem['type']) {
+  return getSubmissionWorkflow().correctionItemTypes.includes(itemType);
 }
 
 function getStatusSequence(
@@ -146,7 +155,7 @@ export function getCourseProgressStatusOptions(
         'started',
         'blocked',
         'completed',
-        ...(context.itemType === 'problem_set'
+        ...(offersSubmittedStatusesOnCorrection(context.itemType)
           ? (['submitted', 'accepted'] as const)
           : []),
         ...(!context.required ? (['skipped_optional'] as const) : []),

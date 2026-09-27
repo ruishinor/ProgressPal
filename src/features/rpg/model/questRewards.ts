@@ -37,7 +37,7 @@ export function buildQuestRewardLabel(
   itemId: string,
   detailed = false,
 ) {
-  const policy = getActiveProgrammeDefinition().policy.xp;
+  const { xp: policy, workflow } = getActiveProgrammeDefinition().policy;
   const item = snapshot.courseItems.find(
     (candidate) => candidate.id === itemId,
   );
@@ -50,6 +50,7 @@ export function buildQuestRewardLabel(
     getLinkedMilestoneItemIds(policy, item.id).length > 0;
   const awards = evaluateCompletionPreviewXp({
     policy,
+    workflow,
     allCourseItems: snapshot.courseItems,
     allProgress: snapshot.progressEntries,
     item,

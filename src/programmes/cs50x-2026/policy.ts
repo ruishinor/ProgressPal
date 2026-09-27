@@ -1,4 +1,8 @@
-import type { CatalogueRules, XpPolicy } from '@/lib/domain';
+import type {
+  CatalogueRules,
+  SubmissionWorkflow,
+  XpPolicy,
+} from '@/lib/domain';
 
 /**
  * CS50x core policy (Epic C / C3; C0 contract §4b). Shared engines receive
@@ -63,4 +67,14 @@ export const cs50XpPolicy: XpPolicy = {
       reason: 'Completed both final project README and video demo',
     },
   ],
+};
+
+/**
+ * CS50 submission workflow. Labs and problem sets offer `submitted` and
+ * `accepted` in the status sequence; only problem sets offer them on the
+ * correction path. The asymmetry is preserved exactly (C0 inventory X-2).
+ */
+export const cs50SubmissionWorkflow: SubmissionWorkflow = {
+  sequenceItemTypes: ['lab', 'problem_set'],
+  correctionItemTypes: ['problem_set'],
 };

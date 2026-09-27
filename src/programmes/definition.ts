@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   CatalogueRulesSchema,
+  SubmissionWorkflowSchema,
   XpPolicySchema,
   findCatalogueRuleIssues,
   type CourseSeed,
@@ -96,6 +97,7 @@ const definitionSchema = z
       .object({
         catalogueRules: CatalogueRulesSchema,
         xp: XpPolicySchema,
+        workflow: SubmissionWorkflowSchema,
       })
       .strict(),
     content: z

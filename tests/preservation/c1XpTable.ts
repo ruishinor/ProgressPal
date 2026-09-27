@@ -194,6 +194,7 @@ export function buildC1PreviewRows(catalogue: {
     awards: toC1Awards(
       evaluateCompletionPreviewXp({
         policy: cs50Policy.xp,
+        workflow: cs50Policy.workflow,
         allCourseItems: catalogue.items,
         allProgress: [],
         item,

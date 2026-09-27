@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { upsertProgressAndAwardXp } from '@/lib/db';
 import {
+  courseItemTypeValues,
+  getWorkflowTerminalStatus,
   parseCourseSeed,
   type CourseSeed,
   type ProgrammePolicy,
@@ -222,5 +224,49 @@ describe('policy isolation: a test-only policy changes only its own awards', () 
     expect(testAwarded).toEqual(
       cs50Awarded.filter((id) => id !== 'xp-week_completed-week-0'),
     );
+  });
+});
+
+describe('submission workflow is programme policy', () => {
+  it('keeps the CS50 lab/problem_set asymmetry (X-2)', () => {
+    expect(cs50.policy.workflow).toEqual({
+      sequenceItemTypes: ['lab', 'problem_set'],
+      correctionItemTypes: ['problem_set'],
+    });
+  });
+
+  it('derives the preview terminal status from the workflow', () => {
+    const terminal = courseItemTypeValues.map((itemType) => [
+      itemType,
+      getWorkflowTerminalStatus(cs50.policy.workflow, itemType),
+    ]);
+    expect(Object.fromEntries(terminal)).toEqual({
+      lecture: 'completed',
+      section: 'completed',
+      shorts: 'completed',
+      reading: 'completed',
+      problem_set: 'accepted',
+      lab: 'accepted',
+      practice: 'completed',
+      project_task: 'completed',
+      notes: 'completed',
+      reflection: 'completed',
+    });
+  });
+
+  it('fails closed on a correction type without a submission workflow', () => {
+    expect(() =>
+      validateProgrammeDefinition(
+        testDefinition({
+          policy: {
+            ...testPolicy,
+            workflow: {
+              sequenceItemTypes: ['problem_set'],
+              correctionItemTypes: ['lab'],
+            },
+          },
+        }),
+      ),
+    ).toThrow(/Correction item type "lab" has no submission workflow/);
   });
 });

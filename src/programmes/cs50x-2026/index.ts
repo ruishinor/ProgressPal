@@ -5,7 +5,11 @@ import {
   type ProgrammeDefinition,
 } from '../definition';
 import { cs50ExternalResources } from './externalResources';
-import { cs50CatalogueRules, cs50XpPolicy } from './policy';
+import {
+  cs50CatalogueRules,
+  cs50SubmissionWorkflow,
+  cs50XpPolicy,
+} from './policy';
 import { cs50StudyGuides } from './studyGuides';
 
 /**
@@ -24,6 +28,7 @@ export const cs50x2026Definition: ProgrammeDefinition =
     policy: {
       catalogueRules: cs50CatalogueRules,
       xp: cs50XpPolicy,
+      workflow: cs50SubmissionWorkflow,
     },
     content: {
       externalResources: cs50ExternalResources,
