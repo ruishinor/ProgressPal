@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
-import type { CourseSeed } from '@/lib/domain';
+import {
+  CatalogueRulesSchema,
+  findCatalogueRuleIssues,
+  type CourseSeed,
+  type ProgrammePolicy,
+} from '@/lib/domain';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
 
 /**
- * Programme definition (Epic C / C2). Immutable, compile-time configuration
- * for one registered programme. It holds identity, a reference to the bundled
- * catalogue, and content (external resources and study guides).
+ * Programme definition (Epic C / C2, C3). Immutable, compile-time
+ * configuration for one registered programme. It holds identity, a reference
+ * to the bundled catalogue, core policy that shared engines receive as
+ * parameters (C3), and content (external resources and study guides).
  *
  * Identity terms (C0 contract §2): `definitionKey` is a registry key and is
  * never persisted; `catalogueId` is the catalogue identity already persisted
@@ -52,6 +58,7 @@ export type ProgrammeDefinition = {
   readonly title: string;
   /** Reference to the bundled catalogue; it is never copied or migrated here. */
   readonly catalogue: CourseSeed;
+  readonly policy: ProgrammePolicy;
   readonly content: {
     readonly externalResources: ProgrammeExternalResources;
     readonly studyGuides: ProgrammeStudyGuides;
@@ -84,6 +91,7 @@ const definitionSchema = z
     catalogue: z.custom<CourseSeed>(
       (value) => typeof value === 'object' && value !== null,
     ),
+    policy: z.object({ catalogueRules: CatalogueRulesSchema }).strict(),
     content: z
       .object({
         externalResources: z
@@ -118,7 +126,8 @@ function guideStrings(guide: UnitGuide | ItemGuide): string[] {
 
 /**
  * Validates a definition and fails closed. Beyond shape, it checks that the
- * definition matches its catalogue, that every link and guide is keyed to a
+ * definition matches its catalogue, that the catalogue satisfies the
+ * programme's catalogue rules, that every link and guide is keyed to a
  * real catalogue unit or item, that every link stays within a declared URL
  * prefix, and that guides embed no URLs (guide authoring rule).
  */
@@ -128,7 +137,7 @@ export function validateProgrammeDefinition(
   const label = `Programme definition "${String(definition?.definitionKey)}"`;
   parseWithSchema(definitionSchema, definition, label);
 
-  const { catalogue, content } = definition;
+  const { catalogue, content, policy } = definition;
   const unitIds = new Set(catalogue.units.map((unit) => unit.id));
   const itemIds = new Set(
     catalogue.units.flatMap((unit) => unit.items.map((item) => item.id)),
@@ -142,6 +151,8 @@ export function validateProgrammeDefinition(
       `catalogueId "${definition.catalogueId}" does not match catalogue courseId "${catalogue.courseId}"`,
     );
   }
+
+  issues.push(...findCatalogueRuleIssues(catalogue, policy.catalogueRules));
 
   const checkLinks = (
     kind: 'unit' | 'item',

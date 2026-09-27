@@ -441,14 +441,6 @@ export const CourseSeedSchema = z
       'course item id',
     );
 
-    if (!course.units.some((unit) => unit.type === 'final_project')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['units'],
-        message: 'Course seed must contain a final_project unit.',
-      });
-    }
-
     if (
       !course.units.some((unit) =>
         unit.items.some((item) => item.required === true),

@@ -101,7 +101,10 @@ describe('CourseSeedSchema', () => {
     }
   });
 
-  it('rejects seeds that omit the final project unit or make every item optional', () => {
+  // Epic C / C3: the final_project requirement is CS50 programme policy
+  // (tests/programmes/programmePolicy.test.ts, P1). The generic schema keeps
+  // only the programme-neutral required-item rule.
+  it('rejects seeds that make every item optional', () => {
     const invalidSeed: unknown = {
       ...validCourseSeed,
       units: [
@@ -124,9 +127,11 @@ describe('CourseSeedSchema', () => {
 
       expect(messages).toEqual(
         expect.arrayContaining([
-          'Course seed must contain a final_project unit.',
           'Course seed must contain at least one required item.',
         ]),
+      );
+      expect(messages).not.toContain(
+        'Course seed must contain a final_project unit.',
       );
     }
   });
