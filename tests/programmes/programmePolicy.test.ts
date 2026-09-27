@@ -10,12 +10,17 @@ import {
   courseItemTypeValues,
   getWorkflowTerminalStatus,
   parseCourseSeed,
+  type CourseItem,
   type CourseSeed,
+  type CourseUnit,
   type ProgrammePolicy,
   type ProgressEntry,
   type XpPolicy,
 } from '@/lib/domain';
-import { evaluateProgressXp } from '@/lib/xp/engine';
+import {
+  evaluateCompletionPreviewXp,
+  evaluateProgressXp,
+} from '@/lib/xp/engine';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   validateProgrammeDefinition,
@@ -241,23 +246,107 @@ describe('submission workflow is programme policy', () => {
     });
   });
 
-  it('derives the preview terminal status from the workflow', () => {
-    const terminal = courseItemTypeValues.map((itemType) => [
-      itemType,
-      getWorkflowTerminalStatus(cs50.policy.workflow, itemType),
-    ]);
-    expect(Object.fromEntries(terminal)).toEqual({
-      lecture: 'completed',
-      section: 'completed',
-      shorts: 'completed',
-      reading: 'completed',
-      problem_set: 'accepted',
-      lab: 'accepted',
-      practice: 'completed',
-      project_task: 'completed',
-      notes: 'completed',
-      reflection: 'completed',
+  // C3 independent-review repair: the first C3 candidate (78ae22e6) previewed
+  // lab at `accepted`. C1 freezes the pre-C3 rule, problem_set → accepted and
+  // every other type (lab included) → completed, whether or not CS50 has labs.
+  it('derives the frozen C1 preview terminal status from the workflow', () => {
+    const preC3Rule = (itemType: string) =>
+      itemType === 'problem_set' ? 'accepted' : 'completed';
+
+    for (const itemType of courseItemTypeValues) {
+      expect(
+        getWorkflowTerminalStatus(cs50.policy.workflow, itemType),
+        itemType,
+      ).toBe(preC3Rule(itemType));
+    }
+    expect(getWorkflowTerminalStatus(cs50.policy.workflow, 'lab')).toBe(
+      'completed',
+    );
+    expect(getWorkflowTerminalStatus(cs50.policy.workflow, 'problem_set')).toBe(
+      'accepted',
+    );
+  });
+
+  it('previews a lab at completed and a problem set at accepted through the XP preview', () => {
+    const unit: CourseUnit = {
+      id: 'probe-unit',
+      courseId: 'probe-course',
+      order: 0,
+      title: 'Probe unit',
+      type: 'special',
+      sourceYear: 2026,
+      required: false,
+      createdAt: c1Timestamp,
+      updatedAt: c1Timestamp,
+    };
+    const probeItem = (id: string, type: CourseItem['type']): CourseItem => ({
+      id,
+      unitId: unit.id,
+      type,
+      title: id,
+      required: false,
+      estimatedMinutes: 30,
+      order: 0,
+      createdAt: c1Timestamp,
+      updatedAt: c1Timestamp,
     });
+    // Test-only XP policy that reveals the preview status: `accepted` and
+    // `completed` milestones for both workflow item types.
+    const probePolicy: XpPolicy = {
+      completionAwards: [],
+      unitCompletionBonuses: [],
+      itemMilestones: [],
+      statusMilestones: (['lab', 'problem_set'] as const).flatMap(
+        (itemType) => [
+          {
+            itemType,
+            milestone: 'at_completed',
+            statuses: ['completed' as const],
+            xp: 1,
+            reasonLabel: 'Probe completed',
+          },
+          {
+            itemType,
+            milestone: 'at_accepted',
+            statuses: ['accepted' as const],
+            xp: 1,
+            reasonLabel: 'Probe accepted',
+          },
+        ],
+      ),
+    };
+    const previewSourceTypes = (item: CourseItem) =>
+      evaluateCompletionPreviewXp({
+        policy: probePolicy,
+        workflow: cs50.policy.workflow,
+        allCourseItems: [item],
+        allProgress: [],
+        item,
+        unit,
+      }).map((award) => award.sourceType);
+
+    expect(previewSourceTypes(probeItem('probe-lab', 'lab'))).toEqual([
+      'lab_at_completed',
+    ]);
+    expect(
+      previewSourceTypes(probeItem('probe-problem-set', 'problem_set')),
+    ).toEqual(['problem_set_at_accepted']);
+  });
+
+  it('lets a test-only workflow configure its own preview status without changing CS50', () => {
+    const symmetric = {
+      sequenceItemTypes: ['lab', 'problem_set'] as CourseItem['type'][],
+      correctionItemTypes: ['lab', 'problem_set'] as CourseItem['type'][],
+    };
+    expect(getWorkflowTerminalStatus(symmetric, 'lab')).toBe('accepted');
+    expect(
+      validateProgrammeDefinition(
+        testDefinition({ policy: { ...testPolicy, workflow: symmetric } }),
+      ).policy.workflow,
+    ).toBe(symmetric);
+    expect(getWorkflowTerminalStatus(cs50.policy.workflow, 'lab')).toBe(
+      'completed',
+    );
   });
 
   it('fails closed on a correction type without a submission workflow', () => {

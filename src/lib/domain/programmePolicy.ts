@@ -203,12 +203,19 @@ export const SubmissionWorkflowSchema = z
 
 export type SubmissionWorkflow = z.infer<typeof SubmissionWorkflowSchema>;
 
-/** The status an item type ends its workflow at; used by completion previews. */
+/**
+ * The status a completion preview evaluates an item type at. Only item types
+ * whose submission workflow is offered on both the sequence and the correction
+ * path (`correctionItemTypes`) preview at `accepted`; every other type,
+ * including sequence-only types, previews at `completed`. For CS50 this is the
+ * frozen C1 rule: `problem_set` → `accepted`, `lab` and all others →
+ * `completed`.
+ */
 export function getWorkflowTerminalStatus(
   workflow: SubmissionWorkflow,
   itemType: CourseItemType,
 ): ProgressStatus {
-  return workflow.sequenceItemTypes.includes(itemType)
+  return workflow.correctionItemTypes.includes(itemType)
     ? 'accepted'
     : 'completed';
 }
