@@ -297,3 +297,152 @@ describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
     expect(sessionResult.awardedTransactions).toHaveLength(1);
   });
 });
+
+/**
+ * Owner-review C6-R RED checkpoint (D1c): `addStudySessionAndAwardXp`'s
+ * existing-session branch (`input.id` already present in `studySessions`)
+ * assigns `studySession = existing` and skips `addStudySession(...)`
+ * entirely - the only place in this function that calls
+ * `ensureBaseInitialization`. When the existing session is below the
+ * 25-minute XP threshold, the XP-award branch is also skipped, so
+ * `addXpTransaction` (which also calls `ensureBaseInitialization`) is never
+ * reached either. A repeat call with the same session ID therefore never
+ * invokes `ensureBaseInitialization` anywhere, bypassing the D1/D1b
+ * enrolment invariant completely, even on a database whose active-programme
+ * enrolment was removed after the session was first created.
+ */
+describe('database bootstrap invariants (Epic C6-R, D1c)', () => {
+  let testDatabase: TestDatabaseContext | null = null;
+
+  afterEach(async () => {
+    await testDatabase?.cleanup();
+    testDatabase = null;
+  });
+
+  it('D1c-A: repeating an existing short (non-XP-qualifying) session fails closed on a missing active-programme enrolment', async () => {
+    testDatabase = createTestDatabase('d1c-existing-short-session');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    // A legitimate short session, created while the enrolment is still
+    // valid - well under the 25-minute XP threshold, so a repeat call
+    // cannot accidentally be rescued by the XP-award branch calling
+    // addXpTransaction (which itself calls ensureBaseInitialization).
+    const firstCall = await addStudySessionAndAwardXp(
+      {
+        id: 'session-d1c-short',
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-11T10:05:00.000Z',
+        endedAt: '2026-06-11T10:15:00.000Z',
+        durationMinutes: 10,
+        mode: 'watching',
+      },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db: testDatabase.db,
+        now: createClock('2026-06-11T10:15:00.000Z'),
+      },
+    );
+    expect(firstCall.studySession?.id).toBe('session-d1c-short');
+    expect(firstCall.awardedTransactions).toHaveLength(0);
+
+    const persistedAfterFirstCall =
+      await testDatabase.db.studySessions.get('session-d1c-short');
+    expect(persistedAfterFirstCall).toBeDefined();
+
+    await testDatabase.db.programmeEnrolments.delete(
+      testDatabase.db.migrationContext.programmeId,
+    );
+
+    await expect(
+      addStudySessionAndAwardXp(
+        {
+          id: 'session-d1c-short',
+          unitId: 'week-0',
+          itemId: 'week-0-lecture',
+          startedAt: '2026-06-11T10:05:00.000Z',
+          endedAt: '2026-06-11T10:15:00.000Z',
+          durationMinutes: 10,
+          mode: 'watching',
+        },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-11T10:20:00.000Z'),
+        },
+      ),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+
+    const persistedAfterRepeatCall =
+      await testDatabase.db.studySessions.get('session-d1c-short');
+    expect(persistedAfterRepeatCall).toEqual(persistedAfterFirstCall);
+
+    const xpTransactions = await testDatabase.db.xpTransactions
+      .where('sourceId')
+      .equals('session-d1c-short')
+      .toArray();
+    expect(xpTransactions).toHaveLength(0);
+
+    // The missing enrolment is not silently repaired by the failed attempt.
+    const enrolment = await testDatabase.db.programmeEnrolments.get(
+      testDatabase.db.migrationContext.programmeId,
+    );
+    expect(enrolment).toBeUndefined();
+  });
+
+  it('D1c-B: repeating an existing qualifying session with a valid enrolment stays idempotent', async () => {
+    testDatabase = createTestDatabase('d1c-existing-qualifying-session');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    const input = {
+      id: 'session-d1c-qualifying',
+      unitId: 'week-0',
+      itemId: 'week-0-lecture',
+      startedAt: '2026-06-11T10:05:00.000Z',
+      endedAt: '2026-06-11T10:35:00.000Z',
+      durationMinutes: 30,
+      mode: 'watching' as const,
+    };
+    const options = {
+      catalogueId: cs50CatalogueId,
+      policy: cs50Policy,
+      db: testDatabase.db,
+    };
+
+    const firstCall = await addStudySessionAndAwardXp(input, {
+      ...options,
+      now: createClock('2026-06-11T10:35:00.000Z'),
+    });
+    expect(firstCall.awardedTransactions).toHaveLength(1);
+
+    const repeatCall = await addStudySessionAndAwardXp(input, {
+      ...options,
+      now: createClock('2026-06-11T10:36:00.000Z'),
+    });
+    expect(repeatCall.awardedTransactions).toHaveLength(0);
+
+    const sessions = await testDatabase.db.studySessions
+      .where('id')
+      .equals('session-d1c-qualifying')
+      .toArray();
+    expect(sessions).toHaveLength(1);
+
+    const xpTransactions = await testDatabase.db.xpTransactions
+      .where('sourceId')
+      .equals('session-d1c-qualifying')
+      .toArray();
+    expect(xpTransactions).toHaveLength(1);
+  });
+});
