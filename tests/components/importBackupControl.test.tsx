@@ -1,9 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ImportBackupControl } from '@/components/ui/ImportBackupControl';
 import { buildBackupEnvelope, type BackupData } from '@/lib/backup';
+import { defaultTestMigrationContext } from '../db/testDatabase';
+import schemaTwoBackup from '../fixtures/backups/v1.3.0-envelope1-schema2.json';
 
 function emptyBackupData(): BackupData {
   return {
@@ -221,5 +223,73 @@ describe('ImportBackupControl', () => {
     );
     expect(await screen.findByText('second')).toBeInTheDocument();
     expect(screen.queryByText('first')).not.toBeInTheDocument();
+  });
+
+  /**
+   * Owner-review C6-R RED checkpoint (D2): the production import control must
+   * be able to preview a historical schema-2 backup once the application is on
+   * schema 3, but only when it is given the authorized migration context. A
+   * rejected C6 candidate wired `ImportBackupControl` without a
+   * `migrationContext` prop, so `parseBackupFile` always rejected a schema-2
+   * file during preview and the destructive restore path was never reachable
+   * through the real product UI.
+   */
+  it('D2-A: previews a historical schema-2 backup under the authorized migration context', async () => {
+    const onConfirmImport = vi.fn();
+    render(
+      <ImportBackupControl
+        expectedSchemaVersion={3}
+        migrationContext={defaultTestMigrationContext}
+        onConfirmImport={onConfirmImport}
+      />,
+    );
+
+    await userEvent.upload(
+      screen.getByLabelText('Backup file'),
+      jsonFile('schema2-backup.json', JSON.stringify(schemaTwoBackup)),
+    );
+
+    // Wait for the control to settle on either outcome (preview or error)
+    // rather than only `findByRole('button', ...)`, so a pre-fix failure
+    // surfaces immediately as "the alert appeared instead of the button"
+    // rather than as a generic 5s async-utility timeout.
+    await waitFor(() => {
+      const hasAlert = screen.queryByRole('alert') !== null;
+      const hasConfirmButton =
+        screen.queryByRole('button', { name: /replace local data/i }) !==
+        null;
+
+      expect(hasAlert || hasConfirmButton).toBe(true);
+    });
+
+    // Pre-fix, `ImportBackupControl` never forwards `migrationContext` to
+    // `parseBackupFile`, so this schema-2 file is rejected with the same
+    // "different data version" alert asserted in the control test below,
+    // even though the caller supplied an authorized context here.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /replace local data/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('D2-A (control): rejects the same schema-2 backup when no migration context is supplied', async () => {
+    const onConfirmImport = vi.fn();
+    render(
+      <ImportBackupControl
+        expectedSchemaVersion={3}
+        onConfirmImport={onConfirmImport}
+      />,
+    );
+
+    await userEvent.upload(
+      screen.getByLabelText('Backup file'),
+      jsonFile('schema2-backup.json', JSON.stringify(schemaTwoBackup)),
+    );
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /replace local data/i }),
+    ).not.toBeInTheDocument();
+    expect(onConfirmImport).not.toHaveBeenCalled();
   });
 });
