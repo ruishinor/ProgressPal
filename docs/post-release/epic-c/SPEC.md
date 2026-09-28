@@ -6,10 +6,12 @@ closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
 `C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`;
 `C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). **C6 was
-implemented and its first candidate was rejected by independent owner
-review; one bounded repair round (C6-R) is complete and awaits separate
-owner review** (`C6_CLOSURE_RECORD.md`, `C6_R_CLOSURE_RECORD.md`). C6 is
-NOT accepted. C7 has not started and is not authorized.
+implemented; its first candidate was rejected by independent owner
+review; a first repair round (C6-R) was also not accepted; a second
+bounded repair round (C6-R2) is complete and awaits separate owner
+review** (`C6_CLOSURE_RECORD.md`, `C6_R_CLOSURE_RECORD.md`,
+`C6_R2_CLOSURE_RECORD.md`). C6 is NOT accepted. C7 has not started and is
+not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -50,8 +52,16 @@ NOT accepted. C7 has not started and is not authorized.
   relational-validation finding discovered during C6-R's own adversarial
   review, and completes the E1/E2/C1 evidence; it passed the full local
   gate (lint, format, typecheck, build, bundle budget, unit/integration
-  tests, managed E2E, `git diff --check`). C6 remains **not accepted**
-  pending separate owner review of C6-R. C7 has not started and is not
+  tests, managed E2E, `git diff --check`). Independent owner review did
+  not accept `e6372af`, finding an incomplete aspect of the D1 repair
+  (D1b: the enrolment invariant was skippable through three real
+  compound write paths) and a missing mandatory 64/64 C1 visual
+  comparison. A second bounded repair round, C6-R2, produced replacement
+  candidate `af92334` (`C6_R2_CLOSURE_RECORD.md`), which repairs D1b,
+  passes the full local gate again, and completes a 64/64 identical
+  comparison of the regenerated C1 captures against the unchanged
+  accepted retained baseline. C6 remains **not accepted** pending
+  separate owner review of C6-R2. C7 has not started and is not
   authorized.
 - Publication is deferred: no C2–C5 acceptance changes `origin/master` or
   Production. Publishing and stabilizing the pre-schema line (Epic B through

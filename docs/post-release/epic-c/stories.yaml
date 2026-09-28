@@ -213,14 +213,15 @@ stories:
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
-    state: c6_r_repaired_pending_owner_review
-    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) was directly owner-authorized. C6-R candidate e6372af (closure C6_R_CLOSURE_RECORD.md) repairs D1, D2, a further RD3 relational-validation finding, and completes E1/E2/C1 evidence; it passed the full local gate. C6 remains NOT accepted pending separate owner review of C6-R. C7 is not started and not authorized. No publication occurred
+    state: c6_r2_repaired_pending_owner_review
+    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) produced candidate e6372af (closure C6_R_CLOSURE_RECORD.md); independent owner review did not accept it, finding an incomplete D1 repair (D1b) and a missing mandatory 64/64 C1 visual comparison. A second bounded repair round (C6-R2) produced replacement candidate af92334 (closure C6_R2_CLOSURE_RECORD.md), repairing D1b and completing the 64/64 comparison (identical, against the unchanged accepted baseline). C6 remains NOT accepted pending separate owner review of C6-R2. C7 is not started and not authorized. No publication occurred
     records:
       [
         C6_SCHEMA_CHANGE_DECISION_RECORD.md,
         C6_READINESS_RECORD.md,
         C6_CLOSURE_RECORD.md,
         C6_R_CLOSURE_RECORD.md,
+        C6_R2_CLOSURE_RECORD.md,
       ]
     implementation_started: true
     deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local implementation
