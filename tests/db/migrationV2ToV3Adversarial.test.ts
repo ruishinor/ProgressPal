@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ensureCourseCatalogFromSeed, initializeDatabase } from '@/lib/db';
 import {
@@ -137,6 +137,83 @@ describe('v2 -> v3 upgrade adversarial evidence (leaves v2 intact)', () => {
     upgradingDatabase.close();
 
     expect(await getNativeDatabaseVersion(name)).toBe(20);
+  });
+});
+
+describe('mid-write upgrade failure (Epic C6-R, E1)', () => {
+  const openedDatabases: string[] = [];
+
+  afterEach(async () => {
+    await Promise.all(openedDatabases.splice(0).map(deleteDatabaseByName));
+  });
+
+  /**
+   * The rejected C6 candidate only proved a pre-write validation abort (the
+   * two tests above: `migrateV2ToV3` itself throws before any write is
+   * attempted). That is not evidence that a failure *after* migration writes
+   * begin still rolls back completely. This injects a failure into the last
+   * of the three concurrent migration writes
+   * (`app_meta.put`, `catalogue_versions.bulkAdd`, `programme_enrolments.bulkAdd`
+   * in `migrateVersionTwoToVersionThree`), after the other two have already
+   * been issued against the same version-change transaction, and proves the
+   * whole upgrade (including the schema change itself) still rolls back.
+   */
+  it('rejects the upgrade when a write fails after migration writes have begun, leaving v2 intact', async () => {
+    const name = 'progresspal-test-upgrade-mid-write-failure';
+    openedDatabases.push(name);
+    await createLegacyVersionTwoFixture(name);
+
+    const upgradingDatabase = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      name,
+    );
+
+    // Test-only injection: the migration writes `app_meta` and
+    // `catalogue_versions` before `programme_enrolments` inside one
+    // `Promise.all`, so failing only this table's native `add` still proves
+    // the other two writes were already issued against the real
+    // version-change transaction. Dexie's bulk mutate core calls the native
+    // `IDBObjectStore` method dynamically (`store[type](...)`), so this
+    // patches the one native primitive every write path goes through rather
+    // than a Dexie-level wrapper a spy could miss.
+    const originalAdd = IDBObjectStore.prototype.add;
+    const addSpy = vi
+      .spyOn(IDBObjectStore.prototype, 'add')
+      .mockImplementation(function (
+        this: IDBObjectStore,
+        ...args: Parameters<IDBObjectStore['add']>
+      ) {
+        if (this.name === 'programme_enrolments') {
+          addSpy.mockRestore();
+          throw new Error('Injected mid-write upgrade failure (test-only).');
+        }
+        return originalAdd.apply(this, args);
+      });
+
+    await expect(upgradingDatabase.open()).rejects.toThrow(
+      /injected mid-write upgrade failure/i,
+    );
+    upgradingDatabase.close();
+
+    // The whole version-change transaction aborted: the native database
+    // never advanced past v2 (native version 20 = Dexie version 2 * 10), and
+    // the v3-only object stores this upgrade would have created do not exist.
+    expect(await getNativeDatabaseVersion(name)).toBe(20);
+
+    const rawCheck = new Dexie(name);
+    rawCheck.version(2).stores(legacyVersionTwoStoreDefinitions);
+    await rawCheck.open();
+    expect(rawCheck.tables.map((table) => table.name)).not.toContain(
+      'catalogue_versions',
+    );
+    expect(rawCheck.tables.map((table) => table.name)).not.toContain(
+      'programme_enrolments',
+    );
+    const appMeta = await rawCheck.table('app_meta').get('app-meta');
+    const unit = await rawCheck.table('course_units').get('week-0');
+    expect(appMeta).toMatchObject({ schemaVersion: 2, seedVersion: 1 });
+    expect(unit).toMatchObject({ courseId: 'cs50x-2026' });
+    rawCheck.close();
   });
 });
 
