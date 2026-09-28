@@ -216,6 +216,47 @@ describe('migrateV2ToV3', () => {
     );
   });
 
+  /**
+   * Epic C6-R, RD3 (owner-authorized continuation): binding Control 1
+   * requires deterministic parent-chain attribution, but this checked only
+   * that `session.unitId` and `session.itemId` each independently resolve to
+   * *some* existing row - never that the item's own `unitId` actually equals
+   * `session.unitId`. Both `unit-a` and `unit-b` below are real, authorized
+   * units (this is not the already-covered "missing unit or item" case above
+   * - unlike that test, both referenced rows genuinely exist), so a
+   * pre-repair run must accept this contradiction instead of rejecting it.
+   */
+  it("RD3-A: aborts when a study session names a unit that is not its item's real unit", () => {
+    const unitA = { ...unit1, id: 'unit-a' };
+    const unitB = { ...unit1, id: 'unit-b' };
+    const itemInUnitB = { ...item1, id: 'item-in-unit-b', unitId: unitB.id };
+    const snapshot = emptySnapshot({
+      appMeta: legacyAppMeta(),
+      courseUnits: [unitA, unitB],
+      courseItems: [itemInUnitB],
+      studySessions: [
+        {
+          id: 'session-cross-unit',
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          // Both exist (unlike the "unattributable" test above), but the
+          // item's real unit is unit-b, not the unit-a this session claims.
+          unitId: unitA.id,
+          itemId: itemInUnitB.id,
+          startedAt: timestamp,
+          endedAt: timestamp,
+          durationMinutes: 20,
+          mode: 'watching' as const,
+          blockers: [],
+        },
+      ],
+    });
+
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /does not use the item's unit/i,
+    );
+  });
+
   it('aborts on two XP transactions sharing a (sourceType, sourceId) key', () => {
     const duplicateXp = {
       id: 'xp-1',

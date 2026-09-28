@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { BackupValidationError, parseBackupFile } from '@/lib/backup';
 import { ensureCourseCatalogFromSeed, initializeDatabase } from '@/lib/db';
 import {
   createProgressPalDatabase,
@@ -83,6 +84,82 @@ async function createLegacyVersionTwoFixture(
   legacyDatabase.close();
 }
 
+/**
+ * Epic C6-R, RD3: a schema-valid legacy v2 snapshot with two real,
+ * independently authorized units, and a study session whose `unitId` names
+ * one unit while its `itemId` actually belongs to the other. Both the unit
+ * and the item genuinely exist (unlike `orphanCourseItem` above), so this
+ * proves the cross-field check specifically, not the already-covered
+ * "missing row" case.
+ */
+async function createLegacyVersionTwoFixtureWithCrossUnitSession(
+  databaseName: string,
+) {
+  const legacyDatabase = new Dexie(databaseName);
+
+  legacyDatabase.version(2).stores(legacyVersionTwoStoreDefinitions);
+  await legacyDatabase.open();
+  await legacyDatabase.table('app_meta').add({
+    id: 'app-meta',
+    createdAt: legacyTimestamp,
+    updatedAt: legacyTimestamp,
+    appVersion: '1.3.0',
+    schemaVersion: 2,
+    seedVersion: 1,
+  });
+  await legacyDatabase.table('course_units').bulkAdd([
+    {
+      id: 'unit-a',
+      createdAt: legacyTimestamp,
+      updatedAt: legacyTimestamp,
+      courseId: 'cs50x-2026',
+      title: 'Unit A',
+      order: 0,
+      type: 'week',
+      sourceYear: 2026,
+      required: true,
+    },
+    {
+      id: 'unit-b',
+      createdAt: legacyTimestamp,
+      updatedAt: legacyTimestamp,
+      courseId: 'cs50x-2026',
+      title: 'Unit B',
+      order: 1,
+      type: 'week',
+      sourceYear: 2026,
+      required: true,
+    },
+  ]);
+  await legacyDatabase.table('course_items').add({
+    id: 'item-in-unit-b',
+    createdAt: legacyTimestamp,
+    updatedAt: legacyTimestamp,
+    unitId: 'unit-b',
+    type: 'lecture',
+    title: 'Lecture',
+    required: true,
+    estimatedMinutes: 120,
+    order: 0,
+  });
+  await legacyDatabase.table('study_sessions').add({
+    id: 'session-cross-unit',
+    createdAt: legacyTimestamp,
+    updatedAt: legacyTimestamp,
+    // Both unit-a and item-in-unit-b exist; the item's real unit is unit-b,
+    // not the unit-a this session claims.
+    unitId: 'unit-a',
+    itemId: 'item-in-unit-b',
+    startedAt: legacyTimestamp,
+    endedAt: legacyTimestamp,
+    durationMinutes: 20,
+    mode: 'watching',
+    blockers: [],
+  });
+
+  legacyDatabase.close();
+}
+
 async function getNativeDatabaseVersion(databaseName: string) {
   const databaseInfo = (await indexedDB.databases()).find(
     (candidate) => candidate.name === databaseName,
@@ -137,6 +214,160 @@ describe('v2 -> v3 upgrade adversarial evidence (leaves v2 intact)', () => {
     upgradingDatabase.close();
 
     expect(await getNativeDatabaseVersion(name)).toBe(20);
+  });
+});
+
+describe('RD3: study-session unit/item cross-check (Epic C6-R)', () => {
+  const openedDatabases: string[] = [];
+
+  afterEach(async () => {
+    await Promise.all(openedDatabases.splice(0).map(deleteDatabaseByName));
+  });
+
+  /**
+   * Owner-authorized continuation (RD3): `assertFullRelationalValidity`
+   * checked only that `session.unitId` and `session.itemId` each resolve to
+   * *some* existing row, never that the item's own `unitId` equals
+   * `session.unitId`. This constructs a schema-valid legacy v2 database
+   * where both referenced rows genuinely exist (so it is not the
+   * already-covered "orphaned row" case), proving the real Dexie upgrade
+   * rejects the cross-field contradiction and leaves v2 completely intact.
+   */
+  it('rejects a study session naming the wrong unit for its item during the Dexie upgrade, leaving v2 intact', async () => {
+    const name = 'progresspal-test-upgrade-rd3-cross-unit-session';
+    openedDatabases.push(name);
+    await createLegacyVersionTwoFixtureWithCrossUnitSession(name);
+
+    const upgradingDatabase = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      name,
+    );
+
+    await expect(upgradingDatabase.open()).rejects.toThrow(
+      /does not use the item's unit/i,
+    );
+    upgradingDatabase.close();
+
+    expect(await getNativeDatabaseVersion(name)).toBe(20);
+
+    const rawCheck = new Dexie(name);
+    rawCheck.version(2).stores(legacyVersionTwoStoreDefinitions);
+    await rawCheck.open();
+    expect(rawCheck.tables.map((table) => table.name)).not.toContain(
+      'catalogue_versions',
+    );
+    const session = await rawCheck
+      .table('study_sessions')
+      .get('session-cross-unit');
+    expect(session).toMatchObject({
+      unitId: 'unit-a',
+      itemId: 'item-in-unit-b',
+    });
+    rawCheck.close();
+  });
+
+  /**
+   * RD3-C, path-consistency evidence: the identical malformed legacy state
+   * as a schema-2 backup, through the real forward-conversion/validation
+   * path. `assertBackupDataInvariants` already checked
+   * `item.unitId === session.unitId` before this repair (that stricter
+   * check is what the owner-review finding contrasted against the weaker
+   * native-upgrade check), so this proves the two real migration paths now
+   * agree on this malformed input, not only that the backup path alone
+   * rejects it.
+   */
+  it('the equivalent schema-2 backup is also rejected by the real forward-conversion path', () => {
+    const crossUnitSchemaTwoEnvelope = {
+      format: 'progresspal-backup',
+      formatVersion: 1,
+      appVersion: '1.3.0',
+      schemaVersion: 2,
+      exportedAt: legacyTimestamp,
+      data: {
+        appMeta: {
+          id: 'app-meta',
+          createdAt: legacyTimestamp,
+          updatedAt: legacyTimestamp,
+          appVersion: '1.3.0',
+          schemaVersion: 2,
+          seedVersion: 1,
+        },
+        learnerProfile: null,
+        courseUnits: [
+          {
+            id: 'unit-a',
+            createdAt: legacyTimestamp,
+            updatedAt: legacyTimestamp,
+            courseId: 'cs50x-2026',
+            title: 'Unit A',
+            order: 0,
+            type: 'week',
+            sourceYear: 2026,
+            required: true,
+          },
+          {
+            id: 'unit-b',
+            createdAt: legacyTimestamp,
+            updatedAt: legacyTimestamp,
+            courseId: 'cs50x-2026',
+            title: 'Unit B',
+            order: 1,
+            type: 'week',
+            sourceYear: 2026,
+            required: true,
+          },
+        ],
+        courseItems: [
+          {
+            id: 'item-in-unit-b',
+            createdAt: legacyTimestamp,
+            updatedAt: legacyTimestamp,
+            unitId: 'unit-b',
+            type: 'lecture',
+            title: 'Lecture',
+            required: true,
+            estimatedMinutes: 120,
+            order: 0,
+          },
+        ],
+        progressEntries: [],
+        contentAssets: [],
+        contentSlices: [],
+        mediaProgressEvents: [],
+        resumePoints: [],
+        studySessions: [
+          {
+            id: 'session-cross-unit',
+            createdAt: legacyTimestamp,
+            updatedAt: legacyTimestamp,
+            unitId: 'unit-a',
+            itemId: 'item-in-unit-b',
+            startedAt: legacyTimestamp,
+            endedAt: legacyTimestamp,
+            durationMinutes: 20,
+            mode: 'watching',
+            blockers: [],
+          },
+        ],
+        xpTransactions: [],
+        achievementDefinitions: [],
+        achievementUnlocks: [],
+        backups: [],
+      },
+    };
+
+    expect.assertions(2);
+    try {
+      parseBackupFile(JSON.stringify(crossUnitSchemaTwoEnvelope), {
+        expectedSchemaVersion: 3,
+        migrationContext: defaultTestMigrationContext,
+      });
+    } catch (error) {
+      expect(error).toBeInstanceOf(BackupValidationError);
+      expect((error as BackupValidationError).issues.join(' ')).toMatch(
+        /does not use the item's unit/i,
+      );
+    }
   });
 });
 
