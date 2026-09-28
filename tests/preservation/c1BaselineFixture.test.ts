@@ -199,6 +199,35 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
         schemaVersion: currentDatabaseSchemaVersion,
         activeProgrammeId: parsed.data.appMeta?.activeProgrammeId,
       });
+      // Epic C6-R: the C1 preservation oracle transition (owner-authorized -
+      // see C6_R_CLOSURE_RECORD.md) requires proving the complete
+      // materially-relevant persisted state, not hand-picked counts/IDs. The
+      // frozen fixture's legacy `app_meta` carries `seedVersion: 20260617`
+      // and `updatedAt: '2026-09-19T12:05:00.000Z'`; `migrateV2ToV3` derives
+      // `catalogue_versions.dataVersion` and `.syncedAt` from exactly those
+      // two legacy fields, and it is unchanged here because the bundled
+      // `cs50x-2026` seed's own `dataVersion` (20260617) matches, so the
+      // reconciliation the restore's own `initializeDatabase` call performs
+      // is a no-op rather than a real version bump.
+      expect(restored.appMeta).not.toHaveProperty('seedVersion');
+      expect(restored.catalogueVersions).toEqual([
+        {
+          courseId: bundledCourseSeed.courseId,
+          programmeId: 'cs50x',
+          dataVersion: 20260617,
+          syncedAt: '2026-09-19T12:05:00.000Z',
+        },
+      ]);
+      // `programme_enrolments.enrolledAt` follows the accepted rule
+      // (`onboardingCompletedAt ?? createdAt`); the fixture's legacy
+      // `app_meta` has both, so this also proves the `onboardingCompletedAt`
+      // branch, not just the `createdAt` fallback.
+      expect(restored.programmeEnrolments).toEqual([
+        {
+          programmeId: 'cs50x',
+          enrolledAt: parsed.data.appMeta?.onboardingCompletedAt,
+        },
+      ]);
       // Restore appends exactly one `import` audit record.
       expect(restored.backups.slice(0, 1)).toEqual(parsed.data.backups);
       expect(restored.backups.slice(1)).toMatchObject([
