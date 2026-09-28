@@ -21,6 +21,8 @@ function emptyBackupData(): BackupData {
     achievementDefinitions: [],
     achievementUnlocks: [],
     backups: [],
+    catalogueVersions: [],
+    programmeEnrolments: [],
   };
 }
 

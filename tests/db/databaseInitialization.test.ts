@@ -49,7 +49,7 @@ describe('database initialization', () => {
       updatedAt: '2026-06-11T10:00:00.000Z',
       appVersion: '0.1.0-test',
       schemaVersion: currentDatabaseSchemaVersion,
-      seedVersion: 0,
+      activeProgrammeId: 'cs50x',
     });
     expect(learnerProfile).toEqual({
       id: singletonIds.learnerProfile,
@@ -78,7 +78,14 @@ describe('database initialization', () => {
       updatedAt: '2026-06-11T09:00:00.000Z',
       appVersion: '0.0.1-test',
       schemaVersion: 1,
-      seedVersion: 0,
+      activeProgrammeId: 'cs50x',
+    });
+    // app_meta and its enrolment are always created atomically (Epic C /
+    // C6); simulate the matching enrolment alongside this manually inserted
+    // stale row so the bootstrap consistency check finds a valid state.
+    await testDatabase.db.programmeEnrolments.add({
+      programmeId: 'cs50x',
+      enrolledAt: '2026-06-11T09:00:00.000Z',
     });
 
     const repairedInitialization = await initializeDatabase({
@@ -111,7 +118,7 @@ describe('database initialization', () => {
       updatedAt: '2026-06-11T09:30:00.000Z',
       appVersion: '0.2.0-test',
       schemaVersion: currentDatabaseSchemaVersion,
-      seedVersion: 0,
+      activeProgrammeId: 'cs50x',
     });
     expect(learnerProfile?.createdAt).toBe('2026-06-11T09:30:00.000Z');
   });
@@ -144,12 +151,12 @@ describe('database initialization', () => {
       itemCount: 68,
       itemsAdded: 68,
       itemsUpdated: 0,
-      seedVersion: bundledCourseSeed.dataVersion,
+      dataVersion: bundledCourseSeed.dataVersion,
     });
     expect(appMetaCount).toBe(1);
     expect(learnerProfileCount).toBe(1);
     expect(unitCount).toBe(14);
     expect(itemCount).toBe(68);
-    expect(appMeta?.seedVersion).toBe(bundledCourseSeed.dataVersion);
+    expect(appMeta?.activeProgrammeId).toBe('cs50x');
   });
 });

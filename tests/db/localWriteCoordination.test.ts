@@ -471,16 +471,16 @@ describe('repository local-write coordination', () => {
         seed: sampleCourseSeed,
       }),
     ).resolves.toMatchObject({
-      appMeta: { schemaVersion: 2 },
+      appMeta: { schemaVersion: 3 },
       createdAppMeta: true,
       createdLearnerProfile: true,
       seedSync: {
         itemsAdded: 3,
-        seedVersion: 1,
+        dataVersion: 1,
         unitsAdded: 2,
       },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(20);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -564,9 +564,9 @@ describe('repository local-write coordination', () => {
         db: testDatabase.db,
       }),
     ).resolves.toMatchObject({
-      appMeta: { appVersion: '1.3.0', schemaVersion: 2 },
+      appMeta: { appVersion: '1.3.0', schemaVersion: 3 },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(20);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -608,7 +608,7 @@ describe('repository local-write coordination', () => {
       }),
     ).rejects.toThrow('Injected seed initialization failure.');
 
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(20);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
     expect(await testDatabase.db.appMeta.count()).toBe(1);
     expect(await testDatabase.db.learnerProfile.count()).toBe(1);
     expect(await testDatabase.db.courseUnits.count()).toBe(0);
@@ -719,10 +719,18 @@ describe('repository local-write coordination', () => {
     stopCoordination = session.stop;
     await session.ready;
 
+    // Epic C / C6, MR-3: catalogue_versions is the sole version authority
+    // and an equal data version writes nothing, so a repair now needs a real
+    // version bump to be a "required" write at all.
+    const repairSeed = {
+      ...sampleCourseSeed,
+      dataVersion: sampleCourseSeed.dataVersion + 1,
+    };
+
     await expect(
       initializeDatabase({
         db: testDatabase.db,
-        seed: sampleCourseSeed,
+        seed: repairSeed,
       }),
     ).rejects.toMatchObject({
       name: 'LocalWriteBlockedError',
@@ -735,7 +743,7 @@ describe('repository local-write coordination', () => {
 
     await releasePeer();
     await synchronizeAfterOwnershipTransfer(testDatabase.db);
-    await initializeDatabase({ db: testDatabase.db, seed: sampleCourseSeed });
+    await initializeDatabase({ db: testDatabase.db, seed: repairSeed });
     expect(
       await testDatabase.db.courseItems.get('week-0-shorts'),
     ).toBeDefined();
@@ -762,10 +770,18 @@ describe('repository local-write coordination', () => {
     stopCoordination = session.stop;
     await session.ready;
 
+    // Epic C / C6, MR-3: catalogue_versions is the sole version authority
+    // and an equal data version writes nothing, so a repair now needs a real
+    // version bump to be a "required" write at all.
+    const repairSeed = {
+      ...sampleCourseSeed,
+      dataVersion: sampleCourseSeed.dataVersion + 1,
+    };
+
     await expect(
       initializeDatabase({
         db: testDatabase.db,
-        seed: sampleCourseSeed,
+        seed: repairSeed,
       }),
     ).rejects.toMatchObject({
       name: 'LocalWriteBlockedError',
@@ -778,7 +794,7 @@ describe('repository local-write coordination', () => {
 
     await releasePeer();
     await synchronizeAfterOwnershipTransfer(testDatabase.db);
-    await initializeDatabase({ db: testDatabase.db, seed: sampleCourseSeed });
+    await initializeDatabase({ db: testDatabase.db, seed: repairSeed });
     expect(
       await testDatabase.db.contentSlices.get(derivedSlice!.id),
     ).toBeDefined();
@@ -1257,7 +1273,7 @@ describe('repository local-write coordination', () => {
     ]);
 
     expect(firstSnapshot).toEqual(secondSnapshot);
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(20);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);

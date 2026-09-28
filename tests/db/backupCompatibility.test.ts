@@ -11,6 +11,7 @@ import historicalBackup from '../fixtures/backups/v1.2.0-envelope1-schema2.json'
 import currentBackup from '../fixtures/backups/v1.3.0-envelope1-schema2.json';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
@@ -44,6 +45,7 @@ describe('backup compatibility matrix', () => {
     it(`parses and restores ${fixtureCase.fileName}`, async () => {
       const parsed = parseBackupFile(JSON.stringify(fixtureCase.fixture), {
         expectedSchemaVersion: currentDatabaseSchemaVersion,
+        migrationContext: defaultTestMigrationContext,
       });
       const summary = summarizeBackup(parsed);
 
@@ -52,7 +54,7 @@ describe('backup compatibility matrix', () => {
         format: 'progresspal-backup',
         formatVersion: 1,
         profileName: fixtureCase.profileName,
-        schemaVersion: 2,
+        schemaVersion: currentDatabaseSchemaVersion,
       });
 
       testDatabase = createTestDatabase(`compat-${fixtureCase.appVersion}`);

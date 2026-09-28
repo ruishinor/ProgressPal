@@ -36,6 +36,8 @@ describe('Module 05 boundaries', () => {
       'constants.ts',
       'database.ts',
       'index.ts',
+      'migrationContext.ts',
+      'migrationV2ToV3.ts',
       'repositories.ts',
     ]);
   });

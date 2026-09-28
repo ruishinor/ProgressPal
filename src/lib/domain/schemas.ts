@@ -106,7 +106,30 @@ export const AppMetaSchema = timestampFieldsSchema
     appVersion: nonEmptyStringSchema,
     onboardingCompletedAt: isoDateTimeSchema.optional(),
     schemaVersion: positiveIntegerSchema,
-    seedVersion: nonNegativeIntegerSchema,
+    /** Stable persisted programme identity (Epic C / C6, OD-5). */
+    activeProgrammeId: entityIdSchema,
+  })
+  .strict();
+
+/**
+ * Per-catalogue version state (Epic C / C6, MR-0b). State only: it records
+ * what has been synced for an authorized catalogue and grants no ownership
+ * authority by itself.
+ */
+export const CatalogueVersionSchema = z
+  .object({
+    courseId: entityIdSchema,
+    programmeId: entityIdSchema,
+    dataVersion: nonNegativeIntegerSchema,
+    syncedAt: isoDateTimeSchema,
+  })
+  .strict();
+
+/** A learner's enrolment in a registered programme (Epic C / C6, MR-0b). */
+export const ProgrammeEnrolmentSchema = z
+  .object({
+    programmeId: entityIdSchema,
+    enrolledAt: isoDateTimeSchema,
   })
   .strict();
 

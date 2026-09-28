@@ -133,7 +133,7 @@ describe('database migrations', () => {
       updatedAt: '2026-06-11T15:00:00.000Z',
       appVersion: '0.3.0-test',
       schemaVersion: currentDatabaseSchemaVersion,
-      seedVersion: 0,
+      activeProgrammeId: 'cs50x',
     });
     expect(snapshot.courseUnits).toHaveLength(1);
     expect(snapshot.courseItems).toHaveLength(1);

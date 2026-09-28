@@ -24,6 +24,8 @@ function createSnapshot(instants: readonly string[]): DatabaseSnapshot {
     achievementUnlocks: [],
     appMeta: null,
     backups: [],
+    catalogueVersions: [],
+    programmeEnrolments: [],
     contentAssets: [],
     contentSlices: [],
     courseItems,

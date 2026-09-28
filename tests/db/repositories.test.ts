@@ -11,6 +11,7 @@ import {
   addStudySession,
   addStudySessionAndAwardXp,
   addXpTransaction,
+  currentDatabaseSchemaVersion,
   ensureCourseCatalogFromSeed,
   getAchievementsView,
   getAppMeta,
@@ -86,7 +87,7 @@ describe('database repositories', () => {
       itemCount: 3,
       itemsAdded: 3,
       itemsUpdated: 0,
-      seedVersion: 1,
+      dataVersion: 1,
     });
     expect(secondSync).toEqual({
       unitCount: 2,
@@ -95,7 +96,7 @@ describe('database repositories', () => {
       itemCount: 3,
       itemsAdded: 0,
       itemsUpdated: 0,
-      seedVersion: 1,
+      dataVersion: 1,
     });
     expect(courseUnits.map((unit) => unit.id)).toEqual([
       'week-0',
@@ -273,7 +274,7 @@ describe('database repositories', () => {
       itemCount: 3,
       itemsAdded: 0,
       itemsUpdated: 1,
-      seedVersion: 2,
+      dataVersion: 2,
     });
     expect(courseUnits.find((unit) => unit.id === 'week-0')?.title).toBe(
       'Week 0 - Scratch',
@@ -286,7 +287,7 @@ describe('database repositories', () => {
         ?.estimatedMinutes,
     ).toBe(150);
     expect(progress).toEqual(persistedProgress);
-    expect(appMeta.appMeta?.seedVersion).toBe(2);
+    expect(appMeta.appMeta?.activeProgrammeId).toBe('cs50x');
   });
 
   it('loads one unit or item by id for the content-detail route', async () => {
@@ -823,7 +824,7 @@ describe('database repositories', () => {
     expect(snapshot.courseItems).toHaveLength(3);
     expect(snapshot.studySessions).toHaveLength(1);
     expect(snapshot.xpTransactions).toHaveLength(1);
-    expect(snapshot.appMeta?.seedVersion).toBe(1);
+    expect(snapshot.appMeta?.activeProgrammeId).toBe('cs50x');
   });
 
   it('lists study sessions deterministically and leaves non-session stores untouched', async () => {
@@ -1748,11 +1749,11 @@ describe('backup, restore, and reset', () => {
     const firstEnvelope = buildBackupEnvelope(exported, {
       appVersion: '1.3.0',
       exportedAt: '2026-06-16T11:00:00.000Z',
-      schemaVersion: 2,
+      schemaVersion: currentDatabaseSchemaVersion,
     });
     const serialized = serializeBackupEnvelope(firstEnvelope);
     const parsed = parseBackupFile(serialized.contents, {
-      expectedSchemaVersion: 2,
+      expectedSchemaVersion: currentDatabaseSchemaVersion,
     });
 
     // The synthetic current-format backup represents every persisted store.
@@ -1813,11 +1814,11 @@ describe('backup, restore, and reset', () => {
     const secondEnvelope = buildBackupEnvelope(reread, {
       appVersion: '1.3.0',
       exportedAt: '2026-06-16T12:05:00.000Z',
-      schemaVersion: 2,
+      schemaVersion: currentDatabaseSchemaVersion,
     });
     const reparsed = parseBackupFile(
       serializeBackupEnvelope(secondEnvelope).contents,
-      { expectedSchemaVersion: 2 },
+      { expectedSchemaVersion: currentDatabaseSchemaVersion },
     );
     expect(dataStores(reparsed.data)).toEqual(dataStores(exported));
   });

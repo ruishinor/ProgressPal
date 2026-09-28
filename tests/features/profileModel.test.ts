@@ -34,8 +34,8 @@ describe('profile model', () => {
       appVersion: '0.1.0-test',
       createdAt: '2026-06-11T10:00:00.000Z',
       id: 'app-meta',
-      schemaVersion: 2,
-      seedVersion: 0,
+      schemaVersion: 3,
+      activeProgrammeId: 'cs50x',
       updatedAt: '2026-06-11T10:00:00.000Z',
     };
 

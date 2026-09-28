@@ -1,96 +1,52 @@
 import Dexie, { type Table, type Transaction } from 'dexie';
+import type { ZodType } from 'zod';
 
-import type {
-  AchievementDefinition,
-  AchievementUnlock,
-  AppMeta,
-  BackupRecord,
-  ContentAsset,
-  ContentSlice,
-  CourseItem,
-  CourseUnit,
-  LearnerProfile,
-  MediaProgressEvent,
-  ProgressEntry,
-  ResumePoint,
-  StudySession,
-  XpTransaction,
+import {
+  ContentAssetSchema,
+  ContentSliceSchema,
+  CourseItemSchema,
+  CourseUnitSchema,
+  MediaProgressEventSchema,
+  ProgressEntrySchema,
+  ResumePointSchema,
+  StudySessionSchema,
+  XpTransactionSchema,
+  type AchievementDefinition,
+  type AchievementUnlock,
+  type AppMeta,
+  type BackupRecord,
+  type CatalogueVersion,
+  type ContentAsset,
+  type ContentSlice,
+  type CourseItem,
+  type CourseUnit,
+  type LearnerProfile,
+  type MediaProgressEvent,
+  type ProgrammeEnrolment,
+  type ProgressEntry,
+  type ResumePoint,
+  type StudySession,
+  type XpTransaction,
 } from '@/lib/domain';
+import { parseWithSchema } from '@/lib/validation';
 
 import {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,
   progressPalDatabaseName,
 } from './constants';
+import {
+  migrateV2ToV3,
+  parseLegacyAppMetaV2,
+  type LegacyV2Snapshot,
+} from './migrationV2ToV3';
+import {
+  assertValidMigrationContext,
+  migrationContextsAreEquivalent,
+  type DatabaseMigrationContext,
+} from './migrationContext';
 
-/**
- * Neutral catalogue-authorization context for the v2 → v3 migration and
- * catalogue sync (Epic C / C6, binding control 2). Supplied by the app
- * composition root and bound to one `ProgressPalDatabase` instance at
- * construction; it never lives in a separate module-global and is never
- * threaded through the repository API. `src/lib` never imports
- * `@/programmes`: composition passes this as plain data.
- */
-export type DatabaseMigrationContext = {
-  readonly programmeId: string;
-  readonly authorizedCatalogues: ReadonlyArray<{
-    readonly courseId: string;
-    readonly programmeId: string;
-  }>;
-};
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0;
-}
-
-function assertValidMigrationContext(
-  context: DatabaseMigrationContext,
-): void {
-  if (!isNonEmptyString(context?.programmeId)) {
-    throw new Error(
-      'Database migration context requires a non-empty programmeId.',
-    );
-  }
-
-  if (
-    !Array.isArray(context.authorizedCatalogues) ||
-    context.authorizedCatalogues.length === 0
-  ) {
-    throw new Error(
-      'Database migration context requires at least one authorized catalogue.',
-    );
-  }
-
-  for (const catalogue of context.authorizedCatalogues) {
-    if (
-      !isNonEmptyString(catalogue?.courseId) ||
-      !isNonEmptyString(catalogue?.programmeId)
-    ) {
-      throw new Error(
-        'Database migration context authorized catalogues require a non-empty courseId and programmeId.',
-      );
-    }
-  }
-}
-
-function migrationContextsAreEquivalent(
-  a: DatabaseMigrationContext,
-  b: DatabaseMigrationContext,
-): boolean {
-  return (
-    a.programmeId === b.programmeId &&
-    a.authorizedCatalogues.length === b.authorizedCatalogues.length &&
-    a.authorizedCatalogues.every((entry, index) => {
-      const other = b.authorizedCatalogues[index];
-
-      return (
-        other !== undefined &&
-        entry.courseId === other.courseId &&
-        entry.programmeId === other.programmeId
-      );
-    })
-  );
-}
+export type { DatabaseMigrationContext } from './migrationContext';
 
 const versionOneStoreDefinitions = {
   app_meta: '&id, schemaVersion, seedVersion',
@@ -151,6 +107,147 @@ function migrateVersionOneToVersionTwo(transaction: Transaction) {
   ]);
 }
 
+const versionThreeStoreDefinitions = {
+  ...currentStoreDefinitions,
+  // The unused `seedVersion` index is dropped; the field itself is removed
+  // from the row shape by the upgrade below.
+  app_meta: '&id, schemaVersion',
+  catalogue_versions: '&courseId, programmeId',
+  programme_enrolments: '&programmeId',
+} as const;
+
+const otherV2StoreNames = [
+  'learner_profile',
+  'course_units',
+  'course_items',
+  'progress_entries',
+  'content_assets',
+  'content_slices',
+  'media_progress_events',
+  'resume_points',
+  'study_sessions',
+  'xp_transactions',
+  'achievement_definitions',
+  'achievement_unlocks',
+  'backups',
+] as const;
+
+function parseLegacyRows<Row>(
+  rows: unknown[],
+  schema: ZodType<Row>,
+  label: string,
+): Row[] {
+  return rows.map((row) => parseWithSchema(schema, row, label));
+}
+
+/**
+ * Epic C / C6 — the Dexie v2 → v3 upgrade. Loads the legacy snapshot, hands
+ * it to the pure mapping module (which validates before deciding anything),
+ * then performs exactly the writes it returns inside this same
+ * version-change transaction: an aborting validation leaves v2 intact.
+ */
+async function migrateVersionTwoToVersionThree(
+  transaction: Transaction,
+  migrationContext: DatabaseMigrationContext,
+) {
+  const [
+    rawAppMeta,
+    courseUnitRows,
+    courseItemRows,
+    contentAssetRows,
+    contentSliceRows,
+    mediaProgressEventRows,
+    resumePointRows,
+    progressEntryRows,
+    studySessionRows,
+    xpTransactionRows,
+    otherRowCounts,
+  ] = await Promise.all([
+    transaction.table('app_meta').toCollection().first(),
+    transaction.table('course_units').toArray(),
+    transaction.table('course_items').toArray(),
+    transaction.table('content_assets').toArray(),
+    transaction.table('content_slices').toArray(),
+    transaction.table('media_progress_events').toArray(),
+    transaction.table('resume_points').toArray(),
+    transaction.table('progress_entries').toArray(),
+    transaction.table('study_sessions').toArray(),
+    transaction.table('xp_transactions').toArray(),
+    Promise.all(
+      otherV2StoreNames.map((name) => transaction.table(name).count()),
+    ),
+  ]);
+
+  const snapshot: LegacyV2Snapshot = {
+    appMeta:
+      rawAppMeta === undefined
+        ? null
+        : parseLegacyAppMetaV2(rawAppMeta, 'Stored app metadata'),
+    hasOtherRows: otherRowCounts.some((count) => count > 0),
+    courseUnits: parseLegacyRows(
+      courseUnitRows,
+      CourseUnitSchema,
+      'Stored course unit',
+    ),
+    courseItems: parseLegacyRows(
+      courseItemRows,
+      CourseItemSchema,
+      'Stored course item',
+    ),
+    contentAssets: parseLegacyRows(
+      contentAssetRows,
+      ContentAssetSchema,
+      'Stored content asset',
+    ),
+    contentSlices: parseLegacyRows(
+      contentSliceRows,
+      ContentSliceSchema,
+      'Stored content slice',
+    ),
+    mediaProgressEvents: parseLegacyRows(
+      mediaProgressEventRows,
+      MediaProgressEventSchema,
+      'Stored media progress event',
+    ),
+    resumePoints: parseLegacyRows(
+      resumePointRows,
+      ResumePointSchema,
+      'Stored resume point',
+    ),
+    progressEntries: parseLegacyRows(
+      progressEntryRows,
+      ProgressEntrySchema,
+      'Stored progress entry',
+    ),
+    studySessions: parseLegacyRows(
+      studySessionRows,
+      StudySessionSchema,
+      'Stored study session',
+    ),
+    xpTransactions: parseLegacyRows(
+      xpTransactionRows,
+      XpTransactionSchema,
+      'Stored XP transaction',
+    ),
+  };
+
+  const result = migrateV2ToV3(snapshot, migrationContext);
+
+  if (result.skip) {
+    return;
+  }
+
+  await Promise.all([
+    transaction.table('app_meta').put(result.appMeta),
+    transaction
+      .table('catalogue_versions')
+      .bulkAdd([...result.catalogueVersions]),
+    transaction
+      .table('programme_enrolments')
+      .bulkAdd([...result.programmeEnrolments]),
+  ]);
+}
+
 export class ProgressPalDatabase extends Dexie {
   appMeta!: Table<AppMeta, string>;
   learnerProfile!: Table<LearnerProfile, string>;
@@ -166,6 +263,8 @@ export class ProgressPalDatabase extends Dexie {
   achievementDefinitions!: Table<AchievementDefinition, string>;
   achievementUnlocks!: Table<AchievementUnlock, string>;
   backups!: Table<BackupRecord, string>;
+  catalogueVersions!: Table<CatalogueVersion, string>;
+  programmeEnrolments!: Table<ProgrammeEnrolment, string>;
   /** Bound once at construction (Epic C / C6, binding control 2). */
   readonly migrationContext: DatabaseMigrationContext;
 
@@ -181,6 +280,11 @@ export class ProgressPalDatabase extends Dexie {
     this.version(2)
       .stores(currentStoreDefinitions)
       .upgrade(migrateVersionOneToVersionTwo);
+    this.version(3)
+      .stores(versionThreeStoreDefinitions)
+      .upgrade((transaction) =>
+        migrateVersionTwoToVersionThree(transaction, this.migrationContext),
+      );
 
     this.appMeta = this.table('app_meta');
     this.learnerProfile = this.table('learner_profile');
@@ -196,6 +300,8 @@ export class ProgressPalDatabase extends Dexie {
     this.achievementDefinitions = this.table('achievement_definitions');
     this.achievementUnlocks = this.table('achievement_unlocks');
     this.backups = this.table('backups');
+    this.catalogueVersions = this.table('catalogue_versions');
+    this.programmeEnrolments = this.table('programme_enrolments');
   }
 }
 

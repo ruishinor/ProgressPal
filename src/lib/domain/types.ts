@@ -7,6 +7,7 @@ import {
   AppMetaSchema,
   BackupRecordSchema,
   BackupRecordTypeSchema,
+  CatalogueVersionSchema,
   ContentAssetSchema,
   ContentAssetTypeSchema,
   ContentSliceSchema,
@@ -26,6 +27,7 @@ import {
   MediaProgressEventSchema,
   MediaStopReasonSchema,
   PreferredThemeSchema,
+  ProgrammeEnrolmentSchema,
   ProgressEntrySchema,
   ProgressStatusSchema,
   ResumePointSchema,
@@ -53,6 +55,8 @@ export type BackupRecordType = z.infer<typeof BackupRecordTypeSchema>;
 export type SliceMinute = z.infer<typeof SliceMinuteSchema>;
 
 export type AppMeta = z.infer<typeof AppMetaSchema>;
+export type CatalogueVersion = z.infer<typeof CatalogueVersionSchema>;
+export type ProgrammeEnrolment = z.infer<typeof ProgrammeEnrolmentSchema>;
 export type LearnerAvatarConfig = z.infer<typeof LearnerAvatarConfigSchema>;
 export type LearnerProfile = z.infer<typeof LearnerProfileSchema>;
 export type CourseUnit = z.infer<typeof CourseUnitSchema>;

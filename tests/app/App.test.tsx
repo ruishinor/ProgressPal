@@ -17,6 +17,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildBackupEnvelope } from '@/lib/backup';
 import {
   addStudySessionAndAwardXp,
+  currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
   getDatabaseSnapshot,
   initializeDatabase,
@@ -668,7 +669,7 @@ describe('App', () => {
       const envelope = buildBackupEnvelope(await getDatabaseSnapshot(), {
         appVersion: '1.2.0',
         exportedAt: '2026-07-12T10:00:00.000Z',
-        schemaVersion: 2,
+        schemaVersion: currentDatabaseSchemaVersion,
       });
 
       await resetAllData({ seed: bundledCourseSeed });

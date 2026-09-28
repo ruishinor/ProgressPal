@@ -5,12 +5,14 @@ import {
   AchievementUnlockSchema,
   AppMetaSchema,
   BackupRecordSchema,
+  CatalogueVersionSchema,
   ContentAssetSchema,
   ContentSliceSchema,
   CourseItemSchema,
   CourseUnitSchema,
   LearnerProfileSchema,
   MediaProgressEventSchema,
+  ProgrammeEnrolmentSchema,
   ProgressEntrySchema,
   ResumePointSchema,
   StudySessionSchema,
@@ -22,6 +24,7 @@ import {
   type AchievementUnlock,
   type AppMeta,
   type BackupRecord,
+  type CatalogueVersion,
   type ContentAsset,
   type ContentSlice,
   type CourseSeed,
@@ -30,6 +33,7 @@ import {
   type LearnerProfile,
   type MediaProgressEvent,
   type MediaStopReason,
+  type ProgrammeEnrolment,
   type ProgrammePolicy,
   type ProgressEntry,
   type ResumePoint,
@@ -78,7 +82,11 @@ import {
   defaultLearnerProfileValues,
   singletonIds,
 } from './constants';
-import { getSharedDatabase, type ProgressPalDatabase } from './database';
+import {
+  getSharedDatabase,
+  type DatabaseMigrationContext,
+  type ProgressPalDatabase,
+} from './database';
 
 export type DatabaseClock = () => string;
 
@@ -269,10 +277,10 @@ export type DatabaseInitializationResult = {
   createdAppMeta: boolean;
   createdLearnerProfile: boolean;
   seedSync: {
+    dataVersion: number;
     itemCount: number;
     itemsAdded: number;
     itemsUpdated: number;
-    seedVersion: number;
     unitCount: number;
     unitsAdded: number;
     unitsUpdated: number;
@@ -335,12 +343,14 @@ export type DatabaseSnapshot = {
   achievementUnlocks: AchievementUnlock[];
   appMeta: AppMeta | null;
   backups: BackupRecord[];
+  catalogueVersions: CatalogueVersion[];
   contentAssets: ContentAsset[];
   contentSlices: ContentSlice[];
   courseItems: CourseItem[];
   courseUnits: CourseUnit[];
   learnerProfile: LearnerProfile | null;
   mediaProgressEvents: MediaProgressEvent[];
+  programmeEnrolments: ProgrammeEnrolment[];
   progressEntries: ProgressEntry[];
   resumePoints: ResumePoint[];
   studySessions: StudySession[];
@@ -594,7 +604,11 @@ function parseStoredArray<T>(
   );
 }
 
-function createDefaultAppMeta(timestamp: string, appVersion: string) {
+function createDefaultAppMeta(
+  timestamp: string,
+  appVersion: string,
+  activeProgrammeId: string,
+) {
   return parseWithSchema(
     AppMetaSchema,
     {
@@ -603,7 +617,7 @@ function createDefaultAppMeta(timestamp: string, appVersion: string) {
       updatedAt: timestamp,
       appVersion,
       schemaVersion: currentDatabaseSchemaVersion,
-      seedVersion: 0,
+      activeProgrammeId,
     },
     'App metadata',
   );
@@ -706,20 +720,51 @@ async function ensureBaseInitialization(
       'rw',
       database.appMeta,
       database.learnerProfile,
+      database.programmeEnrolments,
       async () => {
         const timestamp = now();
         const storedAppMeta = await database.appMeta.get(singletonIds.appMeta);
+        const activeProgrammeId = database.migrationContext.programmeId;
 
         if (storedAppMeta === undefined) {
           createdAppMeta = true;
-          appMeta = createDefaultAppMeta(timestamp, appVersion);
+          appMeta = createDefaultAppMeta(timestamp, appVersion, activeProgrammeId);
           await database.appMeta.add(appMeta);
+
+          const existingEnrolment =
+            await database.programmeEnrolments.get(activeProgrammeId);
+
+          if (existingEnrolment === undefined) {
+            await database.programmeEnrolments.add(
+              parseWithSchema(
+                ProgrammeEnrolmentSchema,
+                { programmeId: activeProgrammeId, enrolledAt: timestamp },
+                'Programme enrolment',
+              ),
+            );
+          }
         } else {
           const parsedAppMeta = parseWithSchema(
             AppMetaSchema,
             storedAppMeta,
             'Stored app metadata',
           );
+
+          if (parsedAppMeta.activeProgrammeId !== activeProgrammeId) {
+            throw new Error(
+              `Active programme "${parsedAppMeta.activeProgrammeId}" does not match the registered programme "${activeProgrammeId}".`,
+            );
+          }
+
+          const enrolment = await database.programmeEnrolments.get(
+            parsedAppMeta.activeProgrammeId,
+          );
+
+          if (enrolment === undefined) {
+            throw new Error(
+              `No enrolment exists for active programme "${parsedAppMeta.activeProgrammeId}".`,
+            );
+          }
 
           if (
             parsedAppMeta.schemaVersion !== currentDatabaseSchemaVersion ||
@@ -1412,6 +1457,14 @@ export async function updateProfile(
   return updatedProfile;
 }
 
+/**
+ * Epic C / C6, MR-3: `catalogue_versions` is the sole version authority.
+ * Sync is authorized (the seed's `courseId` must be registered in the
+ * database's bound migration context), monotonic (a lower `dataVersion`
+ * fails closed, an equal one writes nothing) and collision-rejecting (P2: a
+ * unit or item ID already owned by a different catalogue is rejected, never
+ * rewritten).
+ */
 async function ensureCourseCatalogFromSeedWithinScope(
   seedInput: unknown,
   options: SeedSyncOptions = {},
@@ -1435,6 +1488,19 @@ async function ensureCourseCatalogFromSeedWithinScope(
     throw error;
   }
 
+  const authorizedCatalogue = database.migrationContext.authorizedCatalogues.find(
+    (catalogue) => catalogue.courseId === parsedSeed.courseId,
+  );
+
+  if (authorizedCatalogue === undefined) {
+    if (ownsWriteScope) {
+      settleLogicalWriteScope(logicalWriteScope);
+    }
+    throw new Error(
+      `Course seed catalogue "${parsedSeed.courseId}" is not an authorized catalogue.`,
+    );
+  }
+
   let changed = false;
   try {
     if (options.skipBaseInitialization !== true) {
@@ -1444,9 +1510,9 @@ async function ensureCourseCatalogFromSeedWithinScope(
     const result = await database.transaction(
       'rw',
       [
-        database.appMeta,
         database.courseUnits,
         database.courseItems,
+        database.catalogueVersions,
         database.contentAssets,
         database.contentSlices,
         database.mediaProgressEvents,
@@ -1454,6 +1520,41 @@ async function ensureCourseCatalogFromSeedWithinScope(
       ],
       async () => {
         const timestamp = now();
+        const existingVersion = await database.catalogueVersions.get(
+          parsedSeed.courseId,
+        );
+
+        if (
+          existingVersion !== undefined &&
+          existingVersion.dataVersion > parsedSeed.dataVersion
+        ) {
+          throw new Error(
+            `Course seed data version ${parsedSeed.dataVersion} is lower than the synced version ${existingVersion.dataVersion} for catalogue "${parsedSeed.courseId}".`,
+          );
+        }
+
+        const itemCount = parsedSeed.units.reduce(
+          (total, unit) => total + unit.items.length,
+          0,
+        );
+
+        if (
+          existingVersion !== undefined &&
+          existingVersion.dataVersion === parsedSeed.dataVersion
+        ) {
+          return {
+            unitCount: parsedSeed.units.length,
+            unitsAdded: 0,
+            unitsUpdated: 0,
+            itemCount,
+            itemsAdded: 0,
+            itemsUpdated: 0,
+            dataVersion: existingVersion.dataVersion,
+          };
+        }
+
+        coordinatedWrite.begin();
+
         const units = parsedSeed.units;
         const items = units.flatMap((unit) =>
           unit.items.map((item) => ({ item, unitId: unit.id })),
@@ -1465,6 +1566,79 @@ async function ensureCourseCatalogFromSeedWithinScope(
         const existingItems = await database.courseItems.bulkGet(
           items.map(({ item }) => item.id),
         );
+
+        // P2: a unit ID already owned by a different catalogue is rejected,
+        // never rewritten to this catalogue.
+        for (const [index, unit] of units.entries()) {
+          const existingUnitRecord = existingUnits[index];
+
+          if (existingUnitRecord === undefined) {
+            continue;
+          }
+
+          const existingUnit = parseWithSchema(
+            CourseUnitSchema,
+            existingUnitRecord,
+            `Stored course unit "${unit.id}"`,
+          );
+
+          if (existingUnit.courseId !== parsedSeed.courseId) {
+            throw new Error(
+              `Course unit "${unit.id}" is already owned by catalogue "${existingUnit.courseId}" and cannot be reused by catalogue "${parsedSeed.courseId}".`,
+            );
+          }
+        }
+
+        // P2: an item ID already owned by a unit outside this catalogue is
+        // rejected the same way. Units within this seed are already proven
+        // to belong to this catalogue above; only items whose existing
+        // owning unit falls outside the seed need a foreign-unit lookup.
+        const seedUnitIds = new Set(units.map((unit) => unit.id));
+        const existingItemUnitIds = new Map<string, string>();
+
+        for (const [index, { item }] of items.entries()) {
+          const existingItemRecord = existingItems[index];
+
+          if (existingItemRecord === undefined) {
+            continue;
+          }
+
+          const existingItem = parseWithSchema(
+            CourseItemSchema,
+            existingItemRecord,
+            `Stored course item "${item.id}"`,
+          );
+
+          existingItemUnitIds.set(item.id, existingItem.unitId);
+        }
+
+        const foreignUnitIds = [...new Set(existingItemUnitIds.values())].filter(
+          (unitId) => !seedUnitIds.has(unitId),
+        );
+        const foreignUnits =
+          foreignUnitIds.length > 0
+            ? await database.courseUnits.bulkGet(foreignUnitIds)
+            : [];
+        const foreignUnitCourseIds = new Map(
+          foreignUnits
+            .filter((unit): unit is CourseUnit => unit !== undefined)
+            .map((unit) => [unit.id, unit.courseId] as const),
+        );
+
+        for (const [itemId, unitId] of existingItemUnitIds) {
+          const ownerCourseId = seedUnitIds.has(unitId)
+            ? parsedSeed.courseId
+            : foreignUnitCourseIds.get(unitId);
+
+          if (
+            ownerCourseId !== undefined &&
+            ownerCourseId !== parsedSeed.courseId
+          ) {
+            throw new Error(
+              `Course item "${itemId}" is already owned by catalogue "${ownerCourseId}" and cannot be reused by catalogue "${parsedSeed.courseId}".`,
+            );
+          }
+        }
 
         const unitsToAdd: CourseUnit[] = [];
         const unitsToUpdate: CourseUnit[] = [];
@@ -1523,18 +1697,6 @@ async function ensureCourseCatalogFromSeedWithinScope(
         const itemsAdded = itemsToAdd.length;
         const itemsUpdated = itemsToUpdate.length;
 
-        const appMeta = await getRequiredAppMeta({ db: database });
-        const shouldUpdateMetadata =
-          appMeta.seedVersion !== parsedSeed.dataVersion ||
-          unitsAdded > 0 ||
-          unitsUpdated > 0 ||
-          itemsAdded > 0 ||
-          itemsUpdated > 0;
-
-        if (shouldUpdateMetadata) {
-          coordinatedWrite.begin();
-        }
-
         if (unitsToAdd.length > 0) {
           await database.courseUnits.bulkAdd(unitsToAdd);
         }
@@ -1551,46 +1713,35 @@ async function ensureCourseCatalogFromSeedWithinScope(
           await database.courseItems.bulkPut(itemsToUpdate);
         }
 
-        if (shouldUpdateMetadata) {
-          await database.appMeta.put(
-            parseWithSchema(
-              AppMetaSchema,
-              {
-                ...appMeta,
-                seedVersion: parsedSeed.dataVersion,
-                updatedAt: now(),
-              },
-              'Updated app metadata',
-            ),
-          );
-        }
+        const catalogueVersion: CatalogueVersion = parseWithSchema(
+          CatalogueVersionSchema,
+          {
+            courseId: parsedSeed.courseId,
+            programmeId: authorizedCatalogue.programmeId,
+            dataVersion: parsedSeed.dataVersion,
+            syncedAt: timestamp,
+          },
+          'Catalogue version',
+        );
 
-        const catalogChanged =
-          shouldUpdateMetadata ||
-          unitsAdded > 0 ||
-          unitsUpdated > 0 ||
-          itemsAdded > 0 ||
-          itemsUpdated > 0;
+        await database.catalogueVersions.put(catalogueVersion);
 
-        const derivedChanged = await syncDerivedLongFormCatalogFromCourseItems(
+        await syncDerivedLongFormCatalogFromCourseItems(
           await listCourseItems(undefined, { db: database }),
           { beforeWrite: coordinatedWrite.begin, db: database, now },
         );
-        changed = catalogChanged || derivedChanged;
-
-        const synchronizedAppMeta = await getRequiredAppMeta({ db: database });
+        // The catalogue version row above always changes on this branch
+        // (a first sync creates it; a real version bump updates it).
+        changed = true;
 
         return {
           unitCount: parsedSeed.units.length,
           unitsAdded,
           unitsUpdated,
-          itemCount: parsedSeed.units.reduce(
-            (total, unit) => total + unit.items.length,
-            0,
-          ),
+          itemCount,
           itemsAdded,
           itemsUpdated,
-          seedVersion: synchronizedAppMeta.seedVersion,
+          dataVersion: catalogueVersion.dataVersion,
         };
       },
     );
@@ -4213,6 +4364,8 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
       achievementDefinitions,
       achievementUnlocks,
       backups,
+      catalogueVersions,
+      programmeEnrolments,
     ] = await Promise.all([
       database.appMeta.get(singletonIds.appMeta),
       database.learnerProfile.get(singletonIds.learnerProfile),
@@ -4228,6 +4381,8 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
       database.achievementDefinitions.toArray(),
       database.achievementUnlocks.toArray(),
       database.backups.toArray(),
+      database.catalogueVersions.toArray(),
+      database.programmeEnrolments.toArray(),
     ]);
     const appMeta =
       storedAppMeta === undefined
@@ -4315,6 +4470,16 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
         'Stored backup record',
         BackupRecordSchema,
       ),
+      catalogueVersions: parseStoredArray(
+        catalogueVersions,
+        'Stored catalogue version',
+        CatalogueVersionSchema,
+      ),
+      programmeEnrolments: parseStoredArray(
+        programmeEnrolments,
+        'Stored programme enrolment',
+        ProgrammeEnrolmentSchema,
+      ),
     };
   });
 }
@@ -4335,6 +4500,8 @@ function allDataTables(database: ProgressPalDatabase) {
     database.achievementDefinitions,
     database.achievementUnlocks,
     database.backups,
+    database.catalogueVersions,
+    database.programmeEnrolments,
   ];
 }
 
@@ -4343,7 +4510,10 @@ function allDataTables(database: ProgressPalDatabase) {
  * any write. Defense in depth: the UI already validated the envelope, but the
  * restore path must never trust unvalidated structured input.
  */
-function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
+function parseSnapshotForRestore(
+  snapshot: DatabaseSnapshot,
+  migrationContext: DatabaseMigrationContext,
+) {
   const restored = {
     appMeta:
       snapshot.appMeta === null
@@ -4421,10 +4591,21 @@ function parseSnapshotForRestore(snapshot: DatabaseSnapshot) {
       'Backup record',
       BackupRecordSchema,
     ),
+    catalogueVersions: parseStoredArray(
+      snapshot.catalogueVersions,
+      'Backup catalogue version',
+      CatalogueVersionSchema,
+    ),
+    programmeEnrolments: parseStoredArray(
+      snapshot.programmeEnrolments,
+      'Backup programme enrolment',
+      ProgrammeEnrolmentSchema,
+    ),
   };
 
   assertBackupDataInvariants(restored, {
     expectedSchemaVersion: currentDatabaseSchemaVersion,
+    migrationContext,
   });
 
   return restored;
@@ -4500,8 +4681,8 @@ export async function restoreDatabaseFromBackup(
   snapshot: DatabaseSnapshot,
   options: RestoreDatabaseFromBackupOptions = {},
 ): Promise<DatabaseSnapshot> {
-  const restored = parseSnapshotForRestore(snapshot);
   const database = await ensureOpen(resolveDatabase(options.db));
+  const restored = parseSnapshotForRestore(snapshot, database.migrationContext);
   const tables = allDataTables(database);
 
   return runDestructiveCoordinatedWrite(database, () =>
@@ -4532,6 +4713,8 @@ export async function restoreDatabaseFromBackup(
         ),
         database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
         database.backups.bulkAdd(restored.backups),
+        database.catalogueVersions.bulkAdd(restored.catalogueVersions),
+        database.programmeEnrolments.bulkAdd(restored.programmeEnrolments),
       ]);
 
       await initializeDatabase({ ...options, db: database });
@@ -4550,6 +4733,7 @@ export async function restoreDatabaseFromBackup(
       // check. Re-validate the committed shape while rollback is still possible.
       assertBackupDataInvariants(finalSnapshot, {
         expectedSchemaVersion: currentDatabaseSchemaVersion,
+        migrationContext: database.migrationContext,
       });
 
       return finalSnapshot;

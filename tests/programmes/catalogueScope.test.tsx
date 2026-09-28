@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   loadRpgCourseMapSummary,
@@ -38,9 +38,10 @@ import {
 import { validateProgrammeDefinition } from '@/programmes/definition';
 import { bundledCourseSeed } from '@/seed';
 
-import { closeSharedDatabase } from '@/lib/db/database';
+import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../db/testDatabase';
 
@@ -139,6 +140,19 @@ const altMigrationContext: DatabaseMigrationContext = {
   ],
 };
 
+/**
+ * Test-only context authorizing both catalogues at once, for a database that
+ * syncs both through the real `ensureCourseCatalogFromSeed` path; neither
+ * catalogue enters the production registry.
+ */
+const bothCataloguesMigrationContext: DatabaseMigrationContext = {
+  programmeId: defaultTestMigrationContext.programmeId,
+  authorizedCatalogues: [
+    ...defaultTestMigrationContext.authorizedCatalogues,
+    ...altMigrationContext.authorizedCatalogues,
+  ],
+};
+
 /** Test-only definition over the alternate catalogue; never registered. */
 const altDefinition: ProgrammeDefinition = validateProgrammeDefinition({
   definitionKey: altSeed.courseId,
@@ -190,7 +204,7 @@ const altScope = scopeOf(altDefinition);
 const databases: TestDatabaseContext[] = [];
 
 async function createBothCatalogues(label: string) {
-  const context = createTestDatabase(label);
+  const context = createTestDatabase(label, bothCataloguesMigrationContext);
   databases.push(context);
   await initializeDatabase({ db: context.db, seed: bundledCourseSeed });
   await ensureCourseCatalogFromSeed(altSeed, { db: context.db });
@@ -228,6 +242,15 @@ function cardText(title: string) {
   const heading = screen.getByRole('heading', { name: title });
   return (heading.closest('.card')?.textContent ?? '').replace(/\s+/g, ' ');
 }
+
+beforeEach(() => {
+  // This file syncs a test-only second catalogue onto the shared database
+  // (`onboardShared({ alt: true })`); rebind over the suite-wide default so
+  // that sync is authorized. Neither catalogue enters the production
+  // registry.
+  closeSharedDatabase();
+  getSharedDatabase(bothCataloguesMigrationContext);
+});
 
 afterEach(async () => {
   injected.definition = null;
@@ -497,6 +520,7 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
 describe('C5 repair: Classic surfaces read the active catalogue only', () => {
   it('renders only CS50 unit cards on the Classic course map', async () => {
     await onboardShared({ alt: true });
+    closeSharedDatabase();
 
     await renderAppAtRoute('/course');
     await screen.findByTestId('course-unit-week-0', undefined, {
@@ -542,6 +566,7 @@ describe('C5 repair: Classic surfaces read the active catalogue only', () => {
       });
     }
 
+    closeSharedDatabase();
     await renderAppAtRoute('/dashboard');
     await screen.findByRole(
       'heading',
@@ -570,6 +595,7 @@ describe('C5 repair: Classic surfaces read the active catalogue only', () => {
     await onboardShared({ alt: true });
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const before = await getDatabaseSnapshot();
+    closeSharedDatabase();
 
     await renderAppAtRoute('/course/c5-alt-unit-a-lecture');
     await expectRendered('Course content could not be opened');

@@ -5,19 +5,28 @@ import {
   AchievementUnlockSchema,
   AppMetaSchema,
   BackupRecordSchema,
+  CatalogueVersionSchema,
   ContentAssetSchema,
   ContentSliceSchema,
   CourseItemSchema,
   CourseUnitSchema,
   LearnerProfileSchema,
   MediaProgressEventSchema,
+  ProgrammeEnrolmentSchema,
   ProgressEntrySchema,
   ResumePointSchema,
   StudySessionSchema,
   XpTransactionSchema,
 } from '@/lib/domain';
 import { singletonIds } from '@/lib/db/constants';
+import type { DatabaseMigrationContext } from '@/lib/db/database';
+import {
+  legacyAppMetaV2Schema,
+  migrateV2ToV3,
+  type LegacyV2Snapshot,
+} from '@/lib/db/migrationV2ToV3';
 import { formatZodIssues, getDuplicateValues } from '@/lib/validation';
+import { getXpAwardSourceKey } from '@/lib/xp/engine';
 
 /**
  * Stable identifier embedded in every ProgressPal backup file. Import refuses
@@ -65,8 +74,101 @@ export const BackupDataSchema = z
     achievementDefinitions: z.array(AchievementDefinitionSchema),
     achievementUnlocks: z.array(AchievementUnlockSchema),
     backups: z.array(BackupRecordSchema),
+    catalogueVersions: z.array(CatalogueVersionSchema),
+    programmeEnrolments: z.array(ProgrammeEnrolmentSchema),
   })
   .strict();
+
+/**
+ * Schema-2 shape of the restorable data payload (Epic C / C6). Used only to
+ * validate a legacy backup's structure before {@link migrateV2ToV3} converts
+ * it; every other consumer sees only the current {@link BackupDataSchema}.
+ */
+const legacyBackupDataV2Schema = z
+  .object({
+    appMeta: legacyAppMetaV2Schema.nullable(),
+    learnerProfile: LearnerProfileSchema.nullable(),
+    courseUnits: z.array(CourseUnitSchema),
+    courseItems: z.array(CourseItemSchema),
+    progressEntries: z.array(ProgressEntrySchema),
+    contentAssets: z.array(ContentAssetSchema),
+    contentSlices: z.array(ContentSliceSchema),
+    mediaProgressEvents: z.array(MediaProgressEventSchema),
+    resumePoints: z.array(ResumePointSchema),
+    studySessions: z.array(StudySessionSchema),
+    xpTransactions: z.array(XpTransactionSchema),
+    achievementDefinitions: z.array(AchievementDefinitionSchema),
+    achievementUnlocks: z.array(AchievementUnlockSchema),
+    backups: z.array(BackupRecordSchema),
+  })
+  .strict();
+
+type LegacyBackupDataV2 = z.infer<typeof legacyBackupDataV2Schema>;
+
+/**
+ * Forward-converts a validated schema-2 backup payload to the current
+ * schema-3 shape (Epic C / C6 §6), sharing the same pure mapping module and
+ * binding control 1 (full relational validation) as the Dexie upgrade.
+ * Learner-global stores pass through unchanged.
+ */
+function convertLegacyBackupDataV2ToV3(
+  legacy: LegacyBackupDataV2,
+  context: DatabaseMigrationContext,
+): BackupData {
+  const snapshot: LegacyV2Snapshot = {
+    appMeta: legacy.appMeta,
+    hasOtherRows:
+      legacy.learnerProfile !== null ||
+      legacy.courseUnits.length > 0 ||
+      legacy.courseItems.length > 0 ||
+      legacy.progressEntries.length > 0 ||
+      legacy.contentAssets.length > 0 ||
+      legacy.contentSlices.length > 0 ||
+      legacy.mediaProgressEvents.length > 0 ||
+      legacy.resumePoints.length > 0 ||
+      legacy.studySessions.length > 0 ||
+      legacy.xpTransactions.length > 0 ||
+      legacy.achievementDefinitions.length > 0 ||
+      legacy.achievementUnlocks.length > 0 ||
+      legacy.backups.length > 0,
+    courseUnits: legacy.courseUnits,
+    courseItems: legacy.courseItems,
+    contentAssets: legacy.contentAssets,
+    contentSlices: legacy.contentSlices,
+    mediaProgressEvents: legacy.mediaProgressEvents,
+    resumePoints: legacy.resumePoints,
+    progressEntries: legacy.progressEntries,
+    studySessions: legacy.studySessions,
+    xpTransactions: legacy.xpTransactions,
+  };
+
+  const result = migrateV2ToV3(snapshot, context);
+
+  if (result.skip) {
+    throw new BackupValidationError(
+      'This backup contains no data to restore and cannot be imported.',
+    );
+  }
+
+  return {
+    appMeta: result.appMeta,
+    learnerProfile: legacy.learnerProfile,
+    courseUnits: legacy.courseUnits,
+    courseItems: legacy.courseItems,
+    progressEntries: legacy.progressEntries,
+    contentAssets: legacy.contentAssets,
+    contentSlices: legacy.contentSlices,
+    mediaProgressEvents: legacy.mediaProgressEvents,
+    resumePoints: legacy.resumePoints,
+    studySessions: legacy.studySessions,
+    xpTransactions: legacy.xpTransactions,
+    achievementDefinitions: legacy.achievementDefinitions,
+    achievementUnlocks: legacy.achievementUnlocks,
+    backups: legacy.backups,
+    catalogueVersions: [...result.catalogueVersions],
+    programmeEnrolments: [...result.programmeEnrolments],
+  };
+}
 
 export const BackupEnvelopeSchema = z
   .object({
@@ -76,6 +178,18 @@ export const BackupEnvelopeSchema = z
     schemaVersion: z.number().int().positive(),
     exportedAt: backupTimestampSchema,
     data: BackupDataSchema,
+  })
+  .strict();
+
+/** Envelope wrapper for a schema-2 payload, used only during conversion. */
+const legacyBackupEnvelopeV2Schema = z
+  .object({
+    format: z.literal(backupFormatIdentifier),
+    formatVersion: z.literal(currentBackupFormatVersion),
+    appVersion: z.string().trim().min(1).max(80),
+    schemaVersion: z.literal(2),
+    exportedAt: backupTimestampSchema,
+    data: legacyBackupDataV2Schema,
   })
   .strict();
 
@@ -122,6 +236,14 @@ export type ParseBackupOptions = {
   maxBytes?: number;
   /** @deprecated Use `maxBytes`; retained for internal caller compatibility. */
   maxTextLength?: number;
+  /**
+   * Required to forward-convert a schema-2 backup (Epic C / C6 §6) and to
+   * check the new catalogue/enrolment invariants on a schema-3 backup. A
+   * schema-2 backup without a supplied context is rejected; a schema-3
+   * backup without one skips only those two invariants (the destructive
+   * restore path always supplies one from the live database instance).
+   */
+  migrationContext?: DatabaseMigrationContext;
 };
 
 export type SerializeBackupOptions = {
@@ -131,6 +253,7 @@ export type SerializeBackupOptions = {
 
 export type ValidateBackupDataOptions = {
   expectedSchemaVersion: number;
+  migrationContext?: DatabaseMigrationContext;
 };
 
 /**
@@ -432,6 +555,109 @@ export function assertBackupDataInvariants(
       );
     }
   }
+
+  const xpSourceKeys = new Set<string>();
+
+  for (const transaction of data.xpTransactions) {
+    const key = getXpAwardSourceKey(
+      transaction.sourceType,
+      transaction.sourceId,
+    );
+
+    if (xpSourceKeys.has(key)) {
+      throw new BackupValidationError(
+        'This backup contains duplicate XP transaction sources and cannot be imported.',
+        [`Duplicate XP source (${transaction.sourceType}, ${transaction.sourceId}).`],
+      );
+    }
+    xpSourceKeys.add(key);
+  }
+
+  const { migrationContext } = options;
+
+  if (migrationContext === undefined) {
+    return;
+  }
+
+  // Epic C / C6 §6: a backup's own programmeId claims are never trusted over
+  // the composition-supplied authorization context.
+  const authorizedProgrammeIds = new Set([
+    migrationContext.programmeId,
+    ...migrationContext.authorizedCatalogues.map(
+      (catalogue) => catalogue.programmeId,
+    ),
+  ]);
+  const authorizedCatalogueByCourseId = new Map(
+    migrationContext.authorizedCatalogues.map((catalogue) => [
+      catalogue.courseId,
+      catalogue,
+    ]),
+  );
+
+  if (
+    data.appMeta !== null &&
+    data.appMeta.activeProgrammeId !== migrationContext.programmeId
+  ) {
+    throw new BackupValidationError(
+      'This backup contains an unregistered active programme and cannot be imported.',
+      [`Unregistered active programme "${data.appMeta.activeProgrammeId}".`],
+    );
+  }
+
+  for (const enrolment of data.programmeEnrolments) {
+    if (!authorizedProgrammeIds.has(enrolment.programmeId)) {
+      throw new BackupValidationError(
+        'This backup contains an enrolment for an unregistered programme and cannot be imported.',
+        [`Unregistered programme "${enrolment.programmeId}".`],
+      );
+    }
+  }
+
+  if (
+    data.appMeta !== null &&
+    !data.programmeEnrolments.some(
+      (enrolment) => enrolment.programmeId === data.appMeta!.activeProgrammeId,
+    )
+  ) {
+    throw new BackupValidationError(
+      'This backup has no enrolment for its active programme and cannot be imported.',
+      [`Missing enrolment for "${data.appMeta.activeProgrammeId}".`],
+    );
+  }
+
+  const materializedCourseIds = new Set(
+    data.courseUnits.map((unit) => unit.courseId),
+  );
+
+  for (const version of data.catalogueVersions) {
+    const authorized = authorizedCatalogueByCourseId.get(version.courseId);
+
+    if (authorized === undefined || authorized.programmeId !== version.programmeId) {
+      throw new BackupValidationError(
+        'This backup contains an unauthorized catalogue and cannot be imported.',
+        [`Unauthorized catalogue "${version.courseId}".`],
+      );
+    }
+
+    if (
+      version.dataVersion > 0 &&
+      !materializedCourseIds.has(version.courseId)
+    ) {
+      throw new BackupValidationError(
+        'This backup contains a catalogue version for an unmaterialized catalogue and cannot be imported.',
+        [`Unmaterialized catalogue "${version.courseId}".`],
+      );
+    }
+  }
+
+  for (const unit of data.courseUnits) {
+    if (!authorizedCatalogueByCourseId.has(unit.courseId)) {
+      throw new BackupValidationError(
+        'This backup contains an unauthorized catalogue and cannot be imported.',
+        [`Unauthorized catalogue "${unit.courseId}".`],
+      );
+    }
+  }
 }
 
 /**
@@ -478,10 +704,54 @@ export function parseBackupFile(
     );
   }
 
-  if (candidate.schemaVersion !== options.expectedSchemaVersion) {
+  // Epic C / C6 §6: a schema-2 backup forward-converts through one pure
+  // conversion, then the same full validation as a native schema-3 backup.
+  // Any other mismatched data version is rejected with the existing message.
+  const isLegacySchemaTwoImport =
+    candidate.schemaVersion === 2 && options.expectedSchemaVersion === 3;
+
+  if (
+    candidate.schemaVersion !== options.expectedSchemaVersion &&
+    !isLegacySchemaTwoImport
+  ) {
     throw new BackupValidationError(
       `This backup was created with a different data version. Expected data version ${options.expectedSchemaVersion}.`,
     );
+  }
+
+  if (isLegacySchemaTwoImport) {
+    if (options.migrationContext === undefined) {
+      throw new BackupValidationError(
+        'This backup was created with a different data version. Expected data version ' +
+          `${options.expectedSchemaVersion}.`,
+      );
+    }
+
+    const legacyResult = legacyBackupEnvelopeV2Schema.safeParse(candidate);
+
+    if (!legacyResult.success) {
+      throw new BackupValidationError(
+        'This backup file is malformed and cannot be imported.',
+        formatZodIssues(legacyResult.error),
+      );
+    }
+
+    const convertedData = convertLegacyBackupDataV2ToV3(
+      legacyResult.data.data,
+      options.migrationContext,
+    );
+    const convertedEnvelope: BackupEnvelope = {
+      ...legacyResult.data,
+      schemaVersion: options.expectedSchemaVersion,
+      data: convertedData,
+    };
+
+    assertBackupDataInvariants(convertedEnvelope.data, {
+      expectedSchemaVersion: options.expectedSchemaVersion,
+      migrationContext: options.migrationContext,
+    });
+
+    return convertedEnvelope;
   }
 
   const result = BackupEnvelopeSchema.safeParse(candidate);
@@ -495,6 +765,7 @@ export function parseBackupFile(
 
   assertBackupDataInvariants(result.data.data, {
     expectedSchemaVersion: options.expectedSchemaVersion,
+    migrationContext: options.migrationContext,
   });
 
   return result.data;

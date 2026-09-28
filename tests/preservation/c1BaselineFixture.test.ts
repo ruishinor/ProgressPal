@@ -16,7 +16,10 @@ import { cs50AchievementDefinitions as achievementDefinitions } from '../program
 import { bundledCourseSeed } from '@/seed';
 
 import committedFixture from '../fixtures/backups/c1-baseline-envelope1-schema2.json';
-import { createTestDatabase } from '../db/testDatabase';
+import {
+  createTestDatabase,
+  defaultTestMigrationContext,
+} from '../db/testDatabase';
 import { buildC1BaselineEnvelope } from './c1BaselineFixtureBuilder';
 import { createIncrementingClock } from './c1Support';
 
@@ -34,21 +37,41 @@ const fixtureText = JSON.stringify(committedFixture);
 const parse = () =>
   parseBackupFile(fixtureText, {
     expectedSchemaVersion: currentDatabaseSchemaVersion,
+    migrationContext: defaultTestMigrationContext,
   });
 
 describe('C1 baseline schema-2 fixture (migration)', () => {
-  it('is reproduced exactly by the real baseline repositories and export path', async () => {
-    expect(await buildC1BaselineEnvelope()).toEqual(committedFixture);
+  // Epic C / C6: the live repositories now always produce schema-3 output
+  // (activeProgrammeId, catalogueVersions, programmeEnrolments; one extra
+  // bootstrap write shifts every later incrementing-clock timestamp), so
+  // `buildC1BaselineEnvelope()` can no longer reproduce this frozen schema-2
+  // file byte-for-byte — that would require the retired schema-2 write path.
+  // The builder's provenance was established and locked before C6; the
+  // fixture itself stays byte-for-byte unchanged and is exercised by every
+  // other test below (parse, forward-conversion, restore, invariants).
+  it('still builds successfully through the real repositories (schema-3 now, not compared to the frozen file)', async () => {
+    const rebuilt = await buildC1BaselineEnvelope();
+
+    expect(rebuilt.data.courseUnits).toHaveLength(
+      committedFixture.data.courseUnits.length,
+    );
+    expect(rebuilt.data.courseItems).toHaveLength(
+      committedFixture.data.courseItems.length,
+    );
+    expect(rebuilt.data.xpTransactions.map((tx) => tx.id).sort()).toEqual(
+      committedFixture.data.xpTransactions.map((tx) => tx.id).sort(),
+    );
   }, 120_000);
 
-  it('parses through the real backup parser as envelope 1 / schema 2', () => {
+  it('parses the committed schema-2 file, forward-converted to the current schema', () => {
     const parsed = parse();
+    expect(parsed.data.appMeta?.activeProgrammeId).toBe('cs50x');
     expect(summarizeBackup(parsed)).toMatchObject({
       appVersion: currentApplicationVersion,
       format: 'progresspal-backup',
       formatVersion: 1,
       profileName: 'C1 Synthetic Learner',
-      schemaVersion: 2,
+      schemaVersion: currentDatabaseSchemaVersion,
     });
   });
 
@@ -57,7 +80,12 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
 
     expect(data.courseUnits).toHaveLength(14);
     expect(data.courseItems).toHaveLength(68);
-    expect(data.appMeta?.seedVersion).toBe(bundledCourseSeed.dataVersion);
+    expect(data.appMeta?.activeProgrammeId).toBe('cs50x');
+    expect(
+      data.catalogueVersions.find(
+        (version) => version.courseId === bundledCourseSeed.courseId,
+      )?.dataVersion,
+    ).toBe(bundledCourseSeed.dataVersion);
     expect(new Set(data.courseUnits.map((unit) => unit.courseId))).toEqual(
       new Set(['cs50x-2026']),
     );
@@ -168,8 +196,8 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
       }
       expect(restored.appMeta).toMatchObject({
         onboardingCompletedAt: parsed.data.appMeta?.onboardingCompletedAt,
-        schemaVersion: 2,
-        seedVersion: parsed.data.appMeta?.seedVersion,
+        schemaVersion: currentDatabaseSchemaVersion,
+        activeProgrammeId: parsed.data.appMeta?.activeProgrammeId,
       });
       // Restore appends exactly one `import` audit record.
       expect(restored.backups.slice(0, 1)).toEqual(parsed.data.backups);

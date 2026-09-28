@@ -23,7 +23,7 @@ function makeValidData(): BackupData {
       updatedAt: '2026-06-16T10:00:00.000Z',
       appVersion: '0.1.0',
       schemaVersion: 2,
-      seedVersion: 1,
+      activeProgrammeId: 'cs50x',
       onboardingCompletedAt: '2026-06-16T10:00:00.000Z',
     },
     learnerProfile: {
@@ -174,6 +174,8 @@ function makeValidData(): BackupData {
       },
     ],
     backups: [],
+    catalogueVersions: [],
+    programmeEnrolments: [],
   };
 }
 

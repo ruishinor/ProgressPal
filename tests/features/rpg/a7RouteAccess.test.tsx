@@ -171,7 +171,7 @@ describe('A7 actual route and shell access matrix', () => {
         { catalogueId: cs50CatalogueId, policy: cs50Policy, db: writer },
       );
       const before = await getDatabaseSnapshot({ db: writer });
-      expect(Object.keys(before)).toHaveLength(14);
+      expect(Object.keys(before)).toHaveLength(16);
       writer.close();
 
       const appState: AppStateContextValue = {
