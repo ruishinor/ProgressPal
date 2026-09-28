@@ -28,6 +28,7 @@ import {
   resetAllData,
   restoreDatabaseFromBackup,
 } from '@/lib/db';
+import { getSharedDatabase } from '@/lib/db/database';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import { requireProgrammeScope } from '@/lib/domain';
@@ -349,6 +350,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         busy={importing}
         disabled={!coordination.canWrite || coordination.peerActive}
         expectedSchemaVersion={currentDatabaseSchemaVersion}
+        migrationContext={getSharedDatabase().migrationContext}
         onConfirmImport={handleImport}
       />
       <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>

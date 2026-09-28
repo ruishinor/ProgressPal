@@ -256,8 +256,7 @@ describe('ImportBackupControl', () => {
     await waitFor(() => {
       const hasAlert = screen.queryByRole('alert') !== null;
       const hasConfirmButton =
-        screen.queryByRole('button', { name: /replace local data/i }) !==
-        null;
+        screen.queryByRole('button', { name: /replace local data/i }) !== null;
 
       expect(hasAlert || hasConfirmButton).toBe(true);
     });

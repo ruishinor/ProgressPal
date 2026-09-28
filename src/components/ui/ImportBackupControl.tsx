@@ -9,6 +9,7 @@ import {
   summarizeBackup,
   type BackupEnvelope,
 } from '@/lib/backup';
+import type { DatabaseMigrationContext } from '@/lib/db';
 
 export type ImportBackupControlProps = {
   busy?: boolean;
@@ -16,6 +17,14 @@ export type ImportBackupControlProps = {
   disabled?: boolean;
   expectedSchemaVersion: number;
   heading?: string;
+  /**
+   * The live database's bound migration context (Epic C6-R, D2). Required to
+   * forward-convert and preview a historical schema-2 backup once the app is
+   * on schema 3; a schema-3 backup previews without it. The destructive
+   * restore path always separately revalidates against the live database's
+   * own bound context regardless of what this preview supplied.
+   */
+  migrationContext?: DatabaseMigrationContext;
   onConfirmImport: (selection: BackupImportSelection) => void | Promise<void>;
 };
 
@@ -38,6 +47,7 @@ export function ImportBackupControl({
   disabled = false,
   expectedSchemaVersion,
   heading = 'Import a backup',
+  migrationContext,
   onConfirmImport,
 }: ImportBackupControlProps) {
   const inputId = useId();
@@ -78,7 +88,10 @@ export function ImportBackupControl({
     }
 
     try {
-      const envelope = parseBackupFile(text, { expectedSchemaVersion });
+      const envelope = parseBackupFile(text, {
+        expectedSchemaVersion,
+        migrationContext,
+      });
 
       if (generation === selectionGeneration.current) {
         setSelection(

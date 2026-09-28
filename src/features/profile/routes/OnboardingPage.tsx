@@ -18,6 +18,7 @@ import {
   defaultLearnerProfileValues,
   restoreDatabaseFromBackup,
 } from '@/lib/db';
+import { getSharedDatabase } from '@/lib/db/database';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import { requireProgrammeScope } from '@/lib/domain';
@@ -175,6 +176,7 @@ export function OnboardingPage() {
         confirmLabel="Restore this backup"
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         heading="Already have a backup?"
+        migrationContext={getSharedDatabase().migrationContext}
         onConfirmImport={handleImport}
       />
       {importError ? (
