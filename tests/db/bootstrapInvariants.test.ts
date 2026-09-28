@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { getAppMeta, initializeDatabase } from '@/lib/db';
+import {
+  addStudySessionAndAwardXp,
+  getAppMeta,
+  initializeDatabase,
+  logMediaProgressAndAwardXp,
+  upsertProgressAndAwardXp,
+} from '@/lib/db';
 
+import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
 import {
   createClock,
   createTestDatabase,
+  sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
 
@@ -92,5 +100,141 @@ describe('database bootstrap invariants (Epic C6-R, D1)', () => {
     const secondAppMeta = await getAppMeta({ db: testDatabase.db });
 
     expect(secondAppMeta).toEqual(firstAppMeta);
+  });
+});
+
+/**
+ * Owner-review C6-R RED checkpoint (D1b): the D1 fix guarded the enrolment
+ * read with `canCheckEnrolmentHere` (skip when the ambient transaction
+ * omits `programme_enrolments`) so `ensureBaseInitialization` would not
+ * throw "Table not included in parent transaction" when nested. That guard
+ * means the invariant is skipped, not enforced, whenever a real compound
+ * write function's own transaction omits `programme_enrolments` - which
+ * `upsertProgressAndAwardXp`, `logMediaProgressAndAwardXp`, and
+ * `addStudySessionAndAwardXp` all currently do (each opens a transaction
+ * over its feature stores plus `app_meta`/`learner_profile`, then calls a
+ * lower-level repository function that invokes `ensureBaseInitialization`
+ * nested inside it). A current valid v3 database whose active-programme
+ * enrolment is removed should still fail closed when any of these compound
+ * paths runs, exactly like D1-B already proves for a direct
+ * `initializeDatabase` call.
+ */
+describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
+  let testDatabase: TestDatabaseContext | null = null;
+
+  afterEach(async () => {
+    await testDatabase?.cleanup();
+    testDatabase = null;
+  });
+
+  it('D1b-A: upsertProgressAndAwardXp fails closed on a missing active-programme enrolment', async () => {
+    testDatabase = createTestDatabase('d1b-progress');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    await testDatabase.db.programmeEnrolments.delete(
+      testDatabase.db.migrationContext.programmeId,
+    );
+
+    await expect(
+      upsertProgressAndAwardXp(
+        { itemId: 'week-0-lecture', status: 'started', confidence: 3 },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-11T10:05:00.000Z'),
+        },
+      ),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+
+    const persisted = await testDatabase.db.progressEntries
+      .where('itemId')
+      .equals('week-0-lecture')
+      .first();
+
+    expect(persisted).toBeUndefined();
+  });
+
+  it('D1b-B: logMediaProgressAndAwardXp fails closed on a missing active-programme enrolment', async () => {
+    testDatabase = createTestDatabase('d1b-media');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    await testDatabase.db.programmeEnrolments.delete(
+      testDatabase.db.migrationContext.programmeId,
+    );
+
+    await expect(
+      logMediaProgressAndAwardXp(
+        {
+          assetId: 'week-0-lecture-asset',
+          startSecond: 0,
+          endSecond: 600,
+          energyBefore: 4,
+          energyAfter: 4,
+          stoppedBecause: 'interruption',
+        },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-11T10:05:00.000Z'),
+        },
+      ),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+
+    const persisted = await testDatabase.db.mediaProgressEvents
+      .where('assetId')
+      .equals('week-0-lecture-asset')
+      .first();
+
+    expect(persisted).toBeUndefined();
+  });
+
+  it('D1b-C: addStudySessionAndAwardXp fails closed on a missing active-programme enrolment', async () => {
+    testDatabase = createTestDatabase('d1b-session');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    await testDatabase.db.programmeEnrolments.delete(
+      testDatabase.db.migrationContext.programmeId,
+    );
+
+    await expect(
+      addStudySessionAndAwardXp(
+        {
+          id: 'session-d1b',
+          unitId: 'week-0',
+          itemId: 'week-0-lecture',
+          startedAt: '2026-06-11T10:10:00.000Z',
+          endedAt: '2026-06-11T10:40:00.000Z',
+          durationMinutes: 30,
+          mode: 'watching',
+        },
+        {
+          catalogueId: cs50CatalogueId,
+          policy: cs50Policy,
+          db: testDatabase.db,
+          now: createClock('2026-06-11T10:40:00.000Z'),
+        },
+      ),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+
+    const persisted = await testDatabase.db.studySessions.get('session-d1b');
+
+    expect(persisted).toBeUndefined();
   });
 });
