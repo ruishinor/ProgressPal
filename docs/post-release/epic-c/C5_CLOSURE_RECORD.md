@@ -2,15 +2,20 @@
 
 ## 1. State
 
-**`C5_IMPLEMENTED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
+**`C5_REPAIRED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
 
 - C5 was implemented on 2026-09-28 under a direct owner instruction: C5 from
   the C4 clarification tip `609cb607`, local commits only, review-ready state
   at most.
-- The implementation candidate is `9c704f0f` (§2). Every required final gate
-  passed on that exact commit (§7).
+- The first candidate, `9c704f0f`, was **not accepted by independent owner
+  review** (§7). Its readiness record `3bdf71b2` is superseded by this
+  revision. Both remain in history; the first candidate's validation does not
+  certify the repaired bytes.
+- The owner authorized one bounded repair round from `3bdf71b2`. The repaired
+  implementation candidate is `7fd87fe5` (§2). Every required final gate
+  passed on that exact commit (§8).
 - **C5 is not accepted.** The owner decides whether to accept or reject the
-  candidate.
+  repaired candidate.
 - C6 has not started and is not authorized. Its prerequisites (C5 accepted,
   OD-1 to OD-5, a schema-change decision record, the C6 readiness record) are
   not met.
@@ -19,80 +24,110 @@
 
 ## 2. Identities
 
-| Item                     | Value                                                                                                |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Owner authorization      | direct owner instruction, 2026-09-28: C5 from `609cb607`, local commits, review-ready at most        |
-| Branch                   | `cx/epic-c5-programme-scoped-reads`                                                                  |
-| Branch point             | `609cb60743cc20fb178c5eac2f4fc3120ae23ea6` (C4 clarification tip; tree `26b712db`, `src` `4eac5095`) |
-| Implementation candidate | `9c704f0fd331a6f7f56d76087ddec053c50a072a` (tree `ac502d42`, parent `609cb607`)                      |
-| Candidate `src` subtree  | `927a565cabbe33086cb080f491c0dde25b9a36ff`                                                           |
-| Readiness record         | the documentation-only commit that adds this file (parent `9c704f0f`)                                |
+| Item                      | Value                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Owner authorization       | direct owner instructions, 2026-09-28: C5 from `609cb607`; one bounded repair round from `3bdf71b2`           |
+| Branch                    | `cx/epic-c5-programme-scoped-reads`                                                                           |
+| Branch point              | `609cb60743cc20fb178c5eac2f4fc3120ae23ea6` (C4 clarification tip; tree `26b712db`, `src` `4eac5095`)          |
+| First candidate           | `9c704f0fd331a6f7f56d76087ddec053c50a072a` (tree `ac502d42`, `src` `927a565c`): **not accepted**              |
+| First readiness record    | `3bdf71b2337b673a5d98c28e80b1f1ca1b0df846` (docs only): **superseded**                                        |
+| Repaired candidate        | `7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04` (tree `e376435d`, parent `3bdf71b2`): **implementation candidate** |
+| Repaired candidate `src`  | `0eb3b51ca3fa87aec9349d29e4ce8358c82f5e6a`                                                                    |
+| Repaired readiness record | the documentation-only commit that revises this file (parent `7fd87fe5`)                                      |
 
 ## 3. What C5 implements
 
-- **Explicit scope from composition.** The RPG read models resolve the active
-  definition before any read transaction opens and pass its catalogue
-  identity (`course_units.courseId`) and policy to `src/lib/db`
-  (`withActiveProgramme`). Write paths receive the same scope from their
-  composition sites (RPG progress action, Classic content detail, study
-  sessions). `src/lib/**` still never imports `@/programmes`, and no lib
-  reader has a default catalogue.
-- **Scoped course state** (`readScopedCatalogue`, `readScopedCourseState`).
-  Units are read by the `courseId` index. Items are bounded by those unit
-  IDs; progress, content assets, slices and resume points by the scoped item
-  IDs; media history by the scoped asset IDs. Each store is read once, in the
-  caller's single read-only transaction. Used by the Map, HUD, Hub and Hero
-  readers, and by XP preview (reward-source) context derived from them.
-- **Fail closed.** A catalogue with no materialized unit throws; it is never
-  read as an empty course. A module or resource whose unit belongs to another
-  catalogue is not found (`null`). Routes therefore reach their existing
-  error states.
+- **One resolution at bootstrap.** The app composition root
+  (`app/providers/AppProviders.tsx`) resolves the active programme once and
+  passes a neutral `ProgrammeScope` (catalogue, catalogue identity
+  `course_units.courseId`, policy; `lib/domain`) to `AppStateProvider`. The
+  provider resolves it once per mount, seeds **that** catalogue (not a
+  hard-wired bundled seed), and exposes `programmeScope` in app state. A
+  failed resolution is kept as the existing bootstrap error ("Local data
+  could not be loaded."); no default programme is substituted.
+- **Explicit scope in features.** RPG loaders and the RPG progress action
+  take the scope as their first argument. RPG pages and the RPG shell,
+  Classic Course, Dashboard and Content Detail, study sessions, achievements,
+  insights, and reset/restore take it from app state and pass it explicitly.
+  No feature derives a catalogue identity or read/write options from the
+  programme accessor (§6).
+- **Scoped reads** (`src/lib/db`). Units by the `courseId` index; items by
+  those unit IDs; progress, assets, slices and resume points by the scoped
+  item IDs; media history by the scoped asset IDs; one query per store in one
+  read-only transaction. Used by the RPG Map, HUD, Hub and Hero readers
+  (aggregated media) and by the Classic Course map and Dashboard
+  (`getCatalogueCourseState`, raw media history). A catalogue with no
+  materialized unit fails closed.
+- **Foreign IDs.** An RPG module or resource of another catalogue is not
+  found. Classic Content Detail loads the item and its unit first and treats
+  an item of another catalogue as not found, before reading progress or
+  assets. Progress and media saves reject an item of another catalogue
+  before any write.
 - **Achievement catalogue context.** The unlock evaluator reads the active
-  catalogue's units and items only, so `course-complete` and the unit and
-  item-type rules evaluate against that catalogue. Progress, slices, media
-  events and sessions stay whole-store, so activity achievements
-  (`first-step`, `first-slice`, `clean-stop`, the session rules) and global
-  unlock ownership (OD-2) are unchanged.
-- **Stays global.** XP ledger and level (OD-1), unlocks (OD-2), sessions,
-  insights and profile (OD-4), backup/export.
+  catalogue's units and items only; progress, slices, media events and
+  sessions stay whole-store, so activity achievements and global unlock
+  ownership (OD-2) are unchanged.
+- **Stays global.** XP ledger and level (OD-1), unlocks (OD-2), study
+  sessions, the session item picker, insights and profile (OD-4),
+  backup/export.
 
-No schema, index or Dexie version change was needed: `course_units.courseId`,
-`course_items.unitId` and the `itemId`/`assetId` indexes already bound every
-scoped read.
+No schema, index or Dexie version change was needed.
 
-## 4. P3 discriminating evidence
+## 4. P3 and repair evidence
 
 `tests/programmes/catalogueScope.test.tsx` materializes a test-only second
 catalogue (`c5-alt-catalogue`; distinct catalogue, unit and item IDs) next to
-CS50 through the real seed sync. Its definition passes the real definition
-validation, is injected by module mock, and is never registered.
+CS50 through the real seed sync. Its definition passes real definition
+validation and is never registered.
 
-- **RED on the unchanged C4 source (11 of 13 failed).** Every failure was a
-  catalogue-isolation failure: the CS50 map returned 16 units (14 CS50 + 2
-  alternate); alternate modules and resources resolved under CS50; the
-  alternate definition saw CS50 units; `course-complete` never unlocked
-  because the evaluator waited on the other catalogue; and wrong or
-  unmaterialized scopes rendered the full CS50 map, hub, hero, module and
-  resource. The two passing tests were controls (production registry;
-  global XP and sessions). One earlier run also failed on a test import
-  (`loadRpgHudSummary` is not a public entrypoint export); that fixture error
-  was fixed and was not counted as RED.
-- **GREEN on the candidate (13 of 13).** CS50 requests see only CS50 units
-  and items (map, HUD, hub, hero); the alternate definition sees only its own
-  (map, hub, module, resource) in both directions; the XP total and session
-  count stay global under either definition; `course-complete` unlocks with
-  trigger `cs50x-2026`; the production registry is still `['cs50x-2026']`.
-- **Actual routes fail closed.** With an unregistered, unmaterialized key and
-  with a valid test definition whose catalogue is not materialized,
-  `/rpg/map` shows "Campaign map could not be read" (no CS50 node, not
-  "Campaign map is empty"); `/rpg`, `/rpg/hero` and `/rpg/week/week-0` show
-  their existing error states; `/rpg/resource/week-0-lecture` shows no save
-  form. With the alternate catalogue materialized and active, `/rpg/map`
-  renders only its units.
-- **Disposable mutation probes (not committed).** Reading units whole-store
-  and dropping the module check failed 10 of 13; dropping only the resource
-  check failed 3 of 13. The file was restored and checked byte-identical by
-  SHA-256 after each probe.
+- **RED (first candidate, on the unchanged C4 source).** 11 of 13 failed,
+  each a catalogue-isolation failure (merged 16-unit CS50 map, foreign
+  modules and resources resolving, `course-complete` waiting on the other
+  catalogue, wrong scopes rendering CS50 data). That RED stands.
+- **Readers (23 tests in the repaired file).** With both catalogues
+  materialized, the CS50 scope sees only CS50 units and items (map, HUD, hub,
+  hero) and the alternate scope only its own (map, hub, module, resource, and
+  the Classic reader); foreign module and resource IDs are not found; a valid
+  scope whose catalogue is not materialized fails closed; the XP total and
+  session count stay global under either scope; `course-complete` unlocks
+  with trigger `cs50x-2026`; the production registry is `['cs50x-2026']`.
+- **Bootstrap.** A provider given a resolver resolves it exactly once,
+  exposes its scope and seeds only its catalogue; a failing resolver yields
+  the existing bootstrap error, no scope, and no seeded catalogue. Through
+  the real app, an alternate definition injected at the composition root
+  drives `/rpg/map` and the Classic `/course` to show only its catalogue, and
+  the bootstrap materializes it.
+- **Classic surfaces (CS50 active, both catalogues).** `/course` renders
+  only CS50 unit cards. The Dashboard's course progress (`0 of 14` units),
+  "What's next?" and saved-progress activity exclude the alternate catalogue
+  while XP (`80 XP total`) and the study-session count (2) stay global.
+  `/course/c5-alt-unit-a-lecture` renders the existing "Course content could
+  not be opened" state with the existing not-found message, offers no save,
+  and writes no progress, XP or unlock. Direct progress and media saves for
+  the foreign item reject before any write (database snapshot unchanged); a
+  CS50 save still awards `xp-lecture_completed-week-0-lecture-completed`.
+- **Fail closed through the actual route.** With a composition scope whose
+  catalogue identity has no materialized unit, `/rpg/map`, `/rpg`,
+  `/rpg/hero`, `/rpg/week/week-0`, `/course`, `/dashboard` and
+  `/course/week-0-lecture` render their existing error states (never a CS50
+  or empty map), and `/rpg/resource/week-0-lecture` offers no save form.
+- **Exact limit of the registry claim.** The unmaterialized-scope route cases
+  inject a composition scope that bypasses definition validation; they do not
+  exercise registry rejection of an unregistered key. Registry rejection is
+  proven by `registry.test.ts` (`getProgrammeDefinition` throws for
+  unregistered keys; `getActiveProgrammeDefinition` requires exactly one
+  definition), and the repaired provider turns a resolution failure into the
+  bootstrap error (above). A route-level test of an accessor failure is not
+  claimed: C4 terminology is read during render, so such a failure reaches
+  the router's default error handling. The C5 story requires an unregistered
+  key **or** an unmaterialized catalogue to fail closed through the actual
+  route; the unmaterialized side is proven.
+- **Disposable mutation probes (not committed).** Dropping the Content Detail
+  catalogue check and the save guard failed 3 of 23; reading units
+  whole-store failed 13; not seeding the resolved catalogue at bootstrap
+  failed 2. The first candidate's probes (whole-store units, module and
+  resource checks) also failed their tests. Every file was restored and
+  checked byte-identical by SHA-256.
 
 ## 5. Epic A read boundaries and C1 preservation
 
@@ -101,39 +136,63 @@ validation, is injected by module mock, and is never registered.
   allowlists, one read-only transaction, zero writes, per-store query counts
   and budgets, history scan counts, zero materialized history rows, missing-ID
   semantics and failure propagation are unchanged.
-- Deliberate test changes, each with the same assertions:
-  - three scale fixtures (`a1`/`a2`/`a3` Map, Module, Resource) now
-    materialize their synthetic catalogue under the active catalogue
-    identity, because the loaders read only that catalogue;
-  - two failure injections (`mapReadBoundary`, `readModels`) move from
-    `courseUnits.toArray` to the scoped `courseUnits.where` query that the
-    readers now use; the load still rejects with the same error and writes
-    nothing.
-- Test call sites for the scoped readers and write paths pass the CS50
-  catalogue identity (`cs50CatalogueId`), as C3 added `policy`. No `expect`,
-  expected value or fixture file changed (`tests/fixtures` unchanged). Every
-  C1 suite passes.
+- Deliberate test changes, each with the same assertions: the three A1–A3
+  scale fixtures materialize under the active catalogue identity; the two
+  Map/read-model failure injections target the scoped `courseUnits.where`
+  query; the C1 transient error-state test also rejects
+  `getCatalogueCourseState`, the reader Course and Dashboard now use
+  (Insights still lists units and keeps its injection); app-state fixtures
+  and mocks carry the CS50 scope; test call sites pass the scope as C3 added
+  `policy`. No `expect`, expected value or fixture file changed
+  (`tests/fixtures` unchanged). Every C1 suite passes.
 
 ## 6. Architecture
 
-- `programmesLayer`, `programmePolicyOwnership` (G-7), `rpgFeature`,
-  `routeDefinitions`, `achievementsFeature`, `sessionsFeature`, `localOnly`
-  and `check:circular` pass.
-- The active definition is resolved in feature composition, never inside a
-  passive read transaction; lib code has no CS50 literal.
+- `tests/architecture/programmeScopeComposition.test.ts` (with a positive
+  control): only the composition root derives a catalogue identity from the
+  programme accessor; no app or feature file builds read/write options from
+  the accessor; nothing in `app`, `features`, `lib` or `components` imports
+  the bundled seed.
+- `programmesLayer` (no `src/lib` → `@/programmes`), G-7 (no CS50 literal in
+  `src/lib`), `rpgFeature`, `routeDefinitions`, `achievementsFeature`,
+  `sessionsFeature`, `localOnly` and `check:circular` pass. Lib readers have
+  no default catalogue.
 
-## 7. Final validation (implementation candidate `9c704f0f`)
+## 7. Independent review findings and repair
+
+The owner did not accept `9c704f0f`:
+
+- **A — scope not resolved once at bootstrap.** Feature helpers
+  (`readModels`, `progressActions`, Content Detail, study sessions) each
+  called the programme accessor for the catalogue identity and policy.
+  Repaired by the single bootstrap resolution (§3).
+- **B — Classic reads mixed.** The Classic Course map, the Dashboard's
+  course context and Content Detail read unscoped, and Content Detail could
+  open a foreign item and save it with the active programme's policy.
+  Repaired (§3, §4).
+- **Evidence wording.** The first record called an injected definition an
+  "unregistered, unmaterialized definition key" route failure; it never
+  exercised registry rejection. Corrected (§4).
+
+Failures during the repair were test-side and classified before repair:
+fixtures and mocks without the scope (A6 classic render, the final
+presentation Insights render, save-spy argument positions), one wrong
+progress status value and one over-broad argument-index edit in the
+repair's own test changes. No
+further product defect appeared.
+
+## 8. Final validation (repaired candidate `7fd87fe5`)
 
 | Check                    | Result                                                                                    |
 | ------------------------ | ----------------------------------------------------------------------------------------- |
 | `npm run lint`           | exit 0, 0 warnings                                                                        |
 | `npm run format:check`   | exit 0                                                                                    |
 | `npm run typecheck`      | exit 0                                                                                    |
-| `npm test`               | exit 0; 86 files / 888 tests passed, 0 skipped (C4: 85 / 875)                             |
+| `npm test`               | exit 0; 87 files / 902 tests passed, 0 skipped (first candidate: 86 / 888)                |
 | `npm run check:circular` | exit 0, no cycle                                                                          |
 | `npm run build`          | exit 0                                                                                    |
-| `npm run check:bundle`   | exit 0, 0 violations; largest JS chunk 393,481 bytes (C4: 393,987)                        |
-| `npm run test:e2e`       | exit 0; 90/90 passed, 0 skipped, 0 retries, 5.8 min; includes the axe accessibility specs |
+| `npm run check:bundle`   | exit 0, 0 violations; largest JS chunk 395,321 bytes (C4: 393,987)                        |
+| `npm run test:e2e`       | exit 0; 90/90 passed, 0 skipped, 0 retries, 6.6 min; includes the axe accessibility specs |
 | `git diff --check`       | exit 0                                                                                    |
 
 - No test was skipped, retried or weakened, and no timeout changed.
@@ -143,49 +202,46 @@ validation, is injected by module mock, and is never registered.
   `c1-visual-baseline-69b1db7.zip`. The ZIP was not regenerated and is
   unchanged (SHA-256 `cb404591…917c`).
 
-## 8. Scope proof
+## 9. Scope proof
 
-`git diff 609cb607 9c704f0f` changes five `src` files
-(`lib/db/repositories.ts`, `features/rpg/model/readModels.ts`,
-`features/rpg/model/progressActions.ts`,
-`features/course/routes/ContentDetailPage.tsx`,
-`features/sessions/components/StudySessionsSurface.tsx`) and tests. It is
-empty for `src/lib/db/database.ts`, `src/lib/backup`, `src/lib/domain`,
+`git diff 609cb607 7fd87fe5 -- src` changes 21 files: `lib/db`
+(`repositories.ts`, `index.ts`), `lib/appState` (context and provider),
+`lib/domain/programmePolicy.ts`, `app/providers/AppProviders.tsx`, the RPG
+read models, progress action, pages and shell, and the Classic Course,
+Dashboard, Content Detail, sessions, achievements, insights, onboarding and
+settings surfaces. It is empty for `src/lib/db/database.ts`, `src/lib/backup`,
 `src/lib/xp`, `src/lib/achievements`, `src/lib/routing`, `src/programmes`,
-`src/seed`, `src/styles`, `src/components`, `src/app`, the RPG routes,
-components, shell and assets, `tests/fixtures`, `e2e`, `public`, `scripts`,
-`docs`, and every package, config and deployment file. No `programmeId`,
-enrolment, active-key, schema, index, version, backup, route, copy, layout or
-CSS change exists; the registry has one entry. No C6–C8 work was done.
+`src/seed`, `src/styles`, `src/components`, the router, shells and app routes,
+the RPG components and assets, `tests/fixtures`, `e2e`, `public`, `scripts`,
+and every package, config and deployment file; the repair commit changes no
+documentation. No `className` changed. No `programmeId`, enrolment,
+active-key storage, schema, index, version, backup, route, copy, layout or CSS
+change exists, and the registry has one entry. No C6–C8 work was done.
 
-## 9. Residual limits
+## 10. Residual limits
 
-- **Classic list-based surfaces are not scoped.** The Classic course map,
-  dashboard and content detail still read through unscoped `list*`/`get*`
-  calls. The live C5 `allowed_scope` names `src/lib/db` read paths and
-  `features/rpg` read models, and the C0 C5 guard plan targets the RPG read
-  paths; scoping the Classic surfaces would need new bounded list APIs and
-  a change to how the frozen C1 transient error states are injected. With
-  one materialized catalogue (production) the output is identical. If the
-  owner wants Classic scoped, that is a bounded follow-up decision.
-- The XP award path already evaluates only the saved item's unit and the
-  policy's own milestone items. A save for an item outside the active
-  catalogue is unreachable through RPG routes after C5; the unscoped Classic
-  content-detail route can still open one, as before C5.
-- Sessions (including RPG Focus) keep their whole-catalogue unit/item picker
-  (OD-4).
-- The evaluator fails closed if the active catalogue has no materialized
-  unit; in production the bundled catalogue is always materialized at
-  bootstrap.
-- The render-time terminology reads added by C4 call the active-definition
-  accessor during render; an accessor that throws would reach the router's
-  default error handling, not a page error state. The registry itself rejects
-  unregistered keys (C2).
+- Presentation and content lookups still use the programme accessor during
+  render or in pure builders: C4 terminology, C2 links and guides, the C3
+  status workflow for status options, achievement titles in save outcomes,
+  badge counts and the reward label's policy. They supply no catalogue
+  identity and no read/write options; with one registered definition they
+  resolve the same definition as the bootstrap.
+- With a second catalogue materialized, a global study session for an item of
+  another catalogue is labelled by its item ID in the Dashboard's recent
+  activity, because titles come from the active catalogue (OD-4 keeps
+  sessions global). Production has one catalogue.
+- The session item picker (including RPG Focus) lists every materialized
+  catalogue's units and items (OD-4).
+- The unlock evaluator fails closed if the active catalogue has no
+  materialized unit; the bootstrap always materializes it first.
+- Registry-rejection evidence is unit-level plus the provider bootstrap
+  error (§4); the actual-route proof is for an unmaterialized catalogue.
 
-## 10. Disposition
+## 11. Disposition
 
-- **C5:** implemented and validated locally; ready for owner review; **not
-  accepted**.
+- **C5:** repaired and validated locally; ready for owner review; **not
+  accepted**. First candidate `9c704f0f` not accepted; readiness `3bdf71b2`
+  superseded.
 - **C6:** not started and not authorized; blocked on C5 acceptance and owner
   decisions OD-1 to OD-5.
 - **Publication:** deferred; `origin/master` and Production are unchanged.
