@@ -1,7 +1,7 @@
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { BackupValidationError, parseBackupFile } from '@/lib/backup';
+import { parseBackupFile } from '@/lib/backup';
 import { ensureCourseCatalogFromSeed, initializeDatabase } from '@/lib/db';
 import {
   createProgressPalDatabase,
@@ -356,18 +356,18 @@ describe('RD3: study-session unit/item cross-check (Epic C6-R)', () => {
       },
     };
 
-    expect.assertions(2);
-    try {
+    // The repaired shared migrateV2ToV3 (used by both real migration paths)
+    // now catches this before assertBackupDataInvariants ever runs, so the
+    // backup path surfaces MigrationAbortedError here rather than its usual
+    // BackupValidationError wrapper - still rejected, just one layer higher
+    // than before the repair. What this test proves is unchanged: the two
+    // real migration paths agree on this malformed input.
+    expect(() =>
       parseBackupFile(JSON.stringify(crossUnitSchemaTwoEnvelope), {
         expectedSchemaVersion: 3,
         migrationContext: defaultTestMigrationContext,
-      });
-    } catch (error) {
-      expect(error).toBeInstanceOf(BackupValidationError);
-      expect((error as BackupValidationError).issues.join(' ')).toMatch(
-        /does not use the item's unit/i,
-      );
-    }
+      }),
+    ).toThrow(/does not use the item's unit/i);
   });
 });
 

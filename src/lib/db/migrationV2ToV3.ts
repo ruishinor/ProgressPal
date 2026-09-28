@@ -115,6 +115,7 @@ function assertFullRelationalValidity(
   }
 
   const itemIds = new Set(snapshot.courseItems.map((item) => item.id));
+  const itemById = new Map(snapshot.courseItems.map((item) => [item.id, item]));
 
   for (const asset of snapshot.contentAssets) {
     if (!itemIds.has(asset.itemId)) {
@@ -181,11 +182,19 @@ function assertFullRelationalValidity(
 
   for (const session of snapshot.studySessions) {
     const unit = unitById.get(session.unitId);
+    const item = itemById.get(session.itemId);
 
-    if (unit === undefined || !itemIds.has(session.itemId)) {
+    if (unit === undefined || item === undefined) {
       abort(
         `Study session "${session.id}" references an unattributable unit or item.`,
       );
+    }
+
+    // Epic C6-R, RD3: binding Control 1 requires deterministic parent-chain
+    // attribution, so both rows existing independently is not enough - the
+    // item's own unit must actually be the unit this session claims.
+    if (item.unitId !== session.unitId) {
+      abort(`Study session "${session.id}" does not use the item's unit.`);
     }
   }
 }
