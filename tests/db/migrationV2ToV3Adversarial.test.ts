@@ -140,6 +140,47 @@ describe('v2 -> v3 upgrade adversarial evidence (leaves v2 intact)', () => {
   });
 });
 
+describe('multi-tab old-shell upgrade (MR-13/14: existing Dexie defaults, no new copy)', () => {
+  const openedDatabases: string[] = [];
+
+  afterEach(async () => {
+    await Promise.all(openedDatabases.splice(0).map(deleteDatabaseByName));
+  });
+
+  it('closes an old tab holding a live v2 connection so the v3 upgrade elsewhere can proceed', async () => {
+    const name = 'progresspal-test-upgrade-multitab';
+    openedDatabases.push(name);
+    await createLegacyVersionTwoFixture(name);
+
+    // Simulates an old tab that never reloaded: a live v2 connection with no
+    // custom versionchange/blocked handling, exactly like production, which
+    // registers none (Epic C / C6 MR-13: existing Dexie defaults suffice).
+    const oldTabConnection = new Dexie(name);
+    oldTabConnection.version(2).stores(legacyVersionTwoStoreDefinitions);
+    await oldTabConnection.open();
+    expect(oldTabConnection.isOpen()).toBe(true);
+
+    const upgradingDatabase = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      name,
+    );
+
+    await upgradingDatabase.open();
+
+    // Dexie's own default versionchange handler closed the old tab's
+    // connection so this upgrade was never blocked.
+    expect(oldTabConnection.isOpen()).toBe(false);
+    expect(upgradingDatabase.isOpen()).toBe(true);
+    const appMeta = await upgradingDatabase.appMeta.get('app-meta');
+    expect(appMeta).toMatchObject({
+      activeProgrammeId: 'cs50x',
+      schemaVersion: 3,
+    });
+
+    upgradingDatabase.close();
+  }, 15_000);
+});
+
 describe('catalogue sync adversarial evidence', () => {
   let testDatabase: TestDatabaseContext | null = null;
 
