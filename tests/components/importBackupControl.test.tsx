@@ -60,6 +60,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={vi.fn()}
       />,
     );
@@ -74,6 +75,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={onConfirmImport}
       />,
     );
@@ -95,6 +97,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={onConfirmImport}
       />,
     );
@@ -133,6 +136,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={onConfirmImport}
       />,
     );
@@ -165,6 +169,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={onConfirmImport}
       />,
     );
@@ -206,6 +211,7 @@ describe('ImportBackupControl', () => {
     render(
       <ImportBackupControl
         expectedSchemaVersion={2}
+        migrationContext={defaultTestMigrationContext}
         onConfirmImport={onConfirmImport}
       />,
     );
@@ -271,24 +277,11 @@ describe('ImportBackupControl', () => {
     ).toBeInTheDocument();
   });
 
-  it('D2-A (control): rejects the same schema-2 backup when no migration context is supplied', async () => {
-    const onConfirmImport = vi.fn();
-    render(
-      <ImportBackupControl
-        expectedSchemaVersion={3}
-        onConfirmImport={onConfirmImport}
-      />,
-    );
-
-    await userEvent.upload(
-      screen.getByLabelText('Backup file'),
-      jsonFile('schema2-backup.json', JSON.stringify(schemaTwoBackup)),
-    );
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /replace local data/i }),
-    ).not.toBeInTheDocument();
-    expect(onConfirmImport).not.toHaveBeenCalled();
-  });
+  // The context-free rejection this used to prove at the component level
+  // (D2-A control) is no longer expressible here: `migrationContext` is a
+  // required prop (Epic C6-R, D2 API hardening), so a caller cannot compile
+  // without supplying it. That behavior is exercised directly at the
+  // `parseBackupFile` layer instead - see "rejects a schema-2 backup when
+  // the app expects schema 3 and no migration context is supplied" in
+  // tests/lib/backup.test.ts.
 });

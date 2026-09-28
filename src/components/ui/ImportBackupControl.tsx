@@ -18,13 +18,17 @@ export type ImportBackupControlProps = {
   expectedSchemaVersion: number;
   heading?: string;
   /**
-   * The live database's bound migration context (Epic C6-R, D2). Required to
-   * forward-convert and preview a historical schema-2 backup once the app is
-   * on schema 3; a schema-3 backup previews without it. The destructive
-   * restore path always separately revalidates against the live database's
-   * own bound context regardless of what this preview supplied.
+   * The live database's bound migration context (Epic C6-R, D2). Required so
+   * every caller of this production, authorized-import path supplies
+   * authorization explicitly rather than being able to compile without it -
+   * a caller that forgets it would otherwise silently vary behavior by
+   * backup schema (a schema-3 backup would still preview; a schema-2 backup
+   * would be rejected). Context-free structural parsing is still exercised
+   * directly at the `parseBackupFile` layer, not through this component. The
+   * destructive restore path always separately revalidates against the live
+   * database's own bound context regardless of what this preview supplied.
    */
-  migrationContext?: DatabaseMigrationContext;
+  migrationContext: DatabaseMigrationContext;
   onConfirmImport: (selection: BackupImportSelection) => void | Promise<void>;
 };
 

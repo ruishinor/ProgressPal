@@ -372,6 +372,22 @@ describe('parseBackupFile rejections', () => {
     expect(() => parse(envelope)).toThrow(/data version/i);
   });
 
+  /**
+   * Epic C6-R, D2 API hardening: `migrationContext` is required on the
+   * production `ImportBackupControl` (a caller can no longer forget
+   * authorization and still compile), so the context-free rejection this
+   * used to prove indirectly through the component belongs at this parser
+   * layer instead. The check fires before any legacy-shape validation, so
+   * this is deliberately schema-3-shaped data merely labeled schemaVersion 2.
+   */
+  it('rejects a schema-2 backup when the app expects schema 3 and no migration context is supplied', () => {
+    const envelope = { ...makeEnvelope(), schemaVersion: 2 };
+
+    expect(() =>
+      parseBackupFile(JSON.stringify(envelope), { expectedSchemaVersion: 3 }),
+    ).toThrow(/different data version/i);
+  });
+
   it('rejects an unknown top-level field', () => {
     const envelope = { ...makeEnvelope(), unexpected: true };
 
