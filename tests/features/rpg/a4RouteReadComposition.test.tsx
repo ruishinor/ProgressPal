@@ -15,6 +15,8 @@ import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
 import * as database from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
+import type { ProgrammeScope } from '@/lib/domain';
+import { cs50Scope } from '../../programmes/cs50Policy';
 
 const readCalls = vi.hoisted(() => ({
   hero: vi.fn(),
@@ -30,6 +32,7 @@ const appState = vi.hoisted(() => ({
   profile: {
     updatedAt: '2026-09-21T01:00:00.000Z',
   },
+  programmeScope: null as ProgrammeScope | null,
   refresh: vi.fn(async () => undefined),
   runLocalMutation: vi.fn(async (mutation: () => Promise<unknown>) =>
     mutation(),
@@ -39,6 +42,7 @@ const appState = vi.hoisted(() => ({
 vi.mock('@/lib/appState', () => ({
   useAppState: () => appState,
 }));
+appState.programmeScope = cs50Scope;
 
 vi.mock('@/features/rpg/model/readModels', async (importOriginal) => {
   const actual =

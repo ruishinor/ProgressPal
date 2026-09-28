@@ -23,7 +23,10 @@ import {
   type DatabaseSnapshot,
 } from '@/lib/db';
 import type { CourseItem, ProgressStatus } from '@/lib/domain';
-import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
+import {
+  cs50AchievementDefinitions as achievementDefinitions,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 import { bundledCourseSeed } from '@/seed';
 import {
   createClock,
@@ -410,21 +413,24 @@ describe('RPG read models', () => {
       equals: () => ({ toArray: () => Promise.reject(readFailure) }),
     } as unknown as ReturnType<typeof db.courseUnits.where>);
 
-    await expect(loadRpgHubSummary({ db })).rejects.toBe(readFailure);
+    await expect(loadRpgHubSummary(cs50Scope, { db })).rejects.toBe(
+      readFailure,
+    );
     expect(await getDatabaseSnapshot({ db })).toEqual(before);
   });
 
   it('previews unearned task XP consistently without writing or re-offering earned rewards', async () => {
     const db = await createSeededRpgDatabase();
     const resource = await expectReadOnly(() =>
-      loadRpgStudyResourceSummary('week-4-lecture', { db }),
+      loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', { db }),
     );
     expect(resource?.rewardLabel).toBe('Up to 40 XP remaining for this task');
     expect(
-      (await loadRpgHubSummary({ db })).recommendation.quest?.rewardLabel,
+      (await loadRpgHubSummary(cs50Scope, { db })).recommendation.quest
+        ?.rewardLabel,
     ).toBe('Up to +40 XP');
     expect(
-      (await loadRpgModuleSummary('week-4', { db }))?.quests.find(
+      (await loadRpgModuleSummary(cs50Scope, 'week-4', { db }))?.quests.find(
         (quest) => quest.id === 'week-4-lecture',
       )?.rewardLabel,
     ).toBe('Up to +40 XP');
@@ -440,7 +446,7 @@ describe('RPG read models', () => {
     expect(
       (
         await expectReadOnly(() =>
-          loadRpgStudyResourceSummary('week-4-lecture', { db }),
+          loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', { db }),
         )
       )?.rewardLabel,
     ).toBe('Task XP earned');
@@ -450,7 +456,8 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
     const itemId = 'week-0-problem-set';
     expect(
-      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+      (await loadRpgStudyResourceSummary(cs50Scope, itemId, { db }))
+        ?.rewardLabel,
     ).toBe(
       'Up to 220 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
     );
@@ -459,7 +466,8 @@ describe('RPG read models', () => {
       { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
-      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+      (await loadRpgStudyResourceSummary(cs50Scope, itemId, { db }))
+        ?.rewardLabel,
     ).toBe(
       'Up to 200 XP remaining for this task · +150 XP when Week 0: Scratch is complete',
     );
@@ -468,15 +476,19 @@ describe('RPG read models', () => {
       { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
-      (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+      (await loadRpgStudyResourceSummary(cs50Scope, itemId, { db }))
+        ?.rewardLabel,
     ).toBe('Up to 125 XP remaining for this task');
     await upsertProgressAndAwardXp(
       { itemId, status: 'accepted', confidence: 3 },
       { catalogueId: cs50CatalogueId, policy: cs50Policy, db },
     );
     expect(
-      (await expectReadOnly(() => loadRpgStudyResourceSummary(itemId, { db })))
-        ?.rewardLabel,
+      (
+        await expectReadOnly(() =>
+          loadRpgStudyResourceSummary(cs50Scope, itemId, { db }),
+        )
+      )?.rewardLabel,
     ).toBe('Task XP earned');
   });
 
@@ -487,7 +499,7 @@ describe('RPG read models', () => {
       expect(
         (
           await expectReadOnly(() =>
-            loadRpgStudyResourceSummary(itemId, { db }),
+            loadRpgStudyResourceSummary(cs50Scope, itemId, { db }),
           )
         )?.rewardLabel,
       ).toBe(
@@ -500,16 +512,23 @@ describe('RPG read models', () => {
     }
     for (const itemId of itemIds) {
       expect(
-        (await loadRpgStudyResourceSummary(itemId, { db }))?.rewardLabel,
+        (await loadRpgStudyResourceSummary(cs50Scope, itemId, { db }))
+          ?.rewardLabel,
       ).toBe('Task XP earned');
     }
     expect(
-      (await loadRpgStudyResourceSummary('final-project-build', { db }))
-        ?.rewardLabel,
+      (
+        await loadRpgStudyResourceSummary(cs50Scope, 'final-project-build', {
+          db,
+        })
+      )?.rewardLabel,
     ).toBe('Up to 250 XP remaining for this task');
     expect(
-      (await loadRpgStudyResourceSummary('final-project-submit50', { db }))
-        ?.rewardLabel,
+      (
+        await loadRpgStudyResourceSummary(cs50Scope, 'final-project-submit50', {
+          db,
+        })
+      )?.rewardLabel,
     ).toBe('No task XP');
   });
 
@@ -517,7 +536,7 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
 
     const hub = await expectReadOnly(() =>
-      loadRpgHubSummary({
+      loadRpgHubSummary(cs50Scope, {
         db,
         now: createClock('2026-06-21T12:00:00.000Z'),
       }),
@@ -575,10 +594,10 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
 
     const courseMap = await expectReadOnly(() =>
-      loadRpgCourseMapSummary({ db }),
+      loadRpgCourseMapSummary(cs50Scope, { db }),
     );
     const weekFour = await expectReadOnly(() =>
-      loadRpgModuleSummary(RPG_WEEK_FOUR_UNIT_ID, { db }),
+      loadRpgModuleSummary(cs50Scope, RPG_WEEK_FOUR_UNIT_ID, { db }),
     );
 
     expect(courseMap.unitCount).toBeGreaterThan(10);
@@ -616,7 +635,7 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
 
     const resource = await expectReadOnly(() =>
-      loadRpgStudyResourceSummary('week-4-problem-set', { db }),
+      loadRpgStudyResourceSummary(cs50Scope, 'week-4-problem-set', { db }),
     );
 
     expect(resource).toMatchObject({
@@ -642,7 +661,7 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
 
     const resource = await expectReadOnly(() =>
-      loadRpgStudyResourceSummary('week-4-lecture', { db }),
+      loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', { db }),
     );
 
     expect(resource).toMatchObject({
@@ -745,7 +764,7 @@ describe('RPG read models', () => {
     );
 
     const hero = await expectReadOnly(() =>
-      loadRpgHeroProfileSummary({
+      loadRpgHeroProfileSummary(cs50Scope, {
         db,
         now: createClock('2026-06-21T12:00:00.000Z'),
       }),
@@ -795,11 +814,13 @@ describe('RPG read models', () => {
     const db = await createSeededRpgDatabase();
 
     await expect(
-      expectReadOnly(() => loadRpgModuleSummary('missing-week', { db })),
+      expectReadOnly(() =>
+        loadRpgModuleSummary(cs50Scope, 'missing-week', { db }),
+      ),
     ).resolves.toBeNull();
     await expect(
       expectReadOnly(() =>
-        loadRpgStudyResourceSummary('missing-resource', { db }),
+        loadRpgStudyResourceSummary(cs50Scope, 'missing-resource', { db }),
       ),
     ).resolves.toBeNull();
   });

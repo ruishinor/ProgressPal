@@ -449,6 +449,31 @@ type CatalogueScopeOptions = BaseDatabaseOptions & {
 
 type ScopedProgrammeOptions = ProgrammePolicyOptions & CatalogueScopeOptions;
 
+/**
+ * Rejects a save whose item belongs to another catalogue (Epic C / C5)
+ * before anything is written, so the active programme's policy never applies
+ * to a foreign item. A missing item or unit keeps its existing handling.
+ */
+async function assertItemInCatalogue(
+  database: ProgressPalDatabase,
+  itemId: string,
+  catalogueId: string,
+) {
+  const item = await database.courseItems.get(itemId);
+
+  if (item === undefined) {
+    return;
+  }
+
+  const unit = await database.courseUnits.get(item.unitId);
+
+  if (unit !== undefined && unit.courseId !== catalogueId) {
+    throw new Error(
+      `Course item "${itemId}" is not in catalogue "${catalogueId}".`,
+    );
+  }
+}
+
 type InitializeDatabaseOptions = BaseDatabaseOptions & {
   seed?: CourseSeed | null;
 };
@@ -2667,6 +2692,11 @@ export async function upsertProgressAndAwardXp(
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
+        await assertItemInCatalogue(
+          database,
+          input.itemId,
+          options.catalogueId,
+        );
         // 1. Write progress source event
         progressEntry = await upsertProgress(input, {
           ...options,
@@ -2794,6 +2824,16 @@ export async function logMediaProgressAndAwardXp(
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
+        const targetAsset = await database.contentAssets.get(input.assetId);
+
+        if (targetAsset !== undefined) {
+          await assertItemInCatalogue(
+            database,
+            targetAsset.itemId,
+            options.catalogueId,
+          );
+        }
+
         // 1. Log media progress
         result = await logMediaProgress(input, { ...options, db: database });
 
@@ -3318,10 +3358,10 @@ async function readScopedCatalogue(
  * IDs, one query per store; media history is aggregated without retaining
  * source rows.
  */
-async function readScopedCourseState(
+async function readScopedCourseRows(
   database: ProgressPalDatabase,
   catalogueId: string,
-): Promise<CourseStateReadData> {
+) {
   const { courseItems, courseUnits } = await readScopedCatalogue(
     database,
     catalogueId,
@@ -3352,11 +3392,27 @@ async function readScopedCourseState(
   const parsedResumePoints = sortResumePoints(
     parseStoredArray(resumePoints, 'Stored resume point', ResumePointSchema),
   );
+
+  return {
+    contentAssets: parsedContentAssets,
+    contentSlices: parsedContentSlices,
+    courseItems,
+    courseUnits,
+    progressEntries: parsedProgressEntries,
+    resumePoints: parsedResumePoints,
+  };
+}
+
+async function readScopedCourseState(
+  database: ProgressPalDatabase,
+  catalogueId: string,
+): Promise<CourseStateReadData> {
+  const rows = await readScopedCourseRows(database, catalogueId);
   const mediaProgressByAssetId = new Map<
     string,
     MutableLongFormEventAggregate
   >();
-  const assetIds = parsedContentAssets.map((asset) => asset.id);
+  const assetIds = rows.contentAssets.map((asset) => asset.id);
 
   if (assetIds.length > 0) {
     await forEachValidatedRow(
@@ -3399,10 +3455,7 @@ async function readScopedCourseState(
   }
 
   return {
-    contentAssets: parsedContentAssets,
-    contentSlices: parsedContentSlices,
-    courseItems,
-    courseUnits,
+    ...rows,
     mediaProgressByAssetId: new Map(
       [...mediaProgressByAssetId].map(([assetId, aggregate]) => [
         assetId,
@@ -3413,8 +3466,6 @@ async function readScopedCourseState(
         },
       ]),
     ),
-    progressEntries: parsedProgressEntries,
-    resumePoints: parsedResumePoints,
   };
 }
 
@@ -3666,6 +3717,57 @@ export async function getRpgHeroReadData(
       totalMinutes: sessions.totalMinutes,
       totalXp: xp.totalXp,
     };
+  });
+}
+
+export type CatalogueCourseState = {
+  contentAssets: ContentAsset[];
+  contentSlices: ContentSlice[];
+  courseItems: CourseItem[];
+  courseUnits: CourseUnit[];
+  mediaProgressEvents: MediaProgressEvent[];
+  progressEntries: ProgressEntry[];
+  resumePoints: ResumePoint[];
+};
+
+/**
+ * Catalogue-derived course state for the Classic Course and Dashboard
+ * surfaces (Epic C / C5): the active catalogue's scoped rows plus the raw
+ * media history of its assets, in one read-only transaction. A catalogue
+ * with no materialized unit fails closed.
+ */
+export async function getCatalogueCourseState(
+  options: CatalogueScopeOptions,
+): Promise<CatalogueCourseState> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const tables = [
+    database.courseUnits,
+    database.courseItems,
+    database.progressEntries,
+    database.contentAssets,
+    database.contentSlices,
+    database.mediaProgressEvents,
+    database.resumePoints,
+  ] as const;
+
+  return database.transaction('r', [...tables], async () => {
+    const rows = await readScopedCourseRows(database, options.catalogueId);
+    const assetIds = rows.contentAssets.map((asset) => asset.id);
+    const mediaProgressEvents =
+      assetIds.length === 0
+        ? []
+        : sortMediaProgressEvents(
+            parseStoredArray(
+              await database.mediaProgressEvents
+                .where('assetId')
+                .anyOf(assetIds)
+                .toArray(),
+              'Stored media progress event',
+              MediaProgressEventSchema,
+            ),
+          );
+
+    return { ...rows, mediaProgressEvents };
   });
 }
 

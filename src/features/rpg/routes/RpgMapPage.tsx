@@ -13,6 +13,8 @@ import {
 } from '@/features/rpg/components';
 import { getMapNodeOrdinal } from '@/features/rpg/model/presentation';
 import { loadRpgCourseMapSummary } from '@/features/rpg/model/readModels';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import type {
   RpgCourseMapSummary,
   RpgModuleSummary,
@@ -109,6 +111,7 @@ function RpgMapLoadingState() {
 }
 
 export function RpgMapPage() {
+  const { programmeScope } = useAppState();
   const { unitMapOrdinals, unitNoun } =
     getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<RpgMapPageState>(initialState);
@@ -127,7 +130,9 @@ export function RpgMapPage() {
       });
 
       try {
-        const summary = await loadRpgCourseMapSummary();
+        const summary = await loadRpgCourseMapSummary(
+          requireProgrammeScope(programmeScope),
+        );
 
         if (!isActive) {
           return;
@@ -162,7 +167,7 @@ export function RpgMapPage() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {

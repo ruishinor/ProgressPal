@@ -10,16 +10,9 @@ import { CourseMapSummary } from '@/features/course/components/CourseMapSummary'
 import { CourseUnitCard } from '@/features/course/components/CourseUnitCard';
 import { buildCourseMap, type CourseMapView } from '@/features/course/model';
 import { buildLongFormProgressMap } from '@/lib/progress';
-import {
-  getXpSummary,
-  listContentAssets,
-  listContentSlices,
-  listCourseItems,
-  listCourseUnits,
-  listMediaProgressEvents,
-  listProgressEntries,
-  listResumePoints,
-} from '@/lib/db';
+import { useAppState } from '@/lib/appState';
+import { getCatalogueCourseState, getXpSummary } from '@/lib/db';
+import { requireProgrammeScope } from '@/lib/domain';
 import { getActiveProgrammeDefinition } from '@/programmes';
 
 type CoursePageStatus = 'error' | 'loading' | 'ready';
@@ -39,6 +32,7 @@ const initialState: CoursePageState = {
 };
 
 export function CoursePage() {
+  const { programmeScope } = useAppState();
   const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<CoursePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -56,23 +50,23 @@ export function CoursePage() {
       });
 
       try {
+        // Catalogue-derived rows are the active catalogue's (Epic C / C5);
+        // the learner level stays global (OD-1).
         const [
-          units,
-          items,
-          progressEntries,
-          contentAssets,
-          contentSlices,
-          mediaProgressEvents,
-          resumePoints,
+          {
+            contentAssets,
+            contentSlices,
+            courseItems: items,
+            courseUnits: units,
+            mediaProgressEvents,
+            progressEntries,
+            resumePoints,
+          },
           xpSummary,
         ] = await Promise.all([
-          listCourseUnits(),
-          listCourseItems(),
-          listProgressEntries(),
-          listContentAssets(),
-          listContentSlices(),
-          listMediaProgressEvents(),
-          listResumePoints(),
+          getCatalogueCourseState({
+            catalogueId: requireProgrammeScope(programmeScope).catalogueId,
+          }),
           getXpSummary(),
         ]);
 
@@ -124,7 +118,7 @@ export function CoursePage() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   if (state.status === 'loading' || state.courseMap === null) {
     if (state.status === 'error') {

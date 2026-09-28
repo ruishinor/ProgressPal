@@ -24,6 +24,8 @@ import {
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   rpgBadgesPath,
@@ -93,6 +95,7 @@ function InsightsSection({ rpg, ...props }: CardProps & { rpg: boolean }) {
 }
 
 export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
+  const { programmeScope } = useAppState();
   const { copy } = getActiveProgrammeDefinition().content.terminology;
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
@@ -138,7 +141,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           listStudySessions(),
           listXpTransactions(),
           getAchievementsView({
-            policy: getActiveProgrammeDefinition().policy,
+            policy: requireProgrammeScope(programmeScope).policy,
           }),
         ]);
 
@@ -192,7 +195,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   if (state.status === 'error') {
     return (

@@ -28,6 +28,7 @@ import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import type { ProgressStatus } from '@/lib/domain';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import {
@@ -187,7 +188,7 @@ function RpgResourceLoadingState() {
 
 export function RpgResourcePage() {
   const { copy, unitNoun } = getActiveProgrammeDefinition().content.terminology;
-  const { coordination, runLocalMutation } = useAppState();
+  const { coordination, programmeScope, runLocalMutation } = useAppState();
   const { itemId } = useParams();
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
   const [state, setState] = useState<RpgResourcePageState>(initialState);
@@ -236,7 +237,10 @@ export function RpgResourcePage() {
       }
 
       try {
-        const summary = await loadRpgStudyResourceSummary(itemId);
+        const summary = await loadRpgStudyResourceSummary(
+          requireProgrammeScope(programmeScope),
+          itemId,
+        );
 
         if (!isActive) {
           return;
@@ -286,7 +290,7 @@ export function RpgResourcePage() {
       isActive = false;
       pageVersion.current += 1;
     };
-  }, [itemId, reloadToken]);
+  }, [itemId, programmeScope, reloadToken]);
 
   const summary = state.summary;
   const progressStatusOptions = useMemo(() => {
@@ -315,7 +319,10 @@ export function RpgResourcePage() {
     );
     try {
       const [nextSummary, nextHudSummary] = await Promise.all([
-        loadRpgStudyResourceSummary(resourceId),
+        loadRpgStudyResourceSummary(
+          requireProgrammeScope(programmeScope),
+          resourceId,
+        ),
         refreshHud(),
       ]);
 
@@ -428,7 +435,7 @@ export function RpgResourcePage() {
     try {
       result = await runLocalMutation(
         () =>
-          saveRpgStudyResourceProgress({
+          saveRpgStudyResourceProgress(requireProgrammeScope(programmeScope), {
             completedAt: getDefaultCompletedAt(
               summary,
               nextValues.status,

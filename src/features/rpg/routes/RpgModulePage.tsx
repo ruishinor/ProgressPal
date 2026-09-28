@@ -13,6 +13,8 @@ import {
   type RpgStatusTone,
 } from '@/features/rpg/components';
 import { loadRpgModuleSummary } from '@/features/rpg/model/readModels';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import type {
   RpgModuleSummary,
   RpgQuestSummary,
@@ -92,6 +94,7 @@ function RpgWeekLoadingState() {
 }
 
 export function RpgModulePage() {
+  const { programmeScope } = useAppState();
   const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
   const { unitId } = useParams();
   const [state, setState] = useState<RpgModulePageState>(initialState);
@@ -123,7 +126,10 @@ export function RpgModulePage() {
       }
 
       try {
-        const summary = await loadRpgModuleSummary(unitId);
+        const summary = await loadRpgModuleSummary(
+          requireProgrammeScope(programmeScope),
+          unitId,
+        );
 
         if (!isActive) {
           return;
@@ -169,7 +175,7 @@ export function RpgModulePage() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken, unitId]);
+  }, [programmeScope, reloadToken, unitId]);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {

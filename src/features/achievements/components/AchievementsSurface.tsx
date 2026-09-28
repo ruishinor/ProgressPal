@@ -25,7 +25,8 @@ import {
   type AchievementStatusFilter,
 } from '@/features/achievements/model';
 import { readAchievementsSurfaceData, type AchievementsView } from '@/lib/db';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { rpgMapPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same achievements surface renders in two shells: the classic Achievements
@@ -66,6 +67,7 @@ export function AchievementsSurface({
   variant = 'classic',
   renderArtwork,
 }: AchievementsSurfaceProps) {
+  const { programmeScope } = useAppState();
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-badges'
@@ -96,7 +98,7 @@ export function AchievementsSurface({
         // Read-only: this merges code definitions with persisted unlocks. It
         // never evaluates rules and never creates unlocks.
         const { view, xpSummary } = await readAchievementsSurfaceData({
-          policy: getActiveProgrammeDefinition().policy,
+          policy: requireProgrammeScope(programmeScope).policy,
         });
 
         if (!isActive) {
@@ -134,7 +136,7 @@ export function AchievementsSurface({
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   const categoryOptions = useMemo(
     () => (state.view ? buildCategoryOptions(state.view) : []),

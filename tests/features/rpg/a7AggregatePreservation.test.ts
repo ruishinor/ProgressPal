@@ -26,7 +26,11 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const now = '2026-09-21T12:00:00.000Z';
 type Snapshot = Awaited<ReturnType<typeof getDatabaseSnapshot>>;
@@ -103,7 +107,7 @@ describe('A7 aggregate preservation', () => {
           }
         },
       });
-      const read = surface.load({ db: reader, now: () => now });
+      const read = surface.load(cs50Scope, { db: reader, now: () => now });
       let write: Promise<void> | undefined;
       let state: 'pending' | 'fulfilled' | 'rejected' = 'pending';
       let writeError: unknown;
@@ -170,7 +174,10 @@ describe('A7 aggregate preservation', () => {
         expect(state).toBe('fulfilled');
         expect(writeError).toBeUndefined();
         const afterSnapshot = await getDatabaseSnapshot({ db: context.db });
-        const after = await surface.load({ db: reader, now: () => now });
+        const after = await surface.load(cs50Scope, {
+          db: reader,
+          now: () => now,
+        });
         expect(after).toEqual(surface.build(afterSnapshot));
         expect(after).not.toEqual(surface.build(beforeSnapshot));
         console.info(
@@ -253,9 +260,9 @@ describe('A7 aggregate preservation', () => {
         );
         const reader = makeReader(context);
         const probe = installDatabaseAccessProbe(reader);
-        expect(await surface.load({ db: reader, now: () => now })).toEqual(
-          surface.build(snapshot),
-        );
+        expect(
+          await surface.load(cs50Scope, { db: reader, now: () => now }),
+        ).toEqual(surface.build(snapshot));
         const access = probe.snapshot();
         queryCounts.push(access.operations.length);
         expect(access.operations.length).toBeLessThanOrEqual(surface.budget);
@@ -310,7 +317,10 @@ describe('A7 aggregate preservation', () => {
       const saved = await getDatabaseSnapshot(options);
       const reader = makeReader(context);
       const probe = installDatabaseAccessProbe(reader);
-      const hub = await loadRpgHubSummary({ db: reader, now: () => now });
+      const hub = await loadRpgHubSummary(cs50Scope, {
+        db: reader,
+        now: () => now,
+      });
       const badges = await readAchievementsSurfaceData({
         policy: cs50Policy,
         db: reader,
@@ -331,6 +341,7 @@ describe('A7 aggregate preservation', () => {
       }
       if (surface === 'Resource') {
         const resource = await loadRpgStudyResourceSummary(
+          cs50Scope,
           'week-0-problem-set',
           { db: reader },
         );

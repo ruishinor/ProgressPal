@@ -30,7 +30,7 @@ import {
 } from '@/lib/db';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { getActiveProgrammeDefinition } from '@/programmes';
-import { bundledCourseSeed } from '@/seed';
+import { requireProgrammeScope } from '@/lib/domain';
 
 // The same settings surface renders in two shells: the classic Settings route
 // and the RPG settings route (/rpg/settings). Settings is the product concept;
@@ -77,6 +77,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     coordination,
     persistenceStatus,
     profile,
+    programmeScope,
     requestPersistentStorage,
     runLocalMutation,
     saveProfile,
@@ -172,7 +173,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       await runLocalMutation(
         () =>
           restoreDatabaseFromBackup(selection.envelope.data, {
-            seed: bundledCourseSeed,
+            seed: requireProgrammeScope(programmeScope).catalogue,
             fileName: selection.fileName,
           }),
         { invalidateRoute: true },
@@ -197,9 +198,15 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     setResetting(true);
 
     try {
-      await runLocalMutation(() => resetAllData({ seed: bundledCourseSeed }), {
-        invalidateRoute: true,
-      });
+      await runLocalMutation(
+        () =>
+          resetAllData({
+            seed: requireProgrammeScope(programmeScope).catalogue,
+          }),
+        {
+          invalidateRoute: true,
+        },
+      );
       // App state now requires onboarding again; the shell redirects there.
     } catch {
       setToast({

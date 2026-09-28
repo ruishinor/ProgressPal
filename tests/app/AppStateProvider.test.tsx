@@ -11,6 +11,7 @@ import * as storage from '@/lib/storage';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { bundledCourseSeed } from '@/seed';
 import { FakeLockManager } from '../lib/localDataCoordinationFakes';
+import { cs50Scope } from '../programmes/cs50Policy';
 
 const defaultLearnerProfileValues = database.defaultLearnerProfileValues;
 
@@ -139,7 +140,7 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider>
+      <AppStateProvider resolveProgramme={() => cs50Scope}>
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -168,7 +169,7 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider>
+      <AppStateProvider resolveProgramme={() => cs50Scope}>
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -230,7 +231,7 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider>
+      <AppStateProvider resolveProgramme={() => cs50Scope}>
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -417,7 +418,7 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider>
+      <AppStateProvider resolveProgramme={() => cs50Scope}>
         <ProviderProbe
           observations={[]}
           onValue={(value) => {

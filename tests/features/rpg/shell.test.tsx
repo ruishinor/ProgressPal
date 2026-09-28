@@ -17,11 +17,13 @@ vi.mock('@/features/rpg/model/readModels', () => ({
 vi.mock('@/lib/appState', () => ({
   useAppState: () => ({
     coordination: { blockReason: null },
+    programmeScope: cs50Scope,
     refresh: mocks.refresh,
   }),
 }));
 
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
+import { cs50Scope } from '../../programmes/cs50Policy';
 
 afterEach(() => {
   vi.restoreAllMocks();

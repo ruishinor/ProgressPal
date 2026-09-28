@@ -89,7 +89,12 @@ describe('C1 transient-state CS50 copy in real rendered states (semantic, CS50-o
     it(`shows the CS50 error-state copy on ${route} when its local read fails`, async () => {
       await onboard();
       vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      // Epic C / C5: Course and Dashboard read the active catalogue through
+      // getCatalogueCourseState; Insights still lists course units (OD-4).
       vi.spyOn(database, 'listCourseUnits').mockRejectedValue(
+        new Error('Synthetic C1 read failure'),
+      );
+      vi.spyOn(database, 'getCatalogueCourseState').mockRejectedValue(
         new Error('Synthetic C1 read failure'),
       );
       await renderAppAtRoute(route);

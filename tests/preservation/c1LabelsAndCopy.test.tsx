@@ -24,7 +24,11 @@ import { bundledCourseSeed } from '@/seed';
 
 import committedLinksAndGuides from '../fixtures/preservation/c1-links-guides.json';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
-import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 8 — links, guides, labels and CS50 copy.
@@ -250,7 +254,7 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
               { db: context.db, now },
             );
           }
-          const hub = await loadRpgHubSummary({
+          const hub = await loadRpgHubSummary(cs50Scope, {
             db: context.db,
             now: () => '2026-09-19T12:00:00.000Z',
           });

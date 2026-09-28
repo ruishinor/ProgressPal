@@ -7,6 +7,7 @@ import { RpgHomePage } from '@/features/rpg/routes/RpgHomePage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
 import { getDatabaseSnapshot, initializeDatabase } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
+import { cs50Scope } from '../../programmes/cs50Policy';
 
 const mocks = vi.hoisted(() => ({ load: vi.fn() }));
 vi.mock('@/features/rpg/model/readModels', async (importOriginal) => ({
@@ -17,6 +18,7 @@ vi.mock('@/features/rpg/model/readModels', async (importOriginal) => ({
 vi.mock('@/lib/appState', () => ({
   useAppState: () => ({
     coordination: { blockReason: null },
+    programmeScope: cs50Scope,
     refresh: vi.fn(),
   }),
 }));

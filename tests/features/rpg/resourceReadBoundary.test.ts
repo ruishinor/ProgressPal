@@ -32,7 +32,11 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const resourceStores = [
   'content_assets',
@@ -475,9 +479,13 @@ describe('RPG Resource read boundary', () => {
     const expected = buildRpgStudyResourceSummary(before, 'week-4-lecture');
     probe.reset();
 
-    const actual = await loadRpgStudyResourceSummary('week-4-lecture', {
-      db: context.db,
-    });
+    const actual = await loadRpgStudyResourceSummary(
+      cs50Scope,
+      'week-4-lecture',
+      {
+        db: context.db,
+      },
+    );
     const access = probe.snapshot();
     const after = await getDatabaseSnapshot({ db: context.db });
 
@@ -500,7 +508,9 @@ describe('RPG Resource read boundary', () => {
       const snapshot = await getDatabaseSnapshot({ db: context.db });
 
       expect(
-        await loadRpgStudyResourceSummary(itemId, { db: context.db }),
+        await loadRpgStudyResourceSummary(cs50Scope, itemId, {
+          db: context.db,
+        }),
       ).toEqual(buildRpgStudyResourceSummary(snapshot, itemId));
     },
   );
@@ -516,7 +526,9 @@ describe('RPG Resource read boundary', () => {
 
       expect(buildRpgStudyResourceSummary(snapshot, itemId)).toBeNull();
       expect(
-        await loadRpgStudyResourceSummary(itemId, { db: context.db }),
+        await loadRpgStudyResourceSummary(cs50Scope, itemId, {
+          db: context.db,
+        }),
       ).toBeNull();
 
       const access = probe.snapshot();
@@ -533,7 +545,9 @@ describe('RPG Resource read boundary', () => {
     probe.reset();
 
     expect(
-      await loadRpgStudyResourceSummary('week-4-lecture', { db: context.db }),
+      await loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', {
+        db: context.db,
+      }),
     ).toBeNull();
 
     const access = probe.snapshot();
@@ -876,9 +890,13 @@ describe('RPG Resource read boundary', () => {
         snapshot,
         'week-0-problem-set',
       );
-      const actual = await loadRpgStudyResourceSummary('week-0-problem-set', {
-        db: context.db,
-      });
+      const actual = await loadRpgStudyResourceSummary(
+        cs50Scope,
+        'week-0-problem-set',
+        {
+          db: context.db,
+        },
+      );
 
       expect(actual).toEqual(expected);
       return actual?.rewardLabel;
@@ -914,9 +932,13 @@ describe('RPG Resource read boundary', () => {
     databases.push(context);
     await initializeDatabase({ db: context.db, seed: bundledCourseSeed });
 
-    const before = await loadRpgStudyResourceSummary('final-project-readme', {
-      db: context.db,
-    });
+    const before = await loadRpgStudyResourceSummary(
+      cs50Scope,
+      'final-project-readme',
+      {
+        db: context.db,
+      },
+    );
     expect(before?.rewardLabel).toBe(
       'Up to 200 XP remaining for this task (shared with README + demo)',
     );
@@ -936,7 +958,7 @@ describe('RPG Resource read boundary', () => {
 
     expect(
       (
-        await loadRpgStudyResourceSummary('final-project-readme', {
+        await loadRpgStudyResourceSummary(cs50Scope, 'final-project-readme', {
           db: context.db,
         })
       )?.rewardLabel,
@@ -958,9 +980,13 @@ describe('RPG Resource read boundary', () => {
     );
     const { database, probe } = await openProbedResourceReader(context);
 
-    const summary = await loadRpgStudyResourceSummary('week-4-lecture', {
-      db: database,
-    });
+    const summary = await loadRpgStudyResourceSummary(
+      cs50Scope,
+      'week-4-lecture',
+      {
+        db: database,
+      },
+    );
     const access = probe.snapshot();
 
     assertResourceAccessContract(access);
@@ -984,7 +1010,9 @@ describe('RPG Resource read boundary', () => {
     vi.spyOn(context.db.courseItems, 'get').mockRejectedValueOnce(readFailure);
 
     await expect(
-      loadRpgStudyResourceSummary('week-4-lecture', { db: context.db }),
+      loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', {
+        db: context.db,
+      }),
     ).rejects.toBe(readFailure);
     expect(await getDatabaseSnapshot({ db: context.db })).toEqual(before);
   });
@@ -1040,7 +1068,7 @@ describe('RPG Resource read boundary', () => {
     let writerError: unknown;
 
     try {
-      readPromise = loadRpgStudyResourceSummary('week-4-lecture', {
+      readPromise = loadRpgStudyResourceSummary(cs50Scope, 'week-4-lecture', {
         db: context.db,
       });
       await readReachedMediaCursor;

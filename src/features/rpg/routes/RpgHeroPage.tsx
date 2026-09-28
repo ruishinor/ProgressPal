@@ -12,6 +12,8 @@ import {
   RpgLevelProgress,
 } from '@/features/rpg/components';
 import { loadRpgHeroProfileSummary } from '@/features/rpg/model/readModels';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import type { RpgHeroProfileSummary } from '@/features/rpg/model/types';
 import {
   rpgBadgesPath,
@@ -36,6 +38,7 @@ const initialState: RpgHeroPageState = {
 };
 
 export function RpgHeroPage() {
+  const { programmeScope } = useAppState();
   const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<RpgHeroPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -53,7 +56,9 @@ export function RpgHeroPage() {
       });
 
       try {
-        const summary = await loadRpgHeroProfileSummary();
+        const summary = await loadRpgHeroProfileSummary(
+          requireProgrammeScope(programmeScope),
+        );
 
         if (!isActive) {
           return;
@@ -88,7 +93,7 @@ export function RpgHeroPage() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {

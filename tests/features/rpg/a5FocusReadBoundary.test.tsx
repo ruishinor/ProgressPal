@@ -33,6 +33,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { cs50Scope } from '../../programmes/cs50Policy';
 
 const selectedItemId = 'week-4-lecture';
 const selectedUnitId = 'week-4';
@@ -113,6 +114,7 @@ function createReadyAppState(
     error: null,
     persistenceStatus: 'persistent',
     profile,
+    programmeScope: cs50Scope,
     refresh: async () => undefined,
     requestPersistentStorage: async () => 'persistent',
     runLocalMutation: async <Result,>(mutation: () => Promise<Result>) =>

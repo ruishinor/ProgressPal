@@ -38,7 +38,12 @@ import {
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
-import type { CourseItem, CourseUnit, ProgressEntry } from '@/lib/domain';
+import type {
+  CourseItem,
+  CourseUnit,
+  ProgrammeScope,
+  ProgressEntry,
+} from '@/lib/domain';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
 import { getActiveProgrammeDefinition } from '@/programmes';
@@ -922,14 +927,12 @@ function buildRpgStudyResourceSummaryFromReadData(
 }
 
 /**
- * Read paths apply the active programme's policy (Epic C / C3) and read only
- * its catalogue (C5). The definition is resolved here, before any read
- * transaction opens.
+ * Scoped read paths receive the programme scope that the app bootstrap
+ * resolved once (Epic C / C5): its policy (C3) and the catalogue identity
+ * that bounds every catalogue-derived read.
  */
-function withActiveProgramme(options: RpgReadModelOptions) {
-  const { catalogueId, policy } = getActiveProgrammeDefinition();
-
-  return { ...options, catalogueId, policy };
+function withScope(scope: ProgrammeScope, options: RpgReadModelOptions) {
+  return { ...options, catalogueId: scope.catalogueId, policy: scope.policy };
 }
 
 async function readSnapshot(options: RpgReadModelOptions = {}) {
@@ -937,14 +940,16 @@ async function readSnapshot(options: RpgReadModelOptions = {}) {
 }
 
 export async function loadRpgHudSummary(
+  scope: ProgrammeScope,
   options: RpgReadModelOptions = {},
 ): Promise<RpgHudSummary> {
   return buildRpgHudSummaryFromReadData(
-    await getRpgHudReadData(withActiveProgramme(options)),
+    await getRpgHudReadData(withScope(scope, options)),
   );
 }
 
 export async function loadRpgHubSummary(
+  scope: ProgrammeScope,
   options: RpgReadModelOptions = {},
 ): Promise<RpgHubSummary> {
   const nowIso = options.now?.() ?? new Date().toISOString();
@@ -953,34 +958,37 @@ export async function loadRpgHubSummary(
   return buildRpgHubSummaryFromReadData(
     await getRpgHubReadData(
       { nextStartTime, startTime },
-      withActiveProgramme(options),
+      withScope(scope, options),
     ),
     nowIso,
   );
 }
 
 export async function loadRpgCourseMapSummary(
+  scope: ProgrammeScope,
   options: RpgReadModelOptions = {},
 ): Promise<RpgCourseMapSummary> {
   return buildRpgCourseMapSummaryFromReadData(
-    await getCourseMapReadData(withActiveProgramme(options)),
+    await getCourseMapReadData(withScope(scope, options)),
   );
 }
 
 export async function loadRpgModuleSummary(
+  scope: ProgrammeScope,
   unitId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgModuleSummary | null> {
-  const data = await getModuleReadData(unitId, withActiveProgramme(options));
+  const data = await getModuleReadData(unitId, withScope(scope, options));
 
   return data === null ? null : buildRpgModuleSummaryFromReadData(data);
 }
 
 export async function loadRpgStudyResourceSummary(
+  scope: ProgrammeScope,
   itemId: string,
   options: RpgReadModelOptions = {},
 ): Promise<RpgStudyResourceSummary | null> {
-  const data = await getResourceReadData(itemId, withActiveProgramme(options));
+  const data = await getResourceReadData(itemId, withScope(scope, options));
 
   return data === null ? null : buildRpgStudyResourceSummaryFromReadData(data);
 }
@@ -992,9 +1000,10 @@ export async function loadRpgBadgeGallerySummary(
 }
 
 export async function loadRpgHeroProfileSummary(
+  scope: ProgrammeScope,
   options: RpgReadModelOptions = {},
 ): Promise<RpgHeroProfileSummary> {
   return buildRpgHeroProfileSummaryFromReadData(
-    await getRpgHeroReadData(withActiveProgramme(options)),
+    await getRpgHeroReadData(withScope(scope, options)),
   );
 }

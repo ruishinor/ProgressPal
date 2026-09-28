@@ -14,7 +14,10 @@ import { AchievementsPage } from '@/features/achievements/routes/AchievementsPag
 import { buildCategoryOptions } from '@/features/achievements/model';
 import { RpgBadgesPage } from '@/features/rpg/routes/RpgBadgesPage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
-import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
+import {
+  cs50AchievementDefinitions as achievementDefinitions,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 import {
   AppStateContext,
   type AppStateContextValue,
@@ -89,6 +92,7 @@ function createReadyAppState(
     error: null,
     persistenceStatus: 'persistent',
     profile,
+    programmeScope: cs50Scope,
     refresh: async () => undefined,
     requestPersistentStorage: async () => 'persistent',
     runLocalMutation: async <Result,>(mutation: () => Promise<Result>) =>
@@ -184,7 +188,11 @@ function renderVariant(
     [{ path: '/achievements', element: <AchievementsPage /> }],
     { initialEntries: ['/achievements'] },
   );
-  return render(<RouterProvider router={router} />);
+  return render(
+    <AppStateContext.Provider value={appState}>
+      <RouterProvider router={router} />
+    </AppStateContext.Provider>,
+  );
 }
 
 function assertChildAccess(access: DatabaseAccessSnapshot, xpCount: number) {

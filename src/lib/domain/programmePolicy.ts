@@ -230,3 +230,26 @@ export type ProgrammePolicy = {
    */
   readonly achievements: readonly AchievementDefinition[];
 };
+
+/**
+ * The active programme's runtime scope (Epic C / C5): its catalogue, the
+ * catalogue identity that catalogue-derived reads are scoped by, and its
+ * policy. The app composition root resolves it once at bootstrap; features
+ * pass it explicitly to shared read and write paths. It is never persisted.
+ */
+export type ProgrammeScope = {
+  readonly catalogue: CourseSeed;
+  readonly catalogueId: string;
+  readonly policy: ProgrammePolicy;
+};
+
+/** Fails closed when the bootstrap has not resolved a programme scope. */
+export function requireProgrammeScope(
+  scope: ProgrammeScope | null | undefined,
+): ProgrammeScope {
+  if (!scope) {
+    throw new Error('The active programme scope is not resolved.');
+  }
+
+  return scope;
+}

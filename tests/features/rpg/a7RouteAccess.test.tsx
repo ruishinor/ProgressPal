@@ -11,7 +11,10 @@ import { RpgMapPage } from '@/features/rpg/routes/RpgMapPage';
 import { RpgModulePage } from '@/features/rpg/routes/RpgModulePage';
 import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
-import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
+import {
+  cs50AchievementDefinitions as achievementDefinitions,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 import {
   AppStateContext,
   type AppStateContextValue,
@@ -177,6 +180,7 @@ describe('A7 actual route and shell access matrix', () => {
         error: null,
         persistenceStatus: 'persistent',
         profile,
+        programmeScope: cs50Scope,
         refresh: async () => {
           throw new Error('Passive route unexpectedly refreshed app state');
         },

@@ -6,7 +6,11 @@ import { getCourseMapReadData } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
 
 import { createSeededDatabase } from './c1Support';
-import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../programmes/cs50Policy';
 
 /**
  * Epic C / C1 evidence area 1 — curriculum identity and order.
@@ -208,7 +212,9 @@ describe('C1 curriculum identity and order (semantic)', () => {
   it('renders the same module and quest order through the RPG campaign map summary', async () => {
     const context = await createSeededDatabase('curriculum-rpg');
     try {
-      const summary = await loadRpgCourseMapSummary({ db: context.db });
+      const summary = await loadRpgCourseMapSummary(cs50Scope, {
+        db: context.db,
+      });
 
       expect(summary.modules.map((module) => module.id)).toEqual(
         expectedUnits.map((row) => row[0]),

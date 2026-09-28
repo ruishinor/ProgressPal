@@ -1,13 +1,21 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { RpgAchievementArt } from '@/features/rpg/components/RpgAchievementArt';
 import { InsightsSurface } from '@/features/insights/components/InsightsSurface';
 import { InlineInfo } from '@/components/ui/InlineInfo';
-import { cs50AchievementDefinitions as achievementDefinitions } from '../../programmes/cs50Policy';
+import {
+  cs50AchievementDefinitions as achievementDefinitions,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 import { initializeDatabase } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
+
+// InsightsSurface reads the bootstrap programme scope from app state (C5).
+vi.mock('@/lib/appState', () => ({
+  useAppState: () => ({ programmeScope: cs50Scope }),
+}));
 
 describe('final RPG disclosures and artwork', () => {
   it('provides distinct decorative artwork for every known achievement and an error fallback', () => {

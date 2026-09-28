@@ -56,7 +56,7 @@ import {
   readStudySessionLedgerRows,
   readStudySessionsSurfaceData,
 } from '@/lib/db';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { requireProgrammeScope } from '@/lib/domain';
 import type { StudySessionSaveResult } from '@/lib/sessions';
 import { getRpgResourcePath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
@@ -189,7 +189,7 @@ export function StudySessionsSurface({
   saveFeedback,
   variant = 'classic',
 }: StudySessionsSurfaceProps) {
-  const { coordination, runLocalMutation } = useAppState();
+  const { coordination, programmeScope, runLocalMutation } = useAppState();
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-focus'
@@ -497,7 +497,7 @@ export function StudySessionsSurface({
     setManualIsSaving(true);
     const version = pageVersion.current;
     saveInFlight.current = true;
-    const { catalogueId, policy } = getActiveProgrammeDefinition();
+    const { catalogueId, policy } = requireProgrammeScope(programmeScope);
 
     let xpResult: StudySessionSaveResult;
     try {
@@ -563,7 +563,7 @@ export function StudySessionsSurface({
     setLiveIsSaving(true);
     const version = pageVersion.current;
     saveInFlight.current = true;
-    const { catalogueId, policy } = getActiveProgrammeDefinition();
+    const { catalogueId, policy } = requireProgrammeScope(programmeScope);
 
     let xpResult: StudySessionSaveResult;
     try {

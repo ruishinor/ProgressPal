@@ -3,14 +3,16 @@ import {
   type UpsertProgressInput,
   type UpsertProgressWithXpResult,
 } from '@/lib/db';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import type { ProgrammeScope } from '@/lib/domain';
 
 export type SaveRpgStudyResourceProgressInput = UpsertProgressInput;
 
 export async function saveRpgStudyResourceProgress(
+  scope: ProgrammeScope,
   input: SaveRpgStudyResourceProgressInput,
 ): Promise<UpsertProgressWithXpResult> {
-  const { catalogueId, policy } = getActiveProgrammeDefinition();
-
-  return upsertProgressAndAwardXp(input, { catalogueId, policy });
+  return upsertProgressAndAwardXp(input, {
+    catalogueId: scope.catalogueId,
+    policy: scope.policy,
+  });
 }

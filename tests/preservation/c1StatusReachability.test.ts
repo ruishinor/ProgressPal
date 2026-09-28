@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { cs50Scope } from '../programmes/cs50Policy';
 
 import { getCourseProgressStatusOptions } from '@/features/course/detailModel';
 import { loadRpgStudyResourceSummary } from '@/features/rpg';
@@ -296,9 +297,13 @@ describe('C1 statuses offered per item type (semantic)', () => {
         },
         { db: context.db, now: createIncrementingClock() },
       );
-      const summary = await loadRpgStudyResourceSummary('week-0-lecture', {
-        db: context.db,
-      });
+      const summary = await loadRpgStudyResourceSummary(
+        cs50Scope,
+        'week-0-lecture',
+        {
+          db: context.db,
+        },
+      );
 
       expect(summary).not.toBeNull();
       expect(summary!.progressStatus).toBe('started');

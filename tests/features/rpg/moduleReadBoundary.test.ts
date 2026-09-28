@@ -27,7 +27,11 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const moduleStores = [
   'content_assets',
@@ -425,7 +429,9 @@ describe('RPG Module read boundary', () => {
     const expected = buildRpgModuleSummary(before, 'week-4');
     probe.reset();
 
-    const actual = await loadRpgModuleSummary('week-4', { db: context.db });
+    const actual = await loadRpgModuleSummary(cs50Scope, 'week-4', {
+      db: context.db,
+    });
     const access = probe.snapshot();
     const after = await getDatabaseSnapshot({ db: context.db });
 
@@ -449,9 +455,9 @@ describe('RPG Module read boundary', () => {
     const snapshot = await getDatabaseSnapshot({ db: context.db });
 
     for (const unitId of ['week-0', 'week-4', 'final-project']) {
-      expect(await loadRpgModuleSummary(unitId, { db: context.db })).toEqual(
-        buildRpgModuleSummary(snapshot, unitId),
-      );
+      expect(
+        await loadRpgModuleSummary(cs50Scope, unitId, { db: context.db }),
+      ).toEqual(buildRpgModuleSummary(snapshot, unitId));
     }
   });
 
@@ -465,7 +471,7 @@ describe('RPG Module read boundary', () => {
       const expected = buildRpgModuleSummary(snapshot, unitId);
       probe.reset();
 
-      const actual = await loadRpgModuleSummary(unitId, {
+      const actual = await loadRpgModuleSummary(cs50Scope, unitId, {
         db: context.db,
       });
       const access = probe.snapshot();
@@ -492,7 +498,9 @@ describe('RPG Module read boundary', () => {
       ]);
       probe.reset();
 
-      const actual = await loadRpgModuleSummary('week-4', { db: context.db });
+      const actual = await loadRpgModuleSummary(cs50Scope, 'week-4', {
+        db: context.db,
+      });
       const access = probe.snapshot();
       const afterCounts = await Promise.all([
         context.db.mediaProgressEvents.count(),
@@ -544,7 +552,7 @@ describe('RPG Module read boundary', () => {
       });
       probe.reset();
 
-      await loadRpgModuleSummary('scale-week', { db: context.db });
+      await loadRpgModuleSummary(cs50Scope, 'scale-week', { db: context.db });
       const access = probe.snapshot();
 
       assertModuleAccessContract(access);
@@ -687,9 +695,9 @@ describe('RPG Module read boundary', () => {
     await initializeDatabase({ db: context.db, seed: bundledCourseSeed });
 
     expect(
-      (await loadRpgModuleSummary('week-4', { db: context.db }))?.quests.find(
-        (quest) => quest.id === 'week-4-lecture',
-      )?.rewardLabel,
+      (
+        await loadRpgModuleSummary(cs50Scope, 'week-4', { db: context.db })
+      )?.quests.find((quest) => quest.id === 'week-4-lecture')?.rewardLabel,
     ).toBe('Up to +40 XP');
 
     await upsertProgressAndAwardXp(
@@ -702,9 +710,9 @@ describe('RPG Module read boundary', () => {
     );
 
     expect(
-      (await loadRpgModuleSummary('week-4', { db: context.db }))?.quests.find(
-        (quest) => quest.id === 'week-4-lecture',
-      )?.rewardLabel,
+      (
+        await loadRpgModuleSummary(cs50Scope, 'week-4', { db: context.db })
+      )?.quests.find((quest) => quest.id === 'week-4-lecture')?.rewardLabel,
     ).toBe('Task XP earned');
   });
 
@@ -714,9 +722,13 @@ describe('RPG Module read boundary', () => {
     await initializeDatabase({ db: context.db, seed: bundledCourseSeed });
 
     const sharedIds = ['final-project-readme', 'final-project-video-demo'];
-    const beforeShared = await loadRpgModuleSummary('final-project', {
-      db: context.db,
-    });
+    const beforeShared = await loadRpgModuleSummary(
+      cs50Scope,
+      'final-project',
+      {
+        db: context.db,
+      },
+    );
 
     for (const itemId of sharedIds) {
       expect(
@@ -728,7 +740,7 @@ describe('RPG Module read boundary', () => {
       );
     }
 
-    const afterShared = await loadRpgModuleSummary('final-project', {
+    const afterShared = await loadRpgModuleSummary(cs50Scope, 'final-project', {
       db: context.db,
     });
 
@@ -749,7 +761,7 @@ describe('RPG Module read boundary', () => {
     vi.spyOn(context.db.courseUnits, 'get').mockRejectedValueOnce(readFailure);
 
     await expect(
-      loadRpgModuleSummary('week-4', { db: context.db }),
+      loadRpgModuleSummary(cs50Scope, 'week-4', { db: context.db }),
     ).rejects.toBe(readFailure);
     expect(await getDatabaseSnapshot({ db: context.db })).toEqual(before);
   });
@@ -804,7 +816,9 @@ describe('RPG Module read boundary', () => {
     let writerError: unknown;
 
     try {
-      readPromise = loadRpgModuleSummary('week-4', { db: context.db });
+      readPromise = loadRpgModuleSummary(cs50Scope, 'week-4', {
+        db: context.db,
+      });
       await readReachedMediaCursor;
 
       writerPromise = writerDb.mediaProgressEvents

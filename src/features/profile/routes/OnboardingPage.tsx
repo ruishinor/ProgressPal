@@ -20,7 +20,7 @@ import {
 } from '@/lib/db';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { getActiveProgrammeDefinition } from '@/programmes';
-import { bundledCourseSeed } from '@/seed';
+import { requireProgrammeScope } from '@/lib/domain';
 
 type OnboardingMode = 'quick' | 'customize';
 
@@ -28,8 +28,13 @@ export function OnboardingPage() {
   const { copy } = getActiveProgrammeDefinition().content.terminology;
   const location = useLocation();
   const navigate = useNavigate();
-  const { coordination, profile, runLocalMutation, saveProfile } =
-    useAppState();
+  const {
+    coordination,
+    profile,
+    programmeScope,
+    runLocalMutation,
+    saveProfile,
+  } = useAppState();
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
   const [quickStartError, setQuickStartError] = useState(false);
@@ -78,7 +83,7 @@ export function OnboardingPage() {
       await runLocalMutation(
         () =>
           restoreDatabaseFromBackup(selection.envelope.data, {
-            seed: bundledCourseSeed,
+            seed: requireProgrammeScope(programmeScope).catalogue,
             fileName: selection.fileName,
           }),
         { invalidateRoute: true },

@@ -17,19 +17,26 @@ import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { StudySessionsSurface } from '@/features/sessions';
 import * as database from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import type { ProgrammeScope } from '@/lib/domain';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const appState = vi.hoisted(() => ({
   coordination: { canWrite: true },
+  programmeScope: null as ProgrammeScope | null,
   runLocalMutation: vi.fn(async (mutation: () => Promise<unknown>) =>
     mutation(),
   ),
 }));
 
 vi.mock('@/lib/appState', () => ({ useAppState: () => appState }));
+appState.programmeScope = cs50Scope;
 
 function renderRoute(route: string) {
-  const refreshHud = vi.fn(() => readModels.loadRpgHudSummary());
+  const refreshHud = vi.fn(() => readModels.loadRpgHudSummary(cs50Scope));
   const router = createMemoryRouter(
     [
       {
@@ -404,9 +411,9 @@ describe('Confirmed save outcomes and read recovery', () => {
     const gate = deferredWrite();
     const save = vi
       .spyOn(progressActions, 'saveRpgStudyResourceProgress')
-      .mockImplementationOnce(async (input) => {
+      .mockImplementationOnce(async (scope, input) => {
         await gate.pending;
-        return originalSave(input);
+        return originalSave(scope, input);
       });
     renderRoute('/rpg/resource/week-0-lecture');
     await screen.findByRole('heading', { name: 'Lecture 0: Scratch' });
@@ -448,13 +455,13 @@ describe('Confirmed save outcomes and read recovery', () => {
       const { router } = renderRoute('/rpg/resource/week-0-lecture');
       await screen.findByRole('heading', { name: 'Lecture 0: Scratch' });
       if (pendingStage === 'save') {
-        save.mockImplementationOnce(async (input) => {
+        save.mockImplementationOnce(async (scope, input) => {
           await gate.pending;
-          return originalSave(input);
+          return originalSave(scope, input);
         });
       } else {
-        read.mockImplementationOnce(async (itemId) => {
-          const summary = await originalRead(itemId);
+        read.mockImplementationOnce(async (scope, itemId) => {
+          const summary = await originalRead(scope, itemId);
           await gate.pending;
           return summary;
         });
@@ -501,7 +508,7 @@ describe('Confirmed save outcomes and read recovery', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save progress' }));
       await screen.findByText(/^Level \d+ progress$/);
       expect(save).toHaveBeenCalledTimes(2);
-      expect(save.mock.calls[1]![0]).toMatchObject({
+      expect(save.mock.calls[1]![1]).toMatchObject({
         itemId: 'week-4-lecture',
         notes: 'New task draft.',
       });

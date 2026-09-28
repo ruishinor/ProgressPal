@@ -50,14 +50,16 @@ import {
   upsertProgressAndAwardXp,
   type LogMediaProgressInput,
 } from '@/lib/db';
-import type {
-  ContentAsset,
-  CourseItem,
-  CourseUnit,
-  MediaProgressEvent,
-  MediaStopReason,
-  ProgressEntry,
-  ResumePoint,
+import {
+  requireProgrammeScope,
+  type ContentAsset,
+  type CourseItem,
+  type CourseUnit,
+  type MediaProgressEvent,
+  type MediaStopReason,
+  type ProgrammeScope,
+  type ProgressEntry,
+  type ResumePoint,
 } from '@/lib/domain';
 import { formatLoggedMinutes, formatMediaTimestamp } from '@/lib/progress';
 import { formatTimestampInput, parseTimestampInput } from '@/lib/time';
@@ -274,20 +276,20 @@ function getDefaultCompletedAt(
   return undefined;
 }
 
-async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
+const itemNotFoundMessage =
+  'The requested course task was not found in the local catalog.';
+
+async function loadContentDetail(
+  scope: ProgrammeScope,
+  itemId: string,
+): Promise<ContentDetailData> {
   const item = await getCourseItem(itemId);
 
   if (item === null) {
-    throw new Error(
-      'The requested course task was not found in the local catalog.',
-    );
+    throw new Error(itemNotFoundMessage);
   }
 
-  const [unit, progressEntry, assets] = await Promise.all([
-    getCourseUnit(item.unitId),
-    getProgress(item.id),
-    listContentAssets(item.id),
-  ]);
+  const unit = await getCourseUnit(item.unitId);
 
   if (unit === null) {
     const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
@@ -295,6 +297,17 @@ async function loadContentDetail(itemId: string): Promise<ContentDetailData> {
       `The ${unitNoun.lowercase} for this course task could not be found.`,
     );
   }
+
+  // A task of another catalogue is not a task of the active one (Epic C /
+  // C5); it is never loaded as a detail or save target.
+  if (unit.courseId !== scope.catalogueId) {
+    throw new Error(itemNotFoundMessage);
+  }
+
+  const [progressEntry, assets] = await Promise.all([
+    getProgress(item.id),
+    listContentAssets(item.id),
+  ]);
 
   const asset = assets[0] ?? null;
 
@@ -424,7 +437,7 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
 
 export function ContentDetailPage() {
   const params = useParams<{ itemId: string }>();
-  const { coordination, runLocalMutation } = useAppState();
+  const { coordination, programmeScope, runLocalMutation } = useAppState();
   const [progressForm, setProgressForm] = useState<ProgressFormState | null>(
     null,
   );
@@ -460,7 +473,10 @@ export function ContentDetailPage() {
 
     void (async () => {
       try {
-        const detail = await loadContentDetail(itemId);
+        const detail = await loadContentDetail(
+          requireProgrammeScope(programmeScope),
+          itemId,
+        );
 
         if (!isActive) {
           return;
@@ -496,7 +512,7 @@ export function ContentDetailPage() {
     return () => {
       isActive = false;
     };
-  }, [itemId, reloadToken]);
+  }, [itemId, programmeScope, reloadToken]);
 
   // Runs as a layout effect so the progress form is populated in the same
   // commit that first renders the (interactive) form controls. With a passive
@@ -670,7 +686,7 @@ export function ContentDetailPage() {
     );
 
     const timestamp = new Date().toISOString();
-    const { catalogueId, policy } = getActiveProgrammeDefinition();
+    const { catalogueId, policy } = requireProgrammeScope(programmeScope);
 
     try {
       const xpResult = await runLocalMutation(
@@ -718,7 +734,7 @@ export function ContentDetailPage() {
       const achievementNames = xpResult.unlockedAchievements
         .map(
           (unlock) =>
-            getActiveProgrammeDefinition().policy.achievements.find(
+            policy.achievements.find(
               (definition) => definition.id === unlock.achievementId,
             )?.title ?? '',
         )
@@ -740,7 +756,10 @@ export function ContentDetailPage() {
 
       void (async () => {
         try {
-          const newDetail = await loadContentDetail(itemId);
+          const newDetail = await loadContentDetail(
+            requireProgrammeScope(programmeScope),
+            itemId,
+          );
 
           startTransition(() => {
             setPageState({ detail: newDetail, error: null, status: 'ready' });
@@ -833,7 +852,7 @@ export function ContentDetailPage() {
           },
     );
 
-    const { catalogueId, policy } = getActiveProgrammeDefinition();
+    const { catalogueId, policy } = requireProgrammeScope(programmeScope);
 
     try {
       const xpResult = await runLocalMutation(
@@ -863,7 +882,7 @@ export function ContentDetailPage() {
       const achievementNames = xpResult.unlockedAchievements
         .map(
           (unlock) =>
-            getActiveProgrammeDefinition().policy.achievements.find(
+            policy.achievements.find(
               (definition) => definition.id === unlock.achievementId,
             )?.title ?? '',
         )
@@ -890,7 +909,10 @@ export function ContentDetailPage() {
 
       void (async () => {
         try {
-          const newDetail = await loadContentDetail(itemId);
+          const newDetail = await loadContentDetail(
+            requireProgrammeScope(programmeScope),
+            itemId,
+          );
 
           startTransition(() => {
             setPageState({ detail: newDetail, error: null, status: 'ready' });

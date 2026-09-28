@@ -19,17 +19,13 @@ import {
 import { buildLongFormProgressMap } from '@/lib/progress';
 import {
   getAchievementsView,
+  getCatalogueCourseState,
   getXpSummary,
-  listContentAssets,
-  listContentSlices,
-  listCourseItems,
-  listCourseUnits,
-  listMediaProgressEvents,
-  listProgressEntries,
-  listResumePoints,
   listStudySessions,
   listXpTransactions,
 } from '@/lib/db';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { getActiveProgrammeDefinition } from '@/programmes';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
@@ -75,6 +71,7 @@ function continueNextReasonLabel(reason: DashboardContinueNextReason) {
 }
 
 export function DashboardPage() {
+  const { programmeScope } = useAppState();
   const { copy } = getActiveProgrammeDefinition().content.terminology;
   const [state, setState] = useState<DashboardPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -94,32 +91,30 @@ export function DashboardPage() {
       try {
         // All reads only. The dashboard derives every value from existing
         // source-of-truth stores and existing read models; it persists nothing.
+        // Catalogue-derived course, progress, media and resume context is
+        // the active catalogue's (Epic C / C5). Sessions (OD-4), the XP
+        // ledger and level (OD-1) and unlocks (OD-2) stay global.
+        const scope = requireProgrammeScope(programmeScope);
         const [
-          units,
-          items,
-          progressEntries,
-          contentAssets,
-          contentSlices,
-          mediaProgressEvents,
-          resumePoints,
+          {
+            contentAssets,
+            contentSlices,
+            courseItems: items,
+            courseUnits: units,
+            mediaProgressEvents,
+            progressEntries,
+            resumePoints,
+          },
           studySessions,
           xpTransactions,
           xpSummary,
           achievements,
         ] = await Promise.all([
-          listCourseUnits(),
-          listCourseItems(),
-          listProgressEntries(),
-          listContentAssets(),
-          listContentSlices(),
-          listMediaProgressEvents(),
-          listResumePoints(),
+          getCatalogueCourseState({ catalogueId: scope.catalogueId }),
           listStudySessions(),
           listXpTransactions(),
           getXpSummary(),
-          getAchievementsView({
-            policy: getActiveProgrammeDefinition().policy,
-          }),
+          getAchievementsView({ policy: scope.policy }),
         ]);
 
         if (!isActive) {
@@ -176,7 +171,7 @@ export function DashboardPage() {
     return () => {
       isActive = false;
     };
-  }, [reloadToken]);
+  }, [programmeScope, reloadToken]);
 
   if (state.status === 'error') {
     return (

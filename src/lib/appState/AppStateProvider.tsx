@@ -20,9 +20,13 @@ import {
   AppStateContext,
   type AppStateStatus,
 } from '@/lib/appState/AppStateContext';
-import type { AppMeta, LearnerProfile, PreferredTheme } from '@/lib/domain';
+import type {
+  AppMeta,
+  LearnerProfile,
+  PreferredTheme,
+  ProgrammeScope,
+} from '@/lib/domain';
 import { hasCompletedOnboarding } from '@/lib/profile';
-import { bundledCourseSeed } from '@/seed';
 import {
   captureLocalDataRevision,
   getLocalCoordinationStatus,
@@ -56,6 +60,29 @@ type PendingSnapshotPublication = {
 type RefreshOptions = {
   invalidateRoute?: boolean;
 };
+
+/**
+ * The outcome of resolving the active programme once at bootstrap
+ * (Epic C / C5). A failure is kept, never replaced by a default programme.
+ */
+type ProgrammeResolution =
+  | { readonly scope: ProgrammeScope }
+  | { readonly error: unknown };
+
+export type AppStateProviderProps = PropsWithChildren<{
+  /** Supplied by the app composition root; called once per provider. */
+  resolveProgramme: () => ProgrammeScope;
+}>;
+
+function resolveProgrammeOnce(
+  resolveProgramme: () => ProgrammeScope,
+): ProgrammeResolution {
+  try {
+    return { scope: resolveProgramme() };
+  } catch (error) {
+    return { error };
+  }
+}
 
 const stableReadAttemptLimit = 3;
 const unstableReadError =
@@ -204,6 +231,7 @@ function shouldAutomaticallyRefresh(
 async function resolveStableApplicationState(
   acknowledgeRevision: (token: LocalDataRevisionToken) => boolean,
   validateRevision: (token: LocalDataRevisionToken) => boolean,
+  programme: ProgrammeResolution,
 ): Promise<ResolvedAppState> {
   if (!isIndexedDbAvailable()) {
     return {
@@ -216,6 +244,10 @@ async function resolveStableApplicationState(
   }
 
   try {
+    if ('error' in programme) {
+      throw programme.error;
+    }
+
     for (let attempt = 0; attempt < stableReadAttemptLimit; attempt += 1) {
       if (getLocalCoordinationStatus().stale) {
         const staleRead = await readApplicationStateAtRevision();
@@ -225,7 +257,7 @@ async function resolveStableApplicationState(
         }
       }
 
-      await initializeDatabase({ seed: bundledCourseSeed });
+      await initializeDatabase({ seed: programme.scope.catalogue });
       const finalRead = await readApplicationStateAtRevision();
 
       if (!validateRevision(finalRead.revisionToken)) {
@@ -271,7 +303,11 @@ async function resolveStableApplicationState(
   }
 }
 
-export function AppStateProvider({ children }: PropsWithChildren) {
+export function AppStateProvider({
+  children,
+  resolveProgramme,
+}: AppStateProviderProps) {
+  const [programme] = useState(() => resolveProgrammeOnce(resolveProgramme));
   const initialCoordination = getLocalCoordinationStatus();
   const acceptedRevisionRef = useRef<number | null>(null);
   const acknowledgementInProgressRef = useRef(false);
@@ -434,6 +470,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
               const nextState = await resolveStableApplicationState(
                 acknowledgeRevision,
                 validateLocalDataRevision,
+                programme,
               );
 
               if (!providerActiveRef.current) {
@@ -484,6 +521,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     [
       acknowledgeRevision,
       enterCommittedLoadingState,
+      programme,
       publishErrorState,
       stageVerifiedSnapshot,
     ],
@@ -630,6 +668,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
         error,
         persistenceStatus,
         profile,
+        programmeScope: 'scope' in programme ? programme.scope : null,
         refresh: requestRefresh,
         requestPersistentStorage: requestPersistentStorageForState,
         runLocalMutation,

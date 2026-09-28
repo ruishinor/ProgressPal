@@ -9,6 +9,7 @@ import {
   type AppStateContextValue,
 } from '@/lib/appState/AppStateContext';
 import { defaultLearnerProfileValues } from '@/lib/db';
+import { cs50Scope } from '../../programmes/cs50Policy';
 
 const timestamp = '2026-07-12T10:00:00.000Z';
 const profile = {
@@ -55,6 +56,7 @@ function renderOnboarding(
     error: null,
     persistenceStatus: 'best-effort',
     profile,
+    programmeScope: cs50Scope,
     refresh: async () => undefined,
     requestPersistentStorage: async () => 'best-effort',
     runLocalMutation: async (mutation) => mutation(),

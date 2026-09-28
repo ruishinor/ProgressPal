@@ -28,7 +28,11 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const fixedNow = '2026-09-21T12:00:00.000Z';
 
@@ -349,7 +353,10 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
       buildRpgHubSummary(snapshot, fixedNow),
     );
 
-    const actual = await loadRpgHudSummary({ db: reader, now: () => fixedNow });
+    const actual = await loadRpgHudSummary(cs50Scope, {
+      db: reader,
+      now: () => fixedNow,
+    });
     const access = probe.snapshot();
 
     expect(actual).toEqual(expected);
@@ -362,7 +369,10 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
     const snapshot = await getDatabaseSnapshot({ db: context.db });
     const expected = buildRpgHubSummary(snapshot, fixedNow);
 
-    const actual = await loadRpgHubSummary({ db: reader, now: () => fixedNow });
+    const actual = await loadRpgHubSummary(cs50Scope, {
+      db: reader,
+      now: () => fixedNow,
+    });
     const access = probe.snapshot();
 
     expect(actual).toEqual(expected);
@@ -375,7 +385,7 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
     const snapshot = await getDatabaseSnapshot({ db: context.db });
     const expected = buildRpgHeroProfileSummary(snapshot, fixedNow);
 
-    const actual = await loadRpgHeroProfileSummary({
+    const actual = await loadRpgHeroProfileSummary(cs50Scope, {
       db: reader,
       now: () => fixedNow,
     });
@@ -425,8 +435,8 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
         probe.reset();
         const surfaceStarted = performance.now();
         const summary = await (surface === 'hud'
-          ? loadRpgHudSummary({ db: reader })
-          : loadRpgHeroProfileSummary({ db: reader }));
+          ? loadRpgHudSummary(cs50Scope, { db: reader })
+          : loadRpgHeroProfileSummary(cs50Scope, { db: reader }));
         const surfaceAccess = probe.snapshot();
         assertA4AccessContract(surface, surfaceAccess);
         expect(summary.xpSummary.totalXp).toBe(historyCount);

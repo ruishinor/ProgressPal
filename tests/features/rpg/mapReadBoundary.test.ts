@@ -26,7 +26,11 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const mapStores = [
   'content_assets',
@@ -374,7 +378,7 @@ describe('RPG Campaign Map read boundary', () => {
     const expected = buildRpgCourseMapSummary(before);
     probe.reset();
 
-    const actual = await loadRpgCourseMapSummary({ db: context.db });
+    const actual = await loadRpgCourseMapSummary(cs50Scope, { db: context.db });
     const access = probe.snapshot();
     const after = await getDatabaseSnapshot({ db: context.db });
 
@@ -399,7 +403,9 @@ describe('RPG Campaign Map read boundary', () => {
       ]);
       probe.reset();
 
-      const actual = await loadRpgCourseMapSummary({ db: context.db });
+      const actual = await loadRpgCourseMapSummary(cs50Scope, {
+        db: context.db,
+      });
       const access = probe.snapshot();
       const afterCounts = await Promise.all([
         context.db.mediaProgressEvents.count(),
@@ -448,7 +454,7 @@ describe('RPG Campaign Map read boundary', () => {
       });
       probe.reset();
 
-      await loadRpgCourseMapSummary({ db: context.db });
+      await loadRpgCourseMapSummary(cs50Scope, { db: context.db });
       const access = probe.snapshot();
 
       assertMapAccessContract(access);
@@ -595,9 +601,9 @@ describe('RPG Campaign Map read boundary', () => {
       equals: () => ({ toArray: () => Promise.reject(readFailure) }),
     } as unknown as ReturnType<typeof context.db.courseUnits.where>);
 
-    await expect(loadRpgCourseMapSummary({ db: context.db })).rejects.toBe(
-      readFailure,
-    );
+    await expect(
+      loadRpgCourseMapSummary(cs50Scope, { db: context.db }),
+    ).rejects.toBe(readFailure);
     expect(await getDatabaseSnapshot({ db: context.db })).toEqual(before);
   });
 
@@ -652,7 +658,7 @@ describe('RPG Campaign Map read boundary', () => {
     let writerError: unknown;
 
     try {
-      readPromise = loadRpgCourseMapSummary({ db: context.db });
+      readPromise = loadRpgCourseMapSummary(cs50Scope, { db: context.db });
       await readReachedMediaCursor;
 
       writerPromise = writerDb.mediaProgressEvents

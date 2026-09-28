@@ -24,23 +24,28 @@ import {
   createTestDatabase,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
-import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
+import {
+  cs50CatalogueId,
+  cs50Policy,
+  cs50Scope,
+} from '../../programmes/cs50Policy';
 
 const now = '2026-09-21T12:00:00.000Z';
 type History = 'media' | 'xp' | 'sessions';
 type Reader = (db: ProgressPalDatabase, history: History) => Promise<unknown>;
 
 const readers: Record<string, Reader> = {
-  Map: (db) => loadRpgCourseMapSummary({ db }),
-  Module: (db) => loadRpgModuleSummary('week-0', { db }),
+  Map: (db) => loadRpgCourseMapSummary(cs50Scope, { db }),
+  Module: (db) => loadRpgModuleSummary(cs50Scope, 'week-0', { db }),
   Resource: (db, history) =>
     loadRpgStudyResourceSummary(
+      cs50Scope,
       history === 'xp' ? 'week-0-problem-set' : 'week-0-lecture',
       { db },
     ),
-  HUD: (db) => loadRpgHudSummary({ db }),
-  Hub: (db) => loadRpgHubSummary({ db, now: () => now }),
-  Hero: (db) => loadRpgHeroProfileSummary({ db }),
+  HUD: (db) => loadRpgHudSummary(cs50Scope, { db }),
+  Hub: (db) => loadRpgHubSummary(cs50Scope, { db, now: () => now }),
+  Hero: (db) => loadRpgHeroProfileSummary(cs50Scope, { db }),
   Focus: (db) =>
     readStudySessionsSurfaceData(
       () => ({ context: null, projectSession: (session) => session.id }),

@@ -33,6 +33,7 @@ import {
   rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 type RpgShellReadStatus = 'error' | 'loading' | 'ready';
@@ -179,7 +180,7 @@ function RpgHeroHud({
 }
 
 export function RpgShell() {
-  const { coordination, profile, refresh } = useAppState();
+  const { coordination, profile, programmeScope, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [hubState, setHubState] = useState<RpgShellHubState>(initialHubState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -216,7 +217,9 @@ export function RpgShell() {
     });
 
     try {
-      const summary = await loadRpgHudSummary();
+      const summary = await loadRpgHudSummary(
+        requireProgrammeScope(programmeScope),
+      );
 
       if (mounted.current && version === readVersion.current) {
         startTransition(() => {
@@ -239,7 +242,7 @@ export function RpgShell() {
 
       throw loadError;
     }
-  }, []);
+  }, [programmeScope]);
 
   const refreshHub = useCallback(() => {
     setReloadToken((currentToken) => currentToken + 1);
@@ -276,7 +279,8 @@ export function RpgShell() {
       }));
     });
 
-    void loadRpgHubSummary()
+    void (async () =>
+      loadRpgHubSummary(requireProgrammeScope(programmeScope)))()
       .then((summary) => {
         if (!mounted.current || version !== readVersion.current) {
           return;
@@ -310,7 +314,7 @@ export function RpgShell() {
           });
         });
       });
-  }, [loadMode, profile?.updatedAt, refreshHud, reloadToken]);
+  }, [loadMode, profile?.updatedAt, programmeScope, refreshHud, reloadToken]);
 
   return (
     <section className="rpg-shell" data-testid="rpg-shell">
