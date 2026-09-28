@@ -137,9 +137,7 @@ function assertFullRelationalValidity(
       );
     }
     if (asset.itemId !== slice.itemId) {
-      abort(
-        `Content slice "${slice.id}" does not belong to its asset's item.`,
-      );
+      abort(`Content slice "${slice.id}" does not belong to its asset's item.`);
     }
   }
 
@@ -239,7 +237,10 @@ export function migrateV2ToV3(
     ]),
   );
 
-  assertFullRelationalValidity(snapshot, new Set(authorizedCatalogueByCourseId.keys()));
+  assertFullRelationalValidity(
+    snapshot,
+    new Set(authorizedCatalogueByCourseId.keys()),
+  );
   assertNoDuplicateXpSourceKeys(snapshot.xpTransactions);
 
   const legacyAppMeta = snapshot.appMeta;
@@ -272,7 +273,8 @@ export function migrateV2ToV3(
   const programmeEnrolments: ProgrammeEnrolment[] = [
     {
       programmeId: context.programmeId,
-      enrolledAt: legacyAppMeta.onboardingCompletedAt ?? legacyAppMeta.createdAt,
+      enrolledAt:
+        legacyAppMeta.onboardingCompletedAt ?? legacyAppMeta.createdAt,
     },
   ];
 

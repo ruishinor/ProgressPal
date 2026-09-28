@@ -728,7 +728,11 @@ async function ensureBaseInitialization(
 
         if (storedAppMeta === undefined) {
           createdAppMeta = true;
-          appMeta = createDefaultAppMeta(timestamp, appVersion, activeProgrammeId);
+          appMeta = createDefaultAppMeta(
+            timestamp,
+            appVersion,
+            activeProgrammeId,
+          );
           await database.appMeta.add(appMeta);
 
           const existingEnrolment =
@@ -1488,9 +1492,10 @@ async function ensureCourseCatalogFromSeedWithinScope(
     throw error;
   }
 
-  const authorizedCatalogue = database.migrationContext.authorizedCatalogues.find(
-    (catalogue) => catalogue.courseId === parsedSeed.courseId,
-  );
+  const authorizedCatalogue =
+    database.migrationContext.authorizedCatalogues.find(
+      (catalogue) => catalogue.courseId === parsedSeed.courseId,
+    );
 
   if (authorizedCatalogue === undefined) {
     if (ownsWriteScope) {
@@ -1612,9 +1617,9 @@ async function ensureCourseCatalogFromSeedWithinScope(
           existingItemUnitIds.set(item.id, existingItem.unitId);
         }
 
-        const foreignUnitIds = [...new Set(existingItemUnitIds.values())].filter(
-          (unitId) => !seedUnitIds.has(unitId),
-        );
+        const foreignUnitIds = [
+          ...new Set(existingItemUnitIds.values()),
+        ].filter((unitId) => !seedUnitIds.has(unitId));
         const foreignUnits =
           foreignUnitIds.length > 0
             ? await database.courseUnits.bulkGet(foreignUnitIds)

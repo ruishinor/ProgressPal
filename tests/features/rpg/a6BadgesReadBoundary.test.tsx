@@ -658,7 +658,9 @@ describe('A6 Badges actual-route read boundary', () => {
           unlockedAt: 'invalid',
         });
       writer.close();
-      const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext));
+      const probe = installDatabaseAccessProbe(
+        getSharedDatabase(defaultTestMigrationContext),
+      );
       await expect(
         database.readAchievementsSurfaceData({ policy: cs50Policy }),
       ).rejects.toBeInstanceOf(SchemaValidationError);
@@ -679,14 +681,17 @@ describe('A6 Badges actual-route read boundary', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);
       let failed = false;
-      const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext), {
-        beforeCursor(op) {
-          if (!failed && op.store === 'achievement_unlocks') {
-            failed = true;
-            throw new Error('Synthetic child read interruption');
-          }
+      const probe = installDatabaseAccessProbe(
+        getSharedDatabase(defaultTestMigrationContext),
+        {
+          beforeCursor(op) {
+            if (!failed && op.store === 'achievement_unlocks') {
+              failed = true;
+              throw new Error('Synthetic child read interruption');
+            }
+          },
         },
-      });
+      );
       renderVariant(variant, appState);
       await screen.findByText('Achievements could not be read');
       expect(
@@ -722,14 +727,17 @@ describe('A6 Badges actual-route read boundary', () => {
     );
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     let failed = false;
-    const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext), {
-      beforeCursor(op) {
-        if (!failed && op.store === 'media_progress_events') {
-          failed = true;
-          throw new Error('Synthetic HUD read interruption');
-        }
+    const probe = installDatabaseAccessProbe(
+      getSharedDatabase(defaultTestMigrationContext),
+      {
+        beforeCursor(op) {
+          if (!failed && op.store === 'media_progress_events') {
+            failed = true;
+            throw new Error('Synthetic HUD read interruption');
+          }
+        },
       },
-    });
+    );
     renderActualBadgesRoute(
       createReadyAppState(initialization.appMeta, profile),
     );

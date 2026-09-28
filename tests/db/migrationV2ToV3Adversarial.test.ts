@@ -2,7 +2,10 @@ import Dexie from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ensureCourseCatalogFromSeed, initializeDatabase } from '@/lib/db';
-import { createProgressPalDatabase, deleteDatabaseByName } from '@/lib/db/database';
+import {
+  createProgressPalDatabase,
+  deleteDatabaseByName,
+} from '@/lib/db/database';
 
 import {
   createTestDatabase,
@@ -149,7 +152,10 @@ describe('catalogue sync adversarial evidence', () => {
     testDatabase = createTestDatabase('sync-lower-version');
     await initializeDatabase({
       db: testDatabase.db,
-      seed: { ...sampleCourseSeed, dataVersion: sampleCourseSeed.dataVersion + 1 },
+      seed: {
+        ...sampleCourseSeed,
+        dataVersion: sampleCourseSeed.dataVersion + 1,
+      },
     });
     const before = await testDatabase.db.catalogueVersions.get(
       sampleCourseSeed.courseId,

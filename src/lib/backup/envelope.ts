@@ -567,7 +567,9 @@ export function assertBackupDataInvariants(
     if (xpSourceKeys.has(key)) {
       throw new BackupValidationError(
         'This backup contains duplicate XP transaction sources and cannot be imported.',
-        [`Duplicate XP source (${transaction.sourceType}, ${transaction.sourceId}).`],
+        [
+          `Duplicate XP source (${transaction.sourceType}, ${transaction.sourceId}).`,
+        ],
       );
     }
     xpSourceKeys.add(key);
@@ -632,7 +634,10 @@ export function assertBackupDataInvariants(
   for (const version of data.catalogueVersions) {
     const authorized = authorizedCatalogueByCourseId.get(version.courseId);
 
-    if (authorized === undefined || authorized.programmeId !== version.programmeId) {
+    if (
+      authorized === undefined ||
+      authorized.programmeId !== version.programmeId
+    ) {
       throw new BackupValidationError(
         'This backup contains an unauthorized catalogue and cannot be imported.',
         [`Unauthorized catalogue "${version.courseId}".`],

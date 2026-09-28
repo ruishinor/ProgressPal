@@ -322,9 +322,7 @@ export function createProgressPalDatabase(
  * closed. There is no separate module-global context: it lives only on the
  * instance itself, and is discarded along with it by `closeSharedDatabase`.
  */
-export function getSharedDatabase(
-  migrationContext?: DatabaseMigrationContext,
-) {
+export function getSharedDatabase(migrationContext?: DatabaseMigrationContext) {
   if (sharedDatabase === null) {
     if (migrationContext === undefined) {
       throw new Error(

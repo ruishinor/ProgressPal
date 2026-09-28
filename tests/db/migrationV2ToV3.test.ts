@@ -89,10 +89,7 @@ const asset1 = {
 
 describe('migrateV2ToV3', () => {
   it('skips a never-initialized database (no app_meta, no other rows)', () => {
-    const result = migrateV2ToV3(
-      emptySnapshot(),
-      defaultTestMigrationContext,
-    );
+    const result = migrateV2ToV3(emptySnapshot(), defaultTestMigrationContext);
 
     expect(result).toEqual({ skip: true });
   });
@@ -112,9 +109,9 @@ describe('migrateV2ToV3', () => {
       courseUnits: [{ ...unit1, courseId: 'unknown-catalogue' }],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/unauthorized catalogue/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /unauthorized catalogue/i,
+    );
   });
 
   it('aborts on a course item referencing an unattributable unit', () => {
@@ -124,9 +121,9 @@ describe('migrateV2ToV3', () => {
       courseItems: [{ ...item1, unitId: 'missing-unit' }],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/unattributable unit/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /unattributable unit/i,
+    );
   });
 
   it('aborts on a content asset referencing an unattributable item', () => {
@@ -137,9 +134,9 @@ describe('migrateV2ToV3', () => {
       contentAssets: [{ ...asset1, itemId: 'missing-item' }],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/unattributable/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /unattributable/i,
+    );
   });
 
   it('aborts on a content slice whose asset belongs to a different item', () => {
@@ -166,9 +163,9 @@ describe('migrateV2ToV3', () => {
       ],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/does not belong to its asset's item/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /does not belong to its asset's item/i,
+    );
   });
 
   it('aborts on a progress entry referencing an unattributable item', () => {
@@ -188,9 +185,9 @@ describe('migrateV2ToV3', () => {
       ],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/unattributable item/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /unattributable item/i,
+    );
   });
 
   it('aborts on a study session referencing an unattributable unit or item', () => {
@@ -214,9 +211,9 @@ describe('migrateV2ToV3', () => {
       ],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/unattributable unit or item/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /unattributable unit or item/i,
+    );
   });
 
   it('aborts on two XP transactions sharing a (sourceType, sourceId) key', () => {
@@ -235,9 +232,9 @@ describe('migrateV2ToV3', () => {
       xpTransactions: [duplicateXp, { ...duplicateXp, id: 'xp-2' }],
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/duplicate xp/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /duplicate xp/i,
+    );
   });
 
   it('aborts when seedVersion is positive but no catalogue units exist', () => {
@@ -245,9 +242,9 @@ describe('migrateV2ToV3', () => {
       appMeta: legacyAppMeta({ seedVersion: 5 }),
     });
 
-    expect(() =>
-      migrateV2ToV3(snapshot, defaultTestMigrationContext),
-    ).toThrow(/seedVersion is positive/i);
+    expect(() => migrateV2ToV3(snapshot, defaultTestMigrationContext)).toThrow(
+      /seedVersion is positive/i,
+    );
   });
 
   it('succeeds with no version row when there are no units and seedVersion is 0', () => {
@@ -265,7 +262,9 @@ describe('migrateV2ToV3', () => {
   it('enrols using onboardingCompletedAt when present, else createdAt', () => {
     const onboarded = migrateV2ToV3(
       emptySnapshot({
-        appMeta: legacyAppMeta({ onboardingCompletedAt: '2026-06-05T00:00:00.000Z' }),
+        appMeta: legacyAppMeta({
+          onboardingCompletedAt: '2026-06-05T00:00:00.000Z',
+        }),
       }),
       defaultTestMigrationContext,
     );

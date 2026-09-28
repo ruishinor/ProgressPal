@@ -44,7 +44,9 @@ describe('database migration context (binding control 2)', () => {
     const first = getSharedDatabase(defaultTestMigrationContext);
     const second = getSharedDatabase({
       programmeId: defaultTestMigrationContext.programmeId,
-      authorizedCatalogues: [...defaultTestMigrationContext.authorizedCatalogues],
+      authorizedCatalogues: [
+        ...defaultTestMigrationContext.authorizedCatalogues,
+      ],
     });
 
     expect(second).toBe(first);
@@ -84,9 +86,15 @@ describe('database migration context (binding control 2)', () => {
   const invalidContexts: Array<[string, DatabaseMigrationContext]> = [
     [
       'empty programmeId',
-      { programmeId: '', authorizedCatalogues: [{ courseId: 'x', programmeId: 'x' }] },
+      {
+        programmeId: '',
+        authorizedCatalogues: [{ courseId: 'x', programmeId: 'x' }],
+      },
     ],
-    ['no authorized catalogues', { programmeId: 'cs50x', authorizedCatalogues: [] }],
+    [
+      'no authorized catalogues',
+      { programmeId: 'cs50x', authorizedCatalogues: [] },
+    ],
     [
       'an authorized catalogue with an empty courseId',
       {
@@ -99,7 +107,9 @@ describe('database migration context (binding control 2)', () => {
   it.each(invalidContexts)(
     'rejects constructing a database with %s',
     (_label, context) => {
-      expect(() => createProgressPalDatabase(context, 'invalid-context-db')).toThrow();
+      expect(() =>
+        createProgressPalDatabase(context, 'invalid-context-db'),
+      ).toThrow();
     },
   );
 });
