@@ -237,4 +237,63 @@ describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
 
     expect(persisted).toBeUndefined();
   });
+
+  it('D1b (valid-state regression): all three compound paths still succeed with a valid enrolment', async () => {
+    testDatabase = createTestDatabase('d1b-valid-state');
+
+    await initializeDatabase({
+      db: testDatabase.db,
+      now: createClock('2026-06-11T10:00:00.000Z'),
+      seed: sampleCourseSeed,
+    });
+
+    const progressResult = await upsertProgressAndAwardXp(
+      { itemId: 'week-0-lecture', status: 'started', confidence: 3 },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db: testDatabase.db,
+        now: createClock('2026-06-11T10:05:00.000Z'),
+      },
+    );
+    expect(progressResult.progressEntry.itemId).toBe('week-0-lecture');
+
+    const mediaResult = await logMediaProgressAndAwardXp(
+      {
+        assetId: 'week-0-lecture-asset',
+        startSecond: 0,
+        endSecond: 600,
+        energyBefore: 4,
+        energyAfter: 4,
+        stoppedBecause: 'interruption',
+      },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db: testDatabase.db,
+        now: createClock('2026-06-11T10:10:00.000Z'),
+      },
+    );
+    expect(mediaResult.event.assetId).toBe('week-0-lecture-asset');
+
+    const sessionResult = await addStudySessionAndAwardXp(
+      {
+        id: 'session-valid-state',
+        unitId: 'week-0',
+        itemId: 'week-0-lecture',
+        startedAt: '2026-06-11T10:10:00.000Z',
+        endedAt: '2026-06-11T10:40:00.000Z',
+        durationMinutes: 30,
+        mode: 'watching',
+      },
+      {
+        catalogueId: cs50CatalogueId,
+        policy: cs50Policy,
+        db: testDatabase.db,
+        now: createClock('2026-06-11T10:40:00.000Z'),
+      },
+    );
+    expect(sessionResult.studySession?.id).toBe('session-valid-state');
+    expect(sessionResult.awardedTransactions).toHaveLength(1);
+  });
 });

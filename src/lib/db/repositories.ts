@@ -707,20 +707,14 @@ async function ensureBaseInitialization(
       );
     }
 
-    // `ensureBaseInitialization` can run nested inside a caller's own
-    // transaction that intentionally does not include `programmeEnrolments`
-    // (e.g. `addStudySessionAndAwardXp`), because the write branch below only
-    // ever touches that table when a write is actually needed, which cannot
-    // happen once bootstrap has already succeeded once for this database. In
-    // that nested case, a successful earlier top-level bootstrap already
-    // proved this exact invariant, so the check below only needs to run when
-    // it can do so inside the ambient transaction (or standalone, with none).
-    const ambientTransaction = Dexie.currentTransaction;
-    const canCheckEnrolmentHere =
-      ambientTransaction === null ||
-      ambientTransaction.storeNames.includes(database.programmeEnrolments.name);
-
-    if (canCheckEnrolmentHere) {
+    // Epic C6-R, D1b: this check must run unconditionally, not only when the
+    // ambient transaction happens to include `programmeEnrolments`. Every
+    // caller that can reach `ensureBaseInitialization` nested inside its own
+    // transaction is required to include `database.programmeEnrolments` in
+    // that transaction's store set (see `upsertProgressAndAwardXp`,
+    // `logMediaProgressAndAwardXp`, and `addStudySessionAndAwardXp`); the
+    // invariant is mandatory, not advisory.
+    {
       const existingEnrolment = await database.programmeEnrolments.get(
         initialAppMeta.activeProgrammeId,
       );
@@ -2893,6 +2887,7 @@ export async function upsertProgressAndAwardXp(
         database.achievementUnlocks,
         database.appMeta,
         database.learnerProfile,
+        database.programmeEnrolments,
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
@@ -3025,6 +3020,7 @@ export async function logMediaProgressAndAwardXp(
         database.achievementUnlocks,
         database.appMeta,
         database.learnerProfile,
+        database.programmeEnrolments,
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
@@ -3282,6 +3278,7 @@ export async function addStudySessionAndAwardXp(
         database.achievementUnlocks,
         database.appMeta,
         database.learnerProfile,
+        database.programmeEnrolments,
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
