@@ -299,8 +299,10 @@ test('creates a local profile, persists it across reload, and applies stored pre
           typeof appMeta.onboardingCompletedAt === 'string'
             ? appMeta.onboardingCompletedAt
             : null,
-        seedVersion:
-          typeof appMeta.seedVersion === 'number' ? appMeta.seedVersion : null,
+        activeProgrammeId:
+          typeof appMeta.activeProgrammeId === 'string'
+            ? appMeta.activeProgrammeId
+            : null,
       };
     })
     .toEqual({
@@ -310,7 +312,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
       displayName: 'Alex',
       learnerProfile: 1,
       onboardingCompletedAt: expect.any(String),
-      seedVersion: 20260617,
+      activeProgrammeId: 'cs50x',
     });
 
   await page.goto('/dashboard');
