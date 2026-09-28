@@ -399,14 +399,31 @@ describe('mid-write upgrade failure (Epic C6-R, E1)', () => {
       name,
     );
 
-    // Test-only injection: the migration writes `app_meta` and
-    // `catalogue_versions` before `programme_enrolments` inside one
-    // `Promise.all`, so failing only this table's native `add` still proves
-    // the other two writes were already issued against the real
-    // version-change transaction. Dexie's bulk mutate core calls the native
-    // `IDBObjectStore` method dynamically (`store[type](...)`), so this
-    // patches the one native primitive every write path goes through rather
-    // than a Dexie-level wrapper a spy could miss.
+    // Test-only injection, strengthened mechanically (owner-authorized
+    // continuation): rather than inferring from source-code ordering that
+    // `app_meta` / `catalogue_versions` writes were attempted first, this
+    // records every native `put`/`add` call's store name as it happens
+    // (`app_meta.put` uses `put`; `catalogue_versions.bulkAdd` and
+    // `programme_enrolments.bulkAdd` use `add`) and only throws for
+    // `programme_enrolments` once at least one of the other two migration
+    // writes has actually been observed first. Dexie's mutate core calls the
+    // native `IDBObjectStore` method dynamically (`store[type](...)`), so
+    // this patches the native primitives every write path goes through
+    // rather than a Dexie-level wrapper a spy could miss.
+    const observedWritesBeforeFailure: string[] = [];
+    const originalPut = IDBObjectStore.prototype.put;
+    const putSpy = vi
+      .spyOn(IDBObjectStore.prototype, 'put')
+      .mockImplementation(function (
+        this: IDBObjectStore,
+        ...args: Parameters<IDBObjectStore['put']>
+      ) {
+        if (this.name === 'app_meta') {
+          observedWritesBeforeFailure.push(this.name);
+        }
+
+        return originalPut.apply(this, args);
+      });
     const originalAdd = IDBObjectStore.prototype.add;
     const addSpy = vi
       .spyOn(IDBObjectStore.prototype, 'add')
@@ -415,9 +432,19 @@ describe('mid-write upgrade failure (Epic C6-R, E1)', () => {
         ...args: Parameters<IDBObjectStore['add']>
       ) {
         if (this.name === 'programme_enrolments') {
+          // Mechanical proof, not inference: fail only once an earlier
+          // migration write attempt was actually observed.
+          expect(observedWritesBeforeFailure.length).toBeGreaterThan(0);
+          expect(observedWritesBeforeFailure.length).toBeGreaterThan(0);
+          putSpy.mockRestore();
           addSpy.mockRestore();
           throw new Error('Injected mid-write upgrade failure (test-only).');
         }
+
+        if (this.name === 'catalogue_versions') {
+          observedWritesBeforeFailure.push(this.name);
+        }
+
         return originalAdd.apply(this, args);
       });
 
@@ -425,6 +452,16 @@ describe('mid-write upgrade failure (Epic C6-R, E1)', () => {
       /injected mid-write upgrade failure/i,
     );
     upgradingDatabase.close();
+
+    // The assertions inside the spy only run if `programme_enrolments` is
+    // ever reached; confirm at least one earlier migration write - app_meta
+    // and/or catalogue_versions - was actually observed, so a future
+    // refactor that reordered the writes (and thus skipped triggering the
+    // injection) could not silently turn this into a vacuous pass.
+    expect(observedWritesBeforeFailure.length).toBeGreaterThan(0);
+    for (const observed of observedWritesBeforeFailure) {
+      expect(['app_meta', 'catalogue_versions']).toContain(observed);
+    }
 
     // The whole version-change transaction aborted: the native database
     // never advanced past v2 (native version 20 = Dexie version 2 * 10), and

@@ -194,21 +194,36 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
       for (const table of learnerTables) {
         expect(restored[table], table).toEqual(parsed.data[table]);
       }
-      expect(restored.appMeta).toMatchObject({
-        onboardingCompletedAt: parsed.data.appMeta?.onboardingCompletedAt,
-        schemaVersion: currentDatabaseSchemaVersion,
-        activeProgrammeId: parsed.data.appMeta?.activeProgrammeId,
-      });
       // Epic C6-R: the C1 preservation oracle transition (owner-authorized -
-      // see C6_R_CLOSURE_RECORD.md) requires proving the complete
-      // materially-relevant persisted state, not hand-picked counts/IDs. The
-      // frozen fixture's legacy `app_meta` carries `seedVersion: 20260617`
-      // and `updatedAt: '2026-09-19T12:05:00.000Z'`; `migrateV2ToV3` derives
-      // `catalogue_versions.dataVersion` and `.syncedAt` from exactly those
-      // two legacy fields, and it is unchanged here because the bundled
-      // `cs50x-2026` seed's own `dataVersion` (20260617) matches, so the
-      // reconciliation the restore's own `initializeDatabase` call performs
-      // is a no-op rather than a real version bump.
+      // see C6_R_CLOSURE_RECORD.md) requires the complete canonical
+      // schema-3 `app_meta` state, not a partial `toMatchObject` subset. The
+      // frozen fixture's legacy `app_meta` has `appVersion: '1.3.0'`, which
+      // already equals `currentApplicationVersion`, and `schemaVersion: 3`
+      // is already current post-migration, so the restore's own
+      // `initializeDatabase` bootstrap call finds nothing left to normalize
+      // and performs no further write here: every field below is exactly
+      // what the frozen legacy bytes carry, mapped once by the real
+      // converter, not re-derived by this test.
+      expect(restored.appMeta).toEqual({
+        id: 'app-meta',
+        createdAt: '2026-09-19T12:00:00.000Z',
+        updatedAt: '2026-09-19T12:05:00.000Z',
+        appVersion: currentApplicationVersion,
+        onboardingCompletedAt: '2026-09-19T12:05:00.000Z',
+        schemaVersion: currentDatabaseSchemaVersion,
+        activeProgrammeId: 'cs50x',
+      });
+      // Confirms the explicit literal above is exactly what the real
+      // parser/converter produced, not a value this test invented.
+      expect(restored.appMeta).toEqual(parsed.data.appMeta);
+      // The frozen fixture's legacy `app_meta` carries `seedVersion:
+      // 20260617` and `updatedAt: '2026-09-19T12:05:00.000Z'`;
+      // `migrateV2ToV3` derives `catalogue_versions.dataVersion` and
+      // `.syncedAt` from exactly those two legacy fields, and it is
+      // unchanged here because the bundled `cs50x-2026` seed's own
+      // `dataVersion` (20260617) matches, so the reconciliation the
+      // restore's own `initializeDatabase` call performs is a no-op rather
+      // than a real version bump.
       expect(restored.appMeta).not.toHaveProperty('seedVersion');
       expect(restored.catalogueVersions).toEqual([
         {
@@ -250,6 +265,15 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
           parsed.data[table],
         );
       }
+      // Epic C6-R: the re-export/reparse round trip also retains the
+      // migration-affected state, not only the learner-data tables.
+      expect(reExported.data.appMeta).toEqual(restored.appMeta);
+      expect(reExported.data.catalogueVersions).toEqual(
+        restored.catalogueVersions,
+      );
+      expect(reExported.data.programmeEnrolments).toEqual(
+        restored.programmeEnrolments,
+      );
     } finally {
       await context.cleanup();
     }
