@@ -38,7 +38,11 @@ import {
 import { validateProgrammeDefinition } from '@/programmes/definition';
 import { bundledCourseSeed } from '@/seed';
 
-import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
+import {
+  closeSharedDatabase,
+  deleteSharedDatabase,
+  getSharedDatabase,
+} from '@/lib/db/database';
 import {
   createTestDatabase,
   defaultTestMigrationContext,
@@ -489,8 +493,25 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   }, 30_000);
 
   it('materializes and reads the composed catalogue, not a hard-wired CS50 seed', async () => {
-    await onboardShared({ alt: false });
     injected.definition = altDefinition;
+    // Epic C6-R, D1: `activeProgrammeId` is a stable persisted identity, so a
+    // device bootstrapped under one composed programme can no longer be
+    // silently reopened under a different one — reusing `onboardShared`'s
+    // cs50x-bootstrapped storage here would now correctly fail closed. This
+    // test's point is that the composition (not a hard-wired CS50 seed)
+    // drives what materializes, so it bootstraps and onboards directly under
+    // the alt-composed definition on fresh storage instead.
+    await deleteSharedDatabase();
+    getSharedDatabase(altMigrationContext);
+    await initializeDatabase({ seed: altSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        displayName: 'C5 Synthetic Learner',
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
     closeSharedDatabase();
 
     await renderAppAtRoute('/rpg/map');
@@ -505,8 +526,24 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   }, 30_000);
 
   it('drives the Classic course map from the composed scope', async () => {
-    await onboardShared({ alt: true });
     injected.definition = altDefinition;
+    // Epic C6-R, D1: see the equivalent note above — bootstrap and onboard
+    // directly under the alt-composed definition on fresh storage instead of
+    // reusing `onboardShared`'s cs50x-bootstrapped storage. Reading the
+    // active catalogue only (not both) amid coexisting catalogues is already
+    // covered by "C5 repair: Classic surfaces read the active catalogue
+    // only" below; this test's own point is the definition switch itself.
+    await deleteSharedDatabase();
+    getSharedDatabase(altMigrationContext);
+    await initializeDatabase({ seed: altSeed });
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        displayName: 'C5 Synthetic Learner',
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
     closeSharedDatabase();
 
     await renderAppAtRoute('/course');

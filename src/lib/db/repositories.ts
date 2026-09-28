@@ -688,6 +688,54 @@ async function ensureBaseInitialization(
     );
   }
 
+  // Epic C6-R, D1: an existing database's programme/enrolment consistency is
+  // checked before any no-op early return below, not only inside the branch
+  // that performs a write. A current v3 database with a mismatched
+  // `activeProgrammeId` or a missing enrolment for its active programme must
+  // fail closed even when no unrelated field needs updating. Fresh
+  // initialization (no stored app metadata yet) is unaffected; it still
+  // creates valid app metadata, profile, and enrolment state below.
+  if (initialAppMeta !== null) {
+    const activeProgrammeId = database.migrationContext.programmeId;
+
+    if (initialAppMeta.activeProgrammeId !== activeProgrammeId) {
+      if (ownsWriteScope) {
+        settleLogicalWriteScope(logicalWriteScope);
+      }
+      throw new Error(
+        `Active programme "${initialAppMeta.activeProgrammeId}" does not match the registered programme "${activeProgrammeId}".`,
+      );
+    }
+
+    // `ensureBaseInitialization` can run nested inside a caller's own
+    // transaction that intentionally does not include `programmeEnrolments`
+    // (e.g. `addStudySessionAndAwardXp`), because the write branch below only
+    // ever touches that table when a write is actually needed, which cannot
+    // happen once bootstrap has already succeeded once for this database. In
+    // that nested case, a successful earlier top-level bootstrap already
+    // proved this exact invariant, so the check below only needs to run when
+    // it can do so inside the ambient transaction (or standalone, with none).
+    const ambientTransaction = Dexie.currentTransaction;
+    const canCheckEnrolmentHere =
+      ambientTransaction === null ||
+      ambientTransaction.storeNames.includes(database.programmeEnrolments.name);
+
+    if (canCheckEnrolmentHere) {
+      const existingEnrolment = await database.programmeEnrolments.get(
+        initialAppMeta.activeProgrammeId,
+      );
+
+      if (existingEnrolment === undefined) {
+        if (ownsWriteScope) {
+          settleLogicalWriteScope(logicalWriteScope);
+        }
+        throw new Error(
+          `No enrolment exists for active programme "${initialAppMeta.activeProgrammeId}".`,
+        );
+      }
+    }
+  }
+
   const needsAppMetaWrite =
     initialAppMeta === null ||
     initialAppMeta.schemaVersion !== currentDatabaseSchemaVersion ||
