@@ -5,10 +5,11 @@ closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
 `C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`;
-`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). **C6 is ready for a
-separate owner start authorization** (OD-1 to OD-5 resolved,
-`C6_SCHEMA_CHANGE_DECISION_RECORD.md` and `C6_READINESS_RECORD.md`
-accepted); C6 has not started and is not authorized.
+`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). **C6 was
+implemented and its first candidate was rejected by independent owner
+review; one bounded repair round (C6-R) is complete and awaits separate
+owner review** (`C6_CLOSURE_RECORD.md`, `C6_R_CLOSURE_RECORD.md`). C6 is
+NOT accepted. C7 has not started and is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -37,11 +38,21 @@ accepted); C6 has not started and is not authorized.
   `3bdf71b2` is superseded) and authorized one bounded repair round.
   The owner accepted repaired implementation `7fd87fe5` with its documented
   residual boundaries, and C5 is closed locally (`C5_CLOSURE_RECORD.md`).
-- C6 planning and readiness prerequisites are all satisfied: OD-1 to OD-5
-  are resolved and recorded (§6, MR-0a); the schema-change decision record
-  (MR-0b) and the C6 readiness record (MR-0e) are accepted; MR-0c and MR-0d
-  are satisfied. C6 is ready for a separate owner start authorization, has
-  not started and is not authorized; no product implementation has started.
+- C6 planning and readiness prerequisites were all satisfied: OD-1 to OD-5
+  resolved and recorded (§6, MR-0a); the schema-change decision record
+  (MR-0b) and the C6 readiness record (MR-0e) accepted; MR-0c and MR-0d
+  satisfied. C6 was implemented on `cx/epic-c6-persisted-ownership-migration`
+  under a direct owner instruction. The owner did not accept first
+  candidate `7af18c2` (closure `b3c6544`; two product defects, D1 and D2,
+  plus process/evidence gaps) and authorized one bounded repair round,
+  C6-R, on `cx/epic-c6-r-owner-review-repair`. The repair candidate
+  `e6372af` (`C6_R_CLOSURE_RECORD.md`) repairs D1, D2, an RD3
+  relational-validation finding discovered during C6-R's own adversarial
+  review, and completes the E1/E2/C1 evidence; it passed the full local
+  gate (lint, format, typecheck, build, bundle budget, unit/integration
+  tests, managed E2E, `git diff --check`). C6 remains **not accepted**
+  pending separate owner review of C6-R. C7 has not started and is not
+  authorized.
 - Publication is deferred: no C2–C5 acceptance changes `origin/master` or
   Production. Publishing and stabilizing the pre-schema line (Epic B through
   C5) before any C6 migration reaches Production is a C6 deployment gate

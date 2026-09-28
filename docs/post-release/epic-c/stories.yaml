@@ -213,10 +213,16 @@ stories:
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
-    state: ready_for_start_authorization
-    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 is not started and not authorized; starting it needs a separate direct owner instruction
-    records: [C6_SCHEMA_CHANGE_DECISION_RECORD.md, C6_READINESS_RECORD.md]
-    implementation_started: false
+    state: c6_r_repaired_pending_owner_review
+    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) was directly owner-authorized. C6-R candidate e6372af (closure C6_R_CLOSURE_RECORD.md) repairs D1, D2, a further RD3 relational-validation finding, and completes E1/E2/C1 evidence; it passed the full local gate. C6 remains NOT accepted pending separate owner review of C6-R. C7 is not started and not authorized. No publication occurred
+    records:
+      [
+        C6_SCHEMA_CHANGE_DECISION_RECORD.md,
+        C6_READINESS_RECORD.md,
+        C6_CLOSURE_RECORD.md,
+        C6_R_CLOSURE_RECORD.md,
+      ]
+    implementation_started: true
     deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local implementation
     objective: Freeze the persisted programme ownership identity (after OD-5) and introduce per-catalogue version state, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
     prerequisites:
