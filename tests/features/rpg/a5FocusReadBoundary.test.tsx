@@ -33,6 +33,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { defaultTestMigrationContext } from '../../db/testDatabase';
 import { cs50Scope } from '../../programmes/cs50Policy';
 
 const selectedItemId = 'week-4-lecture';
@@ -161,7 +162,7 @@ function renderActualFocusRoute(appState: AppStateContextValue) {
 async function seedSharedDatabase(sessions: readonly StudySession[]) {
   await deleteSharedDatabase();
 
-  const writer = createProgressPalDatabase();
+  const writer = createProgressPalDatabase(defaultTestMigrationContext);
   const initialization = await database.initializeDatabase({
     db: writer,
     seed: bundledCourseSeed,
@@ -179,6 +180,11 @@ async function seedSharedDatabase(sessions: readonly StudySession[]) {
 
   writer.close();
   closeSharedDatabase();
+  // Rebinds a fresh, unopened shared instance so callers can go straight to a
+  // real read/render without remembering to rebind first; construction alone
+  // never triggers Dexie's lazy open, so `.isOpen()` still reads false for
+  // any caller measuring a first-open probe.
+  getSharedDatabase(defaultTestMigrationContext);
 
   return { initialization, profile };
 }
@@ -239,7 +245,7 @@ describe('A5 Focus actual-route read boundary GREEN', () => {
 
     // The measured reader is separate from fixture construction, and the probe
     // is installed before its first open.
-    const measuredReader = getSharedDatabase();
+    const measuredReader = getSharedDatabase(defaultTestMigrationContext);
     expect(measuredReader.isOpen()).toBe(false);
     const accessProbe = installDatabaseAccessProbe(measuredReader);
 
@@ -393,7 +399,7 @@ describe('A5 Focus actual-route read boundary GREEN', () => {
     async (fixtureSessionCount) => {
       await seedSharedDatabase(createSessionFixtures(fixtureSessionCount));
 
-      const measuredReader = getSharedDatabase();
+      const measuredReader = getSharedDatabase(defaultTestMigrationContext);
       expect(measuredReader.isOpen()).toBe(false);
       const accessProbe = installDatabaseAccessProbe(measuredReader);
       const readStartedAt = performance.now();
@@ -455,7 +461,7 @@ describe('A5 Focus actual-route read boundary GREEN', () => {
     const fixtureSessionCount = 7;
     await deleteSharedDatabase();
 
-    const writer = createProgressPalDatabase();
+    const writer = createProgressPalDatabase(defaultTestMigrationContext);
     await database.initializeDatabase({ db: writer, seed: bundledCourseSeed });
     const sessions = createSessionFixtures(fixtureSessionCount);
     await writer.studySessions.bulkPut(sessions);
@@ -467,7 +473,7 @@ describe('A5 Focus actual-route read boundary GREEN', () => {
     writer.close();
     closeSharedDatabase();
 
-    const measuredReader = getSharedDatabase();
+    const measuredReader = getSharedDatabase(defaultTestMigrationContext);
     expect(measuredReader.isOpen()).toBe(false);
     const accessProbe = installDatabaseAccessProbe(measuredReader);
     const ledgerRows = await database.readStudySessionLedgerRows(

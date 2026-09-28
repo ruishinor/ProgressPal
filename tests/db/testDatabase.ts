@@ -1,6 +1,7 @@
 import {
   createProgressPalDatabase,
   deleteDatabaseByName,
+  type DatabaseMigrationContext,
   type ProgressPalDatabase,
 } from '@/lib/db/database';
 import type { CourseSeed } from '@/lib/domain';
@@ -13,11 +14,25 @@ export type TestDatabaseContext = {
   name: string;
 };
 
-export function createTestDatabase(label = 'db'): TestDatabaseContext {
+/**
+ * The default test migration context (Epic C / C6): authorizes exactly
+ * `sampleCourseSeed`'s catalogue for programme `cs50x`, matching the real
+ * `cs50x-2026` definition's identity. A test exercising unauthorized-catalogue
+ * or missing/conflicting-context behavior supplies its own context instead.
+ */
+export const defaultTestMigrationContext: DatabaseMigrationContext = {
+  programmeId: 'cs50x',
+  authorizedCatalogues: [{ courseId: 'cs50x-2026', programmeId: 'cs50x' }],
+};
+
+export function createTestDatabase(
+  label = 'db',
+  migrationContext: DatabaseMigrationContext = defaultTestMigrationContext,
+): TestDatabaseContext {
   databaseCounter += 1;
 
   const name = `progresspal-test-${label}-${databaseCounter}`;
-  const db = createProgressPalDatabase(name);
+  const db = createProgressPalDatabase(migrationContext, name);
 
   return {
     name,

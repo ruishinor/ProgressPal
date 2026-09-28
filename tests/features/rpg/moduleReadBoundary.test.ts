@@ -21,6 +21,7 @@ import { getXpAwardSourceKey } from '@/lib/xp/engine';
 import { bundledCourseSeed } from '@/seed';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
 import {
@@ -807,7 +808,10 @@ describe('RPG Module read boundary', () => {
     probe.reset();
     barrierEnabled = true;
 
-    const writerDb = createProgressPalDatabase(context.name);
+    const writerDb = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      context.name,
+    );
     await writerDb.open();
 
     let readPromise: ReturnType<typeof loadRpgModuleSummary> | null = null;

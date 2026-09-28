@@ -22,6 +22,7 @@ import type {
 import { bundledCourseSeed } from '@/seed';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
 import {
@@ -338,7 +339,10 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
     await initializeDatabase({ db: context.db, seed: bundledCourseSeed });
     await addSyntheticHistories(context, historyCount, label);
 
-    const reader = createProgressPalDatabase(context.name);
+    const reader = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      context.name,
+    );
     readerDatabases.push(reader);
     const probe = installDatabaseAccessProbe(reader);
     await reader.open();

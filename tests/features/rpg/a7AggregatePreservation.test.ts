@@ -24,6 +24,7 @@ import { bundledCourseSeed } from '@/seed';
 import { installDatabaseAccessProbe } from '../../db/accessProbe';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
 import {
@@ -76,7 +77,10 @@ describe('A7 aggregate preservation', () => {
   }
 
   function makeReader(context: TestDatabaseContext) {
-    const reader = createProgressPalDatabase(context.name);
+    const reader = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      context.name,
+    );
     readers.push(reader);
     return reader;
   }

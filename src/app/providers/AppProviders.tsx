@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react';
 
 import { AppStateProvider } from '@/lib/appState';
+import type { DatabaseMigrationContext } from '@/lib/db';
 import type { ProgrammeScope } from '@/lib/domain';
 import { getActiveProgrammeDefinition } from '@/programmes';
 
@@ -15,9 +16,27 @@ function resolveActiveProgramme(): ProgrammeScope {
   return { catalogue, catalogueId, policy };
 }
 
+/**
+ * The neutral database migration/authorization context (Epic C / C6): the
+ * active definition's stable programme identity and its one authorized
+ * catalogue. Plain data derived from the registry at the composition root;
+ * `src/lib` never imports `@/programmes`.
+ */
+function resolveDatabaseMigrationContext(): DatabaseMigrationContext {
+  const { catalogueId, programmeId } = getActiveProgrammeDefinition();
+
+  return {
+    programmeId,
+    authorizedCatalogues: [{ courseId: catalogueId, programmeId }],
+  };
+}
+
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <AppStateProvider resolveProgramme={resolveActiveProgramme}>
+    <AppStateProvider
+      resolveProgramme={resolveActiveProgramme}
+      resolveMigrationContext={resolveDatabaseMigrationContext}
+    >
       {children}
     </AppStateProvider>
   );

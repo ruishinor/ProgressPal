@@ -25,6 +25,7 @@ export const cs50x2026Definition: ProgrammeDefinition =
   validateProgrammeDefinition({
     definitionKey: bundledCourseSeed.courseId,
     catalogueId: bundledCourseSeed.courseId,
+    programmeId: 'cs50x',
     title: bundledCourseSeed.title,
     catalogue: bundledCourseSeed,
     policy: {

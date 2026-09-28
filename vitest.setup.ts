@@ -3,7 +3,8 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterEach, beforeEach } from 'vitest';
 
-import { deleteSharedDatabase } from '@/lib/db/database';
+import { deleteSharedDatabase, getSharedDatabase } from '@/lib/db/database';
+import { defaultTestMigrationContext } from './tests/db/testDatabase';
 import { FakeLockManager } from './tests/lib/localDataCoordinationFakes';
 
 // IndexedDB-backed route reads can exceed Testing Library's 1 s default on a
@@ -50,6 +51,13 @@ beforeEach(() => {
     configurable: true,
     value: new FakeLockManager(),
   });
+
+  // Mirrors the app composition root binding the shared database's migration
+  // context before any effect can open it (Epic C / C6, binding control 2),
+  // so the many tests that touch the shared singleton without an explicit
+  // `db` option keep working. A test exercising missing/conflicting-context
+  // behavior calls `deleteSharedDatabase()` first to undo this default.
+  getSharedDatabase(defaultTestMigrationContext);
 });
 
 afterEach(async () => {

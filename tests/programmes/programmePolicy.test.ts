@@ -83,6 +83,7 @@ function testDefinition(
   return {
     definitionKey: seedWithoutFinalProject.courseId,
     catalogueId: seedWithoutFinalProject.courseId,
+    programmeId: 'test-programme',
     title: seedWithoutFinalProject.title,
     catalogue: seedWithoutFinalProject,
     policy: testPolicy,

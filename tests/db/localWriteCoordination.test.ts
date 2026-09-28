@@ -27,6 +27,7 @@ import {
 } from '@/lib/storage';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   sampleCourseSeed,
   type TestDatabaseContext,
 } from './testDatabase';
@@ -1242,7 +1243,10 @@ describe('repository local-write coordination', () => {
 
   it('records one creation revision for concurrent objects sharing a database name', async () => {
     testDatabase = createTestDatabase('coordinated-shared-name-open');
-    secondaryDatabase = createProgressPalDatabase(testDatabase.name);
+    secondaryDatabase = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      testDatabase.name,
+    );
     const session = startLocalDataCoordination(() => undefined);
     stopCoordination = session.stop;
     await session.ready;

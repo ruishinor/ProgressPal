@@ -1,4 +1,8 @@
-export { isIndexedDbAvailable, type ProgressPalDatabase } from './database';
+export {
+  isIndexedDbAvailable,
+  type DatabaseMigrationContext,
+  type ProgressPalDatabase,
+} from './database';
 export {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,

@@ -23,6 +23,75 @@ import {
   progressPalDatabaseName,
 } from './constants';
 
+/**
+ * Neutral catalogue-authorization context for the v2 → v3 migration and
+ * catalogue sync (Epic C / C6, binding control 2). Supplied by the app
+ * composition root and bound to one `ProgressPalDatabase` instance at
+ * construction; it never lives in a separate module-global and is never
+ * threaded through the repository API. `src/lib` never imports
+ * `@/programmes`: composition passes this as plain data.
+ */
+export type DatabaseMigrationContext = {
+  readonly programmeId: string;
+  readonly authorizedCatalogues: ReadonlyArray<{
+    readonly courseId: string;
+    readonly programmeId: string;
+  }>;
+};
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function assertValidMigrationContext(
+  context: DatabaseMigrationContext,
+): void {
+  if (!isNonEmptyString(context?.programmeId)) {
+    throw new Error(
+      'Database migration context requires a non-empty programmeId.',
+    );
+  }
+
+  if (
+    !Array.isArray(context.authorizedCatalogues) ||
+    context.authorizedCatalogues.length === 0
+  ) {
+    throw new Error(
+      'Database migration context requires at least one authorized catalogue.',
+    );
+  }
+
+  for (const catalogue of context.authorizedCatalogues) {
+    if (
+      !isNonEmptyString(catalogue?.courseId) ||
+      !isNonEmptyString(catalogue?.programmeId)
+    ) {
+      throw new Error(
+        'Database migration context authorized catalogues require a non-empty courseId and programmeId.',
+      );
+    }
+  }
+}
+
+function migrationContextsAreEquivalent(
+  a: DatabaseMigrationContext,
+  b: DatabaseMigrationContext,
+): boolean {
+  return (
+    a.programmeId === b.programmeId &&
+    a.authorizedCatalogues.length === b.authorizedCatalogues.length &&
+    a.authorizedCatalogues.every((entry, index) => {
+      const other = b.authorizedCatalogues[index];
+
+      return (
+        other !== undefined &&
+        entry.courseId === other.courseId &&
+        entry.programmeId === other.programmeId
+      );
+    })
+  );
+}
+
 const versionOneStoreDefinitions = {
   app_meta: '&id, schemaVersion, seedVersion',
   learner_profile: '&id, updatedAt, preferredTheme',
@@ -97,9 +166,16 @@ export class ProgressPalDatabase extends Dexie {
   achievementDefinitions!: Table<AchievementDefinition, string>;
   achievementUnlocks!: Table<AchievementUnlock, string>;
   backups!: Table<BackupRecord, string>;
+  /** Bound once at construction (Epic C / C6, binding control 2). */
+  readonly migrationContext: DatabaseMigrationContext;
 
-  constructor(databaseName = progressPalDatabaseName) {
+  constructor(
+    migrationContext: DatabaseMigrationContext,
+    databaseName = progressPalDatabaseName,
+  ) {
     super(databaseName);
+    assertValidMigrationContext(migrationContext);
+    this.migrationContext = migrationContext;
 
     this.version(1).stores(versionOneStoreDefinitions);
     this.version(2)
@@ -125,13 +201,46 @@ export class ProgressPalDatabase extends Dexie {
 
 let sharedDatabase: ProgressPalDatabase | null = null;
 
-export function createProgressPalDatabase(databaseName?: string) {
-  return new ProgressPalDatabase(databaseName);
+export function createProgressPalDatabase(
+  migrationContext: DatabaseMigrationContext,
+  databaseName?: string,
+) {
+  return new ProgressPalDatabase(migrationContext, databaseName);
 }
 
-export function getSharedDatabase() {
+/**
+ * The shared singleton instance. The first call in a database lifetime must
+ * supply `migrationContext`, bound once to that instance (Epic C / C6,
+ * binding control 2); a later call may omit it (returning the already-bound
+ * instance) or repeat an equivalent context, but a conflicting context fails
+ * closed. There is no separate module-global context: it lives only on the
+ * instance itself, and is discarded along with it by `closeSharedDatabase`.
+ */
+export function getSharedDatabase(
+  migrationContext?: DatabaseMigrationContext,
+) {
   if (sharedDatabase === null) {
-    sharedDatabase = createProgressPalDatabase();
+    if (migrationContext === undefined) {
+      throw new Error(
+        'The ProgressPal database migration context is required to open the shared database and was not supplied.',
+      );
+    }
+
+    sharedDatabase = createProgressPalDatabase(migrationContext);
+
+    return sharedDatabase;
+  }
+
+  if (
+    migrationContext !== undefined &&
+    !migrationContextsAreEquivalent(
+      sharedDatabase.migrationContext,
+      migrationContext,
+    )
+  ) {
+    throw new Error(
+      'The supplied ProgressPal database migration context conflicts with the context already bound to the shared database.',
+    );
   }
 
   return sharedDatabase;

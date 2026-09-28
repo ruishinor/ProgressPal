@@ -38,6 +38,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { defaultTestMigrationContext } from '../../db/testDatabase';
 import { cs50CatalogueId, cs50Policy } from '../../programmes/cs50Policy';
 
 const courseStores = [
@@ -149,7 +150,7 @@ describe('A7 actual route and shell access matrix', () => {
     '$name satisfies aggregate access and all-store nonmutation',
     async (route) => {
       await deleteSharedDatabase();
-      const writer = createProgressPalDatabase();
+      const writer = createProgressPalDatabase(defaultTestMigrationContext);
       const initialization = await initializeDatabase({
         db: writer,
         seed: bundledCourseSeed,
@@ -194,7 +195,7 @@ describe('A7 actual route and shell access matrix', () => {
         },
         status: 'ready',
       };
-      const reader = getSharedDatabase();
+      const reader = getSharedDatabase(defaultTestMigrationContext);
       expect(reader.isOpen()).toBe(false);
       const probe = installDatabaseAccessProbe(reader);
       const router = createMemoryRouter(

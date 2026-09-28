@@ -13,6 +13,7 @@ import {
   initializeDatabase,
   isIndexedDbAvailable,
   saveLearnerProfile,
+  type DatabaseMigrationContext,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
@@ -72,13 +73,28 @@ type ProgrammeResolution =
 export type AppStateProviderProps = PropsWithChildren<{
   /** Supplied by the app composition root; called once per provider. */
   resolveProgramme: () => ProgrammeScope;
+  /**
+   * Supplied by the app composition root; called once per provider,
+   * synchronously before the programme scope resolution returns, so the
+   * shared database's migration context (Epic C / C6, binding control 2) is
+   * bound before any effect can open it.
+   */
+  resolveMigrationContext: () => DatabaseMigrationContext;
 }>;
 
 function resolveProgrammeOnce(
   resolveProgramme: () => ProgrammeScope,
+  resolveMigrationContext: () => DatabaseMigrationContext,
 ): ProgrammeResolution {
   try {
-    return { scope: resolveProgramme() };
+    const scope = resolveProgramme();
+
+    // Binds (or re-confirms) the shared database's migration context before
+    // any effect can reach it. Idempotent: a StrictMode double-invocation of
+    // this initializer rebinds the same context, which is allowed.
+    getSharedDatabase(resolveMigrationContext());
+
+    return { scope };
   } catch (error) {
     return { error };
   }
@@ -306,8 +322,11 @@ async function resolveStableApplicationState(
 export function AppStateProvider({
   children,
   resolveProgramme,
+  resolveMigrationContext,
 }: AppStateProviderProps) {
-  const [programme] = useState(() => resolveProgrammeOnce(resolveProgramme));
+  const [programme] = useState(() =>
+    resolveProgrammeOnce(resolveProgramme, resolveMigrationContext),
+  );
   const initialCoordination = getLocalCoordinationStatus();
   const acceptedRevisionRef = useRef<number | null>(null);
   const acknowledgementInProgressRef = useRef(false);

@@ -26,6 +26,7 @@ import { getXpAwardSourceKey } from '@/lib/xp/engine';
 import { bundledCourseSeed } from '@/seed';
 import {
   createTestDatabase,
+  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../../db/testDatabase';
 import {
@@ -441,7 +442,10 @@ describe('RPG Resource read boundary', () => {
   }
 
   async function openProbedResourceReader(context: TestDatabaseContext) {
-    const database = createProgressPalDatabase(context.name);
+    const database = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      context.name,
+    );
     readerDatabases.push(database);
     const probe = installDatabaseAccessProbe(database);
     await database.open();
@@ -1058,7 +1062,10 @@ describe('RPG Resource read boundary', () => {
     probe.reset();
     barrierEnabled = true;
 
-    const writerDb = createProgressPalDatabase(context.name);
+    const writerDb = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      context.name,
+    );
     await writerDb.open();
 
     let readPromise: ReturnType<typeof loadRpgStudyResourceSummary> | null =

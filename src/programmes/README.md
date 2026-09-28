@@ -21,7 +21,10 @@ Current responsibilities:
   Canonical vocabulary labels and rank labels stay shared in their feature
   modules; the brand text is outside Epic C (OD-6);
 - a one-entry registry with `getProgrammeDefinition` and
-  `getActiveProgrammeDefinition`, both failing closed.
+  `getActiveProgrammeDefinition`, both failing closed;
+- a stable persisted programme ownership identity, `programmeId` (Epic C /
+  C6, OD-5: `cs50x` for the `cs50x-2026` definition), distinct from
+  `definitionKey`/`catalogueId` and validated on every definition.
 
 Boundaries (ESLint and `tests/architecture/programmesLayer.test.ts`):
 
@@ -29,13 +32,15 @@ Boundaries (ESLint and `tests/architecture/programmesLayer.test.ts`):
   `@/lib/achievements` entrypoint and `@/seed`, plus `zod`; no app, component,
   feature, DB, storage, app-state or asset imports;
 - `src/lib/**` and `src/components/**` never import it; `src/app/**` and
-  `src/features/**` use the `@/programmes` entrypoint only.
+  `src/features/**` use the `@/programmes` entrypoint only. The composition
+  root derives the database migration context (Epic C / C6) from
+  `programmeId`/`catalogueId` here and passes it into `src/lib/db` as plain
+  data; `src/lib` never imports this layer.
 
 Policy shapes and shared mechanisms stay in `src/lib` (`@/lib/domain` policy
 contracts, `@/lib/xp`, `@/lib/achievements`); lib receives policy as a
 parameter and never imports this layer. Features and composition roots pass
 `getActiveProgrammeDefinition().policy`.
 
-Not here: scoped reads (C5), and any persisted programme identity,
-enrolment, active key, schema or backup field (C6/C7). `programmeId` is reserved for the future
-persisted ownership identity.
+Not here: scoped reads (C5), and any persisted enrolment, active key, schema
+or backup field beyond MR-0b (C6/C7).

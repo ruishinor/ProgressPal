@@ -27,6 +27,7 @@ import {
   upsertProgress,
   upsertProgressAndAwardXp,
 } from '@/lib/db';
+import type { DatabaseMigrationContext } from '@/lib/db';
 import type { CourseSeed, ProgrammeScope } from '@/lib/domain';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
@@ -37,6 +38,7 @@ import {
 import { validateProgrammeDefinition } from '@/programmes/definition';
 import { bundledCourseSeed } from '@/seed';
 
+import { closeSharedDatabase } from '@/lib/db/database';
 import {
   createTestDatabase,
   type TestDatabaseContext,
@@ -129,11 +131,19 @@ const altSeed: CourseSeed = {
   ],
 };
 const altUnitIds = altSeed.units.map((unit) => unit.id);
+/** Test-only migration context over the alt definition; never registered. */
+const altMigrationContext: DatabaseMigrationContext = {
+  programmeId: 'c5-alt-programme',
+  authorizedCatalogues: [
+    { courseId: altSeed.courseId, programmeId: 'c5-alt-programme' },
+  ],
+};
 
 /** Test-only definition over the alternate catalogue; never registered. */
 const altDefinition: ProgrammeDefinition = validateProgrammeDefinition({
   definitionKey: altSeed.courseId,
   catalogueId: altSeed.courseId,
+  programmeId: 'c5-alt-programme',
   title: altSeed.title,
   catalogue: altSeed,
   policy: {
@@ -401,9 +411,15 @@ function ScopeProbe() {
 describe('C5 repair: the scope is resolved once at the bootstrap composition', () => {
   it('resolves once, exposes the scope and seeds only its catalogue', async () => {
     const resolve = vi.fn(() => altScope);
+    // Undo the suite-wide default-context pre-bind so this provider's own
+    // fresh composition can bind the alt catalogue's context instead.
+    closeSharedDatabase();
 
     render(
-      <AppStateProvider resolveProgramme={resolve}>
+      <AppStateProvider
+        resolveProgramme={resolve}
+        resolveMigrationContext={() => altMigrationContext}
+      >
         <ScopeProbe />
       </AppStateProvider>,
     );
@@ -429,7 +445,10 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
     });
 
     render(
-      <AppStateProvider resolveProgramme={resolve}>
+      <AppStateProvider
+        resolveProgramme={resolve}
+        resolveMigrationContext={() => altMigrationContext}
+      >
         <ScopeProbe />
       </AppStateProvider>,
     );
@@ -449,6 +468,7 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   it('materializes and reads the composed catalogue, not a hard-wired CS50 seed', async () => {
     await onboardShared({ alt: false });
     injected.definition = altDefinition;
+    closeSharedDatabase();
 
     await renderAppAtRoute('/rpg/map');
     await screen.findByTestId('rpg-module-c5-alt-unit-a', undefined, {
@@ -464,6 +484,7 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   it('drives the Classic course map from the composed scope', async () => {
     await onboardShared({ alt: true });
     injected.definition = altDefinition;
+    closeSharedDatabase();
 
     await renderAppAtRoute('/course');
     await screen.findByTestId('course-unit-c5-alt-unit-a', undefined, {
@@ -618,6 +639,11 @@ describe('C5 unmaterialized catalogue scope fails closed through the actual rout
     async (route, message) => {
       await onboardShared({ alt: false });
       injected.definition = unmaterializedDefinition;
+      // The database is already migrated; closing (not deleting) the shared
+      // instance lets the render's fresh composition root rebind the
+      // migration context to the unmaterialized catalogue without
+      // conflicting with the bind `onboardShared` already made.
+      closeSharedDatabase();
       vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       await renderAppAtRoute(route);
@@ -632,6 +658,7 @@ describe('C5 unmaterialized catalogue scope fails closed through the actual rout
   it('does not open a CS50 resource under an unmaterialized scope', async () => {
     await onboardShared({ alt: false });
     injected.definition = unmaterializedDefinition;
+    closeSharedDatabase();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await renderAppAtRoute('/rpg/resource/week-0-lecture');

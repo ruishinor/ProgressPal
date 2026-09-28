@@ -11,7 +11,7 @@ import * as storage from '@/lib/storage';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { bundledCourseSeed } from '@/seed';
 import { FakeLockManager } from '../lib/localDataCoordinationFakes';
-import { cs50Scope } from '../programmes/cs50Policy';
+import { cs50MigrationContext, cs50Scope } from '../programmes/cs50Policy';
 
 const defaultLearnerProfileValues = database.defaultLearnerProfileValues;
 
@@ -140,7 +140,10 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider resolveProgramme={() => cs50Scope}>
+      <AppStateProvider
+        resolveProgramme={() => cs50Scope}
+        resolveMigrationContext={() => cs50MigrationContext}
+      >
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -169,7 +172,10 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider resolveProgramme={() => cs50Scope}>
+      <AppStateProvider
+        resolveProgramme={() => cs50Scope}
+        resolveMigrationContext={() => cs50MigrationContext}
+      >
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -231,7 +237,10 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider resolveProgramme={() => cs50Scope}>
+      <AppStateProvider
+        resolveProgramme={() => cs50Scope}
+        resolveMigrationContext={() => cs50MigrationContext}
+      >
         <ProviderProbe
           observations={observations}
           onValue={(value) => {
@@ -418,7 +427,10 @@ describe('AppStateProvider freshness', () => {
     let latestValue: AppStateContextValue | null = null;
 
     render(
-      <AppStateProvider resolveProgramme={() => cs50Scope}>
+      <AppStateProvider
+        resolveProgramme={() => cs50Scope}
+        resolveMigrationContext={() => cs50MigrationContext}
+      >
         <ProviderProbe
           observations={[]}
           onValue={(value) => {

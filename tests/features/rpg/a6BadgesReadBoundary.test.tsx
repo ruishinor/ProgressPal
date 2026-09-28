@@ -42,6 +42,7 @@ import {
   installDatabaseAccessProbe,
   type DatabaseAccessSnapshot,
 } from '../../db/accessProbe';
+import { defaultTestMigrationContext } from '../../db/testDatabase';
 import { cs50Policy } from '../../programmes/cs50Policy';
 
 const fixtureXpCount = 7;
@@ -154,7 +155,7 @@ async function seedSharedDatabase(
 ) {
   await deleteSharedDatabase();
 
-  const writer = createProgressPalDatabase();
+  const writer = createProgressPalDatabase(defaultTestMigrationContext);
   const initialization = await database.initializeDatabase({
     db: writer,
     seed: bundledCourseSeed,
@@ -174,6 +175,11 @@ async function seedSharedDatabase(
 
   writer.close();
   closeSharedDatabase();
+  // Rebinds a fresh, unopened shared instance so callers can go straight to a
+  // real read/render without remembering to rebind first; construction alone
+  // never triggers Dexie's lazy open, so `.isOpen()` still reads false for
+  // any caller measuring a first-open probe.
+  getSharedDatabase(defaultTestMigrationContext);
 
   return { initialization, profile };
 }
@@ -261,7 +267,7 @@ describe('A6 Badges actual-route read boundary', () => {
 
     // Fixture writes are complete before the measured reader exists. The probe
     // is installed before the shared reader first opens.
-    const measuredReader = getSharedDatabase();
+    const measuredReader = getSharedDatabase(defaultTestMigrationContext);
     expect(measuredReader.isOpen()).toBe(false);
     const accessProbe = installDatabaseAccessProbe(measuredReader);
 
@@ -416,7 +422,7 @@ describe('A6 Badges actual-route read boundary', () => {
       policy: cs50Policy,
     });
     closeSharedDatabase();
-    const reader = getSharedDatabase();
+    const reader = getSharedDatabase(defaultTestMigrationContext);
     const probe = installDatabaseAccessProbe(reader);
     const result = await database.readAchievementsSurfaceData({
       policy: cs50Policy,
@@ -437,7 +443,7 @@ describe('A6 Badges actual-route read boundary', () => {
         createXpFixtures(7),
         ['first-step', 'bug-hunter', 'zz-unknown'],
       );
-      const writer = createProgressPalDatabase();
+      const writer = createProgressPalDatabase(defaultTestMigrationContext);
       const firstDefinition = achievementDefinitions[0]!;
       await writer.achievementDefinitions.put({
         ...firstDefinition,
@@ -445,7 +451,7 @@ describe('A6 Badges actual-route read boundary', () => {
         description: 'Persisted copy must not replace product definitions.',
       });
       writer.close();
-      const reader = getSharedDatabase();
+      const reader = getSharedDatabase(defaultTestMigrationContext);
       const probe = installDatabaseAccessProbe(reader);
       const { container } = renderVariant(
         variant,
@@ -531,7 +537,7 @@ describe('A6 Badges actual-route read boundary', () => {
       const fixtureStarted = performance.now();
       await seedSharedDatabase(xp, ids);
       const fixtureDurationMs = Math.round(performance.now() - fixtureStarted);
-      const reader = getSharedDatabase();
+      const reader = getSharedDatabase(defaultTestMigrationContext);
       const probe = installDatabaseAccessProbe(reader);
       const started = performance.now();
       const result = await database.readAchievementsSurfaceData({
@@ -566,7 +572,7 @@ describe('A6 Badges actual-route read boundary', () => {
   it('holds unlock and XP state in one snapshot across a competing atomic write', async () => {
     const xp = createXpFixtures(1);
     await seedSharedDatabase(xp);
-    const writer = createProgressPalDatabase();
+    const writer = createProgressPalDatabase(defaultTestMigrationContext);
     await writer.open();
     let announceRead!: () => void;
     let releaseRead!: () => void;
@@ -577,7 +583,7 @@ describe('A6 Badges actual-route read boundary', () => {
       releaseRead = resolve;
     });
     let paused = false;
-    const reader = getSharedDatabase();
+    const reader = getSharedDatabase(defaultTestMigrationContext);
     const probe = installDatabaseAccessProbe(reader, {
       beforeCursor(op) {
         if (!paused && op.store === 'xp_transactions') {
@@ -644,7 +650,7 @@ describe('A6 Badges actual-route read boundary', () => {
     async (kind) => {
       const xp = createXpFixtures(7);
       await seedSharedDatabase(xp);
-      const writer = createProgressPalDatabase();
+      const writer = createProgressPalDatabase(defaultTestMigrationContext);
       if (kind === 'xp')
         await writer.xpTransactions.update(xp[6]!.id, { xp: -1 });
       else
@@ -652,7 +658,7 @@ describe('A6 Badges actual-route read boundary', () => {
           unlockedAt: 'invalid',
         });
       writer.close();
-      const probe = installDatabaseAccessProbe(getSharedDatabase());
+      const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext));
       await expect(
         database.readAchievementsSurfaceData({ policy: cs50Policy }),
       ).rejects.toBeInstanceOf(SchemaValidationError);
@@ -673,7 +679,7 @@ describe('A6 Badges actual-route read boundary', () => {
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);
       let failed = false;
-      const probe = installDatabaseAccessProbe(getSharedDatabase(), {
+      const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext), {
         beforeCursor(op) {
           if (!failed && op.store === 'achievement_unlocks') {
             failed = true;
@@ -716,7 +722,7 @@ describe('A6 Badges actual-route read boundary', () => {
     );
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     let failed = false;
-    const probe = installDatabaseAccessProbe(getSharedDatabase(), {
+    const probe = installDatabaseAccessProbe(getSharedDatabase(defaultTestMigrationContext), {
       beforeCursor(op) {
         if (!failed && op.store === 'media_progress_events') {
           failed = true;

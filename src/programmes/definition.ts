@@ -110,6 +110,13 @@ export type ProgrammeTerminology = {
 export type ProgrammeDefinition = {
   readonly definitionKey: string;
   readonly catalogueId: string;
+  /**
+   * Stable persisted programme ownership identity (Epic C / C6, OD-5).
+   * Distinct from `definitionKey`/`catalogueId`: it never changes across a
+   * catalogue edition and is the identity `catalogue_versions` and
+   * `programme_enrolments` rows are keyed by.
+   */
+  readonly programmeId: string;
   readonly title: string;
   /** Reference to the bundled catalogue; it is never copied or migrated here. */
   readonly catalogue: CourseSeed;
@@ -178,10 +185,17 @@ const terminologySchema = z
   })
   .strict();
 
+const programmeIdPattern = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
+const programmeIdSchema = nonEmptyString.regex(programmeIdPattern, {
+  message:
+    'must be a lowercase kebab-case or snake_case identifier containing only letters, numbers, hyphens, or underscores',
+});
+
 const definitionSchema = z
   .object({
     definitionKey: nonEmptyString,
     catalogueId: nonEmptyString,
+    programmeId: programmeIdSchema,
     title: nonEmptyString,
     catalogue: z.custom<CourseSeed>(
       (value) => typeof value === 'object' && value !== null,
