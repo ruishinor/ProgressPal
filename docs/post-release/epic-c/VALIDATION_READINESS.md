@@ -2,8 +2,9 @@
 
 Current state: **C5 `C5_ACCEPTED_CLOSED_LOCALLY`** (C4
 `C4_ACCEPTED_CLOSED_LOCALLY`, C3 `C3_ACCEPTED_CLOSED_LOCALLY`, C2
-`C2_ACCEPTED_CLOSED_LOCALLY`, C1 `C1_ACCEPTED_CLOSED`). C6 has not started and
-is not authorized.
+`C2_ACCEPTED_CLOSED_LOCALLY`, C1 `C1_ACCEPTED_CLOSED`). C6 is ready for a
+separate owner start authorization; it has not started and is not
+authorized.
 
 - C1 was accepted and closed locally in the docs/evidence-binding closure
   commit D (`C1_CLOSURE_RECORD.md`).
@@ -28,9 +29,12 @@ is not authorized.
   P3 RED then GREEN and the Classic and bootstrap repair evidence, and the
   owner accepted it with its documented residual boundaries; C5 is closed
   locally (`C5_CLOSURE_RECORD.md`).
-- C6's "C5 accepted" prerequisite is met. C6 remains blocked on OD-1 to OD-5,
-  an accepted schema-change decision record and the C6 readiness record, and
-  starting it needs a separate direct owner instruction.
+- C6 prerequisites: MR-0a resolved and recorded (`SPEC.md` §6), MR-0b
+  accepted (`C6_SCHEMA_CHANGE_DECISION_RECORD.md`), MR-0c and MR-0d
+  satisfied, MR-0e accepted (`C6_READINESS_RECORD.md`). All C6 planning and
+  readiness prerequisites are satisfied; starting C6 needs a separate direct
+  owner instruction. No product implementation has started. Publishing and
+  stabilizing the pre-schema line is a C6 deployment gate only.
 
 The C0 validation below is historical and unchanged.
 
@@ -167,13 +171,13 @@ protected by a stronger family-A behaviour table instead.
 
 ## 5. Readiness matrix
 
-| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                           |
-| ----- | ------------------------------------------------ | ------------------------------------------- | --------------------------------------------------------------- |
-| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)                    |
-| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Accepted and closed (`C2_CLOSURE_RECORD.md`)                    |
-| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | Accepted and closed (`C3_CLOSURE_RECORD.md`)                    |
-| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | Accepted and closed (`C4_CLOSURE_RECORD.md`)                    |
-| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | Accepted and closed (`C5_CLOSURE_RECORD.md`)                    |
-| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Blocked (C5 accepted; owner decisions and C6 readiness pending) |
-| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                         |
-| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                           |
+| Story | Primary evidence at start                        | Owner input needed to start                 | Ready                                                                   |
+| ----- | ------------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------- |
+| C1    | unchanged baseline code                          | owner review of C0 PASS (process gate)      | Accepted and closed (`C1_CLOSURE_RECORD.md`)                            |
+| C2    | C1 link/guide/identity evidence                  | OD-9 (not OD-5: definition key only)        | Accepted and closed (`C2_CLOSURE_RECORD.md`)                            |
+| C3    | C1 XP, reachability, unlock-behaviour, identity  | none                                        | Accepted and closed (`C3_CLOSURE_RECORD.md`)                            |
+| C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | Accepted and closed (`C4_CLOSURE_RECORD.md`)                            |
+| C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | Accepted and closed (`C5_CLOSURE_RECORD.md`)                            |
+| C6    | MR-0a–MR-15; C1 schema-2 fixture                 | OD-1–OD-5, schema decision record           | Ready for separate owner start authorization (`C6_READINESS_RECORD.md`) |
+| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                                 |
+| C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                                   |

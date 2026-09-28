@@ -5,8 +5,10 @@ closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
 `C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`;
-`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). C6 has not started and
-is not authorized.
+`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). **C6 is ready for a
+separate owner start authorization** (OD-1 to OD-5 resolved,
+`C6_SCHEMA_CHANGE_DECISION_RECORD.md` and `C6_READINESS_RECORD.md`
+accepted); C6 has not started and is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -35,12 +37,16 @@ is not authorized.
   `3bdf71b2` is superseded) and authorized one bounded repair round.
   The owner accepted repaired implementation `7fd87fe5` with its documented
   residual boundaries, and C5 is closed locally (`C5_CLOSURE_RECORD.md`).
-- C6 has not started and is not authorized. Its "C5 accepted" prerequisite
-  is met; it remains blocked on OD-1 to OD-5, an accepted schema-change
-  decision record and the C6 readiness record, and needs a separate direct
-  owner instruction.
+- C6 planning and readiness prerequisites are all satisfied: OD-1 to OD-5
+  are resolved and recorded (§6, MR-0a); the schema-change decision record
+  (MR-0b) and the C6 readiness record (MR-0e) are accepted; MR-0c and MR-0d
+  are satisfied. C6 is ready for a separate owner start authorization, has
+  not started and is not authorized; no product implementation has started.
 - Publication is deferred: no C2–C5 acceptance changes `origin/master` or
-  Production.
+  Production. Publishing and stabilizing the pre-schema line (Epic B through
+  C5) before any C6 migration reaches Production is a C6 deployment gate
+  only; it neither authorizes publication now nor blocks local C6
+  implementation.
 
 Authority: Bootstrap v7.0
 (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256
@@ -189,8 +195,46 @@ Resolution status:
     authorized. On this repository a push to `master` deploys to Production
     automatically, and CI runs without gating the merge.
 
-Additionally, C6 requires an **accepted schema-change decision record**
-(`AGENTS.md` forbids schema changes without one).
+- **OD-1 to OD-5** were resolved by the owner on 2026-09-28 (C6 MR-0a):
+  - **OD-5:** the stable persisted programme identity is `cs50x`. Editions
+    are distinct authorized catalogues of `cs50x` with distinct catalogue,
+    unit, item and asset IDs and their own version state; editions may
+    coexist once explicitly authorized. No automatic progress carry-over
+    (future carry-over needs a separately reviewed mapping/migration story);
+    no reused cross-edition IDs; no predecessor collision exceptions; no
+    persisted user-selectable active catalogue. In C6, `cs50x-2026` is the
+    only authorized catalogue; a future edition's story must extend the
+    authorized set.
+  - **OD-3:** multiple enrolments may exist; exactly one programme is
+    active. The sole registered production programme is enrolled and
+    activated on fresh initialization and on valid v2 → v3 migration.
+    `app_meta.activeProgrammeId` is the authoritative active pointer; an
+    enrolment row contains only `programmeId` and `enrolledAt`. Switching
+    remains C7.
+  - **OD-1:** XP and level remain learner-global; no programme ownership
+    field or index is added to XP.
+  - **OD-2:** all six platform-neutral shared achievements remain earned once
+    per learner; existing IDs and unique `achievementId` semantics are
+    unchanged.
+  - **OD-4:** study sessions, session/history display, Insights, the weekly
+    target and the learner profile remain learner-global during C6;
+    active-programme filtering is deferred.
+  - With these decisions: `catalogue_versions` becomes the sole
+    catalogue-version authority (legacy `app_meta.seedVersion` migrated once
+    and removed from v3); duplicate `(sourceType, sourceId)` XP awards are
+    rejected by migration, import and invariant validation, with no XP
+    compound index unless implementation evidence requires one (then C6
+    stops); a failed v2 → v3 migration aborts atomically and leaves v2
+    intact, a successful v3 has no automatic downgrade, schema-2 backups
+    restore by forward conversion, and returning to an older application is
+    unsupported absent a separately authorized destructive recovery
+    procedure; C6 remains one story with bounded phases; publishing and
+    stabilizing the pre-schema line is a C6 deployment gate only.
+
+C6's schema change is covered by the **accepted schema-change decision
+record** `C6_SCHEMA_CHANGE_DECISION_RECORD.md` (MR-0b; `AGENTS.md` forbids
+schema changes without one) and planned by `C6_READINESS_RECORD.md`
+(MR-0e).
 
 ## 7. Rejected alternatives
 

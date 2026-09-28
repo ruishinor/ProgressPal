@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c5_accepted_closed_c6_not_started
+current_state: c5_accepted_closed_c6_ready_for_start_authorization
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -213,8 +213,11 @@ stories:
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
-    state: blocked_on_owner_decisions
-    prerequisite_status: partially satisfied - C5 accepted (2026-09-28); OD-1 to OD-5, the accepted schema-change decision record and the C6 readiness record (MR-0e) are not met; C6 start needs a separate direct owner instruction
+    state: ready_for_start_authorization
+    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 is not started and not authorized; starting it needs a separate direct owner instruction
+    records: [C6_SCHEMA_CHANGE_DECISION_RECORD.md, C6_READINESS_RECORD.md]
+    implementation_started: false
+    deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local implementation
     objective: Freeze the persisted programme ownership identity (after OD-5) and introduce per-catalogue version state, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
     prerequisites:
       [
@@ -227,7 +230,7 @@ stories:
         accepted schema-change decision record,
         C6 readiness record (MR-0e),
       ]
-    allowed_scope: defined by the C6 readiness record within C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md section 7
+    allowed_scope: C6_READINESS_RECORD.md section 2, within C0_DATA_OWNERSHIP_AND_MIGRATION_MAP.md section 7 and exactly the schema in C6_SCHEMA_CHANGE_DECISION_RECORD.md
     forbidden_scope:
       - re-keying CS50 identifiers; database rename
       - XP or unlock writes by the migration
