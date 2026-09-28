@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c5_repaired_ready_for_owner_review_c6_not_started
+current_state: c5_accepted_closed_c6_not_started
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -178,15 +178,16 @@ stories:
 
   - id: C5
     title: Programme-scoped catalogue reads
-    state: repaired_ready_for_owner_review
-    disposition: C5_REPAIRED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW
+    state: accepted_closed
+    disposition: C5_ACCEPTED_CLOSED_LOCALLY
     branch: cx/epic-c5-programme-scoped-reads
     branch_point: 609cb60743cc20fb178c5eac2f4fc3120ae23ea6
-    implementation_candidate: 7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04
+    accepted_implementation_commit: 7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04
+    readiness_record: 83cc12e9de880e4e7de9e295942b60237c11f933
     first_candidate: 9c704f0fd331a6f7f56d76087ddec053c50a072a
     first_candidate_review: 'not accepted by independent owner review - scope not resolved once at bootstrap; Classic Course, Dashboard and Content Detail reads unscoped; overstated unregistered-key evidence. Readiness record 3bdf71b2 superseded'
     records: [C5_CLOSURE_RECORD.md]
-    acceptance: not accepted; owner decision required
+    acceptance: 'accepted by direct owner instruction 2026-09-28 (repaired implementation 7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04) with its documented residual boundaries - presentation and content lookups outside the C5 catalogue read/write scope resolve the single registered definition; study sessions and the session item picker stay global pending OD-4; a foreign global session may show its raw item ID; actual-route fail-closed evidence is for an unmaterialized catalogue, registry rejection is unit and provider evidence (C5_CLOSURE_RECORD.md section 10). No C6 authorization'
     prerequisite_status: satisfied (C4 accepted 2026-09-28; direct owner C5-start authorization received before implementation)
     objective: Pass the active definition explicitly from bootstrap and scope catalogue-derived reads (units, items, progress by item, derived media, achievement catalogue context, XP preview context) by its catalogue identity (course_units.courseId, cs50x-2026), with no schema change and no persisted programme identity
     prerequisites: [C4 accepted]
@@ -213,6 +214,7 @@ stories:
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
     state: blocked_on_owner_decisions
+    prerequisite_status: partially satisfied - C5 accepted (2026-09-28); OD-1 to OD-5, the accepted schema-change decision record and the C6 readiness record (MR-0e) are not met; C6 start needs a separate direct owner instruction
     objective: Freeze the persisted programme ownership identity (after OD-5) and introduce per-catalogue version state, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
     prerequisites:
       [

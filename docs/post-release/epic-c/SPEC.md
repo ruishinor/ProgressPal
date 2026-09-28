@@ -1,12 +1,12 @@
 # Epic C — programme platform foundation
 
-Status: **C0 accepted by owner review; C1, C2, C3 and C4 accepted and
+Status: **C0 accepted by owner review; C1, C2, C3, C4 and C5 accepted and
 closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
-`C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`). **C5 repaired and
-validated locally, ready for owner review, not accepted**
-(`C5_CLOSURE_RECORD.md`). C6 has not started and is not authorized.
+`C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`;
+`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). C6 has not started and
+is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -33,12 +33,14 @@ validated locally, ready for owner review, not accepted**
   C4 clarification tip `609cb607`, under a direct owner instruction. The
   owner did not accept first candidate `9c704f0f` (its readiness record
   `3bdf71b2` is superseded) and authorized one bounded repair round.
-  Repaired candidate `7fd87fe5` passed every required final gate and awaits
-  owner acceptance (`C5_CLOSURE_RECORD.md`).
-- C6 has not started and is not authorized. It needs C5 accepted and owner
-  decisions OD-1 to OD-5.
-- Publication is deferred: neither C2, C3 nor C4 acceptance nor C5 changes
-  `origin/master` or Production.
+  The owner accepted repaired implementation `7fd87fe5` with its documented
+  residual boundaries, and C5 is closed locally (`C5_CLOSURE_RECORD.md`).
+- C6 has not started and is not authorized. Its "C5 accepted" prerequisite
+  is met; it remains blocked on OD-1 to OD-5, an accepted schema-change
+  decision record and the C6 readiness record, and needs a separate direct
+  owner instruction.
+- Publication is deferred: no C2–C5 acceptance changes `origin/master` or
+  Production.
 
 Authority: Bootstrap v7.0
 (`ProgressPal_New_Chat_Bootstrap_v7_0_2026-09-25.zip`, SHA-256

@@ -2,7 +2,13 @@
 
 ## 1. State
 
-**`C5_REPAIRED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`**
+**`C5_ACCEPTED_CLOSED_LOCALLY`**
+
+- On 2026-09-28 the owner directly accepted repaired implementation
+  candidate `7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04` and the documented
+  residual boundaries (§10). The acceptance is recorded by a
+  documentation-only acceptance commit, which does not change the accepted
+  implementation bytes.
 
 - C5 was implemented on 2026-09-28 under a direct owner instruction: C5 from
   the C4 clarification tip `609cb607`, local commits only, review-ready state
@@ -14,26 +20,26 @@
 - The owner authorized one bounded repair round from `3bdf71b2`. The repaired
   implementation candidate is `7fd87fe5` (§2). Every required final gate
   passed on that exact commit (§8).
-- **C5 is not accepted.** The owner decides whether to accept or reject the
-  repaired candidate.
-- C6 has not started and is not authorized. Its prerequisites (C5 accepted,
-  OD-1 to OD-5, a schema-change decision record, the C6 readiness record) are
-  not met.
+- C6 has not started and is not authorized. Its prerequisite "C5 accepted"
+  is now met; OD-1 to OD-5, an accepted schema-change decision record and the
+  C6 readiness record are not, and starting C6 needs a separate direct owner
+  instruction.
 - Publication is deferred. Nothing was pushed, merged, tagged or deployed, and
   `origin/master` and Production are unchanged.
 
 ## 2. Identities
 
-| Item                      | Value                                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Owner authorization       | direct owner instructions, 2026-09-28: C5 from `609cb607`; one bounded repair round from `3bdf71b2`           |
-| Branch                    | `cx/epic-c5-programme-scoped-reads`                                                                           |
-| Branch point              | `609cb60743cc20fb178c5eac2f4fc3120ae23ea6` (C4 clarification tip; tree `26b712db`, `src` `4eac5095`)          |
-| First candidate           | `9c704f0fd331a6f7f56d76087ddec053c50a072a` (tree `ac502d42`, `src` `927a565c`): **not accepted**              |
-| First readiness record    | `3bdf71b2337b673a5d98c28e80b1f1ca1b0df846` (docs only): **superseded**                                        |
-| Repaired candidate        | `7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04` (tree `e376435d`, parent `3bdf71b2`): **implementation candidate** |
-| Repaired candidate `src`  | `0eb3b51ca3fa87aec9349d29e4ce8358c82f5e6a`                                                                    |
-| Repaired readiness record | the documentation-only commit that revises this file (parent `7fd87fe5`)                                      |
+| Item                      | Value                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Owner authorization       | direct owner instructions, 2026-09-28: C5 from `609cb607`; one bounded repair round from `3bdf71b2`     |
+| Branch                    | `cx/epic-c5-programme-scoped-reads`                                                                     |
+| Branch point              | `609cb60743cc20fb178c5eac2f4fc3120ae23ea6` (C4 clarification tip; tree `26b712db`, `src` `4eac5095`)    |
+| First candidate           | `9c704f0fd331a6f7f56d76087ddec053c50a072a` (tree `ac502d42`, `src` `927a565c`): **not accepted**        |
+| First readiness record    | `3bdf71b2337b673a5d98c28e80b1f1ca1b0df846` (docs only): **superseded**                                  |
+| Accepted implementation   | `7fd87fe5aea1ec3a0db1cd807e827fc33c3c6b04` (tree `e376435d`, parent `3bdf71b2`): **accepted**           |
+| Accepted `src` subtree    | `0eb3b51ca3fa87aec9349d29e4ce8358c82f5e6a`                                                              |
+| Repaired readiness record | `83cc12e9de880e4e7de9e295942b60237c11f933` (docs only, parent `7fd87fe5`): pre-acceptance readiness tip |
+| Acceptance record         | the documentation-only commit that records the acceptance (parent `83cc12e9`)                           |
 
 ## 3. What C5 implements
 
@@ -196,6 +202,10 @@ further product defect appeared.
 | `git diff --check`       | exit 0                                                                                    |
 
 - No test was skipped, retried or weakened, and no timeout changed.
+- This product validation belongs to the accepted implementation
+  `7fd87fe5`. It was not rerun for the documentation-only readiness commit
+  `83cc12e9` or the acceptance commit, which change no code, test,
+  configuration or evidence.
 - `verify:release` was not run, because publication is a separate decision.
 - The E2E aggregate regenerated the 64 disposable C1 captures. All 64 are
   byte-identical (same-name per-PNG SHA-256) to the accepted inventory in
@@ -220,6 +230,10 @@ change exists, and the registry has one entry. No C6–C8 work was done.
 
 ## 10. Residual limits
 
+The owner accepted these residual boundaries with the implementation on
+2026-09-28. The acceptance authorizes no broader scoping, OD-4 decision or C6
+work.
+
 - Presentation and content lookups still use the programme accessor during
   render or in pure builders: C4 terminology, C2 links and guides, the C3
   status workflow for status options, achievement titles in save outcomes,
@@ -239,9 +253,12 @@ change exists, and the registry has one entry. No C6–C8 work was done.
 
 ## 11. Disposition
 
-- **C5:** repaired and validated locally; ready for owner review; **not
-  accepted**. First candidate `9c704f0f` not accepted; readiness `3bdf71b2`
-  superseded.
-- **C6:** not started and not authorized; blocked on C5 acceptance and owner
-  decisions OD-1 to OD-5.
+- **C5:** accepted and closed locally. The owner accepted implementation
+  `7fd87fe5` and the §10 residual boundaries on 2026-09-28. First candidate
+  `9c704f0f` was not accepted; its readiness record `3bdf71b2` is superseded;
+  `83cc12e9` is the repaired pre-acceptance readiness tip.
+- **C6:** not started and not authorized. Its "C5 accepted" prerequisite is
+  met; it remains blocked on OD-1 to OD-5, an accepted schema-change decision
+  record and the C6 readiness record, and needs a separate direct owner
+  instruction.
 - **Publication:** deferred; `origin/master` and Production are unchanged.
