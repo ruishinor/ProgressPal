@@ -213,8 +213,8 @@ stories:
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
-    state: c6_r2_repaired_pending_owner_review
-    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) produced candidate e6372af (closure C6_R_CLOSURE_RECORD.md); independent owner review did not accept it, finding an incomplete D1 repair (D1b) and a missing mandatory 64/64 C1 visual comparison. A second bounded repair round (C6-R2) produced replacement candidate af92334 (closure C6_R2_CLOSURE_RECORD.md), repairing D1b and completing the 64/64 comparison (identical, against the unchanged accepted baseline). C6 remains NOT accepted pending separate owner review of C6-R2. C7 is not started and not authorized. No publication occurred
+    state: c6_r3_repaired_pending_owner_review
+    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) produced candidate e6372af (closure C6_R_CLOSURE_RECORD.md); independent owner review did not accept it, finding an incomplete D1 repair (D1b) and a missing mandatory 64/64 C1 visual comparison. A second bounded repair round (C6-R2) produced candidate af92334 (closure C6_R2_CLOSURE_RECORD.md), repairing D1b and completing the 64/64 comparison; independent owner review did not accept it either, finding one further reachable branch of the same D1 defect family (D1c, in addStudySessionAndAwardXp's existing-session branch) plus two evidence/documentation completions. A third bounded repair round (C6-R3) produced replacement candidate 6f4ca7d (closure C6_R3_CLOSURE_RECORD.md), repairing D1c, strengthening D1b evidence, and supplying the complete MR-1 through MR-15 matrix, passing the full local gate including a repeated 64/64 identical comparison. C6 remains NOT accepted pending separate owner review of C6-R3. C7 is not started and not authorized. No publication occurred
     records:
       [
         C6_SCHEMA_CHANGE_DECISION_RECORD.md,
@@ -222,6 +222,7 @@ stories:
         C6_CLOSURE_RECORD.md,
         C6_R_CLOSURE_RECORD.md,
         C6_R2_CLOSURE_RECORD.md,
+        C6_R3_CLOSURE_RECORD.md,
       ]
     implementation_started: true
     deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local implementation
