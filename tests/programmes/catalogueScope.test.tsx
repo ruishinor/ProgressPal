@@ -466,12 +466,14 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   }, 30_000);
 
   it('keeps a failed resolution as the existing bootstrap error, with no default programme', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     const resolve = vi.fn((): ProgrammeScope => {
       throw new Error('Simulated programme resolution failure');
     });
 
-    render(
+    const rendered = render(
       <AppStateProvider
         resolveProgramme={resolve}
         resolveMigrationContext={() => altMigrationContext}
@@ -480,16 +482,30 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
       </AppStateProvider>,
     );
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('scope-probe').textContent).toBe(
-          'error|Local data could not be loaded.|none',
-        );
-      },
-      { timeout: 15_000 },
-    );
-    expect(resolve).toHaveBeenCalledTimes(1);
-    expect(await listCourseUnits()).toEqual([]);
+    try {
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('scope-probe').textContent).toBe(
+            'error|Local data could not be loaded.|none',
+          );
+        },
+        { timeout: 15_000 },
+      );
+      expect(resolve).toHaveBeenCalledTimes(1);
+      expect(await listCourseUnits()).toEqual([]);
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(consoleError).toHaveBeenCalledWith(
+        'App state initialization failed.',
+        expect.objectContaining({
+          message: 'Simulated programme resolution failure',
+        }),
+      );
+    } finally {
+      // Keep the expected error contained until the provider's coordination
+      // session is stopped. The file-level afterEach restores the spy only
+      // after this explicit unmount, so no late refresh can escape to stderr.
+      rendered.unmount();
+    }
   }, 30_000);
 
   it('materializes and reads the composed catalogue, not a hard-wired CS50 seed', async () => {

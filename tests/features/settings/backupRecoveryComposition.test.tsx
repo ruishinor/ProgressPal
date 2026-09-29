@@ -74,6 +74,16 @@ describe('backup recovery composition (Epic C6-R, D2)', () => {
     );
     await userEvent.click(confirmButton);
 
+    // handleImport does not navigate until runLocalMutation's post-restore
+    // provider refresh has completed. Waiting for the real destination route
+    // therefore keeps teardown from closing the shared database while that
+    // refresh is still resolving application state.
+    await screen.findByRole(
+      'heading',
+      { name: 'RPG Hub' },
+      { timeout: 15_000 },
+    );
+
     await waitFor(
       async () => {
         const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });
