@@ -258,6 +258,7 @@ stories:
     state: blocked_on_owner_decisions
     objective: Allow more than one registered definition with fail-closed cross-definition ID-collision validation; switching writes only enrolment/active state
     prerequisites: [C6 accepted, OD-3, OD-10]
+    prerequisite_status: C6 accepted; OD-3 resolved in C6 MR-0a; OD-10 unresolved; C7 not authorized
     allowed_scope: registry validation, enrolment/switching mutation, one switching control within the existing shell
     forbidden_scope:
       - navigation/HUD redesign (Epic D); a production second programme (Epic E)

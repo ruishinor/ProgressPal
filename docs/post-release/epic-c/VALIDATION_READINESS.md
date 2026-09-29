@@ -192,5 +192,5 @@ protected by a stronger family-A behaviour table instead.
 | C4    | C1 label evidence, rendered-text tests, captures | none (OD-6 only if brand text would change) | Accepted and closed (`C4_CLOSURE_RECORD.md`)                                             |
 | C5    | P3 RED with test-only catalogue; Epic A probes   | none (scopes by catalogue identity)         | Accepted and closed (`C5_CLOSURE_RECORD.md`)                                             |
 | C6    | MR-0a–MR-15; C1 schema-2 fixture                 | none                                        | Accepted and closed locally (`C6_R3_CLOSURE_RECORD.md` §18; owner acceptance 2026-09-29) |
-| C7    | C6 state; isolation tests                        | OD-3, OD-10                                 | Blocked                                                                                  |
+| C7    | C6 state; isolation tests                        | OD-10 (OD-3 resolved)                       | Blocked; C7 not authorized                                                               |
 | C8    | C1 retained baseline; asset/token identity       | OD-7 (or confirmed need), OD-8              | Deferred until needed                                                                    |
