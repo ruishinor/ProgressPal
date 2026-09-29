@@ -3282,6 +3282,15 @@ export async function addStudySessionAndAwardXp(
       ],
       async () => {
         markCurrentTransactionCoordinated(database);
+        // Epic C6-R, D1c: the existing-session branch below assigns
+        // `studySession` from a prior row and skips `addStudySession`
+        // entirely - the only place this function otherwise reaches
+        // `ensureBaseInitialization`. Establishing the invariant here,
+        // before branching, means it is checked on both branches rather
+        // than only when a new session is actually written. This transaction
+        // already includes `programmeEnrolments` (D1b), so the nested check
+        // can run inside it.
+        await ensureBaseInitialization({ ...options, db: database });
         // 1. Save study session source event
         if (input.id) {
           const existing = await database.studySessions.get(input.id);

@@ -158,6 +158,14 @@ describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
       .first();
 
     expect(persisted).toBeUndefined();
+    // No XP was awarded for the rejected attempt.
+    expect(await testDatabase.db.xpTransactions.count()).toBe(0);
+    // The missing enrolment is not silently repaired by the failed attempt.
+    expect(
+      await testDatabase.db.programmeEnrolments.get(
+        testDatabase.db.migrationContext.programmeId,
+      ),
+    ).toBeUndefined();
   });
 
   it('D1b-B: logMediaProgressAndAwardXp fails closed on a missing active-programme enrolment', async () => {
@@ -198,6 +206,14 @@ describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
       .first();
 
     expect(persisted).toBeUndefined();
+    // No XP was awarded for the rejected attempt.
+    expect(await testDatabase.db.xpTransactions.count()).toBe(0);
+    // The missing enrolment is not silently repaired by the failed attempt.
+    expect(
+      await testDatabase.db.programmeEnrolments.get(
+        testDatabase.db.migrationContext.programmeId,
+      ),
+    ).toBeUndefined();
   });
 
   it('D1b-C: addStudySessionAndAwardXp fails closed on a missing active-programme enrolment', async () => {
@@ -236,6 +252,14 @@ describe('database bootstrap invariants (Epic C6-R, D1b)', () => {
     const persisted = await testDatabase.db.studySessions.get('session-d1b');
 
     expect(persisted).toBeUndefined();
+    // No XP was awarded for the rejected attempt.
+    expect(await testDatabase.db.xpTransactions.count()).toBe(0);
+    // The missing enrolment is not silently repaired by the failed attempt.
+    expect(
+      await testDatabase.db.programmeEnrolments.get(
+        testDatabase.db.migrationContext.programmeId,
+      ),
+    ).toBeUndefined();
   });
 
   it('D1b (valid-state regression): all three compound paths still succeed with a valid enrolment', async () => {
