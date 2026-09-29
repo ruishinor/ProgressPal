@@ -12,7 +12,7 @@ c0_original_candidate:
   branch: cx/epic-c0-programme-readiness
   commit: 137ffde46423a13f07dd8ba4a13a6e0b67b7dd65
 c0_reconciliation_branch: cx/epic-c0-v7-reconciliation
-current_state: c5_accepted_closed_c6_ready_for_start_authorization
+current_state: c6_accepted_closed_locally_c7_not_authorized
 owner_decisions: SPEC.md section 6 (OD-1 to OD-10)
 stories:
   - id: C0
@@ -213,8 +213,14 @@ stories:
 
   - id: C6
     title: Persisted programme ownership, catalogue/version state and migration
-    state: c6_r3_repaired_pending_owner_review
-    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) produced candidate e6372af (closure C6_R_CLOSURE_RECORD.md); independent owner review did not accept it, finding an incomplete D1 repair (D1b) and a missing mandatory 64/64 C1 visual comparison. A second bounded repair round (C6-R2) produced candidate af92334 (closure C6_R2_CLOSURE_RECORD.md), repairing D1b and completing the 64/64 comparison; independent owner review did not accept it either, finding one further reachable branch of the same D1 defect family (D1c, in addStudySessionAndAwardXp's existing-session branch) plus two evidence/documentation completions. A third bounded repair round (C6-R3) produced replacement candidate 6f4ca7d (closure C6_R3_CLOSURE_RECORD.md), repairing D1c, strengthening D1b evidence, and supplying the complete MR-1 through MR-15 matrix, passing the full local gate including a repeated 64/64 identical comparison. C6 remains NOT accepted pending separate owner review of C6-R3. C7 is not started and not authorized. No publication occurred
+    state: accepted_closed
+    disposition: C6_ACCEPTED_CLOSED_LOCALLY
+    accepted_implementation_commit: 6f4ca7da31247ecac8f0763ec38f51a209e4ff8a
+    accepted_implementation_tree: 2497a1425d3614505a54cd6beccf4a372e39ea6f
+    accepted_implementation_src_subtree: fb3ed560147e1b42bd687f54872cdb683b3f4775
+    validation_closure_basis: aca97d88331fb05159c5f3c104aedb136fa0c7c8
+    acceptance: accepted by direct owner instruction 2026-09-29 (exact candidate 6f4ca7da31247ecac8f0763ec38f51a209e4ff8a, validated by C6-R3 closure aca97d88331fb05159c5f3c104aedb136fa0c7c8; disposition recorded in C6_R3_CLOSURE_RECORD.md section 18). No product code, test, schema, dependency or build configuration changed as part of acceptance. No C7 authorization. No publication
+    prerequisite_status: satisfied (2026-09-28) - C5 accepted; OD-1 to OD-5 resolved and recorded (MR-0a, SPEC.md section 6); schema-change decision record accepted (MR-0b); MR-0c and MR-0d satisfied; readiness record accepted (MR-0e). C6 was implemented on candidate 7af18c2 (closure b3c6544); independent owner review rejected that candidate (defects D1, D2, and process/evidence gaps). One bounded repair round (C6-R) produced candidate e6372af (closure C6_R_CLOSURE_RECORD.md); independent owner review did not accept it, finding an incomplete D1 repair (D1b) and a missing mandatory 64/64 C1 visual comparison. A second bounded repair round (C6-R2) produced candidate af92334 (closure C6_R2_CLOSURE_RECORD.md), repairing D1b and completing the 64/64 comparison; independent owner review did not accept it either, finding one further reachable branch of the same D1 defect family (D1c, in addStudySessionAndAwardXp's existing-session branch) plus two evidence/documentation completions. A third bounded repair round (C6-R3) produced replacement candidate 6f4ca7d (closure C6_R3_CLOSURE_RECORD.md), repairing D1c, strengthening D1b evidence, and supplying the complete MR-1 through MR-15 matrix, passing the full local gate including a repeated 64/64 identical comparison. The owner directly accepted this exact candidate on 2026-09-29 (see acceptance field). C7 is not started and not authorized. No publication occurred
     records:
       [
         C6_SCHEMA_CHANGE_DECISION_RECORD.md,
@@ -225,7 +231,7 @@ stories:
         C6_R3_CLOSURE_RECORD.md,
       ]
     implementation_started: true
-    deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local implementation
+    deployment_gate: publish and stabilize the pre-schema line (Epic B through C5) before any C6 migration reaches Production; not authorization to publish and not a prerequisite for local acceptance
     objective: Freeze the persisted programme ownership identity (after OD-5) and introduce per-catalogue version state, sync-level collision rejection, enrolment/active state and only the explicit ownership fields the owner decisions justify, with the backup schema transform
     prerequisites:
       [

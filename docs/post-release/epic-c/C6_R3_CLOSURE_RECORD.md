@@ -324,3 +324,44 @@ navigation change. No programme-switching semantics. No C7 work.
 Maximum state reached:
 `C6_REPAIRED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`. Not
 `C6_ACCEPTED`.
+
+## 18. Final owner disposition (post-closure)
+
+This section was added after this record's original closure, to document
+a separate, subsequent owner decision. It does not change anything in
+sections 1–17 above, which remain exactly as recorded at the moment
+C6-R3 validation completed and awaited review. At that time C6 was **not
+accepted** and this record's maximum state was
+`C6_REPAIRED_AND_VALIDATED_LOCALLY_READY_FOR_OWNER_REVIEW`; that was true
+when written.
+
+The owner subsequently and directly accepted this exact candidate:
+
+| Item                              | Value                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| Owner acceptance date             | 2026-09-29                                                                        |
+| Accepted implementation candidate | `6f4ca7da31247ecac8f0763ec38f51a209e4ff8a`                                        |
+| Accepted implementation tree      | `2497a1425d3614505a54cd6beccf4a372e39ea6f`                                        |
+| Accepted `src` subtree            | `fb3ed560147e1b42bd687f54872cdb683b3f4775`                                        |
+| Validated R3 closure basis        | `aca97d88331fb05159c5f3c104aedb136fa0c7c8` (this record, as originally committed) |
+
+No product code, test, fixture, schema, dependency, or build configuration
+changed as part of recording this acceptance. This section is a
+documentation-only addition on top of the already-validated candidate.
+
+Final disposition:
+
+- Epic C / C6: **LOCALLY ACCEPTED AND CLOSED**.
+- Accepted implementation: `6f4ca7da31247ecac8f0763ec38f51a209e4ff8a`.
+- C7: **NOT AUTHORIZED**. No C7 branch, story start, or implementation was
+  introduced by this acceptance.
+- Publication: **NOT AUTHORIZED**. `origin/master` remains
+  `d4b945ba0b024ceb4fbd29d70bcecc8496b3c6c3`, unchanged.
+- Push: NONE. Merge: NONE. Tag: NONE. Deploy: NONE.
+- The pre-schema publication/deployment sequencing referenced in §16
+  remains a separate, not-yet-authorized operational requirement before
+  any C6 migration reaches Production.
+
+This section does not reopen D1, D1b, D1c, D2, RD3, E1, E2, the C1
+oracle, the schema boundary, or any MR in §14. It records only the
+owner's acceptance decision.

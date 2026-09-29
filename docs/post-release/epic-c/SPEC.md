@@ -1,17 +1,19 @@
 # Epic C — programme platform foundation
 
-Status: **C0 accepted by owner review; C1, C2, C3, C4 and C5 accepted and
-closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
+Status: **C0 accepted by owner review; C1, C2, C3, C4, C5 and C6 accepted
+and closed locally** (`C1_ACCEPTED_CLOSED`, `C1_CLOSURE_RECORD.md`;
 `C2_ACCEPTED_CLOSED_LOCALLY`, `C2_CLOSURE_RECORD.md`;
 `C3_ACCEPTED_CLOSED_LOCALLY`, `C3_CLOSURE_RECORD.md`;
 `C4_ACCEPTED_CLOSED_LOCALLY`, `C4_CLOSURE_RECORD.md`;
-`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`). **C6 was
-implemented; its first candidate was rejected by independent owner
-review; a first repair round (C6-R) and a second (C6-R2) were also not
-accepted; a third bounded repair round (C6-R3) is complete and awaits
-separate owner review** (`C6_CLOSURE_RECORD.md`, `C6_R_CLOSURE_RECORD.md`,
-`C6_R2_CLOSURE_RECORD.md`, `C6_R3_CLOSURE_RECORD.md`). C6 is NOT accepted.
-C7 has not started and is not authorized.
+`C5_ACCEPTED_CLOSED_LOCALLY`, `C5_CLOSURE_RECORD.md`;
+`C6_ACCEPTED_CLOSED_LOCALLY`, `C6_R3_CLOSURE_RECORD.md` §18). **C6's first
+candidate was rejected by independent owner review; two further bounded
+repair rounds (C6-R, C6-R2) were also not accepted; a third bounded
+repair round (C6-R3) produced candidate `6f4ca7d`, which passed the full
+local gate a third time and which the owner directly accepted on
+2026-09-29** (`C6_CLOSURE_RECORD.md`, `C6_R_CLOSURE_RECORD.md`,
+`C6_R2_CLOSURE_RECORD.md`, `C6_R3_CLOSURE_RECORD.md`). C7 has not started
+and is not authorized.
 
 - The accepted retained visual baseline is
   `c1-visual-baseline-69b1db7.zip`, SHA-256
@@ -69,9 +71,10 @@ C7 has not started and is not authorized.
   (`C6_R3_CLOSURE_RECORD.md`), which repairs D1c, strengthens the D1b
   evidence with explicit no-XP/no-silent-repair assertions, supplies the
   complete MR-1 through MR-15 matrix, passes the full local gate again,
-  and repeats the 64/64 identical visual comparison. C6 remains **not
-  accepted** pending separate owner review of C6-R3. C7 has not started
-  and is not authorized.
+  and repeats the 64/64 identical visual comparison. Independent owner
+  review of this exact candidate accepted it directly on 2026-09-29
+  (`C6_R3_CLOSURE_RECORD.md` §18); **C6 is now accepted and closed
+  locally**. C7 has not started and is not authorized.
 - Publication is deferred: no C2–C5 acceptance changes `origin/master` or
   Production. Publishing and stabilizing the pre-schema line (Epic B through
   C5) before any C6 migration reaches Production is a C6 deployment gate
