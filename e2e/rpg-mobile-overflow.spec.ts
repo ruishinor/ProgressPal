@@ -168,24 +168,45 @@ async function expectReadableRpgHeaderSurface(
     `${route.path} route heading inside RPG header`,
   ).toBeVisible();
 
-  const surface = await header.evaluate((element) => {
-    const scope = globalThis as unknown as BrowserLayoutScope;
-    const styles = scope.getComputedStyle(element);
+  const readHeaderStyle = (
+    property:
+      | 'backgroundColor'
+      | 'borderTopWidth'
+      | 'paddingLeft'
+      | 'paddingRight',
+  ) =>
+    header.evaluate((element, name) => {
+      const scope = globalThis as unknown as BrowserLayoutScope;
 
-    return {
-      backgroundColor: styles.backgroundColor,
-      borderTopWidth: styles.borderTopWidth,
-      paddingLeft: styles.paddingLeft,
-      paddingRight: styles.paddingRight,
-    };
-  });
+      return scope.getComputedStyle(element)[name];
+    }, property);
 
-  expect(surface.backgroundColor, `${route.path} header background`).not.toBe(
-    'rgba(0, 0, 0, 0)',
-  );
-  expect(Number.parseFloat(surface.borderTopWidth)).toBeGreaterThan(0);
-  expect(Number.parseFloat(surface.paddingLeft)).toBeGreaterThan(0);
-  expect(Number.parseFloat(surface.paddingRight)).toBeGreaterThan(0);
+  await expect
+    .poll(() => readHeaderStyle('backgroundColor'), {
+      message: `${route.path} header background`,
+    })
+    .not.toBe('rgba(0, 0, 0, 0)');
+  await expect
+    .poll(
+      async () => Number.parseFloat(await readHeaderStyle('borderTopWidth')),
+      {
+        message: `${route.path} header border width`,
+      },
+    )
+    .toBeGreaterThan(0);
+  await expect
+    .poll(async () => Number.parseFloat(await readHeaderStyle('paddingLeft')), {
+      message: `${route.path} header left padding`,
+    })
+    .toBeGreaterThan(0);
+  await expect
+    .poll(
+      async () => Number.parseFloat(await readHeaderStyle('paddingRight')),
+      {
+        message: `${route.path} header right padding`,
+      },
+    )
+    .toBeGreaterThan(0);
 }
 
 for (const viewport of mobileViewports) {
