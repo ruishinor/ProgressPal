@@ -26,7 +26,6 @@ import {
 } from '@/lib/db';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
-import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   rpgBadgesPath,
   rpgMapPath,
@@ -96,7 +95,8 @@ function InsightsSection({ rpg, ...props }: CardProps & { rpg: boolean }) {
 
 export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
   const { programmeScope } = useAppState();
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-log'

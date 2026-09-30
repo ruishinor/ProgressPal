@@ -24,7 +24,6 @@ import {
   getRpgResourcePath,
   rpgMapPath,
 } from '@/lib/routing/rpgRoutePaths';
-import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgModulePageStatus = 'error' | 'loading' | 'ready';
 
@@ -77,7 +76,8 @@ function getResourceActionLabel(quest: RpgQuestSummary) {
 }
 
 function RpgWeekLoadingState() {
-  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+  const { unitNoun } = requireProgrammeScope(useAppState().programmeScope)
+    .content.terminology;
 
   return (
     <section className="page-section rpg-week">
@@ -95,7 +95,8 @@ function RpgWeekLoadingState() {
 
 export function RpgModulePage() {
   const { programmeScope } = useAppState();
-  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+  const { unitNoun } = requireProgrammeScope(useAppState().programmeScope)
+    .content.terminology;
   const { unitId } = useParams();
   const [state, setState] = useState<RpgModulePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -104,8 +105,6 @@ export function RpgModulePage() {
     let isActive = true;
 
     async function loadSummary() {
-      const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
-
       startTransition(() => {
         setState((currentState) => ({
           ...currentState,
@@ -175,7 +174,7 @@ export function RpgModulePage() {
     return () => {
       isActive = false;
     };
-  }, [programmeScope, reloadToken, unitId]);
+  }, [programmeScope, reloadToken, unitId, unitNoun.lowercase]);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {

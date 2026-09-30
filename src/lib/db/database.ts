@@ -46,7 +46,11 @@ import {
   type DatabaseMigrationContext,
 } from './migrationContext';
 
-export type { DatabaseMigrationContext } from './migrationContext';
+export {
+  isAuthorizedProgramme,
+  listAuthorizedProgrammeIds,
+  type DatabaseMigrationContext,
+} from './migrationContext';
 
 const versionOneStoreDefinitions = {
   app_meta: '&id, schemaVersion, seedVersion',

@@ -1,6 +1,7 @@
 import type {
   CourseItem,
   CourseUnit,
+  ProgrammeScope,
   ProgressEntry,
   XpTransaction,
 } from '@/lib/domain';
@@ -10,7 +11,7 @@ import {
   getXpAwardSourceKey,
   isUnitCompletionAward,
 } from '@/lib/xp/engine';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { getDefaultProgrammeDefinition } from '@/programmes';
 
 type QuestRewardLedger =
   | {
@@ -30,14 +31,16 @@ export type QuestRewardData = {
 
 /**
  * A read-only incentive from the existing engine and earned-reward ledger.
- * The XP policy is the active programme's (Epic C / C3).
+ * The XP policy and reward wording are the active programme's (Epic C / C3,
+ * C7): runtime callers pass the active scope.
  */
-export function buildQuestRewardLabel(
+export function buildProgrammeQuestRewardLabel(
+  programme: Pick<ProgrammeScope, 'content' | 'policy'>,
   snapshot: QuestRewardData,
   itemId: string,
   detailed = false,
 ) {
-  const { policy: programmePolicy, content } = getActiveProgrammeDefinition();
+  const { policy: programmePolicy, content } = programme;
   const { xp: policy, workflow } = programmePolicy;
   const item = snapshot.courseItems.find(
     (candidate) => candidate.id === itemId,
@@ -91,4 +94,23 @@ export function buildQuestRewardLabel(
   return detailed && weekXp > 0
     ? `${taskLabel} · +${weekXp} XP when ${unit.title} is complete`
     : taskLabel;
+}
+
+/**
+ * CS50-default compatibility entrypoint (Epic C / C3). Keeps its signature for
+ * the C1 preservation oracles and existing tests, which call it without a
+ * scope. Runtime code never calls it; it uses
+ * {@link buildProgrammeQuestRewardLabel} with the active scope.
+ */
+export function buildQuestRewardLabel(
+  snapshot: QuestRewardData,
+  itemId: string,
+  detailed = false,
+) {
+  return buildProgrammeQuestRewardLabel(
+    getDefaultProgrammeDefinition(),
+    snapshot,
+    itemId,
+    detailed,
+  );
 }

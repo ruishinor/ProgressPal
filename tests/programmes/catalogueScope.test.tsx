@@ -10,7 +10,6 @@ import {
 } from '@/features/rpg';
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
 import { loadRpgHudSummary } from '@/features/rpg/model/readModels';
-import { sharedAchievementDefinitions } from '@/lib/achievements';
 import { AppStateProvider, useAppState } from '@/lib/appState';
 import {
   addStudySession,
@@ -27,15 +26,15 @@ import {
   upsertProgress,
   upsertProgressAndAwardXp,
 } from '@/lib/db';
-import type { DatabaseMigrationContext } from '@/lib/db';
-import type { CourseSeed, ProgrammeScope } from '@/lib/domain';
+import type { ProgrammeScope } from '@/lib/domain';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
-  getActiveProgrammeDefinition,
+  createProgrammeRegistry,
+  getDefaultProgrammeDefinition,
   listRegisteredDefinitionKeys,
   type ProgrammeDefinition,
+  type ProgrammeRegistry,
 } from '@/programmes';
-import { validateProgrammeDefinition } from '@/programmes/definition';
 import { bundledCourseSeed } from '@/seed';
 
 import {
@@ -45,9 +44,16 @@ import {
 } from '@/lib/db/database';
 import {
   createTestDatabase,
-  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../db/testDatabase';
+import {
+  altDefinition,
+  altMigrationContext,
+  altSeed,
+  altUnitIds,
+  bothCataloguesMigrationContext,
+  scopeOf,
+} from './c7Fixture';
 
 /**
  * Epic C / C5 P3 and repair evidence: catalogue-derived reads and saves are
@@ -63,7 +69,7 @@ import {
  */
 
 const injected = vi.hoisted(() => ({
-  definition: null as ProgrammeDefinition | null,
+  registry: null as ProgrammeRegistry | null,
 }));
 
 vi.mock('@/programmes', async (importOriginal) => {
@@ -71,135 +77,47 @@ vi.mock('@/programmes', async (importOriginal) => {
 
   return {
     ...actual,
-    getActiveProgrammeDefinition: () =>
-      injected.definition ?? actual.getActiveProgrammeDefinition(),
+    getProgrammeRegistry: () =>
+      injected.registry ?? actual.getProgrammeRegistry(),
   };
 });
 
-const cs50 = getActiveProgrammeDefinition();
+const cs50 = getDefaultProgrammeDefinition();
 const cs50UnitIds = bundledCourseSeed.units.map((unit) => unit.id);
 const cs50RequiredItemIds = bundledCourseSeed.units
   .flatMap((unit) => unit.items)
   .filter((item) => item.required)
   .map((item) => item.id);
 
-const altSeed: CourseSeed = {
-  courseId: 'c5-alt-catalogue',
-  title: 'C5 alternate catalogue',
-  dataVersion: 1,
-  sourceCheckedDate: '2026-09-28',
-  units: [
-    {
-      id: 'c5-alt-unit-a',
-      order: 0,
-      title: 'Alt Unit A',
-      type: 'week',
-      sourceYear: 2026,
-      required: true,
-      items: [
-        {
-          id: 'c5-alt-unit-a-lecture',
-          type: 'lecture',
-          title: 'Alt lecture',
-          required: true,
-          estimatedMinutes: 60,
-          order: 0,
-        },
-        {
-          id: 'c5-alt-unit-a-problem-set',
-          type: 'problem_set',
-          title: 'Alt problem set',
-          required: true,
-          estimatedMinutes: 90,
-          order: 1,
-        },
-      ],
-    },
-    {
-      id: 'c5-alt-unit-b',
-      order: 1,
-      title: 'Alt Unit B',
-      type: 'special',
-      sourceYear: 2026,
-      required: false,
-      items: [
-        {
-          id: 'c5-alt-unit-b-reading',
-          type: 'reading',
-          title: 'Alt reading',
-          required: false,
-          estimatedMinutes: 30,
-          order: 0,
-        },
-      ],
-    },
-  ],
-};
-const altUnitIds = altSeed.units.map((unit) => unit.id);
-/** Test-only migration context over the alt definition; never registered. */
-const altMigrationContext: DatabaseMigrationContext = {
-  programmeId: 'c5-alt-programme',
-  authorizedCatalogues: [
-    { courseId: altSeed.courseId, programmeId: 'c5-alt-programme' },
-  ],
-};
-
-/**
- * Test-only context authorizing both catalogues at once, for a database that
- * syncs both through the real `ensureCourseCatalogFromSeed` path; neither
- * catalogue enters the production registry.
- */
-const bothCataloguesMigrationContext: DatabaseMigrationContext = {
-  programmeId: defaultTestMigrationContext.programmeId,
-  authorizedCatalogues: [
-    ...defaultTestMigrationContext.authorizedCatalogues,
-    ...altMigrationContext.authorizedCatalogues,
-  ],
-};
-
-/** Test-only definition over the alternate catalogue; never registered. */
-const altDefinition: ProgrammeDefinition = validateProgrammeDefinition({
-  definitionKey: altSeed.courseId,
-  catalogueId: altSeed.courseId,
-  programmeId: 'c5-alt-programme',
-  title: altSeed.title,
-  catalogue: altSeed,
-  policy: {
-    ...cs50.policy,
-    catalogueRules: { requiredUnitTypes: [] },
-    xp: { ...cs50.policy.xp, itemMilestones: [] },
-    achievements: sharedAchievementDefinitions,
-  },
-  content: {
-    externalResources: {
-      allowedUrlPrefixes: ['https://example.test/'],
-      unitLinks: {},
-      itemLinks: {},
-    },
-    studyGuides: { unitGuides: {}, itemGuides: {} },
-    terminology: {
-      ...cs50.content.terminology,
-      unitMapOrdinals: { 'c5-alt-unit-a': 'A', 'c5-alt-unit-b': 'B' },
-    },
-  },
-});
-
 /**
  * An injected composition whose catalogue identity has no materialized unit.
- * It bypasses definition validation on purpose; it is not a registry key
- * rejection (the registry's own rejection is tested in registry.test.ts).
+ * It bypasses definition and registry validation on purpose (a hand-built
+ * registry stub); it is not a registry rejection (the registry's own
+ * rejection is tested in registry.test.ts and registryC7.test.ts).
  */
 const unmaterializedDefinition: ProgrammeDefinition = {
   ...cs50,
   catalogueId: 'c5-unmaterialized',
 };
 
-function scopeOf(definition: ProgrammeDefinition): ProgrammeScope {
+function unvalidatedRegistry(
+  definition: ProgrammeDefinition,
+): ProgrammeRegistry {
   return {
-    catalogue: definition.catalogue,
-    catalogueId: definition.catalogueId,
-    policy: definition.policy,
+    defaultProgrammeId: definition.programmeId,
+    definitions: [definition],
+    getByDefinitionKey: () => definition,
+    getByProgrammeId: () => definition,
+    getDefault: () => definition,
   };
+}
+
+/** The alternate programme as the only registered definition and default. */
+function altOnlyRegistry() {
+  return createProgrammeRegistry({
+    defaultProgrammeId: altDefinition.programmeId,
+    definitions: [altDefinition],
+  });
 }
 
 const cs50Scope = scopeOf(cs50);
@@ -257,7 +175,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  injected.definition = null;
+  injected.registry = null;
   vi.restoreAllMocks();
   await Promise.all(databases.splice(0).map((context) => context.cleanup()));
 });
@@ -435,9 +353,11 @@ function ScopeProbe() {
   );
 }
 
-describe('C5 repair: the scope is resolved once at the bootstrap composition', () => {
-  it('resolves once, exposes the scope and seeds only its catalogue', async () => {
-    const resolve = vi.fn(() => altScope);
+describe('C5 repair, as evolved by C7: the scope is resolved from persisted state through the composition', () => {
+  it('resolves the persisted programme, exposes its scope and seeds only its catalogue', async () => {
+    const resolve = vi.fn<(programmeId: string) => ProgrammeScope>(
+      () => altScope,
+    );
     // Undo the suite-wide default-context pre-bind so this provider's own
     // fresh composition can bind the alt catalogue's context instead.
     closeSharedDatabase();
@@ -459,7 +379,15 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
       },
       { timeout: 15_000 },
     );
-    expect(resolve).toHaveBeenCalledTimes(1);
+    // C7: every stable resolution asks for the persisted active programme
+    // (superseding C5's resolve-once), and only that programme's catalogue is
+    // materialized.
+    // Re-resolution is legitimate, but every resolution in this scenario must
+    // ask for the persisted programme and nothing else.
+    expect(resolve).toHaveBeenCalled();
+    expect(resolve.mock.calls.map(([programmeId]) => programmeId)).toEqual(
+      Array(resolve.mock.calls.length).fill('c5-alt-programme'),
+    );
     expect((await listCourseUnits()).map((unit) => unit.id)).toEqual(
       altUnitIds,
     );
@@ -509,7 +437,7 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   }, 30_000);
 
   it('materializes and reads the composed catalogue, not a hard-wired CS50 seed', async () => {
-    injected.definition = altDefinition;
+    injected.registry = altOnlyRegistry();
     // Epic C6-R, D1: `activeProgrammeId` is a stable persisted identity, so a
     // device bootstrapped under one composed programme can no longer be
     // silently reopened under a different one — reusing `onboardShared`'s
@@ -542,7 +470,7 @@ describe('C5 repair: the scope is resolved once at the bootstrap composition', (
   }, 30_000);
 
   it('drives the Classic course map from the composed scope', async () => {
-    injected.definition = altDefinition;
+    injected.registry = altOnlyRegistry();
     // Epic C6-R, D1: see the equivalent note above — bootstrap and onboard
     // directly under the alt-composed definition on fresh storage instead of
     // reusing `onboardShared`'s cs50x-bootstrapped storage. Reading the
@@ -717,7 +645,7 @@ describe('C5 unmaterialized catalogue scope fails closed through the actual rout
     'renders the existing error state on %s',
     async (route, message) => {
       await onboardShared({ alt: false });
-      injected.definition = unmaterializedDefinition;
+      injected.registry = unvalidatedRegistry(unmaterializedDefinition);
       // The database is already migrated; closing (not deleting) the shared
       // instance lets the render's fresh composition root rebind the
       // migration context to the unmaterialized catalogue without
@@ -736,7 +664,7 @@ describe('C5 unmaterialized catalogue scope fails closed through the actual rout
 
   it('does not open a CS50 resource under an unmaterialized scope', async () => {
     await onboardShared({ alt: false });
-    injected.definition = unmaterializedDefinition;
+    injected.registry = unvalidatedRegistry(unmaterializedDefinition);
     closeSharedDatabase();
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
 

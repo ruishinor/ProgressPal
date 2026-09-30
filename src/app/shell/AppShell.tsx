@@ -13,16 +13,22 @@ import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairCon
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
-import { getActiveProgrammeDefinition } from '@/programmes';
 
 export function AppShell() {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
   const location = useLocation();
-  const { coordination, error, profile, refresh, requiresOnboarding, status } =
-    useAppState();
+  const {
+    coordination,
+    error,
+    profile,
+    programmeScope,
+    refresh,
+    requiresOnboarding,
+    status,
+  } = useAppState();
   const mainRef = useMainContentFocus<HTMLElement>();
   const onboardingRoute = getRouteDefinition('onboarding');
   const onboardingPath = onboardingRoute.to ?? '/onboarding';
@@ -51,7 +57,12 @@ export function AppShell() {
             value: 'Loading local data',
           },
         ]}
-        summary={copy.startupLoadingSummary}
+        summary={
+          // Before the persisted programme is known this is the default
+          // programme's wording; a failed composition has no programme at all.
+          programmeScope?.content.terminology.copy.startupLoadingSummary ??
+          'Preparing local profile data.'
+        }
         title="ProgressPal CS50 Edition"
       >
         <section className="page-section">
@@ -192,7 +203,8 @@ export function AppShell() {
       summary={
         requiresOnboarding
           ? 'Create the local learner profile before opening the rest of the app. Nothing is synced or sent anywhere.'
-          : copy.shellActiveSummary
+          : requireProgrammeScope(programmeScope).content.terminology.copy
+              .shellActiveSummary
       }
       title="ProgressPal CS50 Edition"
     >

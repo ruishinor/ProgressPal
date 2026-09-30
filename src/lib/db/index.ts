@@ -1,5 +1,7 @@
 export {
+  isAuthorizedProgramme,
   isIndexedDbAvailable,
+  listAuthorizedProgrammeIds,
   type DatabaseMigrationContext,
   type ProgressPalDatabase,
 } from './database';
@@ -16,6 +18,8 @@ export {
   addStudySessionAndAwardXp,
   correctStudySessionAssignment,
   addXpTransaction,
+  enrolAndSwitchActiveProgramme,
+  enrolInProgramme,
   ensureCourseCatalogFromSeed,
   getAchievementsView,
   getAppMeta,
@@ -41,6 +45,7 @@ export {
   listCourseItems,
   listCourseUnits,
   listMediaProgressEvents,
+  listProgrammeEnrolments,
   listProgressEntries,
   listResumePoints,
   listStudySessions,
@@ -54,6 +59,7 @@ export {
   resetAllData,
   restoreDatabaseFromBackup,
   saveLearnerProfile,
+  switchActiveProgramme,
   updateProfile,
   upsertProgress,
   upsertProgressAndAwardXp,

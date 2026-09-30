@@ -26,7 +26,6 @@ import {
 } from '@/lib/db';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
-import { getActiveProgrammeDefinition } from '@/programmes';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 type DashboardPageStatus = 'error' | 'loading' | 'ready';
@@ -72,7 +71,8 @@ function continueNextReasonLabel(reason: DashboardContinueNextReason) {
 
 export function DashboardPage() {
   const { programmeScope } = useAppState();
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const [state, setState] = useState<DashboardPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 

@@ -4,11 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FormField } from '@/components/ui/FormField';
 import {
   ImportBackupControl,
   type BackupImportSelection,
 } from '@/components/ui/ImportBackupControl';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Select } from '@/components/ui/Select';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
@@ -20,6 +22,7 @@ import {
   serializeBackupEnvelope,
 } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,
@@ -30,8 +33,6 @@ import {
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
-import { getActiveProgrammeDefinition } from '@/programmes';
-import { requireProgrammeScope } from '@/lib/domain';
 
 // The same settings surface renders in two shells: the classic Settings route
 // and the RPG settings route (/rpg/settings). Settings is the product concept;
@@ -68,7 +69,8 @@ function downloadJson(fileName: string, contents: string) {
 }
 
 export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const isRpgVariant = variant === 'rpg';
   const sectionClassName = isRpgVariant
     ? 'page-section rpg-settings'
@@ -76,14 +78,21 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   const navigate = useNavigate();
   const {
     coordination,
+    enrolAndSwitchProgramme,
     persistenceStatus,
     profile,
-    programmeScope,
+    programmeChoices,
     requestPersistentStorage,
     runLocalMutation,
     saveProfile,
+    switchProgramme,
   } = useAppState();
   const [toast, setToast] = useState<SettingsToast | null>(null);
+  const [selectedProgrammeId, setSelectedProgrammeId] = useState<string | null>(
+    null,
+  );
+  const [switching, setSwitching] = useState(false);
+  const [switchFailed, setSwitchFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -173,8 +182,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     try {
       await runLocalMutation(
         () =>
+          // No seed: a restored backup keeps its own validated active
+          // programme, and the provider's refresh materializes that
+          // programme's catalogue from the persisted state.
           restoreDatabaseFromBackup(selection.envelope.data, {
-            seed: requireProgrammeScope(programmeScope).catalogue,
             fileName: selection.fileName,
           }),
         { invalidateRoute: true },
@@ -199,15 +210,12 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     setResetting(true);
 
     try {
-      await runLocalMutation(
-        () =>
-          resetAllData({
-            seed: requireProgrammeScope(programmeScope).catalogue,
-          }),
-        {
-          invalidateRoute: true,
-        },
-      );
+      // Reset ends in the explicit default programme; the provider's refresh
+      // then materializes that programme's catalogue. Nothing is seeded from
+      // whichever programme happened to be active before the reset.
+      await runLocalMutation(() => resetAllData(), {
+        invalidateRoute: true,
+      });
       // App state now requires onboarding again; the shell redirects there.
     } catch {
       setToast({
@@ -220,6 +228,36 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   }
 
   const resetReady = resetPhrase.trim() === resetConfirmationPhrase;
+  const activeProgramme = programmeChoices.find((choice) => choice.active);
+  const switchTargets = programmeChoices.filter((choice) => !choice.active);
+  const switchTarget =
+    switchTargets.find(
+      (choice) => choice.programmeId === selectedProgrammeId,
+    ) ?? switchTargets[0];
+  const switchDisabled = !coordination.canWrite || coordination.peerActive;
+
+  async function handleSwitchProgramme() {
+    if (switchTarget === undefined) {
+      return;
+    }
+
+    setSwitching(true);
+    setSwitchFailed(false);
+
+    try {
+      if (switchTarget.enrolled) {
+        await switchProgramme(switchTarget.programmeId);
+      } else {
+        await enrolAndSwitchProgramme(switchTarget.programmeId);
+      }
+      // A successful switch changes the programme, which remounts the routes:
+      // the visible active programme and the page content agree afterwards.
+    } catch {
+      setSwitchFailed(true);
+    } finally {
+      setSwitching(false);
+    }
+  }
 
   return (
     <section className={sectionClassName}>
@@ -280,6 +318,65 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             {isRpgVariant ? 'Open Classic interface' : 'Return to RPG'}
           </Link>
         </div>
+      </Card>
+      <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+        <p className="card__description">
+          Active programme:{' '}
+          <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
+        </p>
+        {switchTarget === undefined ? (
+          <p className="card__description">
+            This is the only programme available in this version of ProgressPal.
+          </p>
+        ) : (
+          <>
+            <p className="card__description">
+              Switching changes the course, wording, and rewards ProgressPal
+              shows. Your XP, achievements, study sessions, and profile stay
+              shared across programmes and nothing is deleted. Nothing changes
+              until you press the button.
+            </p>
+            <FormField
+              controlId="programme-switch-target"
+              label="Programme to switch to"
+            >
+              {({ inputId }) => (
+                <Select
+                  disabled={switchDisabled || switching}
+                  id={inputId}
+                  onChange={(event) =>
+                    setSelectedProgrammeId(event.target.value)
+                  }
+                  options={switchTargets.map((choice) => ({
+                    label: `${choice.title} (${choice.enrolled ? 'enrolled' : 'not enrolled'})`,
+                    value: choice.programmeId,
+                  }))}
+                  value={switchTarget.programmeId}
+                />
+              )}
+            </FormField>
+            <div className="action-row">
+              <Button
+                disabled={switchDisabled}
+                loading={switching}
+                onClick={() => {
+                  void handleSwitchProgramme();
+                }}
+                variant="secondary"
+              >
+                {switchTarget.enrolled
+                  ? 'Switch programme'
+                  : 'Enrol and switch'}
+              </Button>
+            </div>
+            {switchFailed ? (
+              <p className="form-field__error" role="alert">
+                The programme could not be switched. Your active programme is
+                unchanged.
+              </p>
+            ) : null}
+          </>
+        )}
       </Card>
       <ProfileForm
         cardTitleAs={isRpgVariant ? 'h2' : 'h3'}

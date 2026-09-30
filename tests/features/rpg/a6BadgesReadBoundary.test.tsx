@@ -93,7 +93,14 @@ function createReadyAppState(
     error: null,
     persistenceStatus: 'persistent',
     profile,
+    enrolAndSwitchProgramme: async () => {
+      throw new Error('This harness must not switch programmes.');
+    },
+    programmeChoices: [],
     programmeScope: cs50Scope,
+    switchProgramme: async () => {
+      throw new Error('This harness must not switch programmes.');
+    },
     refresh: async () => undefined,
     requestPersistentStorage: async () => 'persistent',
     runLocalMutation: async <Result,>(mutation: () => Promise<Result>) =>

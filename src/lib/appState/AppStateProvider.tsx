@@ -8,11 +8,15 @@ import {
 } from 'react';
 
 import {
+  enrolAndSwitchActiveProgramme,
   getAppMeta,
   getProfile,
   initializeDatabase,
   isIndexedDbAvailable,
+  listAuthorizedProgrammeIds,
+  listProgrammeEnrolments,
   saveLearnerProfile,
+  switchActiveProgramme,
   type DatabaseMigrationContext,
   type SaveLearnerProfileInput,
 } from '@/lib/db';
@@ -20,6 +24,7 @@ import { getSharedDatabase } from '@/lib/db/database';
 import {
   AppStateContext,
   type AppStateStatus,
+  type ProgrammeChoice,
 } from '@/lib/appState/AppStateContext';
 import type {
   AppMeta,
@@ -44,8 +49,11 @@ import {
 
 type ResolvedAppState = {
   appMeta: AppMeta | null;
+  enrolledProgrammeIds: readonly string[];
   error: string | null;
   profile: LearnerProfile | null;
+  /** The scope resolved from the persisted active programme; null on error. */
+  programmeScope: ProgrammeScope | null;
   revisionToken: LocalDataRevisionToken | null;
   status: AppStateStatus;
 };
@@ -63,38 +71,79 @@ type RefreshOptions = {
 };
 
 /**
- * The outcome of resolving the active programme once at bootstrap
- * (Epic C / C5). A failure is kept, never replaced by a default programme.
+ * The outcome of composing the programme boundary once per provider (Epic C /
+ * C5, C7): the bound authorization context's default/bootstrap scope (used
+ * for the loading shell before the persisted active programme is known) and
+ * every registered programme's identity. A failure is kept, never replaced by
+ * a default programme.
  */
-type ProgrammeResolution =
-  | { readonly scope: ProgrammeScope }
+type ProgrammeBootstrap =
+  | {
+      readonly defaultScope: ProgrammeScope;
+      readonly registered: ReadonlyArray<{
+        readonly programmeId: string;
+        readonly title: string;
+      }>;
+    }
   | { readonly error: unknown };
 
 export type AppStateProviderProps = PropsWithChildren<{
-  /** Supplied by the app composition root; called once per provider. */
-  resolveProgramme: () => ProgrammeScope;
+  /**
+   * Supplied by the app composition root: resolves a persisted programme ID to
+   * its runtime scope (identity, catalogue, policy and content). It fails
+   * closed for an unregistered ID and must return a scope for exactly the ID
+   * requested. Called with the persisted `app_meta.activeProgrammeId` on every
+   * stable resolution (Epic C / C7); never with a guessed programme.
+   */
+  resolveProgramme: (programmeId: string) => ProgrammeScope;
   /**
    * Supplied by the app composition root; called once per provider,
-   * synchronously before the programme scope resolution returns, so the
-   * shared database's migration context (Epic C / C6, binding control 2) is
-   * bound before any effect can open it.
+   * synchronously before the programme composition returns, so the shared
+   * database's migration context (Epic C / C6, binding control 2) is bound
+   * before any effect can open it. It authorizes every registered programme.
    */
   resolveMigrationContext: () => DatabaseMigrationContext;
 }>;
 
-function resolveProgrammeOnce(
-  resolveProgramme: () => ProgrammeScope,
+function requireScopeFor(scope: ProgrammeScope, programmeId: string) {
+  if (scope.programmeId !== programmeId) {
+    throw new Error(
+      `Resolved programme scope "${scope.programmeId}" does not match the requested programme "${programmeId}".`,
+    );
+  }
+
+  return scope;
+}
+
+function bootstrapProgrammes(
+  resolveProgramme: (programmeId: string) => ProgrammeScope,
   resolveMigrationContext: () => DatabaseMigrationContext,
-): ProgrammeResolution {
+): ProgrammeBootstrap {
   try {
-    const scope = resolveProgramme();
+    const context = resolveMigrationContext();
+    const defaultScope = requireScopeFor(
+      resolveProgramme(context.programmeId),
+      context.programmeId,
+    );
 
     // Binds (or re-confirms) the shared database's migration context before
-    // any effect can reach it. Idempotent: a StrictMode double-invocation of
-    // this initializer rebinds the same context, which is allowed.
-    getSharedDatabase(resolveMigrationContext());
+    // any effect can reach it, after the default programme resolved (as in
+    // C5/C6: a failed resolution never binds). Idempotent: a StrictMode
+    // double-invocation of this initializer rebinds the same context.
+    getSharedDatabase(context);
 
-    return { scope };
+    return {
+      defaultScope,
+      registered: listAuthorizedProgrammeIds(context).map((programmeId) => ({
+        programmeId,
+        title: requireScopeFor(
+          programmeId === defaultScope.programmeId
+            ? defaultScope
+            : resolveProgramme(programmeId),
+          programmeId,
+        ).title,
+      })),
+    };
   } catch (error) {
     return { error };
   }
@@ -192,11 +241,25 @@ async function readApplicationStateAtRevision() {
       (database) => database.name === getSharedDatabase().name,
     )
   ) {
-    return { appMeta: null, profile: null, revisionToken };
+    return {
+      appMeta: null,
+      enrolledProgrammeIds: [] as readonly string[],
+      profile: null,
+      revisionToken,
+    };
   }
-  const [appMeta, profile] = await Promise.all([getAppMeta(), getProfile()]);
+  const [appMeta, profile, enrolments] = await Promise.all([
+    getAppMeta(),
+    getProfile(),
+    listProgrammeEnrolments(),
+  ]);
 
-  return { appMeta, profile, revisionToken };
+  return {
+    appMeta,
+    enrolledProgrammeIds: enrolments.map((enrolment) => enrolment.programmeId),
+    profile,
+    revisionToken,
+  };
 }
 
 function getCoordinationEventKey(status: LocalCoordinationStatus) {
@@ -244,19 +307,26 @@ function shouldAutomaticallyRefresh(
   );
 }
 
+function errorState(error: string): ResolvedAppState {
+  return {
+    appMeta: null,
+    enrolledProgrammeIds: [],
+    error,
+    profile: null,
+    programmeScope: null,
+    revisionToken: null,
+    status: 'error',
+  };
+}
+
 async function resolveStableApplicationState(
   acknowledgeRevision: (token: LocalDataRevisionToken) => boolean,
   validateRevision: (token: LocalDataRevisionToken) => boolean,
-  programme: ProgrammeResolution,
+  programme: ProgrammeBootstrap,
+  resolveProgramme: (programmeId: string) => ProgrammeScope,
 ): Promise<ResolvedAppState> {
   if (!isIndexedDbAvailable()) {
-    return {
-      appMeta: null,
-      error: 'IndexedDB is unavailable in this browser context.',
-      profile: null,
-      revisionToken: null,
-      status: 'error',
-    };
+    return errorState('IndexedDB is unavailable in this browser context.');
   }
 
   try {
@@ -273,59 +343,74 @@ async function resolveStableApplicationState(
         }
       }
 
-      await initializeDatabase({ seed: programme.scope.catalogue });
+      // One logical write scope per attempt (as before C7): validate the base
+      // state (an existing database's active programme must be authorized and
+      // enrolled, or this throws), take the persisted active programme,
+      // resolve it through the composition boundary (unknown fails closed),
+      // and materialize that programme's catalogue.
+      let resolvedScope: ProgrammeScope | null = null;
+
+      await initializeDatabase({
+        seedForActiveProgramme: (activeProgrammeId) => {
+          resolvedScope = requireScopeFor(
+            resolveProgramme(activeProgrammeId),
+            activeProgrammeId,
+          );
+
+          return resolvedScope.catalogue;
+        },
+      });
+
+      if (resolvedScope === null) {
+        throw new Error('The active programme scope was not resolved.');
+      }
+
+      const scope: ProgrammeScope = resolvedScope;
       const finalRead = await readApplicationStateAtRevision();
+
+      // Another tab switched programmes between the reads above: resolve again.
+      if (finalRead.appMeta?.activeProgrammeId !== scope.programmeId) {
+        continue;
+      }
 
       if (!validateRevision(finalRead.revisionToken)) {
         continue;
       }
 
+      // 5. Publish the scope as part of the stable snapshot.
       return {
         appMeta: finalRead.appMeta,
+        enrolledProgrammeIds: finalRead.enrolledProgrammeIds,
         error: null,
         profile: finalRead.profile,
+        programmeScope: scope,
         revisionToken: finalRead.revisionToken,
         status: 'ready',
       };
     }
 
-    return {
-      appMeta: null,
-      error: unstableReadError,
-      profile: null,
-      revisionToken: null,
-      status: 'error',
-    };
+    return errorState(unstableReadError);
   } catch (loadError) {
     if (loadError instanceof LocalWriteBlockedError) {
-      return {
-        appMeta: null,
-        error: describeBlockedStartup(loadError),
-        profile: null,
-        revisionToken: null,
-        status: 'error',
-      };
+      return errorState(describeBlockedStartup(loadError));
     }
 
     console.error('App state initialization failed.', loadError);
 
-    return {
-      appMeta: null,
-      error: 'Local data could not be loaded.',
-      profile: null,
-      revisionToken: null,
-      status: 'error',
-    };
+    return errorState('Local data could not be loaded.');
   }
 }
 
 export function AppStateProvider({
   children,
-  resolveProgramme,
+  resolveProgramme: suppliedResolveProgramme,
   resolveMigrationContext,
 }: AppStateProviderProps) {
+  // The composition root supplies one stable resolver for the provider's
+  // lifetime; capturing it keeps the refresh loop's identity stable.
+  const [resolveProgramme] = useState(() => suppliedResolveProgramme);
   const [programme] = useState(() =>
-    resolveProgrammeOnce(resolveProgramme, resolveMigrationContext),
+    bootstrapProgrammes(resolveProgramme, resolveMigrationContext),
   );
   const initialCoordination = getLocalCoordinationStatus();
   const acceptedRevisionRef = useRef<number | null>(null);
@@ -345,11 +430,23 @@ export function AppStateProvider({
   const [coordination, setCoordination] =
     useState<LocalCoordinationStatus>(initialCoordination);
   const [dataEpoch, setDataEpoch] = useState(0);
+  const [enrolledProgrammeIds, setEnrolledProgrammeIds] = useState<
+    readonly string[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [loadingCommitVersion, setLoadingCommitVersion] = useState(0);
   const [persistenceStatus, setPersistenceStatus] =
     useState<StoragePersistenceStatus>('checking');
   const [profile, setProfile] = useState<LearnerProfile | null>(null);
+  // Until the first stable resolution completes, the scope is the bound
+  // context's default/bootstrap programme (only the loading shell renders
+  // then). Each stable snapshot replaces it with the persisted active one.
+  const [programmeScope, setProgrammeScope] = useState<ProgrammeScope | null>(
+    'error' in programme ? null : programme.defaultScope,
+  );
+  const publishedProgrammeIdRef = useRef<string | null>(
+    'error' in programme ? null : programme.defaultScope.programmeId,
+  );
   const [snapshotPublicationVersion, setSnapshotPublicationVersion] =
     useState(0);
   const [status, setStatus] = useState<AppStateStatus>('loading');
@@ -413,8 +510,38 @@ export function AppStateProvider({
         setAppMeta(nextState.appMeta);
         setError(null);
         setProfile(nextState.profile);
+        setEnrolledProgrammeIds((current) =>
+          current.length === nextState.enrolledProgrammeIds.length &&
+          current.every(
+            (programmeId, index) =>
+              programmeId === nextState.enrolledProgrammeIds[index],
+          )
+            ? current
+            : nextState.enrolledProgrammeIds,
+        );
 
-        if (invalidateRoute) {
+        // The scope publishes atomically with the rest of the snapshot. A
+        // changed active programme always invalidates the route subtree, so
+        // no mounted page keeps one programme's data under another's scope.
+        const nextProgrammeScope = nextState.programmeScope;
+        const programmeChanged =
+          nextProgrammeScope !== null &&
+          nextProgrammeScope.programmeId !== publishedProgrammeIdRef.current;
+
+        if (nextProgrammeScope !== null) {
+          publishedProgrammeIdRef.current = nextProgrammeScope.programmeId;
+          setProgrammeScope((current) =>
+            current !== null &&
+            current.programmeId === nextProgrammeScope.programmeId &&
+            current.catalogue === nextProgrammeScope.catalogue &&
+            current.policy === nextProgrammeScope.policy &&
+            current.content === nextProgrammeScope.content
+              ? current
+              : nextProgrammeScope,
+          );
+        }
+
+        if (invalidateRoute || programmeChanged) {
           setDataEpoch((currentEpoch) => currentEpoch + 1);
         }
 
@@ -490,6 +617,7 @@ export function AppStateProvider({
                 acknowledgeRevision,
                 validateLocalDataRevision,
                 programme,
+                resolveProgramme,
               );
 
               if (!providerActiveRef.current) {
@@ -517,13 +645,7 @@ export function AppStateProvider({
               handledRequestVersion === refreshRequestVersionRef.current &&
               providerActiveRef.current
             ) {
-              publishErrorState({
-                appMeta: null,
-                error: unstableReadError,
-                profile: null,
-                revisionToken: null,
-                status: 'error',
-              });
+              publishErrorState(errorState(unstableReadError));
             }
           } while (
             handledRequestVersion < refreshRequestVersionRef.current &&
@@ -542,6 +664,7 @@ export function AppStateProvider({
       enterCommittedLoadingState,
       programme,
       publishErrorState,
+      resolveProgramme,
       stageVerifiedSnapshot,
     ],
   );
@@ -594,14 +717,11 @@ export function AppStateProvider({
         if (!sessionActive) {
           return;
         }
-        publishErrorState({
-          appMeta: null,
-          error:
+        publishErrorState(
+          errorState(
             'Safe local-tab coordination could not start. ProgressPal will keep local writes blocked.',
-          profile: null,
-          revisionToken: null,
-          status: 'error',
-        });
+          ),
+        );
       }
     })();
 
@@ -661,6 +781,22 @@ export function AppStateProvider({
     [requestRefresh],
   );
 
+  async function switchProgrammeInState(
+    programmeId: string,
+    mode: 'enrol-and-switch' | 'switch',
+  ) {
+    // Resolving the target first fails closed for an unregistered programme
+    // before anything is written.
+    const target = requireScopeFor(resolveProgramme(programmeId), programmeId);
+    const switchProgramme =
+      mode === 'switch' ? switchActiveProgramme : enrolAndSwitchActiveProgramme;
+
+    await runLocalMutation(
+      () => switchProgramme(programmeId, { seed: target.catalogue }),
+      { invalidateRoute: true },
+    );
+  }
+
   async function saveProfileToState(
     input: SaveLearnerProfileInput,
     options: { completeOnboarding?: boolean } = {},
@@ -669,6 +805,16 @@ export function AppStateProvider({
       invalidateRoute: false,
     });
   }
+
+  const programmeChoices: readonly ProgrammeChoice[] =
+    'error' in programme
+      ? []
+      : programme.registered.map((registered) => ({
+          active: programmeScope?.programmeId === registered.programmeId,
+          enrolled: enrolledProgrammeIds.includes(registered.programmeId),
+          programmeId: registered.programmeId,
+          title: registered.title,
+        }));
 
   const exposedCoordination =
     status === 'ready'
@@ -684,16 +830,21 @@ export function AppStateProvider({
         appMeta,
         coordination: exposedCoordination,
         dataEpoch,
+        enrolAndSwitchProgramme: (programmeId) =>
+          switchProgrammeInState(programmeId, 'enrol-and-switch'),
         error,
         persistenceStatus,
         profile,
-        programmeScope: 'scope' in programme ? programme.scope : null,
+        programmeChoices,
+        programmeScope,
         refresh: requestRefresh,
         requestPersistentStorage: requestPersistentStorageForState,
         runLocalMutation,
         requiresOnboarding: !hasCompletedOnboarding(appMeta, profile),
         saveProfile: saveProfileToState,
         status,
+        switchProgramme: (programmeId) =>
+          switchProgrammeInState(programmeId, 'switch'),
       }}
     >
       {children}

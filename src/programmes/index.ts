@@ -1,6 +1,8 @@
 export type {
   ExternalResourceLink,
   ItemGuide,
+  ProgrammeContent,
+  ProgrammeCopy,
   ProgrammeDefinition,
   ProgrammeExternalResources,
   ProgrammeStudyGuides,
@@ -8,7 +10,11 @@ export type {
   UnitGuide,
 } from './definition';
 export {
-  getActiveProgrammeDefinition,
+  createProgrammeRegistry,
+  getDefaultProgrammeDefinition,
   getProgrammeDefinition,
+  getProgrammeRegistry,
   listRegisteredDefinitionKeys,
+  type ProgrammeRegistry,
+  type ProgrammeRegistryInput,
 } from './registry';

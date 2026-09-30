@@ -13,6 +13,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import {
   currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
@@ -20,22 +21,16 @@ import {
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
-import { getActiveProgrammeDefinition } from '@/programmes';
-import { requireProgrammeScope } from '@/lib/domain';
 
 type OnboardingMode = 'quick' | 'customize';
 
 export function OnboardingPage() {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    coordination,
-    profile,
-    programmeScope,
-    runLocalMutation,
-    saveProfile,
-  } = useAppState();
+  const { coordination, profile, runLocalMutation, saveProfile } =
+    useAppState();
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
   const [quickStartError, setQuickStartError] = useState(false);
@@ -83,8 +78,10 @@ export function OnboardingPage() {
     try {
       await runLocalMutation(
         () =>
+          // No seed: a restored backup keeps its own validated active
+          // programme, and the provider's refresh materializes that
+          // programme's catalogue from the persisted state.
           restoreDatabaseFromBackup(selection.envelope.data, {
-            seed: requireProgrammeScope(programmeScope).catalogue,
             fileName: selection.fileName,
           }),
         { invalidateRoute: true },

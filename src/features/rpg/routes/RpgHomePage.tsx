@@ -17,7 +17,8 @@ import type {
 } from '@/features/rpg/model/types';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
@@ -41,7 +42,8 @@ function hasLocalActivity(summary: RpgHubSummary) {
 }
 
 export function RpgHomePage() {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
 

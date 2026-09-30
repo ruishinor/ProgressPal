@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { getItemGuide, getUnitGuide } from '@/features/course/guideContent';
 import {
-  getActiveProgrammeDefinition,
+  getDefaultProgrammeDefinition,
   getProgrammeDefinition,
   listRegisteredDefinitionKeys,
   type ProgrammeDefinition,
@@ -19,15 +19,15 @@ import { bundledCourseSeed } from '@/seed';
  */
 
 describe('programme registry', () => {
-  it('registers exactly one production definition, keyed cs50x-2026', () => {
+  it('registers exactly one production definition, keyed cs50x-2026 and the explicit default', () => {
     expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
-    expect(getActiveProgrammeDefinition()).toBe(
+    expect(getDefaultProgrammeDefinition()).toBe(
       getProgrammeDefinition('cs50x-2026'),
     );
   });
 
   it('keys the CS50 definition by its catalogue identity and references the bundled catalogue in place', () => {
-    const definition = getActiveProgrammeDefinition();
+    const definition = getDefaultProgrammeDefinition();
 
     expect(definition.definitionKey).toBe('cs50x-2026');
     expect(definition.catalogueId).toBe(definition.definitionKey);
@@ -48,7 +48,7 @@ describe('programme registry', () => {
 describe('compatibility entrypoints', () => {
   it('serve links and guides owned by the active definition', () => {
     const { externalResources, studyGuides } =
-      getActiveProgrammeDefinition().content;
+      getDefaultProgrammeDefinition().content;
 
     expect(getCs50UnitLink('week-0')).toBe(
       externalResources.unitLinks['week-0'],
@@ -66,7 +66,7 @@ describe('compatibility entrypoints', () => {
 
   it('declares the official CS50x prefix, and every link stays inside it', () => {
     const { allowedUrlPrefixes, unitLinks, itemLinks } =
-      getActiveProgrammeDefinition().content.externalResources;
+      getDefaultProgrammeDefinition().content.externalResources;
 
     expect(allowedUrlPrefixes).toEqual(['https://cs50.harvard.edu/x/']);
     for (const link of [
@@ -79,7 +79,7 @@ describe('compatibility entrypoints', () => {
 });
 
 describe('definition validation fails closed', () => {
-  const valid = getActiveProgrammeDefinition();
+  const valid = getDefaultProgrammeDefinition();
 
   function variant(
     change: (content: {

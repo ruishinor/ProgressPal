@@ -15,7 +15,8 @@ import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { StudySessionsSurface } from '@/features/sessions';
 import type { StudySessionSaveResult } from '@/lib/sessions';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
 
 type RpgFocusSaveFeedback = {
@@ -36,6 +37,7 @@ type RpgFocusSaveFeedback = {
 // and reward feedback present the authoritative save result without new writes.
 export function RpgFocusPage() {
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
+  const { policy } = requireProgrammeScope(useAppState().programmeScope);
   const { key: pageKey } = useLocation();
   const activePageKey = useRef<string | null>(pageKey);
   const [saveFeedback, setSaveFeedback] = useState<RpgFocusSaveFeedback | null>(
@@ -103,7 +105,7 @@ export function RpgFocusPage() {
       const achievementNames = result.unlockedAchievements
         .map(
           (unlock) =>
-            getActiveProgrammeDefinition().policy.achievements.find(
+            policy.achievements.find(
               (definition) => definition.id === unlock.achievementId,
             )?.title ?? '',
         )
@@ -125,7 +127,7 @@ export function RpgFocusPage() {
 
       void refreshProgressSummary(baseFeedback);
     },
-    [pageKey, refreshHud, refreshProgressSummary],
+    [pageKey, policy, refreshHud, refreshProgressSummary],
   );
 
   const feedbackPanel =
