@@ -10,7 +10,6 @@ import {
 } from '@/features/rpg';
 import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActions';
 import { loadRpgHudSummary } from '@/features/rpg/model/readModels';
-import { sharedAchievementDefinitions } from '@/lib/achievements';
 import { AppStateProvider, useAppState } from '@/lib/appState';
 import {
   addStudySession,
@@ -27,15 +26,13 @@ import {
   upsertProgress,
   upsertProgressAndAwardXp,
 } from '@/lib/db';
-import type { DatabaseMigrationContext } from '@/lib/db';
-import type { CourseSeed, ProgrammeScope } from '@/lib/domain';
+import type { ProgrammeScope } from '@/lib/domain';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
   getActiveProgrammeDefinition,
   listRegisteredDefinitionKeys,
   type ProgrammeDefinition,
 } from '@/programmes';
-import { validateProgrammeDefinition } from '@/programmes/definition';
 import { bundledCourseSeed } from '@/seed';
 
 import {
@@ -45,9 +42,16 @@ import {
 } from '@/lib/db/database';
 import {
   createTestDatabase,
-  defaultTestMigrationContext,
   type TestDatabaseContext,
 } from '../db/testDatabase';
+import {
+  altDefinition,
+  altMigrationContext,
+  altSeed,
+  altUnitIds,
+  bothCataloguesMigrationContext,
+  scopeOf,
+} from './c7Fixture';
 
 /**
  * Epic C / C5 P3 and repair evidence: catalogue-derived reads and saves are
@@ -83,107 +87,6 @@ const cs50RequiredItemIds = bundledCourseSeed.units
   .filter((item) => item.required)
   .map((item) => item.id);
 
-const altSeed: CourseSeed = {
-  courseId: 'c5-alt-catalogue',
-  title: 'C5 alternate catalogue',
-  dataVersion: 1,
-  sourceCheckedDate: '2026-09-28',
-  units: [
-    {
-      id: 'c5-alt-unit-a',
-      order: 0,
-      title: 'Alt Unit A',
-      type: 'week',
-      sourceYear: 2026,
-      required: true,
-      items: [
-        {
-          id: 'c5-alt-unit-a-lecture',
-          type: 'lecture',
-          title: 'Alt lecture',
-          required: true,
-          estimatedMinutes: 60,
-          order: 0,
-        },
-        {
-          id: 'c5-alt-unit-a-problem-set',
-          type: 'problem_set',
-          title: 'Alt problem set',
-          required: true,
-          estimatedMinutes: 90,
-          order: 1,
-        },
-      ],
-    },
-    {
-      id: 'c5-alt-unit-b',
-      order: 1,
-      title: 'Alt Unit B',
-      type: 'special',
-      sourceYear: 2026,
-      required: false,
-      items: [
-        {
-          id: 'c5-alt-unit-b-reading',
-          type: 'reading',
-          title: 'Alt reading',
-          required: false,
-          estimatedMinutes: 30,
-          order: 0,
-        },
-      ],
-    },
-  ],
-};
-const altUnitIds = altSeed.units.map((unit) => unit.id);
-/** Test-only migration context over the alt definition; never registered. */
-const altMigrationContext: DatabaseMigrationContext = {
-  programmeId: 'c5-alt-programme',
-  authorizedCatalogues: [
-    { courseId: altSeed.courseId, programmeId: 'c5-alt-programme' },
-  ],
-};
-
-/**
- * Test-only context authorizing both catalogues at once, for a database that
- * syncs both through the real `ensureCourseCatalogFromSeed` path; neither
- * catalogue enters the production registry.
- */
-const bothCataloguesMigrationContext: DatabaseMigrationContext = {
-  programmeId: defaultTestMigrationContext.programmeId,
-  authorizedCatalogues: [
-    ...defaultTestMigrationContext.authorizedCatalogues,
-    ...altMigrationContext.authorizedCatalogues,
-  ],
-};
-
-/** Test-only definition over the alternate catalogue; never registered. */
-const altDefinition: ProgrammeDefinition = validateProgrammeDefinition({
-  definitionKey: altSeed.courseId,
-  catalogueId: altSeed.courseId,
-  programmeId: 'c5-alt-programme',
-  title: altSeed.title,
-  catalogue: altSeed,
-  policy: {
-    ...cs50.policy,
-    catalogueRules: { requiredUnitTypes: [] },
-    xp: { ...cs50.policy.xp, itemMilestones: [] },
-    achievements: sharedAchievementDefinitions,
-  },
-  content: {
-    externalResources: {
-      allowedUrlPrefixes: ['https://example.test/'],
-      unitLinks: {},
-      itemLinks: {},
-    },
-    studyGuides: { unitGuides: {}, itemGuides: {} },
-    terminology: {
-      ...cs50.content.terminology,
-      unitMapOrdinals: { 'c5-alt-unit-a': 'A', 'c5-alt-unit-b': 'B' },
-    },
-  },
-});
-
 /**
  * An injected composition whose catalogue identity has no materialized unit.
  * It bypasses definition validation on purpose; it is not a registry key
@@ -193,14 +96,6 @@ const unmaterializedDefinition: ProgrammeDefinition = {
   ...cs50,
   catalogueId: 'c5-unmaterialized',
 };
-
-function scopeOf(definition: ProgrammeDefinition): ProgrammeScope {
-  return {
-    catalogue: definition.catalogue,
-    catalogueId: definition.catalogueId,
-    policy: definition.policy,
-  };
-}
 
 const cs50Scope = scopeOf(cs50);
 const altScope = scopeOf(altDefinition);
