@@ -248,9 +248,22 @@ describe('Settings → Programme through the real composition', () => {
     expect(
       screen.getByRole('button', { name: 'Enrol and switch' }),
     ).toHaveAttribute('aria-busy', 'true');
-    await waitFor(async () => {
-      expect(await persistedActiveProgrammeId()).toBe(altProgrammeId);
+
+    // The persisted write lands before the provider's post-mutation refresh
+    // has published. The switch has settled only once Settings has remounted
+    // under B in its ready state: the pending state is over and the next valid
+    // programme action (switching back to the now-enrolled A) is available.
+    await waitFor(() => {
+      expect(programmeCard()).toHaveTextContent(
+        'Active programme: C5 alternate catalogue',
+      );
     }, timeout);
+    const switchBack = screen.getByRole('button', {
+      name: 'Switch programme',
+    });
+    expect(switchBack).toBeEnabled();
+    expect(switchBack).not.toHaveAttribute('aria-busy', 'true');
+    expect(await persistedActiveProgrammeId()).toBe(altProgrammeId);
   }, 30_000);
 
   it('reports a failed switch and leaves the previous programme active', async () => {
@@ -278,17 +291,22 @@ describe('Settings → Programme through the real composition', () => {
     expect(programmeCard()).toHaveTextContent('Active programme: CS50x 2026');
   }, 30_000);
 
-  it.each(['/dashboard', '/rpg', '/rpg/hero'])(
+  it.each([
+    ['/dashboard', 'Course progress'],
+    ['/rpg', 'Progress snapshot'],
+    ['/rpg/hero', 'Required course progress'],
+  ])(
     'adds no programme switcher to navigation or HUD surfaces (%s)',
-    async (route) => {
+    async (route, readyHeading) => {
       injectTwoProgrammeRegistry();
       await seedTwoProgrammeDevice();
 
       await renderAppAtRoute(route);
-      await waitFor(() => {
-        expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
-      }, timeout);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      // Links also render in the provider's loading shell, so they do not show
+      // that the surface is built. This heading exists only once the provider
+      // refresh and the page's own load have both settled.
+      await screen.findByRole('heading', { name: readyHeading }, timeout);
+      expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
 
       expect(screen.queryByLabelText('Programme to switch to')).toBeNull();
       expect(
