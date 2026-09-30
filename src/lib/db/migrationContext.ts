@@ -52,6 +52,31 @@ export function assertValidMigrationContext(
   }
 }
 
+/**
+ * Every programme the database authorizes, in a deterministic order: the
+ * default/bootstrap programme first, then each authorized catalogue's
+ * programme in context order (Epic C / C7). This is the "registered" set an
+ * existing schema-v3 database's active programme and enrolments are checked
+ * against.
+ */
+export function listAuthorizedProgrammeIds(
+  context: DatabaseMigrationContext,
+): string[] {
+  return [
+    ...new Set([
+      context.programmeId,
+      ...context.authorizedCatalogues.map((catalogue) => catalogue.programmeId),
+    ]),
+  ];
+}
+
+export function isAuthorizedProgramme(
+  context: DatabaseMigrationContext,
+  programmeId: string,
+): boolean {
+  return listAuthorizedProgrammeIds(context).includes(programmeId);
+}
+
 export function migrationContextsAreEquivalent(
   a: DatabaseMigrationContext,
   b: DatabaseMigrationContext,

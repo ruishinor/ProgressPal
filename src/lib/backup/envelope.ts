@@ -596,9 +596,13 @@ export function assertBackupDataInvariants(
     ]),
   );
 
+  // Epic C / C7: the active programme must be a member of the authorized set
+  // (a valid backup may be active on any authorized programme, not only the
+  // default/bootstrap one). An unknown active programme still fails closed,
+  // and the enrolment checks below still apply to it.
   if (
     data.appMeta !== null &&
-    data.appMeta.activeProgrammeId !== migrationContext.programmeId
+    !authorizedProgrammeIds.has(data.appMeta.activeProgrammeId)
   ) {
     throw new BackupValidationError(
       'This backup contains an unregistered active programme and cannot be imported.',

@@ -13,7 +13,6 @@ import { buildLongFormProgressMap } from '@/lib/progress';
 import { useAppState } from '@/lib/appState';
 import { getCatalogueCourseState, getXpSummary } from '@/lib/db';
 import { requireProgrammeScope } from '@/lib/domain';
-import { getActiveProgrammeDefinition } from '@/programmes';
 
 type CoursePageStatus = 'error' | 'loading' | 'ready';
 
@@ -33,7 +32,8 @@ const initialState: CoursePageState = {
 
 export function CoursePage() {
   const { programmeScope } = useAppState();
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const [state, setState] = useState<CoursePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 

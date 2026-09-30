@@ -4,14 +4,16 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapView } from '@/features/course/model';
 import { formatMinutes } from '@/lib/time';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 
 type CourseMapSummaryProps = {
   courseMap: CourseMapView;
 };
 
 export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const remainingRequiredItems = Math.max(
     courseMap.requiredItemCount - courseMap.completedRequiredItemCount,
     0,

@@ -145,8 +145,9 @@ async function expectOutcome(value: string | RegExp) {
 }
 
 afterEach(() => {
+  // The suite-wide teardown unmounts the provider and then deletes the shared
+  // database; closing it here would run first and race an in-flight refresh.
   vi.restoreAllMocks();
-  closeSharedDatabase();
 });
 
 describe('C7 dynamic programme scope', () => {

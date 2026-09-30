@@ -67,13 +67,20 @@ export async function forceAlternateActive(
  * provider render performs its own composition bind.
  */
 export async function seedTwoProgrammeDevice(
-  options: { alternateActive?: boolean; onboard?: boolean } = {},
+  options: {
+    alternateActive?: boolean;
+    materializeAlternate?: boolean;
+    onboard?: boolean;
+  } = {},
 ) {
   closeSharedDatabase();
   const db = getSharedDatabase(bothCataloguesMigrationContext);
 
   await initializeDatabase({ seed: bundledCourseSeed });
-  await ensureCourseCatalogFromSeed(altSeed);
+
+  if (options.materializeAlternate ?? true) {
+    await ensureCourseCatalogFromSeed(altSeed);
+  }
 
   if (options.onboard ?? true) {
     await saveLearnerProfile(

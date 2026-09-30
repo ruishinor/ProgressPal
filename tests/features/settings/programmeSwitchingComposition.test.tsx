@@ -97,9 +97,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // The suite-wide teardown unmounts the provider and then deletes the shared
+  // database; closing it here would run first and race an in-flight refresh.
   injected.registry = null;
   vi.restoreAllMocks();
-  closeSharedDatabase();
 });
 
 describe('production registry: one real programme, no meaningless switch action', () => {
@@ -383,6 +384,11 @@ describe('reset and restore never reseed a stale programme', () => {
         timeout,
       ),
     );
+
+    // The restored backup completed onboarding, so the shell forwards to the
+    // hub once the refresh lands. Wait for that before navigating, otherwise
+    // the forward can overwrite this test's own navigation.
+    await screen.findByRole('heading', { name: 'RPG Hub' }, timeout);
 
     await waitFor(async () => {
       const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });

@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
@@ -128,7 +134,7 @@ describe('Settings → Programme', () => {
       `${altFixtureScope.title} (not enrolled)`,
     );
     // Only alternatives are listed; the active programme is not a choice.
-    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(within(select).getAllByRole('option')).toHaveLength(1);
 
     await userEvent.selectOptions(select, altProgrammeId);
     await userEvent.tab();

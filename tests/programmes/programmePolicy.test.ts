@@ -21,7 +21,7 @@ import {
   evaluateCompletionPreviewXp,
   evaluateProgressXp,
 } from '@/lib/xp/engine';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { getDefaultProgrammeDefinition } from '@/programmes';
 import {
   validateProgrammeDefinition,
   type ProgrammeDefinition,
@@ -39,7 +39,7 @@ import {
  * policy is programme configuration, not shared-engine code.
  */
 
-const cs50 = getActiveProgrammeDefinition();
+const cs50 = getDefaultProgrammeDefinition();
 
 const seedWithoutFinalProject: CourseSeed = {
   courseId: 'test-programme-2026',

@@ -84,6 +84,8 @@ import {
 } from './constants';
 import {
   getSharedDatabase,
+  isAuthorizedProgramme,
+  listAuthorizedProgrammeIds,
   type DatabaseMigrationContext,
   type ProgressPalDatabase,
 } from './database';
@@ -218,12 +220,14 @@ type LogicalWriteScope = {
   database: ProgressPalDatabase;
 };
 
-function createLogicalWriteScope(database: ProgressPalDatabase) {
+function createLogicalWriteScope(
+  database: ProgressPalDatabase,
+): LogicalWriteScope {
   return {
     changed: false,
     coordinatedWrite: prepareCoordinatedWrite(database),
     database,
-  } satisfies LogicalWriteScope;
+  };
 }
 
 function settleLogicalWriteScope(scope: LogicalWriteScope) {
@@ -486,6 +490,16 @@ async function assertItemInCatalogue(
 
 type InitializeDatabaseOptions = BaseDatabaseOptions & {
   seed?: CourseSeed | null;
+  /**
+   * Chooses the catalogue to materialize from the persisted active programme
+   * (Epic C / C7), inside the same logical write scope as base
+   * initialization. One scope means one coordinated write lease: the local
+   * coordinator marks a tab stale after any committed write, so a second,
+   * separate lease in the same resolution would be blocked until the tab
+   * re-read. It throws for an unresolvable programme, before any catalogue
+   * write, and takes precedence over `seed`.
+   */
+  seedForActiveProgramme?: (activeProgrammeId: string) => CourseSeed | null;
 };
 
 type SeedSyncOptions = BaseDatabaseOptions & {
@@ -646,6 +660,26 @@ async function getExistingProfileOrThrow(database: ProgressPalDatabase) {
   return existingProfile;
 }
 
+/**
+ * Epic C / C7: an existing schema-v3 database's active programme must be an
+ * authorized (registered) programme; it is no longer required to equal the
+ * default/bootstrap programme. An unknown active programme fails closed.
+ */
+function assertActiveProgrammeAuthorized(
+  context: DatabaseMigrationContext,
+  activeProgrammeId: string,
+) {
+  if (!isAuthorizedProgramme(context, activeProgrammeId)) {
+    throw new Error(
+      `Active programme "${activeProgrammeId}" does not match the registered programmes (${listAuthorizedProgrammeIds(
+        context,
+      )
+        .map((programmeId) => `"${programmeId}"`)
+        .join(', ')}).`,
+    );
+  }
+}
+
 async function ensureBaseInitialization(
   options: BaseDatabaseOptions = {},
   inheritedWriteScope?: LogicalWriteScope,
@@ -696,15 +730,16 @@ async function ensureBaseInitialization(
   // initialization (no stored app metadata yet) is unaffected; it still
   // creates valid app metadata, profile, and enrolment state below.
   if (initialAppMeta !== null) {
-    const activeProgrammeId = database.migrationContext.programmeId;
-
-    if (initialAppMeta.activeProgrammeId !== activeProgrammeId) {
+    try {
+      assertActiveProgrammeAuthorized(
+        database.migrationContext,
+        initialAppMeta.activeProgrammeId,
+      );
+    } catch (error) {
       if (ownsWriteScope) {
         settleLogicalWriteScope(logicalWriteScope);
       }
-      throw new Error(
-        `Active programme "${initialAppMeta.activeProgrammeId}" does not match the registered programme "${activeProgrammeId}".`,
-      );
+      throw error;
     }
 
     // Epic C6-R, D1b: this check must run unconditionally, not only when the
@@ -796,11 +831,10 @@ async function ensureBaseInitialization(
             'Stored app metadata',
           );
 
-          if (parsedAppMeta.activeProgrammeId !== activeProgrammeId) {
-            throw new Error(
-              `Active programme "${parsedAppMeta.activeProgrammeId}" does not match the registered programme "${activeProgrammeId}".`,
-            );
-          }
+          assertActiveProgrammeAuthorized(
+            database.migrationContext,
+            parsedAppMeta.activeProgrammeId,
+          );
 
           const enrolment = await database.programmeEnrolments.get(
             parsedAppMeta.activeProgrammeId,
@@ -1356,11 +1390,17 @@ export async function initializeDatabase(
       scopedOptions,
       logicalWriteScope,
     );
+    const seedInput =
+      options.seedForActiveProgramme === undefined
+        ? options.seed
+        : options.seedForActiveProgramme(
+            baseInitialization.appMeta.activeProgrammeId,
+          );
     const seedSync =
-      options.seed === null || options.seed === undefined
+      seedInput === null || seedInput === undefined
         ? null
         : await ensureCourseCatalogFromSeedWithinScope(
-            options.seed,
+            seedInput,
             {
               ...scopedOptions,
               skipBaseInitialization: true,
@@ -1813,6 +1853,258 @@ export async function ensureCourseCatalogFromSeed(
   options: SeedSyncOptions = {},
 ) {
   return ensureCourseCatalogFromSeedWithinScope(seedInput, options);
+}
+
+/**
+ * Programme enrolment and switching (Epic C / C7). Enrolment and the active
+ * programme are the only programme-scoped persisted state; XP, achievement
+ * unlocks, sessions, progress and the profile stay global and are never read,
+ * written or relabelled by these mutations.
+ */
+
+function assertAuthorizedProgramme(
+  database: ProgressPalDatabase,
+  programmeId: string,
+) {
+  if (!isAuthorizedProgramme(database.migrationContext, programmeId)) {
+    throw new Error(
+      `Programme "${programmeId}" is not an authorized programme.`,
+    );
+  }
+}
+
+/** The target's own catalogue must be the one offered to prepare it. */
+function assertSeedBelongsToProgramme(
+  database: ProgressPalDatabase,
+  programmeId: string,
+  seed: CourseSeed,
+) {
+  const authorized = database.migrationContext.authorizedCatalogues.find(
+    (catalogue) => catalogue.courseId === seed.courseId,
+  );
+
+  if (authorized === undefined || authorized.programmeId !== programmeId) {
+    throw new Error(
+      `Course seed catalogue "${seed.courseId}" does not belong to programme "${programmeId}".`,
+    );
+  }
+}
+
+export async function listProgrammeEnrolments(
+  options: BaseDatabaseOptions = {},
+): Promise<ProgrammeEnrolment[]> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const rows = await database.programmeEnrolments.toArray();
+
+  return parseStoredArray(
+    rows,
+    'Stored programme enrolment',
+    ProgrammeEnrolmentSchema,
+  ).sort((left, right) => left.programmeId.localeCompare(right.programmeId));
+}
+
+/**
+ * Enrols in an authorized programme. Idempotent: an existing enrolment is
+ * returned untouched (no duplicate row, no write). It never changes which
+ * programme is active, and there is no unenrol.
+ */
+export async function enrolInProgramme(
+  programmeId: string,
+  options: BaseDatabaseOptions = {},
+): Promise<ProgrammeEnrolment> {
+  const now = options.now ?? defaultClock;
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  assertAuthorizedProgramme(database, programmeId);
+
+  // One logical write scope (one coordinated lease) spans validation and the
+  // write, and it is aborted, not completed, when nothing was written.
+  const writeScope = createLogicalWriteScope(database);
+
+  try {
+    await ensureBaseInitialization({ ...options, db: database }, writeScope);
+
+    const existing = await database.programmeEnrolments.get(programmeId);
+
+    if (existing !== undefined) {
+      return parseWithSchema(
+        ProgrammeEnrolmentSchema,
+        existing,
+        'Stored programme enrolment',
+      );
+    }
+
+    const enrolment = parseWithSchema(
+      ProgrammeEnrolmentSchema,
+      { programmeId, enrolledAt: now() },
+      'Programme enrolment',
+    );
+
+    writeScope.coordinatedWrite.begin();
+
+    return await database.transaction(
+      'rw',
+      database.programmeEnrolments,
+      async () => {
+        const current = await database.programmeEnrolments.get(programmeId);
+
+        if (current !== undefined) {
+          return parseWithSchema(
+            ProgrammeEnrolmentSchema,
+            current,
+            'Stored programme enrolment',
+          );
+        }
+
+        await database.programmeEnrolments.add(enrolment);
+        writeScope.changed = true;
+
+        return enrolment;
+      },
+    );
+  } finally {
+    settleLogicalWriteScope(writeScope);
+  }
+}
+
+type ProgrammeSwitchOptions = BaseDatabaseOptions & {
+  /**
+   * The target programme's own catalogue. It is prepared (synced through the
+   * authorized, monotonic catalogue path) before the active-programme
+   * transaction, so a preparation failure leaves the previous programme
+   * active.
+   */
+  seed: CourseSeed;
+};
+
+async function applyProgrammeSwitch(
+  programmeId: string,
+  options: ProgrammeSwitchOptions,
+  mode: 'enrolled-only' | 'enrol-if-needed',
+): Promise<AppMeta> {
+  const now = options.now ?? defaultClock;
+  const database = await ensureOpen(resolveDatabase(options.db));
+
+  assertAuthorizedProgramme(database, programmeId);
+  assertSeedBelongsToProgramme(database, programmeId, options.seed);
+
+  // One logical write scope (one coordinated lease) spans validation, the
+  // target catalogue preparation and the commit. The local coordinator marks
+  // a tab stale after any committed write, so separate leases for the
+  // preparation and the commit would block the commit of a first switch to a
+  // not-yet-materialized programme. The scope is aborted, not completed, when
+  // nothing was written (a no-op or an early rejection).
+  const writeScope = createLogicalWriteScope(database);
+
+  try {
+    // Validates the existing state's invariants (authorized active
+    // programme, active enrolment) before anything is decided.
+    const { appMeta: currentAppMeta } = await ensureBaseInitialization(
+      { ...options, db: database },
+      writeScope,
+    );
+
+    // Switching to the already active programme is a semantic no-op: no
+    // catalogue preparation, no write, no timestamp churn. An active
+    // programme is enrolled by the invariant above.
+    if (currentAppMeta.activeProgrammeId === programmeId) {
+      return currentAppMeta;
+    }
+
+    if (
+      mode === 'enrolled-only' &&
+      (await database.programmeEnrolments.get(programmeId)) === undefined
+    ) {
+      throw new Error(`Programme "${programmeId}" is not enrolled.`);
+    }
+
+    // Prepare the target catalogue first. Failure here changes no
+    // active-programme or enrolment state.
+    await ensureCourseCatalogFromSeedWithinScope(
+      options.seed,
+      { db: database, now: options.now, skipBaseInitialization: true },
+      writeScope,
+    );
+
+    // One transaction: the enrolment (if needed) and the active-programme
+    // update commit together or not at all.
+    writeScope.coordinatedWrite.begin();
+
+    const { appMeta: committed, mutated } = await database.transaction(
+      'rw',
+      database.appMeta,
+      database.programmeEnrolments,
+      async () => {
+        const stored = parseWithSchema(
+          AppMetaSchema,
+          await database.appMeta.get(singletonIds.appMeta),
+          'Stored app metadata',
+        );
+
+        // A competing same-tab mutation may have made the target active after
+        // the earlier check. That is still a semantic no-op: nothing is
+        // written, so the logical write must not be reported as changed.
+        if (stored.activeProgrammeId === programmeId) {
+          return { appMeta: stored, mutated: false };
+        }
+
+        const timestamp = now();
+
+        if (
+          (await database.programmeEnrolments.get(programmeId)) === undefined
+        ) {
+          if (mode === 'enrolled-only') {
+            throw new Error(`Programme "${programmeId}" is not enrolled.`);
+          }
+
+          await database.programmeEnrolments.add(
+            parseWithSchema(
+              ProgrammeEnrolmentSchema,
+              { programmeId, enrolledAt: timestamp },
+              'Programme enrolment',
+            ),
+          );
+        }
+
+        const nextAppMeta = parseWithSchema(
+          AppMetaSchema,
+          { ...stored, activeProgrammeId: programmeId, updatedAt: timestamp },
+          'Updated app metadata',
+        );
+
+        await database.appMeta.put(nextAppMeta);
+
+        return { appMeta: nextAppMeta, mutated: true };
+      },
+    );
+
+    if (mutated) {
+      writeScope.changed = true;
+    }
+
+    return committed;
+  } finally {
+    settleLogicalWriteScope(writeScope);
+  }
+}
+
+/** Switches the active programme to an enrolled, authorized programme. */
+export function switchActiveProgramme(
+  programmeId: string,
+  options: ProgrammeSwitchOptions,
+): Promise<AppMeta> {
+  return applyProgrammeSwitch(programmeId, options, 'enrolled-only');
+}
+
+/**
+ * The explicit "Enrol and switch" action: creates a missing enrolment and
+ * switches the active programme in one persistence transaction.
+ */
+export function enrolAndSwitchActiveProgramme(
+  programmeId: string,
+  options: ProgrammeSwitchOptions,
+): Promise<AppMeta> {
+  return applyProgrammeSwitch(programmeId, options, 'enrol-if-needed');
 }
 
 export async function listCourseUnits(

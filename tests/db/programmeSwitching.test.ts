@@ -251,6 +251,24 @@ describe('explicit switching', () => {
     expect(await getDatabaseSnapshot({ db: context.db })).toEqual(before);
   });
 
+  it('does not let the same-programme no-op bypass the active-enrolment invariant', async () => {
+    const context = await createBothProgrammesDevice(
+      'c7-switch-noop-invariant',
+    );
+    await context.db.programmeEnrolments.delete(cs50ProgrammeId);
+
+    await expect(
+      switchActiveProgramme(cs50ProgrammeId, {
+        db: context.db,
+        now: () => t1,
+        seed: bundledCourseSeed,
+      }),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+    await expect(
+      enrolInProgramme(cs50ProgrammeId, { db: context.db, now: () => t1 }),
+    ).rejects.toThrow(/no enrolment exists for active programme/i);
+  });
+
   it('enrols and switches in one explicit action', async () => {
     const context = await createBothProgrammesDevice('c7-enrol-and-switch');
 

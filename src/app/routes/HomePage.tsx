@@ -10,7 +10,7 @@ import {
   studyDayOptions,
 } from '@/features/profile';
 import { useAppState } from '@/lib/appState';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { requireProgrammeScope } from '@/lib/domain';
 
 function formatStudyDays(days: readonly string[]) {
   return studyDayOptions
@@ -20,7 +20,8 @@ function formatStudyDays(days: readonly string[]) {
 }
 
 export function HomePage() {
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const { appMeta, profile } = useAppState();
 
   if (profile === null) {

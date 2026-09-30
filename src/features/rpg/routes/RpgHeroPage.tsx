@@ -21,7 +21,6 @@ import {
   rpgRoutePath,
   rpgSettingsPath,
 } from '@/lib/routing/rpgRoutePaths';
-import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgHeroPageStatus = 'error' | 'loading' | 'ready';
 
@@ -39,7 +38,8 @@ const initialState: RpgHeroPageState = {
 
 export function RpgHeroPage() {
   const { programmeScope } = useAppState();
-  const { copy } = getActiveProgrammeDefinition().content.terminology;
+  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
+    .terminology;
   const [state, setState] = useState<RpgHeroPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 

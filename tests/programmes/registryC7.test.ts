@@ -145,6 +145,11 @@ describe('C7 registry construction', () => {
     ]);
     expect(production.getDefault()).toBe(cs50Definition);
     expect(production.getByProgrammeId('cs50x')).toBe(cs50Definition);
+    // Only `createProgrammeRegistry` freezes what it publishes, so this proves
+    // the production registry is not a separately assembled map.
+    expect(Object.isFrozen(production)).toBe(true);
+    expect(Object.isFrozen(production.definitions)).toBe(true);
+    expect(getProgrammeRegistry()).toBe(production);
     expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
   });
 

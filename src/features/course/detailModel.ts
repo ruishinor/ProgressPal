@@ -5,6 +5,7 @@ import type {
   CourseUnit,
   ProgressEntry,
   ProgressStatus,
+  SubmissionWorkflow,
 } from '@/lib/domain';
 import {
   getItemStatusLabel,
@@ -12,7 +13,7 @@ import {
   type CourseStatusVariant,
 } from '@/lib/progress';
 import { formatMinutes } from '@/lib/time';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { getDefaultProgrammeDefinition } from '@/programmes';
 
 export type CourseDetailView = {
   estimatedMinutesLabel: string;
@@ -58,22 +59,25 @@ type ProgressValidationContext = ProgressStatusOptionContext & {
 
 /**
  * The submission workflow (which item types may be `submitted`/`accepted`) is
- * the active programme's policy (Epic C / C3); the sequence and correction
- * mechanisms below are shared.
+ * the active programme's policy (Epic C / C3, C7); the sequence and correction
+ * mechanisms below are shared and receive the workflow as a parameter.
  */
-function getSubmissionWorkflow() {
-  return getActiveProgrammeDefinition().policy.workflow;
+function canUseSubmittedStatuses(
+  workflow: SubmissionWorkflow,
+  itemType: CourseItem['type'],
+) {
+  return workflow.sequenceItemTypes.includes(itemType);
 }
 
-function canUseSubmittedStatuses(itemType: CourseItem['type']) {
-  return getSubmissionWorkflow().sequenceItemTypes.includes(itemType);
-}
-
-function offersSubmittedStatusesOnCorrection(itemType: CourseItem['type']) {
-  return getSubmissionWorkflow().correctionItemTypes.includes(itemType);
+function offersSubmittedStatusesOnCorrection(
+  workflow: SubmissionWorkflow,
+  itemType: CourseItem['type'],
+) {
+  return workflow.correctionItemTypes.includes(itemType);
 }
 
 function getStatusSequence(
+  workflow: SubmissionWorkflow,
   currentStatus: ProgressStatus | 'not_started',
   itemType: CourseItem['type'],
   required: boolean,
@@ -84,7 +88,7 @@ function getStatusSequence(
     case 'submitted':
       return ['submitted', 'accepted'] as const;
     case 'completed':
-      return canUseSubmittedStatuses(itemType)
+      return canUseSubmittedStatuses(workflow, itemType)
         ? (['completed', 'submitted', 'accepted'] as const)
         : (['completed'] as const);
     case 'blocked':
@@ -147,7 +151,13 @@ export function createCourseDetailProgressFormValues(
   };
 }
 
-export function getCourseProgressStatusOptions(
+/**
+ * The statuses offered for an item under a programme's submission workflow
+ * (Epic C / C7). Runtime callers pass the active scope's
+ * `policy.workflow`.
+ */
+export function getProgrammeProgressStatusOptions(
+  workflow: SubmissionWorkflow,
   context: ProgressStatusOptionContext,
 ): CourseProgressStatusOption[] {
   const baseStatuses: readonly ProgressStatus[] = context.correction
@@ -155,12 +165,13 @@ export function getCourseProgressStatusOptions(
         'started',
         'blocked',
         'completed',
-        ...(offersSubmittedStatusesOnCorrection(context.itemType)
+        ...(offersSubmittedStatusesOnCorrection(workflow, context.itemType)
           ? (['submitted', 'accepted'] as const)
           : []),
         ...(!context.required ? (['skipped_optional'] as const) : []),
       ]
     : getStatusSequence(
+        workflow,
         context.currentStatus,
         context.itemType,
         context.required,
@@ -176,7 +187,7 @@ export function getCourseProgressStatusOptions(
         return false;
       }
 
-      if (!canUseSubmittedStatuses(context.itemType)) {
+      if (!canUseSubmittedStatuses(workflow, context.itemType)) {
         return status !== 'submitted' && status !== 'accepted';
       }
 
@@ -198,13 +209,16 @@ export function getCourseProgressStatusOptions(
   }));
 }
 
-export function validateCourseDetailProgressForm(
+export function validateProgrammeProgressForm(
+  workflow: SubmissionWorkflow,
   values: CourseDetailProgressFormValues,
   context: ProgressValidationContext,
 ): CourseDetailProgressValidationResult {
   const errors: CourseDetailProgressValidationResult['errors'] = {};
   const allowedStatuses = new Set(
-    getCourseProgressStatusOptions(context).map((option) => option.value),
+    getProgrammeProgressStatusOptions(workflow, context).map(
+      (option) => option.value,
+    ),
   );
   const parsedConfidence = Number.parseInt(values.confidence, 10);
 
@@ -241,4 +255,30 @@ export function validateCourseDetailProgressForm(
       ? parsedConfidence
       : null,
   };
+}
+
+/**
+ * CS50-default compatibility entrypoints (Epic C / C3). They keep their
+ * signatures for the C1 preservation oracles and existing tests, which call
+ * them without a scope. Runtime code never calls them; it passes the active
+ * scope's workflow to the programme-explicit functions above.
+ */
+export function getCourseProgressStatusOptions(
+  context: ProgressStatusOptionContext,
+): CourseProgressStatusOption[] {
+  return getProgrammeProgressStatusOptions(
+    getDefaultProgrammeDefinition().policy.workflow,
+    context,
+  );
+}
+
+export function validateCourseDetailProgressForm(
+  values: CourseDetailProgressFormValues,
+  context: ProgressValidationContext,
+): CourseDetailProgressValidationResult {
+  return validateProgrammeProgressForm(
+    getDefaultProgrammeDefinition().policy.workflow,
+    values,
+    context,
+  );
 }

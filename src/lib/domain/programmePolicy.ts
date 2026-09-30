@@ -5,6 +5,7 @@ import {
   courseUnitTypeValues,
   progressStatusValues,
 } from '@/lib/domain/constants';
+import type { ProgrammeContent } from '@/lib/domain/programmeContent';
 import type {
   AchievementDefinition,
   CourseItemType,
@@ -59,6 +60,32 @@ export function statusMilestoneSourceType(
 
 export function unitCompletionSourceType(unitType: string): string {
   return `${unitType}_completed`;
+}
+
+/** `sourceId` of an item completion award: `<itemId>-completed`. */
+export function completionAwardSourceId(itemId: string): string {
+  return `${itemId}-completed`;
+}
+
+/** `sourceId` of an item status-milestone award: `<itemId>-<milestone>`. */
+export function statusMilestoneSourceId(
+  itemId: string,
+  milestone: string,
+): string {
+  return `${itemId}-${milestone}`;
+}
+
+/**
+ * The XP award dedupe identity: the ledger dedupes on `(sourceType,
+ * sourceId)`, so this is the one key format shared by the XP engine, the
+ * earned-reward read models, backup validation and the registry's
+ * cross-definition collision check.
+ */
+export function getXpAwardSourceKey(
+  sourceType: string,
+  sourceId: string,
+): string {
+  return JSON.stringify([sourceType, sourceId]);
 }
 
 const xpAmountSchema = z.number().int().positive();
@@ -167,6 +194,64 @@ export const XpPolicySchema = z
 export type XpPolicy = z.infer<typeof XpPolicySchema>;
 
 /**
+ * The complete set of XP award identities (see {@link getXpAwardSourceKey})
+ * that the XP engine can generate for a catalogue under a policy: item
+ * completion awards, status milestones, required-unit completion bonuses and
+ * fixed item milestones. Pure and derived from the same vocabulary functions
+ * the engine uses, so the registry's cross-definition collision check and the
+ * production award path cannot drift apart.
+ *
+ * A unit bonus is reachable only for a required unit of a bonus type that
+ * has at least one required item, exactly the engine's condition.
+ */
+export function listPotentialXpRewardSourceKeys(
+  catalogue: CourseSeed,
+  xp: XpPolicy,
+): string[] {
+  const keys = new Set<string>();
+
+  for (const unit of catalogue.units) {
+    if (
+      unit.required &&
+      unit.items.some((item) => item.required) &&
+      xp.unitCompletionBonuses.some((bonus) => bonus.unitType === unit.type)
+    ) {
+      keys.add(
+        getXpAwardSourceKey(unitCompletionSourceType(unit.type), unit.id),
+      );
+    }
+
+    for (const item of unit.items) {
+      if (xp.completionAwards.some((award) => award.itemType === item.type)) {
+        keys.add(
+          getXpAwardSourceKey(
+            completionAwardSourceType(item.type),
+            completionAwardSourceId(item.id),
+          ),
+        );
+      }
+
+      for (const milestone of xp.statusMilestones) {
+        if (milestone.itemType === item.type) {
+          keys.add(
+            getXpAwardSourceKey(
+              statusMilestoneSourceType(item.type, milestone.milestone),
+              statusMilestoneSourceId(item.id, milestone.milestone),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  for (const milestone of xp.itemMilestones) {
+    keys.add(getXpAwardSourceKey(milestone.sourceType, milestone.sourceId));
+  }
+
+  return [...keys];
+}
+
+/**
  * Which item types use the submission workflow (`submitted`, `accepted`). The
  * status sequence offers it for `sequenceItemTypes`; the correction path
  * offers it only for `correctionItemTypes`, which must be a subset.
@@ -232,15 +317,21 @@ export type ProgrammePolicy = {
 };
 
 /**
- * The active programme's runtime scope (Epic C / C5): its catalogue, the
- * catalogue identity that catalogue-derived reads are scoped by, and its
- * policy. The app composition root resolves it once at bootstrap; features
- * pass it explicitly to shared read and write paths. It is never persisted.
+ * The active programme's runtime scope (Epic C / C5, extended in C7): its
+ * persisted ownership identity, catalogue, the catalogue identity that
+ * catalogue-derived reads are scoped by, its policy and its programme-owned
+ * content. The app state derives it from the persisted
+ * `app_meta.activeProgrammeId` on every stable resolution and features take it
+ * from app state; they pass it explicitly to shared read and write paths. It
+ * is never persisted and never read from the registry by runtime code.
  */
 export type ProgrammeScope = {
+  readonly programmeId: string;
+  readonly title: string;
   readonly catalogue: CourseSeed;
   readonly catalogueId: string;
   readonly policy: ProgrammePolicy;
+  readonly content: ProgrammeContent;
 };
 
 /** Fails closed when the bootstrap has not resolved a programme scope. */

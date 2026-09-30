@@ -8,7 +8,15 @@ import {
   XpPolicySchema,
   findCatalogueRuleIssues,
   type CourseSeed,
+  type ExternalResourceLink,
+  type ItemGuide,
+  type ProgrammeContent,
+  type ProgrammeCopy,
+  type ProgrammeExternalResources,
   type ProgrammePolicy,
+  type ProgrammeStudyGuides,
+  type ProgrammeTerminology,
+  type UnitGuide,
 } from '@/lib/domain';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
 
@@ -25,86 +33,17 @@ import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
  * ownership identity, which does not exist before C6.
  */
 
-export type ExternalResourceLink = {
-  readonly label: string;
-  readonly url: string;
-};
-
-export type UnitGuide = {
-  summary: string;
-  whatToDo?: string[];
-  doneLooksLike?: string[];
-  reflectionPrompt?: string;
-};
-
-export type ItemGuide = {
-  summary: string;
-  whatToDo?: string[];
-  doneLooksLike?: string[];
-  checklist?: string[];
-  reflectionPrompt?: string;
-};
-
-export type ProgrammeExternalResources = {
-  /** Every link URL must start with one of these declared prefixes. */
-  readonly allowedUrlPrefixes: readonly string[];
-  readonly unitLinks: Readonly<Record<string, ExternalResourceLink>>;
-  readonly itemLinks: Readonly<Record<string, ExternalResourceLink>>;
-};
-
-export type ProgrammeStudyGuides = {
-  readonly unitGuides: Readonly<Record<string, UnitGuide>>;
-  readonly itemGuides: Readonly<Record<string, ItemGuide>>;
-};
-
-/**
- * Programme-owned copy (Epic C / C4): rendered strings whose wording belongs
- * to the programme. Shared UI supplies the surrounding layout and every
- * programme-neutral label.
- */
-export type ProgrammeCopy = {
-  readonly startupLoadingSummary: string;
-  readonly shellActiveSummary: string;
-  readonly profileDescription: string;
-  readonly onboardingTitle: string;
-  readonly onboardingDescription: string;
-  readonly dashboardDescription: string;
-  readonly dashboardErrorDescription: string;
-  readonly courseMapEyebrow: string;
-  readonly courseMapLoadingDescription: string;
-  readonly courseMapErrorDescription: string;
-  readonly catalogueDescription: string;
-  readonly insightsDescription: string;
-  readonly insightsErrorDescription: string;
-  readonly rpgRequiredCompleteNote: string;
-  readonly rpgHeroProgressNote: string;
-  readonly rpgCourseBoundary: string;
-  readonly officialResourceOpenLabel: string;
-  readonly officialResourceReviewLabel: string;
-  /** Appended in parentheses to a task reward shared by linked milestone items. */
-  readonly sharedMilestoneRewardNote: string;
-};
-
-/**
- * Programme terminology (Epic C / C4). Canonical vocabulary labels (item,
- * unit and asset types, achievement categories, session modes) and rank
- * labels stay shared in their feature modules.
- */
-export type ProgrammeTerminology = {
-  /** The curriculum-unit noun used in unit-level copy ("Back to week"). */
-  readonly unitNoun: {
-    readonly lowercase: string;
-    readonly capitalized: string;
-  };
-  /** The RPG hero identity tuple; the rank label is shared. */
-  readonly rpgIdentity: {
-    readonly guildLabel: string;
-    readonly classLabel: string;
-    readonly pathLabel: string;
-  };
-  /** Campaign-map node ordinal label for every catalogue unit, by unit ID. */
-  readonly unitMapOrdinals: Readonly<Record<string, string>>;
-  readonly copy: ProgrammeCopy;
+// The neutral content contracts live in `@/lib/domain` (C7); the definition
+// composes them and re-exports the names for the programme layer's consumers.
+export type {
+  ExternalResourceLink,
+  ItemGuide,
+  ProgrammeContent,
+  ProgrammeCopy,
+  ProgrammeExternalResources,
+  ProgrammeStudyGuides,
+  ProgrammeTerminology,
+  UnitGuide,
 };
 
 export type ProgrammeDefinition = {
@@ -121,11 +60,7 @@ export type ProgrammeDefinition = {
   /** Reference to the bundled catalogue; it is never copied or migrated here. */
   readonly catalogue: CourseSeed;
   readonly policy: ProgrammePolicy;
-  readonly content: {
-    readonly externalResources: ProgrammeExternalResources;
-    readonly studyGuides: ProgrammeStudyGuides;
-    readonly terminology: ProgrammeTerminology;
-  };
+  readonly content: ProgrammeContent;
 };
 
 const nonEmptyString = z.string().trim().min(1);

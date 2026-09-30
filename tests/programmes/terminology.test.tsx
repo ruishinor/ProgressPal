@@ -9,15 +9,16 @@ import {
 } from '@/lib/db';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
-  getActiveProgrammeDefinition,
+  getDefaultProgrammeDefinition,
+  type ProgrammeRegistry,
   type ProgrammeTerminology,
 } from '@/programmes';
 import { bundledCourseSeed } from '@/seed';
 
 /**
  * Epic C / C4 discriminating evidence: rendered consumers read CS50
- * terminology from the active definition. A test-only terminology, injected
- * here and never registered, changes only the programme-owned strings; the
+ * terminology from the active programme scope. A test-only terminology, injected
+ * here through a validated registry that is never the production one, changes only the programme-owned strings; the
  * canonical unit-type label and the rank label stay shared. Production CS50
  * output is frozen by the C1 oracles in tests/preservation.
  */
@@ -28,26 +29,43 @@ const injected = vi.hoisted(() => ({
 
 vi.mock('@/programmes', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/programmes')>();
+  let derived: {
+    registry: ProgrammeRegistry;
+    terminology: ProgrammeTerminology;
+  } | null = null;
 
   return {
     ...actual,
-    getActiveProgrammeDefinition: () => {
-      const definition = actual.getActiveProgrammeDefinition();
+    getProgrammeRegistry: () => {
+      if (injected.terminology === null) {
+        return actual.getProgrammeRegistry();
+      }
 
-      return injected.terminology === null
-        ? definition
-        : {
-            ...definition,
-            content: {
-              ...definition.content,
-              terminology: injected.terminology,
-            },
-          };
+      // One validated registry per injected terminology, so the composition
+      // root's scope identity is stable across refreshes.
+      if (derived?.terminology !== injected.terminology) {
+        const base = actual.getDefaultProgrammeDefinition();
+
+        derived = {
+          terminology: injected.terminology,
+          registry: actual.createProgrammeRegistry({
+            defaultProgrammeId: base.programmeId,
+            definitions: [
+              {
+                ...base,
+                content: { ...base.content, terminology: injected.terminology },
+              },
+            ],
+          }),
+        };
+      }
+
+      return derived.registry;
     },
   };
 });
 
-const cs50Terminology = getActiveProgrammeDefinition().content.terminology;
+const cs50Terminology = getDefaultProgrammeDefinition().content.terminology;
 
 /** Test-only terminology: every C4-owned value differs from CS50. */
 const testTerminology: ProgrammeTerminology = {

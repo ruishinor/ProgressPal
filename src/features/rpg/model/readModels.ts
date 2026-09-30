@@ -11,8 +11,8 @@ import {
   type CourseMapView,
 } from '@/features/course/model';
 import {
-  getCs50ItemLink,
-  getCs50UnitLink,
+  getProgrammeItemLink,
+  getProgrammeUnitLink,
   type Cs50Link,
 } from '@/features/course/cs50Links';
 import {
@@ -46,8 +46,11 @@ import type {
 } from '@/lib/domain';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
-import { getActiveProgrammeDefinition } from '@/programmes';
-import { buildQuestRewardLabel, type QuestRewardData } from './questRewards';
+import { getDefaultProgrammeDefinition } from '@/programmes';
+import {
+  buildProgrammeQuestRewardLabel,
+  type QuestRewardData,
+} from './questRewards';
 
 import type {
   RpgBadgeGallerySummary,
@@ -70,6 +73,15 @@ export type RpgReadModelOptions = {
   db?: ProgressPalDatabase;
   now?: () => string;
 };
+
+/**
+ * The parts of the active programme scope the RPG read models render:
+ * reward policy, links and terminology (Epic C / C7). Internal builders take
+ * it explicitly. The exported snapshot builders, which only tests and
+ * preservation oracles call, default to the explicit CS50 default definition;
+ * the runtime `load*` paths always pass the scope from app state.
+ */
+type ProgrammeContentScope = Pick<ProgrammeScope, 'content' | 'policy'>;
 
 type CourseMapContext = {
   courseMap: CourseMapView;
@@ -172,14 +184,18 @@ function buildQuestSummary(
   unit: CourseMapUnit,
   item: CourseMapItem,
   snapshot: QuestRewardData,
+  programme: ProgrammeContentScope,
 ): RpgQuestSummary {
+  const { externalResources } = programme.content;
+
   return {
-    rewardLabel: buildQuestRewardLabel(snapshot, item.id),
+    rewardLabel: buildProgrammeQuestRewardLabel(programme, snapshot, item.id),
     estimatedMinutes: item.estimatedMinutes,
     id: item.id,
     longFormProgress: item.longFormProgress,
     officialLink: toRpgOfficialLink(
-      getCs50ItemLink(item.id) ?? getCs50UnitLink(unit.id),
+      getProgrammeItemLink(externalResources, item.id) ??
+        getProgrammeUnitLink(externalResources, unit.id),
     ),
     required: item.required,
     status: item.status,
@@ -196,6 +212,7 @@ function buildQuestSummary(
 function buildModuleSummary(
   unit: CourseMapUnit,
   snapshot: QuestRewardData,
+  programme: ProgrammeContentScope,
 ): RpgModuleSummary {
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
@@ -203,8 +220,12 @@ function buildModuleSummary(
     estimatedMinutes: unit.estimatedMinutes,
     id: unit.id,
     itemCount: unit.itemCount,
-    officialLink: toRpgOfficialLink(getCs50UnitLink(unit.id)),
-    quests: unit.items.map((item) => buildQuestSummary(unit, item, snapshot)),
+    officialLink: toRpgOfficialLink(
+      getProgrammeUnitLink(programme.content.externalResources, unit.id),
+    ),
+    quests: unit.items.map((item) =>
+      buildQuestSummary(unit, item, snapshot, programme),
+    ),
     requiredItemCount: unit.requiredItemCount,
     statusLabel: unit.statusLabel,
     statusVariant: unit.statusVariant,
@@ -312,9 +333,12 @@ function getRankLabel({
 }
 
 /** The programme's identity tuple with the shared rank label (Epic C / C4). */
-function buildIdentity(rankLabel: string): RpgHubIdentity {
+function buildIdentity(
+  rankLabel: string,
+  programme: ProgrammeContentScope,
+): RpgHubIdentity {
   const { classLabel, guildLabel, pathLabel } =
-    getActiveProgrammeDefinition().content.terminology.rpgIdentity;
+    programme.content.terminology.rpgIdentity;
 
   return { classLabel, guildLabel, pathLabel, rankLabel };
 }
@@ -503,12 +527,12 @@ function buildWeeklyProgressFromReadData(
 
 export function buildRpgBadgeGallerySummary(
   snapshot: DatabaseSnapshot,
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgBadgeGallerySummary {
   const unlockByAchievementId = new Map(
     snapshot.achievementUnlocks.map((unlock) => [unlock.achievementId, unlock]),
   );
-  const achievementDefinitions =
-    getActiveProgrammeDefinition().policy.achievements;
+  const achievementDefinitions = programme.policy.achievements;
   const badges = achievementDefinitions.map((definition, index) => {
     const unlock = unlockByAchievementId.get(definition.id) ?? null;
     const earned = unlock !== null;
@@ -541,9 +565,10 @@ export function buildRpgBadgeGallerySummary(
 export function buildRpgHeroProfileSummary(
   snapshot: DatabaseSnapshot,
   nowIso = new Date().toISOString(),
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgHeroProfileSummary {
-  const hubSummary = buildRpgHubSummary(snapshot, nowIso);
-  const badgeGallery = buildRpgBadgeGallerySummary(snapshot);
+  const hubSummary = buildRpgHubSummary(snapshot, nowIso, programme);
+  const badgeGallery = buildRpgBadgeGallerySummary(snapshot, programme);
 
   return {
     badges: {
@@ -568,10 +593,11 @@ export function buildRpgHeroProfileSummary(
 
 export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgCourseMapSummary {
   const { courseMap } = buildCourseMapContext(snapshot);
   const modules = courseMap.units.map((unit) =>
-    buildModuleSummary(unit, snapshot),
+    buildModuleSummary(unit, snapshot, programme),
   );
   const recommendation = selectQuestRecommendation(modules, snapshot);
 
@@ -589,9 +615,12 @@ export function buildRpgCourseMapSummary(
 
 function buildRpgCourseMapSummaryFromReadData(
   data: CourseMapReadData,
+  programme: ProgrammeContentScope,
 ): RpgCourseMapSummary {
   const { courseMap } = buildCourseMapContextFromReadData(data);
-  const modules = courseMap.units.map((unit) => buildModuleSummary(unit, data));
+  const modules = courseMap.units.map((unit) =>
+    buildModuleSummary(unit, data, programme),
+  );
   const recommendation = selectQuestRecommendation(modules, data);
 
   return {
@@ -609,15 +638,19 @@ function buildRpgCourseMapSummaryFromReadData(
 export function buildRpgModuleSummary(
   snapshot: DatabaseSnapshot,
   unitId: string,
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgModuleSummary | null {
   const { courseMap } = buildCourseMapContext(snapshot);
   const unit = courseMap.units.find((candidate) => candidate.id === unitId);
 
-  return unit === undefined ? null : buildModuleSummary(unit, snapshot);
+  return unit === undefined
+    ? null
+    : buildModuleSummary(unit, snapshot, programme);
 }
 
 function buildRpgModuleSummaryFromReadData(
   data: ModuleReadData,
+  programme: ProgrammeContentScope,
 ): RpgModuleSummary {
   const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
     data.contentAssets,
@@ -638,19 +671,24 @@ function buildRpgModuleSummaryFromReadData(
     throw new Error('Module read data did not contain its requested unit.');
   }
 
-  return buildModuleSummary(unit, {
-    courseItems: data.courseItems,
-    courseUnits: [data.courseUnit],
-    earnedRewardSourceKeys: data.earnedRewardSourceKeys,
-    progressEntries: data.progressEntries,
-  });
+  return buildModuleSummary(
+    unit,
+    {
+      courseItems: data.courseItems,
+      courseUnits: [data.courseUnit],
+      earnedRewardSourceKeys: data.earnedRewardSourceKeys,
+      progressEntries: data.progressEntries,
+    },
+    programme,
+  );
 }
 
 export function buildRpgHubSummary(
   snapshot: DatabaseSnapshot,
   nowIso = new Date().toISOString(),
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgHubSummary {
-  const courseMapSummary = buildRpgCourseMapSummary(snapshot);
+  const courseMapSummary = buildRpgCourseMapSummary(snapshot, programme);
   const recommendation = selectQuestRecommendation(
     courseMapSummary.modules,
     snapshot,
@@ -675,7 +713,7 @@ export function buildRpgHubSummary(
       courseMapSummary.modules,
       recommendation,
     ),
-    identity: buildIdentity(getRankLabel(courseMapSummary)),
+    identity: buildIdentity(getRankLabel(courseMapSummary), programme),
     learnerAvatarConfig: snapshot.learnerProfile?.avatarConfig ?? null,
     learnerName: snapshot.learnerProfile?.displayName ?? 'Learner',
     recentActivity: buildRecentActivity(snapshot),
@@ -695,8 +733,14 @@ export function buildRpgHubSummary(
   };
 }
 
-function buildRpgHudSummaryFromReadData(data: RpgHudReadData): RpgHudSummary {
-  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(data);
+function buildRpgHudSummaryFromReadData(
+  data: RpgHudReadData,
+  programme: ProgrammeContentScope,
+): RpgHudSummary {
+  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(
+    data,
+    programme,
+  );
   const recommendation = selectQuestRecommendation(
     courseMapSummary.modules,
     data,
@@ -704,7 +748,7 @@ function buildRpgHudSummaryFromReadData(data: RpgHudReadData): RpgHudSummary {
 
   return {
     recommendation,
-    identity: buildIdentity(getRankLabel(courseMapSummary)),
+    identity: buildIdentity(getRankLabel(courseMapSummary), programme),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     xpSummary: buildXpPresentation(data.totalXp),
@@ -714,8 +758,12 @@ function buildRpgHudSummaryFromReadData(data: RpgHudReadData): RpgHudSummary {
 function buildRpgHubSummaryFromReadData(
   data: RpgHubReadData,
   nowIso: string,
+  programme: ProgrammeContentScope,
 ): RpgHubSummary {
-  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(data);
+  const courseMapSummary = buildRpgCourseMapSummaryFromReadData(
+    data,
+    programme,
+  );
   const recommendation = selectQuestRecommendation(
     courseMapSummary.modules,
     data,
@@ -732,7 +780,7 @@ function buildRpgHubSummaryFromReadData(
       courseMapSummary.modules,
       recommendation,
     ),
-    identity: buildIdentity(getRankLabel(courseMapSummary)),
+    identity: buildIdentity(getRankLabel(courseMapSummary), programme),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     recentActivity: buildRecentActivityFromReadData(data),
@@ -748,6 +796,7 @@ function buildRpgHubSummaryFromReadData(
 
 function buildRpgHeroProfileSummaryFromReadData(
   data: RpgHeroReadData,
+  programme: ProgrammeContentScope,
 ): RpgHeroProfileSummary {
   const { courseMap } = buildCourseMapContextFromReadData(data);
   const courseProgress = {
@@ -759,8 +808,7 @@ function buildRpgHeroProfileSummaryFromReadData(
   const earnedAchievementIds = new Set(
     data.achievementUnlocks.map((unlock) => unlock.achievementId),
   );
-  const achievementDefinitions =
-    getActiveProgrammeDefinition().policy.achievements;
+  const achievementDefinitions = programme.policy.achievements;
   const earnedBadgeCount = achievementDefinitions.filter((definition) =>
     earnedAchievementIds.has(definition.id),
   ).length;
@@ -778,7 +826,7 @@ function buildRpgHeroProfileSummaryFromReadData(
       data.sessionCount > 0 ||
       xpSummary.totalXp > 0 ||
       earnedBadgeCount > 0,
-    identity: buildIdentity(getRankLabel(courseProgress)),
+    identity: buildIdentity(getRankLabel(courseProgress), programme),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
     recentActivity,
@@ -821,7 +869,10 @@ function buildStudyResourceFromDetail(
   progressEntry: ProgressEntry | null,
   unitId: string,
   rewardLabel: string,
+  programme: ProgrammeContentScope,
 ): RpgStudyResourceSummary {
+  const { externalResources } = programme.content;
+
   return {
     rewardLabel,
     estimatedMinutesLabel: detail.estimatedMinutesLabel,
@@ -829,7 +880,8 @@ function buildStudyResourceFromDetail(
     itemType: item.type,
     longFormProgress: detail.longFormProgress,
     officialLink: toRpgOfficialLink(
-      getCs50ItemLink(detail.itemId) ?? getCs50UnitLink(unitId),
+      getProgrammeItemLink(externalResources, detail.itemId) ??
+        getProgrammeUnitLink(externalResources, unitId),
     ),
     progressStatus: detail.progressStatus,
     required: detail.required,
@@ -857,6 +909,7 @@ function buildStudyResourceFromDetail(
 export function buildRpgStudyResourceSummary(
   snapshot: DatabaseSnapshot,
   itemId: string,
+  programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgStudyResourceSummary | null {
   const context = buildCourseMapContext(snapshot);
   const item = context.itemById.get(itemId);
@@ -884,12 +937,14 @@ export function buildRpgStudyResourceSummary(
     item,
     progressEntry,
     unit.id,
-    buildQuestRewardLabel(snapshot, item.id, true),
+    buildProgrammeQuestRewardLabel(programme, snapshot, item.id, true),
+    programme,
   );
 }
 
 function buildRpgStudyResourceSummaryFromReadData(
   data: ResourceReadData,
+  programme: ProgrammeContentScope,
 ): RpgStudyResourceSummary {
   const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
     data.contentAssets,
@@ -913,7 +968,8 @@ function buildRpgStudyResourceSummaryFromReadData(
     data.courseItem,
     progressEntry,
     data.courseUnit.id,
-    buildQuestRewardLabel(
+    buildProgrammeQuestRewardLabel(
+      programme,
       {
         courseItems: data.courseItems,
         courseUnits: [data.courseUnit],
@@ -923,13 +979,14 @@ function buildRpgStudyResourceSummaryFromReadData(
       data.courseItem.id,
       true,
     ),
+    programme,
   );
 }
 
 /**
- * Scoped read paths receive the programme scope that the app bootstrap
- * resolved once (Epic C / C5): its policy (C3) and the catalogue identity
- * that bounds every catalogue-derived read.
+ * Scoped read paths receive the active programme scope that app state derived
+ * from persisted state (Epic C / C5, C7): its policy (C3), its content (C4)
+ * and the catalogue identity that bounds every catalogue-derived read.
  */
 function withScope(scope: ProgrammeScope, options: RpgReadModelOptions) {
   return { ...options, catalogueId: scope.catalogueId, policy: scope.policy };
@@ -945,6 +1002,7 @@ export async function loadRpgHudSummary(
 ): Promise<RpgHudSummary> {
   return buildRpgHudSummaryFromReadData(
     await getRpgHudReadData(withScope(scope, options)),
+    scope,
   );
 }
 
@@ -961,6 +1019,7 @@ export async function loadRpgHubSummary(
       withScope(scope, options),
     ),
     nowIso,
+    scope,
   );
 }
 
@@ -970,6 +1029,7 @@ export async function loadRpgCourseMapSummary(
 ): Promise<RpgCourseMapSummary> {
   return buildRpgCourseMapSummaryFromReadData(
     await getCourseMapReadData(withScope(scope, options)),
+    scope,
   );
 }
 
@@ -980,7 +1040,7 @@ export async function loadRpgModuleSummary(
 ): Promise<RpgModuleSummary | null> {
   const data = await getModuleReadData(unitId, withScope(scope, options));
 
-  return data === null ? null : buildRpgModuleSummaryFromReadData(data);
+  return data === null ? null : buildRpgModuleSummaryFromReadData(data, scope);
 }
 
 export async function loadRpgStudyResourceSummary(
@@ -990,7 +1050,9 @@ export async function loadRpgStudyResourceSummary(
 ): Promise<RpgStudyResourceSummary | null> {
   const data = await getResourceReadData(itemId, withScope(scope, options));
 
-  return data === null ? null : buildRpgStudyResourceSummaryFromReadData(data);
+  return data === null
+    ? null
+    : buildRpgStudyResourceSummaryFromReadData(data, scope);
 }
 
 export async function loadRpgBadgeGallerySummary(
@@ -1005,5 +1067,6 @@ export async function loadRpgHeroProfileSummary(
 ): Promise<RpgHeroProfileSummary> {
   return buildRpgHeroProfileSummaryFromReadData(
     await getRpgHeroReadData(withScope(scope, options)),
+    scope,
   );
 }

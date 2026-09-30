@@ -138,7 +138,7 @@ describe('C7 programme boundary guards', () => {
       'listRegisteredDefinitionKeys',
       'createProgrammeRegistry',
     ].flatMap((identifier) =>
-      filesReferencing(runtimeFiles, new RegExp(`\b${identifier}\b`)),
+      filesReferencing(runtimeFiles, new RegExp(`\\b${identifier}\\b`)),
     );
 
     // The composition root must read it (the running app resolves programmes
@@ -177,6 +177,22 @@ describe('C7 programme boundary guards', () => {
       filesReferencing(
         layerFiles('lib', 'components'),
         /from ['"](?:@\/programmes|(?:\.\.?\/)+programmes)(?:\/[^'"]*)?['"]/,
+      ),
+    ).toEqual([]);
+  });
+
+  it('contains no test-only second-programme identity in production source', () => {
+    expect(
+      filesReferencing(
+        layerFiles(
+          'app',
+          'features',
+          'lib',
+          'components',
+          'programmes',
+          'seed',
+        ),
+        /c5-alt|c7-alt|Alt Guild/,
       ),
     ).toEqual([]);
   });

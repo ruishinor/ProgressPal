@@ -1,6 +1,9 @@
 import {
+  completionAwardSourceId,
   completionAwardSourceType,
   getWorkflowTerminalStatus,
+  getXpAwardSourceKey,
+  statusMilestoneSourceId,
   statusMilestoneSourceType,
   unitCompletionSourceType,
   type CourseItem,
@@ -187,7 +190,7 @@ export function evaluateProgressXp(params: {
     if (completion !== undefined) {
       awards.push({
         sourceType: completionAwardSourceType(item.type),
-        sourceId: `${item.id}-completed`,
+        sourceId: completionAwardSourceId(item.id),
         xp: completion.xp,
         reason: `Completed ${item.type}: ${item.title}`,
       });
@@ -205,7 +208,7 @@ export function evaluateProgressXp(params: {
           milestone.itemType,
           milestone.milestone,
         ),
-        sourceId: `${item.id}-${milestone.milestone}`,
+        sourceId: statusMilestoneSourceId(item.id, milestone.milestone),
         xp: milestone.xp,
         reason: `${milestone.reasonLabel}: ${item.title}`,
       });
@@ -267,9 +270,9 @@ export function evaluateProgressXp(params: {
   return awards;
 }
 
-export function getXpAwardSourceKey(sourceType: string, sourceId: string) {
-  return JSON.stringify([sourceType, sourceId]);
-}
+// The dedupe key format is shared vocabulary owned by `@/lib/domain`; it stays
+// exported here for the existing engine consumers.
+export { getXpAwardSourceKey };
 
 /**
  * Previews the awards for completing an item: the item is evaluated at its

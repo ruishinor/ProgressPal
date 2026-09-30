@@ -1,24 +1,26 @@
 import { Link } from 'react-router-dom';
 
 import { getCourseItemDetailPath } from '@/features/course/paths';
-import { getCs50UnitLink } from '@/features/course/cs50Links';
-import { getUnitGuide } from '@/features/course/guideContent';
+import { getProgrammeUnitLink } from '@/features/course/cs50Links';
+import { getProgrammeUnitGuide } from '@/features/course/guideContent';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapUnit } from '@/features/course/model';
 import { formatMinutes } from '@/lib/time';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { useAppState } from '@/lib/appState';
+import { requireProgrammeScope } from '@/lib/domain';
 
 type CourseUnitCardProps = {
   unit: CourseMapUnit;
 };
 
 export function CourseUnitCard({ unit }: CourseUnitCardProps) {
-  const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
-  const cs50Link = getCs50UnitLink(unit.id);
-  const guide = getUnitGuide(unit.id);
+  const { content } = requireProgrammeScope(useAppState().programmeScope);
+  const { unitNoun } = content.terminology;
+  const cs50Link = getProgrammeUnitLink(content.externalResources, unit.id);
+  const guide = getProgrammeUnitGuide(content.studyGuides, unit.id);
 
   return (
     <Card

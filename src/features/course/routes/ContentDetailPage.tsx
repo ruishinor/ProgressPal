@@ -22,15 +22,20 @@ import { TextArea } from '@/components/ui/TextArea';
 import { TextInput } from '@/components/ui/TextInput';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { useAppState } from '@/lib/appState';
-import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
-import { getItemGuide, type ItemGuide } from '@/features/course/guideContent';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import {
+  getProgrammeItemLink,
+  getProgrammeUnitLink,
+} from '@/features/course/cs50Links';
+import {
+  getProgrammeItemGuide,
+  type ItemGuide,
+} from '@/features/course/guideContent';
 import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
 import {
   buildCourseDetailView,
   createCourseDetailProgressFormValues,
-  getCourseProgressStatusOptions,
-  validateCourseDetailProgressForm,
+  getProgrammeProgressStatusOptions,
+  validateProgrammeProgressForm,
   type CourseDetailProgressFormValues,
 } from '@/features/course/detailModel';
 import { formatMinutes } from '@/lib/time';
@@ -292,7 +297,7 @@ async function loadContentDetail(
   const unit = await getCourseUnit(item.unitId);
 
   if (unit === null) {
-    const { unitNoun } = getActiveProgrammeDefinition().content.terminology;
+    const { unitNoun } = scope.content.terminology;
     throw new Error(
       `The ${unitNoun.lowercase} for this course task could not be found.`,
     );
@@ -438,6 +443,7 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
 export function ContentDetailPage() {
   const params = useParams<{ itemId: string }>();
   const { coordination, programmeScope, runLocalMutation } = useAppState();
+  const programme = requireProgrammeScope(useAppState().programmeScope);
   const [progressForm, setProgressForm] = useState<ProgressFormState | null>(
     null,
   );
@@ -617,12 +623,15 @@ export function ContentDetailPage() {
     detail.progressEntry,
     detail.longFormDetail?.progress ?? null,
   );
-  const progressStatusOptions = getCourseProgressStatusOptions({
-    currentStatus: detailView.progressStatus,
-    itemType: detail.item.type,
-    longFormProgress: detail.longFormDetail?.progress ?? null,
-    required: detail.item.required,
-  });
+  const progressStatusOptions = getProgrammeProgressStatusOptions(
+    programme.policy.workflow,
+    {
+      currentStatus: detailView.progressStatus,
+      itemType: detail.item.type,
+      longFormProgress: detail.longFormDetail?.progress ?? null,
+      required: detail.item.required,
+    },
+  );
 
   const isLecture =
     detail.item.type === 'lecture' || detail.item.type === 'shorts';
@@ -636,9 +645,13 @@ export function ContentDetailPage() {
       selectedProgressStatus === 'accepted');
 
   const cs50Link =
-    getCs50ItemLink(detail.item.id) ?? getCs50UnitLink(detail.unit.id);
+    getProgrammeItemLink(programme.content.externalResources, detail.item.id) ??
+    getProgrammeUnitLink(programme.content.externalResources, detail.unit.id);
 
-  const itemGuide = getItemGuide(detail.item.id);
+  const itemGuide = getProgrammeItemGuide(
+    programme.content.studyGuides,
+    detail.item.id,
+  );
   const guideCardSection =
     itemGuide !== null ? <ItemGuideCard guide={itemGuide} /> : null;
 
@@ -649,13 +662,17 @@ export function ContentDetailPage() {
       return;
     }
 
-    const validation = validateCourseDetailProgressForm(progressForm.values, {
-      currentStatus: detailView.progressStatus,
-      itemType: detail.item.type,
-      longFormProgress: detail.longFormDetail?.progress ?? null,
-      required: detail.item.required,
-      selectedStatus: progressForm.values.status,
-    });
+    const validation = validateProgrammeProgressForm(
+      programme.policy.workflow,
+      progressForm.values,
+      {
+        currentStatus: detailView.progressStatus,
+        itemType: detail.item.type,
+        longFormProgress: detail.longFormDetail?.progress ?? null,
+        required: detail.item.required,
+        selectedStatus: progressForm.values.status,
+      },
+    );
 
     if (
       validation.parsedConfidence === null ||

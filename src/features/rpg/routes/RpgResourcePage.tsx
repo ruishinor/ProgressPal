@@ -10,8 +10,8 @@ import { useOutletContext, useParams } from 'react-router-dom';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import {
-  getCourseProgressStatusOptions,
-  validateCourseDetailProgressForm,
+  getProgrammeProgressStatusOptions,
+  validateProgrammeProgressForm,
   type CourseDetailProgressFormValues,
 } from '@/features/course/detailModel';
 import { getItemStatusLabel } from '@/lib/progress';
@@ -30,7 +30,6 @@ import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 import type { ProgressStatus } from '@/lib/domain';
-import { getActiveProgrammeDefinition } from '@/programmes';
 import {
   getRpgFocusPath,
   getRpgResourcePath,
@@ -187,7 +186,9 @@ function RpgResourceLoadingState() {
 }
 
 export function RpgResourcePage() {
-  const { copy, unitNoun } = getActiveProgrammeDefinition().content.terminology;
+  const programme = requireProgrammeScope(useAppState().programmeScope);
+  const { copy, unitNoun } = programme.content.terminology;
+  const { workflow } = programme.policy;
   const { coordination, programmeScope, runLocalMutation } = useAppState();
   const { itemId } = useParams();
   const { refreshHud } = useOutletContext<RpgShellOutletContext>();
@@ -298,14 +299,14 @@ export function RpgResourcePage() {
       return [];
     }
 
-    return getCourseProgressStatusOptions({
+    return getProgrammeProgressStatusOptions(workflow, {
       correction: correctingStatus,
       currentStatus: summary.progressStatus,
       itemType: summary.itemType,
       longFormProgress: summary.longFormProgress,
       required: summary.required,
     });
-  }, [summary, correctingStatus]);
+  }, [summary, correctingStatus, workflow]);
 
   async function refreshSavedProgress(resourceId: string) {
     if (refreshInFlight.current) {
@@ -389,7 +390,7 @@ export function RpgResourcePage() {
       return;
     }
 
-    const validation = validateCourseDetailProgressForm(nextValues, {
+    const validation = validateProgrammeProgressForm(workflow, nextValues, {
       correction: correctingStatus,
       currentStatus: summary.progressStatus,
       itemType: summary.itemType,
@@ -502,7 +503,7 @@ export function RpgResourcePage() {
       achievementNames: result.unlockedAchievements
         .map(
           (unlock) =>
-            getActiveProgrammeDefinition().policy.achievements.find(
+            programme.policy.achievements.find(
               (definition) => definition.id === unlock.achievementId,
             )?.title ?? '',
         )

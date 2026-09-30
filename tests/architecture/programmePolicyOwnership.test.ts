@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { sharedAchievementDefinitions } from '@/lib/achievements';
-import { getActiveProgrammeDefinition } from '@/programmes';
+import { getDefaultProgrammeDefinition } from '@/programmes';
 import seedJson from '@/seed/cs50x-2026.json';
 
 /**
@@ -86,7 +86,7 @@ describe('G-7: src/lib contains no CS50-owned identifier literal', () => {
   });
 
   it('matches the programme-owned achievements and milestones of the CS50 definition', () => {
-    const { achievements, xp } = getActiveProgrammeDefinition().policy;
+    const { achievements, xp } = getDefaultProgrammeDefinition().policy;
     const sharedIds = new Set(
       sharedAchievementDefinitions.map((definition) => definition.id),
     );

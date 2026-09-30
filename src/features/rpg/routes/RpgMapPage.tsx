@@ -20,7 +20,6 @@ import type {
   RpgModuleSummary,
 } from '@/features/rpg/model/types';
 import { getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
-import { getActiveProgrammeDefinition } from '@/programmes';
 
 type RpgMapPageStatus = 'error' | 'loading' | 'ready';
 
@@ -112,8 +111,9 @@ function RpgMapLoadingState() {
 
 export function RpgMapPage() {
   const { programmeScope } = useAppState();
-  const { unitMapOrdinals, unitNoun } =
-    getActiveProgrammeDefinition().content.terminology;
+  const { unitMapOrdinals, unitNoun } = requireProgrammeScope(
+    useAppState().programmeScope,
+  ).content.terminology;
   const [state, setState] = useState<RpgMapPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
