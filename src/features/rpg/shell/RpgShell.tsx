@@ -22,7 +22,7 @@ import {
   projectRpgHudSummary,
 } from '@/features/rpg/model/readModels';
 import type { RpgHubSummary, RpgHudSummary } from '@/features/rpg/model/types';
-import { RpgBottomNav } from '@/features/rpg/shell/RpgBottomNav';
+import { RpgPrimaryNav } from '@/features/rpg/shell/RpgPrimaryNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import {
   getRpgResourcePath,
@@ -164,7 +164,9 @@ function RpgHeroHud({
             {currentQuest ? (
               <p className="rpg-hero-hud__quest-context">
                 {currentQuest.unitTitle} /{' '}
-                {formatMinutes(currentQuest.estimatedMinutes)}
+                <span className="rpg-hero-hud__nowrap">
+                  {formatMinutes(currentQuest.estimatedMinutes)}
+                </span>
               </p>
             ) : null}
           </div>
@@ -346,6 +348,7 @@ export function RpgShell() {
             <span className="rpg-shell__settings-text">Settings</span>
           </Link>
         </nav>
+        <RpgPrimaryNav />
         {location.pathname !== rpgHeroPath ? (
           <RpgHeroHud
             showQuest={
@@ -368,7 +371,8 @@ export function RpgShell() {
           id="rpg-main-content"
           onFocus={(event) => {
             // Native focus scrolling can expose only a textarea's caret. Keep
-            // the whole field above the fixed navigation using scroll padding.
+            // the whole field above the fixed mobile navigation using scroll
+            // padding.
             if (event.target instanceof HTMLTextAreaElement) {
               event.target.scrollIntoView({
                 behavior: 'instant',
@@ -443,7 +447,6 @@ export function RpgShell() {
             }
           />
         </main>
-        <RpgBottomNav />
       </div>
     </section>
   );

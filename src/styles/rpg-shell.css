@@ -38,14 +38,10 @@ body.rpg-route-active {
   background: rgb(251 252 254 / 0.35);
 }
 
-/* Reserve the fixed navigation area when the browser scrolls keyboard focus. */
+/* Keyboard focus scrolling keeps a small margin. The extra reservation for the
+   fixed mobile navigation is added in the mobile block below. */
 html:has(body.rpg-route-active) {
-  --rpg-bottom-nav-height: 6rem;
-  scroll-padding-block: var(--space-4)
-    calc(
-      var(--rpg-bottom-nav-height) + var(--space-4) +
-        env(safe-area-inset-bottom, 0px)
-    );
+  scroll-padding-block: var(--space-4);
 }
 
 .rpg-shell {
@@ -83,9 +79,6 @@ html:has(body.rpg-route-active) {
   display: grid;
   gap: var(--space-4);
   min-width: 0;
-  padding-bottom: calc(
-    var(--rpg-bottom-nav-height) + env(safe-area-inset-bottom, 0px)
-  );
   width: 100%;
 }
 
@@ -154,11 +147,11 @@ html:has(body.rpg-route-active) {
   border-radius: var(--radius-md);
   color: var(--rpg-text);
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.9fr) minmax(0, 1.2fr);
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   width: 100%;
 }
 
@@ -181,12 +174,53 @@ html:has(body.rpg-route-active) {
   font-size: var(--text-lg);
   font-weight: 800;
   justify-items: center;
-  min-width: 3.5rem;
+  min-width: 3rem;
+  width: 3rem;
+}
+
+/* The shared identity and level components also render the Hero profile, so
+   their HUD compaction stays scoped to the persistent HUD. */
+.rpg-hero-hud .rpg-identity,
+.rpg-hero-hud .rpg-level-progress {
+  gap: var(--space-3);
+}
+
+.rpg-hero-hud .rpg-identity .rpg-identity__portrait {
+  font-size: var(--text-lg);
+  height: 3.5rem;
   width: 3.5rem;
 }
 
-.rpg-hero-hud__identity,
-.rpg-hero-hud__quest-copy {
+.rpg-hero-hud .rpg-identity__copy {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+}
+
+.rpg-hero-hud .rpg-identity__name {
+  font-size: var(--text-lg);
+}
+
+.rpg-hero-hud .rpg-identity__traits {
+  flex-basis: 100%;
+}
+
+.rpg-hero-hud .rpg-identity__guild {
+  flex-basis: auto;
+}
+
+.rpg-hero-hud .rpg-level-progress__marker {
+  height: 3.25rem;
+  padding-bottom: 0.3rem;
+  width: 2.75rem;
+}
+
+.rpg-hero-hud .rpg-level-progress__marker strong {
+  font-size: 1.35rem;
+}
+
+.rpg-hero-hud__identity {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
@@ -219,12 +253,32 @@ html:has(body.rpg-route-active) {
   margin: 0;
 }
 
+/* A compound duration such as "2h 30m" must wrap as one unit, never leaving
+   "30m" stranded on its own line beside the quest action. */
+.rpg-hero-hud__nowrap {
+  white-space: nowrap;
+}
+
 .rpg-hero-hud__quest {
+  align-items: center;
   border-left: 1px solid var(--rpg-border);
-  padding-left: var(--space-4);
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
+  padding-left: var(--space-4);
+}
+
+.rpg-hero-hud__quest-copy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  min-width: 0;
+}
+
+.rpg-hero-hud__quest-label,
+.rpg-hero-hud__quest-copy > strong {
+  flex-basis: 100%;
 }
 
 .rpg-hero-hud__quest-link {
@@ -253,136 +307,98 @@ html:has(body.rpg-route-active) {
   border-color: var(--rpg-accent-strong);
 }
 
-.rpg-bottom-nav {
-  align-self: end;
-  background: color-mix(in srgb, var(--rpg-surface) 94%, var(--rpg-nav-shade));
+/* Primary navigation. Above the mobile breakpoint it is an ordinary block in
+   document flow, directly under the utility area. At 42rem and below it is
+   fixed to the usable viewport bottom (see the mobile block). */
+.rpg-primary-nav {
+  background: var(--rpg-surface);
   border: 1px solid var(--rpg-border);
-  border-radius: var(--radius-lg);
-  bottom: var(--space-3);
-  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.24);
-  justify-self: center;
-  max-width: 40rem;
+  border-radius: var(--radius-md);
   min-width: 0;
-  overflow: visible;
-  padding: 0.65rem 0.6rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
-  position: sticky;
+  padding: 0.3rem;
+  position: static;
   width: 100%;
-  z-index: 10;
 }
 
-.rpg-bottom-nav__list {
-  align-items: end;
+.rpg-primary-nav__list {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.25rem;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   min-width: 0;
 }
 
-.rpg-bottom-nav__link {
+.rpg-primary-nav__link {
   align-items: center;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--rpg-text-muted);
   display: inline-flex;
-  flex-direction: column;
-  font-size: clamp(0.6rem, 1.65vw, 0.72rem);
+  flex-direction: row;
+  font-size: clamp(0.625rem, 1.25vw, 0.75rem);
   font-weight: 800;
-  gap: 0.25rem;
-  justify-content: flex-end;
-  letter-spacing: 0.035em;
-  min-height: 3.7rem;
+  gap: 0.4rem;
+  justify-content: center;
+  letter-spacing: 0.04em;
+  min-height: 2.75rem;
   min-width: 0;
-  padding: 0.35rem 0.12rem 0.2rem;
+  padding: 0.35rem 0.3rem;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.rpg-bottom-nav__icon-frame {
+.rpg-primary-nav__icon-frame {
   align-items: center;
   display: inline-flex;
-  height: 1.75rem;
+  flex-shrink: 0;
+  height: 1.5rem;
   justify-content: center;
-  width: 1.75rem;
+  width: 1.5rem;
 }
 
-.rpg-bottom-nav__icon {
-  height: 1.45rem;
+.rpg-primary-nav__icon {
+  height: 1.25rem;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.7;
-  width: 1.45rem;
+  width: 1.25rem;
 }
 
-.rpg-bottom-nav__icon-fill {
+.rpg-primary-nav__icon-fill {
   fill: currentColor;
   stroke: none;
 }
 
-.rpg-bottom-nav__label {
+.rpg-primary-nav__label {
   overflow: visible;
 }
 
-.rpg-bottom-nav__link:focus-visible {
+.rpg-primary-nav__link:focus-visible {
   background: var(--rpg-surface-raised);
   border-color: var(--rpg-border);
   color: var(--rpg-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .rpg-bottom-nav__link:hover {
+  .rpg-primary-nav__link:hover {
     background: var(--rpg-surface-raised);
     border-color: var(--rpg-border);
     color: var(--rpg-text);
   }
 }
 
-.rpg-bottom-nav__link--active {
-  color: var(--rpg-accent-strong);
-}
-
-.rpg-bottom-nav__link--hub {
-  position: relative;
-}
-
-.rpg-bottom-nav__link--hub .rpg-bottom-nav__icon-frame {
-  background: color-mix(
-    in srgb,
-    var(--rpg-surface) 90%,
-    var(--rpg-nav-hub-shade)
-  );
-  border: 2px solid var(--rpg-border-strong);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 0.18rem var(--rpg-nav-ring),
-    0 0.35rem 1rem rgb(0 0 0 / 0.35);
-  color: var(--rpg-accent);
-  height: 3.25rem;
-  margin-top: -1.35rem;
-  width: 3.25rem;
-}
-
-.rpg-bottom-nav__link--hub .rpg-bottom-nav__icon {
-  height: 1.75rem;
-  width: 1.75rem;
-}
-
-.rpg-bottom-nav__link--hub.rpg-bottom-nav__link--active
-  .rpg-bottom-nav__icon-frame {
+/* The selected destination is the only link with a filled tint, an accent
+   border and a solid accent indicator edge, so selection never depends on
+   colour alone and no inactive link (Hub included) competes with it. It is
+   keyed on aria-current so the visual state cannot diverge from the
+   announced state. */
+.rpg-primary-nav__link[aria-current='page'] {
+  background: color-mix(in srgb, var(--rpg-accent) 16%, var(--rpg-surface));
   border-color: var(--rpg-accent);
-  box-shadow:
-    0 0 0 0.18rem var(--rpg-nav-ring),
-    0 0 0 0.28rem color-mix(in srgb, var(--rpg-accent) 20%, transparent),
-    0 0.35rem 1rem rgb(0 0 0 / 0.35);
-}
-
-.rpg-shell .toast-stack {
-  bottom: calc(
-    var(--rpg-bottom-nav-height) + var(--space-4) +
-      env(safe-area-inset-bottom, 0px)
-  );
+  box-shadow: inset 0 -0.2rem 0 var(--rpg-accent);
+  color: var(--rpg-accent-strong);
 }
 
 @media (max-width: 60rem) {
@@ -392,8 +408,6 @@ html:has(body.rpg-route-active) {
 
   .rpg-hero-hud__quest {
     grid-column: 1 / -1;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
     border-left: 0;
     border-top: 1px solid var(--rpg-border);
     padding: var(--space-3) 0 0;
@@ -405,10 +419,34 @@ html:has(body.rpg-route-active) {
 }
 
 @media (max-width: 42rem) {
+  /* Only here is navigation fixed over the viewport, so only here do the
+     scroll padding, main content and toasts reserve space for it. */
+  html:has(body.rpg-route-active) {
+    --rpg-mobile-nav-height: 6rem;
+    scroll-padding-block: var(--space-4)
+      calc(
+        var(--rpg-mobile-nav-height) + var(--space-4) +
+          env(safe-area-inset-bottom, 0px)
+      );
+  }
+
   .rpg-shell {
     padding-inline: max(var(--space-3), env(safe-area-inset-left, 0px))
       max(var(--space-3), env(safe-area-inset-right, 0px));
     padding-top: var(--space-3);
+  }
+
+  .rpg-shell__main {
+    padding-bottom: calc(
+      var(--rpg-mobile-nav-height) + env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  .rpg-shell .toast-stack {
+    bottom: calc(
+      var(--rpg-mobile-nav-height) + var(--space-4) +
+        env(safe-area-inset-bottom, 0px)
+    );
   }
 
   .rpg-hero-hud {
@@ -419,6 +457,11 @@ html:has(body.rpg-route-active) {
 
   .rpg-hero-hud--compact {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .rpg-hero-hud__quest {
+    gap: var(--space-2) var(--space-3);
+    padding-top: var(--space-2);
   }
 
   .rpg-hero-hud__quest strong {
@@ -442,32 +485,50 @@ html:has(body.rpg-route-active) {
     padding: 0.5rem;
   }
 
-  .rpg-bottom-nav {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+  .rpg-primary-nav {
+    background: color-mix(
+      in srgb,
+      var(--rpg-surface) 94%,
+      var(--rpg-nav-shade)
+    );
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     bottom: 0;
+    box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.24);
     inset-inline: 0;
-    justify-self: stretch;
-    max-width: none;
-    padding-inline: max(0.35rem, env(safe-area-inset-left, 0px))
-      max(0.35rem, env(safe-area-inset-right, 0px));
+    padding: 0.65rem max(0.35rem, env(safe-area-inset-right, 0px))
+      calc(0.55rem + env(safe-area-inset-bottom, 0px))
+      max(0.35rem, env(safe-area-inset-left, 0px));
     position: fixed;
     width: auto;
+    z-index: 10;
   }
 
-  .rpg-bottom-nav__list {
+  .rpg-primary-nav__list {
+    align-items: end;
     gap: 0;
   }
 
-  .rpg-bottom-nav__link {
+  .rpg-primary-nav__link {
+    flex-direction: column;
     font-size: clamp(0.56rem, 2.25vw, 0.66rem);
+    gap: 0.25rem;
+    justify-content: flex-end;
+    letter-spacing: 0.035em;
     min-height: 3.55rem;
-    padding-inline: 0.05rem;
+    padding: 0.35rem 0.05rem 0.2rem;
   }
 
-  .rpg-bottom-nav__link--hub .rpg-bottom-nav__icon-frame {
-    height: 3rem;
-    margin-top: -1.2rem;
-    width: 3rem;
+  .rpg-primary-nav__icon-frame {
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  .rpg-primary-nav__icon {
+    height: 1.45rem;
+    width: 1.45rem;
+  }
+
+  .rpg-primary-nav__link[aria-current='page'] {
+    box-shadow: inset 0 0.2rem 0 var(--rpg-accent);
   }
 }
