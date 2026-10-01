@@ -11,7 +11,7 @@ const visualReviewDirectory = path.resolve(
 
 async function captureRpgNavigation(page: Page, fileName: string) {
   const navigation = page.getByRole('navigation', {
-    name: 'RPG bottom navigation',
+    name: 'RPG primary navigation',
   });
 
   await expect(navigation).toBeVisible();

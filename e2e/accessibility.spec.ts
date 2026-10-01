@@ -508,7 +508,7 @@ test('the custom checkbox shows a visible keyboard focus indicator in dark theme
   expect(focusOutline.width).toBeGreaterThan(0);
 });
 
-test('an RPG settings toast does not cover the bottom navigation', async ({
+test('an RPG settings toast does not cover the fixed mobile primary navigation', async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -525,7 +525,7 @@ test('an RPG settings toast does not cover the bottom navigation', async ({
 
   const toastBox = await page.locator('.toast').boundingBox();
   const navigationBox = await page
-    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('navigation', { name: 'RPG primary navigation' })
     .boundingBox();
 
   expect(toastBox).not.toBeNull();
@@ -741,7 +741,7 @@ test('route changes move focus to the main content region', async ({
     page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
   ).toBeVisible({ timeout: 15000 });
   await page
-    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('navigation', { name: 'RPG primary navigation' })
     .getByRole('link', { name: 'Map' })
     .click();
   await expect(page.locator('#rpg-main-content')).toBeFocused();

@@ -32,7 +32,7 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
   await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
   await page
-    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('navigation', { name: 'RPG primary navigation' })
     .getByRole('link', { name: 'Hero', exact: true })
     .click();
   await expect(

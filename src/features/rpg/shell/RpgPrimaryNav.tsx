@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 
-import { classNames } from '@/components/ui/utils';
 import {
   rpgBadgesPath,
   rpgFocusPath,
@@ -74,7 +73,7 @@ function isNavItemActive(pathname: string, item: RpgNavItem) {
 function RpgNavIcon({ name }: { name: RpgNavIconName }) {
   const commonProps = {
     'aria-hidden': true,
-    className: 'rpg-bottom-nav__icon',
+    className: 'rpg-primary-nav__icon',
     fill: 'none',
     viewBox: '0 0 24 24',
   } as const;
@@ -94,7 +93,12 @@ function RpgNavIcon({ name }: { name: RpgNavIconName }) {
       <svg {...commonProps}>
         <circle cx="12" cy="12" r="8" />
         <circle cx="12" cy="12" r="4.2" />
-        <circle className="rpg-bottom-nav__icon-fill" cx="12" cy="12" r="1.6" />
+        <circle
+          className="rpg-primary-nav__icon-fill"
+          cx="12"
+          cy="12"
+          r="1.6"
+        />
       </svg>
     );
   }
@@ -134,34 +138,27 @@ function RpgNavIcon({ name }: { name: RpgNavIconName }) {
   );
 }
 
-export function RpgBottomNav() {
+export function RpgPrimaryNav() {
   const location = useLocation();
 
   return (
-    <nav aria-label="RPG bottom navigation" className="rpg-bottom-nav">
-      <div className="rpg-bottom-nav__list">
-        {navItems.map((item) => {
-          const isActive = isNavItemActive(location.pathname, item);
-          const isHub = item.icon === 'hub';
-
-          return (
-            <Link
-              aria-current={isActive ? 'page' : undefined}
-              className={classNames(
-                'rpg-bottom-nav__link',
-                isHub && 'rpg-bottom-nav__link--hub',
-                isActive && 'rpg-bottom-nav__link--active',
-              )}
-              key={item.to}
-              to={item.to}
-            >
-              <span className="rpg-bottom-nav__icon-frame">
-                <RpgNavIcon name={item.icon} />
-              </span>
-              <span className="rpg-bottom-nav__label">{item.label}</span>
-            </Link>
-          );
-        })}
+    <nav aria-label="RPG primary navigation" className="rpg-primary-nav">
+      <div className="rpg-primary-nav__list">
+        {navItems.map((item) => (
+          <Link
+            aria-current={
+              isNavItemActive(location.pathname, item) ? 'page' : undefined
+            }
+            className="rpg-primary-nav__link"
+            key={item.to}
+            to={item.to}
+          >
+            <span className="rpg-primary-nav__icon-frame">
+              <RpgNavIcon name={item.icon} />
+            </span>
+            <span className="rpg-primary-nav__label">{item.label}</span>
+          </Link>
+        ))}
       </div>
     </nav>
   );

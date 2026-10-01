@@ -2395,7 +2395,7 @@ describe('RPG routes', () => {
     }
   }
 
-  function expectRpgShellWithBottomNav(activeLabel: string) {
+  function expectRpgShellWithPrimaryNav(activeLabel: string) {
     const rpgShell = screen.getByTestId('rpg-shell');
     expect(rpgShell).toBeInTheDocument();
     expect(
@@ -2406,8 +2406,8 @@ describe('RPG routes', () => {
       'rpg-main-content',
     );
 
-    const bottomNav = screen.getByRole('navigation', {
-      name: 'RPG bottom navigation',
+    const primaryNav = screen.getByRole('navigation', {
+      name: 'RPG primary navigation',
     });
     const expectedItems = [
       ['Map', '/rpg/map'],
@@ -2420,25 +2420,40 @@ describe('RPG routes', () => {
 
     for (const [label, href] of expectedItems) {
       expect(
-        within(bottomNav).getByRole('link', { name: label }),
+        within(primaryNav).getByRole('link', { name: label }),
       ).toHaveAttribute('href', href);
     }
 
     expect(
-      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+      within(primaryNav).queryByRole('link', { name: /Tracker|Classic/i }),
     ).not.toBeInTheDocument();
     expect(
-      within(bottomNav).queryByRole('button', { name: 'More' }),
+      within(primaryNav).queryByRole('button', { name: 'More' }),
     ).not.toBeInTheDocument();
 
+    expectSingleCurrentRpgDestination(activeLabel);
+  }
+
+  // Exactly one link in the whole RPG shell is announced as the current page:
+  // a primary destination, or the Settings utility link on /rpg/settings,
+  // which is not one of the six primary destinations.
+  function expectSingleCurrentRpgDestination(activeLabel: string) {
+    const rpgShell = screen.getByTestId('rpg-shell');
+    const primaryNav = within(rpgShell).getByRole('navigation', {
+      name: 'RPG primary navigation',
+    });
+    const current = within(rpgShell).getAllByRole('link', { current: 'page' });
+
+    expect(current).toHaveLength(1);
+
     if (activeLabel === 'Settings') {
+      expect(current[0]).toHaveAccessibleName('Open Settings');
       expect(
-        screen.getByRole('link', { name: 'Open Settings' }),
-      ).toHaveAttribute('aria-current', 'page');
+        within(primaryNav).queryAllByRole('link', { current: 'page' }),
+      ).toHaveLength(0);
     } else {
-      expect(
-        within(bottomNav).getByRole('link', { name: activeLabel }),
-      ).toHaveAttribute('aria-current', 'page');
+      expect(current[0]).toHaveAccessibleName(activeLabel);
+      expect(primaryNav).toContainElement(current[0]!);
     }
   }
 
@@ -2525,7 +2540,7 @@ describe('RPG routes', () => {
       screen.getByRole('heading', { name: 'RPG Hub' }),
     ).toBeInTheDocument();
     expect(mapLink).toHaveAttribute('href', '/rpg/map');
-    expectRpgShellWithBottomNav('Hub');
+    expectRpgShellWithPrimaryNav('Hub');
     expectClassicShellAbsent();
     await expectPersistentHeroHud({
       currentQuestHref: '/rpg/resource/week-0-lecture',
@@ -2657,7 +2672,7 @@ describe('RPG routes', () => {
       );
     }
 
-    expectRpgShellWithBottomNav('Map');
+    expectRpgShellWithPrimaryNav('Map');
   });
 
   it('renders RPG campaign map progress, current module, completed modules, and available modules as text', async () => {
@@ -2801,7 +2816,7 @@ describe('RPG routes', () => {
         'Not started',
       ),
     ).toBeInTheDocument();
-    expectRpgShellWithBottomNav('Map');
+    expectRpgShellWithPrimaryNav('Map');
   });
 
   it('renders an RPG week not-found state', async () => {
@@ -2815,7 +2830,7 @@ describe('RPG routes', () => {
     expect(
       screen.getByText('No RPG week was found for "not-a-real-unit".'),
     ).toBeInTheDocument();
-    expectRpgShellWithBottomNav('Map');
+    expectRpgShellWithPrimaryNav('Map');
   });
 
   it('renders the RPG Study Resource from real Week 4 data without embedded content', async () => {
@@ -2872,7 +2887,7 @@ describe('RPG routes', () => {
       ).not.toBeInTheDocument();
       expect(screen.queryByText(/timeline scrubber/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/fake transcript/i)).not.toBeInTheDocument();
-      expectRpgShellWithBottomNav('Map');
+      expectRpgShellWithPrimaryNav('Map');
     } finally {
       openSpy.mockRestore();
     }
@@ -3145,7 +3160,7 @@ describe('RPG routes', () => {
 
     await user.click(
       within(
-        screen.getByRole('navigation', { name: 'RPG bottom navigation' }),
+        screen.getByRole('navigation', { name: 'RPG primary navigation' }),
       ).getByRole('link', { name: 'Map' }),
     );
 
@@ -3199,7 +3214,7 @@ describe('RPG routes', () => {
     expect(
       screen.getByText('No RPG resource was found for "not-a-real-item".'),
     ).toBeInTheDocument();
-    expectRpgShellWithBottomNav('Map');
+    expectRpgShellWithPrimaryNav('Map');
   });
 
   it('renders the RPG Focus Session with selected real Week 4 task context', async () => {
@@ -3255,7 +3270,7 @@ describe('RPG routes', () => {
       'href',
       '/rpg',
     );
-    expectRpgShellWithBottomNav('Focus');
+    expectRpgShellWithPrimaryNav('Focus');
   });
 
   it('renders a useful non-mutating RPG Focus Session state without itemId', async () => {
@@ -3625,7 +3640,7 @@ describe('RPG routes', () => {
       expect(
         await screen.findByRole('heading', { name: heading }),
       ).toBeInTheDocument();
-      expectRpgShellWithBottomNav(activeLabel);
+      expectRpgShellWithPrimaryNav(activeLabel);
       expectClassicShellAbsent();
       await expectPersistentHeroHud({
         currentQuestHref: '/rpg/resource/week-0-lecture',
@@ -3999,18 +4014,18 @@ describe('RPG routes', () => {
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
-  it('supports keyboard navigation through the RPG bottom nav', async () => {
+  it('supports keyboard navigation through the RPG primary nav', async () => {
     const user = userEvent.setup();
     await seedOnboardedLearner();
 
     await renderAppAtRoute('/rpg');
     await screen.findByRole('link', { name: 'Open Campaign Map' });
 
-    const bottomNav = screen.getByRole('navigation', {
-      name: 'RPG bottom navigation',
+    const primaryNav = screen.getByRole('navigation', {
+      name: 'RPG primary navigation',
     });
-    const mapLink = within(bottomNav).getByRole('link', { name: 'Map' });
-    const focusLink = within(bottomNav).getByRole('link', { name: 'Focus' });
+    const mapLink = within(primaryNav).getByRole('link', { name: 'Map' });
+    const focusLink = within(primaryNav).getByRole('link', { name: 'Focus' });
 
     mapLink.focus();
     expect(mapLink).toHaveFocus();
@@ -4021,12 +4036,94 @@ describe('RPG routes', () => {
     await user.keyboard('{Enter}');
     await screen.findByRole('heading', { name: 'Focus' });
 
-    const updatedBottomNav = screen.getByRole('navigation', {
-      name: 'RPG bottom navigation',
+    const updatedPrimaryNav = screen.getByRole('navigation', {
+      name: 'RPG primary navigation',
     });
     expect(
-      within(updatedBottomNav).getByRole('link', { name: 'Focus' }),
+      within(updatedPrimaryNav).getByRole('link', { name: 'Focus' }),
     ).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('selects exactly one destination on direct and nested RPG routes', async () => {
+    await seedOnboardedLearner();
+
+    const routes = [
+      ['/rpg', 'Hub'],
+      ['/rpg/map', 'Map'],
+      ['/rpg/week/week-4', 'Map'],
+      ['/rpg/resource/week-0-lecture', 'Map'],
+      ['/rpg/focus', 'Focus'],
+      ['/rpg/focus?itemId=week-4-lecture', 'Focus'],
+      ['/rpg/hero', 'Hero'],
+      ['/rpg/badges', 'Awards'],
+      ['/rpg/log', 'Insights'],
+      ['/rpg/settings', 'Settings'],
+    ] as const;
+
+    for (const [route, activeLabel] of routes) {
+      cleanup();
+      await renderAppAtRoute(route);
+      await screen.findByTestId('rpg-shell');
+      expectSingleCurrentRpgDestination(activeLabel);
+    }
+  });
+
+  it('keeps the inactive Hub link free of any selected state', async () => {
+    await seedOnboardedLearner();
+
+    await renderAppAtRoute('/rpg/map');
+    await screen.findByTestId('rpg-shell');
+
+    const hubLink = within(
+      screen.getByRole('navigation', { name: 'RPG primary navigation' }),
+    ).getByRole('link', { name: 'Hub' });
+
+    expect(hubLink).not.toHaveAttribute('aria-current');
+    expect(hubLink.className).toBe('rpg-primary-nav__link');
+  });
+
+  it('orders RPG shell landmarks as skip link, utility, primary navigation, HUD, then main', async () => {
+    await seedOnboardedLearner();
+
+    const precedes = (first: Element, second: Element) =>
+      (first.compareDocumentPosition(second) &
+        Node.DOCUMENT_POSITION_FOLLOWING) !==
+      0;
+
+    await renderAppAtRoute('/rpg/map');
+    await screen.findByTestId('rpg-shell');
+
+    const skipLink = screen.getByRole('link', { name: 'Skip to RPG content' });
+    const utility = screen.getByRole('navigation', {
+      name: 'RPG utility navigation',
+    });
+    const primaryNav = screen.getByRole('navigation', {
+      name: 'RPG primary navigation',
+    });
+    const hud = await screen.findByRole('region', {
+      name: 'Persistent hero HUD',
+    });
+    const main = screen.getByRole('main');
+
+    expect(precedes(skipLink, utility)).toBe(true);
+    expect(precedes(utility, primaryNav)).toBe(true);
+    expect(precedes(primaryNav, hud)).toBe(true);
+    expect(precedes(hud, main)).toBe(true);
+
+    cleanup();
+    await renderAppAtRoute('/rpg/hero');
+    await screen.findByTestId('rpg-shell');
+
+    // The Hero route keeps its persistent-HUD exclusion.
+    expect(
+      screen.queryByRole('region', { name: 'Persistent hero HUD' }),
+    ).not.toBeInTheDocument();
+    expect(
+      precedes(
+        screen.getByRole('navigation', { name: 'RPG primary navigation' }),
+        screen.getByRole('main'),
+      ),
+    ).toBe(true);
   });
 
   it('keeps all six primary RPG destinations direct and keeps Classic out of peer navigation', async () => {
@@ -4035,24 +4132,24 @@ describe('RPG routes', () => {
     await renderAppAtRoute('/rpg/badges');
     await screen.findByRole('heading', { name: 'Achievements' });
 
-    const bottomNav = screen.getByRole('navigation', {
-      name: 'RPG bottom navigation',
+    const primaryNav = screen.getByRole('navigation', {
+      name: 'RPG primary navigation',
     });
 
     for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
       expect(
-        within(bottomNav).getByRole('link', { name: label }),
+        within(primaryNav).getByRole('link', { name: label }),
       ).toBeVisible();
     }
 
     expect(
-      within(bottomNav).getByRole('link', { name: 'Awards' }),
+      within(primaryNav).getByRole('link', { name: 'Awards' }),
     ).toHaveAttribute('aria-current', 'page');
     expect(
-      within(bottomNav).queryByRole('button', { name: 'More' }),
+      within(primaryNav).queryByRole('button', { name: 'More' }),
     ).not.toBeInTheDocument();
     expect(
-      within(bottomNav).queryByRole('link', { name: /Tracker|Classic/i }),
+      within(primaryNav).queryByRole('link', { name: /Tracker|Classic/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open Settings' })).toHaveAttribute(
       'href',

@@ -44,11 +44,13 @@ const mobileViewports = [
   { height: 932, width: 430 },
 ] as const;
 
-test('keyboard focus stays above the fixed RPG navigation in forms', async ({
+test('keyboard focus stays clear of the RPG primary navigation in forms', async ({
   page,
 }) => {
   await completeOnboarding(page);
-  for (const width of [390, 1280]) {
+  // 320/390 exercise the fixed mobile navigation; 768/1280 exercise the
+  // in-flow navigation, which must never intersect a focused control.
+  for (const width of [320, 390, 768, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     for (const [path, readyButton] of [
       ['/rpg/resource/week-4-lecture', 'Save progress'],
@@ -93,20 +95,27 @@ test('keyboard focus stays above the fixed RPG navigation in forms', async ({
             document: {
               activeElement: unknown;
               querySelector: (selector: string) => {
-                getBoundingClientRect: () => { top: number };
+                getBoundingClientRect: () => { bottom: number; top: number };
               } | null;
             };
+            getComputedStyle: (element: unknown) => { position: string };
           };
           const index = elements.findIndex(
             (element) => element === scope.document.activeElement,
           );
           const element = elements[index];
-          const nav = scope.document
-            .querySelector('.rpg-bottom-nav')
-            ?.getBoundingClientRect();
-          if (!element || !nav) return null;
+          const navElement = scope.document.querySelector('.rpg-primary-nav');
+          const nav = navElement?.getBoundingClientRect();
+          if (!element || !nav || !navElement) return null;
           const rect = element.getBoundingClientRect();
-          return { index, top: rect.top, bottom: rect.bottom, navTop: nav.top };
+          return {
+            index,
+            top: rect.top,
+            bottom: rect.bottom,
+            navBottom: nav.bottom,
+            navPosition: scope.getComputedStyle(navElement).position,
+            navTop: nav.top,
+          };
         });
         expect(
           focus,
@@ -118,10 +127,23 @@ test('keyboard focus stays above the fixed RPG navigation in forms', async ({
           focus.top,
           `${path} ${width}px Tab ${tab} above viewport`,
         ).toBeGreaterThanOrEqual(0);
-        expect(
-          focus.bottom,
-          `${path} ${width}px Tab ${tab} covered by navigation`,
-        ).toBeLessThanOrEqual(focus.navTop);
+        if (width <= 672) {
+          expect(focus.navPosition, `${path} ${width}px navigation`).toBe(
+            'fixed',
+          );
+          expect(
+            focus.bottom,
+            `${path} ${width}px Tab ${tab} covered by navigation`,
+          ).toBeLessThanOrEqual(focus.navTop);
+        } else {
+          expect(focus.navPosition, `${path} ${width}px navigation`).toBe(
+            'static',
+          );
+          expect(
+            focus.top >= focus.navBottom || focus.bottom <= focus.navTop,
+            `${path} ${width}px Tab ${tab} intersects navigation`,
+          ).toBe(true);
+        }
         if (visited.size === expected.length) break;
       }
       expect([...visited].sort((a, b) => a - b)).toEqual(expected);
@@ -247,11 +269,11 @@ for (const viewport of mobileViewports) {
         expect((await hud.boundingBox())!.height).toBeLessThan(310);
       }
       await expect(
-        page.getByRole('navigation', { name: 'RPG bottom navigation' }),
+        page.getByRole('navigation', { name: 'RPG primary navigation' }),
       ).toBeVisible();
 
       const bottomNav = page.getByRole('navigation', {
-        name: 'RPG bottom navigation',
+        name: 'RPG primary navigation',
       });
       const navBox = await bottomNav.boundingBox();
       const navPosition = await bottomNav.evaluate((element) => {
@@ -308,7 +330,7 @@ test('mobile bottom navigation stays fixed during real document scroll', async (
   ).toBeVisible({ timeout: 15000 });
 
   const bottomNav = page.getByRole('navigation', {
-    name: 'RPG bottom navigation',
+    name: 'RPG primary navigation',
   });
   await expect(bottomNav).toBeVisible();
 
@@ -363,7 +385,7 @@ test('touch navigation does not preserve hover styling on a previous destination
   expect(hoverFine).toBe(false);
 
   const insights = page
-    .getByRole('navigation', { name: 'RPG bottom navigation' })
+    .getByRole('navigation', { name: 'RPG primary navigation' })
     .getByRole('link', { name: 'Insights' });
 
   const beforeHover = await insights.evaluate((element) => {
@@ -394,7 +416,7 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
   ).toBeVisible();
 
   const bottomNav = page.getByRole('navigation', {
-    name: 'RPG bottom navigation',
+    name: 'RPG primary navigation',
   });
 
   for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
@@ -405,9 +427,11 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
   await expect(
     bottomNav.getByRole('link', { name: /Tracker|Classic/i }),
   ).toHaveCount(0);
-  await expect(bottomNav.getByRole('link', { name: 'Hub' })).toHaveClass(
-    /rpg-bottom-nav__link--hub/,
+  await expect(bottomNav.getByRole('link', { name: 'Hub' })).toHaveAttribute(
+    'aria-current',
+    'page',
   );
+  await expect(bottomNav.locator('[aria-current="page"]')).toHaveCount(1);
 
   await page.getByRole('link', { name: 'Open Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
