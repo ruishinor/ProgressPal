@@ -253,6 +253,12 @@ html:has(body.rpg-route-active) {
   margin: 0;
 }
 
+/* A compound duration such as "2h 30m" must wrap as one unit, never leaving
+   "30m" stranded on its own line beside the quest action. */
+.rpg-hero-hud__nowrap {
+  white-space: nowrap;
+}
+
 .rpg-hero-hud__quest {
   align-items: center;
   border-left: 1px solid var(--rpg-border);
