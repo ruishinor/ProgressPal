@@ -4,7 +4,7 @@ Status: **ACCEPTED BY OWNER, 2026-10-02.** E-SCHEMA-1 is accepted exactly as pro
 
 This record was authored by the Pre-E R4 documentation candidate, amended by the R4.1 documentation successor and corrected by the R4.2 documentation successor.
 
-It follows the pattern of `docs/post-release/epic-c/C6_SCHEMA_CHANGE_DECISION_RECORD.md` and is scoped to the minimum learner state that the authored Programvareutvikling M01/M02 slice needs. Store and field names are proposals; the RED tests in Epic E fix them. Line references are to the R4 baseline (`854e10a`) and are orientation, not authority.
+It follows the pattern of `docs/post-release/epic-c/C6_SCHEMA_CHANGE_DECISION_RECORD.md` and is scoped to the minimum learner state that the authored Programvareutvikling M01/M02 slice needs. Store and field names are part of the accepted E-SCHEMA-1 contract; Epic E's RED tests prove them rather than choose or rename them. Line references are to the R4 baseline (`854e10a`) and are orientation, not authority.
 
 **R4.1 amendments** (current owner decisions and protected-authority alignment; the proposal is otherwise unchanged): every submitted answer is persisted as an attempt, including non-evidence outcomes (section 3, invariants 5 and 7); runtime timeout is `evaluator_error` (invariant 7); the answer bound is derived by Epic E, not chosen by the owner; exported schema-3 backups are not converted and schema 4 is the new forward backup baseline (section 7); `attemptNumber` is a local invariant, not sync identity (sections 2 and 11); content language is metadata, not evidence (section 5).
 
@@ -29,7 +29,7 @@ Alternatives rejected:
 - **A third store for project artefacts.** No authored M01/M02 workflow requires one (section 8).
 - **A persisted mastery or skill-state cache.** It would be a second source of truth. Package 21 permits a discardable cache; this record does not authorize one.
 
-## 2. Proposed schema 4
+## 2. Accepted schema 4 contract
 
 Same database name `progresspal-cs50-edition`. Dexie `version(4)` (native 40). No store is renamed or removed and no existing store, field or index changes. `app_meta.schemaVersion` becomes 4.
 
