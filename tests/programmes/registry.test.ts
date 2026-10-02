@@ -19,8 +19,13 @@ import { bundledCourseSeed } from '@/seed';
  */
 
 describe('programme registry', () => {
-  it('registers exactly one production definition, keyed cs50x-2026 and the explicit default', () => {
-    expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
+  // Epic E (accepted-oracle change): Programvareutvikling is the second
+  // production definition; CS50 stays the explicit default.
+  it('registers exactly the two accepted production definitions, with cs50x-2026 the explicit default', () => {
+    expect(listRegisteredDefinitionKeys()).toEqual([
+      'cs50x-2026',
+      'programvareutvikling-2026',
+    ]);
     expect(getDefaultProgrammeDefinition()).toBe(
       getProgrammeDefinition('cs50x-2026'),
     );

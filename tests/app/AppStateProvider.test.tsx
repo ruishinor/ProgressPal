@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppStateProvider, useAppState } from '@/lib/appState';
 import type { AppStateContextValue } from '@/lib/appState/AppStateContext';
 import * as database from '@/lib/db';
+import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import type { LearnerProfile } from '@/lib/domain';
 import * as storage from '@/lib/storage';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
@@ -44,7 +45,21 @@ function dispatchPeerMessage(
   );
 }
 
-async function seedOnboardedProfile(displayName: string) {
+/**
+ * Seeds an onboarded profile on the shared database. `cs50Only` first rebinds
+ * the shared database to the CS50-only migration context, for the tests that
+ * render the provider with that CS50-only composition (since Epic E the
+ * production root, which the suite setup mirrors, authorizes two programmes).
+ */
+async function seedOnboardedProfile(
+  displayName: string,
+  options: { cs50Only?: boolean } = {},
+) {
+  if (options.cs50Only === true) {
+    closeSharedDatabase();
+    getSharedDatabase(cs50MigrationContext);
+  }
+
   await database.initializeDatabase({ seed: bundledCourseSeed });
   const result = await database.saveLearnerProfile(
     {
@@ -119,7 +134,9 @@ describe('AppStateProvider freshness', () => {
   });
 
   it('never publishes a final snapshot whose revision acknowledgement failed', async () => {
-    const storedProfile = await seedOnboardedProfile('Stored learner');
+    const storedProfile = await seedOnboardedProfile('Stored learner', {
+      cs50Only: true,
+    });
     const rejectedSnapshot = profileWithDisplayName(
       storedProfile,
       'Rejected snapshot',
@@ -167,7 +184,9 @@ describe('AppStateProvider freshness', () => {
   });
 
   it('retries a rejected stale preflight read and publishes only the final stable snapshot', async () => {
-    const storedProfile = await seedOnboardedProfile('Stored learner');
+    const storedProfile = await seedOnboardedProfile('Stored learner', {
+      cs50Only: true,
+    });
     const observations: ProbeObservation[] = [];
     let latestValue: AppStateContextValue | null = null;
 
@@ -232,7 +251,9 @@ describe('AppStateProvider freshness', () => {
   });
 
   it('coalesces overlapping refresh requests and resolves them after a trailing stable read', async () => {
-    const storedProfile = await seedOnboardedProfile('Before refresh');
+    const storedProfile = await seedOnboardedProfile('Before refresh', {
+      cs50Only: true,
+    });
     const observations: ProbeObservation[] = [];
     let latestValue: AppStateContextValue | null = null;
 
@@ -391,7 +412,9 @@ describe('AppStateProvider freshness', () => {
   });
 
   it('rereads and advances the data epoch before fake-lock ownership transfer enables writes', async () => {
-    const storedProfile = await seedOnboardedProfile('Contended snapshot');
+    const storedProfile = await seedOnboardedProfile('Contended snapshot', {
+      cs50Only: true,
+    });
     const transferredProfile = profileWithDisplayName(
       storedProfile,
       'Transferred snapshot',

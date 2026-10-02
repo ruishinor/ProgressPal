@@ -171,7 +171,9 @@ describe('A7 actual route and shell access matrix', () => {
         { catalogueId: cs50CatalogueId, policy: cs50Policy, db: writer },
       );
       const before = await getDatabaseSnapshot({ db: writer });
-      expect(Object.keys(before)).toHaveLength(16);
+      // Schema 4 (Epic E): the 16 earlier stores plus learner_evidence and
+      // lesson_positions, so nonmutation also covers both new stores.
+      expect(Object.keys(before)).toHaveLength(18);
       writer.close();
 
       const appState: AppStateContextValue = {

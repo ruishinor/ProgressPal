@@ -517,9 +517,10 @@ describe('multi-tab old-shell upgrade (MR-13/14: existing Dexie defaults, no new
     expect(oldTabConnection.isOpen()).toBe(false);
     expect(upgradingDatabase.isOpen()).toBe(true);
     const appMeta = await upgradingDatabase.appMeta.get('app-meta');
+    // Since Epic E the same open continues through v3 to v4 in one upgrade.
     expect(appMeta).toMatchObject({
       activeProgrammeId: 'cs50x',
-      schemaVersion: 3,
+      schemaVersion: 4,
     });
 
     upgradingDatabase.close();

@@ -162,6 +162,9 @@ describe('database migrations', () => {
         'content_slices',
         'media_progress_events',
         'resume_points',
+        // Epic E (accepted E-SCHEMA-1): the two schema-4 stores.
+        'learner_evidence',
+        'lesson_positions',
       ]),
     );
   });

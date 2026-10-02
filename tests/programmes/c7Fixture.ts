@@ -16,8 +16,6 @@ import type { ProgrammeDefinition } from '@/programmes';
 import { cs50x2026Definition } from '@/programmes/cs50x-2026';
 import { validateProgrammeDefinition } from '@/programmes/definition';
 
-import { defaultTestMigrationContext } from '../db/testDatabase';
-
 /**
  * Epic C / C7 test-only second programme, shared by the registry, repository,
  * provider and Settings tests. It is the C5 alternate catalogue (distinct
@@ -226,11 +224,13 @@ export const altMigrationContext: DatabaseMigrationContext = {
 /**
  * Test-only context authorizing both catalogues at once, in the registry
  * order CS50 then alternate; the default/bootstrap programme stays CS50.
+ * Pinned to exactly these two (not derived from the default test context,
+ * which since Epic E also authorizes Programvareutvikling).
  */
 export const bothCataloguesMigrationContext: DatabaseMigrationContext = {
-  programmeId: defaultTestMigrationContext.programmeId,
+  programmeId: cs50ProgrammeId,
   authorizedCatalogues: [
-    ...defaultTestMigrationContext.authorizedCatalogues,
+    { courseId: cs50CourseId, programmeId: cs50ProgrammeId },
     ...altMigrationContext.authorizedCatalogues,
   ],
 };

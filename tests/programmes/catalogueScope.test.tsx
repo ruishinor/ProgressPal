@@ -181,8 +181,13 @@ afterEach(async () => {
 });
 
 describe('C5 P3: scoped readers isolate catalogues in both directions', () => {
-  it('keeps the production registry to the CS50 definition only', () => {
-    expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
+  // Epic E (accepted-oracle change): Programvareutvikling is the second
+  // production definition; synthetic fixtures are still never registered.
+  it('keeps the production registry to the accepted CS50 and Programvareutvikling definitions only', () => {
+    expect(listRegisteredDefinitionKeys()).toEqual([
+      'cs50x-2026',
+      'programvareutvikling-2026',
+    ]);
   });
 
   it('shows only CS50 units and items on the CS50 map, HUD, hub and hero', async () => {

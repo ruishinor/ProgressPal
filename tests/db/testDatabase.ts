@@ -15,14 +15,24 @@ export type TestDatabaseContext = {
 };
 
 /**
- * The default test migration context (Epic C / C6): authorizes exactly
- * `sampleCourseSeed`'s catalogue for programme `cs50x`, matching the real
- * `cs50x-2026` definition's identity. A test exercising unauthorized-catalogue
- * or missing/conflicting-context behavior supplies its own context instead.
+ * The default test migration context (Epic C / C6): equivalent to the
+ * production composition root's context, so the shared singleton bound by
+ * `vitest.setup.ts` matches what the app binds (guarded by
+ * `tests/app/testMigrationContext.test.ts`). Since Epic E it authorizes both
+ * registered catalogues — `sampleCourseSeed`'s `cs50x-2026` for `cs50x`, and
+ * `programvareutvikling-2026` — with `cs50x` the default. A test exercising
+ * unauthorized-catalogue or missing/conflicting-context behavior supplies its
+ * own context instead.
  */
 export const defaultTestMigrationContext: DatabaseMigrationContext = {
   programmeId: 'cs50x',
-  authorizedCatalogues: [{ courseId: 'cs50x-2026', programmeId: 'cs50x' }],
+  authorizedCatalogues: [
+    { courseId: 'cs50x-2026', programmeId: 'cs50x' },
+    {
+      courseId: 'programvareutvikling-2026',
+      programmeId: 'programvareutvikling',
+    },
+  ],
 };
 
 export function createTestDatabase(

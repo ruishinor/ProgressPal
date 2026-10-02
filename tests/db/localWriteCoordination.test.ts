@@ -471,7 +471,7 @@ describe('repository local-write coordination', () => {
         seed: sampleCourseSeed,
       }),
     ).resolves.toMatchObject({
-      appMeta: { schemaVersion: 3 },
+      appMeta: { schemaVersion: 4 },
       createdAppMeta: true,
       createdLearnerProfile: true,
       seedSync: {
@@ -480,7 +480,7 @@ describe('repository local-write coordination', () => {
         unitsAdded: 2,
       },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -564,9 +564,9 @@ describe('repository local-write coordination', () => {
         db: testDatabase.db,
       }),
     ).resolves.toMatchObject({
-      appMeta: { appVersion: '1.3.0', schemaVersion: 3 },
+      appMeta: { appVersion: '1.3.0', schemaVersion: 4 },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -608,7 +608,7 @@ describe('repository local-write coordination', () => {
       }),
     ).rejects.toThrow('Injected seed initialization failure.');
 
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
     expect(await testDatabase.db.appMeta.count()).toBe(1);
     expect(await testDatabase.db.learnerProfile.count()).toBe(1);
     expect(await testDatabase.db.courseUnits.count()).toBe(0);
@@ -1273,7 +1273,7 @@ describe('repository local-write coordination', () => {
     ]);
 
     expect(firstSnapshot).toEqual(secondSnapshot);
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(30);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);

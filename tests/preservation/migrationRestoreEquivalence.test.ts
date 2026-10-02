@@ -1,9 +1,10 @@
 import Dexie from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseBackupFile } from '@/lib/backup';
+import { BackupValidationError, parseBackupFile } from '@/lib/backup';
 import {
   currentApplicationVersion,
+  currentDatabaseSchemaVersion,
   getDatabaseSnapshot,
   initializeDatabase,
   restoreDatabaseFromBackup,
@@ -184,7 +185,7 @@ const schemaTwoEnvelope = {
   },
 };
 
-describe('restore(old) == upgrade(old) (Epic C6-R, E2)', () => {
+describe('restore(old) and upgrade(old) (Epic C6-R, E2; Epic E forward baseline)', () => {
   const openedRawDatabaseNames: string[] = [];
   let restoreTargetDatabase: TestDatabaseContext | null = null;
 
@@ -196,9 +197,15 @@ describe('restore(old) == upgrade(old) (Epic C6-R, E2)', () => {
     restoreTargetDatabase = null;
   });
 
-  it('produces equivalent persisted schema-3 state through both real migration paths', async () => {
-    // Path A: a real in-place v2 -> v3 Dexie upgrade, then the same bootstrap
-    // call the app always makes right after opening.
+  // Epic E (accepted E-SCHEMA-1, section 7 and the oracle table): the
+  // retained historical 2 -> 3 conversion is still exercised with an explicit
+  // `expectedSchemaVersion: 3`, but the schema-4 application refuses that
+  // converted state before any write, so path B no longer completes. Path A
+  // keeps every learner-data store of the legacy state across the in-place
+  // upgrade, now through v3 to v4, and the two new stores start empty.
+  it('upgrades the legacy state in place without loss, and the schema-4 restore path refuses the converted schema-3 state before any write', async () => {
+    // Path A: a real in-place Dexie upgrade, then the same bootstrap call the
+    // app always makes right after opening.
     const upgradedDatabaseName = 'progresspal-test-equivalence-upgrade';
     openedRawDatabaseNames.push(upgradedDatabaseName);
     await createLegacyVersionTwoFixture(upgradedDatabaseName);
@@ -215,53 +222,68 @@ describe('restore(old) == upgrade(old) (Epic C6-R, E2)', () => {
     const upgraded = await getDatabaseSnapshot({ db: upgradedDatabase });
     upgradedDatabase.close();
 
-    // Path B: the same legacy state as a schema-2 backup, forward-converted
-    // and restored through the real restore path.
+    // Path B: the same legacy state as a schema-2 backup, forward-converted by
+    // the retained historical code ...
     const parsed = parseBackupFile(JSON.stringify(schemaTwoEnvelope), {
       expectedSchemaVersion: 3,
       migrationContext: defaultTestMigrationContext,
     });
-    restoreTargetDatabase = createTestDatabase('equivalence-restore');
-    const restored = await restoreDatabaseFromBackup(parsed.data, {
-      db: restoreTargetDatabase.db,
-      fileName: 'equivalence-fixture.json',
-      now: normalizationClock,
-    });
 
-    // The migration-affected and learner-data stores are identical.
+    // ... carries the same learner data the in-place upgrade kept.
     for (const table of [
-      'appMeta',
-      'catalogueVersions',
-      'programmeEnrolments',
-      'courseUnits',
-      'courseItems',
       'progressEntries',
       'studySessions',
       'xpTransactions',
       'achievementUnlocks',
-      'learnerProfile',
-      'achievementDefinitions',
-      'contentAssets',
       'contentSlices',
       'mediaProgressEvents',
       'resumePoints',
     ] as const) {
-      expect(restored[table], table).toEqual(upgraded[table]);
+      expect(parsed.data[table], table).toEqual(upgraded[table]);
     }
 
-    // appVersion normalized to current on both paths despite the legacy,
-    // stale fixture value, proving this isn't an accidental pre-existing
-    // match.
+    // Not vacuous: the legacy fixture populates these learner-data stores.
+    for (const table of [
+      'progressEntries',
+      'studySessions',
+      'xpTransactions',
+      'achievementUnlocks',
+    ] as const) {
+      expect(upgraded[table].length, table).toBeGreaterThan(0);
+    }
+
+    // ... and is refused by the schema-4 restore path, leaving the target
+    // database exactly as it was.
+    restoreTargetDatabase = createTestDatabase('equivalence-restore');
+    await initializeDatabase({
+      db: restoreTargetDatabase.db,
+      now: normalizationClock,
+    });
+    const beforeRestore = await getDatabaseSnapshot({
+      db: restoreTargetDatabase.db,
+    });
+    await expect(
+      restoreDatabaseFromBackup(parsed.data, {
+        db: restoreTargetDatabase.db,
+        fileName: 'equivalence-fixture.json',
+        now: normalizationClock,
+      }),
+    ).rejects.toBeInstanceOf(BackupValidationError);
+    expect(await getDatabaseSnapshot({ db: restoreTargetDatabase.db })).toEqual(
+      beforeRestore,
+    );
+
+    // appVersion normalized to current despite the legacy, stale fixture
+    // value; the schema is the current one; the new stores start empty.
     expect(upgraded.appMeta?.appVersion).toBe(currentApplicationVersion);
+    expect(upgraded.appMeta?.schemaVersion).toBe(currentDatabaseSchemaVersion);
     expect(upgraded.appMeta?.activeProgrammeId).toBe(
       defaultTestMigrationContext.programmeId,
     );
+    expect(upgraded.learnerEvidence).toEqual([]);
+    expect(upgraded.lessonPositions).toEqual([]);
 
-    // The one legitimate path-specific difference: restore appends exactly
-    // one `import` audit record; an in-place upgrade never touches `backups`.
+    // An in-place upgrade never touches `backups`.
     expect(upgraded.backups).toEqual([]);
-    expect(restored.backups).toMatchObject([
-      { fileName: 'equivalence-fixture.json', type: 'import' },
-    ]);
   });
 });

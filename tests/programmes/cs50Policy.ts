@@ -33,8 +33,9 @@ export const cs50AchievementDefinitions = cs50Policy.achievements;
 export const cs50ProgrammeId = cs50.programmeId;
 
 /**
- * The CS50 database migration context, as the app composition root derives
- * it at bootstrap (Epic C / C6, binding control 2).
+ * The database migration context of a CS50-only composition (Epic C / C6,
+ * binding control 2). Since Epic E the production root authorizes every
+ * registered programme; see `defaultTestMigrationContext`.
  */
 export const cs50MigrationContext: DatabaseMigrationContext = {
   programmeId: cs50ProgrammeId,

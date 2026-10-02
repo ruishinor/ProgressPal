@@ -26,6 +26,8 @@ function createSnapshot(instants: readonly string[]): DatabaseSnapshot {
     backups: [],
     catalogueVersions: [],
     programmeEnrolments: [],
+    learnerEvidence: [],
+    lessonPositions: [],
     contentAssets: [],
     contentSlices: [],
     courseItems,

@@ -2,7 +2,10 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { buildBackupEnvelope, serializeBackupEnvelope } from '@/lib/backup';
 import {
+  currentApplicationVersion,
+  currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
   getDatabaseSnapshot,
   initializeDatabase,
@@ -16,27 +19,42 @@ import { defaultTestMigrationContext } from '../../db/testDatabase';
 import schemaTwoBackup from '../../fixtures/backups/v1.3.0-envelope1-schema2.json';
 
 /**
- * Epic C6-R, D2 composition evidence. The component-level tests in
- * tests/components/importBackupControl.test.tsx already prove the shared
- * control can forward-convert a schema-2 backup when directly supplied a
- * migration context. This proves the two real production compositions that
- * render that control - Settings and onboarding recovery - actually wire the
- * live database's bound context, using the real app shell/router rather than
- * a synthetic call to the shared control.
+ * Epic C6-R, D2 composition evidence, on the Epic E forward baseline. This
+ * proves the two real production compositions that render the shared import
+ * control (Settings and onboarding recovery) wire the live database's bound
+ * context, using the real app shell and router: a native schema-4 backup
+ * previews and restores, and the historical schema-2 export (accepted
+ * E-SCHEMA-1: no 2 → 3 → 4 exported-backup path) is refused clearly before
+ * any write, through the same compositions.
  */
 
-async function onboardRealApp() {
+async function onboardRealApp(displayName: string) {
   getSharedDatabase(defaultTestMigrationContext);
   await initializeDatabase({ seed: bundledCourseSeed });
   await saveLearnerProfile(
     {
       ...defaultLearnerProfileValues,
-      displayName: 'D2 Composition Learner',
+      displayName,
       targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
     },
     { completeOnboarding: true },
   );
-  closeSharedDatabase();
+}
+
+/** A native schema-4 export of the current shared database. */
+async function nativeBackupFile() {
+  const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });
+  const { contents } = serializeBackupEnvelope(
+    buildBackupEnvelope(snapshot, {
+      appVersion: currentApplicationVersion,
+      schemaVersion: currentDatabaseSchemaVersion,
+      exportedAt: '2026-10-03T08:00:00.000Z',
+    }),
+  );
+
+  return new File([contents], 'progresspal-schema-4.json', {
+    type: 'application/json',
+  });
 }
 
 function schemaTwoBackupFile() {
@@ -47,13 +65,23 @@ function schemaTwoBackupFile() {
   );
 }
 
-describe('backup recovery composition (Epic C6-R, D2)', () => {
+describe('backup recovery composition (Epic C6-R, D2; Epic E forward baseline)', () => {
   afterEach(() => {
     closeSharedDatabase();
   });
 
-  it('Settings: previews and restores a historical schema-2 backup through the real production composition', async () => {
-    await onboardRealApp();
+  it('Settings: refuses a historical schema-2 backup, then previews and restores a native schema-4 backup', async () => {
+    await onboardRealApp('Exported Ada');
+    const backup = await nativeBackupFile();
+    await saveLearnerProfile(
+      {
+        ...defaultLearnerProfileValues,
+        displayName: 'Changed after export',
+        targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+      },
+      { completeOnboarding: true },
+    );
+    closeSharedDatabase();
 
     await renderAppAtRoute('/settings');
     await screen.findByRole(
@@ -66,7 +94,18 @@ describe('backup recovery composition (Epic C6-R, D2)', () => {
       screen.getByLabelText('Backup file'),
       schemaTwoBackupFile(),
     );
+    expect(
+      await screen.findByRole('alert', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: /replace local data with this backup/i,
+      }),
+    ).not.toBeInTheDocument();
+    const untouched = await getDatabaseSnapshot({ db: getSharedDatabase() });
+    expect(untouched.learnerProfile?.displayName).toBe('Changed after export');
 
+    await userEvent.upload(screen.getByLabelText('Backup file'), backup);
     const confirmButton = await screen.findByRole(
       'button',
       { name: /replace local data with this backup/i },
@@ -87,20 +126,24 @@ describe('backup recovery composition (Epic C6-R, D2)', () => {
     await waitFor(
       async () => {
         const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });
-        expect(snapshot.learnerProfile?.displayName).toBe('Current Ada');
+        expect(snapshot.learnerProfile?.displayName).toBe('Exported Ada');
         expect(snapshot.appMeta).toMatchObject({
-          schemaVersion: 3,
+          schemaVersion: 4,
           activeProgrammeId: 'cs50x',
         });
       },
       { timeout: 15_000 },
     );
-  }, 30_000);
+  }, 45_000);
 
-  it('Onboarding recovery: previews a historical schema-2 backup and the confirmation is reachable', async () => {
-    // No prior onboarding: this is the reset/never-onboarded device the
-    // onboarding recovery surface exists for.
+  it('Onboarding recovery: refuses a historical schema-2 backup and reaches the confirmation for a native schema-4 backup', async () => {
+    // A native backup from another device; this device was never onboarded,
+    // the reset/never-onboarded case the onboarding recovery surface exists for.
+    await onboardRealApp('Recovered Ada');
+    const backup = await nativeBackupFile();
+    closeSharedDatabase();
     getSharedDatabase(defaultTestMigrationContext);
+    await getSharedDatabase().delete();
     closeSharedDatabase();
 
     await renderAppAtRoute('/onboarding');
@@ -110,15 +153,19 @@ describe('backup recovery composition (Epic C6-R, D2)', () => {
       screen.getByLabelText('Backup file'),
       schemaTwoBackupFile(),
     );
+    expect(
+      await screen.findByRole('alert', {}, { timeout: 15_000 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /restore this backup/i }),
+    ).not.toBeInTheDocument();
 
-    // Preview succeeded and confirmation is reachable through the real
-    // onboarding recovery composition - this is the exact path the rejected
-    // C6 candidate could never reach for a schema-2 backup.
+    await userEvent.upload(screen.getByLabelText('Backup file'), backup);
     await screen.findByRole(
       'button',
       { name: /restore this backup/i },
       { timeout: 15_000 },
     );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  }, 30_000);
+  }, 45_000);
 });

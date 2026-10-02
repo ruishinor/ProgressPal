@@ -25,6 +25,8 @@ function emptyBackupData(): BackupData {
     backups: [],
     catalogueVersions: [],
     programmeEnrolments: [],
+    learnerEvidence: [],
+    lessonPositions: [],
   };
 }
 

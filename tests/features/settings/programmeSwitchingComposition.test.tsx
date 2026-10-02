@@ -1,4 +1,10 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,6 +16,7 @@ import {
   getDatabaseSnapshot,
   initializeDatabase,
   listCourseUnits,
+  listProgrammeEnrolments,
   saveLearnerProfile,
 } from '@/lib/db';
 import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
@@ -103,7 +110,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('production registry: one real programme, no meaningless switch action', () => {
+// Epic E (accepted-oracle change): the production registry now holds two
+// real programmes, so Settings offers Programvareutvikling as a not-enrolled
+// switch target. Rendering Settings still never switches or enrols.
+describe('production registry: two real programmes, nothing switches on render', () => {
   async function seedProductionDevice() {
     getSharedDatabase(defaultTestMigrationContext);
     await initializeDatabase({ seed: bundledCourseSeed });
@@ -122,9 +132,9 @@ describe('production registry: one real programme, no meaningless switch action'
     ['/settings', 'Classic'],
     ['/rpg/settings', 'RPG'],
   ])(
-    'shows the active programme on %s (%s) without a switcher',
+    'shows the active programme on %s (%s) and offers the other real programme',
     async (route) => {
-      // Production composition: the real registry, CS50 only.
+      // Production composition: the real registry, CS50 and Programvareutvikling.
       injected.registry = null;
       await seedProductionDevice();
 
@@ -132,12 +142,18 @@ describe('production registry: one real programme, no meaningless switch action'
       await screen.findByRole('heading', { name: 'Programme' }, timeout);
 
       expect(programmeCard()).toHaveTextContent('Active programme: CS50x 2026');
-      expect(screen.queryByLabelText('Programme to switch to')).toBeNull();
+      const target = screen.getByLabelText('Programme to switch to');
       expect(
-        screen.queryByRole('button', {
-          name: /switch programme|enrol and switch/i,
-        }),
-      ).toBeNull();
+        within(target)
+          .getAllByRole('option')
+          .map((option) => option.textContent),
+      ).toEqual(['Programvareutvikling (not enrolled)']);
+      expect(
+        screen.getByRole('button', { name: 'Enrol and switch' }),
+      ).toBeInTheDocument();
+      expect(await listProgrammeEnrolments()).toEqual([
+        expect.objectContaining({ programmeId: 'cs50x' }),
+      ]);
     },
     30_000,
   );

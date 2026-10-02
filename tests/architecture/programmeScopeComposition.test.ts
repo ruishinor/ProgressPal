@@ -262,19 +262,21 @@ const restoreOrResetSeeded =
 const bundledSeedImport = /from ['"]@\/seed['"]/;
 
 describe('C7 schema guards', () => {
-  it('stays on schema v3 with exactly the three declared versions', () => {
+  // Epic E (accepted E-SCHEMA-1): exactly one further declared version.
+  it('stays on schema v4 with exactly the four declared versions', () => {
     const database = normalize(
       readFileSync(join(SRC, 'lib', 'db', 'database.ts'), 'utf8'),
     );
 
-    expect(currentDatabaseSchemaVersion).toBe(3);
+    expect(currentDatabaseSchemaVersion).toBe(4);
     expect(database.match(/this\.version\(\d+\)/g)).toEqual([
       'this.version(1)',
       'this.version(2)',
       'this.version(3)',
+      'this.version(4)',
     ]);
     expect(createProgressPalDatabase(defaultTestMigrationContext).verno).toBe(
-      3,
+      4,
     );
   });
 

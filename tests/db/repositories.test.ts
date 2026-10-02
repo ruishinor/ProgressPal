@@ -12,6 +12,7 @@ import {
   addStudySessionAndAwardXp,
   addXpTransaction,
   currentDatabaseSchemaVersion,
+  enrolInProgramme,
   ensureCourseCatalogFromSeed,
   getAchievementsView,
   getAppMeta,
@@ -34,9 +35,13 @@ import {
   logMediaProgress,
   logMediaProgressAndAwardXp,
   recordBackupEvent,
+  recordEvaluationResult,
+  recordSupportEvent,
   resetAllData,
   restoreDatabaseFromBackup,
   saveLearnerProfile,
+  saveLessonPosition,
+  submitExerciseAttempt,
   updateProfile,
   upsertProgress,
   upsertProgressAndAwardXp,
@@ -50,6 +55,13 @@ import {
   type TestDatabaseContext,
 } from './testDatabase';
 import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
+import {
+  attemptInput,
+  evidenceTime,
+  hashA,
+  p2ProgrammeId,
+  p2TestSeed,
+} from './learnerEvidenceFixture';
 
 describe('database repositories', () => {
   let testDatabase: TestDatabaseContext | null = null;
@@ -1678,6 +1690,46 @@ describe('backup, restore, and reset', () => {
         db: context.db,
         now: createClock('2026-06-12T11:00:00.000Z'),
       },
+    );
+
+    // Schema 4 (Epic E): representative learner evidence and a lesson
+    // position, so every persisted store carries backup data.
+    const evidenceOptions = { db: context.db, now: () => evidenceTime };
+    await enrolInProgramme(p2ProgrammeId, evidenceOptions);
+    await ensureCourseCatalogFromSeed(p2TestSeed, evidenceOptions);
+    await recordSupportEvent(
+      {
+        id: 'representative-hint',
+        programmeId: p2ProgrammeId,
+        contentVersion: 1,
+        subjectId: 's1-m01-p01-e05',
+        contentHash: hashA,
+        supportKind: 'hint_reveal',
+        hintNumber: 1,
+      },
+      evidenceOptions,
+    );
+    await submitExerciseAttempt(
+      attemptInput({ id: 'representative-attempt' }),
+      evidenceOptions,
+    );
+    await recordEvaluationResult(
+      {
+        id: 'representative-result',
+        attemptId: 'representative-attempt',
+        outcome: 'correct',
+      },
+      evidenceOptions,
+    );
+    await saveLessonPosition(
+      {
+        itemId: 's1-m01-o01',
+        programmeId: p2ProgrammeId,
+        contentVersion: 1,
+        unitId: 's1-m01-p01',
+        stepIndex: 3,
+      },
+      evidenceOptions,
     );
   }
 

@@ -34,7 +34,8 @@ describe('database initialization', () => {
     // and schema number are persistence contracts that only a deliberate,
     // migrated schema decision may change.
     expect(progressPalDatabaseName).toBe('progresspal-cs50-edition');
-    expect(currentDatabaseSchemaVersion).toBe(3);
+    // Epic E: the accepted E-SCHEMA-1 decision moved the schema to 4.
+    expect(currentDatabaseSchemaVersion).toBe(4);
   });
 
   it('creates app metadata and a default learner profile in a fresh database', async () => {

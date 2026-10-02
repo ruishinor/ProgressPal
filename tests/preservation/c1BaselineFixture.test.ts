@@ -1,3 +1,4 @@
+import Dexie from 'dexie';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -10,16 +11,17 @@ import {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,
   getDatabaseSnapshot,
-  restoreDatabaseFromBackup,
+  initializeDatabase,
 } from '@/lib/db';
+import {
+  createProgressPalDatabase,
+  deleteDatabaseByName,
+} from '@/lib/db/database';
 import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
 import { bundledCourseSeed } from '@/seed';
 
 import committedFixture from '../fixtures/backups/c1-baseline-envelope1-schema2.json';
-import {
-  createTestDatabase,
-  defaultTestMigrationContext,
-} from '../db/testDatabase';
+import { defaultTestMigrationContext } from '../db/testDatabase';
 import { buildC1BaselineEnvelope } from './c1BaselineFixtureBuilder';
 import { createIncrementingClock } from './c1Support';
 
@@ -34,11 +36,69 @@ import { createIncrementingClock } from './c1Support';
  */
 
 const fixtureText = JSON.stringify(committedFixture);
+// Epic E (accepted E-SCHEMA-1, section 7): the schema-4 application refuses a
+// schema-2 export, so the frozen fixture is read through the retained
+// historical 2 -> 3 conversion with an explicit `expectedSchemaVersion: 3`.
+// The state it describes reaches schema 4 the way a live device does: by the
+// in-place upgrade (last test below).
 const parse = () =>
   parseBackupFile(fixtureText, {
-    expectedSchemaVersion: currentDatabaseSchemaVersion,
+    expectedSchemaVersion: 3,
     migrationContext: defaultTestMigrationContext,
   });
+
+const legacyVersionTwoStoreDefinitions = {
+  app_meta: '&id, schemaVersion, seedVersion',
+  learner_profile: '&id, updatedAt, preferredTheme',
+  course_units: '&id, courseId, [courseId+order], type, required',
+  course_items: '&id, unitId, [unitId+order], type, required',
+  progress_entries: '&id, &itemId, status, completedAt',
+  study_sessions: '&id, unitId, itemId, mode, startedAt, endedAt',
+  xp_transactions: '&id, sourceType, sourceId, awardedAt',
+  achievement_definitions: '&id, category, ruleType',
+  achievement_unlocks: '&id, &achievementId, unlockedAt, triggerSourceId',
+  backups: '&id, type, createdAt',
+  content_assets: '&id, itemId, [itemId+order], assetType, required',
+  content_slices: '&id, assetId, itemId, [assetId+order], status, completedAt',
+  media_progress_events:
+    '&id, itemId, assetId, sliceId, sessionId, [assetId+createdAt]',
+  resume_points: '&id, &assetId, itemId, nextSliceId',
+} as const;
+
+const legacyStoreByDataKey = {
+  courseUnits: 'course_units',
+  courseItems: 'course_items',
+  progressEntries: 'progress_entries',
+  contentAssets: 'content_assets',
+  contentSlices: 'content_slices',
+  mediaProgressEvents: 'media_progress_events',
+  resumePoints: 'resume_points',
+  studySessions: 'study_sessions',
+  xpTransactions: 'xp_transactions',
+  achievementDefinitions: 'achievement_definitions',
+  achievementUnlocks: 'achievement_unlocks',
+  backups: 'backups',
+} as const;
+
+/** The frozen schema-2 state as a live v2 IndexedDB database, row for row. */
+async function createLiveVersionTwoDevice(databaseName: string) {
+  const legacy = new Dexie(databaseName);
+  legacy.version(2).stores(legacyVersionTwoStoreDefinitions);
+  await legacy.open();
+  const { data } = committedFixture;
+
+  await legacy.table('app_meta').add(data.appMeta);
+  if (data.learnerProfile !== null) {
+    await legacy.table('learner_profile').add(data.learnerProfile);
+  }
+  for (const [key, store] of Object.entries(legacyStoreByDataKey)) {
+    await legacy
+      .table(store)
+      .bulkAdd(data[key as keyof typeof legacyStoreByDataKey] as unknown[]);
+  }
+
+  legacy.close();
+}
 
 describe('C1 baseline schema-2 fixture (migration)', () => {
   // Epic C / C6: the live repositories now always produce schema-3 output
@@ -63,7 +123,14 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
     );
   }, 120_000);
 
-  it('parses the committed schema-2 file, forward-converted to the current schema', () => {
+  it('parses the committed schema-2 file through the retained 2 -> 3 conversion, and the schema-4 application refuses it', () => {
+    expect(() =>
+      parseBackupFile(fixtureText, {
+        expectedSchemaVersion: currentDatabaseSchemaVersion,
+        migrationContext: defaultTestMigrationContext,
+      }),
+    ).toThrow(/different data version/);
+
     const parsed = parse();
     expect(parsed.data.appMeta?.activeProgrammeId).toBe('cs50x');
     // Pre-E oracle evolution: the summary reports the backup's own recorded
@@ -76,7 +143,7 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
       format: 'progresspal-backup',
       formatVersion: 1,
       profileName: 'C1 Synthetic Learner',
-      schemaVersion: currentDatabaseSchemaVersion,
+      schemaVersion: 3,
     });
   });
 
@@ -171,16 +238,26 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
     ).toBe(true);
   });
 
-  it('restores through the real restore path and round-trips without semantic loss', async () => {
+  // Epic E: the restore path refuses the schema-2 export (section 7), so the
+  // C1/C6-R "no semantic loss" oracle is carried by the path a live device
+  // takes to schema 4: the in-place v2 -> v3 -> v4 upgrade of this exact state.
+  it('upgrades the baseline state in place to schema 4 and round-trips without semantic loss', async () => {
     const parsed = parse();
-    const context = createTestDatabase('c1-fixture-restore');
+    const databaseName = 'progresspal-test-c1-live-upgrade';
+    await createLiveVersionTwoDevice(databaseName);
+    const upgradedDatabase = createProgressPalDatabase(
+      defaultTestMigrationContext,
+      databaseName,
+    );
+
     try {
-      const restored = await restoreDatabaseFromBackup(parsed.data, {
-        db: context.db,
-        fileName: 'c1-baseline-envelope1-schema2.json',
+      await upgradedDatabase.open();
+      await initializeDatabase({
+        db: upgradedDatabase,
         now: createIncrementingClock('2026-09-20T09:00:00.000Z'),
         seed: bundledCourseSeed,
       });
+      const upgraded = await getDatabaseSnapshot({ db: upgradedDatabase });
 
       const learnerTables = [
         'learnerProfile',
@@ -197,24 +274,14 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
         'achievementUnlocks',
       ] as const;
       for (const table of learnerTables) {
-        expect(restored[table], table).toEqual(parsed.data[table]);
+        expect(upgraded[table], table).toEqual(parsed.data[table]);
       }
-      // Epic C6-R: the C1 preservation oracle transition (owner-authorized -
-      // see C6_R_CLOSURE_RECORD.md) requires the complete canonical
-      // schema-3 `app_meta` state, not a partial `toMatchObject` subset.
-      //
-      // Pre-E oracle evolution: this block used to rely on the frozen
-      // fixture's `appVersion: '1.3.0'` equalling `currentApplicationVersion`,
-      // so the restore's `initializeDatabase` bootstrap had nothing to
-      // normalize. When the running version differs from the backup's, the
-      // existing documented restore behaviour applies: `app_meta.appVersion`
-      // becomes the running executable's version and `updatedAt` is the
-      // restore write time (the first tick of the injected clock). Every
-      // other field is exactly what the frozen bytes carry, and every learner
-      // table is still asserted equal above. The expectation below is
-      // therefore the frozen state plus exactly those two fields.
+      // The complete canonical `app_meta`: the converted state with the
+      // schema now 4 and the application version normalized to the running
+      // executable by the bootstrap write (its `updatedAt` is that write's
+      // time, the first tick of the injected clock).
       expect(parsed.data.appMeta?.appVersion).toBe('1.3.0');
-      expect(restored.appMeta).toEqual({
+      expect(upgraded.appMeta).toEqual({
         id: 'app-meta',
         createdAt: '2026-09-19T12:00:00.000Z',
         updatedAt: '2026-09-20T09:00:00.000Z',
@@ -223,23 +290,8 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
         schemaVersion: currentDatabaseSchemaVersion,
         activeProgrammeId: 'cs50x',
       });
-      // Confirms the literal above is the converter's output plus only the
-      // two version-normalization fields, not values this test invented.
-      expect(restored.appMeta).toEqual({
-        ...parsed.data.appMeta,
-        appVersion: currentApplicationVersion,
-        updatedAt: '2026-09-20T09:00:00.000Z',
-      });
-      // The frozen fixture's legacy `app_meta` carries `seedVersion:
-      // 20260617` and `updatedAt: '2026-09-19T12:05:00.000Z'`;
-      // `migrateV2ToV3` derives `catalogue_versions.dataVersion` and
-      // `.syncedAt` from exactly those two legacy fields, and it is
-      // unchanged here because the bundled `cs50x-2026` seed's own
-      // `dataVersion` (20260617) matches, so the reconciliation the
-      // restore's own `initializeDatabase` call performs is a no-op rather
-      // than a real version bump.
-      expect(restored.appMeta).not.toHaveProperty('seedVersion');
-      expect(restored.catalogueVersions).toEqual([
+      expect(upgraded.appMeta).not.toHaveProperty('seedVersion');
+      expect(upgraded.catalogueVersions).toEqual([
         {
           courseId: bundledCourseSeed.courseId,
           programmeId: 'cs50x',
@@ -247,26 +299,21 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
           syncedAt: '2026-09-19T12:05:00.000Z',
         },
       ]);
-      // `programme_enrolments.enrolledAt` follows the accepted rule
-      // (`onboardingCompletedAt ?? createdAt`); the fixture's legacy
-      // `app_meta` has both, so this also proves the `onboardingCompletedAt`
-      // branch, not just the `createdAt` fallback.
-      expect(restored.programmeEnrolments).toEqual([
+      expect(upgraded.programmeEnrolments).toEqual([
         {
           programmeId: 'cs50x',
           enrolledAt: parsed.data.appMeta?.onboardingCompletedAt,
         },
       ]);
-      // Restore appends exactly one `import` audit record.
-      expect(restored.backups.slice(0, 1)).toEqual(parsed.data.backups);
-      expect(restored.backups.slice(1)).toMatchObject([
-        { fileName: 'c1-baseline-envelope1-schema2.json', type: 'import' },
-      ]);
+      // An in-place upgrade adds no audit record; the new stores start empty.
+      expect(upgraded.backups).toEqual(parsed.data.backups);
+      expect(upgraded.learnerEvidence).toEqual([]);
+      expect(upgraded.lessonPositions).toEqual([]);
 
-      // Export again through the real path and parse: learner data is intact.
+      // Export through the real path at schema 4 and parse: nothing is lost.
       const reExported = parseBackupFile(
         serializeBackupEnvelope(
-          buildBackupEnvelope(await getDatabaseSnapshot({ db: context.db }), {
+          buildBackupEnvelope(upgraded, {
             appVersion: currentApplicationVersion,
             exportedAt: '2026-09-20T10:00:00.000Z',
             schemaVersion: currentDatabaseSchemaVersion,
@@ -279,17 +326,16 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
           parsed.data[table],
         );
       }
-      // Epic C6-R: the re-export/reparse round trip also retains the
-      // migration-affected state, not only the learner-data tables.
-      expect(reExported.data.appMeta).toEqual(restored.appMeta);
+      expect(reExported.data.appMeta).toEqual(upgraded.appMeta);
       expect(reExported.data.catalogueVersions).toEqual(
-        restored.catalogueVersions,
+        upgraded.catalogueVersions,
       );
       expect(reExported.data.programmeEnrolments).toEqual(
-        restored.programmeEnrolments,
+        upgraded.programmeEnrolments,
       );
     } finally {
-      await context.cleanup();
+      upgradedDatabase.close();
+      await deleteDatabaseByName(databaseName);
     }
   });
 });

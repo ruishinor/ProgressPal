@@ -36,6 +36,8 @@ describe('Module 05 boundaries', () => {
       'constants.ts',
       'database.ts',
       'index.ts',
+      // Epic E (accepted E-SCHEMA-1): the learner-evidence repository.
+      'learnerEvidence.ts',
       'migrationContext.ts',
       'migrationV2ToV3.ts',
       'repositories.ts',

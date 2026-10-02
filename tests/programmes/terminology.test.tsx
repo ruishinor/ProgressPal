@@ -1,12 +1,14 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { resolveDatabaseMigrationContext } from '@/app/providers/programmeComposition';
 import { getMapNodeOrdinal } from '@/features/rpg/model/presentation';
 import {
   defaultLearnerProfileValues,
   initializeDatabase,
   saveLearnerProfile,
 } from '@/lib/db';
+import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
   getDefaultProgrammeDefinition,
@@ -88,6 +90,10 @@ const testTerminology: ProgrammeTerminology = {
 };
 
 async function onboard() {
+  // Mirror the composition root of the injected registry (CS50 only when a
+  // test terminology is injected) before the app binds the shared database.
+  closeSharedDatabase();
+  getSharedDatabase(resolveDatabaseMigrationContext());
   await initializeDatabase({ seed: bundledCourseSeed });
   await saveLearnerProfile(
     {

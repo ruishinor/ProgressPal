@@ -88,14 +88,28 @@ describe('Epic C / C2 programme layer boundary', () => {
     const violations: string[] = [];
 
     for (const file of listSourceFiles(PROGRAMMES)) {
+      // Epic E: a programme may import its own committed content snapshot
+      // (`.json` data inside its own directory); no other extension import,
+      // and no data file of another programme or layer.
+      const ownDirectory = path.join(
+        PROGRAMMES,
+        path.relative(PROGRAMMES, file).split(path.sep)[0]!,
+      );
+
       for (const specifier of specifiersOf(file)) {
         const target = resolveSpecifier(file, specifier);
+        const ownContent =
+          target !== null &&
+          target.endsWith('.json') &&
+          ownDirectory !== PROGRAMMES &&
+          isInside(target, ownDirectory);
         const allowed =
           target === null
             ? PROGRAMME_ALLOWED_PACKAGES.includes(specifier)
-            : !/\.[a-z0-9]+$/i.test(target) &&
-              (isInside(target, PROGRAMMES) ||
-                PROGRAMME_ALLOWED_TARGETS.includes(target));
+            : ownContent ||
+              (!/\.[a-z0-9]+$/i.test(target) &&
+                (isInside(target, PROGRAMMES) ||
+                  PROGRAMME_ALLOWED_TARGETS.includes(target)));
 
         if (!allowed) {
           violations.push(`${relativeName(file)} -> ${specifier}`);

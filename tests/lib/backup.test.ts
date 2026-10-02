@@ -176,6 +176,8 @@ function makeValidData(): BackupData {
     backups: [],
     catalogueVersions: [],
     programmeEnrolments: [],
+    learnerEvidence: [],
+    lessonPositions: [],
   };
 }
 

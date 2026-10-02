@@ -57,7 +57,13 @@ describe('C7 fixture sanity (must hold before any production change)', () => {
   });
 
   it('is not part of the production registry', () => {
-    expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
+    expect(listRegisteredDefinitionKeys()).not.toContain(
+      altDefinition.definitionKey,
+    );
+    expect(listRegisteredDefinitionKeys()).toEqual([
+      'cs50x-2026',
+      'programvareutvikling-2026',
+    ]);
   });
 });
 
@@ -137,11 +143,14 @@ describe('C7 registry construction', () => {
     expect(registry.definitions).toHaveLength(2);
   });
 
-  it('builds the production registry through the same validated path, with CS50 only', () => {
+  // Epic E (accepted-oracle change): the production registry holds CS50 and
+  // Programvareutvikling, built through the same validated path.
+  it('builds the production registry through the same validated path, with CS50 and Programvareutvikling', () => {
     const production = getProgrammeRegistry();
 
     expect(production.definitions.map((entry) => entry.programmeId)).toEqual([
       cs50ProgrammeId,
+      'programvareutvikling',
     ]);
     expect(production.getDefault()).toBe(cs50Definition);
     expect(production.getByProgrammeId('cs50x')).toBe(cs50Definition);
@@ -150,7 +159,10 @@ describe('C7 registry construction', () => {
     expect(Object.isFrozen(production)).toBe(true);
     expect(Object.isFrozen(production.definitions)).toBe(true);
     expect(getProgrammeRegistry()).toBe(production);
-    expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
+    expect(listRegisteredDefinitionKeys()).toEqual([
+      'cs50x-2026',
+      'programvareutvikling-2026',
+    ]);
   });
 
   it('publishes nothing when construction is rejected (all-or-nothing)', () => {
@@ -170,8 +182,11 @@ describe('C7 registry construction', () => {
         }),
       ),
     ).toThrow(/programmeId "c5-alt-programme"/);
-    expect(getProgrammeRegistry().definitions).toHaveLength(1);
-    expect(listRegisteredDefinitionKeys()).toEqual(['cs50x-2026']);
+    expect(getProgrammeRegistry().definitions).toHaveLength(2);
+    expect(listRegisteredDefinitionKeys()).toEqual([
+      'cs50x-2026',
+      'programvareutvikling-2026',
+    ]);
   });
 });
 

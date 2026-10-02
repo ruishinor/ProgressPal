@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseBackupFile, summarizeBackup } from '@/lib/backup';
 import {
-  currentApplicationVersion,
+  BackupValidationError,
+  parseBackupFile,
+  summarizeBackup,
+} from '@/lib/backup';
+import {
   currentDatabaseSchemaVersion,
   getDatabaseSnapshot,
-  restoreDatabaseFromBackup,
+  initializeDatabase,
 } from '@/lib/db';
 import historicalBackup from '../fixtures/backups/v1.2.0-envelope1-schema2.json';
 import currentBackup from '../fixtures/backups/v1.3.0-envelope1-schema2.json';
@@ -33,6 +36,12 @@ const fixtures = [
   },
 ] as const;
 
+/**
+ * Epic E forward baseline (accepted E-SCHEMA-1, section 7): the schema-4
+ * application refuses schema-2 exports clearly, before any write. The retained
+ * historical 2 -> 3 conversion code stays covered with an explicit
+ * `expectedSchemaVersion: 3`, unchanged; it is never re-pointed to 4.
+ */
 describe('backup compatibility matrix', () => {
   let testDatabase: TestDatabaseContext | null = null;
 
@@ -42,50 +51,46 @@ describe('backup compatibility matrix', () => {
   });
 
   for (const fixtureCase of fixtures) {
-    it(`parses and restores ${fixtureCase.fileName}`, async () => {
+    it(`refuses ${fixtureCase.fileName} in the schema-4 application before any write`, async () => {
+      testDatabase = createTestDatabase(`compat-${fixtureCase.appVersion}`);
+      await initializeDatabase({ db: testDatabase.db, seed: sampleCourseSeed });
+      const before = await getDatabaseSnapshot({ db: testDatabase.db });
+
+      expect(() =>
+        parseBackupFile(JSON.stringify(fixtureCase.fixture), {
+          expectedSchemaVersion: currentDatabaseSchemaVersion,
+          migrationContext: defaultTestMigrationContext,
+        }),
+      ).toThrow(
+        new BackupValidationError(
+          `This backup was created with a different data version. Expected data version ${currentDatabaseSchemaVersion}.`,
+        ),
+      );
+      expect(await getDatabaseSnapshot({ db: testDatabase.db })).toEqual(
+        before,
+      );
+    });
+
+    it(`still parses ${fixtureCase.fileName} through the retained historical 2 -> 3 conversion`, () => {
       const parsed = parseBackupFile(JSON.stringify(fixtureCase.fixture), {
-        expectedSchemaVersion: currentDatabaseSchemaVersion,
+        expectedSchemaVersion: 3,
         migrationContext: defaultTestMigrationContext,
       });
-      const summary = summarizeBackup(parsed);
 
-      expect(summary).toMatchObject({
+      expect(summarizeBackup(parsed)).toMatchObject({
         appVersion: fixtureCase.appVersion,
         format: 'progresspal-backup',
         formatVersion: 1,
         profileName: fixtureCase.profileName,
-        schemaVersion: currentDatabaseSchemaVersion,
+        schemaVersion: 3,
       });
-
-      testDatabase = createTestDatabase(`compat-${fixtureCase.appVersion}`);
-      const restored = await restoreDatabaseFromBackup(parsed.data, {
-        db: testDatabase.db,
-        fileName: fixtureCase.fileName,
-        seed: sampleCourseSeed,
-      });
-      const reread = await getDatabaseSnapshot({ db: testDatabase.db });
-
-      for (const snapshot of [restored, reread]) {
-        expect(snapshot.appMeta).toMatchObject({
-          appVersion: currentApplicationVersion,
-          schemaVersion: currentDatabaseSchemaVersion,
-        });
-        expect(snapshot.learnerProfile?.displayName).toBe(
-          fixtureCase.profileName,
-        );
-        expect(
-          snapshot.studySessions.filter(
-            (session) => session.id === fixtureCase.sessionId,
-          ),
-        ).toHaveLength(1);
-        expect(snapshot.xpTransactions).toHaveLength(1);
-        expect(snapshot.progressEntries).toHaveLength(1);
-        expect(snapshot.backups).toHaveLength(1);
-        expect(snapshot.backups[0]).toMatchObject({
-          fileName: fixtureCase.fileName,
-          type: 'import',
-        });
-      }
+      expect(
+        parsed.data.studySessions.filter(
+          (session) => session.id === fixtureCase.sessionId,
+        ),
+      ).toHaveLength(1);
+      expect(parsed.data.xpTransactions).toHaveLength(1);
+      expect(parsed.data.progressEntries).toHaveLength(1);
     });
   }
 });
