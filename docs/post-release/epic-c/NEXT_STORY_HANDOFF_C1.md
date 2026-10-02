@@ -1,5 +1,7 @@
 # C1 handoff — baseline preservation evidence
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Status: **Historical pre-C1 handoff.** C1 was delivered under this contract
 and is now accepted and closed (`C1_ACCEPTED_CLOSED`). For the current C1
 disposition see `C1_CLOSURE_RECORD.md`; for the accepted retained visual

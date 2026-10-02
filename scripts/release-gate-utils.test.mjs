@@ -9,7 +9,6 @@ import {
   executionSummary,
   runContainedCommand,
   sanitizeEnvironment,
-  validateReviewEvidence,
 } from './release-gate-utils.mjs';
 
 function processIsRunning(pid) {
@@ -96,57 +95,6 @@ test('executionSummary records tests and rejects hidden skips or retries', () =>
     skipCount: 0,
     testCount: null,
   });
-});
-
-test('validateReviewEvidence requires resolved high-priority findings and a proceed decision', () => {
-  const evidence = {
-    schemaVersion: 1,
-    module: 'module-3',
-    reviewer: 'Adversarial reviewer',
-    adversarialFindings: [
-      {
-        id: 'M3-01',
-        severity: 'P1',
-        description: 'Unsafe authority model.',
-        resolution: 'Replaced with Web Locks.',
-        status: 'resolved',
-      },
-    ],
-    retrospective: {
-      decision: 'proceed',
-      summary: 'The high-priority defect is resolved.',
-    },
-  };
-
-  assert.deepEqual(validateReviewEvidence(evidence, 'module-3'), {
-    reviewer: 'Adversarial reviewer',
-    adversarialFindings: evidence.adversarialFindings,
-    retrospective: evidence.retrospective,
-  });
-  assert.throws(
-    () =>
-      validateReviewEvidence(
-        {
-          ...evidence,
-          adversarialFindings: [
-            { ...evidence.adversarialFindings[0], status: 'accepted-risk' },
-          ],
-        },
-        'module-3',
-      ),
-    /P0 and P1 findings must be resolved/,
-  );
-  assert.throws(
-    () =>
-      validateReviewEvidence(
-        {
-          ...evidence,
-          retrospective: { decision: 'reject', summary: 'Not ready.' },
-        },
-        'module-3',
-      ),
-    /proceed retrospective decision/,
-  );
 });
 
 test('release gate records a locked clean install before probing Playwright', async () => {

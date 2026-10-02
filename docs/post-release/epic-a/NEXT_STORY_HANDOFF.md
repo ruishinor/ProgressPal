@@ -1,5 +1,7 @@
 # Next-story handoff — Epic A closed
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Date: 2026-09-25. **A7 is accepted and Epic A is locally closed.**
 
 Accepted A7 implementation:

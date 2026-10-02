@@ -1,6 +1,14 @@
 # Backup compatibility matrix
 
-Status: v1.3.0 remediation evidence
+Status: v1.3.0 remediation evidence, with a current-state note.
+
+> **Current-state note (2026-10-02).** The IndexedDB schema is now **v3**. The two
+> schema-2 fixtures below restore by forward conversion, and
+> `tests/db/backupCompatibility.test.ts` asserts that the restored metadata carries
+> the running `currentApplicationVersion` (1.4.0 on the Pre-E candidate) with
+> `schemaVersion` 3. The application version and the schema number are independent.
+> See [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). The matrix text below is retained as
+> the v1.3.0 evidence it was.
 
 The restore contract remains backup envelope format 1 plus IndexedDB schema 2.
 The executable application version is allowed to change. Restore upgrades

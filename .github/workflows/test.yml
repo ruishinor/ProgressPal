@@ -35,11 +35,11 @@ jobs:
         run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      # Review evidence is not selected here. The gate resolves it from
+      # docs/release-reviews/ by its binding to this exact payload tree.
       - name: Run immutable release gate
         env:
-          RELEASE_MODULE: rpg-primary-final-candidate
           RELEASE_PASS: '1'
-          RELEASE_REVIEW_FILE: docs/remediation/rpg-primary-final-release-review.json
         run: npm run verify:release
       - name: Upload release evidence
         if: always()

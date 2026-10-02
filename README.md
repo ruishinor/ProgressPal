@@ -2,11 +2,9 @@
 
 ProgressPal is a local-first CS50x study tracker.
 
-The released **ProgressPal CS50 Edition v1.3.0** engine is frozen. The primary `/rpg/*` experience adds a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Classic interface is available deliberately from RPG.
+ProgressPal CS50 Edition currently serves one production programme, CS50x. The primary `/rpg/*` experience is a character-led study loop over the same saved progress, sessions, XP, and achievements. RPG is the default; the secondary Classic interface is available deliberately from RPG.
 
-The certified runtime baseline for publication closure is `07ae92a08abe87738986c418d2c0d603ee2a4005` (tree `fe599050158c366d69b760f77e13270d43f2d150`) on `rpg/publish-readiness`. That runtime candidate passed the immutable local release gate and independent GitHub Final candidate validation on 2026-09-19. Release-boundary or documentation-only follow-up may create a successor commit without changing application runtime; the immutable release manifest for that committed candidate is authoritative for the exact final SHA/tree rather than this README attempting to self-reference its own commit.
-
-Publication remains blocked until the required real iPhone/Safari, Android/Chrome, human screen-reader, owner GO, merge, and production hosted-origin smoke/rollback checks are complete.
+The current state, accepted baseline, application version, release model and next steps are kept in one place: [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md). This README does not duplicate them.
 
 ## Current product position
 
@@ -31,7 +29,7 @@ ProgressPal is not:
 
 ## Release and source-package status
 
-The immutable engine proof remains tagged `v1.3.0-local-first-proof`, and the completed RPG product work remains frozen at `freeze/rpg-product-completion-2026-09-16`. Current publication closure is performed on `rpg/publish-readiness`; it does not reopen product or engine work.
+The immutable engine proof is tagged `v1.3.0-local-first-proof`, and the completed RPG product work is preserved at `freeze/rpg-product-completion-2026-09-16`. Both are historical records.
 
 Internal engineering history, release reviews, implementation notes, and repository automation are retained in the repository for traceability but are not part of the distributable source archive. Source-release archives must be created from the exact final commit with `git archive`, which applies the tracked `export-ignore` boundary. Do not create release archives by zipping a working directory.
 
@@ -93,13 +91,11 @@ npm run check:bundle
 npm run audit
 ```
 
-`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and legitimate tracked review evidence. Use the ordinary commands above for product-completion acceptance; do not manufacture release evidence to run certification.
+`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and independent review evidence bound to the exact candidate (see [`docs/ci.md`](docs/ci.md)). Use the ordinary commands above for development validation; do not manufacture release evidence to run certification.
 
-## RPG shell transformation rule
+## Scope discipline
 
-Preserve completed C0-C5 behavior, the shared local-first engine, and direct secondary Classic routes. Final review corrections use concern-scoped local commits, the existing asset ledger, and one rolling completion record. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents.
-
-Publication closure is limited to packaging/evidence sanitation, candidate certification, the required physical/manual checks, and the explicit owner-controlled merge/deployment sequence. Product behavior changes require a new accepted scope.
+Preserve the shared local-first engine and direct secondary Classic routes. Use concern-scoped commits. Do not add future mechanics, dependencies, schemas, or per-fix handoff documents. Product behavior changes require an accepted scope; merge and deployment are explicit owner-controlled decisions.
 
 ## License
 

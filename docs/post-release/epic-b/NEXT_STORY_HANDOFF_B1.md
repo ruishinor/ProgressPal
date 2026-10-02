@@ -1,5 +1,7 @@
 # B1 handoff — neutral formatting and status presentation
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Start from B0 commit on `cx/epic-b-shared-contracts`. Move the exact
 `formatMinutes` implementation to `lib/time`; do not substitute the existing
 `formatDurationMinutes`, which floors where `formatMinutes` rounds. Move

@@ -1,5 +1,7 @@
 # B4 handoff — Epic B aggregate acceptance
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Review the B0–B3 commits and actual source imports for correct ownership,
 intentional shared UI/capability imports and Epic C deferrals. Check that
 course map and detail/form rules remain course-owned and no logic was copied.

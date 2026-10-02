@@ -2,13 +2,13 @@
 
 ## Supported versions
 
-ProgressPal is currently a local-first single-user project. Security review applies to the current active branch and the current release candidate.
+ProgressPal is currently a local-first single-user project. Security review applies to `master` and to the candidate under review; the live state is in `docs/CURRENT_STATE.md`.
 
-| Version / branch                         |                          Supported |
-| ---------------------------------------- | ---------------------------------: |
-| `master` / current stable history        |                                Yes |
-| `cx/release-1.3.0-remediation` candidate | Yes, for active development review |
-| old archived branches                    |                                 No |
+| Version / branch                  |                          Supported |
+| --------------------------------- | ---------------------------------: |
+| `master` / current stable history |                                Yes |
+| the candidate under review        | Yes, for active development review |
+| old archived branches             |                                 No |
 
 ## Security model
 
@@ -18,14 +18,14 @@ The intended security and privacy posture is:
 
 - no user accounts;
 - no backend;
-- no cloud sync in v2;
+- no cloud sync (any future cloud persistence needs its own accepted decision and security review);
 - no analytics;
 - no runtime external course-data fetching;
 - no embedded external course content;
 - local browser storage only;
 - explicit user-controlled backup/export/import/reset.
 
-RPG v2 must preserve this posture unless a future accepted decision changes the product boundary.
+All current and future surfaces must preserve this posture unless a future accepted decision changes the product boundary. Learner state is never transmitted; the app shell and official course links do use the network.
 
 ## Data storage
 
@@ -39,7 +39,7 @@ Users should understand that local browser data can be lost if:
 - the browser removes storage under pressure;
 - the user changes device or browser without exporting/importing a backup.
 
-This is a known v2 risk. The v2 mitigation is clear backup/export guidance, not cloud sync.
+This is a known risk. The mitigation is clear backup/export guidance, not cloud sync.
 
 ## What to report
 

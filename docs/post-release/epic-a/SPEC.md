@@ -1,5 +1,7 @@
 # ProgressPal Epic A — SPEC
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 ## Current local status — 2026-09-25
 
 A1–A6 are accepted locally. A6 implementation is

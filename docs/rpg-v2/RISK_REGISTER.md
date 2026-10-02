@@ -1,5 +1,7 @@
 # ProgressPal RPG v2 — Risk Register
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Status: active risk register  
 Updated: 2026-06-24
 Location in repo: `docs/rpg-v2/RISK_REGISTER.md`  

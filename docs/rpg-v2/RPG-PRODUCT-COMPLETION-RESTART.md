@@ -1,5 +1,7 @@
 # ProgressPal RPG Product-Completion Restart
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Status: validated local publish-readiness candidate; owner visual/product review and publication prerequisites pending (2026-09-17)
 
 Historical checkpoint (2026-09-16): the owner authorized commit, tag, freeze, and push of `rpg/product-completion` as `freeze/rpg-product-completion-2026-09-16`. C0-C5 and final owner-review corrections are preserved. Sections 1–10 retain that historical scope, acceptance evidence and freeze boundary. Section 11 records the subsequent authorized local reopening. PR, merge, deployment, version changes, and RPG default promotion remain separate owner decisions.

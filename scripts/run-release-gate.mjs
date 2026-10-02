@@ -9,8 +9,13 @@ import {
   executionSummary,
   runContainedCommand,
   sanitizeEnvironment,
-  validateReviewEvidence,
 } from './release-gate-utils.mjs';
+import {
+  REVIEW_EVIDENCE_DIRECTORY,
+  payloadTree,
+  readEvidenceFiles,
+  resolveReviewEvidence,
+} from './release-review-binding.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const ARTIFACT_ROOT = resolve(ROOT, 'artifacts', 'release-evidence');
@@ -55,13 +60,20 @@ function npmArgs(commandArgs) {
   return [npmCli, ...commandArgs];
 }
 
-const moduleName =
-  process.env.RELEASE_MODULE ?? readArgument('--module', 'manual');
+// The module is named by the review evidence that binds to the candidate.
+// Naming one up front is optional and may only confirm what the evidence says.
+const requestedModule =
+  process.env.RELEASE_MODULE ?? readArgument('--module', '');
+let moduleName = requestedModule.length > 0 ? requestedModule : 'unresolved';
 const passNumber = Number(
   process.env.RELEASE_PASS ?? readArgument('--pass', '0'),
 );
-const reviewFileInput =
-  process.env.RELEASE_REVIEW_FILE ?? readArgument('--review-file', '');
+const legacyReviewSelection =
+  process.env.RELEASE_REVIEW_FILE ??
+  (args.includes('--review-file') ||
+  args.some((argument) => argument.startsWith('--review-file='))
+    ? 'set'
+    : undefined);
 const startedAt = new Date();
 const commands = [];
 
@@ -191,7 +203,7 @@ const lockJson = JSON.parse(
   await readFile(resolve(ROOT, 'package-lock.json'), 'utf8'),
 );
 const manifest = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   module: moduleName,
   pass: passNumber,
   invocationArgs: args,
@@ -200,6 +212,7 @@ const manifest = {
   endedAt: null,
   commitSha: null,
   treeSha: null,
+  payloadTreeSha: null,
   applicationVersion: packageJson.version,
   lockfileSha256: await sha256(resolve(ROOT, 'package-lock.json')),
   os: {
@@ -221,6 +234,13 @@ const manifest = {
           process.env.GITHUB_RUN_ID,
         ].join('/')
       : null,
+  githubEvent: process.env.GITHUB_SHA
+    ? {
+        sha: process.env.GITHUB_SHA,
+        eventName: process.env.GITHUB_EVENT_NAME ?? null,
+        ref: process.env.GITHUB_REF ?? null,
+      }
+    : null,
   deploymentId: process.env.VERCEL_DEPLOYMENT_ID ?? null,
   commands,
   artifacts: [],
@@ -230,7 +250,7 @@ const manifest = {
     retryCount: 0,
     skipCount: 0,
   },
-  reviewer: process.env.RELEASE_REVIEWER ?? null,
+  reviewer: null,
   adversarialFindings: [],
   retrospective: null,
   reviewEvidence: null,
@@ -240,26 +260,54 @@ const manifest = {
 let failure;
 
 try {
-  if (reviewFileInput.length === 0) {
+  if (legacyReviewSelection !== undefined) {
     throw new Error(
-      'Release certification requires RELEASE_REVIEW_FILE or --review-file.',
+      'RELEASE_REVIEW_FILE and --review-file are no longer supported. Review evidence is selected only by its binding to the candidate payload tree under ' +
+        REVIEW_EVIDENCE_DIRECTORY +
+        '.',
     );
   }
-  const reviewFile = resolve(ROOT, reviewFileInput);
-  const reviewFilePath = relative(ROOT, reviewFile).replaceAll('\\', '/');
-  if (reviewFilePath === '..' || reviewFilePath.startsWith('../')) {
+
+  manifest.commitSha = await run('git', ['rev-parse', 'HEAD'], 'commit SHA');
+  manifest.treeSha = await run('git', ['rev-parse', 'HEAD^{tree}'], 'tree SHA');
+  if (
+    process.env.GITHUB_SHA !== undefined &&
+    process.env.GITHUB_SHA !== manifest.commitSha
+  ) {
     throw new Error(
-      'Release review evidence must be stored in the repository.',
+      'Checked-out HEAD ' +
+        manifest.commitSha +
+        ' is not the GitHub event commit ' +
+        process.env.GITHUB_SHA,
     );
   }
-  const reviewPayload = JSON.parse(await readFile(reviewFile, 'utf8'));
-  const review = validateReviewEvidence(reviewPayload, moduleName);
+
+  manifest.payloadTreeSha = payloadTree({ cwd: ROOT, treeish: 'HEAD' });
+  const resolution = resolveReviewEvidence({
+    candidatePayloadTree: manifest.payloadTreeSha,
+    files: readEvidenceFiles({ cwd: ROOT, treeish: 'HEAD' }),
+  });
+  const review = resolution.selected;
+  if (requestedModule.length > 0 && requestedModule !== review.module) {
+    throw new Error(
+      'Requested module ' +
+        requestedModule +
+        ' does not match the bound review module ' +
+        review.module,
+    );
+  }
+  moduleName = review.module;
+  manifest.module = review.module;
   manifest.reviewer = review.reviewer;
   manifest.adversarialFindings = review.adversarialFindings;
   manifest.retrospective = review.retrospective;
   manifest.reviewEvidence = {
-    path: reviewFilePath,
-    sha256: await sha256(reviewFile),
+    path: review.path,
+    sha256: review.sha256,
+    module: review.module,
+    payloadTree: review.payloadTree,
+    applicable: resolution.applicable,
+    considered: resolution.considered,
   };
 
   if (!/^v24\./.test(process.version)) {
@@ -287,8 +335,6 @@ try {
     },
     30_000,
   );
-  manifest.commitSha = await run('git', ['rev-parse', 'HEAD'], 'commit SHA');
-  manifest.treeSha = await run('git', ['rev-parse', 'HEAD^{tree}'], 'tree SHA');
 
   const gate = [
     {
@@ -338,7 +384,11 @@ try {
     },
     {
       executable: process.execPath,
-      args: ['--test', 'scripts/release-gate-utils.test.mjs'],
+      args: [
+        '--test',
+        'scripts/release-gate-utils.test.mjs',
+        'scripts/release-review-binding.test.mjs',
+      ],
       label: 'release gate unit tests',
     },
     {

@@ -1,5 +1,7 @@
 # B2 handoff — long-form progress map ownership
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Move `buildLongFormProgressMap` and
 `buildLongFormProgressMapFromEventAggregates` from progress/model to
 `lib/progress`, alongside the existing long-form engine. Move their private

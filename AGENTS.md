@@ -4,14 +4,9 @@ Guidance for AI coding agents working in this repository. Read this before makin
 
 ## Project overview
 
-ProgressPal is a **local-first, single-user, browser-based CS50x study tracker**. The released **v1.3.0** engine (`progresspal-cs50-edition`) is frozen. Optional same-origin RPG product-completion work C0-C5 and final owner-review corrections are frozen by owner instruction at `freeze/rpg-product-completion-2026-09-16`; evidence is tracked in `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md`. RPG is now the primary/default experience; Tracker is secondary under the latest owner instruction. Do not restart historical release remediation, C0-C5, or further product work without a new owner instruction.
+ProgressPal is a **local-first, single-user, browser-based study tracker**. Production currently serves one programme, CS50x (`progresspal-cs50-edition` is the persistence and package identity). RPG is the primary experience; Classic is secondary.
 
-The owner's subsequent publish-readiness instruction authorizes bounded local
-corrections and validation on `rpg/publish-readiness`; section 12 of that completion
-record is the active status. Preserve the historical freeze and engine contracts.
-The endpoint is a validated local candidate for owner review. It does not authorize
-push, PR, merge, remote workflow dispatch, deployment, tags, a package-version change,
-or other remote mutations. The latest owner instruction explicitly authorizes bounded RPG default promotion and local candidate certification.
+**Read `docs/CURRENT_STATE.md` first.** It is the single live authority for the accepted baseline, application version, schema, registered programmes, release model, active work and STOP conditions. The v1.3.0 engine proof, the RPG product-completion freeze and the publish-readiness records are historical evidence: they neither authorize nor forbid current work. Do not restart historical remediation or reopen closed epics without a reproduced defect or a new owner instruction.
 
 Product boundary (do not cross it):
 
@@ -20,7 +15,7 @@ Product boundary (do not cross it):
 - CS50x-focused study companion; not affiliated with Harvard, CS50, edX, or OpenCourseWare. Never add CS50/Harvard branding.
 - User data can be lost when browser storage is cleared — backup export/import is the mitigation, not sync.
 
-The frozen completion branch is `rpg/product-completion`; `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. On 2026-09-16 the owner authorized committing, tagging, freezing, and pushing this completion branch and tag. That historical instruction did not authorize a PR, merge, deployment, package-version change, or RPG default promotion. The latest owner instruction separately authorizes RPG promotion and local certification; remote publication and version changes remain separate decisions.
+`master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. Push, PR, merge, tag, release, deployment and version decisions each need explicit owner instruction; an earlier one-off authorization does not carry forward. Any push to `master` is promoted to Production by Vercel, so confirm the release model in `docs/CURRENT_STATE.md` before one.
 
 ## Tech stack
 
@@ -46,6 +41,8 @@ src/
   lib/                # Layer-independent code: db, domain (Zod schemas), storage,
                       # backup, xp, progress, achievements, validation, time, routing,
                       # appState, pwa, testing
+  programmes/         # Programme layer: ProgrammeDefinition, validated registry,
+                      # cs50x-2026 definition (identity, catalogue, policy, content)
   seed/               # Bundled CS50x 2026 course catalog (cs50x-2026.json) + parser
   styles/             # Global CSS: tokens.css, design-system.css, rpg-*.css
 tests/                # Vitest suites mirroring src (app, architecture, components,
@@ -111,20 +108,20 @@ npm test && npm run test:e2e && npm run check:circular && npm run audit
 
 ### Release gate (`npm run verify:release`)
 
-This is a certification gate, not a fast feedback loop. It requires a **clean git worktree**, Node 24, npm 11, matching package/lockfile versions, and these env vars:
+This is a certification gate, not a fast feedback loop. It requires a **clean git worktree**, Node 24, npm 11, matching package/lockfile versions, and **review evidence bound to the exact candidate**:
 
 ```powershell
-$env:RELEASE_MODULE = '<module-name>'
-$env:RELEASE_PASS = '1'
-$env:RELEASE_REVIEW_FILE = '<tracked-review-evidence.json>'  # e.g. docs/remediation/module-3-release-review.json
+npm run review:payload-tree -- <candidate-commit>   # the payload tree a review must name
 npm run verify:release
 ```
 
-It runs `npm ci`, lint, format check, typecheck, build, bundle budget, unit tests, E2E, circular check, and `npm audit`, failing on any warning, skipped test, retried test, non-zero exit, or worktree change. Evidence JSON (with build checksums) is written to gitignored `artifacts/release-evidence/`. Do not run it mid-development; use the targeted commands above instead.
+Review evidence lives in `docs/release-reviews/<module>.json` (schema version 2) and applies only to the payload tree it names (the candidate's root tree without that directory). The gate discovers it by binding; it fails closed when none applies, so a stale, wrong-tree, malformed or post-review-modified candidate cannot pass. `RELEASE_REVIEW_FILE` and `--review-file` are rejected. Details and the file format are in `docs/ci.md`. Do not fabricate review evidence; the implementation session cannot supply the independent review.
+
+It runs `npm ci`, lint, format check, typecheck, build, bundle budget, unit tests, E2E, circular check, and `npm audit`, failing on any warning, skipped test, retried test, non-zero exit, or worktree change. Evidence JSON (with build and review-binding identity) is written to gitignored `artifacts/release-evidence/`. Do not run it mid-development; use the targeted commands above instead.
 
 ### CI (`.github/workflows/test.yml`)
 
-One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`, checking out the triggering SHA and running `npm run verify:release` once. Together with one clean local final gate, this implements D-0075. There is no sharding, retry, or deployment stage (deliberate omissions — see `docs/ci.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
+One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`, checking out the triggering SHA and running `npm run verify:release` once. Together with one clean local final gate, this implements D-0075. There is no sharding, retry, or deployment stage (deliberate omissions — see `docs/ci.md`). The job name `Final candidate` is a contract: Vercel Deployment Checks require it by name to hold a production deployment until validation passes (platform step status: `docs/CURRENT_STATE.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
 
 ## Code style guidelines
 
@@ -143,13 +140,13 @@ Do not add features, files, dependencies, abstractions, assets, or refactors tha
 
 **Forbidden without an accepted decision:** backend, authentication, cloud sync, analytics, AI tutor, schema changes, new XP rules, fake RPG mechanics, embedded external course content, runtime course-data fetching, remote assets, CS50/Harvard branding, convenience dependencies, and broad unrelated refactors.
 
-Use the current completion document's rolling status and concern-scoped commits for final review corrections. The older per-module handoff template under `docs/rpg-v2/modules/` remains historical guidance for that module process; it does not require a new handoff per visual fix. Scope and architecture discipline still apply.
+Use concern-scoped commits and record status in `docs/CURRENT_STATE.md`. The older per-module handoff template under `docs/rpg-v2/modules/` remains historical guidance for that module process; it does not require a new handoff per visual fix. Scope and architecture discipline still apply.
 
 ## Security considerations
 
 The security model is "local-only" (see `SECURITY.md`, `PRIVACY.md`, `docs/storage-safety.md`):
 
-- All user data lives in IndexedDB via Dexie (`src/lib/db/database.ts`, schema v2). No cookies or web storage for learner data; no server copy of anything.
+- All user data lives in IndexedDB via Dexie (`src/lib/db/database.ts`, schema v3). No cookies or web storage for learner data; no server copy of anything.
 - Cross-tab write safety lives in `src/lib/storage/`: a BroadcastChannel/storage-event coordination protocol makes extra tabs read-only; it is same-browser-profile coordination, not distributed locking, and adds no IndexedDB tables.
 - `public/sw.js` is a dependency-free, production-only offline service worker. It caches only same-origin static build assets and never touches IndexedDB. Keep it that way.
 - Production source maps are forbidden (enforced by `npm run check:bundle`).
@@ -158,17 +155,19 @@ The security model is "local-only" (see `SECURITY.md`, `PRIVACY.md`, `docs/stora
 
 ## Deployment
 
-Static SPA hosting on Vercel (`vercel.json` rewrites every path to `/index.html`). There is intentionally **no deployment workflow in CI** and no deployment credentials in the repo.
+Static SPA hosting on Vercel (`vercel.json` rewrites every path to `/index.html`). There is intentionally **no deployment workflow in CI** and no deployment credentials in the repo. Vercel builds every `master` push as a Production deployment; whether promotion waits for the `Final candidate` check (Vercel Deployment Checks) is a project setting recorded in `docs/CURRENT_STATE.md`.
 
 ## Key documentation
 
 Read these when their area comes up:
 
-- `README.md` — product position, release freeze status, development setup.
+- `docs/CURRENT_STATE.md` — **read first**: the single live authority for current state, release model, active work and STOP conditions.
+- `README.md` — product position and development setup.
 - `CONTRIBUTING.md` — operating standard, module discipline, Scope Discipline Check, forbidden list.
-- `docs/ci.md` — release pipeline contract and troubleshooting.
+- `docs/ci.md` — release pipeline contract, candidate-bound review evidence, validated-before-production, troubleshooting.
 - `docs/storage-safety.md` — cross-tab coordination and persistent-storage policy.
-- `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` — current RPG completion authority and rolling evidence, subject to the latest owner instructions.
+- `docs/post-release/pre-e/` — Pre-E hardening report, Programvareutvikling source-fit report and the refreshed Epic E prompt.
+- `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` — historical RPG completion record and evidence; not current authority.
 - `docs/remediation/3-1-v1-3-release-remediation.md` — historical v1.3 release remediation; do not reopen it as the current work queue.
-- `docs/rpg-v2/` — RPG v2 source-of-truth set (roadmap, decisions, migration contract, validation log, risk register). RPG v2 module handoffs live in `docs/rpg-v2/modules/`.
+- `docs/rpg-v2/` — RPG v2 source-of-truth set (roadmap, decisions, migration contract, validation log, risk register), historical. RPG v2 module handoffs live in `docs/rpg-v2/modules/`.
 - `docs/archive/engine-v1/` — historical v1 engine records only; not active guidance.

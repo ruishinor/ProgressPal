@@ -1,5 +1,7 @@
 # ProgressPal RPG v2 — Source-of-Truth Roadmap and Sequential Implementation Plan
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Status: source-of-truth implementation roadmap  
 Created: 2026-06-20  
 Updated: 2026-07-13

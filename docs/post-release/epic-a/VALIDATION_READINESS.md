@@ -1,5 +1,7 @@
 # Epic A validation readiness
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Date: 2026-09-25. **A7 ACCEPTED; EPIC A LOCALLY CLOSED.**
 
 Accepted A7 implementation: `5068bb6b6cfd30407a003f2856a3ee00b0f0819a`.

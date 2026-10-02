@@ -1,7 +1,12 @@
+// Shared persisted vocabulary. Values are only ever appended: a value in a
+// stored row, an XP `sourceType` (`<type>_completed`) or a backup must keep
+// its meaning. `module` and `lesson` were added for non-weekly programmes
+// whose catalogue units are modules and whose items are lessons.
 export const courseUnitTypeValues = [
   'week',
   'special',
   'final_project',
+  'module',
 ] as const;
 
 export const courseItemTypeValues = [
@@ -15,6 +20,7 @@ export const courseItemTypeValues = [
   'project_task',
   'notes',
   'reflection',
+  'lesson',
 ] as const;
 
 export const progressStatusValues = [

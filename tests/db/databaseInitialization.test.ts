@@ -6,6 +6,7 @@ import {
   getAppMeta,
   getProfile,
   initializeDatabase,
+  progressPalDatabaseName,
   singletonIds,
 } from '@/lib/db';
 import { bundledCourseSeed } from '@/seed';
@@ -25,7 +26,15 @@ describe('database initialization', () => {
   });
 
   it('uses the selected executable release version', () => {
-    expect(currentApplicationVersion).toBe('1.3.0');
+    expect(currentApplicationVersion).toBe('1.4.0');
+  });
+
+  it('keeps database identity and schema independent of the application version', () => {
+    // The release line moves with application behaviour. The IndexedDB name
+    // and schema number are persistence contracts that only a deliberate,
+    // migrated schema decision may change.
+    expect(progressPalDatabaseName).toBe('progresspal-cs50-edition');
+    expect(currentDatabaseSchemaVersion).toBe(3);
   });
 
   it('creates app metadata and a default learner profile in a fresh database', async () => {

@@ -17,6 +17,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildBackupEnvelope } from '@/lib/backup';
 import {
   addStudySessionAndAwardXp,
+  currentApplicationVersion,
   currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
   getDatabaseSnapshot,
@@ -308,7 +309,9 @@ describe('App', () => {
         expect(
           await screen.findByRole('heading', { name: 'Settings' }),
         ).toBeInTheDocument();
-        expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+        expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe(
+          currentApplicationVersion,
+        );
       } finally {
         await releasePeer();
         consoleError.mockRestore();
@@ -399,7 +402,9 @@ describe('App', () => {
     dispatchPeerMessage('write', staleRevision);
 
     await waitFor(async () => {
-      expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.3.0');
+      expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe(
+        currentApplicationVersion,
+      );
       expect(getLocalCoordinationStatus()).toMatchObject({
         blockReason: null,
         canWrite: true,

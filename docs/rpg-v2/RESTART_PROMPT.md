@@ -1,5 +1,7 @@
 # ProgressPal RPG v2 — Restart Prompt
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Use this prompt when starting a new AI/code-agent chat for RPG v2 implementation.
 
 ---

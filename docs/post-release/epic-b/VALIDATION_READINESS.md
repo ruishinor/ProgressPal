@@ -1,5 +1,7 @@
 # Epic B validation readiness
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Current state: **B4 READY_FOR_OWNER_REVIEW**.
 
 The exact shipped commit and tree were checked in a clean local `master`, and

@@ -1,5 +1,7 @@
 # B3 handoff — session result ownership and guard
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 The DB write boundary already defines `AddStudySessionWithXpResult`.
 `StudySessionSaveResult` is only a type alias in the sessions UI. Source the
 alias from a neutral lib contract and retain the sessions entrypoint export

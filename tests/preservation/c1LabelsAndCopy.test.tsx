@@ -139,9 +139,14 @@ describe('C1 CS50 links and study guides (semantic)', () => {
 
 describe('C1 shared vocabulary labels (semantic, shared)', () => {
   it('pins the item-type labels', () => {
+    // Pre-E oracle evolution (additive only): the ten C1 labels below are
+    // unchanged; `lesson` was appended to the shared item-type vocabulary for
+    // non-weekly programmes. The pin stays exact, so any other added, removed
+    // or changed label still fails.
     expect(courseItemTypeLabels).toEqual({
       lab: 'Lab',
       lecture: 'Lecture',
+      lesson: 'Lesson',
       notes: 'Notes',
       practice: 'Practice',
       problem_set: 'Problem set',

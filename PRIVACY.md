@@ -1,6 +1,6 @@
 # Privacy
 
-ProgressPal CS50 Edition is an offline-only, single-user, local-first learning
+ProgressPal CS50 Edition is a single-user, local-first, offline-capable learning
 companion. This document describes how it handles your data. It states the
 current privacy boundary honestly; it is not a marketing page and not a legal or
 compliance guarantee.
@@ -9,6 +9,11 @@ compliance guarantee.
 
 Everything you enter stays in your own browser on your own device, and the app
 does not send it anywhere.
+
+The app is not offline-only. Your browser downloads the app itself (its HTML,
+JavaScript and CSS) from the host that serves it, and links to official course
+resources open those external sites. After the first successful load the app
+starts without a network connection. None of this transmits what you enter.
 
 ## What data exists
 
@@ -39,7 +44,8 @@ with the app; it is not personal data.
 - No backend or server stores your data.
 - No cloud sync and no online accounts.
 - No external APIs, third-party scripts, web fonts, or remote assets are loaded
-  at runtime.
+  at runtime. (The host that serves the app necessarily sees the request for the
+  app files, as any web host does; the app adds no request carrying your data.)
 - No analytics, telemetry, tracking, or usage reporting.
 - No AI tutor, coaching, or recommendation service.
 - No social, sharing, leaderboard, or comparison features.
@@ -82,6 +88,6 @@ files on it.
 
 ## Scope of this document
 
-This describes the application's behavior as of the security and privacy review
-(Module 19). See `SECURITY.md` for the technical security baseline and known
-risks.
+This describes the application's behavior as originally reviewed in Module 19 and
+reconciled on 2026-10-02 (`docs/CURRENT_STATE.md`). See `SECURITY.md` for the
+technical security baseline and known risks.

@@ -1,5 +1,7 @@
 # Epic C validation readiness
 
+> **Historical record.** This describes the state at the time it was written. The live state, baseline and next steps are in [`docs/CURRENT_STATE.md`](../../CURRENT_STATE.md). Retained unchanged as evidence.
+
 Current state: **C6 `C6_ACCEPTED_CLOSED_LOCALLY`** (C5
 `C5_ACCEPTED_CLOSED_LOCALLY`, C4 `C4_ACCEPTED_CLOSED_LOCALLY`, C3
 `C3_ACCEPTED_CLOSED_LOCALLY`, C2 `C2_ACCEPTED_CLOSED_LOCALLY`, C1

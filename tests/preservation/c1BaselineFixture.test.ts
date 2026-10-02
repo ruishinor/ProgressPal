@@ -66,8 +66,13 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
   it('parses the committed schema-2 file, forward-converted to the current schema', () => {
     const parsed = parse();
     expect(parsed.data.appMeta?.activeProgrammeId).toBe('cs50x');
+    // Pre-E oracle evolution: the summary reports the backup's own recorded
+    // application version. The frozen fixture bytes carry `1.3.0`; this used to
+    // be asserted as `currentApplicationVersion`, which only held while the
+    // running version equalled the fixture's. Pinning the literal also pins
+    // that the frozen bytes were not edited.
     expect(summarizeBackup(parsed)).toMatchObject({
-      appVersion: currentApplicationVersion,
+      appVersion: '1.3.0',
       format: 'progresspal-backup',
       formatVersion: 1,
       profileName: 'C1 Synthetic Learner',
@@ -196,26 +201,35 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
       }
       // Epic C6-R: the C1 preservation oracle transition (owner-authorized -
       // see C6_R_CLOSURE_RECORD.md) requires the complete canonical
-      // schema-3 `app_meta` state, not a partial `toMatchObject` subset. The
-      // frozen fixture's legacy `app_meta` has `appVersion: '1.3.0'`, which
-      // already equals `currentApplicationVersion`, and `schemaVersion: 3`
-      // is already current post-migration, so the restore's own
-      // `initializeDatabase` bootstrap call finds nothing left to normalize
-      // and performs no further write here: every field below is exactly
-      // what the frozen legacy bytes carry, mapped once by the real
-      // converter, not re-derived by this test.
+      // schema-3 `app_meta` state, not a partial `toMatchObject` subset.
+      //
+      // Pre-E oracle evolution: this block used to rely on the frozen
+      // fixture's `appVersion: '1.3.0'` equalling `currentApplicationVersion`,
+      // so the restore's `initializeDatabase` bootstrap had nothing to
+      // normalize. When the running version differs from the backup's, the
+      // existing documented restore behaviour applies: `app_meta.appVersion`
+      // becomes the running executable's version and `updatedAt` is the
+      // restore write time (the first tick of the injected clock). Every
+      // other field is exactly what the frozen bytes carry, and every learner
+      // table is still asserted equal above. The expectation below is
+      // therefore the frozen state plus exactly those two fields.
+      expect(parsed.data.appMeta?.appVersion).toBe('1.3.0');
       expect(restored.appMeta).toEqual({
         id: 'app-meta',
         createdAt: '2026-09-19T12:00:00.000Z',
-        updatedAt: '2026-09-19T12:05:00.000Z',
+        updatedAt: '2026-09-20T09:00:00.000Z',
         appVersion: currentApplicationVersion,
         onboardingCompletedAt: '2026-09-19T12:05:00.000Z',
         schemaVersion: currentDatabaseSchemaVersion,
         activeProgrammeId: 'cs50x',
       });
-      // Confirms the explicit literal above is exactly what the real
-      // parser/converter produced, not a value this test invented.
-      expect(restored.appMeta).toEqual(parsed.data.appMeta);
+      // Confirms the literal above is the converter's output plus only the
+      // two version-normalization fields, not values this test invented.
+      expect(restored.appMeta).toEqual({
+        ...parsed.data.appMeta,
+        appVersion: currentApplicationVersion,
+        updatedAt: '2026-09-20T09:00:00.000Z',
+      });
       // The frozen fixture's legacy `app_meta` carries `seedVersion:
       // 20260617` and `updatedAt: '2026-09-19T12:05:00.000Z'`;
       // `migrateV2ToV3` derives `catalogue_versions.dataVersion` and

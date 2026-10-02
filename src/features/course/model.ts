@@ -73,6 +73,7 @@ const blockedStatuses = new Set<ProgressStatus>(['blocked']);
 export const courseItemTypeLabels: Record<CourseItemType, string> = {
   lab: 'Lab',
   lecture: 'Lecture',
+  lesson: 'Lesson',
   notes: 'Notes',
   practice: 'Practice',
   problem_set: 'Problem set',
@@ -85,6 +86,7 @@ export const courseItemTypeLabels: Record<CourseItemType, string> = {
 
 const courseUnitTypeLabels = {
   final_project: 'Final project',
+  module: 'Module',
   special: 'Special',
   week: 'Week',
 } as const;
