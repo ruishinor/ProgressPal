@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "pre-e",
+  "reviewer": "ChatGPT GPT-5.6 Sol",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "fa0ba257d76c69d47cf4d4d5fc0ff3df97534052",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review history of the Pre-E documentation candidates as supplied by the owner and serialized here: the R4.2 exact-delta review, the owner schema-acceptance successor review, and the bounded acceptance-status correction. The reviewed final payload is commit 2c32cd6dfe973179a5f43e9ffd069fd381ccf557, whose payload tree is bound above. The engineering subtrees (src, tests, e2e, scripts, .github, public, package.json, package-lock.json) are byte-identical across R4.2, the acceptance successor and the correction, and src is tree 7c5d28a4f9cc0c653b59b25eff7913de68bad1cd.",
+    "evidence": [
+      "R4.2 reviewed commit 12fbdde4bad5bae9889dd51657af1b8a9275f807; review package SHA-256 89016541bba52050f189b8f7edb3f1c1d274355b11d0ca312776691eadfb3381; disposition PRE_E_R4_2_DELTA_REVIEW_PROCEED.",
+      "Owner-acceptance successor reviewed commit a6cccff0086cac5fdbde9bfc76aac1810bc78e05; review package SHA-256 9dfd7e292f208c821ab7cfbd44f2a131104902540ae59b5286f1a9d1fb853eeb; the reviewer verified all 17 manifest entries, the six exported document Git blobs, the exact three-file acceptance and status delta, and that all protected engineering objects are unchanged.",
+      "Bounded correction commit 2c32cd6dfe973179a5f43e9ffd069fd381ccf557 (parent a6cccff0086cac5fdbde9bfc76aac1810bc78e05) changes only docs/post-release/epic-e/E_SCHEMA_CHANGE_DECISION_RECORD.md, whose Git blob is exactly 86e9b852d9845b291c63428d637f791e037cf6b6; disposition PRE_E_SCHEMA_ACCEPTANCE_REVIEW_PROCEED.",
+      "Vercel Deployment Check chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7, name Final candidate, GitHub source, configured to block deployment-alias for production; verified read-only with vercel project checks progress-pal and vercel project checks progress-pal --blocks deployment-alias.",
+      "This file was serialized into the repository schema by the implementation session at the owner's instruction. The review itself was performed by the independent reviewer named in the reviewer field; the implementation session did not perform or alter it."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PRE-E-01",
+      "severity": "P2",
+      "description": "The R4.1 persistence contract could lose a submitted attempt because evaluation occurred before durable submission persistence: a tab or process closed mid-evaluation left no attempt, and a later retry could become attempt 1.",
+      "resolution": "R4.2 separates the immutable exercise_attempt, committed first and carrying no outcome, from its later immutable evaluation_result, linked to exactly one attempt. Interruption cannot replace attempt 1; an unresolved attempt is recovered, not replaced.",
+      "status": "resolved"
+    },
+    {
+      "id": "PRE-E-02",
+      "severity": "P2",
+      "description": "R4.1 declared the gate retry rule K-3 unresolved but supplied a fresh-shuffle fallback, which invented the unresolved rule.",
+      "resolution": "R4.2 removes the fallback and uses the explicit K-3 pause state, EPIC_E_PAUSED_GATE_RETRY_RULE_DECISION_REQUIRED, when gate retry becomes necessary.",
+      "status": "resolved"
+    },
+    {
+      "id": "PRE-E-03",
+      "severity": "P3",
+      "description": "The owner-acceptance successor correctly accepted E-SCHEMA-1 but retained stale wording in the schema record saying store and field names were proposals, and a section heading reading Proposed schema 4.",
+      "resolution": "The independently reviewed correction changes only that sentence, so that accepted store and field naming is contract proved rather than chosen by Epic E's RED tests, and renames the heading to Accepted schema 4 contract. The committed schema-file Git blob is exactly 86e9b852d9845b291c63428d637f791e037cf6b6.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The exact R4.2 technical contract is accepted. The owner-acceptance successor and the bounded correction do not change schema semantics. Protected engineering bytes remain unchanged. The live database remains schema v3; schema v4 is authorized for Epic E but is not implemented, and Epic E has not started. K-3, K-4 and OD-6 remain unresolved. The Vercel Final candidate check is configured to block production alias assignment. No material review blocker remains. Decision: proceed."
+  }
+}
