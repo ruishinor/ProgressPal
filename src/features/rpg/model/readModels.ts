@@ -128,7 +128,10 @@ function toRpgOfficialLink(link: Cs50Link | null): RpgOfficialLink | null {
   return link === null ? null : { label: link.label, url: link.url };
 }
 
-function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
+function buildCourseMapContext(
+  snapshot: DatabaseSnapshot,
+  programme: ProgrammeContentScope,
+): CourseMapContext {
   const longFormByItemId = buildLongFormProgressMap(
     snapshot.contentAssets,
     snapshot.contentSlices,
@@ -141,6 +144,7 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
     snapshot.courseItems,
     snapshot.progressEntries,
     longFormByItemId,
+    programme.policy.catalogueRules,
   );
 
   return {
@@ -155,6 +159,7 @@ function buildCourseMapContext(snapshot: DatabaseSnapshot): CourseMapContext {
 
 function buildCourseMapContextFromReadData(
   data: CourseStateReadData,
+  programme: ProgrammeContentScope,
 ): CourseMapContext {
   const longFormByItemId = buildLongFormProgressMapFromEventAggregates(
     data.contentAssets,
@@ -168,6 +173,7 @@ function buildCourseMapContextFromReadData(
     data.courseItems,
     data.progressEntries,
     longFormByItemId,
+    programme.policy.catalogueRules,
   );
 
   return {
@@ -595,7 +601,7 @@ export function buildRpgCourseMapSummary(
   snapshot: DatabaseSnapshot,
   programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgCourseMapSummary {
-  const { courseMap } = buildCourseMapContext(snapshot);
+  const { courseMap } = buildCourseMapContext(snapshot, programme);
   const modules = courseMap.units.map((unit) =>
     buildModuleSummary(unit, snapshot, programme),
   );
@@ -617,7 +623,7 @@ function buildRpgCourseMapSummaryFromReadData(
   data: CourseMapReadData,
   programme: ProgrammeContentScope,
 ): RpgCourseMapSummary {
-  const { courseMap } = buildCourseMapContextFromReadData(data);
+  const { courseMap } = buildCourseMapContextFromReadData(data, programme);
   const modules = courseMap.units.map((unit) =>
     buildModuleSummary(unit, data, programme),
   );
@@ -640,7 +646,7 @@ export function buildRpgModuleSummary(
   unitId: string,
   programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgModuleSummary | null {
-  const { courseMap } = buildCourseMapContext(snapshot);
+  const { courseMap } = buildCourseMapContext(snapshot, programme);
   const unit = courseMap.units.find((candidate) => candidate.id === unitId);
 
   return unit === undefined
@@ -664,6 +670,7 @@ function buildRpgModuleSummaryFromReadData(
     data.courseItems,
     data.progressEntries,
     longFormByItemId,
+    programme.policy.catalogueRules,
   );
   const unit = courseMap.units[0];
 
@@ -798,7 +805,7 @@ function buildRpgHeroProfileSummaryFromReadData(
   data: RpgHeroReadData,
   programme: ProgrammeContentScope,
 ): RpgHeroProfileSummary {
-  const { courseMap } = buildCourseMapContextFromReadData(data);
+  const { courseMap } = buildCourseMapContextFromReadData(data, programme);
   const courseProgress = {
     completedRequiredItemCount: courseMap.completedRequiredItemCount,
     completionPercent: courseMap.completionPercent,
@@ -911,7 +918,7 @@ export function buildRpgStudyResourceSummary(
   itemId: string,
   programme: ProgrammeContentScope = getDefaultProgrammeDefinition(),
 ): RpgStudyResourceSummary | null {
-  const context = buildCourseMapContext(snapshot);
+  const context = buildCourseMapContext(snapshot, programme);
   const item = context.itemById.get(itemId);
 
   if (item === undefined) {

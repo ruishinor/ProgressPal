@@ -9,10 +9,14 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
+import { useShellBrand } from './shellBrand';
+
 export function RpgRouteShell() {
   const location = useLocation();
   const { coordination, error, refresh, requiresOnboarding, status } =
     useAppState();
+  // The document is named by the active programme brand on RPG routes too.
+  useShellBrand();
 
   // Single owner of the RPG body class: every /rpg render — including the
   // loading and error states below, which mount before RpgShell — keeps the

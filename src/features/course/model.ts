@@ -172,6 +172,14 @@ function inferStatusFromLongFormProgress(
   return longFormProgress.isComplete ? 'completed' : 'started';
 }
 
+export type CourseMapOptions = {
+  /**
+   * Whether optional items add their minutes to a unit's planned length
+   * (programme policy, Epic E). Absent means `true`, the CS50 behaviour.
+   */
+  readonly optionalItemsInUnitLength?: boolean;
+};
+
 export function buildCourseMap(
   units: readonly CourseUnit[],
   items: readonly CourseItem[],
@@ -180,7 +188,9 @@ export function buildCourseMap(
     string,
     LongFormProgressView
   > = new Map(),
+  options: CourseMapOptions = {},
 ): CourseMapView {
+  const optionalItemsInUnitLength = options.optionalItemsInUnitLength ?? true;
   const progressByItemId = new Map(
     progressEntries.map((progressEntry) => [
       progressEntry.itemId,
@@ -236,10 +246,9 @@ export function buildCourseMap(
     const blockedItemCount = itemViews.filter((item) =>
       blockedStatuses.has(item.status),
     ).length;
-    const estimatedMinutes = itemViews.reduce(
-      (total, item) => total + item.estimatedMinutes,
-      0,
-    );
+    const estimatedMinutes = itemViews
+      .filter((item) => optionalItemsInUnitLength || item.required)
+      .reduce((total, item) => total + item.estimatedMinutes, 0);
     const completionPercent =
       requiredItemCount === 0
         ? 100

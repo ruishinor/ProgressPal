@@ -85,6 +85,7 @@ export function CoursePage() {
             resumePoints,
             progressEntries,
           ),
+          requireProgrammeScope(programmeScope).policy.catalogueRules,
         );
 
         startTransition(() => {

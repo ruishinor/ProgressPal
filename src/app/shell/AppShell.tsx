@@ -18,6 +18,8 @@ import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
+import { useShellBrand } from './shellBrand';
+
 export function AppShell() {
   const location = useLocation();
   const {
@@ -30,6 +32,7 @@ export function AppShell() {
     status,
   } = useAppState();
   const mainRef = useMainContentFocus<HTMLElement>();
+  const brand = useShellBrand();
   const onboardingRoute = getRouteDefinition('onboarding');
   const onboardingPath = onboardingRoute.to ?? '/onboarding';
 
@@ -63,7 +66,8 @@ export function AppShell() {
           programmeScope?.content.terminology.copy.startupLoadingSummary ??
           'Preparing local profile data.'
         }
-        title="ProgressPal CS50 Edition"
+        brand={brand}
+        title={brand}
       >
         <section className="page-section">
           <LoadingState
@@ -100,7 +104,8 @@ export function AppShell() {
           },
         ]}
         summary="ProgressPal could not finish checking or repairing its local storage."
-        title="ProgressPal CS50 Edition"
+        brand={brand}
+        title={brand}
       >
         <section className="page-section">
           <ErrorState
@@ -206,7 +211,8 @@ export function AppShell() {
           : requireProgrammeScope(programmeScope).content.terminology.copy
               .shellActiveSummary
       }
-      title="ProgressPal CS50 Edition"
+      brand={brand}
+      title={brand}
     >
       {coordination.blockReason === 'peer-active' ? (
         <section className="page-section">

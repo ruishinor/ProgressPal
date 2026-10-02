@@ -161,6 +161,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           items,
           progressEntries,
           longFormByItemId,
+          requireProgrammeScope(programmeScope).policy.catalogueRules,
         );
         const model = buildInsightsModel({
           achievements,

@@ -133,6 +133,7 @@ export function DashboardPage() {
           items,
           progressEntries,
           longFormByItemId,
+          requireProgrammeScope(programmeScope).policy.catalogueRules,
         );
         const model = buildDashboardModel({
           achievements,
