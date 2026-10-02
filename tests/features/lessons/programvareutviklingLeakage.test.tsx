@@ -68,6 +68,7 @@ async function settledText(route: string) {
   await waitFor(
     () => {
       expect(screen.queryByText(/Loading|Laster/i)).toBeNull();
+      expect(screen.queryByText(/Preparing RPG|Opening local data/)).toBeNull();
       expect(
         document.querySelector('main')?.textContent?.length ?? 0,
       ).toBeGreaterThan(40);
