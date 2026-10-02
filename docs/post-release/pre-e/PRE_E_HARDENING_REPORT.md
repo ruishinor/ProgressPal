@@ -83,11 +83,29 @@ Admission test applied (activated by this work, concrete reviewability risk, loc
 - The new gate and the workflow are in the candidate, so a candidate can alter the gate that judges it; the independent review must read `scripts/` and `.github/`.
 - Platform activation is an owner action, and Force Promote and CLI production deploys remain deliberate bypasses.
 - The first gated deployment is the first observation of Vercel's hold behaviour on this project.
-- The bundle budgets leave 109 B of CSS gzip and about 100 kB of JS gzip headroom, which constrains Epic E (fit report section 6).
+- The bundle budgets leave 109 B of CSS gzip and about 100 kB of JS gzip headroom. Epic E measures its real build against them; no budget change is pre-authorized (fit report section 6).
 - Two infrastructure notices from CI are carried, not blocking: Node 20 deprecation for `actions/upload-artifact@v5` and the `ubuntu-latest` migration beginning 2026-10-19.
 - Self-review is not independent review. Everything above is implementer evidence input.
 
 ## 9. STOP states
 
-- Release gate: `READY_FOR_RELEASE_GATE_ACTIVATION` (one owner action).
-- Source fit: `PRE_E_DOMAIN_MODEL_REPLAN_REQUIRED` for the lesson-content contract and content delivery, `PRE_E_L3_SCOPE_DECISION_REQUIRED` for the attempt/mastery engine. Detail and owner decisions D1–D7 are in `PROGRAMVAREUTVIKLING_SOURCE_FIT_REPORT.md`.
+- Release gate: `READY_FOR_RELEASE_GATE_ACTIVATION` (one owner action). Still current.
+- Source fit, as recorded by C2 and **superseded by section 10**: `PRE_E_DOMAIN_MODEL_REPLAN_REQUIRED` for the lesson-content contract and content delivery, and `PRE_E_L3_SCOPE_DECISION_REQUIRED` for the attempt/mastery engine, with owner decisions D1 to D7. Neither label is a current Epic E readiness state.
+
+## 10. Independent-review correction (C3)
+
+**Engineering accepted in substance.** Independent review found no defect requiring engineering rollback in the candidate-bound review binding and its fail-closed applicability checks, evidence-only successor handling, release-gate ordering, the `1.3.0 → 1.4.0` provenance change, schema v3 and the unchanged IndexedDB name, the service-worker cache-version coupling, the three changed C1 preservation oracles, the additive `module`/`lesson` vocabulary, and the release-gate test design. The documentation-only successor (C3) leaves every engineering subtree byte-identical to C2 `2f3484a84f51f1483a18504a8e5dbdf4974b90c2`.
+
+**History preserved.** C1 `dfc6bc43e2c10e8206dbbec17cada13fd4a465f1` failed the repository format check on this very report because the pre-freeze check was partial; it was not green. C2 repaired that with a docs-only successor, and only the invalidated cheap evidence was rerun. Neither fact is rewritten.
+
+**Planning layer corrected.** The review found three errors in how C2 interpreted the source, none in the engineering:
+
+1. It classified the static instructional-content layer as `PRE_E_DOMAIN_MODEL_REPLAN_REQUIRED`. Package 21 names that layer and its renderer as the first integration story, and it is static, bundled, programme-owned and non-persisted. It is bounded Epic E scope.
+2. It classified future attempt, evaluator and mastery persistence as `PRE_E_L3_SCOPE_DECISION_REQUIRED`. Those are later phases with their own schema decision. They are `DEFERRED_FUTURE_PHASE_NOT_EPIC_E` and block nothing now. The normal stop rule stays for anything Epic E itself unexpectedly needs.
+3. It let derived analysis outrank the protected Programme #2 authority, manufactured owner decisions D2 to D7 that source and architecture already answer, and treated bundle budgets as an advance owner decision instead of something to measure on the real candidate.
+
+`PROGRAMVAREUTVIKLING_SOURCE_FIT_REPORT.md`, `EPIC_E_AUTONOMOUS_PROMPT.md` and `docs/CURRENT_STATE.md` carry the corrected conclusions. The one genuine open owner decision is the visible shell brand (OD-6).
+
+**Review scope.** C3 changes the documents inside the reviewed payload, so it needs its own independent review. No earlier review certifies it, and `npm run verify:release` is expected to fail closed for it until an independent reviewer authors review evidence for its payload tree. No full-suite rerun is claimed for C3. Vercel Deployment Checks remain unactivated.
+
+**Change inventory.** An independent review recorded that a summary given of the C2 work stated a different inventory (32 files, +2,313/−133). The exact Git diff from `95489ea0e08909054a4fa82120b28b131873d40c` to C2 is **49 changed files, +2,116/−247** (`git diff --shortstat`). Counts are generated from Git, never reconstructed by hand. The C3 inventory is in the C3 evidence package, not here, because a document inside the candidate cannot record the final inventory of the candidate that contains it.
