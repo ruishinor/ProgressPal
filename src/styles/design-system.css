@@ -1440,6 +1440,142 @@
   gap: var(--space-2);
 }
 
+/* Transient reward notices (level up, achievement earned). Fixed at the top
+   centre: clear of the bottom toasts and the fixed mobile RPG navigation, out
+   of document flow, and never a pointer target. Enter/exit durations match
+   rewardNotificationTiming in src/lib/rewards. */
+.reward-notice-region {
+  display: grid;
+  inset-inline: 0;
+  justify-items: center;
+  padding-inline: max(var(--space-4), env(safe-area-inset-left, 0px))
+    max(var(--space-4), env(safe-area-inset-right, 0px));
+  pointer-events: none;
+  position: fixed;
+  top: max(var(--space-4), env(safe-area-inset-top, 0px));
+  z-index: 25;
+}
+
+.reward-notice {
+  --reward-notice-accent: var(--color-accent);
+  --reward-notice-label: var(--color-accent-strong);
+
+  align-items: center;
+  animation: reward-notice-enter 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  border-top: 0.3rem solid var(--reward-notice-accent);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+  display: flex;
+  gap: var(--space-3);
+  max-width: 22rem;
+  padding: var(--space-3) var(--space-5);
+  width: min(100%, 22rem);
+}
+
+.reward-notice--achievement {
+  --reward-notice-accent: var(--color-success);
+  --reward-notice-label: var(--color-success);
+}
+
+.reward-notice--leaving {
+  animation: reward-notice-exit 240ms ease-in both;
+}
+
+.reward-notice__art {
+  display: none;
+  flex: none;
+}
+
+.reward-notice__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.reward-notice__label {
+  color: var(--reward-notice-label);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reward-notice__title {
+  color: var(--color-heading);
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+@keyframes reward-notice-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reward-notice-exit {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-0.75rem) scale(0.98);
+  }
+}
+
+@keyframes reward-notice-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes reward-notice-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion keeps the notice and its timing; it only drops the
+   translation and scale (the global rule also collapses the duration). */
+@media (prefers-reduced-motion: reduce) {
+  .reward-notice {
+    animation-name: reward-notice-fade-in;
+  }
+
+  .reward-notice--leaving {
+    animation-name: reward-notice-fade-out;
+  }
+}
+
+:root[data-motion='reduced'] .reward-notice {
+  animation-name: reward-notice-fade-in;
+}
+
+:root[data-motion='reduced'] .reward-notice--leaving {
+  animation-name: reward-notice-fade-out;
+}
+
 .detail-list {
   color: var(--color-text-muted);
   display: grid;

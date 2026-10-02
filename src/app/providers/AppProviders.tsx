@@ -1,11 +1,39 @@
 import type { PropsWithChildren } from 'react';
 
+import { RewardNoticeRegion } from '@/components/ui/RewardNotice';
+import { RpgAchievementArt } from '@/features/rpg';
 import { AppStateProvider } from '@/lib/appState';
+import {
+  RewardNotificationProvider,
+  useRewardNotificationState,
+} from '@/lib/rewards';
 
 import {
   resolveDatabaseMigrationContext,
   resolveProgrammeScope,
 } from './programmeComposition';
+
+function renderAchievementArtwork(achievementId: string) {
+  return <RpgAchievementArt achievementId={achievementId} />;
+}
+
+/**
+ * The one reward notice presentation for Classic and RPG alike. It sits
+ * outside the router, so route changes and data-epoch remounts never restart
+ * or replay a notice. Badge artwork shows only on RPG routes (CSS), as on the
+ * achievements surfaces.
+ */
+function RewardNotices() {
+  const { current, leaving } = useRewardNotificationState();
+
+  return (
+    <RewardNoticeRegion
+      leaving={leaving}
+      notification={current}
+      renderArtwork={renderAchievementArtwork}
+    />
+  );
+}
 
 /**
  * The composition root hands app state two stable resolvers (Epic C / C7): one
@@ -16,11 +44,14 @@ import {
  */
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <AppStateProvider
-      resolveProgramme={resolveProgrammeScope}
-      resolveMigrationContext={resolveDatabaseMigrationContext}
-    >
-      {children}
-    </AppStateProvider>
+    <RewardNotificationProvider>
+      <AppStateProvider
+        resolveProgramme={resolveProgrammeScope}
+        resolveMigrationContext={resolveDatabaseMigrationContext}
+      >
+        {children}
+      </AppStateProvider>
+      <RewardNotices />
+    </RewardNotificationProvider>
   );
 }

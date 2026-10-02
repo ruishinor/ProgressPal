@@ -34,6 +34,11 @@ import type {
 } from '@/lib/domain';
 import { hasCompletedOnboarding } from '@/lib/profile';
 import {
+  deriveRewardEvents,
+  isRewardMutationResult,
+  useRewardAnnouncer,
+} from '@/lib/rewards';
+import {
   captureLocalDataRevision,
   getLocalCoordinationStatus,
   inspectStoragePersistence,
@@ -761,15 +766,32 @@ export function AppStateProvider({
     return nextStatus;
   }
 
+  const announceRewards = useRewardAnnouncer();
+
   const runLocalMutation = useCallback(
     async <Result,>(
       mutation: () => Promise<Result>,
       options: RefreshOptions = {},
     ) => {
+      // The definitions the caller's mutation evaluated: the scope published
+      // with the render that handed the caller this function.
+      const achievementDefinitions = programmeScope?.policy.achievements ?? [];
       localMutationInProgressRef.current += 1;
 
       try {
         const result = await mutation();
+
+        // A committed award mutation reports exactly the rewards it created;
+        // announcing here, once per call, is the only path into the reward
+        // notification queue (never a read, refresh or route change).
+        if (
+          announceRewards !== null &&
+          providerActiveRef.current &&
+          isRewardMutationResult(result)
+        ) {
+          announceRewards(deriveRewardEvents(result, achievementDefinitions));
+        }
+
         await requestRefresh({
           invalidateRoute: options.invalidateRoute ?? true,
         });
@@ -778,7 +800,7 @@ export function AppStateProvider({
         localMutationInProgressRef.current -= 1;
       }
     },
-    [requestRefresh],
+    [announceRewards, programmeScope, requestRefresh],
   );
 
   async function switchProgrammeInState(

@@ -1506,3 +1506,33 @@
     width: 100%;
   }
 }
+
+/* Reward notices over RPG routes use the RPG palette and show the badge
+   artwork, as the RPG achievements surface does. */
+body.rpg-route-active .reward-notice {
+  --reward-notice-accent: var(--rpg-progress);
+  --reward-notice-label: var(--rpg-accent-strong);
+
+  background: var(--rpg-surface);
+  border-color: var(--rpg-border-strong);
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .reward-notice--achievement {
+  --reward-notice-accent: var(--rpg-success);
+  --reward-notice-label: var(--rpg-success);
+}
+
+body.rpg-route-active .reward-notice__title {
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .reward-notice__art {
+  display: block;
+}
+
+.reward-notice__art .rpg-achievement-art {
+  font-size: 1.5rem;
+  height: 3rem;
+  width: 3rem;
+}

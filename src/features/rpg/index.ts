@@ -15,6 +15,7 @@ export {
   type RpgReadModelOptions,
 } from './model/readModels';
 export {
+  RpgAchievementArt,
   RpgButton,
   RpgEmptyState,
   RpgPanel,

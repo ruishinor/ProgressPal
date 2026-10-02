@@ -1,3 +1,4 @@
+export { RpgAchievementArt } from './RpgAchievementArt';
 export {
   RpgButton,
   type RpgButtonLinkProps,

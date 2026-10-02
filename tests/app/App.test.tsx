@@ -1934,7 +1934,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
     await screen.findByRole('heading', { name: 'Progress saved' });
-    expect(screen.getByText(/First Step/)).toBeInTheDocument();
+    expect(
+      screen.getByText('Achievement unlocked: First Step'),
+    ).toBeInTheDocument();
   });
 
   it('lecture page log form and save feedback are unaffected by UX-03', async () => {
