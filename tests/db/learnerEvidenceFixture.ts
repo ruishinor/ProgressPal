@@ -69,6 +69,32 @@ export const p2TestSeed: CourseSeed = {
         },
       ],
     },
+    {
+      id: 's1-m02',
+      order: 1,
+      title: 'Verdier, typer og input',
+      type: 'module',
+      sourceYear: 2026,
+      required: true,
+      items: [
+        {
+          id: 's1-m02-o01',
+          type: 'lesson',
+          title: 'Variabler og verditabeller',
+          required: true,
+          estimatedMinutes: 95,
+          order: 0,
+        },
+        {
+          id: 's1-m02-o05',
+          type: 'lesson',
+          title: 'Når typene ikke stemmer',
+          required: true,
+          estimatedMinutes: 170,
+          order: 1,
+        },
+      ],
+    },
   ],
 };
 

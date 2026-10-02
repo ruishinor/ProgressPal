@@ -7,7 +7,7 @@ import { version as applicationVersion } from '../../../package.json';
 import type { LearnerAvatarConfig, LearnerProfile } from '@/lib/domain';
 
 export const progressPalDatabaseName = 'progresspal-cs50-edition';
-export const currentDatabaseSchemaVersion = 3;
+export const currentDatabaseSchemaVersion = 4;
 export const currentApplicationVersion = applicationVersion;
 
 export const singletonIds = {

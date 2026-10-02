@@ -1,0 +1,1301 @@
+{
+  "sourceSha256": "577cd120b514d3df1445380e516916e1816dac16467311171d28764df7d96bc5",
+  "contentVersion": 1,
+  "exercises": {
+    "S1-M01-P01-E01": {
+      "examples_ok": ["Python 3.14.4", "Python 3.12.10", "Python 3.13.0"],
+      "examples_bad": [
+        "Python 3.9.1",
+        "Python 2.7.18",
+        "py : The term 'py' is not recognized as the name of a cmdlet",
+        ""
+      ]
+    },
+    "S1-M01-P01-E02": {
+      "examples_ok": ["Hei, verden!"],
+      "examples_bad": ["", "hei, verden!", "Hei verden", "Hei, verden"]
+    },
+    "S1-M01-P02-E01": {
+      "examples_ok": ["pwd"],
+      "examples_bad": ["ls", "cd", "pwd kode"]
+    },
+    "S1-M01-P02-E02": {
+      "examples_ok": ["ls", "dir"],
+      "examples_bad": ["pwd", "list", "ls kode.py"]
+    },
+    "S1-M01-P02-E03": {
+      "examples_ok": ["cd kode", "cd .\\kode"],
+      "examples_bad": ["cd", "ls kode", "cd ..", "kode"]
+    },
+    "S1-M01-P02-E05": {
+      "examples_ok": ["py hei.py", "python hei.py"],
+      "examples_bad": ["py hei", "hei.py", "py", "py hei.txt"]
+    },
+    "S1-M01-P02-E07": {
+      "examples_ok": ["cd kode"],
+      "examples_bad": ["py hei.py", "cd ..", "ls"]
+    },
+    "S1-M01-P02-E08": {
+      "examples_ok": ["cd .."],
+      "examples_bad": ["cd", "cd ...", "up", "cd /"]
+    },
+    "S1-M01-P02-E11": {
+      "examples_ok": [
+        "Path\n----\nC:\\Users\\ola\\kode",
+        "C:\\Users\\ola\\kode"
+      ],
+      "examples_bad": [
+        "Path\n----\nC:\\Users\\ola",
+        "C:\\Users\\ola\\Downloads"
+      ]
+    },
+    "S1-M01-P02-E12": {
+      "examples_ok": ["-a---- 30.09.2026 20:54 21 hei.py", "hei.py"],
+      "examples_bad": ["hei.py.txt x", ""]
+    },
+    "S1-M01-P03-E01": { "solution": "print(\"Hei, Kari!\")" },
+    "S1-M01-P03-E06": {
+      "reference": "print(\"Hei!\")\nprint(\"Jeg heter Kari.\")\nprint(\"Jeg lærer Python.\")",
+      "failure_variants": [
+        {
+          "name": "mangler tredje linje",
+          "code": "print(\"Hei!\")\nprint(\"Jeg heter Kari.\")",
+          "signature": ["Hei!\nJeg heter Kari."]
+        },
+        {
+          "name": "manglende punktum",
+          "code": "print(\"Hei!\")\nprint(\"Jeg heter Kari\")\nprint(\"Jeg lærer Python\")",
+          "signature": ["Hei!\nJeg heter Kari\nJeg lærer Python"]
+        }
+      ]
+    },
+    "S1-M01-P03-E07": {
+      "reference": "print(\"*****\")\nprint(\"Hei! Jeg heter Kari\")\nprint(\"*****\")",
+      "failure_variants": [
+        {
+          "name": "tom linje i midten",
+          "code": "print(\"*****\")\nprint()\nprint(\"Hei! Jeg heter Kari\")\nprint(\"*****\")",
+          "signature": ["*****\n\nHei! Jeg heter Kari\n*****"]
+        },
+        {
+          "name": "feil antall stjerner",
+          "code": "print(\"****\")\nprint(\"Hei! Jeg heter Kari\")\nprint(\"****\")",
+          "signature": ["****\nHei! Jeg heter Kari\n****"]
+        }
+      ]
+    },
+    "S1-M01-P03-E08": {
+      "reference": "print(12 + 30)",
+      "failure_variants": [
+        {
+          "name": "tekst i stedet for regnestykke",
+          "code": "print(\"12 + 30\")",
+          "signature": ["12 + 30"]
+        },
+        {
+          "name": "skriver tallet direkte",
+          "code": "print(42)",
+          "signature": ["42", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M01-P08-E02": {
+      "examples_ok": ["git config --global user.name \"Ola Nordmann\""],
+      "examples_bad": [
+        "git config user.name Ola",
+        "git config --global user.email \"ola@example.com\"",
+        "git name \"Ola Nordmann\""
+      ]
+    },
+    "S1-M01-P08-E03": {
+      "examples_ok": ["git config --global user.email \"ola@example.com\""],
+      "examples_bad": [
+        "git config --global user.name \"Ola\"",
+        "git email ola@example.com"
+      ]
+    },
+    "S1-M01-P08-E04": {
+      "examples_ok": ["git init"],
+      "examples_bad": ["git start", "git init hei.py", "init"]
+    },
+    "S1-M01-P08-E08": {
+      "examples_ok": ["git add hei.py"],
+      "examples_bad": [
+        "git add",
+        "git stage",
+        "git commit hei.py",
+        "git hei.py"
+      ]
+    },
+    "S1-M01-P08-E09": {
+      "examples_ok": ["git commit -m \"Legg til hei-program\""],
+      "examples_bad": [
+        "git commit",
+        "git commit \"Legg til hei\"",
+        "git commit -m",
+        "git commit -m Legg til hei"
+      ]
+    },
+    "S1-M01-P08-E11": {
+      "examples_ok": [
+        "a1b2c3d Legg til hei-program",
+        "a1b2c3d (HEAD -> main) Legg til hei-program"
+      ],
+      "examples_bad": [
+        "",
+        "fatal: not a git repository",
+        "Legg til hei-program"
+      ]
+    },
+    "S1-M01-P08-E12": {
+      "examples_ok": ["On branch main\nnothing to commit, working tree clean"],
+      "examples_bad": [
+        "Untracked files:\n  hei.py",
+        "Changes not staged for commit"
+      ]
+    },
+    "S1-M01-LAB-E01": {
+      "examples_ok": ["Path\n----\nC:\\Users\\ola\\kode"],
+      "examples_bad": ["C:\\Users\\ola"]
+    },
+    "S1-M01-LAB-E02": {
+      "reference": "print(\"Hei, verden!\")\nprint(\"Dette er mitt første program.\")\nprint(\"Jeg bruker py i terminalen.\")",
+      "failure_variants": [
+        {
+          "name": "mangler punktum",
+          "code": "print(\"Hei, verden!\")\nprint(\"Dette er mitt første program\")\nprint(\"Jeg bruker py i terminalen\")",
+          "signature": [
+            "Hei, verden!\nDette er mitt første program\nJeg bruker py i terminalen"
+          ]
+        },
+        {
+          "name": "bare to linjer",
+          "code": "print(\"Hei, verden!\")\nprint(\"Dette er mitt første program.\")",
+          "signature": ["Hei, verden!\nDette er mitt første program."]
+        },
+        {
+          "name": "tom linje mellom",
+          "code": "print(\"Hei, verden!\")\nprint()\nprint(\"Dette er mitt første program.\")\nprint(\"Jeg bruker py i terminalen.\")",
+          "signature": [
+            "Hei, verden!\n\nDette er mitt første program.\nJeg bruker py i terminalen."
+          ]
+        }
+      ]
+    },
+    "S1-M01-LAB-E03": {
+      "examples_ok": [
+        "Hei, verden!\nDette er mitt første program.\nJeg bruker py i terminalen."
+      ],
+      "examples_bad": ["Hei, verden!", ""]
+    },
+    "S1-M01-LAB-E05": {
+      "examples_ok": [
+        "  File \"C:\\Users\\ola\\kode\\hei.py\", line 1\n    print(\"Hei, verden!)\n          ^\nSyntaxError: unterminated string literal (detected at line 1)"
+      ],
+      "examples_bad": [
+        "Hei, verden!",
+        "NameError: name 'hei' is not defined",
+        ""
+      ]
+    },
+    "S1-M01-LAB-E07": {
+      "examples_ok": [
+        "Hei, verden!\nDette er mitt første program.\nJeg bruker py i terminalen."
+      ],
+      "examples_bad": ["SyntaxError: unterminated string literal"]
+    },
+    "S1-M01-LAB-E08": {
+      "examples_ok": [
+        "a1b2c3d Legg til hei-program med tre linjer",
+        "a1b2c3d (HEAD -> main) Legg til hei-program"
+      ],
+      "examples_bad": ["a1b2c3d asdf", "a1b2c3d fix", ""]
+    },
+    "S1-M01-Q01-E04": {
+      "reference": "print(\"==============================\")\nprint(\"    KAFFEKVELD PÅ KONTORET\")\nprint(\"==============================\")\nprint(\"Dato: fredag kl. 14.00\")\nprint(\"Sted: Møterom 2\")\nprint(\"Antall plasser:\", 6 + 6)\nprint(\"==============================\")",
+      "failure_variants": [
+        {
+          "name": "skriver 12 som tekst",
+          "code": "print(\"==============================\")\nprint(\"    KAFFEKVELD PÅ KONTORET\")\nprint(\"==============================\")\nprint(\"Dato: fredag kl. 14.00\")\nprint(\"Sted: Møterom 2\")\nprint(\"Antall plasser: 12\")\nprint(\"==============================\")",
+          "signature": [
+            "==============================\n    KAFFEKVELD PÅ KONTORET\n==============================\nDato: fredag kl. 14.00\nSted: Møterom 2\nAntall plasser: 12\n==============================",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "mangler siste ramme",
+          "code": "print(\"==============================\")\nprint(\"    KAFFEKVELD PÅ KONTORET\")\nprint(\"==============================\")\nprint(\"Dato: fredag kl. 14.00\")\nprint(\"Sted: Møterom 2\")\nprint(\"Antall plasser:\", 6 + 6)",
+          "signature": [
+            "==============================\n    KAFFEKVELD PÅ KONTORET\n==============================\nDato: fredag kl. 14.00\nSted: Møterom 2\nAntall plasser: 12"
+          ]
+        },
+        {
+          "name": "feil antall tegn i rammen",
+          "code": "print(\"=============================\")\nprint(\"    KAFFEKVELD PÅ KONTORET\")\nprint(\"==============================\")\nprint(\"Dato: fredag kl. 14.00\")\nprint(\"Sted: Møterom 2\")\nprint(\"Antall plasser:\", 6 + 6)\nprint(\"==============================\")",
+          "signature": [
+            "=============================\n    KAFFEKVELD PÅ KONTORET\n==============================\nDato: fredag kl. 14.00\nSted: Møterom 2\nAntall plasser: 12\n=============================="
+          ]
+        },
+        {
+          "name": "feil innrykk i tittelen",
+          "code": "print(\"==============================\")\nprint(\"  KAFFEKVELD PÅ KONTORET\")\nprint(\"==============================\")\nprint(\"Dato: fredag kl. 14.00\")\nprint(\"Sted: Møterom 2\")\nprint(\"Antall plasser:\", 6 + 6)\nprint(\"==============================\")",
+          "signature": [
+            "==============================\n  KAFFEKVELD PÅ KONTORET\n==============================\nDato: fredag kl. 14.00\nSted: Møterom 2\nAntall plasser: 12\n=============================="
+          ]
+        }
+      ]
+    },
+    "S1-M01-Q01-E05": {
+      "reference": "print(\"********************\")\nprint(\"  KAKEDAG FREDAG\")\nprint(\"Kl. 14.00 i kantina\")\nprint(\"********************\")",
+      "failure_variants": [
+        {
+          "name": "bare én feil rettet (SyntaxError gjenstår)",
+          "code": "print(\"********************\")\nprint(\"  KAKEDAG FREDAG\")\nprint(\"Kl. 14.00 i kantina)\nprint(\"********************\")",
+          "signature": ["ERROR SyntaxError"]
+        },
+        {
+          "name": "bare den andre rettet",
+          "code": "print(\"********************\")\nPrint(\"  KAKEDAG FREDAG\")\nprint(\"Kl. 14.00 i kantina\")\nprint(\"********************\")",
+          "signature": ["ERROR NameError"]
+        }
+      ]
+    },
+    "S1-M01-Q01-E06": {
+      "examples_ok": [
+        "c3d4e5f (HEAD -> main) Rett to feil i kakeplakaten\nb2c3d4e Legg til dato, sted og plasser\na1b2c3d Legg til toppen av plakaten"
+      ],
+      "examples_bad": ["a1b2c3d Legg til plakat", ""]
+    },
+    "S1-M01-RET-E02": {
+      "examples_ok": ["cd ovelser"],
+      "examples_bad": ["py tekst.py", "cd ..", "ls ovelser"]
+    },
+    "S1-M01-RET-E03": {
+      "reference": "print(\"Takk for i dag!\")\nprint(\"Vi ses neste uke.\")",
+      "failure_variants": [
+        {
+          "name": "mangler utropstegn",
+          "code": "print(\"Takk for i dag\")\nprint(\"Vi ses neste uke.\")",
+          "signature": ["Takk for i dag\nVi ses neste uke."]
+        },
+        {
+          "name": "skriver på én linje",
+          "code": "print(\"Takk for i dag!\", \"Vi ses neste uke.\")",
+          "signature": ["Takk for i dag! Vi ses neste uke."]
+        }
+      ]
+    },
+    "S1-M01-RET-E06": {
+      "examples_ok": ["git add plakat.py"],
+      "examples_bad": ["git commit plakat.py", "git add", "git stage plakat.py"]
+    },
+    "S1-M01-CHK-E01": {
+      "reference": "print(\"##########\")\nprint(\"# Kafé   #\")\nprint(\"##########\")\nprint(\"Åpent\", 8 + 4, \"timer\")",
+      "failure_variants": [
+        {
+          "name": "12 som tekst",
+          "code": "print(\"##########\")\nprint(\"# Kafé   #\")\nprint(\"##########\")\nprint(\"Åpent 12 timer\")",
+          "signature": [
+            "##########\n# Kafé   #\n##########\nÅpent 12 timer",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "feil mellomrom i Kafé-linjen",
+          "code": "print(\"##########\")\nprint(\"# Kafé #\")\nprint(\"##########\")\nprint(\"Åpent\", 8 + 4, \"timer\")",
+          "signature": ["##########\n# Kafé #\n##########\nÅpent 12 timer"]
+        }
+      ]
+    },
+    "S1-M01-CHK-E02": {
+      "examples_ok": ["git add skilt.py"],
+      "examples_bad": [
+        "git commit skilt.py",
+        "git add",
+        "git stage skilt.py",
+        "git skilt.py"
+      ]
+    },
+    "S1-M01-CHK-E03": {
+      "examples_ok": ["git commit -m \"Legg til skilt for kafeen\""],
+      "examples_bad": [
+        "git commit",
+        "git commit -m",
+        "git commit -m Legg til skilt",
+        "git commit \"Legg til skilt\""
+      ]
+    },
+    "S1-M01-CHK-E05": {
+      "examples_ok": ["a1b2c3d (HEAD -> main) Legg til skilt for kafeen"],
+      "examples_bad": ["a1b2c3d fix", ""]
+    },
+    "S1-M02-P01-E11": {
+      "reference": "a = 12\nb = 30\ntotal = a + b\nprint(\"Sum:\", total)",
+      "failure_variants": [
+        {
+          "name": "skriver 42 direkte",
+          "code": "a = 12\nb = 30\ntotal = 42\nprint(\"Sum:\", total)",
+          "signature": ["Sum: 42", "STRUCTURE-CHECK-FAILS"]
+        },
+        {
+          "name": "glemmer teksten Sum",
+          "code": "a = 12\nb = 30\ntotal = a + b\nprint(total)",
+          "signature": ["42"]
+        },
+        {
+          "name": "skriver ut navnet",
+          "code": "a = 12\nb = 30\ntotal = a + b\nprint(\"Sum: total\")",
+          "signature": ["Sum: total"]
+        }
+      ]
+    },
+    "S1-M02-P01-E12": {
+      "reference": "antall = 3\nprint(antall)",
+      "failure_variants": [
+        { "name": "fjerner print", "code": "antall = 3", "signature": [""] }
+      ]
+    },
+    "S1-M02-P02-E09": {
+      "reference": "antall = 4\npris = 25\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "legger sammen",
+          "code": "antall = 4\npris = 25\ntotal = antall + pris\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": ["Totalt: 29 kr", "STRUCTURE-CHECK-FAILS"]
+        },
+        {
+          "name": "skriver 100 direkte",
+          "code": "total = 100\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": ["Totalt: 100 kr", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M02-P02-E10": {
+      "reference": "print(17 // 5)\nprint(17 % 5)",
+      "failure_variants": [
+        {
+          "name": "bruker deling",
+          "code": "print(17 / 5)\nprint(17 % 5)",
+          "signature": ["3.4\n2", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M02-P03-E08": {
+      "reference": "antall_kopper = 3\npris_per_kopp = 45\ntotal = antall_kopper * pris_per_kopp\nprint(total)",
+      "failure_variants": [
+        {
+          "name": "bare ett navn endret",
+          "code": "antall_kopper = 3\ny = 45\nz = antall_kopper * y\nprint(z)",
+          "signature": ["135", "STRUCTURE-CHECK-FAILS"]
+        },
+        {
+          "name": "endret beregningen",
+          "code": "antall_kopper = 3\npris_per_kopp = 45\ntotal = antall_kopper + pris_per_kopp\nprint(total)",
+          "signature": ["48"]
+        }
+      ]
+    },
+    "S1-M02-P03-E09": {
+      "reference": "navn = \"Kari\"\nalder = 20\ner_student = True\nprint(navn, alder, er_student)",
+      "failure_variants": [
+        {
+          "name": "True som tekst",
+          "code": "navn = \"Kari\"\nalder = 20\ner_student = \"True\"\nprint(navn, alder, er_student)",
+          "signature": ["Kari 20 True", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M02-P04-E03": {
+      "solution": "antall = int(input(\"Antall kopper: \"))\nprint(antall + 1)"
+    },
+    "S1-M02-P04-E04": {
+      "reference": "alder = int(input(\"Alder: \"))\nprint(\"Om ti år er du\", alder + 10, \"år\")",
+      "failure_variants": [
+        {
+          "name": "mangler int (TypeError)",
+          "code": "alder = input(\"Alder: \")\nprint(\"Om ti år er du\", alder + 10, \"år\")",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "legger til tekst",
+          "code": "alder = input(\"Alder: \")\nprint(\"Om ti år er du\", alder + \"10\", \"år\")",
+          "signature": [
+            "Om ti år er du 2010 år",
+            "Om ti år er du 3510 år",
+            "Om ti år er du 010 år",
+            "Om ti år er du 9910 år",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P04-E05": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "mangler int på antall",
+          "code": "antall = input(\"Antall kopper: \")\npris = int(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": [
+            "Totalt: 333333333333333333333333333333333333333333333 kr",
+            "Totalt: 000000000000000000000000000000000000000000000 kr",
+            "Totalt: 101010101010101010101010 kr",
+            "Totalt: 1 kr"
+          ]
+        },
+        {
+          "name": "legger sammen",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\ntotal = antall + pris\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": [
+            "Totalt: 48 kr",
+            "Totalt: 45 kr",
+            "Totalt: 22 kr",
+            "Totalt: 2 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P04-E06": {
+      "reference": "x = float(input(\"Tall: \"))\nprint(x / 2)",
+      "failure_variants": [
+        {
+          "name": "bruker int",
+          "code": "x = int(input(\"Tall: \"))\nprint(x / 2)",
+          "signature": ["7.5", "1.5", "ERROR ValueError", "3.5", "50.0"]
+        },
+        {
+          "name": "heltallsdeling",
+          "code": "x = float(input(\"Tall: \"))\nprint(x // 2)",
+          "signature": ["7.0", "1.0", "0.0", "3.0", "50.0"]
+        }
+      ]
+    },
+    "S1-M02-P04-E07": {
+      "reference": "navn = input(\"Navn: \")\nprint(\"Hei,\", navn)",
+      "failure_variants": [
+        {
+          "name": "bruker int på navn",
+          "code": "navn = int(input(\"Navn: \"))\nprint(\"Hei,\", navn)",
+          "signature": [
+            "ERROR ValueError",
+            "ERROR ValueError",
+            "ERROR ValueError",
+            "ERROR ValueError"
+          ]
+        },
+        {
+          "name": "skriver ordet navn",
+          "code": "navn = input(\"Navn: \")\nprint(\"Hei, navn\")",
+          "signature": ["Hei, navn", "Hei, navn", "Hei, navn", "Hei, navn"]
+        }
+      ]
+    },
+    "S1-M02-P05-E01": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\nprint(\"Etter påfyll:\", antall + 2, \"kopper\")",
+      "failure_variants": [
+        {
+          "name": "gjør 2 til tekst",
+          "code": "antall = input(\"Antall kopper: \")\nprint(\"Etter påfyll:\", antall + \"2\", \"kopper\")",
+          "signature": [
+            "Etter påfyll: 32 kopper",
+            "Etter påfyll: 02 kopper",
+            "Etter påfyll: 102 kopper",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P05-E02": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "avrunder til heltall",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(float(input(\"Pris per kopp: \")))\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": [
+            "Totalt: 36 kr",
+            "Totalt: 40 kr",
+            "Totalt: 0 kr",
+            "Totalt: 0 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P05-E03": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = 45\nprint(\"Totalt:\", antall * pris, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "endrer prisen til tekst",
+          "code": "antall = input(\"Antall kopper: \")\npris = \"45\"\nprint(\"Totalt:\", antall * pris, \"kr\")",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P05-E04": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris_per_kopp = 45\nprint(\"Totalt:\", antall * pris_per_kopp, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "lager ny variabel med feil navn",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris_per_kopp = 45\npris_kopp = 45\nprint(\"Totalt:\", antall * pris_kopp, \"kr\")",
+          "signature": [
+            "Totalt: 135 kr",
+            "Totalt: 90 kr",
+            "Totalt: 0 kr",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P05-E05": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\ntotal = antall * 45\nprint(\"Totalt:\", total, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "fortsatt pluss med tall",
+          "code": "antall = int(input(\"Antall kopper: \"))\ntotal = antall * 45\nprint(\"Totalt: \" + total + \" kr\")",
+          "signature": ["ERROR TypeError", "ERROR TypeError", "ERROR TypeError"]
+        }
+      ]
+    },
+    "S1-M02-P05-E06": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(\"Totalt:\", total, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "bruker minus",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\ntotal = antall - pris\nprint(\"Totalt:\", total, \"kr\")",
+          "signature": ["Totalt: -2 kr", "Totalt: -42 kr", "Totalt: -5 kr"]
+        }
+      ]
+    },
+    "S1-M02-P06-E05": {
+      "reference": "antall = 3\nprint(antall == 3)",
+      "failure_variants": [
+        {
+          "name": "skriver bare verdien",
+          "code": "antall = 3\nprint(antall)",
+          "signature": ["3", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M02-P06-E08": {
+      "solution": "total = 37.5\nprint(f\"Totalt: {total:.2f} kr\")"
+    },
+    "S1-M02-P06-E10": {
+      "reference": "x = float(input(\"Beløp: \"))\nprint(f\"Beløp: {x:.2f}\")",
+      "failure_variants": [
+        {
+          "name": "uten format",
+          "code": "x = float(input(\"Beløp: \"))\nprint(f\"Beløp: {x}\")",
+          "signature": [
+            "Beløp: 12.5",
+            "Beløp: 3.0",
+            "Beløp: 0.333",
+            "Beløp: 100.0",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "uten f",
+          "code": "x = float(input(\"Beløp: \"))\nprint(\"Beløp: {x:.2f}\")",
+          "signature": [
+            "Beløp: {x:.2f}",
+            "Beløp: {x:.2f}",
+            "Beløp: {x:.2f}",
+            "Beløp: {x:.2f}",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P06-E11": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(f\"Antall: {antall}\")\nprint(f\"Pris: {pris:.2f} kr\")\nprint(f\"Totalt: {total:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "mangler desimaler",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(f\"Antall: {antall}\")\nprint(f\"Pris: {pris} kr\")\nprint(f\"Totalt: {total} kr\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nAntall: 3\nPris: 12.5 kr\nTotalt: 37.5 kr",
+            "Antall kopper: 1\nPris per kopp: 99\nAntall: 1\nPris: 99.0 kr\nTotalt: 99.0 kr",
+            "Antall kopper: 0\nPris per kopp: 5\nAntall: 0\nPris: 5.0 kr\nTotalt: 0.0 kr",
+            "Antall kopper: 10\nPris per kopp: 0.25\nAntall: 10\nPris: 0.25 kr\nTotalt: 2.5 kr",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "feil tekst i spørsmålet",
+          "code": "antall = int(input(\"Antall: \"))\npris = float(input(\"Pris: \"))\ntotal = antall * pris\nprint(f\"Antall: {antall}\")\nprint(f\"Pris: {pris:.2f} kr\")\nprint(f\"Totalt: {total:.2f} kr\")",
+          "signature": [
+            "Antall: 3\nPris: 12.5\nAntall: 3\nPris: 12.50 kr\nTotalt: 37.50 kr",
+            "Antall: 1\nPris: 99\nAntall: 1\nPris: 99.00 kr\nTotalt: 99.00 kr",
+            "Antall: 0\nPris: 5\nAntall: 0\nPris: 5.00 kr\nTotalt: 0.00 kr",
+            "Antall: 10\nPris: 0.25\nAntall: 10\nPris: 0.25 kr\nTotalt: 2.50 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P07-E02": {
+      "good_rows": [
+        { "inputs": ["3"], "expected": "6" },
+        { "inputs": ["0"], "expected": "0" },
+        { "inputs": ["-4"], "expected": "-8" },
+        { "inputs": ["10"], "expected": "20" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "bare tre rader",
+          "rows": [
+            { "in": ["3"], "exp": "6" },
+            { "in": ["0"], "exp": "0" },
+            { "in": ["-4"], "exp": "-8" }
+          ],
+          "detects": ["fewer than 4 rows"]
+        },
+        {
+          "why": "mangler 0",
+          "rows": [
+            { "in": ["3"], "exp": "6" },
+            { "in": ["5"], "exp": "10" },
+            { "in": ["-4"], "exp": "-8" },
+            { "in": ["10"], "exp": "20" }
+          ],
+          "detects": ["null"]
+        },
+        {
+          "why": "feil forventet verdi (x*x)",
+          "rows": [
+            { "in": ["3"], "exp": "9" },
+            { "in": ["0"], "exp": "0" },
+            { "in": ["-4"], "exp": "-8" },
+            { "in": ["10"], "exp": "20" }
+          ],
+          "detects": ["[\"3\"] expected 9 but reference gives 6"]
+        }
+      ]
+    },
+    "S1-M02-P07-E03": {
+      "reference": "x = int(input(\"Tall: \"))\nprint(x * 2)",
+      "failure_variants": [
+        {
+          "name": "kvadrerer",
+          "code": "x = int(input(\"Tall: \"))\nprint(x * x)",
+          "signature": ["9", "0", "16", "100", "1"]
+        },
+        {
+          "name": "legger til 2",
+          "code": "x = int(input(\"Tall: \"))\nprint(x + 2)",
+          "signature": ["5", "2", "-2", "12", "1"]
+        }
+      ]
+    },
+    "S1-M02-P07-E04": {
+      "good_rows": [
+        { "inputs": ["4", "4"], "expected": "4.0" },
+        { "inputs": ["1", "2"], "expected": "1.5" },
+        { "inputs": ["0", "0"], "expected": "0.0" },
+        { "inputs": ["10", "20"], "expected": "15.0" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler like tall",
+          "rows": [
+            { "in": ["1", "2"], "exp": "1.5" },
+            { "in": ["10", "20"], "exp": "15" },
+            { "in": ["0", "4"], "exp": "2" },
+            { "in": ["3", "5"], "exp": "4" }
+          ],
+          "detects": ["like tall"]
+        },
+        {
+          "why": "feil forventet (summen i stedet for snitt)",
+          "rows": [
+            { "in": ["4", "4"], "exp": "8" },
+            { "in": ["1", "2"], "exp": "3" },
+            { "in": ["0", "0"], "exp": "0" },
+            { "in": ["10", "20"], "exp": "30" }
+          ],
+          "detects": [
+            "[\"4\",\"4\"] expected 8 but reference gives 4.0",
+            "[\"1\",\"2\"] expected 3 but reference gives 1.5",
+            "[\"10\",\"20\"] expected 30 but reference gives 15.0"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P07-E05": {
+      "reference": "a = float(input(\"A: \"))\nb = float(input(\"B: \"))\nprint((a + b) / 2)",
+      "failure_variants": [
+        {
+          "name": "glemmer parentes",
+          "code": "a = float(input(\"A: \"))\nb = float(input(\"B: \"))\nprint(a + b / 2)",
+          "signature": ["6.0", "2.0", "0.0", "20.0", "0.625"]
+        },
+        {
+          "name": "summen",
+          "code": "a = float(input(\"A: \"))\nb = float(input(\"B: \"))\nprint(a + b)",
+          "signature": ["8.0", "3.0", "0.0", "30.0", "0.75"]
+        }
+      ]
+    },
+    "S1-M02-P07-E06": {
+      "good_rows": [
+        { "inputs": ["0"], "expected": "0 t 0 min" },
+        { "inputs": ["45"], "expected": "0 t 45 min" },
+        { "inputs": ["60"], "expected": "1 t 0 min" },
+        { "inputs": ["135"], "expected": "2 t 15 min" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler tall under 60",
+          "rows": [
+            { "in": ["0"], "exp": "0 t 0 min" },
+            { "in": ["60"], "exp": "1 t 0 min" },
+            { "in": ["135"], "exp": "2 t 15 min" },
+            { "in": ["200"], "exp": "3 t 20 min" }
+          ],
+          "detects": ["under 60"]
+        },
+        {
+          "why": "feil forventet format",
+          "rows": [
+            { "in": ["0"], "exp": "0 t 0 min" },
+            { "in": ["45"], "exp": "45 min" },
+            { "in": ["60"], "exp": "1 t 0 min" },
+            { "in": ["135"], "exp": "2 t 15 min" }
+          ],
+          "detects": ["[\"45\"] expected 45 min but reference gives 0 t 45 min"]
+        }
+      ]
+    },
+    "S1-M02-P07-E07": {
+      "reference": "m = int(input(\"Minutter: \"))\nprint(f\"{m // 60} t {m % 60} min\")",
+      "failure_variants": [
+        {
+          "name": "bruker deling (/)",
+          "code": "m = int(input(\"Minutter: \"))\nprint(f\"{m / 60} t {m % 60} min\")",
+          "signature": [
+            "2.25 t 15 min",
+            "0.75 t 45 min",
+            "0.0 t 0 min",
+            "1.0 t 0 min",
+            "16.666666666666668 t 40 min"
+          ]
+        },
+        {
+          "name": "glemmer resten",
+          "code": "m = int(input(\"Minutter: \"))\nprint(f\"{m // 60} t\")",
+          "signature": ["2 t", "0 t", "0 t", "1 t", "16 t"]
+        }
+      ]
+    },
+    "S1-M02-P09-E01": {
+      "reference": "lengde = 6\nbredde = 4\nareal = lengde * bredde\nprint(areal)",
+      "failure_variants": [
+        {
+          "name": "endret regnestykket",
+          "code": "lengde = 6\nbredde = 4\nareal = lengde + bredde\nprint(areal)",
+          "signature": ["10"]
+        }
+      ]
+    },
+    "S1-M02-P09-E02": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\nprint(\"Totalt:\", antall * pris, \"kr\")",
+      "failure_variants": [
+        {
+          "name": "byttet bare ett sted",
+          "code": "pris = int(input(\"Antall kopper: \"))\nantall = int(input(\"Pris per kopp: \"))\nprint(\"Totalt:\", antall * pris, \"kr\")",
+          "signature": [
+            "Totalt: 135 kr",
+            "Totalt: 0 kr",
+            "Totalt: 14 kr",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M02-P09-E05": {
+      "reference": "lengde = 6\nbredde = 4\nareal = lengde * bredde\nprint(areal)",
+      "failure_variants": [
+        {
+          "name": "skriver 24 direkte",
+          "code": "lengde = 6\nbredde = 4\nareal = 24\nprint(areal)",
+          "signature": ["24", "STRUCTURE-CHECK-FAILS"]
+        }
+      ]
+    },
+    "S1-M02-LAB-E01": {
+      "good_rows": [
+        { "inputs": ["3", "45"], "expected": "Totalt: 135.00 kr" },
+        { "inputs": ["0", "45"], "expected": "Totalt: 0.00 kr" },
+        { "inputs": ["4", "12.5"], "expected": "Totalt: 50.00 kr" },
+        { "inputs": ["10", "12"], "expected": "Totalt: 120.00 kr" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler 0 og desimalpris",
+          "rows": [
+            { "in": ["3", "45"], "exp": "Totalt: 135.00 kr" },
+            { "in": ["2", "10"], "exp": "Totalt: 20.00 kr" },
+            { "in": ["5", "8"], "exp": "Totalt: 40.00 kr" },
+            { "in": ["10", "12"], "exp": "Totalt: 120.00 kr" }
+          ],
+          "detects": ["0 kopper", "desimalpris"]
+        },
+        {
+          "why": "feil forventet format (mangler to desimaler)",
+          "rows": [
+            { "in": ["3", "45"], "exp": "Totalt: 135 kr" },
+            { "in": ["0", "45"], "exp": "Totalt: 0 kr" },
+            { "in": ["4", "12.5"], "exp": "Totalt: 50 kr" },
+            { "in": ["10", "12"], "exp": "Totalt: 120 kr" }
+          ],
+          "detects": [
+            "[\"3\",\"45\"] expected Totalt: 135 kr but reference gives Totalt: 135.00 kr",
+            "[\"0\",\"45\"] expected Totalt: 0 kr but reference gives Totalt: 0.00 kr",
+            "[\"4\",\"12.5\"] expected Totalt: 50 kr but reference gives Totalt: 50.00 kr",
+            "[\"10\",\"12\"] expected Totalt: 120 kr but reference gives Totalt: 120.00 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-LAB-E02": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "mangler int og float (TypeError)",
+          "code": "antall = input(\"Antall kopper: \")\npris = input(\"Pris per kopp: \")\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "int på prisen",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")",
+          "signature": [
+            "Totalt: 135.00 kr",
+            "Totalt: 0.00 kr",
+            "ERROR ValueError",
+            "Totalt: 120.00 kr",
+            "ERROR ValueError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "avrunder prisen",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(float(input(\"Pris per kopp: \")))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")",
+          "signature": [
+            "Totalt: 135.00 kr",
+            "Totalt: 0.00 kr",
+            "Totalt: 48.00 kr",
+            "Totalt: 120.00 kr",
+            "Totalt: 0.00 kr"
+          ]
+        },
+        {
+          "name": "legger sammen",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\ntotal = antall + pris\nprint(f\"Totalt: {total:.2f} kr\")",
+          "signature": [
+            "Totalt: 48.00 kr",
+            "Totalt: 45.00 kr",
+            "Totalt: 16.50 kr",
+            "Totalt: 22.00 kr",
+            "Totalt: 1.50 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-LAB-E03": {
+      "examples_ok": [
+        "Antall kopper: 4\nPris per kopp: 12.5\nTotalt: 50.00 kr"
+      ],
+      "examples_bad": ["Totalt: 48.00 kr", "Totalt: 50 kr", ""]
+    },
+    "S1-M02-LAB-E06": {
+      "examples_ok": [
+        "a1b2c3d (HEAD -> main) Legg til kaffekasse med testtabell"
+      ],
+      "examples_bad": ["a1b2c3d fix", ""]
+    },
+    "S1-M02-LAB2-E02": {
+      "good_rows": [
+        { "inputs": ["50", "50"], "expected": "Veksel: 0 kr" },
+        { "inputs": ["99", "100"], "expected": "Veksel: 1 kr" },
+        { "inputs": ["137", "200"], "expected": "Veksel: 63 kr" },
+        { "inputs": ["10", "20"], "expected": "Veksel: 10 kr" },
+        { "inputs": ["1", "186"], "expected": "Veksel: 185 kr" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler 0-veksel",
+          "rows": [
+            { "in": ["99", "100"], "exp": "Veksel: 1 kr" },
+            { "in": ["137", "200"], "exp": "Veksel: 63 kr" },
+            { "in": ["10", "20"], "exp": "Veksel: 10 kr" },
+            { "in": ["1", "186"], "exp": "Veksel: 185 kr" },
+            { "in": ["5", "8"], "exp": "Veksel: 3 kr" }
+          ],
+          "detects": ["ingen veksel"]
+        },
+        {
+          "why": "feil forventet verdi",
+          "rows": [
+            { "in": ["50", "50"], "exp": "Veksel: 0 kr" },
+            { "in": ["99", "100"], "exp": "Veksel: 1 kr" },
+            { "in": ["137", "200"], "exp": "Veksel: 73 kr" },
+            { "in": ["10", "20"], "exp": "Veksel: 10 kr" },
+            { "in": ["1", "186"], "exp": "Veksel: 185 kr" }
+          ],
+          "detects": [
+            "[\"137\",\"200\"] expected Veksel: 73 kr but reference gives Veksel: 63 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-LAB2-E03": {
+      "reference": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nprint(f\"Veksel: {betalt - pris} kr\")",
+      "failure_variants": [
+        {
+          "name": "mangler int",
+          "code": "pris = input(\"Pris: \")\nbetalt = input(\"Betalt: \")\nprint(f\"Veksel: {betalt - pris} kr\")",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "snudd",
+          "code": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nprint(f\"Veksel: {pris - betalt} kr\")",
+          "signature": [
+            "Veksel: -63 kr",
+            "Veksel: 0 kr",
+            "Veksel: -1 kr",
+            "Veksel: -185 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-LAB2-E04": {
+      "examples_ok": ["a1b2c3d (HEAD -> main) Legg til veksel for trinn 1"],
+      "examples_bad": ["a1b2c3d fix", ""]
+    },
+    "S1-M02-LAB2-E05": {
+      "reference": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nveksel = betalt - pris\nprint(f\"Veksel: {veksel} kr\")\nrest = veksel\nfemti = rest // 50\nrest = rest % 50\ntjue = rest // 20\nrest = rest % 20\nti = rest // 10\nrest = rest % 10\nfem = rest // 5\nrest = rest % 5\nprint(f\"50-lapper: {femti}\")\nprint(f\"20-kroner: {tjue}\")\nprint(f\"10-kroner: {ti}\")\nprint(f\"5-kroner: {fem}\")\nprint(f\"1-kroner: {rest}\")",
+      "failure_variants": [
+        {
+          "name": "bruker deling /",
+          "code": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nveksel = betalt - pris\nprint(f\"Veksel: {veksel} kr\")\nrest = veksel\nfemti = rest / 50\nrest = rest % 50\ntjue = rest // 20\nrest = rest % 20\nti = rest // 10\nrest = rest % 10\nfem = rest // 5\nrest = rest % 5\nprint(f\"50-lapper: {femti}\")\nprint(f\"20-kroner: {tjue}\")\nprint(f\"10-kroner: {ti}\")\nprint(f\"5-kroner: {fem}\")\nprint(f\"1-kroner: {rest}\")",
+          "signature": [
+            "Pris: 137\nBetalt: 200\nVeksel: 63 kr\n50-lapper: 1.26\n20-kroner: 0\n10-kroner: 1\n5-kroner: 0\n1-kroner: 3",
+            "Pris: 50\nBetalt: 50\nVeksel: 0 kr\n50-lapper: 0.0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 99\nBetalt: 100\nVeksel: 1 kr\n50-lapper: 0.02\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 1",
+            "Pris: 1\nBetalt: 186\nVeksel: 185 kr\n50-lapper: 3.7\n20-kroner: 1\n10-kroner: 1\n5-kroner: 1\n1-kroner: 0",
+            "Pris: 0\nBetalt: 0\nVeksel: 0 kr\n50-lapper: 0.0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 17\nBetalt: 20\nVeksel: 3 kr\n50-lapper: 0.06\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 3",
+            "Pris: 7\nBetalt: 8\nVeksel: 1 kr\n50-lapper: 0.02\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 1"
+          ]
+        },
+        {
+          "name": "glemmer rest etter 50",
+          "code": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nveksel = betalt - pris\nprint(f\"Veksel: {veksel} kr\")\nrest = veksel\nfemti = rest // 50\nrest = rest // 50\ntjue = rest // 20\nrest = rest % 20\nti = rest // 10\nrest = rest % 10\nfem = rest // 5\nrest = rest % 5\nprint(f\"50-lapper: {femti}\")\nprint(f\"20-kroner: {tjue}\")\nprint(f\"10-kroner: {ti}\")\nprint(f\"5-kroner: {fem}\")\nprint(f\"1-kroner: {rest}\")",
+          "signature": [
+            "Pris: 137\nBetalt: 200\nVeksel: 63 kr\n50-lapper: 1\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 1",
+            "Pris: 50\nBetalt: 50\nVeksel: 0 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 99\nBetalt: 100\nVeksel: 1 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 1\nBetalt: 186\nVeksel: 185 kr\n50-lapper: 3\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 3",
+            "Pris: 0\nBetalt: 0\nVeksel: 0 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 17\nBetalt: 20\nVeksel: 3 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0",
+            "Pris: 7\nBetalt: 8\nVeksel: 1 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0\n1-kroner: 0"
+          ]
+        },
+        {
+          "name": "mangler 1-kroner",
+          "code": "pris = int(input(\"Pris: \"))\nbetalt = int(input(\"Betalt: \"))\nveksel = betalt - pris\nprint(f\"Veksel: {veksel} kr\")\nrest = veksel\nfemti = rest // 50\nrest = rest % 50\ntjue = rest // 20\nrest = rest % 20\nti = rest // 10\nrest = rest % 10\nfem = rest // 5\nrest = rest % 5\nprint(f\"50-lapper: {femti}\")\nprint(f\"20-kroner: {tjue}\")\nprint(f\"10-kroner: {ti}\")\nprint(f\"5-kroner: {fem}\")",
+          "signature": [
+            "Pris: 137\nBetalt: 200\nVeksel: 63 kr\n50-lapper: 1\n20-kroner: 0\n10-kroner: 1\n5-kroner: 0",
+            "Pris: 50\nBetalt: 50\nVeksel: 0 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0",
+            "Pris: 99\nBetalt: 100\nVeksel: 1 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0",
+            "Pris: 1\nBetalt: 186\nVeksel: 185 kr\n50-lapper: 3\n20-kroner: 1\n10-kroner: 1\n5-kroner: 1",
+            "Pris: 0\nBetalt: 0\nVeksel: 0 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0",
+            "Pris: 17\nBetalt: 20\nVeksel: 3 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0",
+            "Pris: 7\nBetalt: 8\nVeksel: 1 kr\n50-lapper: 0\n20-kroner: 0\n10-kroner: 0\n5-kroner: 0"
+          ]
+        }
+      ]
+    },
+    "S1-M02-LAB2-E06": {
+      "examples_ok": [
+        "Pris: 137\nBetalt: 200\nVeksel: 63 kr\n50-lapper: 1\n20-kroner: 0\n10-kroner: 1\n5-kroner: 0\n1-kroner: 3"
+      ],
+      "examples_bad": ["Veksel: 63 kr\n50-lapper: 1", ""]
+    },
+    "S1-M02-LAB2-E08": {
+      "examples_ok": [
+        "b2c3d4e (HEAD -> main) Fordel vekslen på sedler og mynter\na1b2c3d Legg til veksel for trinn 1"
+      ],
+      "examples_bad": ["a1b2c3d Legg til veksel", ""]
+    },
+    "S1-M02-Q01-E02": {
+      "good_rows": [
+        { "inputs": ["3", "12.5", "50"], "expected": "Tilbake: 12.50 kr" },
+        { "inputs": ["0", "45", "10"], "expected": "Tilbake: 10.00 kr" },
+        { "inputs": ["2", "10", "20"], "expected": "Tilbake: 0.00 kr" },
+        { "inputs": ["4", "12.5", "100"], "expected": "Tilbake: 50.00 kr" },
+        { "inputs": ["1", "0.5", "1"], "expected": "Tilbake: 0.50 kr" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler akkurat passe og 0 kopper",
+          "rows": [
+            { "in": ["3", "12.5", "50"], "exp": "Tilbake: 12.50 kr" },
+            { "in": ["4", "12.5", "100"], "exp": "Tilbake: 50.00 kr" },
+            { "in": ["1", "0.5", "1"], "exp": "Tilbake: 0.50 kr" },
+            { "in": ["2", "10", "25"], "exp": "Tilbake: 5.00 kr" },
+            { "in": ["5", "8", "50"], "exp": "Tilbake: 10.00 kr" }
+          ],
+          "detects": ["0 kopper", "akkurat passe"]
+        },
+        {
+          "why": "feil forventet",
+          "rows": [
+            { "in": ["3", "12.5", "50"], "exp": "Tilbake: 12.5 kr" },
+            { "in": ["0", "45", "10"], "exp": "Tilbake: 10.00 kr" },
+            { "in": ["2", "10", "20"], "exp": "Tilbake: 0.00 kr" },
+            { "in": ["4", "12.5", "100"], "exp": "Tilbake: 50.00 kr" },
+            { "in": ["1", "0.5", "1"], "exp": "Tilbake: 0.50 kr" }
+          ],
+          "detects": [
+            "[\"3\",\"12.5\",\"50\"] expected Tilbake: 12.5 kr but reference gives Tilbake: 12.50 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-Q01-E03": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "vekslen er feil vei",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {total - betalt:.2f} kr\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nBetalt: 50\nTotalt: 37.50 kr\nBetalt: 50.00 kr\nTilbake: -12.50 kr",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: 20.00 kr\nTilbake: 0.00 kr",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: 10.00 kr\nTilbake: -10.00 kr",
+            "Antall kopper: 4\nPris per kopp: 12.5\nBetalt: 100\nTotalt: 50.00 kr\nBetalt: 100.00 kr\nTilbake: -50.00 kr",
+            "Antall kopper: 1\nPris per kopp: 0.5\nBetalt: 1\nTotalt: 0.50 kr\nBetalt: 1.00 kr\nTilbake: -0.50 kr"
+          ]
+        },
+        {
+          "name": "mangler to desimaler",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total} kr\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nBetalt: 50\nTotalt: 37.50 kr\nBetalt: 50.00 kr\nTilbake: 12.5 kr",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: 20.00 kr\nTilbake: 0.0 kr",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: 10.00 kr\nTilbake: 10.0 kr",
+            "Antall kopper: 4\nPris per kopp: 12.5\nBetalt: 100\nTotalt: 50.00 kr\nBetalt: 100.00 kr\nTilbake: 50.0 kr",
+            "Antall kopper: 1\nPris per kopp: 0.5\nBetalt: 1\nTotalt: 0.50 kr\nBetalt: 1.00 kr\nTilbake: 0.5 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-Q01-E04": {
+      "examples_ok": [
+        "b2c3d4e (HEAD -> main) Legg til betaling og veksel i kaffekasse\na1b2c3d Legg til kaffekasse med testtabell"
+      ],
+      "examples_bad": ["a1b2c3d Legg til kaffekasse", ""]
+    },
+    "S1-M02-Q01-E05": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "bare første feil rettet",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nBetalt: 50\nTotalt: 37.50 kr\nBetalt: {betalt:.2f} kr\nTilbake: 12.50 kr",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: {betalt:.2f} kr\nTilbake: 0.00 kr",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: {betalt:.2f} kr\nTilbake: 10.00 kr"
+          ]
+        },
+        {
+          "name": "bare andre feil rettet",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = int(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+          "signature": [
+            "ERROR ValueError",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: 20.00 kr\nTilbake: 0.00 kr",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: 10.00 kr\nTilbake: 10.00 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-Q01-E07": {
+      "reference": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Antall: {antall}\")\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "endret ikke noe",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nBetalt: 50\nTotalt: 37.50 kr\nBetalt: 50.00 kr\nTilbake: 12.50 kr",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: 20.00 kr\nTilbake: 0.00 kr",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: 10.00 kr\nTilbake: 10.00 kr",
+            "Antall kopper: 4\nPris per kopp: 12.5\nBetalt: 100\nTotalt: 50.00 kr\nBetalt: 100.00 kr\nTilbake: 50.00 kr"
+          ]
+        },
+        {
+          "name": "linjen på feil sted",
+          "code": "antall = int(input(\"Antall kopper: \"))\npris = float(input(\"Pris per kopp: \"))\nbetalt = float(input(\"Betalt: \"))\ntotal = antall * pris\nprint(f\"Totalt: {total:.2f} kr\")\nprint(f\"Betalt: {betalt:.2f} kr\")\nprint(f\"Tilbake: {betalt - total:.2f} kr\")\nprint(f\"Antall: {antall}\")",
+          "signature": [
+            "Antall kopper: 3\nPris per kopp: 12.5\nBetalt: 50\nTotalt: 37.50 kr\nBetalt: 50.00 kr\nTilbake: 12.50 kr\nAntall: 3",
+            "Antall kopper: 2\nPris per kopp: 10\nBetalt: 20\nTotalt: 20.00 kr\nBetalt: 20.00 kr\nTilbake: 0.00 kr\nAntall: 2",
+            "Antall kopper: 0\nPris per kopp: 45\nBetalt: 10\nTotalt: 0.00 kr\nBetalt: 10.00 kr\nTilbake: 10.00 kr\nAntall: 0",
+            "Antall kopper: 4\nPris per kopp: 12.5\nBetalt: 100\nTotalt: 50.00 kr\nBetalt: 100.00 kr\nTilbake: 50.00 kr\nAntall: 4"
+          ]
+        }
+      ]
+    },
+    "S1-M02-Q01-E08": {
+      "examples_ok": [
+        "c3d4e5f (HEAD -> main) Vis antall kopper øverst i kvitteringen\nb2c3d4e Legg til betaling og veksel\na1b2c3d Legg til kaffekasse"
+      ],
+      "examples_bad": ["a1b2c3d a\nb2c3d4e b", ""]
+    },
+    "S1-M02-RET-E03": {
+      "reference": "print(\"Kaffe: 2 + 3 kopper\")\nprint(2 + 3)",
+      "failure_variants": [
+        {
+          "name": "begge som tekst",
+          "code": "print(\"Kaffe: 2 + 3 kopper\")\nprint(\"2 + 3\")",
+          "signature": ["Kaffe: 2 + 3 kopper\n2 + 3", "STRUCTURE-CHECK-FAILS"]
+        },
+        {
+          "name": "begge regnet",
+          "code": "print(\"Kaffe:\", 2 + 3, \"kopper\")\nprint(2 + 3)",
+          "signature": ["Kaffe: 5 kopper\n5"]
+        }
+      ]
+    },
+    "S1-M02-RET-E06": {
+      "examples_ok": ["git add kaffe.py"],
+      "examples_bad": ["git commit", "git stage kaffe.py", "git add"]
+    },
+    "S1-M02-RET-E07": {
+      "examples_ok": ["cd .."],
+      "examples_bad": ["cd", "cd kode", "py kaffe.py"]
+    },
+    "S1-M02-CHK-E01": {
+      "good_rows": [
+        { "inputs": ["3", "250"], "expected": "Leie: 750.00 kr" },
+        { "inputs": ["0", "99.5"], "expected": "Leie: 0.00 kr" },
+        { "inputs": ["2", "120.5"], "expected": "Leie: 241.00 kr" },
+        { "inputs": ["7", "100"], "expected": "Leie: 700.00 kr" }
+      ],
+      "bad_row_sets": [
+        {
+          "why": "mangler 0 og desimal",
+          "rows": [
+            { "in": ["3", "250"], "exp": "Leie: 750.00 kr" },
+            { "in": ["7", "100"], "exp": "Leie: 700.00 kr" },
+            { "in": ["1", "50"], "exp": "Leie: 50.00 kr" },
+            { "in": ["2", "30"], "exp": "Leie: 60.00 kr" }
+          ],
+          "detects": ["0 dager", "desimalpris"]
+        },
+        {
+          "why": "feil forventet",
+          "rows": [
+            { "in": ["3", "250"], "exp": "Leie: 753.00 kr" },
+            { "in": ["0", "99.5"], "exp": "Leie: 0.00 kr" },
+            { "in": ["2", "120.5"], "exp": "Leie: 241.00 kr" },
+            { "in": ["7", "100"], "exp": "Leie: 700.00 kr" }
+          ],
+          "detects": [
+            "[\"3\",\"250\"] expected Leie: 753.00 kr but reference gives Leie: 750.00 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-CHK-E02": {
+      "reference": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager * dagspris:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "mangler konvertering (TypeError)",
+          "code": "dager = input(\"Dager: \")\ndagspris = input(\"Dagspris: \")\nprint(f\"Leie: {dager * dagspris:.2f} kr\")",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "mangler format",
+          "code": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager * dagspris} kr\")",
+          "signature": [
+            "Leie: 750.0 kr",
+            "Leie: 0.0 kr",
+            "Leie: 843.5 kr",
+            "Leie: 0.0 kr",
+            "Leie: 307.5 kr"
+          ]
+        },
+        {
+          "name": "legger sammen",
+          "code": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager + dagspris:.2f} kr\")",
+          "signature": [
+            "Leie: 253.00 kr",
+            "Leie: 99.50 kr",
+            "Leie: 127.50 kr",
+            "Leie: 1.00 kr",
+            "Leie: 40.25 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-CHK-E03": {
+      "reference": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager * dagspris + 50:.2f} kr\")",
+      "failure_variants": [
+        {
+          "name": "endret ikke noe",
+          "code": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager * dagspris:.2f} kr\")",
+          "signature": [
+            "Leie: 750.00 kr",
+            "Leie: 0.00 kr",
+            "Leie: 843.50 kr",
+            "Leie: 0.00 kr",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "gebyr per dag",
+          "code": "dager = int(input(\"Dager: \"))\ndagspris = float(input(\"Dagspris: \"))\nprint(f\"Leie: {dager * (dagspris + 50):.2f} kr\")",
+          "signature": [
+            "Leie: 900.00 kr",
+            "Leie: 0.00 kr",
+            "Leie: 1193.50 kr",
+            "Leie: 50.00 kr"
+          ]
+        }
+      ]
+    },
+    "S1-M02-CHK-E04": {
+      "examples_ok": [
+        "a1b2c3d (HEAD -> main) Legg til startgebyr på 50 kr i leien"
+      ],
+      "examples_bad": ["a1b2c3d fix", ""]
+    }
+  }
+}

@@ -6,6 +6,8 @@
  * `ProgrammeDefinition` composes and re-exports these; there is one contract.
  */
 
+import type { LessonContentProvider } from '@/lib/domain/lessonContent';
+
 export type ExternalResourceLink = {
   readonly label: string;
   readonly url: string;
@@ -86,11 +88,28 @@ export type ProgrammeTerminology = {
   /** Campaign-map node ordinal label for every catalogue unit, by unit ID. */
   readonly unitMapOrdinals: Readonly<Record<string, string>>;
   readonly copy: ProgrammeCopy;
+  /**
+   * The visible shell brand while this programme is active (Epic E, OD-6
+   * mechanism). Absent means the shared default brand. The string itself is
+   * an owner decision; a programme carries one only once it is decided.
+   */
+  readonly shellBrand?: string;
 };
 
 /** Everything a programme owns that runtime code renders (Epic C / C4). */
 export type ProgrammeContent = {
+  /**
+   * Language identity of the programme's authored content (BCP 47, for
+   * example `en` or `nb`). No single global content language is hard-coded;
+   * learner evidence and mastery never depend on it (Epic E).
+   */
+  readonly language?: string;
   readonly externalResources: ProgrammeExternalResources;
   readonly studyGuides: ProgrammeStudyGuides;
   readonly terminology: ProgrammeTerminology;
+  /**
+   * The asynchronous lesson-content provider of a programme that delivers
+   * authored lessons (Epic E). Absent for programmes without lesson content.
+   */
+  readonly lessons?: LessonContentProvider;
 };

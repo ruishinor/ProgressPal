@@ -90,3 +90,27 @@ export {
   type UpsertProgressInput,
   type UpsertProgressWithXpResult,
 } from './repositories';
+export {
+  LearnerEvidenceConflictError,
+  UnresolvedAttemptError,
+  findUnresolvedAttempts,
+  getLessonPosition,
+  listLearnerEvidence,
+  listUnresolvedAttempts,
+  recordEvaluationResult,
+  recordSupportEvent,
+  saveLessonPosition,
+  submitExerciseAttempt,
+  type EvaluationResultInput,
+  type EvidenceWriteResult,
+  type ExerciseAttemptInput,
+  type LessonPositionInput,
+  type SupportEventInput,
+} from './learnerEvidence';
+export {
+  recordResultsForUnresolvedAttempts,
+  submitAttemptAndRecordResult,
+  type AttemptLifecycleResult,
+  type AttemptRecoveryStatus,
+  type ProduceEvaluationResult,
+} from './learnerEvidence';

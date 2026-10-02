@@ -9,6 +9,8 @@ import {
   ContentAssetSchema,
   ContentSliceSchema,
   CourseItemSchema,
+  LearnerEvidenceSchema,
+  LessonPositionSchema,
   CourseUnitSchema,
   LearnerProfileSchema,
   MediaProgressEventSchema,
@@ -30,7 +32,9 @@ import {
   type CourseSeed,
   type CourseItem,
   type CourseUnit,
+  type LearnerEvidence,
   type LearnerProfile,
+  type LessonPosition,
   type MediaProgressEvent,
   type MediaStopReason,
   type ProgrammeEnrolment,
@@ -214,13 +218,15 @@ function prepareCoordinatedWrite(
 
 type PreparedCoordinatedWrite = ReturnType<typeof prepareCoordinatedWrite>;
 
-type LogicalWriteScope = {
+/** @internal Shared with `learnerEvidence.ts`; not part of the db entrypoint. */
+export type LogicalWriteScope = {
   changed: boolean;
   coordinatedWrite: PreparedCoordinatedWrite;
   database: ProgressPalDatabase;
 };
 
-function createLogicalWriteScope(
+/** @internal */
+export function createLogicalWriteScope(
   database: ProgressPalDatabase,
 ): LogicalWriteScope {
   return {
@@ -230,7 +236,8 @@ function createLogicalWriteScope(
   };
 }
 
-function settleLogicalWriteScope(scope: LogicalWriteScope) {
+/** @internal */
+export function settleLogicalWriteScope(scope: LogicalWriteScope) {
   if (scope.changed) {
     scope.coordinatedWrite.complete();
   } else {
@@ -352,7 +359,9 @@ export type DatabaseSnapshot = {
   contentSlices: ContentSlice[];
   courseItems: CourseItem[];
   courseUnits: CourseUnit[];
+  learnerEvidence: LearnerEvidence[];
   learnerProfile: LearnerProfile | null;
+  lessonPositions: LessonPosition[];
   mediaProgressEvents: MediaProgressEvent[];
   programmeEnrolments: ProgrammeEnrolment[];
   progressEntries: ProgressEntry[];
@@ -438,7 +447,8 @@ export type ResourceReadData = {
   earnedRewardSourceKeys: ReadonlySet<string>;
 };
 
-type BaseDatabaseOptions = {
+/** @internal */
+export type BaseDatabaseOptions = {
   appVersion?: string;
   db?: ProgressPalDatabase;
   now?: DatabaseClock;
@@ -513,9 +523,11 @@ type BaseInitializationResult = Pick<
   changed: boolean;
 };
 
-const defaultClock: DatabaseClock = () => new Date().toISOString();
+/** @internal */
+export const defaultClock: DatabaseClock = () => new Date().toISOString();
 
-function resolveDatabase(database?: ProgressPalDatabase) {
+/** @internal */
+export function resolveDatabase(database?: ProgressPalDatabase) {
   return database ?? getSharedDatabase();
 }
 
@@ -547,7 +559,8 @@ async function openingDatabaseMayWrite(database: ProgressPalDatabase) {
 
 const pendingDatabaseOpens = new Map<string, Promise<void>>();
 
-async function ensureOpen(
+/** @internal */
+export async function ensureOpen(
   database: ProgressPalDatabase,
   logicalWriteScope?: LogicalWriteScope,
 ) {
@@ -608,7 +621,8 @@ function createEntityId(prefix: string) {
   return `${prefix}-${randomToken.slice(0, 24)}`.toLowerCase();
 }
 
-function parseStoredArray<T>(
+/** @internal */
+export function parseStoredArray<T>(
   values: unknown[],
   label: string,
   schema: Parameters<typeof parseWithSchema<T>>[0],
@@ -680,7 +694,8 @@ function assertActiveProgrammeAuthorized(
   }
 }
 
-async function ensureBaseInitialization(
+/** @internal */
+export async function ensureBaseInitialization(
   options: BaseDatabaseOptions = {},
   inheritedWriteScope?: LogicalWriteScope,
 ): Promise<BaseInitializationResult> {
@@ -1051,6 +1066,21 @@ function sortMediaProgressEvents(events: MediaProgressEvent[]) {
     (left, right) =>
       left.createdAt.localeCompare(right.createdAt) ||
       left.id.localeCompare(right.id),
+  );
+}
+
+/** @internal Evidence in recorded order; ties by id (deterministic). */
+export function sortLearnerEvidence(evidence: LearnerEvidence[]) {
+  return [...evidence].sort(
+    (left, right) =>
+      left.recordedAt.localeCompare(right.recordedAt) ||
+      left.id.localeCompare(right.id),
+  );
+}
+
+function sortLessonPositions(positions: LessonPosition[]) {
+  return [...positions].sort((left, right) =>
+    left.itemId.localeCompare(right.itemId),
   );
 }
 
@@ -4717,6 +4747,8 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
       backups,
       catalogueVersions,
       programmeEnrolments,
+      learnerEvidence,
+      lessonPositions,
     ] = await Promise.all([
       database.appMeta.get(singletonIds.appMeta),
       database.learnerProfile.get(singletonIds.learnerProfile),
@@ -4734,6 +4766,8 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
       database.backups.toArray(),
       database.catalogueVersions.toArray(),
       database.programmeEnrolments.toArray(),
+      database.learnerEvidence.toArray(),
+      database.lessonPositions.toArray(),
     ]);
     const appMeta =
       storedAppMeta === undefined
@@ -4831,6 +4865,20 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
         'Stored programme enrolment',
         ProgrammeEnrolmentSchema,
       ),
+      learnerEvidence: sortLearnerEvidence(
+        parseStoredArray(
+          learnerEvidence,
+          'Stored learner evidence',
+          LearnerEvidenceSchema,
+        ) as LearnerEvidence[],
+      ),
+      lessonPositions: sortLessonPositions(
+        parseStoredArray(
+          lessonPositions,
+          'Stored lesson position',
+          LessonPositionSchema,
+        ),
+      ),
     };
   });
 }
@@ -4853,6 +4901,8 @@ function allDataTables(database: ProgressPalDatabase) {
     database.backups,
     database.catalogueVersions,
     database.programmeEnrolments,
+    database.learnerEvidence,
+    database.lessonPositions,
   ];
 }
 
@@ -4952,6 +5002,16 @@ function parseSnapshotForRestore(
       'Backup programme enrolment',
       ProgrammeEnrolmentSchema,
     ),
+    learnerEvidence: parseStoredArray(
+      snapshot.learnerEvidence,
+      'Backup learner evidence',
+      LearnerEvidenceSchema,
+    ) as LearnerEvidence[],
+    lessonPositions: parseStoredArray(
+      snapshot.lessonPositions,
+      'Backup lesson position',
+      LessonPositionSchema,
+    ),
   };
 
   assertBackupDataInvariants(restored, {
@@ -5026,7 +5086,8 @@ export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
  * reconciles the bundled seed catalog (idempotent on already-current data),
  * appends exactly one `import` audit record, and reads the final snapshot. The
  * `backups` store therefore equals the backup's `backups` plus that one record;
- * the other 13 stores match the backup exactly.
+ * the other 15 stores match the backup exactly (schema 4 adds the evidence log
+ * and the lesson positions, which a restore replaces like every other store).
  */
 export async function restoreDatabaseFromBackup(
   snapshot: DatabaseSnapshot,
@@ -5066,6 +5127,8 @@ export async function restoreDatabaseFromBackup(
         database.backups.bulkAdd(restored.backups),
         database.catalogueVersions.bulkAdd(restored.catalogueVersions),
         database.programmeEnrolments.bulkAdd(restored.programmeEnrolments),
+        database.learnerEvidence.bulkAdd(restored.learnerEvidence),
+        database.lessonPositions.bulkAdd(restored.lessonPositions),
       ]);
 
       await initializeDatabase({ ...options, db: database });

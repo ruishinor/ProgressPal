@@ -494,13 +494,14 @@ describe('EV-12 the parity check is discriminating (mutations seeded from negati
     [
       'assemble key changed',
       'assemble',
+      // The authored key of an assembly is `evaluator.expected` (the options'
+      // `correct` flags are display metadata the evaluator does not read).
       (x: ReturnType<typeof fill>) => {
         const slot = (
-          x.slots as Array<{ options: Array<{ correct: boolean }> }>
+          x.slots as Array<{ options: Array<{ id: string; correct: boolean }> }>
         )[0]!;
-        slot.options.forEach((o, i) => {
-          o.correct = i === slot.options.findIndex((p) => !p.correct);
-        });
+        (x.evaluator.expected as Array<[string, string]>)[0]![1] =
+          slot.options.find((option) => !option.correct)!.id;
       },
     ],
   ])('detects: %s', async (_label, mode, change) => {

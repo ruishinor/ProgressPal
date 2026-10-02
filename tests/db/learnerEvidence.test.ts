@@ -48,7 +48,12 @@ afterEach(async () => {
 });
 
 async function device(label: string, options?: { enrol?: boolean }) {
-  const context = await createP2Device(label, options);
+  // Lesson positions must name materialized lesson items of their programme
+  // (the backup invariant of E-SCHEMA-1 §7 makes that a write-side rule).
+  const context = await createP2Device(label, {
+    ...options,
+    materialize: options?.enrol !== false,
+  });
   databases.push(context);
   return context;
 }

@@ -10,7 +10,9 @@ import {
   ContentSliceSchema,
   CourseItemSchema,
   CourseUnitSchema,
+  LearnerEvidenceSchema,
   LearnerProfileSchema,
+  LessonPositionSchema,
   MediaProgressEventSchema,
   ProgrammeEnrolmentSchema,
   ProgressEntrySchema,
@@ -76,6 +78,8 @@ export const BackupDataSchema = z
     backups: z.array(BackupRecordSchema),
     catalogueVersions: z.array(CatalogueVersionSchema),
     programmeEnrolments: z.array(ProgrammeEnrolmentSchema),
+    learnerEvidence: z.array(LearnerEvidenceSchema),
+    lessonPositions: z.array(LessonPositionSchema),
   })
   .strict();
 
@@ -105,6 +109,12 @@ const legacyBackupDataV2Schema = z
 
 type LegacyBackupDataV2 = z.infer<typeof legacyBackupDataV2Schema>;
 
+/** The schema-3 payload shape, which had no learner-evidence stores. */
+type SchemaThreeBackupData = Omit<
+  BackupData,
+  'learnerEvidence' | 'lessonPositions'
+>;
+
 /**
  * Forward-converts a validated schema-2 backup payload to the current
  * schema-3 shape (Epic C / C6 §6), sharing the same pure mapping module and
@@ -114,7 +124,7 @@ type LegacyBackupDataV2 = z.infer<typeof legacyBackupDataV2Schema>;
 function convertLegacyBackupDataV2ToV3(
   legacy: LegacyBackupDataV2,
   context: DatabaseMigrationContext,
-): BackupData {
+): SchemaThreeBackupData {
   const snapshot: LegacyV2Snapshot = {
     appMeta: legacy.appMeta,
     hasOtherRows:
@@ -210,6 +220,8 @@ const idBearingStoreKeys = [
   'achievementDefinitions',
   'achievementUnlocks',
   'backups',
+  'learnerEvidence',
+  'lessonPositions',
 ] as const satisfies ReadonlyArray<keyof BackupData>;
 
 export type BackupCountKey = (typeof idBearingStoreKeys)[number];
@@ -556,6 +568,8 @@ export function assertBackupDataInvariants(
     }
   }
 
+  assertLearnerEvidenceInvariants(data, itemsById);
+
   const xpSourceKeys = new Set<string>();
 
   for (const transaction of data.xpTransactions) {
@@ -667,6 +681,119 @@ export function assertBackupDataInvariants(
       );
     }
   }
+
+  // Epic E / E-SCHEMA-1 §7: evidence and positions name a registered,
+  // enrolled programme, and a position's item belongs to that programme.
+  const enrolledProgrammeIds = new Set(
+    data.programmeEnrolments.map((enrolment) => enrolment.programmeId),
+  );
+
+  for (const row of [...data.learnerEvidence, ...data.lessonPositions]) {
+    if (!authorizedProgrammeIds.has(row.programmeId)) {
+      throw new BackupValidationError(
+        'This backup contains learner evidence for an unregistered programme and cannot be imported.',
+        [`Unregistered programme "${row.programmeId}" on "${row.id}".`],
+      );
+    }
+
+    if (!enrolledProgrammeIds.has(row.programmeId)) {
+      throw new BackupValidationError(
+        'This backup contains learner evidence for a programme it does not enrol and cannot be imported.',
+        [`Missing enrolment for "${row.programmeId}" on "${row.id}".`],
+      );
+    }
+  }
+
+  const unitsByIdForPositions = new Map(
+    data.courseUnits.map((unit) => [unit.id, unit]),
+  );
+  const itemsByIdForPositions = new Map(
+    data.courseItems.map((item) => [item.id, item]),
+  );
+
+  for (const position of data.lessonPositions) {
+    const unit = unitsByIdForPositions.get(
+      itemsByIdForPositions.get(position.itemId)?.unitId ?? '',
+    );
+    const owner = authorizedCatalogueByCourseId.get(unit?.courseId ?? '');
+
+    assertRelationship(
+      owner?.programmeId === position.programmeId,
+      `Lesson position "${position.id}" names item "${position.itemId}" outside programme "${position.programmeId}".`,
+    );
+  }
+}
+
+/**
+ * Invariants of the two schema-4 stores that need no authorization context
+ * (E-SCHEMA-1 §7). A backup's claims are never trusted: every result links
+ * to one attempt under that attempt's binding, attempt numbers are unique per
+ * subject, a checkpoint basis names attempts of its own programme, and a
+ * position names one catalogue item. An unresolved attempt is valid.
+ */
+function assertLearnerEvidenceInvariants(
+  data: BackupData,
+  itemsById: ReadonlyMap<string, BackupData['courseItems'][number]>,
+) {
+  const evidenceById = new Map(
+    data.learnerEvidence.map((row) => [row.id, row]),
+  );
+
+  assertNoDuplicateUniqueValues(
+    data.learnerEvidence.flatMap((row) =>
+      row.kind === 'exercise_attempt' || row.kind === 'checkpoint_result'
+        ? [JSON.stringify([row.subjectId, row.attemptNumber])]
+        : [],
+    ),
+    'learner evidence subject and attempt number',
+  );
+  assertNoDuplicateUniqueValues(
+    data.learnerEvidence.flatMap((row) =>
+      row.kind === 'evaluation_result' ? [row.attemptId] : [],
+    ),
+    'evaluation result attemptId',
+  );
+  assertNoDuplicateUniqueValues(
+    data.lessonPositions.map((position) => position.itemId),
+    'lesson position item IDs',
+  );
+
+  for (const row of data.learnerEvidence) {
+    if (row.kind === 'evaluation_result') {
+      const attempt = evidenceById.get(row.attemptId);
+
+      assertRelationship(
+        attempt?.kind === 'exercise_attempt',
+        `Evaluation result "${row.id}" references missing attempt "${row.attemptId}".`,
+      );
+      assertRelationship(
+        attempt.programmeId === row.programmeId &&
+          attempt.subjectId === row.subjectId &&
+          attempt.contentVersion === row.contentVersion &&
+          attempt.contentHash === row.contentHash,
+        `Evaluation result "${row.id}" binding differs from its attempt "${row.attemptId}".`,
+      );
+    }
+
+    if (row.kind === 'checkpoint_result') {
+      for (const attemptId of row.basisAttemptIds) {
+        const basis = evidenceById.get(attemptId);
+
+        assertRelationship(
+          basis?.kind === 'exercise_attempt' &&
+            basis.programmeId === row.programmeId,
+          `Checkpoint result "${row.id}" basis "${attemptId}" is not an attempt of its programme.`,
+        );
+      }
+    }
+  }
+
+  for (const position of data.lessonPositions) {
+    assertRelationship(
+      itemsById.has(position.itemId),
+      `Lesson position "${position.id}" references missing item "${position.itemId}".`,
+    );
+  }
 }
 
 /**
@@ -749,10 +876,15 @@ export function parseBackupFile(
       legacyResult.data.data,
       options.migrationContext,
     );
+    // Historical C6 conversion, retained unchanged and selected only when a
+    // caller explicitly expects schema 3. The schema-4 application never
+    // selects it (E-SCHEMA-1 §7): there is no 2 → 3 → 4 exported-backup path.
+    // Schema 3 had no evidence stores; the empty arrays only complete the
+    // current in-memory payload type.
     const convertedEnvelope: BackupEnvelope = {
       ...legacyResult.data,
       schemaVersion: options.expectedSchemaVersion,
-      data: convertedData,
+      data: { ...convertedData, learnerEvidence: [], lessonPositions: [] },
     };
 
     assertBackupDataInvariants(convertedEnvelope.data, {
@@ -805,6 +937,8 @@ export function summarizeBackup(envelope: BackupEnvelope): BackupSummary {
       achievementDefinitions: data.achievementDefinitions.length,
       achievementUnlocks: data.achievementUnlocks.length,
       backups: data.backups.length,
+      learnerEvidence: data.learnerEvidence.length,
+      lessonPositions: data.lessonPositions.length,
     },
   };
 }

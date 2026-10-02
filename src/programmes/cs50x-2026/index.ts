@@ -35,6 +35,7 @@ export const cs50x2026Definition: ProgrammeDefinition =
       achievements: cs50AchievementCatalogue,
     },
     content: {
+      language: 'en',
       externalResources: cs50ExternalResources,
       studyGuides: cs50StudyGuides,
       terminology: cs50Terminology,

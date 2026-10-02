@@ -26,6 +26,13 @@ export const CatalogueRulesSchema = z
   .object({
     /** Unit types a programme's catalogue must contain at least once. */
     requiredUnitTypes: z.array(z.enum(courseUnitTypeValues)),
+    /**
+     * Whether optional items add their minutes to a unit's planned length
+     * (Epic E). Absent means `true`, the existing CS50 behaviour. A programme
+     * whose authority forbids it (Programvareutvikling DC-07, INV-06: optional
+     * practice never adds to module length) sets `false`.
+     */
+    optionalItemsInUnitLength: z.boolean().optional(),
   })
   .strict();
 

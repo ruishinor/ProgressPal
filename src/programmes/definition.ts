@@ -10,6 +10,7 @@ import {
   type CourseSeed,
   type ExternalResourceLink,
   type ItemGuide,
+  type LessonContentProvider,
   type ProgrammeContent,
   type ProgrammeCopy,
   type ProgrammeExternalResources,
@@ -117,8 +118,14 @@ const terminologySchema = z
         sharedMilestoneRewardNote: nonEmptyString,
       })
       .strict(),
+    shellBrand: nonEmptyString.optional(),
   })
   .strict();
+
+const languageTagSchema = nonEmptyString.regex(
+  /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/,
+  { message: 'must be a BCP 47 language tag such as "en" or "nb"' },
+);
 
 const programmeIdPattern = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 const programmeIdSchema = nonEmptyString.regex(programmeIdPattern, {
@@ -145,9 +152,12 @@ const definitionSchema = z
       .strict(),
     content: z
       .object({
+        language: languageTagSchema.optional(),
+        // A programme that links nothing declares no host (Epic E); every
+        // link must still sit within a declared prefix (checked below).
         externalResources: z
           .object({
-            allowedUrlPrefixes: z.array(httpsPrefix).min(1),
+            allowedUrlPrefixes: z.array(httpsPrefix),
             unitLinks: z.record(z.string(), linkSchema),
             itemLinks: z.record(z.string(), linkSchema),
           })
@@ -159,10 +169,84 @@ const definitionSchema = z
           })
           .strict(),
         terminology: terminologySchema,
+        lessons: z
+          .custom<LessonContentProvider>(
+            (value) =>
+              typeof value === 'object' &&
+              value !== null &&
+              typeof (value as LessonContentProvider).loadLesson ===
+                'function' &&
+              typeof (value as LessonContentProvider).loadIndex === 'function',
+            { message: 'must be a lesson content provider' },
+          )
+          .optional(),
       })
       .strict(),
   })
   .strict();
+
+/**
+ * Lesson-content consistency (Epic E): the provider belongs to this
+ * programme, every `lesson` item has content and no content is orphaned,
+ * its subjects are unique lowercase IDs, and its language matches the
+ * programme's declared content language.
+ */
+function findLessonProviderIssues(definition: ProgrammeDefinition): string[] {
+  const provider = definition.content.lessons;
+
+  if (provider === undefined) {
+    return [];
+  }
+
+  const issues: string[] = [];
+  const lessonItemIds = new Set(
+    definition.catalogue.units.flatMap((unit) =>
+      unit.items
+        .filter((item) => item.type === 'lesson')
+        .map((item) => item.id),
+    ),
+  );
+  const providedItemIds = new Set(provider.lessonItemIds);
+
+  if (provider.programmeId !== definition.programmeId) {
+    issues.push(
+      `lesson content belongs to "${provider.programmeId}", not "${definition.programmeId}"`,
+    );
+  }
+  for (const itemId of lessonItemIds) {
+    if (!providedItemIds.has(itemId)) {
+      issues.push(`lesson item "${itemId}" has no lesson content`);
+    }
+  }
+  for (const itemId of providedItemIds) {
+    if (!lessonItemIds.has(itemId)) {
+      issues.push(`lesson content "${itemId}" is not a catalogue lesson item`);
+    }
+  }
+  if (providedItemIds.size !== provider.lessonItemIds.length) {
+    issues.push('lesson content repeats a lesson item');
+  }
+  if (new Set(provider.subjectIds).size !== provider.subjectIds.length) {
+    issues.push('lesson content repeats an exercise subject');
+  }
+  for (const subjectId of provider.subjectIds) {
+    if (!/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/.test(subjectId)) {
+      issues.push(
+        `exercise subject "${subjectId}" is not a lowercase identifier`,
+      );
+    }
+  }
+  if (provider.copy === undefined) {
+    issues.push('lesson content has no lesson interface copy');
+  }
+  if (provider.language !== definition.content.language) {
+    issues.push(
+      `lesson content language "${provider.language}" differs from the programme language "${String(definition.content.language)}"`,
+    );
+  }
+
+  return issues;
+}
 
 const URL_IN_TEXT = /https?:\/\//i;
 
@@ -291,6 +375,8 @@ export function validateProgrammeDefinition(
       issues.push(`map ordinal "${unitId}" is not a catalogue unit`);
     }
   }
+
+  issues.push(...findLessonProviderIssues(definition));
 
   if (issues.length > 0) {
     throw new SchemaValidationError(label, issues);

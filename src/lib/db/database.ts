@@ -20,7 +20,9 @@ import {
   type ContentSlice,
   type CourseItem,
   type CourseUnit,
+  type LearnerEvidence,
   type LearnerProfile,
+  type LessonPosition,
   type MediaProgressEvent,
   type ProgrammeEnrolment,
   type ProgressEntry,
@@ -119,6 +121,37 @@ const versionThreeStoreDefinitions = {
   catalogue_versions: '&courseId, programmeId',
   programme_enrolments: '&programmeId',
 } as const;
+
+/**
+ * Epic E / E-SCHEMA-1 §2: two new stores and nothing else. The evidence log is
+ * append-only by repository contract (insert and read only). `subjectId`
+ * reads every record kind for one exercise or checkpoint; the compound index
+ * is a current local single-writer invariant (one attempt number per
+ * subject); the sparse unique `attemptId` index allows at most one
+ * evaluation result per attempt (rows without `attemptId` are not indexed).
+ * One mutable lesson bookmark per lesson item. No programme-ownership index
+ * (C7 guard).
+ */
+const versionFourStoreDefinitions = {
+  ...versionThreeStoreDefinitions,
+  learner_evidence: '&id, subjectId, &[subjectId+attemptNumber], &attemptId',
+  lesson_positions: '&id, &itemId',
+} as const;
+
+/**
+ * Epic E / E-SCHEMA-1 §6: the additive schema 3 → 4 upgrade. Its only write is
+ * `app_meta.schemaVersion = 4` on an existing row; every other row stays
+ * byte-identical and both new stores start empty. A failure aborts the
+ * version-change transaction and leaves schema 3 intact.
+ */
+function migrateVersionThreeToVersionFour(transaction: Transaction) {
+  return transaction
+    .table('app_meta')
+    .toCollection()
+    .modify((appMeta: Record<string, unknown>) => {
+      appMeta.schemaVersion = 4;
+    });
+}
 
 const otherV2StoreNames = [
   'learner_profile',
@@ -269,6 +302,8 @@ export class ProgressPalDatabase extends Dexie {
   backups!: Table<BackupRecord, string>;
   catalogueVersions!: Table<CatalogueVersion, string>;
   programmeEnrolments!: Table<ProgrammeEnrolment, string>;
+  learnerEvidence!: Table<LearnerEvidence, string>;
+  lessonPositions!: Table<LessonPosition, string>;
   /** Bound once at construction (Epic C / C6, binding control 2). */
   readonly migrationContext: DatabaseMigrationContext;
 
@@ -289,6 +324,9 @@ export class ProgressPalDatabase extends Dexie {
       .upgrade((transaction) =>
         migrateVersionTwoToVersionThree(transaction, this.migrationContext),
       );
+    this.version(4)
+      .stores(versionFourStoreDefinitions)
+      .upgrade(migrateVersionThreeToVersionFour);
 
     this.appMeta = this.table('app_meta');
     this.learnerProfile = this.table('learner_profile');
@@ -306,6 +344,8 @@ export class ProgressPalDatabase extends Dexie {
     this.backups = this.table('backups');
     this.catalogueVersions = this.table('catalogue_versions');
     this.programmeEnrolments = this.table('programme_enrolments');
+    this.learnerEvidence = this.table('learner_evidence');
+    this.lessonPositions = this.table('lesson_positions');
   }
 }
 

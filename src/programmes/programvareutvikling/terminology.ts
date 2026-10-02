@@ -1,0 +1,60 @@
+import type { ProgrammeTerminology } from '../definition';
+
+/**
+ * Programvareutvikling terminology (Epic E). Programme-owned copy for the
+ * shared surfaces, in Bokmål, authored by Epic E as app copy (not curriculum)
+ * and pending native-language review with the rest of the programme. It
+ * makes no competence claim for completed sessions and names no external
+ * institution. The Windows toolchain statement is required by the
+ * programme's delivery contract (DC-46, kernel gap K-7).
+ *
+ * There is deliberately no `shellBrand`: the visible shell brand while this
+ * programme is active is the open owner decision OD-6.
+ */
+export const programvareutviklingTerminology: ProgrammeTerminology = {
+  unitNoun: { lowercase: 'modul', capitalized: 'Modul' },
+  rpgIdentity: {
+    guildLabel: 'Programvareutvikling',
+    classLabel: 'Lærling',
+    pathLabel: 'Semester 1',
+  },
+  unitMapOrdinals: {
+    's1-m01': '1',
+    's1-m02': '2',
+  },
+  copy: {
+    startupLoadingSummary:
+      'Gjør klar den lokale profilen og innholdet i Programvareutvikling.',
+    shellActiveSummary:
+      'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner, innsikt, sikkerhetskopi, gjenoppretting og tilbakestilling lagres bare på denne enheten.',
+    profileDescription:
+      'Den lokale profilen din lagrer studiemål, tema, valg for redusert bevegelse og læringsidentiteten din på denne enheten.',
+    onboardingTitle: 'Følg Programvareutvikling lokalt',
+    onboardingDescription:
+      'Følg økter, svar, studietid, XP, prestasjoner og framdrift på denne enheten.',
+    dashboardDescription:
+      'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres eller lagres eksternt.',
+    dashboardErrorDescription:
+      'Denne siden viser framdriften din i Programvareutvikling på denne enheten.',
+    courseMapEyebrow: 'Programvareutvikling – moduler',
+    courseMapLoadingDescription:
+      'Appen åpner modulene og den lagrede framdriften din.',
+    courseMapErrorDescription:
+      'Denne siden bruker de innebygde modulene og den lagrede framdriften din.',
+    catalogueDescription:
+      'Modul 1 og 2 i semester 1 er innebygd. Verktøyene i modulene forutsetter Windows (PowerShell, py-startprogrammet og VS Code).',
+    insightsDescription:
+      'Studieaktiviteten din over tid. Lagrede økter og opptjent XP vises her. Dager og uker følger lokal tid på denne enheten.',
+    insightsErrorDescription:
+      'Denne siden viser studieaktiviteten din i Programvareutvikling.',
+    rpgRequiredCompleteNote:
+      'Alle påkrevde økter er markert som fullført lokalt. Det betyr ikke at du har vist at du mestrer ferdighetene.',
+    rpgHeroProgressNote:
+      'Lokal framdrift i ProgressPal, ikke vurdert mestring.',
+    rpgCourseBoundary:
+      'Rangering, merker og profiloppsummeringer er lokale ProgressPal-tolkninger. De er ikke vurdering, karakter eller vitnemål.',
+    officialResourceOpenLabel: 'Åpne ekstern ressurs',
+    officialResourceReviewLabel: 'Se på ekstern ressurs igjen',
+    sharedMilestoneRewardNote: 'delt med en annen oppgave',
+  },
+};

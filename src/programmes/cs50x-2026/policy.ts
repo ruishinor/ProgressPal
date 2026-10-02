@@ -12,6 +12,7 @@ import type {
 /** The CS50 catalogue must contain a final project unit. */
 export const cs50CatalogueRules: CatalogueRules = {
   requiredUnitTypes: ['final_project'],
+  optionalItemsInUnitLength: true,
 };
 
 /**

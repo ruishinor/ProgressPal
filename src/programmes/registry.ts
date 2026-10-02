@@ -3,6 +3,7 @@ import { listPotentialXpRewardSourceKeys } from '@/lib/domain';
 import { SchemaValidationError } from '@/lib/validation';
 
 import { cs50x2026Definition } from './cs50x-2026';
+import { programvareutviklingDefinition } from './programvareutvikling';
 import {
   validateProgrammeDefinition,
   type ProgrammeDefinition,
@@ -100,6 +101,14 @@ function findCrossDefinitionIssues(
         definition.policy.xp,
       ),
     ),
+    // Learner evidence is keyed by exercise subject (Epic E, E-SCHEMA-1 §2):
+    // the unique [subjectId+attemptNumber] index spans programmes, so lesson
+    // exercise subjects must be collision-free across definitions.
+    ...findCollisions(
+      definitions,
+      'exercise subject',
+      (definition) => definition.content.lessons?.subjectIds ?? [],
+    ),
     // Achievements are unlocked globally by `achievementId`. The six shared
     // achievements are intentionally common to every definition; any other
     // ID may belong to one definition only.
@@ -188,8 +197,9 @@ export function createProgrammeRegistry(
 let productionRegistry: ProgrammeRegistry | null = null;
 
 /**
- * The registry compiled into the app. Production registers exactly one real
- * programme, CS50x, which is also the explicit default/bootstrap programme.
+ * The registry compiled into the app. Production registers CS50x, the
+ * explicit default/bootstrap programme, and Programvareutvikling (Epic E).
+ * Registration is not enrolment: no learner is enrolled or switched by it.
  * It is built through the same validated path as any other registry, on
  * first use, so an invalid registry surfaces as the existing bootstrap error
  * state instead of a blank page; a failed build is retried, never cached.
@@ -197,7 +207,7 @@ let productionRegistry: ProgrammeRegistry | null = null;
 export function getProgrammeRegistry(): ProgrammeRegistry {
   productionRegistry ??= createProgrammeRegistry({
     defaultProgrammeId: 'cs50x',
-    definitions: [cs50x2026Definition],
+    definitions: [cs50x2026Definition, programvareutviklingDefinition],
   });
 
   return productionRegistry;
