@@ -30,7 +30,12 @@ import {
   getProgrammeItemGuide,
   type ItemGuide,
 } from '@/features/course/guideContent';
-import { courseMapPath, getStudySessionsPath } from '@/features/course/paths';
+import {
+  courseMapPath,
+  getCourseItemDetailPath,
+  getStudySessionsPath,
+} from '@/features/course/paths';
+import { LessonView } from '@/features/lessons';
 import {
   buildCourseDetailView,
   createCourseDetailProgressFormValues,
@@ -1585,6 +1590,222 @@ export function ContentDetailPage() {
     </Card>
   );
 
+  const progressCard = (
+    <Card
+      description="Saved here. Updates your progress, XP, achievements, and dashboard."
+      title={getProgressCardTitle(detail.item.type)}
+      variant="accent"
+    >
+      <form
+        className="course-detail-form"
+        noValidate
+        onSubmit={(event) => {
+          void handleProgressSubmit(event);
+        }}
+      >
+        <FormField
+          controlId="course-detail-status"
+          error={progressForm?.errors.status}
+          label="Progress"
+          required
+        >
+          {({ describedBy, inputId, invalid }) => (
+            <Select
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
+              id={inputId}
+              onChange={(event) =>
+                setProgressForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        errors: {},
+                        values: {
+                          ...currentForm.values,
+                          status: event.target
+                            .value as CourseDetailProgressFormValues['status'],
+                        },
+                      },
+                )
+              }
+              options={progressStatusOptions}
+              value={selectedProgressStatus}
+            />
+          )}
+        </FormField>
+        <FormField
+          controlId="course-detail-notes"
+          description="Use notes for friction, blockers, or what changed."
+          label="Notes"
+        >
+          {({ describedBy, inputId, invalid }) => (
+            <TextArea
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
+              id={inputId}
+              onChange={(event) =>
+                setProgressForm((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        values: {
+                          ...currentForm.values,
+                          notes: event.target.value,
+                        },
+                      },
+                )
+              }
+              placeholder="What you worked on, where you got stuck, or what you figured out."
+              value={progressForm?.values.notes ?? ''}
+            />
+          )}
+        </FormField>
+        <details className="form-details">
+          <summary>More details</summary>
+          <div className="form-details__content">
+            <FormField
+              controlId="course-detail-confidence"
+              description="0 means unset. 5 means very sure."
+              error={progressForm?.errors.confidence}
+              label="How sure are you?"
+              required
+            >
+              {({ describedBy, inputId, invalid }) => (
+                <Select
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid || undefined}
+                  id={inputId}
+                  onChange={(event) =>
+                    setProgressForm((currentForm) =>
+                      currentForm === null
+                        ? currentForm
+                        : {
+                            ...currentForm,
+                            values: {
+                              ...currentForm.values,
+                              confidence: event.target.value,
+                            },
+                          },
+                    )
+                  }
+                  options={confidenceOptions}
+                  value={progressForm?.values.confidence ?? '0'}
+                />
+              )}
+            </FormField>
+          </div>
+        </details>
+        {progressForm?.errors.submit ? (
+          <p className="form-field__error" role="alert">
+            {progressForm.errors.submit}
+          </p>
+        ) : null}
+        <div className="course-detail-form__actions">
+          <Button
+            disabled={!coordination.canWrite}
+            loading={progressForm?.isSaving ?? false}
+            size="lg"
+            type="submit"
+          >
+            Save progress
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+
+  const progressSaveResultCard =
+    progressSaveResult !== null ? (
+      <Card
+        aria-live="polite"
+        role="status"
+        title={
+          progressSaveResult.isUpdate ? 'Progress updated' : 'Progress saved'
+        }
+        variant="accent"
+      >
+        <div className="course-detail-note">
+          <p className="course-detail-note__label">What was saved</p>
+          <p>
+            {progressSaveResult.isUpdate
+              ? 'Progress updated'
+              : 'Progress saved'}
+          </p>
+          {progressSaveResult.xpAdded > 0 ? (
+            <p>
+              <strong>{`+${progressSaveResult.xpAdded} XP earned`}</strong>
+            </p>
+          ) : null}
+          {progressSaveResult.achievementNames.length > 0 ? (
+            <p>{`Achievement unlocked: ${progressSaveResult.achievementNames.join(', ')}`}</p>
+          ) : null}
+        </div>
+        <p>
+          <strong>What&apos;s next?</strong> Check your course map to see what
+          comes next.
+        </p>
+        <div className="inline-actions">
+          <Link
+            className="button button--secondary button--md"
+            to={courseMapPath}
+          >
+            Back to course map
+          </Link>
+          <Button
+            onClick={() => {
+              setProgressSaveResult(null);
+            }}
+            variant="quiet"
+          >
+            Dismiss
+          </Button>
+        </div>
+      </Card>
+    ) : null;
+
+  // Epic E: a programme-authored lesson renders through the lesson surface;
+  // lesson-level progress keeps the existing statuses and form.
+  if (
+    detail.item.type === 'lesson' &&
+    programme.content.lessons !== undefined
+  ) {
+    return (
+      <section className="page-section">
+        <div className="action-row">
+          <Link
+            className="button button--secondary button--md"
+            to={courseMapPath}
+          >
+            Back to course map
+          </Link>
+        </div>
+        <LessonView
+          footer={
+            <>
+              {progressCard}
+              {progressSaveResultCard}
+            </>
+          }
+          itemId={detail.item.id}
+          lessonPath={getCourseItemDetailPath}
+          scope={programme}
+        />
+        {toast ? (
+          <ToastStack>
+            <Toast
+              description={toast.description}
+              onDismiss={() => setToast(null)}
+              title={toast.title}
+              tone={toast.tone}
+            />
+          </ToastStack>
+        ) : null}
+      </section>
+    );
+  }
+
   if (isLecture) {
     return (
       <section className="page-section">
@@ -1753,129 +1974,7 @@ export function ContentDetailPage() {
           <p>Edit the fields below to save a correction.</p>
         </Card>
       ) : null}
-      <Card
-        description="Saved here. Updates your progress, XP, achievements, and dashboard."
-        title={getProgressCardTitle(detail.item.type)}
-        variant="accent"
-      >
-        <form
-          className="course-detail-form"
-          noValidate
-          onSubmit={(event) => {
-            void handleProgressSubmit(event);
-          }}
-        >
-          <FormField
-            controlId="course-detail-status"
-            error={progressForm?.errors.status}
-            label="Progress"
-            required
-          >
-            {({ describedBy, inputId, invalid }) => (
-              <Select
-                aria-describedby={describedBy}
-                aria-invalid={invalid || undefined}
-                id={inputId}
-                onChange={(event) =>
-                  setProgressForm((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          errors: {},
-                          values: {
-                            ...currentForm.values,
-                            status: event.target
-                              .value as CourseDetailProgressFormValues['status'],
-                          },
-                        },
-                  )
-                }
-                options={progressStatusOptions}
-                value={selectedProgressStatus}
-              />
-            )}
-          </FormField>
-          <FormField
-            controlId="course-detail-notes"
-            description="Use notes for friction, blockers, or what changed."
-            label="Notes"
-          >
-            {({ describedBy, inputId, invalid }) => (
-              <TextArea
-                aria-describedby={describedBy}
-                aria-invalid={invalid || undefined}
-                id={inputId}
-                onChange={(event) =>
-                  setProgressForm((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          values: {
-                            ...currentForm.values,
-                            notes: event.target.value,
-                          },
-                        },
-                  )
-                }
-                placeholder="What you worked on, where you got stuck, or what you figured out."
-                value={progressForm?.values.notes ?? ''}
-              />
-            )}
-          </FormField>
-          <details className="form-details">
-            <summary>More details</summary>
-            <div className="form-details__content">
-              <FormField
-                controlId="course-detail-confidence"
-                description="0 means unset. 5 means very sure."
-                error={progressForm?.errors.confidence}
-                label="How sure are you?"
-                required
-              >
-                {({ describedBy, inputId, invalid }) => (
-                  <Select
-                    aria-describedby={describedBy}
-                    aria-invalid={invalid || undefined}
-                    id={inputId}
-                    onChange={(event) =>
-                      setProgressForm((currentForm) =>
-                        currentForm === null
-                          ? currentForm
-                          : {
-                              ...currentForm,
-                              values: {
-                                ...currentForm.values,
-                                confidence: event.target.value,
-                              },
-                            },
-                      )
-                    }
-                    options={confidenceOptions}
-                    value={progressForm?.values.confidence ?? '0'}
-                  />
-                )}
-              </FormField>
-            </div>
-          </details>
-          {progressForm?.errors.submit ? (
-            <p className="form-field__error" role="alert">
-              {progressForm.errors.submit}
-            </p>
-          ) : null}
-          <div className="course-detail-form__actions">
-            <Button
-              disabled={!coordination.canWrite}
-              loading={progressForm?.isSaving ?? false}
-              size="lg"
-              type="submit"
-            >
-              Save progress
-            </Button>
-          </div>
-        </form>
-      </Card>
+      {progressCard}
       {showSubmissionCard ? (
         <Card title="Submission">
           <FormField
@@ -1909,53 +2008,7 @@ export function ContentDetailPage() {
           </FormField>
         </Card>
       ) : null}
-      {progressSaveResult !== null ? (
-        <Card
-          aria-live="polite"
-          role="status"
-          title={
-            progressSaveResult.isUpdate ? 'Progress updated' : 'Progress saved'
-          }
-          variant="accent"
-        >
-          <div className="course-detail-note">
-            <p className="course-detail-note__label">What was saved</p>
-            <p>
-              {progressSaveResult.isUpdate
-                ? 'Progress updated'
-                : 'Progress saved'}
-            </p>
-            {progressSaveResult.xpAdded > 0 ? (
-              <p>
-                <strong>{`+${progressSaveResult.xpAdded} XP earned`}</strong>
-              </p>
-            ) : null}
-            {progressSaveResult.achievementNames.length > 0 ? (
-              <p>{`Achievement unlocked: ${progressSaveResult.achievementNames.join(', ')}`}</p>
-            ) : null}
-          </div>
-          <p>
-            <strong>What&apos;s next?</strong> Check your course map to see what
-            comes next.
-          </p>
-          <div className="inline-actions">
-            <Link
-              className="button button--secondary button--md"
-              to={courseMapPath}
-            >
-              Back to course map
-            </Link>
-            <Button
-              onClick={() => {
-                setProgressSaveResult(null);
-              }}
-              variant="quiet"
-            >
-              Dismiss
-            </Button>
-          </div>
-        </Card>
-      ) : null}
+      {progressSaveResultCard}
       {videoSegmentsSection}
       {logFormSection}
       {aboutSection}

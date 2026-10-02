@@ -887,6 +887,11 @@ export const lessonUiTextKeys = [
   'completionDisclaimer',
   'afterSubmitExplanation',
   'revealedTests',
+  'copyCode',
+  'copied',
+  'blankLabel',
+  'traceCellLabel',
+  'rowLabel',
 ] as const;
 
 export type LessonUiTextKey = (typeof lessonUiTextKeys)[number];
@@ -908,6 +913,17 @@ export type LessonUiCopy = {
     Record<(typeof exerciseResponseModeValues)[number], string>
   >;
   readonly text: Readonly<Record<LessonUiTextKey, string>>;
+  /**
+   * The programme's own learner-facing wording rules, applied to prose at
+   * display time (never to code, terminal or tool text, and never to the
+   * stored snapshot). For Programvareutvikling these are the authoring
+   * workspace's learner-render rules.
+   */
+  readonly learnerWording?: ReadonlyArray<{
+    readonly pattern: string;
+    readonly flags: string;
+    readonly replacement: string;
+  }>;
 };
 
 export type LessonContentProvider = {

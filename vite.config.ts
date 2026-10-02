@@ -24,6 +24,17 @@ export default defineConfig({
             return 'backup';
           }
 
+          // Programme lesson content: one static chunk per committed content
+          // file, so each stays under the raw per-chunk budget. Statically
+          // imported, so it remains a boot asset the service worker caches.
+          const programmeContent = normalizedId.match(
+            /\/src\/programmes\/([a-z0-9-]+)\/content\/([a-z0-9-]+)\.json$/,
+          );
+
+          if (programmeContent !== null) {
+            return `content-${programmeContent[1]}-${programmeContent[2]}`;
+          }
+
           if (!normalizedId.includes('/node_modules/')) {
             return undefined;
           }

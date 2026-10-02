@@ -168,5 +168,39 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
       'Fullført betyr at du har gått gjennom økta. Det betyr ikke at du har vist at du mestrer ferdighetene.',
     afterSubmitExplanation: 'Forklaring',
     revealedTests: 'Testene du ikke så før du leverte:',
+    copyCode: 'Kopier',
+    copied: 'Kopiert',
+    blankLabel: 'Felt {n}',
+    traceCellLabel: '{name} etter linje {line}',
+    rowLabel: 'Rad {n}',
   },
+  /**
+   * The authoring workspace's learner-facing wording rules, verbatim from its
+   * learner renderer (`scrub` in `04_WORKING/pilot/render_learner.js`): the
+   * platform's evaluator is "den automatiske sjekken" for the learner, and a
+   * build-machine note is not learner text. Applied to prose at display
+   * time; the snapshot keeps the authored text unchanged.
+   */
+  learnerWording: [
+    {
+      pattern: String.raw`\bEvaluatoren\b`,
+      flags: 'g',
+      replacement: 'Den automatiske sjekken',
+    },
+    {
+      pattern: String.raw`\bevaluatoren\b`,
+      flags: 'g',
+      replacement: 'den automatiske sjekken',
+    },
+    {
+      pattern: String.raw` \(ikke kjørt på denne maskinen[^)]*\)`,
+      flags: 'g',
+      replacement: '',
+    },
+    {
+      pattern: String.raw`\bDen automatiske sjekken sjekker\b`,
+      flags: 'g',
+      replacement: 'Den automatiske sjekken kontrollerer',
+    },
+  ],
 };

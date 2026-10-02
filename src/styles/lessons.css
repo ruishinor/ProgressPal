@@ -1,0 +1,44 @@
+/* Epic E lesson surface. Reuses the design-system cards, buttons, fields and
+   tables; this file adds only what authored lesson content needs: readable
+   preformatted code and terminal text that scrolls within its own box on
+   narrow screens, significant whitespace in status-code options, and
+   spacing between steps. Correctness is conveyed by text, never colour. */
+.lesson,
+.lesson * {
+  min-width: 0;
+}
+
+.lesson-fieldset,
+.lesson-hints,
+.lesson-pre {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lesson-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.lesson pre {
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-sm);
+  margin: 0;
+  overflow-x: auto;
+  padding: var(--space-3);
+}
+
+.lesson-mono {
+  font-family: ui-monospace, monospace;
+  white-space: pre;
+}
+
+.lesson-note {
+  color: var(--color-text-soft);
+  font-size: var(--text-sm);
+}
+
+.lesson-blank {
+  width: 12ch;
+}

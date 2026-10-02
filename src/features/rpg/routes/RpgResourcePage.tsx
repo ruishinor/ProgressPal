@@ -27,6 +27,7 @@ import { saveRpgStudyResourceProgress } from '@/features/rpg/model/progressActio
 import { loadRpgStudyResourceSummary } from '@/features/rpg/model/readModels';
 import type { RpgStudyResourceSummary } from '@/features/rpg/model/types';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
+import { LessonView } from '@/features/lessons';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 import type { ProgressStatus } from '@/lib/domain';
@@ -597,6 +598,310 @@ export function RpgResourcePage() {
     selectedProgressStatus === 'submitted' ||
     selectedProgressStatus === 'accepted';
 
+  const saveProgressPanel = (
+    <RpgPanel title="Save progress" titleAs="h2">
+      {summary.savedProgress ? (
+        <div>
+          <RpgButton
+            variant="quiet"
+            disabled={formState?.isSaving || !coordination.canWrite}
+            onClick={() => {
+              setCorrectingStatus(!correctingStatus);
+              setFormState(createFormState(summary));
+            }}
+          >
+            {correctingStatus
+              ? 'Cancel status correction'
+              : 'Correct saved status'}
+          </RpgButton>
+          {correctingStatus ? (
+            <p role="note">
+              Correcting the saved status changes your current ProgressPal
+              status. XP and achievements already earned are not removed.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      <form
+        className="rpg-study-resource__form"
+        noValidate
+        onSubmit={handleProgressSubmit}
+      >
+        <label className="rpg-study-resource__field">
+          <span>Progress</span>
+          <select
+            aria-describedby={
+              formState?.errors.status ? resourceErrorIds.status : undefined
+            }
+            aria-invalid={formState?.errors.status ? true : undefined}
+            onChange={(event) => {
+              setFormState((currentForm) =>
+                currentForm === null
+                  ? currentForm
+                  : {
+                      ...currentForm,
+                      errors: {},
+                      values: {
+                        ...currentForm.values,
+                        status: event.target.value as ProgressStatus,
+                      },
+                    },
+              );
+              setSaveResult((current) =>
+                current?.refreshStatus === 'ready' ? null : current,
+              );
+            }}
+            value={formValues.status}
+          >
+            {progressStatusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {selectedProgressStatus === 'blocked' &&
+        summary.progressStatus !== 'blocked' ? (
+          <span>
+            Blocked{' '}
+            <InlineInfo label="What does Blocked mean?">
+              Blocked means you started this task but cannot continue right now.
+              It stays available until you change its status.
+            </InlineInfo>
+          </span>
+        ) : null}
+        {formState?.errors.status ? (
+          <p
+            className="rpg-study-resource__error"
+            id={resourceErrorIds.status}
+            role="alert"
+          >
+            {formState.errors.status}
+          </p>
+        ) : null}
+
+        <label className="rpg-study-resource__field">
+          <span>Add study note</span>
+          <textarea
+            onChange={(event) => {
+              setFormState((currentForm) =>
+                currentForm === null
+                  ? currentForm
+                  : {
+                      ...currentForm,
+                      values: {
+                        ...currentForm.values,
+                        notes: event.target.value,
+                      },
+                    },
+              );
+              setSaveResult((current) =>
+                current?.refreshStatus === 'ready' ? null : current,
+              );
+            }}
+            placeholder="What changed, where you got stuck, or what to do next."
+            value={formValues.notes}
+          />
+        </label>
+
+        {showEvidenceField ? (
+          <label className="rpg-study-resource__field">
+            <span>Submission note</span>
+            <textarea
+              aria-describedby={
+                formState?.errors.evidenceText
+                  ? resourceErrorIds.evidenceText
+                  : undefined
+              }
+              aria-invalid={formState?.errors.evidenceText ? true : undefined}
+              onChange={(event) => {
+                setFormState((currentForm) =>
+                  currentForm === null
+                    ? currentForm
+                    : {
+                        ...currentForm,
+                        errors: {},
+                        values: {
+                          ...currentForm.values,
+                          evidenceText: event.target.value,
+                        },
+                      },
+                );
+                setSaveResult((current) =>
+                  current?.refreshStatus === 'ready' ? null : current,
+                );
+              }}
+              placeholder="Where did you submit this work?"
+              value={formValues.evidenceText}
+            />
+          </label>
+        ) : null}
+        {formState?.errors.evidenceText ? (
+          <p
+            className="rpg-study-resource__error"
+            id={resourceErrorIds.evidenceText}
+            role="alert"
+          >
+            {formState.errors.evidenceText}
+          </p>
+        ) : null}
+
+        <details
+          className="form-details"
+          open={Boolean(formState?.errors.confidence)}
+        >
+          <summary>More details</summary>
+          <div className="form-details__content">
+            <label className="rpg-study-resource__field rpg-study-resource__field--short">
+              <span>How sure are you?</span>
+              <select
+                aria-describedby={
+                  formState?.errors.confidence
+                    ? resourceErrorIds.confidence
+                    : undefined
+                }
+                aria-invalid={formState?.errors.confidence ? true : undefined}
+                onChange={(event) => {
+                  setFormState((currentForm) =>
+                    currentForm === null
+                      ? currentForm
+                      : {
+                          ...currentForm,
+                          errors: {},
+                          values: {
+                            ...currentForm.values,
+                            confidence: event.target.value,
+                          },
+                        },
+                  );
+                  setSaveResult((current) =>
+                    current?.refreshStatus === 'ready' ? null : current,
+                  );
+                }}
+                value={formValues.confidence}
+              >
+                {confidenceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {formState?.errors.confidence ? (
+              <p
+                className="rpg-study-resource__error"
+                id={resourceErrorIds.confidence}
+                role="alert"
+              >
+                {formState.errors.confidence}
+              </p>
+            ) : null}
+          </div>
+        </details>
+        {formState?.errors.submit ? (
+          <p className="rpg-study-resource__error" role="alert">
+            {formState.errors.submit}
+          </p>
+        ) : null}
+
+        <div className="rpg-study-resource__form-actions">
+          <RpgButton
+            disabled={
+              !coordination.canWrite ||
+              (formState?.isSaving ?? false) ||
+              (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
+              matchesSavedValues(formValues, savedFormValues)
+            }
+            type="submit"
+          >
+            {correctingStatus ? 'Save status correction' : 'Save progress'}
+          </RpgButton>
+          <RpgButton
+            disabled={
+              !coordination.canWrite ||
+              (formState?.isSaving ?? false) ||
+              (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
+              matchesSavedValues(
+                { ...formValues, status: 'completed' },
+                savedFormValues,
+              )
+            }
+            onClick={handleMarkComplete}
+            type="button"
+            variant="secondary"
+          >
+            Mark locally complete
+          </RpgButton>
+        </div>
+        {saveResult !== null ? (
+          <div className="rpg-study-resource__save-result" role="status">
+            <h2>
+              {saveResult.isUpdate ? 'Progress updated' : 'Progress saved'}
+            </h2>
+            <p>{`Local status: ${saveResult.statusLabel}`}</p>
+            {saveResult.xpAdded > 0 ? (
+              <p>{`XP awarded: ${saveResult.xpAdded}`}</p>
+            ) : null}
+            {saveResult.achievementNames.length > 0 ? (
+              <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
+            ) : null}
+            {saveResult.levelProgressPercent === null ? (
+              <p>{`At save: Level ${saveResult.level}, ${saveResult.levelProgressLabel}.`}</p>
+            ) : (
+              <RpgProgressBar
+                helperText={saveResult.levelProgressLabel}
+                label={`Level ${saveResult.level} progress`}
+                value={saveResult.levelProgressPercent}
+              />
+            )}
+            {saveResult.refreshStatus === 'error' ? (
+              <>
+                <p>
+                  Progress is saved locally. Resource details and the next quest
+                  could not be refreshed; the other details on this page may be
+                  out of date. Refresh the summary to continue.
+                </p>
+                <RpgButton
+                  onClick={() => {
+                    void refreshSavedProgress(summary.itemId);
+                  }}
+                  type="button"
+                  variant="secondary"
+                >
+                  Refresh progress summary
+                </RpgButton>
+              </>
+            ) : saveResult.refreshStatus === 'loading' ? (
+              <p>Progress is saved locally. Refreshing the summary…</p>
+            ) : saveResult.nextActionHref !== null ? (
+              <RpgButton href={saveResult.nextActionHref} variant="secondary">
+                {saveResult.nextActionLabel}
+              </RpgButton>
+            ) : null}
+          </div>
+        ) : null}
+      </form>
+    </RpgPanel>
+  );
+
+  // Epic E: a programme-authored lesson renders through the lesson surface;
+  // lesson-level progress keeps the existing save-progress panel.
+  if (
+    summary.itemType === 'lesson' &&
+    programme.content.lessons !== undefined
+  ) {
+    return (
+      <section className="page-section rpg-study-resource">
+        <LessonView
+          footer={saveProgressPanel}
+          itemId={summary.itemId}
+          lessonPath={getRpgResourcePath}
+          scope={programme}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="page-section rpg-study-resource">
       <div className="rpg-study-resource__header rpg-page-header">
@@ -667,289 +972,7 @@ export function RpgResourcePage() {
         </RpgResourceCard>
       ) : null}
 
-      <RpgPanel title="Save progress" titleAs="h2">
-        {summary.savedProgress ? (
-          <div>
-            <RpgButton
-              variant="quiet"
-              disabled={formState?.isSaving || !coordination.canWrite}
-              onClick={() => {
-                setCorrectingStatus(!correctingStatus);
-                setFormState(createFormState(summary));
-              }}
-            >
-              {correctingStatus
-                ? 'Cancel status correction'
-                : 'Correct saved status'}
-            </RpgButton>
-            {correctingStatus ? (
-              <p role="note">
-                Correcting the saved status changes your current ProgressPal
-                status. XP and achievements already earned are not removed.
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-        <form
-          className="rpg-study-resource__form"
-          noValidate
-          onSubmit={handleProgressSubmit}
-        >
-          <label className="rpg-study-resource__field">
-            <span>Progress</span>
-            <select
-              aria-describedby={
-                formState?.errors.status ? resourceErrorIds.status : undefined
-              }
-              aria-invalid={formState?.errors.status ? true : undefined}
-              onChange={(event) => {
-                setFormState((currentForm) =>
-                  currentForm === null
-                    ? currentForm
-                    : {
-                        ...currentForm,
-                        errors: {},
-                        values: {
-                          ...currentForm.values,
-                          status: event.target.value as ProgressStatus,
-                        },
-                      },
-                );
-                setSaveResult((current) =>
-                  current?.refreshStatus === 'ready' ? null : current,
-                );
-              }}
-              value={formValues.status}
-            >
-              {progressStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selectedProgressStatus === 'blocked' &&
-          summary.progressStatus !== 'blocked' ? (
-            <span>
-              Blocked{' '}
-              <InlineInfo label="What does Blocked mean?">
-                Blocked means you started this task but cannot continue right
-                now. It stays available until you change its status.
-              </InlineInfo>
-            </span>
-          ) : null}
-          {formState?.errors.status ? (
-            <p
-              className="rpg-study-resource__error"
-              id={resourceErrorIds.status}
-              role="alert"
-            >
-              {formState.errors.status}
-            </p>
-          ) : null}
-
-          <label className="rpg-study-resource__field">
-            <span>Add study note</span>
-            <textarea
-              onChange={(event) => {
-                setFormState((currentForm) =>
-                  currentForm === null
-                    ? currentForm
-                    : {
-                        ...currentForm,
-                        values: {
-                          ...currentForm.values,
-                          notes: event.target.value,
-                        },
-                      },
-                );
-                setSaveResult((current) =>
-                  current?.refreshStatus === 'ready' ? null : current,
-                );
-              }}
-              placeholder="What changed, where you got stuck, or what to do next."
-              value={formValues.notes}
-            />
-          </label>
-
-          {showEvidenceField ? (
-            <label className="rpg-study-resource__field">
-              <span>Submission note</span>
-              <textarea
-                aria-describedby={
-                  formState?.errors.evidenceText
-                    ? resourceErrorIds.evidenceText
-                    : undefined
-                }
-                aria-invalid={formState?.errors.evidenceText ? true : undefined}
-                onChange={(event) => {
-                  setFormState((currentForm) =>
-                    currentForm === null
-                      ? currentForm
-                      : {
-                          ...currentForm,
-                          errors: {},
-                          values: {
-                            ...currentForm.values,
-                            evidenceText: event.target.value,
-                          },
-                        },
-                  );
-                  setSaveResult((current) =>
-                    current?.refreshStatus === 'ready' ? null : current,
-                  );
-                }}
-                placeholder="Where did you submit this work?"
-                value={formValues.evidenceText}
-              />
-            </label>
-          ) : null}
-          {formState?.errors.evidenceText ? (
-            <p
-              className="rpg-study-resource__error"
-              id={resourceErrorIds.evidenceText}
-              role="alert"
-            >
-              {formState.errors.evidenceText}
-            </p>
-          ) : null}
-
-          <details
-            className="form-details"
-            open={Boolean(formState?.errors.confidence)}
-          >
-            <summary>More details</summary>
-            <div className="form-details__content">
-              <label className="rpg-study-resource__field rpg-study-resource__field--short">
-                <span>How sure are you?</span>
-                <select
-                  aria-describedby={
-                    formState?.errors.confidence
-                      ? resourceErrorIds.confidence
-                      : undefined
-                  }
-                  aria-invalid={formState?.errors.confidence ? true : undefined}
-                  onChange={(event) => {
-                    setFormState((currentForm) =>
-                      currentForm === null
-                        ? currentForm
-                        : {
-                            ...currentForm,
-                            errors: {},
-                            values: {
-                              ...currentForm.values,
-                              confidence: event.target.value,
-                            },
-                          },
-                    );
-                    setSaveResult((current) =>
-                      current?.refreshStatus === 'ready' ? null : current,
-                    );
-                  }}
-                  value={formValues.confidence}
-                >
-                  {confidenceOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {formState?.errors.confidence ? (
-                <p
-                  className="rpg-study-resource__error"
-                  id={resourceErrorIds.confidence}
-                  role="alert"
-                >
-                  {formState.errors.confidence}
-                </p>
-              ) : null}
-            </div>
-          </details>
-          {formState?.errors.submit ? (
-            <p className="rpg-study-resource__error" role="alert">
-              {formState.errors.submit}
-            </p>
-          ) : null}
-
-          <div className="rpg-study-resource__form-actions">
-            <RpgButton
-              disabled={
-                !coordination.canWrite ||
-                (formState?.isSaving ?? false) ||
-                (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
-                matchesSavedValues(formValues, savedFormValues)
-              }
-              type="submit"
-            >
-              {correctingStatus ? 'Save status correction' : 'Save progress'}
-            </RpgButton>
-            <RpgButton
-              disabled={
-                !coordination.canWrite ||
-                (formState?.isSaving ?? false) ||
-                (saveResult !== null && saveResult.refreshStatus !== 'ready') ||
-                matchesSavedValues(
-                  { ...formValues, status: 'completed' },
-                  savedFormValues,
-                )
-              }
-              onClick={handleMarkComplete}
-              type="button"
-              variant="secondary"
-            >
-              Mark locally complete
-            </RpgButton>
-          </div>
-          {saveResult !== null ? (
-            <div className="rpg-study-resource__save-result" role="status">
-              <h2>
-                {saveResult.isUpdate ? 'Progress updated' : 'Progress saved'}
-              </h2>
-              <p>{`Local status: ${saveResult.statusLabel}`}</p>
-              {saveResult.xpAdded > 0 ? (
-                <p>{`XP awarded: ${saveResult.xpAdded}`}</p>
-              ) : null}
-              {saveResult.achievementNames.length > 0 ? (
-                <p>{`Achievement unlocked: ${saveResult.achievementNames.join(', ')}`}</p>
-              ) : null}
-              {saveResult.levelProgressPercent === null ? (
-                <p>{`At save: Level ${saveResult.level}, ${saveResult.levelProgressLabel}.`}</p>
-              ) : (
-                <RpgProgressBar
-                  helperText={saveResult.levelProgressLabel}
-                  label={`Level ${saveResult.level} progress`}
-                  value={saveResult.levelProgressPercent}
-                />
-              )}
-              {saveResult.refreshStatus === 'error' ? (
-                <>
-                  <p>
-                    Progress is saved locally. Resource details and the next
-                    quest could not be refreshed; the other details on this page
-                    may be out of date. Refresh the summary to continue.
-                  </p>
-                  <RpgButton
-                    onClick={() => {
-                      void refreshSavedProgress(summary.itemId);
-                    }}
-                    type="button"
-                    variant="secondary"
-                  >
-                    Refresh progress summary
-                  </RpgButton>
-                </>
-              ) : saveResult.refreshStatus === 'loading' ? (
-                <p>Progress is saved locally. Refreshing the summary…</p>
-              ) : saveResult.nextActionHref !== null ? (
-                <RpgButton href={saveResult.nextActionHref} variant="secondary">
-                  {saveResult.nextActionLabel}
-                </RpgButton>
-              ) : null}
-            </div>
-          ) : null}
-        </form>
-      </RpgPanel>
+      {saveProgressPanel}
     </section>
   );
 }
