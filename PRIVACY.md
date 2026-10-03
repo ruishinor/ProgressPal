@@ -24,10 +24,17 @@ ProgressPal stores only the data you create by using it:
 - Your course progress (item status, confidence, notes, evidence text).
 - Long-form watched ranges, resume points, and study-session notes and blockers.
 - Derived gamification records (XP transactions, levels, achievement unlocks).
+- Your lesson answers, the hints you open and where you stopped in a lesson
+  (for programmes that deliver lessons).
 - A local audit log of backup export/import events.
 
-It also bundles a fixed CS50 course catalog (the "seed"). That catalog ships
-with the app; it is not personal data.
+It also bundles a fixed CS50 course catalog (the "seed") and ships the lesson
+content of its other programme as packaged files from the same site. These
+ship with the app; they are not personal data.
+
+Python programs you write for exercises run inside your browser, in an
+isolated worker that has no network or storage access, and are never sent
+anywhere; your answer is stored locally like the rest of your data.
 
 ## Where the data lives
 
@@ -51,8 +58,9 @@ with the app; it is not personal data.
 - No social, sharing, leaderboard, or comparison features.
 
 The offline service worker only caches the app's own static files (its HTML,
-JavaScript, and CSS) from the same origin so the app can start without a network
-connection. It never reads, caches, or transmits your stored data.
+JavaScript and CSS, the packaged lesson content and, once it has been used, the
+packaged Python runtime) from the same origin so the app can work without a
+network connection. It never reads, caches, or transmits your stored data.
 
 ## Data you control
 
