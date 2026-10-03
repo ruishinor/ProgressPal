@@ -166,7 +166,7 @@ async function submitProgram(page: Page, card: Locator, source: string) {
   return card.getByRole('status', { name: 'Resultat' });
 }
 
-test('checks program exercises with the packaged Python runtime in a worker, offline-capable and same-origin only', async ({
+test('checks program exercises with the packaged Python runtime in a worker, same-origin only', async ({
   page,
 }) => {
   const consoleIssues: string[] = [];
@@ -664,7 +664,7 @@ test('answers a runtime-free item while the browser is offline', async ({
   }
 });
 
-test('presents the checkpoint honestly: lesson closed, no pass claim, no gate retry', async ({
+test('runs the checkpoint under the owner rules: closed lesson, how it is passed, progress, and a retry as a new attempt', async ({
   page,
 }) => {
   await completeOnboarding(page);
@@ -672,28 +672,209 @@ test('presents the checkpoint honestly: lesson closed, no pass claim, no gate re
   await page.goto('/course/s1-m01-chk');
 
   await expect(
-    page.getByText('Appen viser ikke om du har bestått eller ikke.', {
-      exact: false,
-    }),
-  ).toBeVisible();
-  await expect(
     page.getByText('Svar uten å slå opp i leksjonene.', { exact: false }),
   ).toBeVisible();
   await expect(
-    page.getByText('Fullført betyr at du har gått gjennom økta.', {
+    page.getByText('Modulsjekken er fullført når du har svart riktig', {
       exact: false,
     }),
   ).toBeVisible();
+  await expect(page.getByText('Fullførte deler: 0 av 4.')).toBeVisible();
+  await expect(page.locator('article')).not.toContainText(
+    /ikke fastsatt|kan ikke prøves på nytt/,
+  );
 
-  const gate = exercise(page, 4);
-  await answerByKeyboard(page, gate);
-  await expect(gate.getByRole('button', { name: 'Prøv igjen' })).toHaveCount(0);
+  const gate = page
+    .getByRole('group', { name: /^Oppgave \d+ · Flervalg/ })
+    .filter({ hasText: 'git status --short' });
   await expect(
-    gate.getByText('kan ikke prøves på nytt ennå', { exact: false }),
-  ).toBeVisible();
+    gate.getByRole('button', { name: 'Sjekk svaret' }),
+  ).toBeEnabled();
+  await gate.getByLabel('?? skilt.py', { exact: true }).check();
+  await gate.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(gate.getByRole('status', { name: 'Resultat' })).toContainText(
+    'Ikke riktig ennå',
+  );
+
+  const retry = gate.getByRole('button', { name: 'Prøv igjen' });
+  await expect(retry).toBeEnabled();
+  await retry.click();
+  await gate.getByLabel('M skilt.py', { exact: true }).check();
+  await gate.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(gate.getByRole('status', { name: 'Resultat' })).toContainText(
+    'Riktig',
+  );
+  const attempts = (await readEvidenceRows(page)).filter(
+    ([kind]) => kind === 'exercise_attempt',
+  );
+  expect(attempts).toHaveLength(2);
+  await expect(page.locator('article')).not.toContainText(
+    'kan ikke prøves på nytt',
+  );
 
   await page.goto('/course/s1-m01-ret');
   await expect(
     page.getByText('Svar uten å slå opp i leksjonene.', { exact: false }),
   ).toBeVisible();
+});
+
+async function readLedger(page: Page) {
+  return (await page.evaluate(`
+    new Promise((resolve, reject) => {
+      const request = indexedDB.open('progresspal-cs50-edition');
+      request.onerror = () => reject(new Error('open failed'));
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction(
+          ['xp_transactions', 'programme_enrolments'],
+          'readonly',
+        );
+        const xp = transaction.objectStore('xp_transactions').getAll();
+        const enrolments = transaction
+          .objectStore('programme_enrolments')
+          .getAll();
+        transaction.oncomplete = () => {
+          const totals = {};
+          for (const row of xp.result) {
+            totals[row.programmeId] = (totals[row.programmeId] ?? 0) + row.xp;
+          }
+          resolve({
+            rows: xp.result.length,
+            totals,
+            enrolments: enrolments.result.map((row) => row.programmeId).sort(),
+          });
+          database.close();
+        };
+        transaction.onerror = () => {
+          database.close();
+          reject(new Error('read failed'));
+        };
+      };
+    });
+  `)) as {
+    rows: number;
+    totals: Record<string, number>;
+    enrolments: string[];
+  };
+}
+
+async function startFresh(page: Page, programme: RegExp) {
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle('ProgressPal');
+  await expect(
+    page.getByRole('button', { name: 'Use default learner' }),
+  ).toBeDisabled();
+  await page
+    .getByRole('radiogroup', { name: 'Choose your programme' })
+    .getByRole('radio', { name: programme })
+    .check();
+  await page.getByRole('button', { name: 'Use default learner' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+  ).toBeVisible();
+}
+
+test('a fresh learner who chooses Programvareutvikling starts there, under the ProgressPal brand, enrolled only there', async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+  collectConsoleIssues(page, consoleIssues);
+  await startFresh(page, /Programvareutvikling/);
+
+  await expect(page).toHaveTitle('ProgressPal');
+  expect((await readLedger(page)).enrolments).toEqual(['programvareutvikling']);
+  await page.goto('/dashboard');
+  await expect(page.locator('body')).toContainText('ProgressPal');
+  await expect(page.locator('body')).not.toContainText('CS50');
+  expect(consoleIssues).toEqual([]);
+});
+
+test('a fresh learner who chooses CS50 starts there, enrolled only there', async ({
+  page,
+}) => {
+  await startFresh(page, /CS50x/);
+
+  await expect(page).toHaveTitle('ProgressPal CS50 Edition');
+  expect((await readLedger(page)).enrolments).toEqual(['cs50x']);
+});
+
+test('keeps CS50 and Programvareutvikling XP and levels independent across switching', async ({
+  page,
+}) => {
+  await startFresh(page, /CS50x/);
+
+  // CS50 earns XP through its own catalogue progress.
+  await page.goto('/course/week-0-problem-set');
+  await page.getByLabel('Progress').selectOption('started');
+  await page.getByRole('button', { name: 'Save progress' }).click();
+  await expect(page.getByText(/\+20 XP!/)).toBeVisible();
+  await expect
+    .poll(async () => (await readLedger(page)).totals)
+    .toEqual({ cs50x: 20 });
+
+  // Programvareutvikling starts its own XP from zero.
+  await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
+  const card = await answerFirstChoiceExercise(page);
+  await expect(card.getByRole('status', { name: 'Resultat' })).toContainText(
+    /\+\d+ XP/,
+  );
+  await expect
+    .poll(async () => (await readLedger(page)).totals.programvareutvikling)
+    .toBeGreaterThan(0);
+  const afterP2 = await readLedger(page);
+  expect(afterP2.totals.cs50x).toBe(20);
+
+  // Switching back and forth changes neither ledger, so neither level.
+  await switchProgramme(page, 'cs50x', 'CS50x 2026');
+  expect((await readLedger(page)).totals).toEqual(afterP2.totals);
+  await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
+  expect((await readLedger(page)).totals).toEqual(afterP2.totals);
+});
+
+test('earns Programvareutvikling XP once for a solved task, through a hint and a retry, and never again on reload or a repeat', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
+  await page.goto(firstLesson);
+
+  const card = exercise(page, 3);
+  const result = card.getByRole('status', { name: 'Resultat' });
+  const correct = card.getByLabel(/Du har ikke lagret filen etter endringen/);
+  const wrong = card.getByLabel(/Python husker den gamle versjonen/);
+  await expect(correct).toBeEnabled();
+
+  // A hint is recorded support, never XP.
+  await card.getByRole('button', { name: /Vis hint 1/ }).click();
+  await expect(card.getByText('Hint 1', { exact: true })).toBeVisible();
+  expect((await readLedger(page)).rows).toBe(0);
+
+  // A wrong answer gets its feedback and no XP.
+  await wrong.check();
+  await card.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(result).toContainText('Ikke riktig ennå');
+  await expect(result).toContainText('Python leser filen på nytt');
+  expect((await readLedger(page)).rows).toBe(0);
+
+  // The retry solves it and earns once.
+  await card.getByRole('button', { name: 'Prøv igjen' }).click();
+  await correct.check();
+  await card.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(result).toContainText('Riktig');
+  await expect(result).toContainText(/\+\d+ XP/);
+  const earned = await readLedger(page);
+  expect(earned.totals.programvareutvikling).toBeGreaterThan(0);
+
+  // Reloading and solving it again earn nothing more.
+  await page.reload();
+  await expect(result).toContainText('Riktig');
+  await card.getByRole('button', { name: 'Prøv igjen' }).click();
+  await correct.check();
+  await card.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(result).toContainText('Riktig');
+  await expect(result).not.toContainText('XP');
+  expect(await readLedger(page)).toEqual(earned);
 });
