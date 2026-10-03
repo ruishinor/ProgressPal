@@ -35,7 +35,9 @@ import type { PythonRuntime } from './runtime';
  *
  * Nothing about correctness exists until the result is durable. Every
  * failure after the attempt commits keeps the attempt, unresolved, for
- * recovery. A runtime timeout or failure after submit is `evaluator_error`.
+ * recovery; that includes a failed XP award planning, which rolls the result
+ * back with its XP (a result and its qualifying XP commit together). A
+ * runtime timeout or failure after submit is `evaluator_error`.
  */
 
 export type SubmissionBinding = {

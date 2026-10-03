@@ -5,10 +5,13 @@ import {
   enrolInProgramme,
   getDatabaseSnapshot,
   getXpSummary,
+  listUnresolvedAttempts,
   listXpTransactions,
+  recordResultsForUnresolvedAttempts,
   submitAttemptAndRecordResult,
   switchActiveProgramme,
   upsertProgressAndAwardXp,
+  XpAwardPlanningError,
 } from '@/lib/db';
 
 import { cs50CatalogueId, cs50Policy } from '../programmes/cs50Policy';
@@ -119,11 +122,59 @@ describe('E-SCHEMA-1A: XP rows carry their owning programme', () => {
     expect(await listXpTransactions({ db, programmeId: cs50 })).toEqual([]);
   });
 
-  it('keeps the result when planning the award fails, and awards nothing', async () => {
+  // Owner correction 2026-10-03: a correct result and its qualifying XP
+  // commit together or not at all. (Supersedes "keeps the result when
+  // planning the award fails, and awards nothing".)
+  it('never leaves a correct result terminal without its XP when planning the award fails', async () => {
     const { db } = await device('xp-planner-failure');
 
-    const lifecycle = await submitAttemptAndRecordResult(
-      attemptInput(),
+    await expect(
+      submitAttemptAndRecordResult(attemptInput(), correct, {
+        db,
+        now: () => evidenceTime,
+        awardXp: () => {
+          throw new Error('planner defect');
+        },
+      }),
+    ).rejects.toBeInstanceOf(XpAwardPlanningError);
+
+    expect(
+      (await getDatabaseSnapshot({ db })).learnerEvidence.map(
+        (row) => row.kind,
+      ),
+    ).toEqual(['exercise_attempt']);
+    expect(
+      await listXpTransactions({ db, programmeId: p2ProgrammeId }),
+    ).toEqual([]);
+    expect(
+      (await listUnresolvedAttempts({ db, programmeId: p2ProgrammeId })).map(
+        (attempt) => attempt.id,
+      ),
+    ).toEqual(['attempt-1']);
+  });
+
+  it('recovers the unresolved attempt later, recording the result and its XP exactly once', async () => {
+    const { db } = await device('xp-planner-recovery');
+    const solved = () => [
+      {
+        sourceType: 'exercise_solved',
+        sourceId: 's1-m01-p01-e05',
+        xp: 5,
+        reason: 'Løste en oppgave',
+      },
+    ];
+
+    await submitAttemptAndRecordResult(attemptInput(), correct, {
+      db,
+      now: () => evidenceTime,
+      awardXp: () => {
+        throw new Error('planner defect');
+      },
+    }).catch(() => undefined);
+
+    // Still failing: the attempt stays pending and nothing is written.
+    const stillFailing = await recordResultsForUnresolvedAttempts(
+      ['attempt-1'],
       correct,
       {
         db,
@@ -133,16 +184,89 @@ describe('E-SCHEMA-1A: XP rows carry their owning programme', () => {
         },
       },
     );
+    expect(stillFailing).toEqual([
+      { attemptId: 'attempt-1', result: null, awardedTransactions: [] },
+    ]);
+    expect((await getDatabaseSnapshot({ db })).xpTransactions).toEqual([]);
 
-    expect(lifecycle.result?.outcome).toBe('correct');
+    const recovered = await recordResultsForUnresolvedAttempts(
+      ['attempt-1'],
+      correct,
+      { db, now: () => evidenceTime, awardXp: solved },
+    );
+    expect(recovered[0]!.result?.outcome).toBe('correct');
+    expect(recovered[0]!.awardedTransactions).toHaveLength(1);
+
+    const again = await recordResultsForUnresolvedAttempts(
+      ['attempt-1'],
+      correct,
+      { db, now: () => evidenceTime, awardXp: solved },
+    );
+    expect(again[0]!.awardedTransactions).toEqual([]);
+
+    const snapshot = await getDatabaseSnapshot({ db });
+    expect(snapshot.learnerEvidence.map((row) => row.kind)).toEqual([
+      'exercise_attempt',
+      'evaluation_result',
+    ]);
     expect(
-      (await getDatabaseSnapshot({ db })).learnerEvidence.map(
-        (row) => row.kind,
+      snapshot.xpTransactions.map((row) => [row.programmeId, row.xp]),
+    ).toEqual([[p2ProgrammeId, 5]]);
+  });
+
+  it('keeps one failing attempt pending without blocking the recovery of another', async () => {
+    const { db } = await device('xp-planner-partial');
+    const failingFor = (subjectId: string) => () => {
+      throw new Error(`planner defect for ${subjectId}`);
+    };
+
+    for (const [id, subjectId] of [
+      ['attempt-1', 's1-m01-p01-e05'],
+      ['attempt-2', 's1-m01-p01-e06'],
+    ] as const) {
+      await submitAttemptAndRecordResult(
+        attemptInput({ id, subjectId }),
+        correct,
+        { db, now: () => evidenceTime, awardXp: failingFor(subjectId) },
+      ).catch(() => undefined);
+    }
+
+    const statuses = await recordResultsForUnresolvedAttempts(
+      ['attempt-1', 'attempt-2'],
+      async (attempt) => ({ id: `result-${attempt.id}`, outcome: 'correct' }),
+      {
+        db,
+        now: () => evidenceTime,
+        awardXp: ({ attempt }) => {
+          if (attempt.id === 'attempt-1') {
+            throw new Error('planner defect');
+          }
+          return [
+            {
+              sourceType: 'exercise_solved',
+              sourceId: attempt.subjectId,
+              xp: 5,
+              reason: 'Løste en oppgave',
+            },
+          ];
+        },
+      },
+    );
+
+    expect(statuses.map((status) => status.result?.outcome ?? null)).toEqual([
+      null,
+      'correct',
+    ]);
+    expect(
+      (await listUnresolvedAttempts({ db, programmeId: p2ProgrammeId })).map(
+        (attempt) => attempt.id,
       ),
-    ).toEqual(['exercise_attempt', 'evaluation_result']);
+    ).toEqual(['attempt-1']);
     expect(
-      await listXpTransactions({ db, programmeId: p2ProgrammeId }),
-    ).toEqual([]);
+      (await getDatabaseSnapshot({ db })).xpTransactions.map(
+        (row) => row.sourceId,
+      ),
+    ).toEqual(['s1-m01-p01-e06']);
   });
 });
 

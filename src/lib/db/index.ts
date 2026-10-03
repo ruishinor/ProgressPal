@@ -95,6 +95,7 @@ export {
 export {
   LearnerEvidenceConflictError,
   UnresolvedAttemptError,
+  XpAwardPlanningError,
   findUnresolvedAttempts,
   getLessonPosition,
   listLearnerEvidence,

@@ -112,14 +112,28 @@ export type EvidenceWriteResult<Row> = { record: Row; created: boolean };
  * its result and every evidence row of the attempt's programme (the new
  * result included) and returns the awards the result qualifies for. The
  * repository writes them once per programme and source, in the result's own
- * transaction, so a result and its XP commit together; a planner that throws
- * awards nothing and never costs the result.
+ * transaction, so a result and its XP commit together or not at all: a
+ * planner that throws aborts that transaction (`XpAwardPlanningError`), the
+ * committed attempt stays unresolved, and recovery re-evaluates and
+ * re-awards it later without duplicates. A correct result can therefore
+ * never be terminal while its qualifying XP is missing.
  */
 export type EvidenceAwardPlanner = (context: {
   readonly attempt: ExerciseAttemptRecord;
   readonly result: EvaluationResultRecord;
   readonly evidence: readonly LearnerEvidence[];
 }) => readonly PotentialXpAward[];
+
+/** The award planner failed; the result and its XP were not recorded. */
+export class XpAwardPlanningError extends Error {
+  constructor(attemptId: string, cause: unknown) {
+    super(
+      `Planning the XP for attempt "${attemptId}" failed; its result was not recorded.`,
+      { cause },
+    );
+    this.name = 'XpAwardPlanningError';
+  }
+}
 
 type ResultWriteOptions = BaseDatabaseOptions & {
   awardXp?: EvidenceAwardPlanner;
@@ -383,8 +397,9 @@ async function awardForResult(
 
   try {
     awards = planner({ attempt, result, evidence });
-  } catch {
-    return [];
+  } catch (error) {
+    // Aborts the result's transaction: no terminal result without its XP.
+    throw new XpAwardPlanningError(attempt.id, error);
   }
 
   const awarded: XpTransaction[] = [];
@@ -656,7 +671,9 @@ export type AttemptRecoveryStatus = {
  * attempt that still has no terminal result, the evaluation stage runs
  * against that same persisted attempt and its result commits. `null` from
  * the stage leaves the attempt pending (for example while the capability it
- * needs is unavailable). Nothing here creates an attempt.
+ * needs is unavailable), and so does a failed award planning: that result
+ * and its XP were rolled back together, and the next recovery tries again.
+ * Nothing here creates an attempt.
  */
 export async function recordResultsForUnresolvedAttempts(
   attemptIds: readonly string[],
@@ -698,12 +715,24 @@ export async function recordResultsForUnresolvedAttempts(
         continue;
       }
 
-      const written = await insertResult(
-        database,
-        { ...produced, attemptId },
-        now(),
-        { awardXp: options.awardXp, now },
-      );
+      let written: ResultWriteResult;
+
+      try {
+        written = await insertResult(
+          database,
+          { ...produced, attemptId },
+          now(),
+          { awardXp: options.awardXp, now },
+        );
+      } catch (error) {
+        if (error instanceof XpAwardPlanningError) {
+          statuses.push({ attemptId, result: null, awardedTransactions: [] });
+          continue;
+        }
+
+        throw error;
+      }
+
       scope.changed ||= written.created;
       statuses.push({
         attemptId,

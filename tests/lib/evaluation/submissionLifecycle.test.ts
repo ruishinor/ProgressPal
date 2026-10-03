@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { listLearnerEvidence, listUnresolvedAttempts } from '@/lib/db';
+import {
+  listLearnerEvidence,
+  listUnresolvedAttempts,
+  listXpTransactions,
+} from '@/lib/db';
 import type { LessonExercise } from '@/lib/domain';
 import {
   recoverUnresolvedAttempts,
@@ -514,5 +518,68 @@ describe('K-3: no gate-item retry exists without an authored or owner-approved r
         (row) => row.kind === 'exercise_attempt',
       ),
     ).toHaveLength(1);
+  });
+});
+
+describe('owner correction 2026-10-03: a result and its qualifying XP commit together', () => {
+  it('keeps the attempt pending when award planning fails, and recovery records the result and XP once', async () => {
+    const context = await device('lifecycle-award-failure');
+    const solved = () => [
+      {
+        sourceType: 'exercise_solved',
+        sourceId: binding(choiceId).exercise.id.toLowerCase(),
+        xp: 5,
+        reason: 'Løste en oppgave',
+      },
+    ];
+
+    const outcome = await submitAnswer(
+      {
+        ...binding(choiceId),
+        runtime: unavailablePythonRuntime,
+        db: context.db,
+        awardXp: () => {
+          throw new Error('planner defect');
+        },
+      },
+      {
+        attemptId: 'attempt-1',
+        resultId: 'result-1',
+        answer: correctChoice(choiceId),
+      },
+    );
+
+    expect(outcome.status).toBe('pending');
+    expect(
+      (await listLearnerEvidence({ db: context.db })).map((row) => row.kind),
+    ).toEqual(['exercise_attempt']);
+    expect(
+      await listXpTransactions({ db: context.db, programmeId: p2ProgrammeId }),
+    ).toEqual([]);
+
+    const recover = () =>
+      recoverUnresolvedAttempts({
+        programmeId: p2ProgrammeId,
+        exercises: [binding(choiceId)],
+        runtime: unavailablePythonRuntime,
+        db: context.db,
+        awardXp: solved,
+      });
+
+    expect(await recover()).toEqual([
+      expect.objectContaining({ attemptId: 'attempt-1', status: 'recovered' }),
+    ]);
+    expect(await recover()).toEqual([]);
+    expect(
+      (await listLearnerEvidence({ db: context.db })).map((row) => row.kind),
+    ).toEqual(['exercise_attempt', 'evaluation_result']);
+    expect(
+      (
+        await listXpTransactions({
+          db: context.db,
+          programmeId: p2ProgrammeId,
+        })
+      ).map((row) => row.xp),
+    ).toEqual([5]);
   });
 });
