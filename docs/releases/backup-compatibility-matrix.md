@@ -2,13 +2,23 @@
 
 Status: v1.3.0 remediation evidence, with a current-state note.
 
-> **Current-state note (2026-10-02).** The IndexedDB schema is now **v3**. The two
-> schema-2 fixtures below restore by forward conversion, and
-> `tests/db/backupCompatibility.test.ts` asserts that the restored metadata carries
-> the running `currentApplicationVersion` (1.4.0 on the Pre-E candidate) with
-> `schemaVersion` 3. The application version and the schema number are independent.
-> See [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). The matrix text below is retained as
-> the v1.3.0 evidence it was.
+> **Current-state note (2026-10-03, Epic E candidate).** The IndexedDB schema is
+> **v4** (accepted E-SCHEMA-1). The supported backup baseline is the **native
+> schema-4 export**: it exports, previews, restores and resets with the learner
+> evidence and lesson positions it holds. Exported backups from **schema 3 or
+> earlier, including both schema-2 fixtures below, are refused clearly before
+> any write** with the existing "different data version" message, and the
+> database is left unchanged (schema record section 7; an owner-authorized
+> preservation change, not a silent weakening). There is no 2 → 3 → 4 or
+> 3 → 4 exported-backup conversion. A device that keeps using the app is not
+> affected: its live database upgrades in place from v2 or v3 to v4.
+> `tests/db/backupCompatibility.test.ts` asserts the refusal for both fixtures
+> and keeps the retained historical 2 → 3 conversion code covered with an
+> explicit `expectedSchemaVersion: 3`; `tests/preservation/c1BaselineFixture.test.ts`
+> carries the no-semantic-loss oracle through the in-place v2 → v4 upgrade.
+> The application version and the schema number stay independent. See
+> [`docs/CURRENT_STATE.md`](../CURRENT_STATE.md). The matrix text below is retained
+> as the v1.3.0 evidence it was.
 
 The restore contract remains backup envelope format 1 plus IndexedDB schema 2.
 The executable application version is allowed to change. Restore upgrades

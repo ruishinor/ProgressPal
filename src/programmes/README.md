@@ -5,8 +5,18 @@ validated registry that lists them. Contract: `docs/post-release/epic-c/C0_PROGR
 
 Current responsibilities:
 
-- one production definition, `cs50x-2026` (`cs50x-2026/`), whose definition
-  key equals its catalogue identity for compatibility through C5;
+- two production definitions: `cs50x-2026` (`cs50x-2026/`, the default),
+  whose definition key equals its catalogue identity for compatibility
+  through C5, and `programvareutvikling-2026` (`programvareutvikling/`,
+  Epic E), the authored Bokmål S1-M01/S1-M02 slice;
+- Programvareutvikling content: a committed runtime snapshot in
+  `programvareutvikling/content/` (manifest plus one file per module),
+  generated and checked by `scripts/programvareutvikling-content.mjs` from
+  the read-only authoring workspace (source SHA-256, content version and
+  per-exercise content hashes recorded; never hand-edited), served through
+  an asynchronous lesson content provider with the programme's own lesson
+  copy and learner-wording rules (`lessonCopy.ts`). It sets no shell brand
+  (OD-6 is open) and no checkpoint pass or gate retry rule (K-4, K-3);
 - a reference to the existing bundled catalogue (`@/seed`), used in place and
   never copied or migrated here;
 - CS50 core policy (C3, `cs50x-2026/policy.ts`, `cs50x-2026/achievements.ts`):
@@ -28,7 +38,8 @@ Current responsibilities:
   XP reward source key (generated and fixed, from the shared derivation in
   `@/lib/domain`) and any achievement ID that is not one of the six shared
   ones. Long-form asset, slice and resume IDs are pure functions of the item
-  ID, so item-ID uniqueness covers them. Production registers CS50 only, built
+  ID, so item-ID uniqueness covers them. Exercise subject IDs are a further
+  collision domain. Production registers CS50 and Programvareutvikling, built
   through the same validated path (`getProgrammeRegistry`);
 - there is no "active definition" here. The active programme is the persisted
   `app_meta.activeProgrammeId`; the application composition root
@@ -44,8 +55,9 @@ Current responsibilities:
 Boundaries (ESLint and `tests/architecture/programmesLayer.test.ts`):
 
 - this layer imports only `@/lib/domain`, `@/lib/validation`, the
-  `@/lib/achievements` entrypoint and `@/seed`, plus `zod`; no app, component,
-  feature, DB, storage, app-state or asset imports;
+  `@/lib/achievements` entrypoint and `@/seed`, plus `zod`, and a programme
+  may import its own committed content JSON; no app, component, feature, DB,
+  storage, app-state or asset imports;
 - `src/lib/**` and `src/components/**` never import it; `src/app/**` and
   `src/features/**` use the `@/programmes` entrypoint only. The composition
   root derives the database migration context (Epic C / C6) from

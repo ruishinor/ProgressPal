@@ -13,6 +13,13 @@ Current responsibilities:
 - long-form asset derivation, slice generation, immutable media-event logging,
   and resume-point persistence for eligible seeded items
 - atomic backup restore, reset, rollback, and export/import audit records
+- schema v4 (Epic E, accepted E-SCHEMA-1): the append-only `learner_evidence`
+  log (immutable `exercise_attempt`, `evaluation_result`, `support_event`
+  and `checkpoint_result` rows; `learnerEvidence.ts`) and the mutable
+  `lesson_positions` bookmark. An attempt commits before it is evaluated, its
+  one terminal result commits afterwards in the same logical write scope, and
+  nothing about mastery is stored. The live v3 → v4 upgrade is additive; the
+  backup baseline is native schema 4 (older exports are refused clearly)
 
 Cross-tab write safety lives in `src/lib/storage`. Repository mutations check
 that coordinator at the outer transaction boundary; nested writes announce one

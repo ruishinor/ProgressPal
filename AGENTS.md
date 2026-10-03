@@ -129,7 +129,7 @@ One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`
 - Prettier: LF line endings, single quotes, trailing commas (`prettier.config.cjs`); `.gitattributes` enforces `eol=lf`.
 - ESLint flat config (`eslint.config.js`): recommended JS + typescript-eslint, `react-hooks`, and `react-refresh/only-export-components` (constant exports allowed). `--max-warnings 0` means warnings fail.
 - Follow existing project patterns: feature modules expose a single `index.ts` entrypoint; read models and engines live in `src/lib/` or `features/*/model.ts`; domain schemas are Zod-based in `src/lib/domain/` (generic parsing helpers in `src/lib/validation/`).
-- Vite `manualChunks` splits `storage-safety`, `backup`, `router`, `react`, `zod`, `dexie`, and `vendor` chunks to keep each raw chunk under the 500 kB budget. Preserve static imports — no lazy/dynamic route chunks (the offline service worker relies on install-time discovery of all boot assets).
+- Vite `manualChunks` splits `storage-safety`, `backup`, `router`, `react`, `zod`, `dexie`, and `vendor` chunks, plus one static `content-<programme>-<file>` chunk per committed programme content file, to keep each raw chunk under the 500 kB budget. Preserve static imports — no lazy/dynamic route chunks (the offline service worker relies on install-time discovery of all boot assets).
 - Several folders carry their own `README.md` describing scope and boundaries (`src/lib/db/`, `src/seed/`, `src/features/*/`) — read and respect them when editing there.
 
 ### Operating standard (from CONTRIBUTING.md)
@@ -146,7 +146,7 @@ Use concern-scoped commits and record status in `docs/CURRENT_STATE.md`. The old
 
 The security model is "local-only" (see `SECURITY.md`, `PRIVACY.md`, `docs/storage-safety.md`):
 
-- All user data lives in IndexedDB via Dexie (`src/lib/db/database.ts`, schema v3). No cookies or web storage for learner data; no server copy of anything.
+- All user data lives in IndexedDB via Dexie (`src/lib/db/database.ts`, schema v4 since Epic E: the `learner_evidence` log and `lesson_positions` bookmark join the earlier stores). No cookies or web storage for learner data; no server copy of anything.
 - Cross-tab write safety lives in `src/lib/storage/`: a BroadcastChannel/storage-event coordination protocol makes extra tabs read-only; it is same-browser-profile coordination, not distributed locking, and adds no IndexedDB tables.
 - `public/sw.js` is a dependency-free, production-only offline service worker. It caches only same-origin static build assets and never touches IndexedDB. Keep it that way.
 - Production source maps are forbidden (enforced by `npm run check:bundle`).
