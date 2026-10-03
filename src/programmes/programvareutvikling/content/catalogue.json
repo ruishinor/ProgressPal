@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "5d6af68e7a417978e6aaf4389d9a99c2ae11be008a3a9ed6a9dda7c554b8cf5a",
+  "sourceSha256": "58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -546,20 +546,20 @@
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.848a1bce0c2154c7.json",
-      "sha256": "848a1bce0c2154c7ae8922d70ed5a1a4269308b7e5619ab2594de88ae447e4f9",
+      "path": "content/programvareutvikling/index.89c5487eb5465ee5.json",
+      "sha256": "89c5487eb5465ee50741a7c5aa6564e391e167b5ded414f1f47176876547b8b0",
       "bytes": 197989
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.95facf1d8d2dac69.json",
-        "sha256": "95facf1d8d2dac69da8b79c75ccfacf6bed77e18bf78e2d2551e24b5f3cb3792",
-        "bytes": 270343
+        "path": "content/programvareutvikling/s1-m01.a6a4c4a8c3157c77.json",
+        "sha256": "a6a4c4a8c3157c77ff89728c7798fd29693563402b7104f03ca5345bd80d7ec1",
+        "bytes": 270371
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.723074b4512c0c8b.json",
-        "sha256": "723074b4512c0c8b7a7a9cc1948c61b6d61c43701ba2e46bbb7e21102169a969",
-        "bytes": 265703
+        "path": "content/programvareutvikling/s1-m02.5b5935ed513a0f29.json",
+        "sha256": "5b5935ed513a0f29635875439ce970dc66695f3cda9f1c8b7505ccc88e8a8008",
+        "bytes": 265687
       }
     }
   }

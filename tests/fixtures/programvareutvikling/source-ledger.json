@@ -1,11 +1,11 @@
 {
-  "sourceSha256": "5d6af68e7a417978e6aaf4389d9a99c2ae11be008a3a9ed6a9dda7c554b8cf5a",
+  "sourceSha256": "58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127",
   "contentVersion": 2,
   "units": [
     {
       "unitId": "S1-M01-L01",
       "stringCount": 77,
-      "sha256": "1d7d4133e5c548c05caa8a647d18bfb0b9b82ee4567a50e0ddc07457567e19ab"
+      "sha256": "418597d2034a44d975978e78fef6b0991a0e4bb2a5d7f77d13f2d09996e4ac0e"
     },
     {
       "unitId": "S1-M01-P01",
@@ -80,12 +80,12 @@
     {
       "unitId": "S1-M01-L08",
       "stringCount": 101,
-      "sha256": "f6a8fc84988f0f5511ca1d8f8d716fa60a9d7f442e21bbf946811e71f5517d49"
+      "sha256": "ecc9fc8f16ccd8fc09d06fc283a0f7e070c0b7009e17434fc8c8b2696cd5ce5b"
     },
     {
       "unitId": "S1-M01-P08",
       "stringCount": 573,
-      "sha256": "68660b621b864d527ad8aa4734c1c148269c0ac7c23865a278a483b630b749eb"
+      "sha256": "077b24fe772760275fd4d3e27eab17f5be912fa8bc083113c9d0aca65235aec1"
     },
     {
       "unitId": "S1-M01-L09",
@@ -210,7 +210,7 @@
     {
       "unitId": "S1-M02-P09",
       "stringCount": 205,
-      "sha256": "4f778bd57767a14c51b4deb81129a98fc424d37992f8c183dc8fc816fe35f68a"
+      "sha256": "e50a7c23ebb1cdeb6a27e281630cc41f1029423908952e3f226aff194dbe9713"
     },
     {
       "unitId": "S1-M02-LAB",

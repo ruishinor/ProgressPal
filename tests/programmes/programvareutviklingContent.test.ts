@@ -32,7 +32,7 @@ import {
  */
 
 const pilotSha256 =
-  '5d6af68e7a417978e6aaf4389d9a99c2ae11be008a3a9ed6a9dda7c554b8cf5a';
+  '58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -105,7 +105,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_121_780,
+      bytes: 1_121_792,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
@@ -243,6 +243,20 @@ describe('§6 Programme #2 sanitation', () => {
       'Lag commit-en på din egen maskin. Lim inn `git log --oneline`. Øverst skal den nye commit-en stå. ProgressPal kan sjekke teksten du limer inn, men kan ikke se Git-historikken på maskinen din.',
     );
     expect(manifest.source.knownSourceDefects).toEqual([]);
+  });
+
+  it('carries no "-klinikk" naming in any learner-facing string, and keeps "Feilsøking av oppsett"', () => {
+    const everything: Json[] = [
+      ...allSnapshotJson,
+      manifest as unknown as Json,
+      p2Catalogue as unknown as Json,
+    ];
+    const strings = everything.flatMap((json) =>
+      stringLeaves(json).map(([, text]) => text),
+    );
+
+    expect(strings.filter((text) => /klinikk/i.test(text))).toEqual([]);
+    expect(strings).toContain('Feilsøking av oppsett');
   });
 });
 
