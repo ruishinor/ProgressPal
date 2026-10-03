@@ -57,7 +57,14 @@ export type AppStateContextValue = {
   requiresOnboarding: boolean;
   saveProfile: (
     input: SaveLearnerProfileInput,
-    options?: { completeOnboarding?: boolean },
+    options?: {
+      completeOnboarding?: boolean;
+      /**
+       * A fresh learner's explicit programme choice (owner decision
+       * 2026-10-03); ignored once onboarding is complete.
+       */
+      startingProgrammeId?: string;
+    },
   ) => Promise<{
     appMeta: AppMeta;
     learnerProfile: LearnerProfile;

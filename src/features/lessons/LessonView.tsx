@@ -33,6 +33,7 @@ import {
   recoverUnresolvedAttempts,
 } from '@/lib/evaluation';
 import { deriveProgrammeMastery } from '@/lib/mastery';
+import { createLessonAwardPlanner } from '@/lib/rewards';
 
 import { ExerciseCard } from './ExerciseCard';
 import { LessonTextBlockView } from './LessonBlocks';
@@ -254,6 +255,21 @@ function LessonSurface({
     () => bundle?.exercises.map((entry) => entry.meta.subjectId) ?? [],
     [bundle],
   );
+  const lessonXp = scope.policy.lessonXp;
+  const runtimeAvailable = runtime.status() === 'available';
+  // The programme's lesson XP rules over the whole content index; results
+  // run it in their own transaction against every evidence row.
+  const awardXp = useMemo(
+    () =>
+      lessonXp === undefined || load.status !== 'ready'
+        ? undefined
+        : createLessonAwardPlanner({
+            policy: lessonXp,
+            index: load.index,
+            runtimeAvailable,
+          }),
+    [lessonXp, load, runtimeAvailable],
+  );
 
   const reloadEvidence = useCallback(async () => {
     if (subjectIds.length === 0) {
@@ -305,9 +321,18 @@ function LessonSurface({
           contentHash: entry.meta.contentHash,
         })),
         runtime,
+        awardXp,
       }),
     ).catch(() => undefined);
-  }, [bundle, coordination.canWrite, evidence, programmeId, runtime, write]);
+  }, [
+    awardXp,
+    bundle,
+    coordination.canWrite,
+    evidence,
+    programmeId,
+    runtime,
+    write,
+  ]);
 
   const savePosition = useCallback(
     async (stepIndex: number) => {
@@ -362,13 +387,19 @@ function LessonSurface({
     mission.surface === 'reinforcement'
       ? (mission.optionalMinutes ?? mission.minutes)
       : mission.minutes;
-  const moduleBlockers =
-    deriveProgrammeMastery({
-      index,
-      evidence: [],
-      openedMissionIds: new Set(),
-      runtimeAvailable: runtime.status() === 'available',
-    }).modules[readyBundle.moduleId]?.blockers ?? [];
+  // A module checkpoint's gate items are this lesson's own exercises, so
+  // the lesson's evidence is all its judgement (K-4) reads.
+  const mastery =
+    mission.surface === 'checkpoint'
+      ? deriveProgrammeMastery({
+          index,
+          evidence,
+          openedMissionIds: new Set(),
+          runtimeAvailable,
+        })
+      : null;
+  const checkpoint = mastery?.checkpoints[readyBundle.moduleId];
+  const moduleBlockers = mastery?.modules[readyBundle.moduleId]?.blockers ?? [];
   const reminder =
     position === null ? null : reminderBefore(steps, position.stepIndex);
   const missionsById = new Map(
@@ -419,9 +450,26 @@ function LessonSurface({
         {readyBundle.closedLesson ? (
           <p className="lesson-note">{copy.text.closedLessonNotice}</p>
         ) : null}
-        {mission.surface === 'checkpoint' ? (
+        {checkpoint === undefined ? null : checkpoint.status ===
+          'rule_missing' ? (
           <p className="lesson-note">{copy.text.checkpointNotice}</p>
-        ) : null}
+        ) : checkpoint.status === 'cleared' ? (
+          <p className="lesson-note" role="status">
+            {copy.text.checkpointCleared}
+          </p>
+        ) : (
+          <>
+            <p className="lesson-note">{copy.text.checkpointHow}</p>
+            <p className="lesson-note" role="status">
+              {formatCopy(copy, 'checkpointProgress', {
+                done: checkpoint.criteria.filter(
+                  (criterion) => criterion.level === 'D',
+                ).length,
+                count: checkpoint.criteria.length,
+              })}
+            </p>
+          </>
+        )}
         {mission.surface === 'checkpoint' &&
         moduleBlockers.includes('executable_evaluation_unavailable') ? (
           <p className="lesson-note">{copy.text.checkpointRuntimeNotice}</p>
@@ -501,6 +549,7 @@ function LessonSurface({
                           alreadyCorrect={initialCorrect.has(
                             entry.meta.subjectId,
                           )}
+                          awardXp={awardXp}
                           canWrite={coordination.canWrite}
                           closedLesson={readyBundle.closedLesson}
                           context={context}
@@ -510,6 +559,7 @@ function LessonSurface({
                           evidence={evidence.filter(
                             (row) => row.subjectId === entry.meta.subjectId,
                           )}
+                          gateRetryRule={index.gateRetryRule !== null}
                           number={step.exerciseNumber!}
                           onReopenTeaching={
                             teaching === undefined || teaching.itemId === itemId

@@ -280,7 +280,11 @@ describe('K-3 (owner rule 2026-10-03): a checkpoint task can be retried as a new
     );
     await within(group).findByText('Ikke riktig ennå', {}, { timeout: 15_000 });
 
-    fireEvent.click(within(group).getByRole('button', { name: 'Prøv igjen' }));
+    // Write controls stay disabled through the shell's refresh after a
+    // committed mutation, as the answer field does before the first submit.
+    const retry = within(group).getByRole('button', { name: 'Prøv igjen' });
+    await waitFor(() => expect(retry).toBeEnabled());
+    fireEvent.click(retry);
     const retryField = within(group).getByRole('textbox');
     fireEvent.change(retryField, { target: { value: 'still not a command' } });
     fireEvent.click(

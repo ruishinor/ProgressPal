@@ -49,8 +49,6 @@ export type ProgrammeCopy = {
   readonly startupLoadingSummary: string;
   readonly shellActiveSummary: string;
   readonly profileDescription: string;
-  readonly onboardingTitle: string;
-  readonly onboardingDescription: string;
   readonly dashboardDescription: string;
   readonly dashboardErrorDescription: string;
   readonly courseMapEyebrow: string;

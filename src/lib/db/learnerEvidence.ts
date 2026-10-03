@@ -18,12 +18,13 @@ import {
   type SupportKind,
   type XpTransaction,
 } from '@/lib/domain';
-import type { PotentialXpAward } from '@/lib/xp/engine';
+import type { PotentialXpAward, XpSummary } from '@/lib/xp/engine';
 import { parseWithSchema } from '@/lib/validation';
 
 import { isAuthorizedProgramme, type ProgressPalDatabase } from './database';
 import {
   awardXpOnce,
+  calculateStoredXpSummary,
   createLogicalWriteScope,
   defaultClock,
   ensureBaseInitialization,
@@ -126,6 +127,11 @@ type ResultWriteOptions = BaseDatabaseOptions & {
 
 export type ResultWriteResult = EvidenceWriteResult<EvaluationResultRecord> & {
   awardedTransactions: XpTransaction[];
+  /**
+   * The programme's XP summary read in the same transaction, after the
+   * awards; null when no planner was supplied.
+   */
+  xpSummary: XpSummary | null;
 };
 
 type EvidenceReadOptions = BaseDatabaseOptions & {
@@ -468,7 +474,12 @@ async function insertResult(
           resultPayload(existing, existing) === incoming &&
           idIsFree
         ) {
-          return { record: existing, created: false, awardedTransactions: [] };
+          return {
+            record: existing,
+            created: false,
+            awardedTransactions: [],
+            xpSummary: null,
+          };
         }
 
         throw new LearnerEvidenceConflictError(
@@ -483,17 +494,22 @@ async function insertResult(
       }
 
       await database.learnerEvidence.add(record);
+      const awardedTransactions = await awardForResult(
+        database,
+        attempt,
+        record as EvaluationResultRecord,
+        options.awardXp,
+        options.now,
+      );
 
       return {
         record,
         created: true,
-        awardedTransactions: await awardForResult(
-          database,
-          attempt,
-          record as EvaluationResultRecord,
-          options.awardXp,
-          options.now,
-        ),
+        awardedTransactions,
+        xpSummary:
+          options.awardXp === undefined
+            ? null
+            : await calculateStoredXpSummary(database, attempt.programmeId),
       };
     },
   );
@@ -556,6 +572,8 @@ export type AttemptLifecycleResult = {
   result: EvaluationResultRecord | null;
   /** XP the newly recorded result earned in its programme (E-SCHEMA-1A). */
   awardedTransactions: XpTransaction[];
+  /** The programme's XP summary after the result; null without a planner. */
+  xpSummary: XpSummary | null;
 };
 
 /**
@@ -593,6 +611,7 @@ export async function submitAttemptAndRecordResult(
         attemptCreated: attempt.created,
         result: result?.kind === 'evaluation_result' ? result : null,
         awardedTransactions: [],
+        xpSummary: null,
       };
     }
 
@@ -604,6 +623,7 @@ export async function submitAttemptAndRecordResult(
         attemptCreated: attempt.created,
         result: null,
         awardedTransactions: [],
+        xpSummary: null,
       };
     }
 
@@ -620,6 +640,7 @@ export async function submitAttemptAndRecordResult(
       attemptCreated: attempt.created,
       result: result.record,
       awardedTransactions: result.awardedTransactions,
+      xpSummary: result.xpSummary,
     };
   });
 }

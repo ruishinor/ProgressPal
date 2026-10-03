@@ -1498,12 +1498,40 @@ export async function getProfile(options: BaseDatabaseOptions = {}) {
       );
 }
 
+/**
+ * A fresh learner's explicit choice of the programme to start with (owner
+ * decision 2026-10-03), with that programme's own catalogue.
+ */
+export type StartingProgrammeChoice = {
+  readonly programmeId: string;
+  readonly seed: CourseSeed;
+};
+
 export async function saveLearnerProfile(
   input: SaveLearnerProfileInput,
-  options: BaseDatabaseOptions & { completeOnboarding?: boolean } = {},
+  options: BaseDatabaseOptions & {
+    completeOnboarding?: boolean;
+    /**
+     * Applied only while this call completes a not-yet-completed onboarding:
+     * an existing or restored learner's programme state is never changed.
+     */
+    startingProgramme?: StartingProgrammeChoice;
+  } = {},
 ) {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
+
+  if (
+    options.startingProgramme !== undefined &&
+    options.completeOnboarding === true
+  ) {
+    return completeOnboardingWithProgramme(
+      database,
+      input,
+      options.startingProgramme,
+      { ...options, db: database },
+    );
+  }
 
   await ensureBaseInitialization(options);
 
@@ -1555,6 +1583,147 @@ export async function saveLearnerProfile(
     appMeta: nextAppMeta,
     learnerProfile,
   };
+}
+
+/**
+ * Learner-activity stores: any row means the learner has used the app.
+ * Content assets and slices are materialized from catalogues; media activity
+ * on them shows in media progress events and resume points.
+ */
+function learnerActivityTables(database: ProgressPalDatabase) {
+  return [
+    database.progressEntries,
+    database.mediaProgressEvents,
+    database.resumePoints,
+    database.studySessions,
+    database.xpTransactions,
+    database.achievementUnlocks,
+    database.backups,
+    database.learnerEvidence,
+    database.lessonPositions,
+  ];
+}
+
+/**
+ * Completes a fresh onboarding with the learner's explicit programme choice
+ * (owner decision 2026-10-03), in one logical write: the chosen programme's
+ * catalogue is prepared first (a failure changes nothing), then one
+ * transaction re-reads the app metadata and, only if onboarding is still
+ * incomplete, enrols in and activates the chosen programme, saves the
+ * profile and completes onboarding. The programme the first run activated
+ * by default is unenrolled only while no learner activity exists anywhere,
+ * so a fresh learner keeps exactly the programme they chose. Once
+ * onboarding is complete (an existing or restored learner) the choice is
+ * ignored and only the profile is saved.
+ */
+async function completeOnboardingWithProgramme(
+  database: ProgressPalDatabase,
+  input: SaveLearnerProfileInput,
+  choice: StartingProgrammeChoice,
+  options: BaseDatabaseOptions,
+) {
+  const now = options.now ?? defaultClock;
+
+  assertAuthorizedProgramme(database, choice.programmeId);
+  assertSeedBelongsToProgramme(database, choice.programmeId, choice.seed);
+
+  const writeScope = createLogicalWriteScope(database);
+
+  try {
+    const { appMeta: initialAppMeta } = await ensureBaseInitialization(
+      options,
+      writeScope,
+    );
+
+    if (
+      initialAppMeta.onboardingCompletedAt === undefined &&
+      initialAppMeta.activeProgrammeId !== choice.programmeId
+    ) {
+      await ensureCourseCatalogFromSeedWithinScope(
+        choice.seed,
+        { db: database, now: options.now, skipBaseInitialization: true },
+        writeScope,
+      );
+    }
+
+    writeScope.coordinatedWrite.begin();
+
+    const saved = await database.transaction(
+      'rw',
+      [
+        database.appMeta,
+        database.learnerProfile,
+        database.programmeEnrolments,
+        ...learnerActivityTables(database),
+      ],
+      async () => {
+        const timestamp = now();
+        const stored = parseWithSchema(
+          AppMetaSchema,
+          await database.appMeta.get(singletonIds.appMeta),
+          'Stored app metadata',
+        );
+        const learnerProfile = parseWithSchema(
+          LearnerProfileSchema,
+          {
+            ...(await getExistingProfileOrThrow(database)),
+            ...input,
+            updatedAt: timestamp,
+          },
+          'Saved learner profile',
+        );
+        const fresh = stored.onboardingCompletedAt === undefined;
+        const previousProgrammeId = stored.activeProgrammeId;
+        const switching = fresh && previousProgrammeId !== choice.programmeId;
+
+        if (
+          switching &&
+          (await database.programmeEnrolments.get(choice.programmeId)) ===
+            undefined
+        ) {
+          await database.programmeEnrolments.add(
+            parseWithSchema(
+              ProgrammeEnrolmentSchema,
+              { programmeId: choice.programmeId, enrolledAt: timestamp },
+              'Programme enrolment',
+            ),
+          );
+        }
+
+        const appMeta = parseWithSchema(
+          AppMetaSchema,
+          {
+            ...stored,
+            ...(switching ? { activeProgrammeId: choice.programmeId } : {}),
+            onboardingCompletedAt: stored.onboardingCompletedAt ?? timestamp,
+            updatedAt: timestamp,
+          },
+          'Updated app metadata',
+        );
+
+        await database.learnerProfile.put(learnerProfile);
+        await database.appMeta.put(appMeta);
+
+        if (switching) {
+          const counts = await Promise.all(
+            learnerActivityTables(database).map((table) => table.count()),
+          );
+
+          if (counts.every((count) => count === 0)) {
+            await database.programmeEnrolments.delete(previousProgrammeId);
+          }
+        }
+
+        return { appMeta, learnerProfile };
+      },
+    );
+
+    writeScope.changed = true;
+
+    return saved;
+  } finally {
+    settleLogicalWriteScope(writeScope);
+  }
 }
 
 export async function updateProfile(
@@ -3072,7 +3241,8 @@ export async function listXpTransactions(
   return sortXpTransactions(await readProgrammeXp(database, programmeId));
 }
 
-async function calculateStoredXpSummary(
+/** @internal One programme's XP summary, read with the caller's database. */
+export async function calculateStoredXpSummary(
   database: ProgressPalDatabase,
   programmeId: string,
 ) {

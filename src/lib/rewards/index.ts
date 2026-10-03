@@ -8,6 +8,12 @@ export {
 } from '@/lib/rewards/RewardNotificationContext';
 export { RewardNotificationProvider } from '@/lib/rewards/RewardNotificationProvider';
 export {
+  createLessonAwardPlanner,
+  planLessonXpAwards,
+  type LessonAwardContext,
+  type LessonAwardPlannerInput,
+} from '@/lib/rewards/lessonXp';
+export {
   deriveRewardEvents,
   isRewardMutationResult,
   type RewardEvent,

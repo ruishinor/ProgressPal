@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -13,7 +13,6 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import { useAppState } from '@/lib/appState';
-import { requireProgrammeScope } from '@/lib/domain';
 import {
   currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
@@ -24,13 +23,25 @@ import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 
 type OnboardingMode = 'quick' | 'customize';
 
+/**
+ * First run. A fresh learner explicitly chooses the programme to start with
+ * (owner decision 2026-10-03): nothing is preselected, no programme is
+ * presented as already chosen, and starting needs a choice. The choice
+ * applies only to a not-yet-completed onboarding, never to an existing or
+ * restored learner.
+ */
 export function OnboardingPage() {
-  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
-    .terminology;
   const location = useLocation();
   const navigate = useNavigate();
-  const { coordination, profile, runLocalMutation, saveProfile } =
-    useAppState();
+  const {
+    coordination,
+    profile,
+    programmeChoices,
+    runLocalMutation,
+    saveProfile,
+  } = useAppState();
+  const programmeDescriptionId = useId();
+  const [programmeId, setProgrammeId] = useState<string | null>(null);
   const [mode, setMode] = useState<OnboardingMode>('quick');
   const [startingDefault, setStartingDefault] = useState(false);
   const [quickStartError, setQuickStartError] = useState(false);
@@ -50,6 +61,10 @@ export function OnboardingPage() {
   }
 
   async function handleUseDefaultLearner() {
+    if (programmeId === null) {
+      return;
+    }
+
     setStartingDefault(true);
     setQuickStartError(false);
 
@@ -62,7 +77,7 @@ export function OnboardingPage() {
           ...defaultLearnerProfileValues,
           targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
         },
-        { completeOnboarding: true },
+        { completeOnboarding: true, startingProgrammeId: programmeId },
       );
       navigate(returnTo, { replace: true });
     } catch {
@@ -97,7 +112,7 @@ export function OnboardingPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description={copy.onboardingDescription}
+        description="Choose a programme and set up a local learner profile. Everything stays on this device."
         eyebrow="Setup"
         meta={
           <>
@@ -105,8 +120,39 @@ export function OnboardingPage() {
             <Badge tone="accent">Stored only on this device</Badge>
           </>
         }
-        title={copy.onboardingTitle}
+        title="Start with ProgressPal"
       />
+      <fieldset
+        aria-describedby={programmeDescriptionId}
+        className="profile-fieldset"
+        role="radiogroup"
+      >
+        <legend className="profile-fieldset__legend">
+          Choose your programme
+        </legend>
+        <p
+          className="profile-fieldset__description"
+          id={programmeDescriptionId}
+        >
+          Pick the programme you want to start with. You can add or switch
+          programmes later in Settings.
+        </p>
+        <div className="checkbox-grid">
+          {programmeChoices.map((choice) => (
+            <label className="checkbox" key={choice.programmeId}>
+              <input
+                checked={programmeId === choice.programmeId}
+                disabled={startingDefault || !coordination.canWrite}
+                name="starting-programme"
+                onChange={() => setProgrammeId(choice.programmeId)}
+                type="radio"
+                value={choice.programmeId}
+              />
+              <span>{choice.title}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
       {mode === 'quick' ? (
         <Card
           description="Everything stays in this browser. No account, no cloud sync, no analytics. You can export, import, or reset it later."
@@ -116,7 +162,7 @@ export function OnboardingPage() {
             <p>Start now with a local profile you can change later.</p>
             <div className="action-row">
               <Button
-                disabled={!coordination.canWrite}
+                disabled={programmeId === null || !coordination.canWrite}
                 loading={startingDefault}
                 onClick={() => {
                   void handleUseDefaultLearner();
@@ -126,7 +172,11 @@ export function OnboardingPage() {
                 Use default learner
               </Button>
               <Button
-                disabled={startingDefault || !coordination.canWrite}
+                disabled={
+                  programmeId === null ||
+                  startingDefault ||
+                  !coordination.canWrite
+                }
                 onClick={() => setMode('customize')}
                 variant="secondary"
               >
@@ -155,11 +205,18 @@ export function OnboardingPage() {
             </Button>
           </div>
           <ProfileForm
-            disabled={!coordination.canWrite}
+            disabled={programmeId === null || !coordination.canWrite}
             key={profile.updatedAt}
             mode="onboarding"
             onSubmit={async (input) => {
-              await saveProfile(input, { completeOnboarding: true });
+              if (programmeId === null) {
+                return;
+              }
+
+              await saveProfile(input, {
+                completeOnboarding: true,
+                startingProgrammeId: programmeId,
+              });
               navigate(returnTo, { replace: true });
             }}
             profile={profile}

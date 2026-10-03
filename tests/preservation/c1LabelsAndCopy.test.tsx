@@ -42,7 +42,7 @@ import {
  *
  * Existing strong coverage is not duplicated: `tests/features/cs50Links.test.ts`
  * and `guideContent.test.ts` pin URL shape and keying; `tests/app/App.test.tsx`
- * pins "Start tracking CS50 locally", "RPG week", "Back to week", "Open
+ * pins the onboarding heading, "RPG week", "Back to week", "Open
  * official CS50x resource", "Log Lecture" and "Problem Set Progress";
  * `tests/features/rpg/readModels.test.ts` pins the RPG identity tuple.
  */
@@ -392,7 +392,9 @@ const renderedCs50Copy: Array<[route: string, strings: string[]]> = [
  */
 const transientCs50Copy = [
   'Preparing local profile data and the bundled CS50 catalog.',
-  'Track CS50 work, sessions, XP, achievements, notes, and progress on this device.',
+  // The CS50 first-run description left with the programme-neutral first run
+  // (owner decision 2026-10-03: a fresh learner explicitly chooses a
+  // programme, and none is presented as already chosen).
   'This page shows your CS50 progress on this device.',
   'This page uses the built-in CS50 course list and your saved progress.',
   'This page shows your CS50 study activity.',

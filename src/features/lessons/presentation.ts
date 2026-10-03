@@ -29,6 +29,7 @@ const surfaces = {
     primary: 'button button--primary button--md',
     secondary: 'button button--secondary button--md',
     quiet: 'button button--quiet button--md',
+    xp: 'badge badge--success badge--soft',
   },
   rpg: {
     name: 'rpg',
@@ -47,6 +48,7 @@ const surfaces = {
     primary: 'rpg-button rpg-button--primary rpg-button--md',
     secondary: 'rpg-button rpg-button--secondary rpg-button--md',
     quiet: 'rpg-button rpg-button--quiet rpg-button--md',
+    xp: 'rpg-status-pill rpg-status-pill--success',
   },
 } as const;
 

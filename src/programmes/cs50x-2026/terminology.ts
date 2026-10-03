@@ -36,9 +36,6 @@ export const cs50Terminology: ProgrammeTerminology = {
       'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, backup, restore, reset, and offline support all run on this device.',
     profileDescription:
       'Your local CS50 profile is the starting point for ProgressPal. It keeps your study target, theme preference, reduced-motion preference, and learning identity on this device.',
-    onboardingTitle: 'Start tracking CS50 locally',
-    onboardingDescription:
-      'Track CS50 work, sessions, XP, achievements, notes, and progress on this device.',
     dashboardDescription:
       'Your CS50 progress on this device. Nothing is synced or stored remotely.',
     dashboardErrorDescription:

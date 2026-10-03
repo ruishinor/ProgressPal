@@ -110,14 +110,20 @@ describe('no CS50 leakage with Programvareutvikling active', () => {
 });
 
 describe('OD-6 (owner decision 2026-10-03): the shell brand is ProgressPal', () => {
-  it.each(['/dashboard', '/rpg'])(
-    '%s shows the product brand and no CS50 edition name',
-    async (route) => {
-      const text = await settledText(route);
+  it('/dashboard shows the product brand and no CS50 edition name', async () => {
+    const text = await settledText('/dashboard');
 
-      expect(text).toContain('ProgressPal');
-      expect(text).not.toMatch(/CS50 Edition/);
-      expect(document.title).toBe('ProgressPal');
-    },
-  );
+    expect(text).toContain('ProgressPal');
+    expect(text).not.toMatch(/CS50 Edition/);
+    expect(document.title).toBe('ProgressPal');
+  });
+
+  // The RPG chrome renders no visible product brand in any programme; the
+  // brand names the document there.
+  it('/rpg is named by the product brand and shows no CS50 edition name', async () => {
+    const text = await settledText('/rpg');
+
+    expect(text).not.toMatch(/CS50 Edition/);
+    expect(document.title).toBe('ProgressPal');
+  });
 });

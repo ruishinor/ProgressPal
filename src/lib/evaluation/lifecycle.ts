@@ -6,6 +6,7 @@ import {
   recordResultsForUnresolvedAttempts,
   submitAttemptAndRecordResult,
   type DatabaseClock,
+  type EvidenceAwardPlanner,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type {
@@ -14,7 +15,9 @@ import type {
   ExerciseAttemptRecord,
   LearnerEvidence,
   LessonExercise,
+  XpTransaction,
 } from '@/lib/domain';
+import type { XpSummary } from '@/lib/xp/engine';
 
 import { checkAnswerReadiness } from './answers';
 import { evaluateExercise, exerciseNeedsRuntime } from './evaluators';
@@ -42,6 +45,11 @@ export type SubmissionBinding = {
   readonly contentHash: string;
   /** Authored metadata: a module-checkpoint gate item (K-3 applies). */
   readonly masteryGate: boolean;
+  /**
+   * Whether the content carries the owner-approved gate retry rule (K-3,
+   * 2026-10-03). Without it a gate item has no retry (fail closed).
+   */
+  readonly gateRetryRule?: boolean;
 };
 
 export type SubmissionContext = SubmissionBinding & {
@@ -58,6 +66,8 @@ export type SubmissionContext = SubmissionBinding & {
     attempt: ExerciseAttemptRecord,
   ) => void | Promise<void>;
   readonly beforeResultCommitted?: () => void | Promise<void>;
+  /** The programme's lesson XP rules, run in the result's transaction. */
+  readonly awardXp?: EvidenceAwardPlanner;
 };
 
 export type SubmissionInput = {
@@ -82,6 +92,15 @@ export type SubmissionOutcome =
       readonly status: 'evaluated';
       readonly attempt: ExerciseAttemptRecord;
       readonly result: EvaluationResultRecord;
+      /** XP the result earned in its programme (empty without awards). */
+      readonly awardedTransactions: readonly XpTransaction[];
+      /**
+       * Present only when awards were planned: the reward-mutation shape the
+       * shell announces level-ups from (lesson results unlock no
+       * achievements).
+       */
+      readonly xpSummary?: XpSummary;
+      readonly unlockedAchievements?: readonly [];
     };
 
 export type RetryPermission =
@@ -96,11 +115,17 @@ export function subjectIdOf(exercise: LessonExercise): string {
 
 /**
  * Whether a new attempt may be submitted. Formative retry is unlimited
- * (DC-14). A gate item's retry rule (K-3) is not authored and not
- * owner-approved, so no gate-item retry exists: no fallback is chosen.
+ * (DC-14). A gate item may be retried only under the owner-approved K-3 rule
+ * the content carries (2026-10-03): a retry is a new attempt on the same
+ * task, and success after a failure there reaches at most Practised from
+ * that task (the mastery engine applies that). Without the rule no gate-item
+ * retry exists and no fallback is chosen.
  */
 export function retryPermission(
-  binding: Pick<SubmissionBinding, 'exercise' | 'masteryGate'>,
+  binding: Pick<
+    SubmissionBinding,
+    'exercise' | 'masteryGate' | 'gateRetryRule'
+  >,
   evidence: readonly LearnerEvidence[],
 ): RetryPermission {
   const subjectId = subjectIdOf(binding.exercise);
@@ -117,7 +142,9 @@ export function retryPermission(
     return 'blocked_unresolved';
   }
 
-  return binding.masteryGate ? 'blocked_gate_retry_rule_missing' : 'allowed';
+  return binding.masteryGate && binding.gateRetryRule !== true
+    ? 'blocked_gate_retry_rule_missing'
+    : 'allowed';
 }
 
 export async function submitAnswer(
@@ -190,7 +217,7 @@ export async function submitAnswer(
             : { matchedFeedbackKey: verdict.matchedFeedbackKey }),
         };
       },
-      { db: context.db, now: context.now },
+      { db: context.db, now: context.now, awardXp: context.awardXp },
     );
 
     return lifecycle.result === null
@@ -199,6 +226,13 @@ export async function submitAnswer(
           status: 'evaluated',
           attempt: lifecycle.attempt,
           result: lifecycle.result,
+          awardedTransactions: lifecycle.awardedTransactions,
+          ...(lifecycle.xpSummary === null
+            ? {}
+            : {
+                xpSummary: lifecycle.xpSummary,
+                unlockedAchievements: [] as const,
+              }),
         };
   } catch (error) {
     if (crash !== null) {
@@ -240,6 +274,8 @@ export async function recoverUnresolvedAttempts(options: {
   readonly runtime: PythonRuntime;
   readonly db?: ProgressPalDatabase;
   readonly now?: DatabaseClock;
+  /** The programme's lesson XP rules, run in each result's transaction. */
+  readonly awardXp?: EvidenceAwardPlanner;
 }): Promise<RecoveryOutcome[]> {
   const bySubject = new Map(
     options.exercises.map((entry) => [subjectIdOf(entry.exercise), entry]),
@@ -283,7 +319,7 @@ export async function recoverUnresolvedAttempts(options: {
           : { matchedFeedbackKey: verdict.matchedFeedbackKey }),
       };
     },
-    { db: options.db, now: options.now },
+    { db: options.db, now: options.now, awardXp: options.awardXp },
   );
 
   return statuses.map((status) => ({

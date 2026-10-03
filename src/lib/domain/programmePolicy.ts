@@ -213,6 +213,44 @@ export const XpPolicySchema = z
 export type XpPolicy = z.infer<typeof XpPolicySchema>;
 
 /**
+ * XP for authored lessons (owner decision 2026-10-03; E-SCHEMA-1A), owned by
+ * the programme that delivers them. Only correct work earns: a solved task
+ * once (with or without hints), an authored milestone, an independent first
+ * recall, a completed lesson, a cleared module checkpoint and a completed
+ * module. Reasons are templates with {lesson} and {module}.
+ */
+export const LessonXpPolicySchema = z
+  .object({
+    solved: z
+      .object({
+        formative: xpAmountSchema,
+        practical: xpAmountSchema,
+        retrieval: xpAmountSchema,
+        checkpoint: xpAmountSchema,
+        optional: xpAmountSchema,
+      })
+      .strict(),
+    authoredMilestone: xpAmountSchema,
+    independentRecall: xpAmountSchema,
+    lessonCompleted: xpAmountSchema,
+    checkpointCleared: xpAmountSchema,
+    moduleCompleted: xpAmountSchema,
+    reasons: z
+      .object({
+        solved: reasonSchema,
+        authoredMilestone: reasonSchema,
+        independentRecall: reasonSchema,
+        lessonCompleted: reasonSchema,
+        checkpointCleared: reasonSchema,
+        moduleCompleted: reasonSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
+export type LessonXpPolicy = z.infer<typeof LessonXpPolicySchema>;
+
+/**
  * The complete set of XP award identities (see {@link getXpAwardSourceKey})
  * that the XP engine can generate for a catalogue under a policy: item
  * completion awards, status milestones, required-unit completion bonuses and
@@ -327,6 +365,8 @@ export function getWorkflowTerminalStatus(
 export type ProgrammePolicy = {
   readonly catalogueRules: CatalogueRules;
   readonly xp: XpPolicy;
+  /** XP for authored lessons, when the programme delivers them. */
+  readonly lessonXp?: LessonXpPolicy;
   readonly workflow: SubmissionWorkflow;
   /**
    * The composed, ordered achievement catalogue: the programme's own

@@ -315,7 +315,7 @@ test('isolates a second browser context into its own fresh onboarding state', as
     await isolatedPage.goto('/');
     await expect(
       isolatedPage.getByRole('heading', {
-        name: 'Start tracking CS50 locally',
+        name: 'Start with ProgressPal',
       }),
     ).toBeVisible();
   } finally {

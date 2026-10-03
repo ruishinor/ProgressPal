@@ -16,7 +16,7 @@ import {
   type PythonRuntime,
   type SubmissionOutcome,
 } from '@/lib/evaluation';
-import { recordSupportEvent } from '@/lib/db';
+import { recordSupportEvent, type EvidenceAwardPlanner } from '@/lib/db';
 
 import {
   answerToDraft,
@@ -43,6 +43,8 @@ export type LessonWrite = <Result>(
 
 type ExerciseCardProps = {
   readonly alreadyCorrect: boolean;
+  /** The programme's lesson XP rules, or undefined when it has none. */
+  readonly awardXp: EvidenceAwardPlanner | undefined;
   readonly canWrite: boolean;
   readonly closedLesson: boolean;
   readonly context: MarkupContext;
@@ -50,6 +52,8 @@ type ExerciseCardProps = {
   readonly copy: LessonUiCopy;
   readonly entry: LessonExerciseEntry;
   readonly evidence: readonly LearnerEvidence[];
+  /** Whether the content carries the owner-approved gate retry rule (K-3). */
+  readonly gateRetryRule: boolean;
   readonly number: number;
   readonly onReopenTeaching: (() => Promise<void>) | null;
   readonly onSubmitted: () => Promise<void>;
@@ -70,6 +74,7 @@ const refusalCopy = {
 
 export function ExerciseCard({
   alreadyCorrect,
+  awardXp,
   canWrite,
   closedLesson,
   context,
@@ -77,6 +82,7 @@ export function ExerciseCard({
   copy,
   entry,
   evidence,
+  gateRetryRule,
   number,
   onReopenTeaching,
   onSubmitted,
@@ -95,6 +101,8 @@ export function ExerciseCard({
     'none',
   );
   const [notice, setNotice] = useState<string | null>(null);
+  // XP the last submission in this view earned, from its committed result.
+  const [earnedXp, setEarnedXp] = useState(0);
 
   const attempts = evidence
     .filter(
@@ -114,7 +122,7 @@ export function ExerciseCard({
     latest === undefined ? undefined : resultsByAttempt.get(latest.id);
   const unresolved = latest !== undefined && latestResult === undefined;
   const permission = retryPermission(
-    { exercise, masteryGate: meta.masteryGate },
+    { exercise, masteryGate: meta.masteryGate, gateRetryRule },
     evidence,
   );
   const hintsRevealed = Math.max(
@@ -130,8 +138,13 @@ export function ExerciseCard({
   );
   const runtimeBlocked =
     exerciseNeedsRuntime(exercise) && runtime.status() !== 'available';
+  // The result shows once its submission has finished, together with the
+  // controls that follow it (retry, remediation), never while still busy.
   const showResult =
-    latest !== undefined && latestResult !== undefined && !retrying;
+    latest !== undefined &&
+    latestResult !== undefined &&
+    !retrying &&
+    busy !== 'submit';
   const formDisabled =
     !canWrite || busy !== 'none' || runtimeBlocked || unresolved || showResult;
   const shownDraft =
@@ -192,7 +205,9 @@ export function ExerciseCard({
             exercise,
             contentHash: meta.contentHash,
             masteryGate: meta.masteryGate,
+            gateRetryRule,
             runtime,
+            awardXp,
           },
           { attemptId, resultId: `result-${attemptId}`, answer },
         ),
@@ -207,10 +222,21 @@ export function ExerciseCard({
       setNotice(copy.text.notSaved);
     } else {
       setRetrying(false);
-      await onSubmitted().catch(() => undefined);
+      setEarnedXp(
+        outcome.status === 'evaluated'
+          ? outcome.awardedTransactions.reduce(
+              (total, transaction) => total + transaction.xp,
+              0,
+            )
+          : 0,
+      );
     }
 
     setBusy('none');
+
+    if (outcome.status === 'evaluated' || outcome.status === 'pending') {
+      await onSubmitted().catch(() => undefined);
+    }
   }
 
   async function reopenTeaching() {
@@ -316,6 +342,13 @@ export function ExerciseCard({
           {result.messages.map((message, index) => (
             <Markup context={context} key={index} text={message} />
           ))}
+          {earnedXp > 0 ? (
+            <p>
+              <span className={surfaces.xp}>
+                {formatCopy(copy, 'xpEarned', { xp: earnedXp })}
+              </span>
+            </p>
+          ) : null}
           {latestResult?.outcome === 'correct' ? (
             <CorrectExtras context={context} copy={copy} entry={entry} />
           ) : null}
@@ -331,6 +364,7 @@ export function ExerciseCard({
                 setDraft(answerToDraft(exercise, latest!.answer));
                 setRetrying(true);
                 setNotice(null);
+                setEarnedXp(0);
               }}
               type="button"
             >

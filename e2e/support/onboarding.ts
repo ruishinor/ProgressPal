@@ -7,17 +7,27 @@ import { expect, type Page } from '@playwright/test';
  * detailed form behind the quick-start choices. `options.theme` selects the
  * PreferredTheme picked in the form; it defaults to 'dark' so every existing
  * caller keeps its current behavior ('light' is also a valid PreferredTheme).
+ * A fresh learner explicitly chooses the starting programme first (owner
+ * decision 2026-10-03); `options.programme` defaults to CS50x, so every
+ * existing caller keeps its current behavior.
  */
 export async function completeOnboarding(
   page: Page,
-  options: { theme?: 'dark' | 'light' } = {},
+  options: {
+    theme?: 'dark' | 'light';
+    programme?: 'CS50x' | 'Programvareutvikling';
+  } = {},
 ) {
   await page.goto('/');
 
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toBeVisible();
 
+  await page
+    .getByRole('radiogroup', { name: 'Choose your programme' })
+    .getByRole('radio', { name: new RegExp(options.programme ?? 'CS50x') })
+    .check();
   await page.getByRole('button', { name: 'Customize first' }).click();
 
   await expect(

@@ -468,14 +468,22 @@ describe('M02 clearance needs executable evidence, which is never removed from t
     expect(readiness.cleared).toBe(false);
   });
 
-  it('keeps M01 free of a runtime blocker for its critical skills', () => {
-    const mastery = derive([]);
+  // K-4 (owner rule 2026-10-03) supersedes the earlier "critical skills only"
+  // reading: every gate item of every gating task must qualify, so M01's one
+  // runtime gate item (criterion c) blocks clearance while Python is
+  // unavailable, and only then.
+  it('blocks M01 on its one runtime gate item only while executable evaluation is unavailable', () => {
+    const offline = derive([]);
+    const online = derive([], [], true);
 
-    expect(mastery.modules['S1-M01']!.blockers).not.toContain(
+    expect(offline.modules['S1-M01']!.blockers).toContain(
+      'executable_evaluation_unavailable',
+    );
+    expect(online.modules['S1-M01']!.blockers).not.toContain(
       'executable_evaluation_unavailable',
     );
     expect(
-      mastery.modules['S1-M01']!.requiredGateEvidence.runtimeUnavailable,
+      offline.modules['S1-M01']!.requiredGateEvidence.runtimeUnavailable,
     ).toEqual(['s1-m01-chk-e01']);
   });
 });

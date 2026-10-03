@@ -87,6 +87,7 @@ export {
   type RecordBackupEventInput,
   type RestoreDatabaseFromBackupOptions,
   type SaveLearnerProfileInput,
+  type StartingProgrammeChoice,
   type UpdateLearnerProfileInput,
   type UpsertProgressInput,
   type UpsertProgressWithXpResult,

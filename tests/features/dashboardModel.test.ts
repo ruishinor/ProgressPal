@@ -106,6 +106,7 @@ function xpTx(
   return {
     awardedAt: '2026-06-12T08:00:00.000Z',
     createdAt: TS,
+    programmeId: 'cs50x',
     reason: 'Earned XP',
     sourceId: overrides.id,
     sourceType: 'study_session',

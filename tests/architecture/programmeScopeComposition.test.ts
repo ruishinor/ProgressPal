@@ -235,7 +235,7 @@ describe('C7 programme boundary guards', () => {
   it('exposes programme switching to no surface but Settings', () => {
     const consumers = filesReferencing(
       runtimeFiles,
-      /\b(?:switchProgramme|enrolAndSwitchProgramme|programmeChoices)\b/,
+      /\b(?:switchProgramme|enrolAndSwitchProgramme)\b/,
     );
 
     for (const file of consumers) {
@@ -248,6 +248,22 @@ describe('C7 programme boundary guards', () => {
     expect(consumers).toContain(
       'src/features/settings/components/SettingsSurface.tsx',
     );
+  });
+
+  // Owner decision 2026-10-03: a fresh learner explicitly chooses the
+  // starting programme during onboarding. The first run reads the choices;
+  // it never switches an existing learner's programme.
+  it('offers the programme choices only to Settings and the first run', () => {
+    const consumers = filesReferencing(runtimeFiles, /\bprogrammeChoices\b/);
+
+    for (const file of consumers) {
+      expect(
+        file.startsWith('src/lib/appState/') ||
+          file === 'src/features/settings/components/SettingsSurface.tsx' ||
+          file === 'src/features/profile/routes/OnboardingPage.tsx',
+        file,
+      ).toBe(true);
+    }
   });
 });
 

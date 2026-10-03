@@ -59,7 +59,14 @@ function renderOnboarding(
     enrolAndSwitchProgramme: async () => {
       throw new Error('This harness must not switch programmes.');
     },
-    programmeChoices: [],
+    programmeChoices: [
+      {
+        active: true,
+        enrolled: true,
+        programmeId: cs50Scope.programmeId,
+        title: cs50Scope.title,
+      },
+    ],
     programmeScope: cs50Scope,
     switchProgramme: async () => {
       throw new Error('This harness must not switch programmes.');
@@ -101,6 +108,7 @@ describe('OnboardingPage', () => {
 
     renderOnboarding(saveProfile, '/rpg/focus?itemId=week-4-lecture#timer');
 
+    await user.click(screen.getByRole('radio', { name: /CS50x/ }));
     const useDefault = screen.getByRole('button', {
       name: 'Use default learner',
     });
@@ -128,6 +136,7 @@ describe('OnboardingPage', () => {
 
     renderOnboarding(saveProfile, 'https://example.com/capture');
 
+    await user.click(screen.getByRole('radio', { name: /CS50x/ }));
     await user.click(
       screen.getByRole('button', { name: 'Use default learner' }),
     );

@@ -821,11 +821,38 @@ export function AppStateProvider({
 
   async function saveProfileToState(
     input: SaveLearnerProfileInput,
-    options: { completeOnboarding?: boolean } = {},
+    options: {
+      completeOnboarding?: boolean;
+      startingProgrammeId?: string;
+    } = {},
   ) {
-    return runLocalMutation(() => saveLearnerProfile(input, options), {
-      invalidateRoute: false,
-    });
+    const { startingProgrammeId, ...saveOptions } = options;
+
+    if (startingProgrammeId === undefined) {
+      return runLocalMutation(() => saveLearnerProfile(input, saveOptions), {
+        invalidateRoute: false,
+      });
+    }
+
+    // Resolving the chosen programme first fails closed for an unregistered
+    // programme before anything is written. A changed programme replaces the
+    // route state, as a programme switch does.
+    const target = requireScopeFor(
+      resolveProgramme(startingProgrammeId),
+      startingProgrammeId,
+    );
+
+    return runLocalMutation(
+      () =>
+        saveLearnerProfile(input, {
+          ...saveOptions,
+          startingProgramme: {
+            programmeId: startingProgrammeId,
+            seed: target.catalogue,
+          },
+        }),
+      { invalidateRoute: true },
+    );
   }
 
   const programmeChoices: readonly ProgrammeChoice[] =

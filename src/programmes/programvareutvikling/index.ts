@@ -86,13 +86,41 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
         requiredUnitTypes: [],
         optionalItemsInUnitLength: false,
       },
-      // The minimum neutral valid policy: the source defines no XP economy,
-      // and nothing is awarded for opening, reading or marking a lesson.
+      // Nothing is awarded for opening, reading or marking a lesson: the
+      // catalogue-progress economy stays empty.
       xp: {
         completionAwards: [],
         statusMilestones: [],
         unitCompletionBonuses: [],
         itemMilestones: [],
+      },
+      // Lesson XP (owner decision 2026-10-03; E-SCHEMA-1A): only correct
+      // work earns, in this programme's own ledger. Values from the measured
+      // calibration (artifacts XP_CALIBRATION_REPORT.md): ordinary solved
+      // tasks carry about two thirds of a normal run, larger bonuses go to
+      // independent recall and a cleared module checkpoint, and repeats,
+      // reloads and hints add nothing.
+      lessonXp: {
+        solved: {
+          formative: 5,
+          practical: 8,
+          retrieval: 6,
+          checkpoint: 8,
+          optional: 2,
+        },
+        authoredMilestone: 10,
+        independentRecall: 4,
+        lessonCompleted: 15,
+        checkpointCleared: 60,
+        moduleCompleted: 30,
+        reasons: {
+          solved: 'Løste en oppgave i «{lesson}»',
+          authoredMilestone: 'Nådde et delmål i «{lesson}»',
+          independentRecall: 'Husket svaret uten hjelp i «{lesson}»',
+          lessonCompleted: 'Fullførte «{lesson}»',
+          checkpointCleared: 'Besto modulsjekken i «{module}»',
+          moduleCompleted: 'Fullførte modulen «{module}»',
+        },
       },
       workflow: { sequenceItemTypes: [], correctionItemTypes: [] },
       achievements: sharedAchievementDefinitions,

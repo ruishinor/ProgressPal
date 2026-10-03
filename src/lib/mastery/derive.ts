@@ -20,10 +20,19 @@ import type {
  *   never a "first counted attempt".
  * - Success with any hint or reopened teaching is supported: it reaches
  *   Practised and is never Demonstrated or retained evidence.
- * - Demonstrated, Retained and Integrated need a checkpoint judgement under
- *   an authored or owner-approved pass rule. None exists (kernel gap K-4),
- *   so no skill is placed above Practised, no checkpoint is judged, no module
- *   is cleared, and a stored checkpoint result is never trusted.
+ * - Checkpoints follow the owner-approved K-4 rule (2026-10-03) the content
+ *   carries: a module checkpoint clears, at level D and never S, only when
+ *   every gating checkpoint task has a qualifying (counting, correct,
+ *   unsupported) result on each of its gate items. No averaging: one failed
+ *   critical criterion keeps the checkpoint not yet cleared. Pending,
+ *   unresolved, not_evaluable, evaluator_error and supported successes never
+ *   qualify. Without a rule in the content nothing is judged.
+ * - Retries follow the owner-approved K-3 rule: a retry is a new attempt on
+ *   the same task; success after an earlier failure or support on that task
+ *   can clear its criterion but reaches at most Practised from that task.
+ *   Demonstrated needs an independent first success on a checkpoint task, or
+ *   later independent retrieval; Retained needs that plus later retrieval
+ *   after separation. A stored checkpoint result is never trusted.
  * - Retained evidence follows curriculum separation, never elapsed time:
  *   an unsupported first answer to a retrieval item in an authored
  *   opportunity unit, or after a later module's checkpoint was attempted.
@@ -72,8 +81,8 @@ export type SkillState =
 export type SkillMastery = {
   readonly skillId: string;
   readonly state: SkillState;
-  /** Why Demonstrated cannot be determined from this content version. */
-  readonly demonstration: 'cannot_determine_checkpoint_rule_missing';
+  /** Whether Demonstrated can be judged under this content version's rule. */
+  readonly demonstration: 'judged' | 'cannot_determine_checkpoint_rule_missing';
   readonly firstCountedAttemptId: string | null;
   readonly unsupportedCorrectCount: number;
   readonly supportedCorrectCount: number;
@@ -83,9 +92,22 @@ export type SkillMastery = {
   readonly retrievalDue: boolean;
 };
 
+export type CheckpointCriterion = {
+  readonly key: 'c' | 'd' | 'r' | 'x';
+  /** NY (not yet) or D (demonstrated); S is never derived automatically. */
+  readonly level: 'NY' | 'D';
+  /** Gate items of the criterion and whether each has qualifying evidence. */
+  readonly items: ReadonlyArray<{
+    readonly subjectId: string;
+    readonly qualifying: boolean;
+  }>;
+};
+
 export type CheckpointJudgement = {
   readonly moduleId: string;
-  readonly status: 'rule_missing';
+  readonly status: 'cleared' | 'not_yet' | 'rule_missing';
+  readonly ruleId: string | null;
+  readonly criteria: readonly CheckpointCriterion[];
   /** Gate attempts whose terminal results qualify (correct or incorrect). */
   readonly basisAttemptIds: readonly string[];
   readonly storedResults: ReadonlyArray<{
@@ -96,11 +118,12 @@ export type CheckpointJudgement = {
 
 export type ModuleBlocker =
   | 'checkpoint_rule_missing'
+  | 'checkpoint_not_cleared'
   | 'executable_evaluation_unavailable';
 
 export type ModuleReadiness = {
   readonly moduleId: string;
-  readonly cleared: false;
+  readonly cleared: boolean;
   readonly blockers: readonly ModuleBlocker[];
   /** Required gate evidence; runtime items stay in the denominator. */
   readonly requiredGateEvidence: {
@@ -300,6 +323,23 @@ export function deriveProgrammeMastery(input: MasteryInput): ProgrammeMastery {
     (entry) => entry.classification === 'newer_content',
   );
 
+  const rule = index.checkpointRules[0] ?? null;
+  const ruleAvailable = rule !== null;
+  const ordered = [...assessments].sort(byRecordedOrder);
+  /** K-4: a counting, correct, unsupported result on the subject, any attempt. */
+  const qualifies = (subjectId: string) =>
+    assessments.some(
+      (entry) =>
+        entry.subjectId === subjectId && entry.correct && !entry.supported,
+    );
+  /** K-3: the first counted attempt on the subject is correct and unsupported. */
+  const independentFirstSuccess = (subjectId: string) => {
+    const first = ordered.find(
+      (entry) => entry.subjectId === subjectId && entry.counting,
+    );
+    return first !== undefined && first.correct && !first.supported;
+  };
+
   const skills: Record<string, SkillMastery> = {};
 
   for (const skill of index.skills) {
@@ -323,6 +363,20 @@ export function deriveProgrammeMastery(input: MasteryInput): ProgrammeMastery {
     const retained =
       !cannotDetermine &&
       hasRetainedEvidence(skill, index, assessments, metaByExercise);
+    // K-3: only an independent first success on a task can demonstrate from
+    // that task; later independent retrieval demonstrates too.
+    const demonstratedByCheckpoint =
+      ruleAvailable &&
+      !cannotDetermine &&
+      index.exercises.some(
+        (entry) =>
+          entry.masteryGate &&
+          entry.role === 'checkpoint' &&
+          entry.skillIds.includes(skill.skillId) &&
+          independentFirstSuccess(entry.subjectId),
+      );
+    const demonstrated =
+      ruleAvailable && (demonstratedByCheckpoint || retained);
     const opportunity = skill.retention.opportunityUnits.some((unitId) =>
       contentUnitIds.has(unitId),
     )
@@ -331,16 +385,22 @@ export function deriveProgrammeMastery(input: MasteryInput): ProgrammeMastery {
     const state: SkillState =
       cannotDetermine && counted.length > 0
         ? 'recognised'
-        : correct.length > 0
-          ? 'practised'
-          : exposed
-            ? 'recognised'
-            : 'unseen';
+        : demonstrated && retained
+          ? 'retained'
+          : demonstrated
+            ? 'demonstrated'
+            : correct.length > 0
+              ? 'practised'
+              : exposed
+                ? 'recognised'
+                : 'unseen';
 
     skills[skill.skillId] = {
       skillId: skill.skillId,
       state,
-      demonstration: 'cannot_determine_checkpoint_rule_missing',
+      demonstration: ruleAvailable
+        ? 'judged'
+        : 'cannot_determine_checkpoint_rule_missing',
       firstCountedAttemptId: counted[0]?.attemptId ?? null,
       unsupportedCorrectCount: correct.filter((entry) => !entry.supported)
         .length,
@@ -375,28 +435,56 @@ export function deriveProgrammeMastery(input: MasteryInput): ProgrammeMastery {
       )
       .map((row) => ({ id: row.id, disposition: 'cannot_determine' as const }));
     const runtimeGates = gates.filter((entry) => entry.needsRuntime);
-    const critical = new Set(module.checkpoint.criticalGateSkillIds);
-    const runtimeBlocksCritical =
+    const criteria: CheckpointCriterion[] = module.checkpoint.tasks
+      .filter((task) => task.gating)
+      .map((task) => {
+        const items = gates
+          .filter((entry) => entry.checkpointTask === task.key)
+          .map((entry) => ({
+            subjectId: entry.subjectId,
+            qualifying: !cannotDetermine && qualifies(entry.subjectId),
+          }));
+
+        return {
+          key: task.key,
+          level:
+            items.length > 0 && items.every((item) => item.qualifying)
+              ? ('D' as const)
+              : ('NY' as const),
+          items,
+        };
+      });
+    const cleared =
+      ruleAvailable &&
+      criteria.length > 0 &&
+      criteria.every((criterion) => criterion.level === 'D');
+    // A runtime gate item that has not qualified cannot qualify while
+    // executable evaluation is unavailable.
+    const runtimeBlocks =
       !input.runtimeAvailable &&
-      runtimeGates.some((entry) =>
-        entry.skillIds.some((skillId) => critical.has(skillId)),
-      );
+      runtimeGates.some((entry) => !qualifies(entry.subjectId));
 
     checkpoints[module.moduleId] = {
       moduleId: module.moduleId,
-      status: 'rule_missing',
+      status: !ruleAvailable ? 'rule_missing' : cleared ? 'cleared' : 'not_yet',
+      ruleId: rule?.ruleId ?? null,
+      criteria,
       basisAttemptIds: basis.map((entry) => entry.attemptId),
       storedResults,
     };
     modules[module.moduleId] = {
       moduleId: module.moduleId,
-      cleared: false,
-      blockers: [
-        'checkpoint_rule_missing',
-        ...(runtimeBlocksCritical
-          ? (['executable_evaluation_unavailable'] as const)
-          : []),
-      ],
+      cleared,
+      blockers: cleared
+        ? []
+        : [
+            ruleAvailable
+              ? 'checkpoint_not_cleared'
+              : 'checkpoint_rule_missing',
+            ...(runtimeBlocks
+              ? (['executable_evaluation_unavailable'] as const)
+              : []),
+          ],
       requiredGateEvidence: {
         total: gates.length,
         counted: new Set(basis.map((entry) => entry.subjectId)).size,

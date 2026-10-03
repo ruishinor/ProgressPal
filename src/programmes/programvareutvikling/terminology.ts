@@ -8,10 +8,12 @@ import type { ProgrammeTerminology } from '../definition';
  * institution. The Windows toolchain statement is required by the
  * programme's delivery contract (DC-46, kernel gap K-7).
  *
- * There is deliberately no `shellBrand`: the visible shell brand while this
- * programme is active is the open owner decision OD-6.
+ * The shell brand is the product name alone (owner decision OD-6,
+ * 2026-10-03): no edition name of another programme shows while this
+ * programme is active.
  */
 export const programvareutviklingTerminology: ProgrammeTerminology = {
+  shellBrand: 'ProgressPal',
   unitNoun: { lowercase: 'modul', capitalized: 'Modul' },
   rpgIdentity: {
     guildLabel: 'Programvareutvikling',
@@ -29,9 +31,6 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
       'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner, innsikt, sikkerhetskopi, gjenoppretting og tilbakestilling lagres bare på denne enheten.',
     profileDescription:
       'Den lokale profilen din lagrer studiemål, tema, valg for redusert bevegelse og læringsidentiteten din på denne enheten.',
-    onboardingTitle: 'Følg Programvareutvikling lokalt',
-    onboardingDescription:
-      'Følg økter, svar, studietid, XP, prestasjoner og framdrift på denne enheten.',
     dashboardDescription:
       'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres eller lagres eksternt.',
     dashboardErrorDescription:
@@ -50,7 +49,7 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
     rpgRequiredCompleteNote:
       'Alle påkrevde økter er markert som fullført lokalt. Det betyr ikke at du har vist at du mestrer ferdighetene.',
     rpgHeroProgressNote:
-      'Lokal framdrift i ProgressPal, ikke vurdert mestring.',
+      'Lokal framdrift i ProgressPal. Det er ikke en vurdering av hva du kan.',
     rpgCourseBoundary:
       'Rangering, merker og profiloppsummeringer er lokale ProgressPal-tolkninger. De er ikke vurdering, karakter eller vitnemål.',
     officialResourceOpenLabel: 'Åpne ekstern ressurs',

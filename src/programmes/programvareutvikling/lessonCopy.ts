@@ -130,7 +130,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     runtimeUnavailable:
       'Automatisk kjøring av Python er ikke tilgjengelig her ennå. Du kan skrive og kjøre programmet på din egen maskin, men appen kan ikke sjekke det, og det teller ikke ennå.',
     selfReported:
-      'Selvrapportert: appen kan ikke se maskinen din, så dette teller ikke som bevis på mestring.',
+      'ProgressPal kan sjekke teksten du limer inn, men kan ikke se maskinen din.',
     privacy:
       'Lim bare inn utskriften fra kommandoen. Ikke lim inn passord eller nøkler.',
     incomplete: 'Fyll ut hele svaret før du sjekker det.',
@@ -157,6 +157,11 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
       'Innholdet i denne økta kunne ikke kontrolleres, og vises derfor ikke.',
     checkpointNotice:
       'Svarene dine i modulsjekken lagres. Appen viser ikke om du har bestått eller ikke. Regelen for hvordan oppgavene avgjør det, er ikke fastsatt ennå.',
+    checkpointHow:
+      'Modulsjekken er fullført når du har svart riktig på hver oppgave som gir poeng, uten hint og uten å gå tilbake til leksjonene. Svarer du feil, kan du prøve igjen.',
+    checkpointProgress: 'Fullførte deler: {done} av {count}.',
+    checkpointCleared:
+      'Modulsjekken er bestått: du har svart riktig uten hjelp i alle delene.',
     checkpointRuntimeNotice:
       'Noen oppgaver i denne modulsjekken trenger automatisk kjøring av Python, som ikke er tilgjengelig ennå. Modulsjekken kan derfor ikke fullføres her.',
     closedLessonNotice:
@@ -164,6 +169,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     alreadyCorrect:
       'Du har svart riktig på denne før, så den teller ikke som ny repetisjon.',
     remediation: 'Les om dette igjen: {title}',
+    xpEarned: '+{xp} XP',
     completionDisclaimer:
       'Fullført betyr at du har gått gjennom økta. Det betyr ikke at du har vist at du mestrer ferdighetene.',
     afterSubmitExplanation: 'Forklaring',

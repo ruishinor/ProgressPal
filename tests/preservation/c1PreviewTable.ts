@@ -27,6 +27,7 @@ function earnedTransactions(awards: readonly C1Award[]): XpTransaction[] {
     awardedAt: c1Timestamp,
     createdAt: c1Timestamp,
     id: award.transactionId,
+    programmeId: 'cs50x',
     reason: award.reason,
     sourceId: award.sourceId,
     sourceType: award.sourceType,

@@ -4,6 +4,7 @@ import { findAchievementCatalogueIssues } from '@/lib/achievements';
 import {
   AchievementDefinitionSchema,
   CatalogueRulesSchema,
+  LessonXpPolicySchema,
   SubmissionWorkflowSchema,
   XpPolicySchema,
   findCatalogueRuleIssues,
@@ -100,8 +101,6 @@ const terminologySchema = z
         startupLoadingSummary: nonEmptyString,
         shellActiveSummary: nonEmptyString,
         profileDescription: nonEmptyString,
-        onboardingTitle: nonEmptyString,
-        onboardingDescription: nonEmptyString,
         dashboardDescription: nonEmptyString,
         dashboardErrorDescription: nonEmptyString,
         courseMapEyebrow: nonEmptyString,
@@ -146,6 +145,7 @@ const definitionSchema = z
       .object({
         catalogueRules: CatalogueRulesSchema,
         xp: XpPolicySchema,
+        lessonXp: LessonXpPolicySchema.optional(),
         workflow: SubmissionWorkflowSchema,
         achievements: z.array(AchievementDefinitionSchema).min(1),
       })

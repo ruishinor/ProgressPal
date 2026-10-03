@@ -104,12 +104,17 @@ describe('App', () => {
 
       expect(
         await screen.findByRole('heading', {
-          name: 'Start tracking CS50 locally',
+          name: 'Start with ProgressPal',
         }),
       ).toBeInTheDocument();
       await waitFor(() => {
         expect(getLocalCoordinationStatus().canWrite).toBe(true);
       });
+      // A fresh learner chooses the programme first (owner decision
+      // 2026-10-03).
+      await userEvent
+        .setup()
+        .click(screen.getByRole('radio', { name: /CS50x/ }));
       await userEvent
         .setup()
         .click(screen.getByRole('button', { name: 'Use default learner' }));
@@ -127,7 +132,7 @@ describe('App', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Start tracking CS50 locally',
+        name: 'Start with ProgressPal',
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Setup' })).toBeInTheDocument();
@@ -138,7 +143,7 @@ describe('App', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Start tracking CS50 locally',
+        name: 'Start with ProgressPal',
       }),
     ).toBeInTheDocument();
     expect(
@@ -161,6 +166,7 @@ describe('App', () => {
     const user = userEvent.setup();
     await renderAppAtRoute('/');
 
+    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
     await user.click(
       await screen.findByRole('button', { name: 'Use default learner' }),
     );
@@ -180,6 +186,7 @@ describe('App', () => {
     const user = userEvent.setup();
     await renderAppAtRoute('/');
 
+    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
     await user.click(
       await screen.findByRole('button', { name: 'Customize first' }),
     );
@@ -210,6 +217,7 @@ describe('App', () => {
 
     await renderAppAtRoute('/rpg/focus?itemId=week-4-lecture#live-session');
 
+    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
     await user.click(
       await screen.findByRole('button', { name: 'Use default learner' }),
     );
@@ -227,6 +235,7 @@ describe('App', () => {
 
     await renderAppAtRoute('/course/week-4-lecture?panel=notes#saved-note');
 
+    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
     await user.click(
       await screen.findByRole('button', { name: 'Customize first' }),
     );
@@ -706,8 +715,9 @@ describe('App', () => {
     await renderAppAtRoute('/');
 
     await screen.findByRole('heading', {
-      name: 'Start tracking CS50 locally',
+      name: 'Start with ProgressPal',
     });
+    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
     await user.click(screen.getByRole('button', { name: 'Customize first' }));
     await screen.findByRole('heading', {
       name: 'Create your local learner profile',
@@ -734,9 +744,10 @@ describe('App', () => {
     await renderAppAtRoute('/');
 
     await screen.findByRole('heading', {
-      name: 'Start tracking CS50 locally',
+      name: 'Start with ProgressPal',
     });
 
+    await user.click(screen.getByRole('radio', { name: /CS50x/ }));
     const useDefault = screen.getByRole('button', {
       name: 'Use default learner',
     });

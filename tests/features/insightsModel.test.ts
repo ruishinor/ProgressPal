@@ -62,6 +62,7 @@ function makeXpTx(
   return {
     awardedAt: TS,
     createdAt: TS,
+    programmeId: 'cs50x',
     reason: 'Earned XP',
     sourceId: overrides.id,
     sourceType: 'study_session',

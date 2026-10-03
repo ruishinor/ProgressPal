@@ -193,7 +193,7 @@ test('redirects a fresh run to onboarding without console issues', async ({
 
   await expect(page).toHaveURL(/\/onboarding$/);
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Setup' })).toBeVisible();
 
@@ -277,7 +277,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
 
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toHaveCount(0);
 
   await page.goto('/onboarding');

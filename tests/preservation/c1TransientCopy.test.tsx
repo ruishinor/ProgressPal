@@ -63,10 +63,16 @@ describe('C1 transient-state CS50 copy in real rendered states (semantic, CS50-o
     ).toBeInTheDocument();
   });
 
-  it('shows the first-run onboarding copy on a fresh database', async () => {
+  // Owner decision 2026-10-03 supersedes the CS50 first-run description: a
+  // fresh learner explicitly chooses a programme, and the first run presents
+  // none as already chosen.
+  it('shows the programme-neutral first-run onboarding copy on a fresh database', async () => {
     await initializeDatabase({ seed: bundledCourseSeed });
     await renderAppAtRoute('/');
     await expectRendered(
+      'Choose a programme and set up a local learner profile. Everything stays on this device.',
+    );
+    expect(document.body.textContent).not.toContain(
       'Track CS50 work, sessions, XP, achievements, notes, and progress on this device.',
     );
   });

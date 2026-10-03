@@ -314,7 +314,7 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
   await page.getByLabel('Confirmation phrase').fill('RESET');
   await page.getByRole('button', { name: 'Reset all local data' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toBeVisible();
 
   // Restore from the reachable onboarding recovery control. The protected
