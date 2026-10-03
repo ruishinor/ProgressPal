@@ -232,6 +232,26 @@ test.describe('without the Python runtime', () => {
     await expect(
       card.getByRole('button', { name: 'Sjekk svaret' }),
     ).toBeDisabled();
+
+    for (const [item, unit, number] of [
+      [
+        's1-m01-lab',
+        'Lab: Hei-programmet – kjør, ødelegg, les, rett og commit',
+        2,
+      ],
+      ['s1-m02-lab', 'Lab: Kaffekassa – fra verdi til testet commit', 1],
+    ] as const) {
+      await page.goto(`/course/${item}`);
+      const labCard = unitExercise(page, unit, number);
+      await expect(
+        labCard.getByRole('note').filter({
+          hasText: 'Automatisk kjøring av Python er ikke tilgjengelig',
+        }),
+      ).toBeVisible({ timeout: 60_000 });
+      await expect(
+        labCard.getByRole('button', { name: 'Sjekk svaret' }),
+      ).toBeDisabled();
+    }
     expect((await readEvidenceCount(page)).evidence).toBe(0);
   });
 });
@@ -365,6 +385,18 @@ test('the lesson passes axe and fits a 375 px phone without horizontal scroll', 
   const scan = await new AxeBuilder({ page }).analyze();
   expect(scan.violations).toEqual([]);
 
+  // The RPG lesson with an earned-XP pill on its result.
+  await page.goto('/rpg/resource/s1-m01-o02');
+  const command = exerciseWithPrompt(page, 'du husker ikke hvilken');
+  await expect(command.getByRole('textbox')).toBeEnabled();
+  await command.getByRole('textbox').fill('pwd');
+  await command.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(command.getByRole('status', { name: 'Resultat' })).toContainText(
+    /\+\d+ XP/,
+  );
+  const rpgScan = await new AxeBuilder({ page }).analyze();
+  expect(rpgScan.violations).toEqual([]);
+
   for (const route of [
     firstLesson,
     runtimeLesson,
@@ -448,47 +480,81 @@ async function answerByKeyboard(page: Page, card: Locator) {
   await expect(card.getByRole('status', { name: 'Resultat' })).toBeVisible();
 }
 
-const setupUnit = 'Sjekk oppsettet ditt';
-const terminalUnit = 'Terminaløvelser';
-const retellUnit = 'Gjenfortell oppgaven';
-const predictUnit = 'Forutsi, så kjør: tolv små programmer';
-const aiUnit = 'Gode og dårlige KI-spørsmål';
+/**
+ * One exercise of the open lesson, found by a fragment of its own prompt.
+ * Interleaved missions number exercises across the mission and render
+ * practice inline without a unit heading, so the prompt is the stable key.
+ */
+function exerciseWithPrompt(page: Page, prompt: string): Locator {
+  return page
+    .getByRole('group', { name: /^Oppgave \d+ · / })
+    .filter({ hasText: prompt })
+    .first();
+}
 
 const keyboardModes = [
-  { mode: 'pasted output', item: 's1-m01-o01', unit: setupUnit, number: 1 },
-  { mode: 'single choice', item: 's1-m01-o01', unit: setupUnit, number: 3 },
-  { mode: 'classify', item: 's1-m01-o01', unit: setupUnit, number: 4 },
-  { mode: 'checklist', item: 's1-m01-o01', unit: setupUnit, number: 6 },
-  { mode: 'typed command', item: 's1-m01-o02', unit: terminalUnit, number: 1 },
-  { mode: 'order', item: 's1-m01-o02', unit: terminalUnit, number: 9 },
-  { mode: 'slot assembly', item: 's1-m01-o04', unit: retellUnit, number: 2 },
-  { mode: 'match', item: 's1-m01-o04', unit: retellUnit, number: 7 },
-  { mode: 'prediction', item: 's1-m01-o05', unit: predictUnit, number: 1 },
+  { mode: 'pasted output', item: 's1-m01-o01', prompt: 'py --version' },
+  { mode: 'single choice', item: 's1-m01-o01', prompt: 'Hei, Ola!' },
+  {
+    mode: 'classify',
+    item: 's1-m01-o01',
+    prompt: 'Sorter hver oppgave etter om du gjør den i editoren',
+  },
+  {
+    mode: 'checklist',
+    item: 's1-m01-o01',
+    prompt: 'Sjekkliste: oppsettet ditt',
+  },
+  {
+    mode: 'typed command',
+    item: 's1-m01-o02',
+    prompt: 'du husker ikke hvilken',
+  },
+  {
+    mode: 'order',
+    item: 's1-m01-o02',
+    prompt: 'Sett stegene i riktig rekkefølge for å kjøre',
+  },
+  {
+    mode: 'slot assembly',
+    item: 's1-m01-o04',
+    prompt: 'hvor mange kopper kaffe som er drukket på en uke',
+  },
+  {
+    mode: 'match',
+    item: 's1-m01-o04',
+    prompt: 'Koble hvert steg til det du har etterpå',
+  },
+  {
+    mode: 'prediction',
+    item: 's1-m01-o05',
+    prompt: 'Forutsi utskriften. (Hint: hver linje for seg.)',
+  },
   {
     mode: 'reflection choice',
     item: 's1-m01-o05',
-    unit: predictUnit,
-    number: 13,
+    prompt: 'Hva slags forutsigelse gikk oftest galt for deg',
+  },
+  { mode: 'error diagnosis', item: 's1-m01-o06', prompt: 'Program 1 av 10.' },
+  {
+    mode: 'multiple choice',
+    item: 's1-m01-o08',
+    prompt: 'lime inn i en KI-tjeneste',
   },
   {
-    mode: 'error diagnosis',
-    item: 's1-m01-o06',
-    unit: 'Feilmeldingspakken: ti feil',
-    number: 1,
+    mode: 'private reflection',
+    item: 's1-m01-o08',
+    prompt: 'Skriv din egen regel for hvordan du vil bruke KI',
   },
-  { mode: 'multiple choice', item: 's1-m01-o08', unit: aiUnit, number: 6 },
-  { mode: 'private reflection', item: 's1-m01-o08', unit: aiUnit, number: 9 },
   {
     mode: 'variable trace',
     item: 's1-m02-o01',
-    unit: 'Følg variablene: verditabeller',
-    number: 1,
+    prompt: 'Fyll ut tabellen: hva inneholder',
   },
   {
     mode: 'blank fill',
     item: 's1-m02-o04',
-    unit: 'Innlesing og konvertering: fem små programmer',
-    number: 3,
+    prompt: 'slik at brukeren kan skrive et heltall',
   },
 ] as const;
 
@@ -506,42 +572,11 @@ test('answers every runtime-free response mode with the keyboard only', async ({
       if (!page.url().endsWith(`/course/${entry.item}`)) {
         await page.goto(`/course/${entry.item}`);
       }
-      await answerByKeyboard(
-        page,
-        unitExercise(page, entry.unit, entry.number),
-      );
+      await answerByKeyboard(page, exerciseWithPrompt(page, entry.prompt));
     });
   }
 
   expect(consoleIssues).toEqual([]);
-});
-
-test('runtime-dependent program and test-table items are unavailable before submit and create no attempt', async ({
-  page,
-}) => {
-  await completeOnboarding(page);
-  await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
-
-  for (const [item, unit, number] of [
-    [
-      's1-m01-lab',
-      'Lab: Hei-programmet – kjør, ødelegg, les, rett og commit',
-      2,
-    ],
-    ['s1-m02-lab', 'Lab: Kaffekassa – fra verdi til testet commit', 1],
-  ] as const) {
-    await page.goto(`/course/${item}`);
-    const card = unitExercise(page, unit, number);
-    await expect(
-      card.getByRole('note').filter({
-        hasText: 'Automatisk kjøring av Python er ikke tilgjengelig her ennå.',
-      }),
-    ).toBeVisible();
-    await expect(
-      card.getByRole('button', { name: 'Sjekk svaret' }),
-    ).toBeDisabled();
-  }
-  expect((await readEvidenceCount(page)).evidence).toBe(0);
 });
 
 async function readEvidenceRows(page: Page) {
