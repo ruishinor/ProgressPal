@@ -19,7 +19,10 @@ import type {
   RpgCourseMapSummary,
   RpgModuleSummary,
 } from '@/features/rpg/model/types';
-import { getRpgWeekPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgResourcePath,
+  getRpgWeekPath,
+} from '@/lib/routing/rpgRoutePaths';
 
 type RpgMapPageStatus = 'error' | 'loading' | 'ready';
 
@@ -406,7 +409,10 @@ export function RpgMapPage() {
                                   {getQuestMarker(quest.statusVariant)}
                                 </span>
                                 <span className="rpg-map__quest-copy">
-                                  <strong>{quest.title}</strong>
+                                  {/* Each quest opens directly. */}
+                                  <a href={getRpgResourcePath(quest.id)}>
+                                    <strong>{quest.title}</strong>
+                                  </a>
                                   <span>{quest.typeLabel}</span>
                                 </span>
                                 <span className="rpg-map__quest-status">

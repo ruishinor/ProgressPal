@@ -140,7 +140,7 @@ test('captures fresh and progressed B3 Hub and Campaign Map states for owner vis
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
   await capturePage(page, '390-rpg-hub-fresh.png');
 
@@ -186,7 +186,7 @@ test('captures fresh and progressed B3 Hub and Campaign Map states for owner vis
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
   await expect(
     page.locator('.rpg-hub__module-context').getByText('Week 4: Memory', {

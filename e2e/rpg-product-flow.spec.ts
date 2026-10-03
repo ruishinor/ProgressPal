@@ -55,10 +55,10 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
 
   await page
     .getByRole('navigation', { name: 'Primary' })
-    .getByRole('link', { name: 'Return to RPG' })
+    .getByRole('link', { name: 'Open RPG interface' })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+    page.getByRole('heading', { name: 'Home', exact: true }),
   ).toBeVisible();
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
 });

@@ -662,7 +662,7 @@ const classicLightAxeRoutes = [
 ] as const;
 
 const rpgAxeRoutes = [
-  { heading: 'RPG Hub', path: '/rpg' },
+  { heading: 'Home', path: '/rpg' },
   { heading: 'Campaign Map', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
@@ -738,7 +738,7 @@ test('route changes move focus to the main content region', async ({
 
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible({ timeout: 15000 });
   await page
     .getByRole('navigation', { name: 'RPG primary navigation' })

@@ -277,7 +277,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
               className="button button--secondary button--md"
               to={rpgRoutePath}
             >
-              Back to Hub
+              Back to Home
             </Link>
           </div>
         </div>
@@ -315,7 +315,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             className="button button--secondary button--md"
             to={isRpgVariant ? '/dashboard' : rpgRoutePath}
           >
-            {isRpgVariant ? 'Open Classic interface' : 'Return to RPG'}
+            {isRpgVariant ? 'Open Classic interface' : 'Open RPG interface'}
           </Link>
         </div>
       </Card>

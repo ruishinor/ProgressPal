@@ -213,7 +213,7 @@ describe('A4 route/read composition GREEN', () => {
   it('uses one A4 Hub read for direct /rpg', async () => {
     renderShellRoute('/rpg');
 
-    await screen.findByRole('heading', { name: 'RPG Hub' });
+    await screen.findByRole('heading', { name: 'Home' });
     await waitFor(() => expect(readCalls.hub).toHaveBeenCalledTimes(1));
 
     emitCompositionEvidence('direct-hub', {

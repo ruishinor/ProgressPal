@@ -1218,7 +1218,7 @@
 }
 
 /* Workstream B3: Compact RPG Companion progression surfaces. */
-.rpg-shell :where(.rpg-hub__header, .rpg-map__header) {
+.rpg-shell :where(.rpg-map__header) {
   padding: var(--space-4);
 }
 

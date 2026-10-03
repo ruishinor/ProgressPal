@@ -75,7 +75,7 @@ type Surface = {
 };
 
 const freshSurfaces: readonly Surface[] = [
-  { heading: 'RPG Hub', path: '/rpg', shell: 'rpg', surface: 'hub' },
+  { heading: 'Home', path: '/rpg', shell: 'rpg', surface: 'hub' },
   { heading: 'Campaign Map', path: '/rpg/map', shell: 'rpg', surface: 'map' },
 ];
 

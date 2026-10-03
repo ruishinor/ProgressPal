@@ -541,13 +541,14 @@ function LessonSurface({
               key={`${unit.unit_id}-${group[0]!.stepIndex}`}
             >
               {headed ? (
-                <>
-                  <h2>{unit.title_nb}</h2>
-                  <p className="lesson-note">
+                // The kind reads as the eyebrow of the unit title.
+                <header className="lesson-unit__header">
+                  <p className={surfaces.eyebrow}>
                     {copy.unitKindLabels[unit.kind]}
                     {unit.optional ? ` · ${copy.text.optionalSuffix}` : ''}
                   </p>
-                </>
+                  <h2>{unit.title_nb}</h2>
+                </header>
               ) : null}
               {group.map((step) => (
                 <div

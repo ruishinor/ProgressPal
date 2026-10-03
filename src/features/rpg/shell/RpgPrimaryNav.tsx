@@ -45,7 +45,7 @@ const navItems = [
   {
     activePaths: [rpgRoutePath],
     icon: 'hub',
-    label: 'Hub',
+    label: 'Home',
     to: rpgRoutePath,
   },
   {

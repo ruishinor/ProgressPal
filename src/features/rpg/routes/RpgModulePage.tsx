@@ -285,7 +285,7 @@ export function RpgModulePage() {
                       aria-label={`${getResourceActionLabel(quest)}: ${quest.title}`}
                       href={getRpgResourcePath(quest.id)}
                       size="sm"
-                      variant="quiet"
+                      variant="primary"
                     >
                       {getResourceActionLabel(quest)}
                     </RpgButton>

@@ -384,7 +384,7 @@ describe('reset and restore never reseed a stale programme', () => {
         timeout,
       ),
     );
-    await screen.findByRole('heading', { name: 'RPG Hub' }, timeout);
+    await screen.findByRole('heading', { name: 'Home' }, timeout);
 
     await waitFor(async () => {
       const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });
@@ -422,7 +422,7 @@ describe('reset and restore never reseed a stale programme', () => {
     // The restored backup completed onboarding, so the shell forwards to the
     // hub once the refresh lands. Wait for that before navigating, otherwise
     // the forward can overwrite this test's own navigation.
-    await screen.findByRole('heading', { name: 'RPG Hub' }, timeout);
+    await screen.findByRole('heading', { name: 'Home' }, timeout);
 
     await waitFor(async () => {
       const snapshot = await getDatabaseSnapshot({ db: getSharedDatabase() });

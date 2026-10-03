@@ -7,7 +7,11 @@
  * an unexpected file type in either class is itself a violation.
  */
 export const releaseBundleBudget = Object.freeze({
-  maxCssGzipBytes: 12_000,
+  // Owner-authorized raise (2026-10-03: at most 14,000 B after one measured
+  // dedupe pass). The pass took 12,004 B to 11,969 B; the bounded lesson
+  // hierarchy rules then measured 12,008 B, so the bound is 12,500 B (about
+  // 4 % headroom).
+  maxCssGzipBytes: 12_500,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,

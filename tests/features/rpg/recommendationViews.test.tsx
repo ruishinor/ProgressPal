@@ -154,7 +154,7 @@ describe('recommendation presentation', () => {
     mocks.load.mockRejectedValue(new Error('Injected summary read failure'));
     renderRoute('/rpg');
     expect(
-      await screen.findByRole('heading', { name: 'RPG hub could not be read' }),
+      await screen.findByRole('heading', { name: 'Home could not be read' }),
     ).toBeInTheDocument();
     const hud = screen.getByRole('region', { name: 'Persistent hero HUD' });
     expect(

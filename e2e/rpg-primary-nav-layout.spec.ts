@@ -25,7 +25,7 @@ type ScrollScope = {
 const rpgRoutes = {
   awards: { heading: 'Achievements', path: '/rpg/badges' },
   hero: { heading: 'Hero Profile', path: '/rpg/hero' },
-  hub: { heading: 'RPG Hub', path: '/rpg' },
+  hub: { heading: 'Home', path: '/rpg' },
   insights: { heading: 'Insights', path: '/rpg/log' },
   map: { heading: 'Campaign Map', path: '/rpg/map' },
   settings: { heading: 'Settings', path: '/rpg/settings' },
@@ -285,7 +285,7 @@ for (const theme of ['dark', 'light'] as const) {
       await page.setViewportSize(viewport);
       await completeOnboarding(page, { theme });
 
-      const labels = ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights'];
+      const labels = ['Map', 'Focus', 'Hero', 'Home', 'Awards', 'Insights'];
       const styleOf = async (label: string) => {
         const link = primaryNav(page).getByRole('link', {
           exact: true,
@@ -301,7 +301,7 @@ for (const theme of ['dark', 'light'] as const) {
 
       for (const [route, current] of [
         [rpgRoutes.map, 'Map'],
-        [rpgRoutes.hub, 'Hub'],
+        [rpgRoutes.hub, 'Home'],
         [rpgRoutes.insights, 'Insights'],
       ] as const) {
         await openRoute(page, route);
@@ -359,7 +359,7 @@ test('the skip link, utility link and primary navigation form a logical keyboard
     'Map',
     'Focus',
     'Hero',
-    'Hub',
+    'Home',
     'Awards',
     'Insights',
   ];

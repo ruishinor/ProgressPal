@@ -651,7 +651,7 @@ describe('C5 repair: Classic surfaces read the active catalogue only', () => {
 describe('C5 unmaterialized catalogue scope fails closed through the actual route', () => {
   it.each([
     ['/rpg/map', 'Campaign map could not be read'],
-    ['/rpg', 'RPG hub could not be read'],
+    ['/rpg', 'Home could not be read'],
     ['/rpg/hero', 'Hero Profile could not be read'],
     ['/rpg/week/week-0', 'RPG week not found'],
     ['/course', 'Course data could not be read'],

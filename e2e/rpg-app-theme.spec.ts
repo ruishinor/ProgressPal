@@ -136,7 +136,7 @@ async function sampleRpgPalette(page: Page): Promise<RpgPaletteSample> {
 async function openRpgHub(page: Page) {
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
 }
 
@@ -237,10 +237,10 @@ test('switching between Classic and RPG keeps the one saved preference', async (
   await expect(page.locator('select[id$="-theme"]')).toHaveValue('light');
   await page
     .getByRole('navigation', { name: 'Primary' })
-    .getByRole('link', { name: 'Return to RPG' })
+    .getByRole('link', { name: 'Open RPG interface' })
     .click();
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
   expectLightRpg(await sampleRpgPalette(page));
 });
@@ -320,7 +320,7 @@ function installStartupSampler(page: Page) {
         '[data-testid="rpg-route-shell-loading"]',
       );
       const loaded = [...document.querySelectorAll('h1')].some(
-        (heading) => heading.textContent === 'RPG Hub',
+        (heading) => heading.textContent === 'Home',
       );
       const canvas =
         body === null
@@ -431,7 +431,7 @@ for (const scenario of startupScenarios) {
     await openRpgHub(page);
     await page.reload();
     await expect(
-      page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+      page.getByRole('heading', { exact: true, name: 'Home' }),
     ).toBeVisible();
     await expect
       .poll(() =>

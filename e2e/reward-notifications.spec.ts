@@ -48,7 +48,7 @@ async function startAsDefaultLearner(page: Page) {
   await page.getByRole('radio', { name: /CS50x/ }).check();
   await page.getByRole('button', { name: 'Use default learner' }).click();
   await expect(
-    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+    page.getByRole('heading', { name: 'Home', exact: true }),
   ).toBeVisible();
 }
 

@@ -26,7 +26,10 @@ const cs50Leaks = [
   /\bCS50\b/,
   /Harvard|edX|OpenCourseWare/,
   /cs50\.harvard\.edu/,
-  /Code Knights|CS Foundations|Generalist/,
+  // The CS50 path. "Code Knights" and "Generalist" are the product's RPG
+  // identity, which Programvareutvikling now shares (owner correction
+  // 2026-10-03); its own path names the programme.
+  /CS Foundations/,
   /\b(?:Lecture|Problem set|Final project|Shorts|Section)\b/,
   /\bWeek \d/,
   /Back to week/,

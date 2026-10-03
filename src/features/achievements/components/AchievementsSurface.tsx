@@ -167,7 +167,7 @@ export function AchievementsSurface({
                 className="button button--secondary button--md"
                 to={rpgRoutePath}
               >
-                Back to Hub
+                Back to Home
               </Link>
             </div>
           </div>
@@ -256,7 +256,7 @@ export function AchievementsSurface({
               className="button button--secondary button--md"
               to={rpgRoutePath}
             >
-              Back to Hub
+              Back to Home
             </Link>
             <Link
               className="button button--secondary button--md"

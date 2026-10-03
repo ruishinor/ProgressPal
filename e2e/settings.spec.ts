@@ -267,9 +267,9 @@ test('imports a backup from settings when onboarding is complete', async ({
     .getByRole('button', { name: 'Replace local data with this backup' })
     .click();
 
-  // A settings import lands on the restored RPG Hub as its confirmation.
+  // A settings import lands on the restored RPG Home as its confirmation.
   await expect(
-    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+    page.getByRole('heading', { name: 'Home', exact: true }),
   ).toBeVisible();
   expect(await readLedgerCounts(page)).toEqual(before);
 });

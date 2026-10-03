@@ -37,3 +37,18 @@
 .lesson-blank {
   width: 12ch;
 }
+
+/* Hierarchy inside a lesson (owner instruction 2026-10-03), existing tokens
+   only: the unit kind is the eyebrow of its title, the Classic header spaces
+   title and goal, and authored prose spaces its paragraphs, lists and
+   headings, with more room above a heading than between paragraphs. */
+.lesson-unit__header,
+.lesson-header:not(.rpg-page-header),
+.lesson-text {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lesson-text > :is(h3, h4) {
+  margin-top: var(--space-3);
+}

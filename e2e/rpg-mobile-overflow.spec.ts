@@ -3,7 +3,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
 
 const rpgRoutes = [
-  { heading: 'RPG Hub', headerSelector: '.rpg-hub__header', path: '/rpg' },
+  // Home has no header surface (owner instruction 2026-10-03: compact
+  // chrome); its page heading stays for assistive technology.
+  { heading: 'Home', headerSelector: null, path: '/rpg' },
   {
     heading: 'Campaign Map',
     headerSelector: '.rpg-map__header',
@@ -181,6 +183,14 @@ async function expectReadableRpgHeaderSurface(
   page: Page,
   route: (typeof rpgRoutes)[number],
 ) {
+  if (route.headerSelector === null) {
+    await expect(
+      page.getByRole('heading', { level: 1, exact: true, name: route.heading }),
+      `${route.path} page heading`,
+    ).toHaveCount(1);
+    return;
+  }
+
   const header = page.locator(route.headerSelector).first();
 
   await expect(header, `${route.path} RPG header`).toBeVisible();
@@ -412,14 +422,14 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
   await page.goto('/rpg');
 
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
 
   const bottomNav = page.getByRole('navigation', {
     name: 'RPG primary navigation',
   });
 
-  for (const label of ['Map', 'Focus', 'Hero', 'Hub', 'Awards', 'Insights']) {
+  for (const label of ['Map', 'Focus', 'Hero', 'Home', 'Awards', 'Insights']) {
     await expect(bottomNav.getByRole('link', { name: label })).toBeVisible();
   }
 
@@ -427,7 +437,7 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
   await expect(
     bottomNav.getByRole('link', { name: /Tracker|Classic/i }),
   ).toHaveCount(0);
-  await expect(bottomNav.getByRole('link', { name: 'Hub' })).toHaveAttribute(
+  await expect(bottomNav.getByRole('link', { name: 'Home' })).toHaveAttribute(
     'aria-current',
     'page',
   );
@@ -441,12 +451,12 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   const classicNav = page.getByRole('navigation', { name: 'Primary' });
   await expect(
-    classicNav.getByRole('link', { name: 'Return to RPG' }),
+    classicNav.getByRole('link', { name: 'Open RPG interface' }),
   ).toBeVisible();
 
-  await classicNav.getByRole('link', { name: 'Return to RPG' }).click();
+  await classicNav.getByRole('link', { name: 'Open RPG interface' }).click();
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
 });
 
@@ -455,7 +465,7 @@ test('mobile Hub puts the recommended quest before secondary progress', async ({
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
   await completeOnboarding(page);
-  await page.getByRole('link', { name: 'Open RPG' }).click();
+  await page.getByRole('link', { name: 'Open RPG', exact: true }).click();
 
   const questPanel = page.locator('.rpg-hub__quest-panel');
 

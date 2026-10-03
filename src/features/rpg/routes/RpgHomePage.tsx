@@ -51,10 +51,7 @@ export function RpgHomePage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-hub">
-          <div className="rpg-hub__header rpg-page-header">
-            <p className="rpg-hub__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>RPG Hub</h1>
-          </div>
+          <h1 className="sr-only">Home</h1>
           <ErrorState
             action={
               <RpgButton
@@ -66,8 +63,8 @@ export function RpgHomePage() {
                 Try again
               </RpgButton>
             }
-            description={state.error ?? 'Unknown RPG hub error.'}
-            title="RPG hub could not be read"
+            description={state.error ?? 'Unknown Home error.'}
+            title="Home could not be read"
           />
         </section>
       );
@@ -75,13 +72,10 @@ export function RpgHomePage() {
 
     return (
       <section className="page-section rpg-hub">
-        <div className="rpg-hub__header rpg-page-header">
-          <p className="rpg-hub__eyebrow rpg-page-eyebrow">RPG</p>
-          <h1>RPG Hub</h1>
-        </div>
+        <h1 className="sr-only">Home</h1>
         <LoadingState
-          description="Building the RPG hub from local progress."
-          title="Loading RPG hub"
+          description="Building Home from local progress."
+          title="Loading Home"
         />
       </section>
     );
@@ -94,11 +88,9 @@ export function RpgHomePage() {
 
   return (
     <section className="page-section rpg-hub">
-      <div className="rpg-hub__header rpg-page-header">
-        <div>
-          <h1>RPG Hub</h1>
-        </div>
-      </div>
+      {/* The persistent HUD and navigation already frame Home; the page
+          heading stays for assistive technology without repeating chrome. */}
+      <h1 className="sr-only">Home</h1>
 
       <div className="rpg-hub__grid">
         <RpgPanel

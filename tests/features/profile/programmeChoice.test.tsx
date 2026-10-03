@@ -117,11 +117,7 @@ describe('existing and restored learners keep their programme state', () => {
     );
     await renderAppAtRoute('/rpg');
 
-    await screen.findByRole(
-      'heading',
-      { name: 'RPG Hub' },
-      { timeout: 15_000 },
-    );
+    await screen.findByRole('heading', { name: 'Home' }, { timeout: 15_000 });
     expect(
       screen.queryByRole('radiogroup', { name: /choose your programme/i }),
     ).toBeNull();

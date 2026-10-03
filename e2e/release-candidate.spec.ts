@@ -11,7 +11,7 @@ const routeChecks = [
   { heading: 'Achievements', path: '/achievements' },
   { heading: 'Insights', path: '/insights' },
   { heading: 'Settings', path: '/settings' },
-  { heading: 'RPG Hub', path: '/rpg' },
+  { heading: 'Home', path: '/rpg' },
   { heading: 'Campaign Map', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },

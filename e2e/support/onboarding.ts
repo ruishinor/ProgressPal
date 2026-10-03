@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 /**
  * Drives the first-run onboarding screen through the "Customize first" path,
- * filling the detailed profile form and landing on the RPG Hub. Shared by the
+ * filling the detailed profile form and landing on RPG Home. Shared by the
  * E2E specs so the form-fill flow stays consistent after UX-06 collapsed the
  * detailed form behind the quick-start choices. `options.theme` selects the
  * PreferredTheme picked in the form; it defaults to 'dark' so every existing
@@ -41,7 +41,7 @@ export async function completeOnboarding(
   await page.getByRole('button', { name: 'Save and continue' }).click();
 
   await expect(
-    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+    page.getByRole('heading', { name: 'Home', exact: true }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/rpg$/);
   // Existing engine regressions exercise Tracker after checking the RPG default.

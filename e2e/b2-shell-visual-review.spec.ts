@@ -41,7 +41,7 @@ test('captures the B2 shell and interface transition for owner visual review', a
   await page.setViewportSize({ height: 844, width: 390 });
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
   await captureRpgNavigation(page, '390-rpg-navigation.png');
 
@@ -55,7 +55,7 @@ test('captures the B2 shell and interface transition for owner visual review', a
   await page.setViewportSize({ height: 900, width: 1280 });
   await page.goto('/rpg');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'RPG Hub' }),
+    page.getByRole('heading', { exact: true, name: 'Home' }),
   ).toBeVisible();
   await captureRpgNavigation(page, '1280-rpg-navigation.png');
 

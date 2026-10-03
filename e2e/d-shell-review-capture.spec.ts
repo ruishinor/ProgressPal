@@ -33,11 +33,11 @@ type Surface = {
 };
 
 const freshSurfaces: readonly Surface[] = [
-  { heading: 'RPG Hub', path: '/rpg', state: 'fresh', surface: 'hub' },
+  { heading: 'Home', path: '/rpg', state: 'fresh', surface: 'hub' },
 ];
 
 const progressedSurfaces: readonly Surface[] = [
-  { heading: 'RPG Hub', path: '/rpg', state: 'progressed', surface: 'hub' },
+  { heading: 'Home', path: '/rpg', state: 'progressed', surface: 'hub' },
   {
     heading: 'Campaign Map',
     path: '/rpg/map',

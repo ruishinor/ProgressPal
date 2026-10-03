@@ -200,7 +200,7 @@ export function AppShell() {
               {
                 end: true,
                 id: 'return-to-rpg',
-                label: 'Return to RPG',
+                label: 'Open RPG interface',
                 to: rpgRoutePath,
               },
             ]

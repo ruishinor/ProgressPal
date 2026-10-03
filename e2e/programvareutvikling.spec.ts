@@ -663,7 +663,7 @@ test('resumes after reload at a phase boundary', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Neste etappe' }).click();
   await expect(
-    page.getByText('Etappe 2 av 2: Oppsettsklinikken'),
+    page.getByText('Etappe 2 av 2: Feilsøking av oppsett'),
   ).toBeVisible();
   await expect
     .poll(async () => (await readEvidenceCount(page)).positions)
@@ -674,7 +674,7 @@ test('resumes after reload at a phase boundary', async ({ page }) => {
     page.getByRole('heading', { name: 'Fortsett der du slapp' }),
   ).toBeVisible();
   await expect(
-    page.getByText('Etappe 2 av 2: Oppsettsklinikken'),
+    page.getByText('Etappe 2 av 2: Feilsøking av oppsett'),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Forrige etappe' }),
@@ -808,7 +808,7 @@ async function startFresh(page: Page, programme: RegExp) {
     .check();
   await page.getByRole('button', { name: 'Use default learner' }).click();
   await expect(
-    page.getByRole('heading', { name: 'RPG Hub', exact: true }),
+    page.getByRole('heading', { name: 'Home', exact: true }),
   ).toBeVisible();
 }
 
