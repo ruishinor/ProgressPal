@@ -10,6 +10,8 @@ It follows the pattern of `docs/post-release/epic-c/C6_SCHEMA_CHANGE_DECISION_RE
 
 **R4.2 amendment** (correction of two R4.1 independent-review blockers; documentation only). R4.1 said the evaluator runs before the write and that the answer and its outcome are committed in one append. That loses a submitted answer if the tab closes during evaluation, and a later retry could then become attempt 1. Corrected: persistence is two-stage. An immutable `exercise_attempt` commits first, carrying no outcome; evaluation then runs against that persisted attempt; an immutable `evaluation_result` linked to exactly one attempt commits afterwards, and nothing is shown until it does (section 3, invariants 4, 5, 7, 8, 10 and 11). `learner_evidence` therefore has four record kinds. It is still two stores, and still no third store, no cloud work and no stored mastery. The R4.1 statement that the same-append reading is acceptable is superseded. K-3 is not resolved by this record: no gate-retry fallback is chosen (section 12, D-3).
 
+**E-SCHEMA-1A amendment (owner accepted 2026-10-03; programme-scoped XP ownership).** Recorded after the non-final Epic E candidate `f33407f`; the record did not contain this decision before. The body above and below stays authoritative except where section 13 amends it: section 2's "no existing store, field or index changes" and its "no index matching `/programme/i`" rule, and section 6's "only write is `app_meta.schemaVersion`" and "no XP is written", no longer hold for `xp_transactions`. Nothing about the attempt and result schema is reopened.
+
 ## 1. Why schema 3 is insufficient
 
 Package 21 DC-37 requires the app to persist, per learner and per content version: attempts (append-only, first answer immutable), a resume point, checkpoint results and, where used, project artefacts with revisions. Everything else (skill state, readiness, retrieval due, progress percentages, recommended next) must be derivable from those. DC-41 says each new persisted entity needs the platform's own schema decision; this is it.
@@ -268,3 +270,43 @@ Firebase, Supabase, authentication, cloud persistence and cross-device synchroni
 - **D-2. The checkpoint pass rule (Package 21 gap K-4).** The authored content states no rule for how a skill's gate items combine into a criterion level. A checkpoint judgement cannot be implemented or recorded until a rule is authored or owner-approved as content metadata. The app executes a rule; it does not invent one. Invariant 9 depends on this.
 - **D-3. The retry rule and variants for gate items (K-3).** Package 21 leaves open whether a retry re-presents the same item with a fresh shuffle or needs authored variants. This record chooses neither and invents no fallback: no re-presentation rule, no shuffle rule, no variants. `variantId` is optional so either answer fits without a schema change. Ordinary formative, non-gate retry (a new attempt, DC-14) is unaffected. If no authored or owner-approved K-3 rule exists when gate-item retry behaviour is actually required, Epic E performs and claims no gate retry and pauses at `EPIC_E_PAUSED_GATE_RETRY_RULE_DECISION_REQUIRED` after delivering every K-3-independent part.
 - **D-4.** The application version number for the Epic E candidate follows the existing version and `CACHE_VERSION` coupling rule and is not decided here.
+
+## 13. E-SCHEMA-1A — programme-scoped XP ownership
+
+**Owner accepted 2026-10-03** (direct owner instruction for the Epic E continuation). Added after the non-final candidate `f33407f`; the earlier text of this record did not contain it.
+
+The application historically had one programme, so XP could be global. With more than one real programme that is no longer correct: every programme owns its own XP and level, and a learner can hold different levels in different programmes at the same time.
+
+Decision:
+
+- Every `xp_transactions` row in schema 4 carries `programmeId`: the stable persisted identity of the programme that owns the award. It is required. A current (schema-4) XP row without it is invalid and fails closed when read, restored or imported.
+- Total XP, level and XP-to-next-level are derived per programme, with the unchanged formula `level = floor(sqrt(programmeTotalXp / 100)) + 1`. None of them is persisted.
+- Switching programme changes the visible XP and level context. It writes nothing to `xp_transactions` and never modifies another programme's ledger.
+- Duplicate prevention is scoped by programme: the award identity is `(programmeId, sourceType, sourceId)`. The same `(sourceType, sourceId)` may legitimately be awarded once in each programme.
+- New transaction identities include the owning programme. Existing historical transaction IDs are kept exactly as stored; none is rewritten to fit the new formula.
+- No schema 5. Schema 4 has not shipped, so the amendment changes the unshipped version 4 definition.
+- No new store is added for programme XP.
+
+Storage:
+
+| Change                            | Dexie store definition                              |
+| --------------------------------- | --------------------------------------------------- |
+| `xp_transactions` gains one index | `&id, sourceType, sourceId, awardedAt, programmeId` |
+
+The only consumer the index serves is the per-programme ledger read (the programme's XP summary, recent awards and earned-award keys), which every XP surface now performs. A compound index is not needed: the in-transaction duplicate check already narrows by the existing `sourceId` index and then compares `programmeId` and `sourceType` on the few matching rows. The C7 guard that no learner table carries a programme-ownership index is amended for `xp_transactions` only; every other learner table keeps it.
+
+Live upgrade 3 → 4 (amends section 6):
+
+- Inside the same version-change transaction, every existing `xp_transactions` row gains `programmeId` equal to the migration context's `programmeId`: the accepted persisted CS50 identity (`cs50x`) that every schema-3 database's historical data already belongs to (C6). It is never inferred from a title or label. A row that already carries a `programmeId` other than that identity aborts the upgrade and leaves schema 3 intact.
+- No other field of any XP row changes; IDs, amounts, reasons and timestamps stay byte-identical. Every other store keeps the section 6 rules.
+- A v1 or v2 database still upgrades through 3 to 4; its XP rows are attributed in the 3 → 4 step.
+
+Backup (amends section 7):
+
+- Schema-4 backups carry and validate `programmeId` on every XP row: the programme must be registered and enrolled in the backup, and the duplicate-award check is per `(programmeId, sourceType, sourceId)`.
+- The retained historical 2 → 3 conversion code is unchanged and still parses programme-less XP rows only at `expectedSchemaVersion` 3. Exported schema-3 or older backups stay refused by the schema-4 application (section 7).
+
+Read and write paths:
+
+- Every write that can award XP carries the owning programme from the caller's runtime programme scope. Programme-owned progression reads require a programme ID; there is no default global progression read. A ledger-wide read exists only where the whole ledger is the subject (snapshot, backup, restore) and is named for that.
+- Achievements are unchanged: unlocks stay learner-global, and no achievement reads XP.
