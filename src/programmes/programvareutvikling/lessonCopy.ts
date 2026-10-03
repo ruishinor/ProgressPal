@@ -128,7 +128,8 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     gateNoRetry:
       'Denne oppgaven i modulsjekken kan ikke prøves på nytt ennå, fordi regelen for nye forsøk ikke er bestemt.',
     runtimeUnavailable:
-      'Automatisk kjøring av Python er ikke tilgjengelig her ennå. Du kan skrive og kjøre programmet på din egen maskin, men appen kan ikke sjekke det, og det teller ikke ennå.',
+      'Automatisk kjøring av Python er ikke tilgjengelig i denne nettleseren akkurat nå. Du kan skrive og kjøre programmet på din egen maskin, men appen kan ikke sjekke det her.',
+    runtimeLoading: 'Gjør klar Python for den automatiske sjekken …',
     selfReported:
       'ProgressPal kan sjekke teksten du limer inn, men kan ikke se maskinen din.',
     privacy:
@@ -163,7 +164,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     checkpointCleared:
       'Modulsjekken er bestått: du har svart riktig uten hjelp i alle delene.',
     checkpointRuntimeNotice:
-      'Noen oppgaver i denne modulsjekken trenger automatisk kjøring av Python, som ikke er tilgjengelig ennå. Modulsjekken kan derfor ikke fullføres her.',
+      'Noen oppgaver i denne modulsjekken trenger automatisk kjøring av Python, som ikke er tilgjengelig i denne nettleseren akkurat nå. Modulsjekken kan derfor ikke fullføres her.',
     closedLessonNotice:
       'Svar uten å slå opp i leksjonene. Det er slik du ser hva du husker.',
     alreadyCorrect:

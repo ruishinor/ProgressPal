@@ -151,18 +151,89 @@ test('records a hint as support before showing it, and keeps it after reload', a
   ).toBeVisible();
 });
 
-test('says honestly that program exercises cannot be checked without the Python runtime', async ({
+/** The program exercise in the runtime lesson that asks for three lines. */
+function threeLineProgram(page: Page) {
+  return page
+    .getByRole('group', { name: /^Oppgave \d+ · Skriv eller endre program/ })
+    .filter({ hasText: 'skriver ut tre linjer' });
+}
+
+async function submitProgram(page: Page, card: Locator, source: string) {
+  const field = card.getByRole('textbox', { name: 'Svaret ditt' });
+  await expect(field).toBeEnabled({ timeout: 60_000 });
+  await field.fill(source);
+  await card.getByRole('button', { name: 'Sjekk svaret' }).click();
+  return card.getByRole('status', { name: 'Resultat' });
+}
+
+test('checks program exercises with the packaged Python runtime in a worker, offline-capable and same-origin only', async ({
   page,
 }) => {
+  const consoleIssues: string[] = [];
+  const requests: string[] = [];
+  collectConsoleIssues(page, consoleIssues);
+  page.on('request', (request) => requests.push(request.url()));
   await completeOnboarding(page);
   await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
   await page.goto(runtimeLesson);
 
-  const notes = page.getByRole('note').filter({
-    hasText: 'Automatisk kjøring av Python er ikke tilgjengelig her ennå.',
+  const card = threeLineProgram(page);
+  const starter = 'print("Hei!")\nprint("Jeg heter Kari.")';
+
+  // A wrong program is answered by the real interpreter: not correct yet.
+  const wrong = await submitProgram(page, card, starter);
+  await expect(wrong).toContainText('Ikke riktig ennå', { timeout: 30_000 });
+
+  // A program that never stops is stopped at its time limit; that is the
+  // app's problem, not the learner's, and the runtime recovers.
+  await card.getByRole('button', { name: 'Prøv igjen' }).click();
+  const looping = await submitProgram(page, card, 'while True:\n    pass');
+  await expect(looping).toContainText('Sjekken kunne ikke fullføres', {
+    timeout: 30_000,
   });
-  await expect(notes.first()).toBeVisible();
-  expect(await notes.count()).toBeGreaterThan(0);
+
+  await card.getByRole('button', { name: 'Prøv igjen' }).click();
+  const solved = await submitProgram(
+    page,
+    card,
+    `${starter}\nprint("Jeg lærer Python.")`,
+  );
+  await expect(solved).toContainText('Riktig', { timeout: 60_000 });
+  await expect(solved).toContainText(/\+\d+ XP/);
+
+  const origin = new URL(page.url()).origin;
+  expect(requests.filter((url) => !url.startsWith(origin))).toEqual([]);
+  expect(
+    requests.some((url) =>
+      url.includes('/runtime/pyodide-314.0.7/pyodide.asm.wasm'),
+    ),
+  ).toBe(true);
+  expect(consoleIssues).toEqual([]);
+});
+
+test.describe('without the Python runtime', () => {
+  // The service worker would answer runtime requests the page cannot route.
+  test.use({ serviceWorkers: 'block' });
+
+  test('program and test-table items say so honestly, cannot be submitted and create no attempt', async ({
+    page,
+  }) => {
+    await page.route('**/runtime/**', (route) => route.abort());
+    await completeOnboarding(page);
+    await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
+    await page.goto(runtimeLesson);
+
+    const card = threeLineProgram(page);
+    await expect(
+      card.getByRole('note').filter({
+        hasText: 'Automatisk kjøring av Python er ikke tilgjengelig',
+      }),
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(
+      card.getByRole('button', { name: 'Sjekk svaret' }),
+    ).toBeDisabled();
+    expect((await readEvidenceCount(page)).evidence).toBe(0);
+  });
 });
 
 test('keeps lesson answering in the writer tab only; the second tab is read-only', async ({
@@ -232,7 +303,7 @@ test('exports a schema-4 backup with the evidence and restores it exactly', asyn
   await page.getByLabel('Confirmation phrase').fill('RESET');
   await page.getByRole('button', { name: 'Reset all local data' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toBeVisible();
   expect(await readEvidenceCount(page)).toEqual({ evidence: 0, positions: 0 });
 

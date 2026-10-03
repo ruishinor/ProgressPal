@@ -84,6 +84,26 @@ const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
  */
 const PACKAGED_ASSET_READER = 'src/lib/assets/sameOriginAsset.ts';
 
+/**
+ * The Python worker (owner decision 2026-10-03, runtime spike) names three
+ * network primitives only to remove them from its own global scope before
+ * learner code runs. There, and nowhere else, each may appear exactly once,
+ * as a quoted entry of that removal list; any other use is still a
+ * violation.
+ */
+const RUNTIME_WORKER = 'src/lib/evaluation/pythonWorker.ts';
+const RUNTIME_WORKER_REMOVED_NAMES: ReadonlyArray<string> = [
+  'XMLHttpRequest',
+  'WebSocket',
+  'EventSource',
+];
+
+function isRemovalListMention(code: string, name: string) {
+  const mentions = code.match(new RegExp(`\\b${name}\\b`, 'g')) ?? [];
+  const quoted = code.match(new RegExp(`'${name}',`, 'g')) ?? [];
+  return mentions.length === 1 && quoted.length === 1;
+}
+
 /** Recursively collect runtime application source files (excludes tests). */
 function listAppSourceFiles(dir: string): string[] {
   const files: string[] = [];
@@ -155,6 +175,14 @@ describe('local-only source safety guardrail', () => {
           continue;
         }
 
+        if (
+          relativePath === RUNTIME_WORKER &&
+          RUNTIME_WORKER_REMOVED_NAMES.includes(label) &&
+          isRemovalListMention(code, label)
+        ) {
+          continue;
+        }
+
         if (pattern.test(code)) {
           violations.push(`${relativePath}: ${label}`);
         }
@@ -172,6 +200,30 @@ describe('local-only source safety guardrail', () => {
     }
 
     expect(violations).toEqual([]);
+  });
+});
+
+describe('the Python worker removes network and storage capabilities', () => {
+  it('lists every network and storage global it removes, and uses none', () => {
+    const code = stripComments(
+      readFileSync(path.resolve(process.cwd(), RUNTIME_WORKER), 'utf8'),
+    );
+    const list = code.match(/const removedCapabilities = \[([\s\S]*?)\]/);
+
+    expect(list).not.toBeNull();
+    for (const name of [
+      'fetch',
+      ...RUNTIME_WORKER_REMOVED_NAMES,
+      'indexedDB',
+      'caches',
+      'BroadcastChannel',
+      'importScripts',
+    ]) {
+      expect(list![1]).toContain(`'${name}'`);
+    }
+    for (const name of RUNTIME_WORKER_REMOVED_NAMES) {
+      expect(isRemovalListMention(code, name), name).toBe(true);
+    }
   });
 });
 

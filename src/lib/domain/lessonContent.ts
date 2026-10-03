@@ -919,6 +919,7 @@ export const lessonUiTextKeys = [
   'retry',
   'gateNoRetry',
   'runtimeUnavailable',
+  'runtimeLoading',
   'selfReported',
   'privacy',
   'incomplete',

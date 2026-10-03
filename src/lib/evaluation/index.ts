@@ -22,8 +22,13 @@ export {
 } from './lifecycle';
 export {
   getPythonRuntime,
+  createWorkerPythonRuntime,
+  pythonRuntimePath,
+  pythonRuntimeVersion,
   unavailablePythonRuntime,
   type PythonRunRequest,
   type PythonRunResult,
   type PythonRuntime,
+  type PythonRuntimeStatus,
+  type RuntimeWorker,
 } from './runtime';

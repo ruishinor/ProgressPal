@@ -11,7 +11,10 @@ export const releaseBundleBudget = Object.freeze({
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
-  maxRuntimeAssetGzipBytes: 0,
+  // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five
+  // packaged files plus the runtime list); about 9.4 % headroom, within the
+  // owner-authorized ~10 % (decision 2026-10-03).
+  maxRuntimeAssetGzipBytes: 7_000_000,
 });
 
 /** The budget class of a built file, by its path relative to `dist/`. */

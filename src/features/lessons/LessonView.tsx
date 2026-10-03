@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ import type {
 } from '@/lib/domain';
 import {
   createEvidenceId,
+  exerciseNeedsRuntime,
   getPythonRuntime,
   recoverUnresolvedAttempts,
 } from '@/lib/evaluation';
@@ -89,6 +91,8 @@ const failureCopy = {
   version_mismatch: 'lessonVersionMismatch',
   invalid: 'lessonInvalid',
 } as const;
+
+const noRuntimeSubscription = () => () => undefined;
 
 function stepPhaseId(bundle: LessonBundle, step: LessonStep | undefined) {
   const phase =
@@ -256,7 +260,22 @@ function LessonSurface({
     [bundle],
   );
   const lessonXp = scope.policy.lessonXp;
-  const runtimeAvailable = runtime.status() === 'available';
+  // Re-render when the Python runtime becomes ready (or fails to load).
+  const runtimeStatus = useSyncExternalStore(
+    runtime.subscribe ?? noRuntimeSubscription,
+    () => runtime.status(),
+  );
+  const runtimeAvailable = runtimeStatus === 'available';
+  const needsRuntime =
+    bundle?.exercises.some((entry) => exerciseNeedsRuntime(entry.exercise)) ??
+    false;
+
+  // The runtime is large: it loads only for a lesson that needs it.
+  useEffect(() => {
+    if (needsRuntime) {
+      runtime.prepare?.();
+    }
+  }, [needsRuntime, runtime]);
   // The programme's lesson XP rules over the whole content index; results
   // run it in their own transaction against every evidence row.
   const awardXp = useMemo(
@@ -294,12 +313,14 @@ function LessonSurface({
   );
 
   // Interrupted evaluations are finished by the writer tab on load
-  // (invariant 10); a read-only tab shows them pending.
+  // (invariant 10), once a runtime the lesson needs has settled; a read-only
+  // tab shows them pending.
   useEffect(() => {
     if (
       bundle === null ||
       !coordination.canWrite ||
       recoveryAttemptedRef.current ||
+      (needsRuntime && runtimeStatus === 'loading') ||
       !evidence.some(
         (row) =>
           row.kind === 'exercise_attempt' &&
@@ -329,8 +350,10 @@ function LessonSurface({
     bundle,
     coordination.canWrite,
     evidence,
+    needsRuntime,
     programmeId,
     runtime,
+    runtimeStatus,
     write,
   ]);
 
@@ -471,6 +494,7 @@ function LessonSurface({
           </>
         )}
         {mission.surface === 'checkpoint' &&
+        runtimeStatus === 'unavailable' &&
         moduleBlockers.includes('executable_evaluation_unavailable') ? (
           <p className="lesson-note">{copy.text.checkpointRuntimeNotice}</p>
         ) : null}

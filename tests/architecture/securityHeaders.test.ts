@@ -99,4 +99,36 @@ describe('vercel.json security headers contract', () => {
       ).toContain(directive);
     }
   });
+
+  // Owner decision 2026-10-03 (runtime spike): the only script exception is
+  // compiling the packaged same-origin Python runtime's WebAssembly. Generic
+  // 'unsafe-eval', inline scripts and any remote script source stay refused.
+  it('allows scripts only from this origin, plus WebAssembly compilation', () => {
+    const csp = headerValue(globalRule(), 'Content-Security-Policy')!;
+    const directives = new Map(
+      csp.split(';').map((directive) => {
+        const [name = '', ...sources] = directive.trim().split(/\s+/);
+        return [name, sources] as const;
+      }),
+    );
+
+    expect(directives.get('script-src')).toEqual([
+      "'self'",
+      "'wasm-unsafe-eval'",
+    ]);
+    expect(directives.get('worker-src')).toEqual(["'self'"]);
+    expect(directives.get('connect-src')).toEqual(["'self'"]);
+    expect(csp).not.toMatch(/'unsafe-eval'/);
+  });
+
+  it('keeps the preview server CSP identical to production', () => {
+    const viteConfig = readFileSync(
+      path.resolve(process.cwd(), 'vite.config.ts'),
+      'utf8',
+    );
+
+    expect(viteConfig).toContain(
+      headerValue(globalRule(), 'Content-Security-Policy'),
+    );
+  });
 });

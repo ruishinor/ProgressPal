@@ -277,7 +277,9 @@ export function ExerciseCard({
       ) : null}
       {runtimeBlocked ? (
         <p className="lesson-note" role="note">
-          {copy.text.runtimeUnavailable}
+          {runtime.status() === 'loading'
+            ? copy.text.runtimeLoading
+            : copy.text.runtimeUnavailable}
         </p>
       ) : null}
       <AnswerWidget

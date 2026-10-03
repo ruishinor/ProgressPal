@@ -149,9 +149,23 @@ describe('service worker source contract', () => {
 
     for (const file of sourceFiles) {
       const code = stripComments(readFileSync(file, 'utf8'));
+      const relativePath = path.relative(REPO_ROOT, file).replace(/\\/g, '/');
+
+      // Owner decision 2026-10-03 (runtime spike): the Python worker loads
+      // the pinned runtime's entry module from the runtime folder, which the
+      // build lists in runtime/offline.json (cached on first use). It is not
+      // an app chunk and not part of the boot set. Exactly that one import is
+      // allowed there; any other dynamic import is still a violation.
+      if (
+        relativePath === 'src/lib/evaluation/pythonWorker.ts' &&
+        (code.match(/\bimport\s*\(/g) ?? []).length === 1 &&
+        /\bimport\s*\(\s*`\$\{message\.indexURL\}pyodide\.mjs`\s*\)/.test(code)
+      ) {
+        continue;
+      }
 
       if (/\bimport\s*\(/.test(code)) {
-        violations.push(path.relative(REPO_ROOT, file).replace(/\\/g, '/'));
+        violations.push(relativePath);
       }
     }
 
