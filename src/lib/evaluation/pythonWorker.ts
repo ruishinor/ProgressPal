@@ -46,8 +46,12 @@ type WorkerScope = {
  * vectors): the program is saved under the exercise's file name and run as
  * `__main__` with the test's stdin; `input()` echoes what it read, so stdout
  * is the interactive transcript the expectations were recorded from; a
- * traceback starts at the learner's file. Modules that bridge to JavaScript
- * are blocked.
+ * traceback starts at the learner's file. A plain `import` of the modules
+ * that bridge to JavaScript is refused, but that is a courtesy and not the
+ * boundary: removing the `sys.modules` entry gets the bridge back. The
+ * boundary is that the bridge reaches nothing: the empty `jsglobals` below
+ * and the capabilities `harden()` removes. e2e/python-worker-isolation.spec.ts
+ * proves this against the packaged worker.
  */
 const harness = String.raw`
 import builtins, sys, io, os, runpy, traceback
