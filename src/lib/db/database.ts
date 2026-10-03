@@ -10,7 +10,7 @@ import {
   ProgressEntrySchema,
   ResumePointSchema,
   StudySessionSchema,
-  XpTransactionSchema,
+  LegacyXpTransactionSchema,
   type AchievementDefinition,
   type AchievementUnlock,
   type AppMeta,
@@ -123,14 +123,16 @@ const versionThreeStoreDefinitions = {
 } as const;
 
 /**
- * Epic E / E-SCHEMA-1 §2: two new stores and nothing else. The evidence log is
- * append-only by repository contract (insert and read only). `subjectId`
- * reads every record kind for one exercise or checkpoint; the compound index
- * is a current local single-writer invariant (one attempt number per
- * subject); the sparse unique `attemptId` index allows at most one
- * evaluation result per attempt (rows without `attemptId` are not indexed).
- * One mutable lesson bookmark per lesson item. No programme-ownership index
- * (C7 guard).
+ * Epic E / E-SCHEMA-1 §2: two new stores. The evidence log is append-only by
+ * repository contract (insert and read only). `subjectId` reads every record
+ * kind for one exercise or checkpoint; the compound index is a current local
+ * single-writer invariant (one attempt number per subject); the sparse unique
+ * `attemptId` index allows at most one evaluation result per attempt (rows
+ * without `attemptId` are not indexed). One mutable lesson bookmark per
+ * lesson item; neither store has a programme-ownership index (C7 guard).
+ * E-SCHEMA-1A: XP ownership is a validated field, not an index. Every
+ * progression read validates the whole ledger (an owner-less row belongs to
+ * no programme's index), so an ownership index would serve no read.
  */
 const versionFourStoreDefinitions = {
   ...versionThreeStoreDefinitions,
@@ -139,18 +141,39 @@ const versionFourStoreDefinitions = {
 } as const;
 
 /**
- * Epic E / E-SCHEMA-1 §6: the additive schema 3 → 4 upgrade. Its only write is
- * `app_meta.schemaVersion = 4` on an existing row; every other row stays
- * byte-identical and both new stores start empty. A failure aborts the
- * version-change transaction and leaves schema 3 intact.
+ * Epic E / E-SCHEMA-1 §6 and E-SCHEMA-1A: the schema 3 → 4 upgrade. It sets
+ * `app_meta.schemaVersion = 4` and gives every historical XP row its owner:
+ * the migration context's programme, the accepted persisted CS50 identity
+ * that every schema-3 database's history belongs to (never inferred from a
+ * label). Stored IDs and every other field stay byte-identical; both new
+ * stores start empty. A row already naming another programme, or any other
+ * failure, aborts the version-change transaction and leaves schema 3 intact.
  */
-function migrateVersionThreeToVersionFour(transaction: Transaction) {
-  return transaction
-    .table('app_meta')
-    .toCollection()
-    .modify((appMeta: Record<string, unknown>) => {
-      appMeta.schemaVersion = 4;
-    });
+function migrateVersionThreeToVersionFour(
+  transaction: Transaction,
+  migrationContext: DatabaseMigrationContext,
+) {
+  const owner = migrationContext.programmeId;
+
+  return Promise.all([
+    transaction
+      .table('app_meta')
+      .toCollection()
+      .modify((appMeta: Record<string, unknown>) => {
+        appMeta.schemaVersion = 4;
+      }),
+    transaction
+      .table('xp_transactions')
+      .toCollection()
+      .modify((row: Record<string, unknown>) => {
+        if (row.programmeId !== undefined && row.programmeId !== owner) {
+          throw new Error(
+            `Historical XP transaction "${String(row.id)}" already names programme "${String(row.programmeId)}".`,
+          );
+        }
+        row.programmeId = owner;
+      }),
+  ]);
 }
 
 const otherV2StoreNames = [
@@ -263,7 +286,7 @@ async function migrateVersionTwoToVersionThree(
     ),
     xpTransactions: parseLegacyRows(
       xpTransactionRows,
-      XpTransactionSchema,
+      LegacyXpTransactionSchema,
       'Stored XP transaction',
     ),
   };
@@ -326,7 +349,9 @@ export class ProgressPalDatabase extends Dexie {
       );
     this.version(4)
       .stores(versionFourStoreDefinitions)
-      .upgrade(migrateVersionThreeToVersionFour);
+      .upgrade((transaction) =>
+        migrateVersionThreeToVersionFour(transaction, this.migrationContext),
+      );
 
     this.appMeta = this.table('app_meta');
     this.learnerProfile = this.table('learner_profile');

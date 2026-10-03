@@ -354,6 +354,7 @@ async function addSyntheticHistory(
     { length: historyCount },
     (_, index) => ({
       id: `a2-history-xp-${historyCount}-${index}`,
+      programmeId: 'cs50x',
       sourceType: 'a2_history_fixture',
       sourceId: `a2-history-source-${historyCount}-${index}`,
       xp: 1,
@@ -366,6 +367,7 @@ async function addSyntheticHistory(
 
   xpTransactions.push({
     id: `a2-relevant-xp-${historyCount}`,
+    programmeId: 'cs50x',
     sourceType: 'lecture_completed',
     sourceId: 'week-4-lecture-completed',
     xp: 40,
@@ -574,6 +576,7 @@ describe('RPG Module read boundary', () => {
     await context.db.xpTransactions.bulkAdd([
       ...Array.from({ length: 1_000 }, (_, index) => ({
         id: `a2-unrelated-xp-${index}`,
+        programmeId: 'cs50x',
         sourceType: 'a2_unrelated_noise',
         sourceId: `a2-unrelated-source-${index}`,
         xp: 1,
@@ -584,6 +587,7 @@ describe('RPG Module read boundary', () => {
       })),
       ...Array.from({ length: 100 }, (_, index) => ({
         id: `a2-colliding-xp-${index}`,
+        programmeId: 'cs50x',
         sourceType: 'a2_colliding_noise',
         sourceId: 'week-4-lecture-completed',
         xp: 1,
@@ -594,6 +598,7 @@ describe('RPG Module read boundary', () => {
       })),
       {
         id: 'a2-relevant-xp',
+        programmeId: 'cs50x',
         sourceType: 'lecture_completed',
         sourceId: 'week-4-lecture-completed',
         xp: 40,

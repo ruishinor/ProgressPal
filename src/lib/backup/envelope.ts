@@ -18,6 +18,7 @@ import {
   ProgressEntrySchema,
   ResumePointSchema,
   StudySessionSchema,
+  LegacyXpTransactionSchema,
   XpTransactionSchema,
 } from '@/lib/domain';
 import { singletonIds } from '@/lib/db/constants';
@@ -100,7 +101,7 @@ const legacyBackupDataV2Schema = z
     mediaProgressEvents: z.array(MediaProgressEventSchema),
     resumePoints: z.array(ResumePointSchema),
     studySessions: z.array(StudySessionSchema),
-    xpTransactions: z.array(XpTransactionSchema),
+    xpTransactions: z.array(LegacyXpTransactionSchema),
     achievementDefinitions: z.array(AchievementDefinitionSchema),
     achievementUnlocks: z.array(AchievementUnlockSchema),
     backups: z.array(BackupRecordSchema),
@@ -109,11 +110,16 @@ const legacyBackupDataV2Schema = z
 
 type LegacyBackupDataV2 = z.infer<typeof legacyBackupDataV2Schema>;
 
-/** The schema-3 payload shape, which had no learner-evidence stores. */
+/**
+ * The schema-3 payload shape: no learner-evidence stores, and XP rows without
+ * an owning programme (ownership exists from schema 4, E-SCHEMA-1A).
+ */
 type SchemaThreeBackupData = Omit<
   BackupData,
-  'learnerEvidence' | 'lessonPositions'
->;
+  'learnerEvidence' | 'lessonPositions' | 'xpTransactions'
+> & { xpTransactions: BackupLegacyXpTransaction[] };
+
+type BackupLegacyXpTransaction = z.infer<typeof LegacyXpTransactionSchema>;
 
 /**
  * Forward-converts a validated schema-2 backup payload to the current
@@ -570,19 +576,23 @@ export function assertBackupDataInvariants(
 
   assertLearnerEvidenceInvariants(data, itemsById);
 
+  // E-SCHEMA-1A: one award per source within one programme; the same source
+  // may legitimately be awarded once in each programme. Historical schema-3
+  // rows (owner-less) are one ledger.
   const xpSourceKeys = new Set<string>();
 
   for (const transaction of data.xpTransactions) {
-    const key = getXpAwardSourceKey(
-      transaction.sourceType,
-      transaction.sourceId,
-    );
+    const owner = (transaction as { programmeId?: string }).programmeId ?? null;
+    const key = JSON.stringify([
+      owner,
+      getXpAwardSourceKey(transaction.sourceType, transaction.sourceId),
+    ]);
 
     if (xpSourceKeys.has(key)) {
       throw new BackupValidationError(
         'This backup contains duplicate XP transaction sources and cannot be imported.',
         [
-          `Duplicate XP source (${transaction.sourceType}, ${transaction.sourceId}).`,
+          `Duplicate XP source (${transaction.sourceType}, ${transaction.sourceId}) in programme ${String(owner)}.`,
         ],
       );
     }
@@ -688,7 +698,14 @@ export function assertBackupDataInvariants(
     data.programmeEnrolments.map((enrolment) => enrolment.programmeId),
   );
 
-  for (const row of [...data.learnerEvidence, ...data.lessonPositions]) {
+  // E-SCHEMA-1A: a schema-4 XP row's owner is registered and enrolled too.
+  const ownedXp = options.expectedSchemaVersion >= 4 ? data.xpTransactions : [];
+
+  for (const row of [
+    ...data.learnerEvidence,
+    ...data.lessonPositions,
+    ...ownedXp,
+  ]) {
     if (!authorizedProgrammeIds.has(row.programmeId)) {
       throw new BackupValidationError(
         'This backup contains learner evidence for an unregistered programme and cannot be imported.',
@@ -879,13 +896,14 @@ export function parseBackupFile(
     // Historical C6 conversion, retained unchanged and selected only when a
     // caller explicitly expects schema 3. The schema-4 application never
     // selects it (E-SCHEMA-1 §7): there is no 2 → 3 → 4 exported-backup path.
-    // Schema 3 had no evidence stores; the empty arrays only complete the
-    // current in-memory payload type.
-    const convertedEnvelope: BackupEnvelope = {
+    // Schema 3 had no evidence stores and no XP ownership: the empty arrays
+    // only complete the in-memory payload, and the XP rows stay exactly as
+    // schema 3 stored them (owner-less), which only this path ever returns.
+    const convertedEnvelope = {
       ...legacyResult.data,
       schemaVersion: options.expectedSchemaVersion,
       data: { ...convertedData, learnerEvidence: [], lessonPositions: [] },
-    };
+    } as unknown as BackupEnvelope;
 
     assertBackupDataInvariants(convertedEnvelope.data, {
       expectedSchemaVersion: options.expectedSchemaVersion,

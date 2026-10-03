@@ -139,7 +139,9 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
           listMediaProgressEvents(),
           listResumePoints(),
           listStudySessions(),
-          listXpTransactions(),
+          listXpTransactions({
+            programmeId: requireProgrammeScope(programmeScope).programmeId,
+          }),
           getAchievementsView({
             policy: requireProgrammeScope(programmeScope).policy,
           }),

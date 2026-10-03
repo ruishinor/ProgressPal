@@ -52,6 +52,8 @@ export const cs50XpPolicy: XpPolicy = {
     },
   ],
   unitCompletionBonuses: [{ unitType: 'week', xp: 150 }],
+  // The existing rule, unchanged: a logged session of 25+ minutes earns 10 XP.
+  studySessionAward: { minimumMinutes: 25, xp: 10 },
   itemMilestones: [
     {
       sourceType: 'final_project_build_completed',

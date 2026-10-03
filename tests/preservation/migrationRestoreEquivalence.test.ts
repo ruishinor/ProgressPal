@@ -239,7 +239,17 @@ describe('restore(old) and upgrade(old) (Epic C6-R, E2; Epic E forward baseline)
       'mediaProgressEvents',
       'resumePoints',
     ] as const) {
-      expect(parsed.data[table], table).toEqual(upgraded[table]);
+      // E-SCHEMA-1A: the in-place upgrade adds exactly the owner to each
+      // historical XP row (the accepted CS50 identity); nothing else differs.
+      expect(
+        table === 'xpTransactions'
+          ? parsed.data.xpTransactions.map((row) => ({
+              ...row,
+              programmeId: 'cs50x',
+            }))
+          : parsed.data[table],
+        table,
+      ).toEqual(upgraded[table]);
     }
 
     // Not vacuous: the legacy fixture populates these learner-data stores.

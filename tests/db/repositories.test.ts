@@ -817,6 +817,7 @@ describe('database repositories', () => {
     );
     await addXpTransaction(
       {
+        programmeId: 'cs50x',
         sourceType: 'study_session',
         sourceId: 'study-session-source',
         xp: 25,
@@ -1007,13 +1008,13 @@ describe('database repositories', () => {
       await testDatabase.db.open();
 
       await expect(
-        getXpSummary({ db: testDatabase.db }),
+        getXpSummary({ programmeId: 'cs50x', db: testDatabase.db }),
       ).resolves.toMatchObject({
         level: 1,
         totalXp: 0,
       });
       await expect(
-        listXpTransactions({ db: testDatabase.db }),
+        listXpTransactions({ programmeId: 'cs50x', db: testDatabase.db }),
       ).resolves.toEqual([]);
       expect(await testDatabase.db.appMeta.count()).toBe(0);
       expect(await testDatabase.db.learnerProfile.count()).toBe(0);
@@ -1027,7 +1028,10 @@ describe('database repositories', () => {
         seed: sampleCourseSeed,
       });
 
-      const summary = await getXpSummary({ db: testDatabase.db });
+      const summary = await getXpSummary({
+        programmeId: 'cs50x',
+        db: testDatabase.db,
+      });
       expect(summary).toEqual({
         totalXp: 0,
         level: 1,
@@ -1036,7 +1040,10 @@ describe('database repositories', () => {
         nextLevelXp: 100,
       });
 
-      const txs = await listXpTransactions({ db: testDatabase.db });
+      const txs = await listXpTransactions({
+        programmeId: 'cs50x',
+        db: testDatabase.db,
+      });
       expect(txs).toEqual([]);
     });
 

@@ -155,6 +155,7 @@ function makeValidData(): BackupData {
         id: 'xp-1',
         createdAt: '2026-06-16T10:00:00.000Z',
         updatedAt: '2026-06-16T10:00:00.000Z',
+        programmeId: 'cs50x',
         sourceType: 'study_session',
         sourceId: 'study-session-1',
         xp: 10,

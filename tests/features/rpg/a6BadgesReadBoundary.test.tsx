@@ -71,6 +71,7 @@ function createXpFixtures(count: number): XpTransaction[] {
 
     return XpTransactionSchema.parse({
       id: `a6-xp-${String(index).padStart(5, '0')}`,
+      programmeId: 'cs50x',
       sourceType: 'a6-fixture',
       sourceId: `a6-source-${String(index).padStart(5, '0')}`,
       xp: 25 + index,
@@ -432,6 +433,7 @@ describe('A6 Badges actual-route read boundary', () => {
     const reader = getSharedDatabase(defaultTestMigrationContext);
     const probe = installDatabaseAccessProbe(reader);
     const result = await database.readAchievementsSurfaceData({
+      programmeId: 'cs50x',
       policy: cs50Policy,
     });
     expect(result).toEqual({
@@ -548,6 +550,7 @@ describe('A6 Badges actual-route read boundary', () => {
       const probe = installDatabaseAccessProbe(reader);
       const started = performance.now();
       const result = await database.readAchievementsSurfaceData({
+        programmeId: 'cs50x',
         policy: cs50Policy,
       });
       const readDurationMs = Math.round(performance.now() - started);
@@ -602,7 +605,10 @@ describe('A6 Badges actual-route read boundary', () => {
     });
     let writerState: 'pending' | 'fulfilled' | 'rejected' = 'pending';
     let writerError: unknown;
-    const read = database.readAchievementsSurfaceData({ policy: cs50Policy });
+    const read = database.readAchievementsSurfaceData({
+      programmeId: 'cs50x',
+      policy: cs50Policy,
+    });
     let write: Promise<void> | undefined;
     try {
       await reached;
@@ -640,6 +646,7 @@ describe('A6 Badges actual-route read boundary', () => {
       expect(before.xpSummary).toEqual(calculateXpSummary(25));
       assertChildAccess(probe.snapshot(), 1);
       const after = await database.readAchievementsSurfaceData({
+        programmeId: 'cs50x',
         policy: cs50Policy,
       });
       expect(after.view.unlockedCount).toBe(2);
@@ -669,7 +676,10 @@ describe('A6 Badges actual-route read boundary', () => {
         getSharedDatabase(defaultTestMigrationContext),
       );
       await expect(
-        database.readAchievementsSurfaceData({ policy: cs50Policy }),
+        database.readAchievementsSurfaceData({
+          programmeId: 'cs50x',
+          policy: cs50Policy,
+        }),
       ).rejects.toBeInstanceOf(SchemaValidationError);
       expect(probe.snapshot().writesObserved).toBe(0);
     },

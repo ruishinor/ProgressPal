@@ -38,6 +38,7 @@ export {
   getProgress,
   getRequiredAppMeta,
   getXpSummary,
+  type ProgrammeXpOptions,
   initializeDatabase,
   listAchievementUnlocks,
   listContentAssets,
@@ -102,6 +103,7 @@ export {
   saveLessonPosition,
   submitExerciseAttempt,
   type EvaluationResultInput,
+  type EvidenceAwardPlanner,
   type EvidenceWriteResult,
   type ExerciseAttemptInput,
   type LessonPositionInput,
@@ -113,4 +115,5 @@ export {
   type AttemptLifecycleResult,
   type AttemptRecoveryStatus,
   type ProduceEvaluationResult,
+  type ResultWriteResult,
 } from './learnerEvidence';

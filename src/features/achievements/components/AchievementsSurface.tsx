@@ -97,8 +97,10 @@ export function AchievementsSurface({
       try {
         // Read-only: this merges code definitions with persisted unlocks. It
         // never evaluates rules and never creates unlocks.
+        const scope = requireProgrammeScope(programmeScope);
         const { view, xpSummary } = await readAchievementsSurfaceData({
-          policy: requireProgrammeScope(programmeScope).policy,
+          policy: scope.policy,
+          programmeId: scope.programmeId,
         });
 
         if (!isActive) {

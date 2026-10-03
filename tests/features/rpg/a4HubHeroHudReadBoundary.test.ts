@@ -291,6 +291,7 @@ async function addSyntheticHistories(
     });
     xp.push({
       id: `${label}-xp-${index}`,
+      programmeId: 'cs50x',
       sourceType: 'a4_scale',
       sourceId: `${label}-source-${index}`,
       xp: 1,

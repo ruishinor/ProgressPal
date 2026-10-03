@@ -112,8 +112,8 @@ export function DashboardPage() {
         ] = await Promise.all([
           getCatalogueCourseState({ catalogueId: scope.catalogueId }),
           listStudySessions(),
-          listXpTransactions(),
-          getXpSummary(),
+          listXpTransactions({ programmeId: scope.programmeId }),
+          getXpSummary({ programmeId: scope.programmeId }),
           getAchievementsView({ policy: scope.policy }),
         ]);
 

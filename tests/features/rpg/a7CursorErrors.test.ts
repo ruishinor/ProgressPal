@@ -53,7 +53,12 @@ const readers: Record<string, Reader> = {
     ),
   'Focus refresh': (db) =>
     readStudySessionLedgerRows((session) => session.id, { db }),
-  Badges: (db) => readAchievementsSurfaceData({ policy: cs50Policy, db }),
+  Badges: (db) =>
+    readAchievementsSurfaceData({
+      programmeId: 'cs50x',
+      policy: cs50Policy,
+      db,
+    }),
 };
 
 const cases = [

@@ -15,6 +15,7 @@ import {
   addStudySession,
   addXpTransaction,
   defaultLearnerProfileValues,
+  enrolInProgramme,
   ensureCourseCatalogFromSeed,
   getCatalogueCourseState,
   getDatabaseSnapshot,
@@ -49,6 +50,7 @@ import {
 import {
   altDefinition,
   altMigrationContext,
+  altProgrammeId,
   altSeed,
   altUnitIds,
   bothCataloguesMigrationContext,
@@ -274,13 +276,17 @@ describe('C5 P3: scoped readers isolate catalogues in both directions', () => {
     ).rejects.toThrow(/no materialized course units/);
   });
 
-  it('keeps the XP ledger and study sessions global across catalogues', async () => {
+  // E-SCHEMA-1A (owner accepted 2026-10-03) supersedes the C5 "global XP
+  // ledger" rule: study sessions stay learner-global; XP is programme-owned.
+  it('keeps study sessions global and each programme its own XP ledger across catalogues', async () => {
     const context = await createBothCatalogues('c5-p3-global');
+    await enrolInProgramme(altProgrammeId, { db: context.db });
     const options = { db: context.db, now: () => '2026-09-28T12:00:00.000Z' };
     const awardedAt = '2026-09-28T10:00:00.000Z';
 
     await addXpTransaction(
       {
+        programmeId: 'cs50x',
         sourceType: 'lecture_completed',
         sourceId: 'week-0-lecture-completed',
         xp: 40,
@@ -291,9 +297,10 @@ describe('C5 P3: scoped readers isolate catalogues in both directions', () => {
     );
     await addXpTransaction(
       {
+        programmeId: altProgrammeId,
         sourceType: 'lecture_completed',
         sourceId: 'c5-alt-unit-a-lecture-completed',
-        xp: 40,
+        xp: 30,
         reason: 'C5 alternate fixture',
         awardedAt,
       },
@@ -316,12 +323,15 @@ describe('C5 P3: scoped readers isolate catalogues in both directions', () => {
       );
     }
 
-    for (const scope of [cs50Scope, altScope]) {
+    for (const [scope, ownXp] of [
+      [cs50Scope, 40],
+      [altScope, 30],
+    ] as const) {
       expect((await loadRpgHudSummary(scope, options)).xpSummary.totalXp).toBe(
-        80,
+        ownXp,
       );
       const hero = await loadRpgHeroProfileSummary(scope, options);
-      expect(hero.xpSummary.totalXp).toBe(80);
+      expect(hero.xpSummary.totalXp).toBe(ownXp);
       expect(hero.studySummary.sessionCount).toBe(2);
     }
   });
@@ -531,6 +541,7 @@ describe('C5 repair: Classic surfaces read the active catalogue only', () => {
       'c5-alt-unit-a-lecture-completed',
     ]) {
       await addXpTransaction({
+        programmeId: 'cs50x',
         sourceType: 'lecture_completed',
         sourceId,
         xp: 40,

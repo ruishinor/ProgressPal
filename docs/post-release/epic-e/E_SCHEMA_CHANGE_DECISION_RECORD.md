@@ -10,7 +10,7 @@ It follows the pattern of `docs/post-release/epic-c/C6_SCHEMA_CHANGE_DECISION_RE
 
 **R4.2 amendment** (correction of two R4.1 independent-review blockers; documentation only). R4.1 said the evaluator runs before the write and that the answer and its outcome are committed in one append. That loses a submitted answer if the tab closes during evaluation, and a later retry could then become attempt 1. Corrected: persistence is two-stage. An immutable `exercise_attempt` commits first, carrying no outcome; evaluation then runs against that persisted attempt; an immutable `evaluation_result` linked to exactly one attempt commits afterwards, and nothing is shown until it does (section 3, invariants 4, 5, 7, 8, 10 and 11). `learner_evidence` therefore has four record kinds. It is still two stores, and still no third store, no cloud work and no stored mastery. The R4.1 statement that the same-append reading is acceptable is superseded. K-3 is not resolved by this record: no gate-retry fallback is chosen (section 12, D-3).
 
-**E-SCHEMA-1A amendment (owner accepted 2026-10-03; programme-scoped XP ownership).** Recorded after the non-final Epic E candidate `f33407f`; the record did not contain this decision before. The body above and below stays authoritative except where section 13 amends it: section 2's "no existing store, field or index changes" and its "no index matching `/programme/i`" rule, and section 6's "only write is `app_meta.schemaVersion`" and "no XP is written", no longer hold for `xp_transactions`. Nothing about the attempt and result schema is reopened.
+**E-SCHEMA-1A amendment (owner accepted 2026-10-03; programme-scoped XP ownership).** Recorded after the non-final Epic E candidate `f33407f`; the record did not contain this decision before. The body above and below stays authoritative except where section 13 amends it: section 2's "no existing store, field or index changes" (an XP row gains a field; no index changes, so the "no index matching `/programme/i`" rule still holds), and section 6's "only write is `app_meta.schemaVersion`" and "no XP is written", no longer hold for `xp_transactions`. Nothing about the attempt and result schema is reopened.
 
 ## 1. Why schema 3 is insufficient
 
@@ -283,17 +283,15 @@ Decision:
 - Total XP, level and XP-to-next-level are derived per programme, with the unchanged formula `level = floor(sqrt(programmeTotalXp / 100)) + 1`. None of them is persisted.
 - Switching programme changes the visible XP and level context. It writes nothing to `xp_transactions` and never modifies another programme's ledger.
 - Duplicate prevention is scoped by programme: the award identity is `(programmeId, sourceType, sourceId)`. The same `(sourceType, sourceId)` may legitimately be awarded once in each programme.
-- New transaction identities include the owning programme. Existing historical transaction IDs are kept exactly as stored; none is rewritten to fit the new formula.
+- New transaction identities include the owning programme through an ID namespace (measured during implementation, 2026-10-03). The historical ledger owner, the migration context's programme (CS50), keeps the unchanged formula `xp-<sourceType>-<sourceId>`, so CS50's ledger stays byte-identical to the frozen C1 baseline apart from the new owner field. Every other programme's IDs are `xp-<programmeId>-<sourceType>-<sourceId>`. Programme IDs are not XP source types, so the two namespaces cannot meet, and the unique `&id` index fails closed if they ever did. Existing historical transaction IDs are kept exactly as stored; none is rewritten.
 - No schema 5. Schema 4 has not shipped, so the amendment changes the unshipped version 4 definition.
 - No new store is added for programme XP.
 
-Storage:
+Storage (measured during implementation, 2026-10-03; supersedes the first draft of this section, which proposed a `programmeId` index):
 
-| Change                            | Dexie store definition                              |
-| --------------------------------- | --------------------------------------------------- |
-| `xp_transactions` gains one index | `&id, sourceType, sourceId, awardedAt, programmeId` |
-
-The only consumer the index serves is the per-programme ledger read (the programme's XP summary, recent awards and earned-award keys), which every XP surface now performs. A compound index is not needed: the in-transaction duplicate check already narrows by the existing `sourceId` index and then compares `programmeId` and `sourceType` on the few matching rows. The C7 guard that no learner table carries a programme-ownership index is amended for `xp_transactions` only; every other learner table keeps it.
+- `programmeId` is a required, validated field of every schema-4 XP row. **No index is added**, and the `xp_transactions` store definition is unchanged from schema 3.
+- Why no index: every progression read must validate the whole ledger to fail closed, because a row without an owner belongs to no programme's index and an indexed read would silently skip it. A validated full scan filtered by programme serves every consumer (summary, recent awards, earned-award keys, achievements surface) and keeps the accepted A4/A6/A7 read-boundary access budgets unchanged. Duplicate prevention already narrows by the existing `sourceId` index and compares `programmeId` and `sourceType` on the few matching rows.
+- The C7 guard that no learner table carries a programme-ownership index therefore holds unchanged for every table.
 
 Live upgrade 3 → 4 (amends section 6):
 

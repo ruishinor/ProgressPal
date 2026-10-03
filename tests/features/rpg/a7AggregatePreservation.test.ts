@@ -127,6 +127,7 @@ describe('A7 aggregate preservation', () => {
               });
               await context.db.xpTransactions.add({
                 id: 'a7-atomic-xp',
+                programmeId: 'cs50x',
                 sourceType: 'a7-fixture',
                 sourceId: 'a7-atomic-source',
                 xp: 400,
@@ -326,6 +327,7 @@ describe('A7 aggregate preservation', () => {
         now: () => now,
       });
       const badges = await readAchievementsSurfaceData({
+        programmeId: 'cs50x',
         policy: cs50Policy,
         db: reader,
       });

@@ -44,7 +44,10 @@ import {
   type StudySession,
   type XpTransaction,
 } from '@/lib/domain';
-import { assertBackupDataInvariants } from '@/lib/backup';
+import {
+  BackupValidationError,
+  assertBackupDataInvariants,
+} from '@/lib/backup';
 import {
   deriveAchievementUnlockId,
   evaluateAchievements,
@@ -77,6 +80,7 @@ import {
   getXpAwardSourceKey,
   getCrossedBlocks,
   isUnitCompletionAward,
+  type PotentialXpAward,
   type XpSummary,
 } from '@/lib/xp/engine';
 
@@ -472,6 +476,14 @@ type CatalogueScopeOptions = BaseDatabaseOptions & {
 };
 
 type ScopedProgrammeOptions = ProgrammePolicyOptions & CatalogueScopeOptions;
+
+/**
+ * Options for programme-owned progression reads (E-SCHEMA-1A): the caller
+ * names the owning programme. There is no default, global progression read.
+ */
+export type ProgrammeXpOptions = BaseDatabaseOptions & {
+  programmeId: string;
+};
 
 /**
  * Rejects a save whose item belongs to another catalogue (Epic C / C5)
@@ -2870,6 +2882,118 @@ export async function correctStudySessionAssignment(
   );
 }
 
+/** The programme that owns a catalogue: authorization data, never a label. */
+function catalogueProgrammeId(
+  database: ProgressPalDatabase,
+  catalogueId: string,
+): string {
+  const owner = database.migrationContext.authorizedCatalogues.find(
+    (catalogue) => catalogue.courseId === catalogueId,
+  );
+
+  if (owner === undefined) {
+    throw new Error(
+      `Catalogue "${catalogueId}" belongs to no registered programme.`,
+    );
+  }
+
+  return owner.programmeId;
+}
+
+function requireProgrammeId(programmeId: unknown): string {
+  if (typeof programmeId !== 'string' || programmeId.trim() === '') {
+    throw new Error(
+      'XP is owned by a programme: name the programme. There is no global progression read.',
+    );
+  }
+
+  return programmeId;
+}
+
+/**
+ * One programme's XP rows (E-SCHEMA-1A). The whole ledger is validated
+ * first, so a row without its owner fails the read closed instead of being
+ * skipped; then the programme's own rows are kept.
+ */
+async function readProgrammeXp(
+  database: ProgressPalDatabase,
+  programmeId: string,
+  label = 'Stored XP transaction',
+): Promise<XpTransaction[]> {
+  return parseStoredArray(
+    await database.xpTransactions.toArray(),
+    label,
+    XpTransactionSchema,
+  ).filter((transaction) => transaction.programmeId === programmeId);
+}
+
+/**
+ * Awards XP at most once per (programme, sourceType, sourceId) inside the
+ * caller's transaction (E-SCHEMA-1A). The same source may be awarded once in
+ * each programme. Returns the new row, or null when it was already awarded.
+ *
+ * @internal
+ */
+export async function awardXpOnce(
+  database: ProgressPalDatabase,
+  programmeId: string,
+  award: PotentialXpAward,
+  awardedAt: string,
+  now: DatabaseClock,
+): Promise<XpTransaction | null> {
+  const existing = await database.xpTransactions
+    .where('sourceId')
+    .equals(award.sourceId)
+    .filter(
+      (transaction) =>
+        transaction.programmeId === programmeId &&
+        transaction.sourceType === award.sourceType,
+    )
+    .first();
+
+  if (existing !== undefined) {
+    return null;
+  }
+
+  // The historical ledger owner keeps its unchanged ID formula (E-SCHEMA-1A).
+  const id = deriveXpTransactionId(
+    award.sourceType,
+    award.sourceId,
+    programmeId === database.migrationContext.programmeId
+      ? undefined
+      : programmeId,
+  );
+
+  if ((await database.xpTransactions.get(id)) !== undefined) {
+    return null;
+  }
+
+  const timestamp = now();
+  const transaction = parseWithSchema(
+    XpTransactionSchema,
+    {
+      id,
+      programmeId,
+      sourceType: award.sourceType,
+      sourceId: award.sourceId,
+      xp: award.xp,
+      reason: award.reason,
+      awardedAt,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+    'XP transaction',
+  );
+
+  await database.xpTransactions.add(transaction);
+
+  return transaction;
+}
+
+/**
+ * Appends one programme-owned XP row. The owner must be a registered,
+ * enrolled programme (E-SCHEMA-1A).
+ */
 export async function addXpTransaction(
   input: AddXpTransactionInput,
   options: BaseDatabaseOptions = {},
@@ -2891,8 +3015,28 @@ export async function addXpTransaction(
     'XP transaction',
   );
 
+  if (!isAuthorizedProgramme(database.migrationContext, input.programmeId)) {
+    throw new Error(
+      `Programme "${input.programmeId}" is not an authorized programme.`,
+    );
+  }
+
   await runCoordinatedWrite(database, () =>
-    database.xpTransactions.add(xpTransaction),
+    database.transaction(
+      'rw',
+      database.xpTransactions,
+      database.programmeEnrolments,
+      async () => {
+        if (
+          (await database.programmeEnrolments.get(input.programmeId)) ===
+          undefined
+        ) {
+          throw new Error(`Programme "${input.programmeId}" is not enrolled.`);
+        }
+
+        await database.xpTransactions.add(xpTransaction);
+      },
+    ),
   );
 
   return xpTransaction;
@@ -2918,37 +3062,34 @@ export type AddStudySessionWithXpResult = {
   xpSummary: XpSummary;
 };
 
+/** One programme's XP ledger (E-SCHEMA-1A); fails closed on a malformed row. */
 export async function listXpTransactions(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammeXpOptions,
 ): Promise<XpTransaction[]> {
+  const programmeId = requireProgrammeId(options?.programmeId);
   const database = await ensureOpen(resolveDatabase(options.db));
 
-  const txs = await database.xpTransactions.toArray();
-  const parsedTxs = parseStoredArray(
-    txs,
-    'Stored XP transaction',
-    XpTransactionSchema,
-  );
-  return sortXpTransactions(parsedTxs);
+  return sortXpTransactions(await readProgrammeXp(database, programmeId));
 }
 
-async function calculateStoredXpSummary(database: ProgressPalDatabase) {
-  const records = await database.xpTransactions.toArray();
-  const transactions = parseStoredArray(
-    records,
-    'Stored XP transaction',
-    XpTransactionSchema,
-  );
+async function calculateStoredXpSummary(
+  database: ProgressPalDatabase,
+  programmeId: string,
+) {
+  const transactions = await readProgrammeXp(database, programmeId);
+
   return calculateXpSummary(
     transactions.reduce((total, transaction) => total + transaction.xp, 0),
   );
 }
 
+/** One programme's total, level and XP to the next level (E-SCHEMA-1A). */
 export async function getXpSummary(
-  options: BaseDatabaseOptions = {},
+  options: ProgrammeXpOptions,
 ): Promise<XpSummary> {
+  const programmeId = requireProgrammeId(options?.programmeId);
   const database = await ensureOpen(resolveDatabase(options.db));
-  return calculateStoredXpSummary(database);
+  return calculateStoredXpSummary(database, programmeId);
 }
 
 export type AchievementView = {
@@ -3040,8 +3181,9 @@ function buildAchievementsView(
  * accumulated one row at a time, with no hidden source-history array.
  */
 export async function readAchievementsSurfaceData(
-  options: ProgrammePolicyOptions,
+  options: ProgrammePolicyOptions & { programmeId: string },
 ): Promise<{ view: AchievementsView; xpSummary: XpSummary }> {
+  const programmeId = requireProgrammeId(options?.programmeId);
   const database = await ensureOpen(resolveDatabase(options.db));
   const achievementDefinitions = options.policy.achievements;
 
@@ -3071,7 +3213,10 @@ export async function readAchievementsSurfaceData(
             storedTransaction,
             'Stored XP transaction',
           );
-          totalXp += transaction.xp;
+          // E-SCHEMA-1A: every row is validated; only the programme's count.
+          if (transaction.programmeId === programmeId) {
+            totalXp += transaction.xp;
+          }
         } catch (error) {
           validationError ??= error;
         }
@@ -3190,6 +3335,7 @@ export async function upsertProgressAndAwardXp(
 ): Promise<UpsertProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
   let progressEntry: ProgressEntry | null = null;
   const awardedTransactions: XpTransaction[] = [];
   let unlockedAchievements: AchievementUnlock[] = [];
@@ -3227,12 +3373,12 @@ export async function upsertProgressAndAwardXp(
         // 2. Evaluate and award XP
         const item = await database.courseItems.get(progressEntry!.itemId);
         if (!item) {
-          xpSummary = await calculateStoredXpSummary(database);
+          xpSummary = await calculateStoredXpSummary(database, programmeId);
           return;
         }
         const unit = await database.courseUnits.get(item.unitId);
         if (!unit) {
-          xpSummary = await calculateStoredXpSummary(database);
+          xpSummary = await calculateStoredXpSummary(database, programmeId);
           return;
         }
 
@@ -3268,30 +3414,14 @@ export async function upsertProgressAndAwardXp(
         });
 
         for (const award of potentialAwards) {
-          const exists = await database.xpTransactions
-            .where('sourceId')
-            .equals(award.sourceId)
-            .filter((tx) => tx.sourceType === award.sourceType)
-            .first();
-
-          if (!exists) {
-            const txId = deriveXpTransactionId(
-              award.sourceType,
-              award.sourceId,
-            );
-            const tx = await addXpTransaction(
-              {
-                id: txId,
-                sourceType: award.sourceType,
-                sourceId: award.sourceId,
-                xp: award.xp,
-                reason: award.reason,
-                awardedAt: progressEntry!.updatedAt,
-              },
-              { ...options, db: database },
-            );
-            awardedTransactions.push(tx);
-          }
+          const tx = await awardXpOnce(
+            database,
+            programmeId,
+            award,
+            progressEntry!.updatedAt,
+            now,
+          );
+          if (tx !== null) awardedTransactions.push(tx);
         }
 
         // 3. Evaluate achievements against all accumulated source data. Writes
@@ -3302,7 +3432,7 @@ export async function upsertProgressAndAwardXp(
           options.policy.achievements,
           options.catalogueId,
         );
-        xpSummary = await calculateStoredXpSummary(database);
+        xpSummary = await calculateStoredXpSummary(database, programmeId);
       },
     ),
   );
@@ -3321,6 +3451,7 @@ export async function logMediaProgressAndAwardXp(
 ): Promise<LogMediaProgressWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
   let result: LogMediaProgressResult | null = null;
   const awardedTransactions: XpTransaction[] = [];
   let unlockedAchievements: AchievementUnlock[] = [];
@@ -3368,28 +3499,19 @@ export async function logMediaProgressAndAwardXp(
           (event.stoppedBecause === 'reached_limit' ||
             event.stoppedBecause === 'completed_slice')
         ) {
-          const sourceId = event.id;
-          const exists = await database.xpTransactions
-            .where('sourceId')
-            .equals(sourceId)
-            .filter((tx) => tx.sourceType === 'media_clean_stop')
-            .first();
-
-          if (!exists) {
-            const txId = deriveXpTransactionId('media_clean_stop', sourceId);
-            const tx = await addXpTransaction(
-              {
-                id: txId,
-                sourceType: 'media_clean_stop',
-                sourceId,
-                xp: 5,
-                reason: `Clean stop after 15+ minutes of focus on: ${asset.title}`,
-                awardedAt: event.createdAt,
-              },
-              { ...options, db: database },
-            );
-            awardedTransactions.push(tx);
-          }
+          const tx = await awardXpOnce(
+            database,
+            programmeId,
+            {
+              sourceType: 'media_clean_stop',
+              sourceId: event.id,
+              xp: 5,
+              reason: `Clean stop after 15+ minutes of focus on: ${asset.title}`,
+            },
+            event.createdAt,
+            now,
+          );
+          if (tx !== null) awardedTransactions.push(tx);
         }
 
         // b) Unique 10-minute coverage blocks:
@@ -3421,32 +3543,19 @@ export async function logMediaProgressAndAwardXp(
         );
 
         for (const blockIndex of newlyCrossed) {
-          const sourceId = `${asset.id}-block-${blockIndex}`;
-          const exists = await database.xpTransactions
-            .where('sourceId')
-            .equals(sourceId)
-            .filter((tx) => tx.sourceType === 'media_unique_10_minutes')
-            .first();
-
-          if (!exists) {
-            const txId = deriveXpTransactionId(
-              'media_unique_10_minutes',
-              sourceId,
-            );
-            const blockNum = blockIndex + 1;
-            const tx = await addXpTransaction(
-              {
-                id: txId,
-                sourceType: 'media_unique_10_minutes',
-                sourceId,
-                xp: 4,
-                reason: `Crossed 10 focused minutes (block ${blockNum}) on: ${asset.title}`,
-                awardedAt: event.createdAt,
-              },
-              { ...options, db: database },
-            );
-            awardedTransactions.push(tx);
-          }
+          const tx = await awardXpOnce(
+            database,
+            programmeId,
+            {
+              sourceType: 'media_unique_10_minutes',
+              sourceId: `${asset.id}-block-${blockIndex}`,
+              xp: 4,
+              reason: `Crossed 10 focused minutes (block ${blockIndex + 1}) on: ${asset.title}`,
+            },
+            event.createdAt,
+            now,
+          );
+          if (tx !== null) awardedTransactions.push(tx);
         }
 
         // c) Completed content slice:
@@ -3459,31 +3568,19 @@ export async function logMediaProgressAndAwardXp(
         });
 
         for (const slice of newlyCompletedSlices) {
-          const sourceId = slice.id;
-          const exists = await database.xpTransactions
-            .where('sourceId')
-            .equals(sourceId)
-            .filter((tx) => tx.sourceType === 'content_slice_completed')
-            .first();
-
-          if (!exists) {
-            const txId = deriveXpTransactionId(
-              'content_slice_completed',
-              sourceId,
-            );
-            const tx = await addXpTransaction(
-              {
-                id: txId,
-                sourceType: 'content_slice_completed',
-                sourceId,
-                xp: 10,
-                reason: `Completed content slice: ${slice.label} of: ${asset.title}`,
-                awardedAt: event.createdAt,
-              },
-              { ...options, db: database },
-            );
-            awardedTransactions.push(tx);
-          }
+          const tx = await awardXpOnce(
+            database,
+            programmeId,
+            {
+              sourceType: 'content_slice_completed',
+              sourceId: slice.id,
+              xp: 10,
+              reason: `Completed content slice: ${slice.label} of: ${asset.title}`,
+            },
+            event.createdAt,
+            now,
+          );
+          if (tx !== null) awardedTransactions.push(tx);
         }
 
         // d) Progress entry cascading milestone awards:
@@ -3523,30 +3620,14 @@ export async function logMediaProgressAndAwardXp(
             });
 
             for (const award of progressAwards) {
-              const exists = await database.xpTransactions
-                .where('sourceId')
-                .equals(award.sourceId)
-                .filter((tx) => tx.sourceType === award.sourceType)
-                .first();
-
-              if (!exists) {
-                const txId = deriveXpTransactionId(
-                  award.sourceType,
-                  award.sourceId,
-                );
-                const tx = await addXpTransaction(
-                  {
-                    id: txId,
-                    sourceType: award.sourceType,
-                    sourceId: award.sourceId,
-                    xp: award.xp,
-                    reason: award.reason,
-                    awardedAt: progressEntry.updatedAt,
-                  },
-                  { ...options, db: database },
-                );
-                awardedTransactions.push(tx);
-              }
+              const tx = await awardXpOnce(
+                database,
+                programmeId,
+                award,
+                progressEntry.updatedAt,
+                now,
+              );
+              if (tx !== null) awardedTransactions.push(tx);
             }
           }
         }
@@ -3559,7 +3640,7 @@ export async function logMediaProgressAndAwardXp(
           options.policy.achievements,
           options.catalogueId,
         );
-        xpSummary = await calculateStoredXpSummary(database);
+        xpSummary = await calculateStoredXpSummary(database, programmeId);
       },
     ),
   );
@@ -3578,6 +3659,8 @@ export async function addStudySessionAndAwardXp(
 ): Promise<AddStudySessionWithXpResult> {
   const now = options.now ?? defaultClock;
   const database = await ensureOpen(resolveDatabase(options.db));
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
+  const sessionAward = options.policy.xp.studySessionAward;
   let changed = false;
   let studySession: StudySession | null = null;
   const awardedTransactions: XpTransaction[] = [];
@@ -3628,30 +3711,27 @@ export async function addStudySessionAndAwardXp(
           changed = true;
         }
 
-        // 2. Award XP if duration >= 25 minutes
-        if (studySession.durationMinutes >= 25) {
-          const sourceId = studySession.id;
-          const exists = await database.xpTransactions
-            .where('sourceId')
-            .equals(sourceId)
-            .filter((tx) => tx.sourceType === 'study_session')
-            .first();
-
-          if (!exists) {
-            const item = await database.courseItems.get(studySession.itemId);
-            const itemTitle = item ? item.title : 'Course item';
-            const txId = deriveXpTransactionId('study_session', sourceId);
-            const tx = await addXpTransaction(
-              {
-                id: txId,
-                sourceType: 'study_session',
-                sourceId,
-                xp: 10,
-                reason: `Logged 25+ minute study session for: ${itemTitle}`,
-                awardedAt: studySession.endedAt,
-              },
-              { ...options, db: database },
-            );
+        // 2. The programme's logged-session award, if it has one (CS50: a
+        // session of 25+ minutes earns 10 XP).
+        if (
+          sessionAward !== undefined &&
+          studySession.durationMinutes >= sessionAward.minimumMinutes
+        ) {
+          const item = await database.courseItems.get(studySession.itemId);
+          const itemTitle = item ? item.title : 'Course item';
+          const tx = await awardXpOnce(
+            database,
+            programmeId,
+            {
+              sourceType: 'study_session',
+              sourceId: studySession.id,
+              xp: sessionAward.xp,
+              reason: `Logged ${sessionAward.minimumMinutes}+ minute study session for: ${itemTitle}`,
+            },
+            studySession.endedAt,
+            now,
+          );
+          if (tx !== null) {
             awardedTransactions.push(tx);
             changed = true;
           }
@@ -3666,7 +3746,7 @@ export async function addStudySessionAndAwardXp(
           options.catalogueId,
         );
         changed ||= unlockedAchievements.length > 0;
-        xpSummary = await calculateStoredXpSummary(database);
+        xpSummary = await calculateStoredXpSummary(database, programmeId);
       },
     );
 
@@ -4025,6 +4105,7 @@ async function readA4EarnedRewardSourceKeys(
   database: ProgressPalDatabase,
   courseState: CourseStateReadData,
   policy: ProgrammePolicy,
+  programmeId: string,
   validationLabel = 'Stored RPG reward XP transaction',
 ) {
   const rewardSources = getCourseMapRewardSources(
@@ -4049,7 +4130,10 @@ async function readA4EarnedRewardSourceKeys(
           transaction.sourceId,
         );
 
-        if (rewardSources.sourceKeys.has(sourceKey)) {
+        if (
+          transaction.programmeId === programmeId &&
+          rewardSources.sourceKeys.has(sourceKey)
+        ) {
           earnedRewardSourceKeys.add(sourceKey);
         }
       },
@@ -4061,6 +4145,7 @@ async function readA4EarnedRewardSourceKeys(
 
 async function readA4XpHistory(
   database: ProgressPalDatabase,
+  programmeId: string,
   options: {
     collectRecent: boolean;
     range?: RpgHubReadRange;
@@ -4076,6 +4161,11 @@ async function readA4XpHistory(
       storedTransaction,
       'Stored XP transaction',
     );
+
+    // E-SCHEMA-1A: every row is validated; only the programme's count.
+    if (transaction.programmeId !== programmeId) {
+      return;
+    }
 
     totalXp += transaction.xp;
 
@@ -4151,11 +4241,18 @@ export async function getRpgHudReadData(
     database.xpTransactions,
   ] as const;
 
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
+
   return database.transaction('r', [...tables], async () => {
     const courseState = await readA4CourseState(database, options.catalogueId);
     const [earnedRewardSourceKeys, xp] = await Promise.all([
-      readA4EarnedRewardSourceKeys(database, courseState, options.policy),
-      readA4XpHistory(database, { collectRecent: false }),
+      readA4EarnedRewardSourceKeys(
+        database,
+        courseState,
+        options.policy,
+        programmeId,
+      ),
+      readA4XpHistory(database, programmeId, { collectRecent: false }),
     ]);
 
     return {
@@ -4184,12 +4281,19 @@ export async function getRpgHubReadData(
     database.xpTransactions,
   ] as const;
 
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
+
   return database.transaction('r', [...tables], async () => {
     const courseState = await readA4CourseState(database, options.catalogueId);
     const [earnedRewardSourceKeys, sessions, xp] = await Promise.all([
-      readA4EarnedRewardSourceKeys(database, courseState, options.policy),
+      readA4EarnedRewardSourceKeys(
+        database,
+        courseState,
+        options.policy,
+        programmeId,
+      ),
       readA4SessionHistory(database, range),
-      readA4XpHistory(database, { collectRecent: true, range }),
+      readA4XpHistory(database, programmeId, { collectRecent: true, range }),
     ]);
 
     return {
@@ -4225,11 +4329,13 @@ export async function getRpgHeroReadData(
     database.achievementUnlocks,
   ] as const;
 
+  const programmeId = catalogueProgrammeId(database, options.catalogueId);
+
   return database.transaction('r', [...tables], async () => {
     const courseState = await readA4CourseState(database, options.catalogueId);
     const [sessions, xp, achievementUnlockRecords] = await Promise.all([
       readA4SessionHistory(database),
-      readA4XpHistory(database, { collectRecent: true }),
+      readA4XpHistory(database, programmeId, { collectRecent: true }),
       database.achievementUnlocks.toArray(),
     ]);
     const achievementUnlocks = sortAchievementUnlocks(
@@ -4327,6 +4433,7 @@ export async function getCourseMapReadData(
       database,
       courseState,
       options.policy,
+      catalogueProgrammeId(database, options.catalogueId),
       'Stored Map reward XP transaction',
     );
 
@@ -4487,7 +4594,11 @@ export async function getModuleReadData(
             transaction.sourceId,
           );
 
-          if (rewardSources.sourceKeys.has(sourceKey)) {
+          if (
+            transaction.programmeId ===
+              catalogueProgrammeId(database, options.catalogueId) &&
+            rewardSources.sourceKeys.has(sourceKey)
+          ) {
             earnedRewardSourceKeys.add(sourceKey);
           }
         },
@@ -4682,7 +4793,11 @@ export async function getResourceReadData(
             transaction.sourceId,
           );
 
-          if (rewardSources.sourceKeys.has(sourceKey)) {
+          if (
+            transaction.programmeId ===
+              catalogueProgrammeId(database, options.catalogueId) &&
+            rewardSources.sourceKeys.has(sourceKey)
+          ) {
             earnedRewardSourceKeys.add(sourceKey);
           }
         },
@@ -4915,6 +5030,21 @@ function parseSnapshotForRestore(
   snapshot: DatabaseSnapshot,
   migrationContext: DatabaseMigrationContext,
 ) {
+  // A different data version is refused before any row is read, so an older
+  // payload (for example schema-3 XP rows without an owner, E-SCHEMA-1A) gets
+  // the data-version refusal rather than a row-shape error.
+  if (
+    snapshot.appMeta !== null &&
+    snapshot.appMeta.schemaVersion !== currentDatabaseSchemaVersion
+  ) {
+    throw new BackupValidationError(
+      'This backup contains app metadata for a different data version.',
+      [
+        `Expected data version ${currentDatabaseSchemaVersion}, found ${String(snapshot.appMeta.schemaVersion)}.`,
+      ],
+    );
+  }
+
   const restored = {
     appMeta:
       snapshot.appMeta === null

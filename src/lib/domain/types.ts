@@ -35,6 +35,7 @@ import {
   StudyDaySchema,
   StudySessionModeSchema,
   StudySessionSchema,
+  LegacyXpTransactionSchema,
   XpTransactionSchema,
 } from '@/lib/domain/schemas';
 
@@ -68,6 +69,7 @@ export type MediaProgressEvent = z.infer<typeof MediaProgressEventSchema>;
 export type ResumePoint = z.infer<typeof ResumePointSchema>;
 export type StudySession = z.infer<typeof StudySessionSchema>;
 export type XpTransaction = z.infer<typeof XpTransactionSchema>;
+export type LegacyXpTransaction = z.infer<typeof LegacyXpTransactionSchema>;
 export type AchievementDefinition = z.infer<typeof AchievementDefinitionSchema>;
 export type AchievementUnlock = z.infer<typeof AchievementUnlockSchema>;
 export type BackupRecord = z.infer<typeof BackupRecordSchema>;

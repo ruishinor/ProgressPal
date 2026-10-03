@@ -67,7 +67,9 @@ export function CoursePage() {
           getCatalogueCourseState({
             catalogueId: requireProgrammeScope(programmeScope).catalogueId,
           }),
-          getXpSummary(),
+          getXpSummary({
+            programmeId: requireProgrammeScope(programmeScope).programmeId,
+          }),
         ]);
 
         if (!isActive) {

@@ -204,7 +204,9 @@ describe('E-SCHEMA-1 §2: the accepted schema-4 store contract', () => {
     ).toEqual([['itemId', true]]);
   });
 
-  it('adds exactly the programme-ownership index to xp_transactions (E-SCHEMA-1A)', () => {
+  // E-SCHEMA-1A, measured: ownership is a validated field, not an index
+  // (amended after the RED checkpoint, which first expected an index).
+  it('keeps the xp_transactions indexes unchanged; ownership is a validated field (E-SCHEMA-1A)', () => {
     const db = createProgressPalDatabase(defaultTestMigrationContext);
     const xp = db.tables.find((table) => table.name === 'xp_transactions');
 
@@ -214,7 +216,6 @@ describe('E-SCHEMA-1 §2: the accepted schema-4 store contract', () => {
       ['sourceType', false],
       ['sourceId', false],
       ['awardedAt', false],
-      ['programmeId', false],
     ]);
   });
 

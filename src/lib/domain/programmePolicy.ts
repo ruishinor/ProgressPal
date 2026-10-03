@@ -164,6 +164,18 @@ export const XpPolicySchema = z
         })
         .strict(),
     ),
+    /**
+     * XP for a logged study session of at least `minimumMinutes` (award
+     * identity `study_session` / the session ID). Programme-owned since
+     * E-SCHEMA-1A: a programme without it awards nothing for logged time.
+     */
+    studySessionAward: z
+      .object({
+        minimumMinutes: z.number().int().positive(),
+        xp: xpAmountSchema,
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .superRefine((policy, ctx) => {

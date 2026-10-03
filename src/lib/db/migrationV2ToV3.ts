@@ -13,7 +13,7 @@ import {
   type ProgressEntry,
   type ResumePoint,
   type StudySession,
-  type XpTransaction,
+  type LegacyXpTransaction,
 } from '@/lib/domain';
 import { parseWithSchema } from '@/lib/validation';
 import { getXpAwardSourceKey } from '@/lib/xp/engine';
@@ -61,7 +61,7 @@ export type LegacyV2Snapshot = {
   resumePoints: readonly ResumePoint[];
   progressEntries: readonly ProgressEntry[];
   studySessions: readonly StudySession[];
-  xpTransactions: readonly XpTransaction[];
+  xpTransactions: readonly LegacyXpTransaction[];
 };
 
 export type V2ToV3MigrationResult =
@@ -200,7 +200,7 @@ function assertFullRelationalValidity(
 }
 
 function assertNoDuplicateXpSourceKeys(
-  xpTransactions: readonly XpTransaction[],
+  xpTransactions: readonly LegacyXpTransaction[],
 ) {
   const seen = new Set<string>();
 

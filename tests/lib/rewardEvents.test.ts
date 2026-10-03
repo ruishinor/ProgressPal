@@ -35,6 +35,7 @@ async function seedXp(xp: number) {
     id: 'xp-synthetic-seed',
     reason: 'Synthetic test seed',
     sourceId: 'synthetic-seed',
+    programmeId: 'cs50x',
     sourceType: 'study_session',
     xp,
   });

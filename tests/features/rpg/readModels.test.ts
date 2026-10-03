@@ -107,6 +107,7 @@ describe('RPG read models', () => {
         awardedAt: '2026-06-21T09:35:00.000Z',
         reason: 'Fixture XP from an existing source event.',
         sourceId: 'rpg-read-model-fixture-session',
+        programmeId: 'cs50x',
         sourceType: 'study_session',
         xp: 10,
       },

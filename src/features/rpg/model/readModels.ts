@@ -81,7 +81,10 @@ export type RpgReadModelOptions = {
  * preservation oracles call, default to the explicit CS50 default definition;
  * the runtime `load*` paths always pass the scope from app state.
  */
-type ProgrammeContentScope = Pick<ProgrammeScope, 'content' | 'policy'>;
+type ProgrammeContentScope = Pick<
+  ProgrammeScope,
+  'content' | 'policy' | 'programmeId'
+>;
 
 type CourseMapContext = {
   courseMap: CourseMapView;
@@ -378,6 +381,7 @@ function getLevelProgressPercent({
 function buildWeeklyProgress(
   snapshot: DatabaseSnapshot,
   nowIso: string,
+  programmeId: string,
 ): RpgHubWeeklyProgress {
   const { endDate, nextStartTime, startDate, startTime } =
     getWeekBounds(nowIso);
@@ -390,8 +394,10 @@ function buildWeeklyProgress(
   const thisWeeksSessions = snapshot.studySessions.filter((session) =>
     isIsoInRange(session.startedAt, startTime, nextStartTime),
   );
-  const thisWeeksXp = snapshot.xpTransactions.filter((transaction) =>
-    isIsoInRange(transaction.awardedAt, startTime, nextStartTime),
+  const thisWeeksXp = snapshot.xpTransactions.filter(
+    (transaction) =>
+      transaction.programmeId === programmeId &&
+      isIsoInRange(transaction.awardedAt, startTime, nextStartTime),
   );
 
   return {
@@ -415,7 +421,7 @@ function buildWeeklyProgress(
   };
 }
 
-function buildRecentActivity(snapshot: DatabaseSnapshot) {
+function buildRecentActivity(snapshot: DatabaseSnapshot, programmeId: string) {
   const itemTitleById = new Map(
     snapshot.courseItems.map((item) => [item.id, item.title]),
   );
@@ -432,12 +438,14 @@ function buildRecentActivity(snapshot: DatabaseSnapshot) {
       label: `Saved study session - ${itemTitleById.get(session.itemId) ?? session.itemId}`,
       timestamp: session.startedAt,
     })),
-    ...snapshot.xpTransactions.map((transaction) => ({
-      date: toDateOnly(transaction.awardedAt),
-      id: `xp:${transaction.id}`,
-      label: `Earned ${transaction.xp} XP - ${transaction.reason}`,
-      timestamp: transaction.awardedAt,
-    })),
+    ...snapshot.xpTransactions
+      .filter((transaction) => transaction.programmeId === programmeId)
+      .map((transaction) => ({
+        date: toDateOnly(transaction.awardedAt),
+        id: `xp:${transaction.id}`,
+        label: `Earned ${transaction.xp} XP - ${transaction.reason}`,
+        timestamp: transaction.awardedAt,
+      })),
   ];
 
   entries.sort(
@@ -700,10 +708,15 @@ export function buildRpgHubSummary(
     courseMapSummary.modules,
     snapshot,
   );
+  // E-SCHEMA-1A: progression is the programme's own ledger.
   const xpSummary = calculateXpSummary(
-    snapshot.xpTransactions.reduce((total, transaction) => {
-      return total + transaction.xp;
-    }, 0),
+    snapshot.xpTransactions
+      .filter(
+        (transaction) => transaction.programmeId === programme.programmeId,
+      )
+      .reduce((total, transaction) => {
+        return total + transaction.xp;
+      }, 0),
   );
   const totalMinutes = snapshot.studySessions.reduce((total, session) => {
     return total + session.durationMinutes;
@@ -723,12 +736,16 @@ export function buildRpgHubSummary(
     identity: buildIdentity(getRankLabel(courseMapSummary), programme),
     learnerAvatarConfig: snapshot.learnerProfile?.avatarConfig ?? null,
     learnerName: snapshot.learnerProfile?.displayName ?? 'Learner',
-    recentActivity: buildRecentActivity(snapshot),
+    recentActivity: buildRecentActivity(snapshot, programme.programmeId),
     studySummary: {
       sessionCount: snapshot.studySessions.length,
       totalMinutes,
     },
-    weeklyProgress: buildWeeklyProgress(snapshot, nowIso),
+    weeklyProgress: buildWeeklyProgress(
+      snapshot,
+      nowIso,
+      programme.programmeId,
+    ),
     weekFour: courseMapSummary.weekFour,
     xpSummary: {
       ...getLevelProgressDisplay(xpSummary),

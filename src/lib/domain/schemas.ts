@@ -353,7 +353,12 @@ export const StudySessionSchema = timestampFieldsSchema
     }
   });
 
-export const XpTransactionSchema = timestampFieldsSchema
+/**
+ * An XP row as schemas 1 to 3 stored it, before programme ownership. Used only
+ * by the retained historical paths: the live v2 → v3 upgrade and the schema-3
+ * backup conversion.
+ */
+export const LegacyXpTransactionSchema = timestampFieldsSchema
   .extend({
     sourceType: nonEmptyStringSchema.max(80),
     sourceId: entityIdSchema,
@@ -362,6 +367,15 @@ export const XpTransactionSchema = timestampFieldsSchema
     awardedAt: isoDateTimeSchema,
   })
   .strict();
+
+/**
+ * A schema-4 XP row (E-SCHEMA-1A, owner accepted 2026-10-03): every award is
+ * owned by one programme. Progression is derived per programme, and a row
+ * without its owner is invalid.
+ */
+export const XpTransactionSchema = LegacyXpTransactionSchema.extend({
+  programmeId: entityIdSchema,
+}).strict();
 
 export const AchievementDefinitionSchema = timestampFieldsSchema
   .extend({

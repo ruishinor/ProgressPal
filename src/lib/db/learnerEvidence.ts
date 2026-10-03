@@ -16,11 +16,14 @@ import {
   type LessonPosition,
   type SupportEventRecord,
   type SupportKind,
+  type XpTransaction,
 } from '@/lib/domain';
+import type { PotentialXpAward } from '@/lib/xp/engine';
 import { parseWithSchema } from '@/lib/validation';
 
 import { isAuthorizedProgramme, type ProgressPalDatabase } from './database';
 import {
+  awardXpOnce,
   createLogicalWriteScope,
   defaultClock,
   ensureBaseInitialization,
@@ -30,6 +33,7 @@ import {
   settleLogicalWriteScope,
   sortLearnerEvidence,
   type BaseDatabaseOptions,
+  type DatabaseClock,
   type LogicalWriteScope,
 } from './repositories';
 
@@ -100,6 +104,29 @@ export type LessonPositionInput = {
 };
 
 export type EvidenceWriteResult<Row> = { record: Row; created: boolean };
+
+/**
+ * The programme's reward rules for a newly recorded terminal result
+ * (E-SCHEMA-1A; owner decision 2026-10-03). Pure: it receives the attempt,
+ * its result and every evidence row of the attempt's programme (the new
+ * result included) and returns the awards the result qualifies for. The
+ * repository writes them once per programme and source, in the result's own
+ * transaction, so a result and its XP commit together; a planner that throws
+ * awards nothing and never costs the result.
+ */
+export type EvidenceAwardPlanner = (context: {
+  readonly attempt: ExerciseAttemptRecord;
+  readonly result: EvaluationResultRecord;
+  readonly evidence: readonly LearnerEvidence[];
+}) => readonly PotentialXpAward[];
+
+type ResultWriteOptions = BaseDatabaseOptions & {
+  awardXp?: EvidenceAwardPlanner;
+};
+
+export type ResultWriteResult = EvidenceWriteResult<EvaluationResultRecord> & {
+  awardedTransactions: XpTransaction[];
+};
 
 type EvidenceReadOptions = BaseDatabaseOptions & {
   programmeId?: string;
@@ -329,16 +356,66 @@ async function insertAttempt(
   );
 }
 
-/** The result transaction body (invariants 4 and 11). */
+/** Awards for a newly recorded result, inside its transaction. */
+async function awardForResult(
+  database: ProgressPalDatabase,
+  attempt: ExerciseAttemptRecord,
+  result: EvaluationResultRecord,
+  planner: EvidenceAwardPlanner | undefined,
+  now: DatabaseClock,
+): Promise<XpTransaction[]> {
+  if (planner === undefined) {
+    return [];
+  }
+
+  const evidence = parseEvidenceRows(
+    await database.learnerEvidence
+      .filter((row) => row.programmeId === attempt.programmeId)
+      .toArray(),
+  );
+  let awards: readonly PotentialXpAward[];
+
+  try {
+    awards = planner({ attempt, result, evidence });
+  } catch {
+    return [];
+  }
+
+  const awarded: XpTransaction[] = [];
+
+  for (const award of awards) {
+    const transaction = await awardXpOnce(
+      database,
+      attempt.programmeId,
+      award,
+      result.recordedAt,
+      now,
+    );
+
+    if (transaction !== null) {
+      awarded.push(transaction);
+    }
+  }
+
+  return awarded;
+}
+
+/** The result transaction body (invariants 4 and 11; E-SCHEMA-1A awards). */
 async function insertResult(
   database: ProgressPalDatabase,
   input: EvaluationResultInput,
   recordedAt: string,
-): Promise<EvidenceWriteResult<EvaluationResultRecord>> {
+  options: { awardXp?: EvidenceAwardPlanner; now: DatabaseClock } = {
+    now: defaultClock,
+  },
+): Promise<ResultWriteResult> {
   return database.transaction(
     'rw',
-    database.learnerEvidence,
-    database.programmeEnrolments,
+    [
+      database.learnerEvidence,
+      database.programmeEnrolments,
+      database.xpTransactions,
+    ],
     async () => {
       const storedAttempt = await database.learnerEvidence.get(input.attemptId);
       const [attempt] =
@@ -391,7 +468,7 @@ async function insertResult(
           resultPayload(existing, existing) === incoming &&
           idIsFree
         ) {
-          return { record: existing, created: false };
+          return { record: existing, created: false, awardedTransactions: [] };
         }
 
         throw new LearnerEvidenceConflictError(
@@ -407,7 +484,17 @@ async function insertResult(
 
       await database.learnerEvidence.add(record);
 
-      return { record, created: true };
+      return {
+        record,
+        created: true,
+        awardedTransactions: await awardForResult(
+          database,
+          attempt,
+          record as EvaluationResultRecord,
+          options.awardXp,
+          options.now,
+        ),
+      };
     },
   );
 }
@@ -444,12 +531,15 @@ export async function submitExerciseAttempt(
  */
 export async function recordEvaluationResult(
   input: EvaluationResultInput,
-  options: BaseDatabaseOptions = {},
-): Promise<EvidenceWriteResult<EvaluationResultRecord>> {
+  options: ResultWriteOptions = {},
+): Promise<ResultWriteResult> {
   const now = options.now ?? defaultClock;
 
   return runEvidenceWrite(options, async (database, scope) => {
-    const written = await insertResult(database, input, now());
+    const written = await insertResult(database, input, now(), {
+      awardXp: options.awardXp,
+      now,
+    });
     scope.changed ||= written.created;
     return written;
   });
@@ -464,6 +554,8 @@ export type AttemptLifecycleResult = {
   attempt: ExerciseAttemptRecord;
   attemptCreated: boolean;
   result: EvaluationResultRecord | null;
+  /** XP the newly recorded result earned in its programme (E-SCHEMA-1A). */
+  awardedTransactions: XpTransaction[];
 };
 
 /**
@@ -479,7 +571,7 @@ export type AttemptLifecycleResult = {
 export async function submitAttemptAndRecordResult(
   input: ExerciseAttemptInput,
   produceResult: ProduceEvaluationResult,
-  options: BaseDatabaseOptions = {},
+  options: ResultWriteOptions = {},
 ): Promise<AttemptLifecycleResult> {
   const now = options.now ?? defaultClock;
   assertAnswerPayload(input);
@@ -500,6 +592,7 @@ export async function submitAttemptAndRecordResult(
         attempt: attempt.record,
         attemptCreated: attempt.created,
         result: result?.kind === 'evaluation_result' ? result : null,
+        awardedTransactions: [],
       };
     }
 
@@ -510,6 +603,7 @@ export async function submitAttemptAndRecordResult(
         attempt: attempt.record,
         attemptCreated: attempt.created,
         result: null,
+        awardedTransactions: [],
       };
     }
 
@@ -517,6 +611,7 @@ export async function submitAttemptAndRecordResult(
       database,
       { ...produced, attemptId: attempt.record.id },
       now(),
+      { awardXp: options.awardXp, now },
     );
     scope.changed ||= result.created;
 
@@ -524,6 +619,7 @@ export async function submitAttemptAndRecordResult(
       attempt: attempt.record,
       attemptCreated: attempt.created,
       result: result.record,
+      awardedTransactions: result.awardedTransactions,
     };
   });
 }
@@ -531,6 +627,7 @@ export async function submitAttemptAndRecordResult(
 export type AttemptRecoveryStatus = {
   attemptId: string;
   result: EvaluationResultRecord | null;
+  awardedTransactions: XpTransaction[];
 };
 
 /**
@@ -543,7 +640,7 @@ export type AttemptRecoveryStatus = {
 export async function recordResultsForUnresolvedAttempts(
   attemptIds: readonly string[],
   produceResult: ProduceEvaluationResult,
-  options: BaseDatabaseOptions = {},
+  options: ResultWriteOptions = {},
 ): Promise<AttemptRecoveryStatus[]> {
   const now = options.now ?? defaultClock;
 
@@ -568,6 +665,7 @@ export async function recordResultsForUnresolvedAttempts(
         statuses.push({
           attemptId,
           result: result?.kind === 'evaluation_result' ? result : null,
+          awardedTransactions: [],
         });
         continue;
       }
@@ -575,7 +673,7 @@ export async function recordResultsForUnresolvedAttempts(
       const produced = await produceResult(attempt);
 
       if (produced === null) {
-        statuses.push({ attemptId, result: null });
+        statuses.push({ attemptId, result: null, awardedTransactions: [] });
         continue;
       }
 
@@ -583,9 +681,14 @@ export async function recordResultsForUnresolvedAttempts(
         database,
         { ...produced, attemptId },
         now(),
+        { awardXp: options.awardXp, now },
       );
       scope.changed ||= written.created;
-      statuses.push({ attemptId, result: written.record });
+      statuses.push({
+        attemptId,
+        result: written.record,
+        awardedTransactions: written.awardedTransactions,
+      });
     }
 
     return statuses;

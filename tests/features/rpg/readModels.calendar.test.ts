@@ -69,6 +69,7 @@ function createSnapshot(instants: readonly string[]): DatabaseSnapshot {
     xpTransactions: instants.map((instant, index) => ({
       id: `xp-${index}`,
       sourceId: `session-${index}`,
+      programmeId: 'cs50x',
       sourceType: 'study_session',
       reason: 'Synthetic saved-session award',
       xp: 2 ** index,

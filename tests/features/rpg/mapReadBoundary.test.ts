@@ -313,6 +313,7 @@ async function addSyntheticHistory(
     { length: historyCount },
     (_, index) => ({
       id: `a1-history-xp-${historyCount}-${index}`,
+      programmeId: 'cs50x',
       sourceType: 'a1_history_fixture',
       sourceId: `a1-history-source-${historyCount}-${index}`,
       xp: 1,
@@ -325,6 +326,7 @@ async function addSyntheticHistory(
 
   xpTransactions.push({
     id: `a1-relevant-xp-${historyCount}`,
+    programmeId: 'cs50x',
     sourceType: 'lecture_completed',
     sourceId: 'week-0-lecture-completed',
     xp: 40,
@@ -475,6 +477,7 @@ describe('RPG Campaign Map read boundary', () => {
     await context.db.xpTransactions.bulkAdd([
       ...Array.from({ length: 1_000 }, (_, index) => ({
         id: `a1-unrelated-xp-${index}`,
+        programmeId: 'cs50x',
         sourceType: 'a1_unrelated_noise',
         sourceId: `a1-unrelated-source-${index}`,
         xp: 1,
@@ -485,6 +488,7 @@ describe('RPG Campaign Map read boundary', () => {
       })),
       ...Array.from({ length: 100 }, (_, index) => ({
         id: `a1-colliding-xp-${index}`,
+        programmeId: 'cs50x',
         sourceType: 'a1_colliding_noise',
         sourceId: 'week-0-lecture-completed',
         xp: 1,
@@ -495,6 +499,7 @@ describe('RPG Campaign Map read boundary', () => {
       })),
       {
         id: 'a1-relevant-xp',
+        programmeId: 'cs50x',
         sourceType: 'lecture_completed',
         sourceId: 'week-0-lecture-completed',
         xp: 40,

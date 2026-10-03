@@ -274,7 +274,17 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
         'achievementUnlocks',
       ] as const;
       for (const table of learnerTables) {
-        expect(upgraded[table], table).toEqual(parsed.data[table]);
+        // E-SCHEMA-1A: the in-place 3 → 4 upgrade gives every historical XP
+        // row exactly one new field, its owner, the accepted CS50 identity;
+        // every other field (the stored ID included) stays byte-identical.
+        expect(upgraded[table], table).toEqual(
+          table === 'xpTransactions'
+            ? parsed.data.xpTransactions.map((row) => ({
+                ...row,
+                programmeId: 'cs50x',
+              }))
+            : parsed.data[table],
+        );
       }
       // The complete canonical `app_meta`: the converted state with the
       // schema now 4 and the application version normalized to the running
@@ -322,8 +332,10 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
         { expectedSchemaVersion: currentDatabaseSchemaVersion },
       );
       for (const table of learnerTables) {
+        // The schema-4 re-export equals the upgraded state: historical XP rows
+        // carry exactly their new owner (E-SCHEMA-1A).
         expect(reExported.data[table], `re-export ${table}`).toEqual(
-          parsed.data[table],
+          upgraded[table],
         );
       }
       expect(reExported.data.appMeta).toEqual(upgraded.appMeta);

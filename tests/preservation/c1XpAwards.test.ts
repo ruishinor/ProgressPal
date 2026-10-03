@@ -360,7 +360,10 @@ describe('C1 XP ledger through the real mutation path (mutation)', () => {
         await awarded({ itemId: 'week-0-lecture', status: 'completed' }),
       ).toEqual([]);
 
-      const ledger = await listXpTransactions({ db: context.db });
+      const ledger = await listXpTransactions({
+        db: context.db,
+        programmeId: 'cs50x',
+      });
       expect(
         ledger
           .map((transaction) => [

@@ -67,12 +67,23 @@ function simpleHash(str: string): string {
 /**
  * Derives a collision-resistant deterministic transaction ID.
  * Falls back to hashing if the key doesn't match the entityIdSchema regex.
+ *
+ * E-SCHEMA-1A: identity includes the owning programme through its namespace.
+ * The historical ledger owner (the programme that owned the pre-schema-4
+ * global ledger) keeps the unchanged, unnamespaced formula, so its IDs stay
+ * exactly as before; every other programme passes its programme ID as the
+ * namespace. Programme IDs are not XP source types, so the namespaces cannot
+ * meet, and the unique `&id` index fails closed if they ever did.
  */
 export function deriveXpTransactionId(
   sourceType: string,
   sourceId: string,
+  namespace?: string,
 ): string {
-  const canonicalKey = `xp-${sourceType}-${sourceId}`;
+  const canonicalKey =
+    namespace === undefined
+      ? `xp-${sourceType}-${sourceId}`
+      : `xp-${namespace}-${sourceType}-${sourceId}`;
   const entityIdPattern = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
 
   if (entityIdPattern.test(canonicalKey)) {
