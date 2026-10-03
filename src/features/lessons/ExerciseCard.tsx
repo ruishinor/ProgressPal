@@ -230,13 +230,13 @@ export function ExerciseCard({
             )
           : 0,
       );
+      // The bookmark write belongs to the submission: the result and the
+      // controls after it (retry, remediation) appear once it has settled,
+      // so they never flicker back to disabled under the learner's pointer.
+      await onSubmitted().catch(() => undefined);
     }
 
     setBusy('none');
-
-    if (outcome.status === 'evaluated' || outcome.status === 'pending') {
-      await onSubmitted().catch(() => undefined);
-    }
   }
 
   async function reopenTeaching() {
