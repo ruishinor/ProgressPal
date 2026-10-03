@@ -206,7 +206,7 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   await page.getByLabel('Confirmation phrase').fill('RESET');
   await page.getByRole('button', { name: 'Reset all local data' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Start tracking CS50 locally' }),
+    page.getByRole('heading', { name: 'Start with ProgressPal' }),
   ).toBeVisible();
   expect(await readLedgerCounts(page)).toEqual({
     xpTransactions: 0,
@@ -440,6 +440,6 @@ test('automatically recovers a blocked startup repair after the active peer clos
           });
         `)) as string,
     )
-    .toBe('1.4.0');
+    .toBe('1.5.0');
   expect(consoleIssues).toEqual([]);
 });

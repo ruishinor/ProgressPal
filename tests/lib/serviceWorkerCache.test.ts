@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const origin = 'https://progresspal.test';
 const workerSource = readFileSync(path.resolve('public/sw.js'), 'utf8');
-const cacheVersion = 'progresspal-cache-v1.4.0';
+const cacheVersion = 'progresspal-cache-v1.5.0';
 const shell = (version: string) =>
   `<!doctype html><script type="module" src="/assets/app-${version}.js"></script><link rel="stylesheet" href="/assets/app-${version}.css">`;
 const htmlResponse = (html: string) =>

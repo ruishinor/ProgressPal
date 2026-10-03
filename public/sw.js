@@ -32,7 +32,7 @@
  */
 
 const CACHE_PREFIX = 'progresspal-cache-';
-const CACHE_VERSION = 'progresspal-cache-v1.4.0';
+const CACHE_VERSION = 'progresspal-cache-v1.5.0';
 const SHELL_URL = '/index.html';
 const STATIC_ASSET_URLS = ['/assets/character-profile.png'];
 const CONTENT_LIST_URL = '/content/offline.json';
