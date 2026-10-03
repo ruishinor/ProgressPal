@@ -43,11 +43,15 @@ const ASSET_PREFIX = 'content/programvareutvikling';
 const OFFLINE_LIST = 'content/offline.json';
 const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
 
-/** The authoritative product source recorded by the Pre-E fit analysis. */
+/**
+ * The authoritative product source: the Pre-E fit analysis's pilot, as
+ * corrected at the source on 2026-10-03 (D-2 sentence, interleaved mission
+ * sequences, and "Oppsettsklinikken" renamed "Feilsøking av oppsett").
+ */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f',
-  bytes: 1_121_712,
+  sha256: '5d6af68e7a417978e6aaf4389d9a99c2ae11be008a3a9ed6a9dda7c554b8cf5a',
+  bytes: 1_121_780,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';

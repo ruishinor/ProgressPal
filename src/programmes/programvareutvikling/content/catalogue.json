@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f",
+  "sourceSha256": "5d6af68e7a417978e6aaf4389d9a99c2ae11be008a3a9ed6a9dda7c554b8cf5a",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -36,7 +36,7 @@
           "missionId": "S1-M01-O03",
           "itemId": "s1-m01-o03",
           "surface": "mission",
-          "title": "Ditt første program og oppsettsklinikken",
+          "title": "Ditt første program og feilsøking av oppsett",
           "minutes": 115,
           "optional": false,
           "order": 2
@@ -546,19 +546,19 @@
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.36ad187e56966118.json",
-      "sha256": "36ad187e5696611839247d57d28a720629e1814c015ab93282ac32aa7449041d",
-      "bytes": 197979
+      "path": "content/programvareutvikling/index.848a1bce0c2154c7.json",
+      "sha256": "848a1bce0c2154c7ae8922d70ed5a1a4269308b7e5619ab2594de88ae447e4f9",
+      "bytes": 197989
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.4ed7c17141ed374c.json",
-        "sha256": "4ed7c17141ed374c4a3b8912df5c1fea3bbea6408e5a0f3bfb374d6c50d08c6e",
-        "bytes": 270285
+        "path": "content/programvareutvikling/s1-m01.95facf1d8d2dac69.json",
+        "sha256": "95facf1d8d2dac69da8b79c75ccfacf6bed77e18bf78e2d2551e24b5f3cb3792",
+        "bytes": 270343
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.efcdad0b13ae4a9c.json",
-        "sha256": "efcdad0b13ae4a9c38d92b091b6082dec836302b8cf11c5f55a7e08afca06e0e",
+        "path": "content/programvareutvikling/s1-m02.723074b4512c0c8b.json",
+        "sha256": "723074b4512c0c8b7a7a9cc1948c61b6d61c43701ba2e46bbb7e21102169a969",
         "bytes": 265703
       }
     }
