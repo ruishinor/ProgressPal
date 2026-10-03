@@ -396,3 +396,69 @@ test('cleans only ProgressPal caches and refreshes the cached shell online', asy
   expect(shells.cachedShell).not.toBeNull();
   expect(shells.cachedShell).toBe(shells.freshShell);
 });
+
+// Owner decision 2026-10-03: the packaged Python runtime is cached the first
+// time it is used online (only the files runtime/offline.json lists, each
+// with its exact type) and then evaluates programs with no network at all.
+test('evaluates a program offline after the Python runtime was used once online', async ({
+  page,
+}) => {
+  const consoleIssues: string[] = [];
+
+  page.on('console', (message) => {
+    if (message.type() === 'error' || message.type() === 'warning') {
+      consoleIssues.push(message.text());
+    }
+  });
+
+  await completeOnboarding(page);
+  await waitForServiceWorkerControl(page);
+  await page.goto('/settings');
+  await page
+    .getByLabel('Programme to switch to')
+    .selectOption('programvareutvikling');
+  await page.getByRole('button', { name: 'Enrol and switch' }).click();
+  await expect(
+    page.getByText('Active programme: Programvareutvikling'),
+  ).toBeVisible();
+
+  const program = page
+    .getByRole('group', { name: /^Oppgave \d+ · Skriv eller endre program/ })
+    .filter({ hasText: 'skriver ut tre linjer' });
+  const field = program.getByRole('textbox', { name: 'Svaret ditt' });
+
+  await page.goto('/course/s1-m01-o03');
+  await expect(field).toBeEnabled({ timeout: 60_000 });
+
+  const runtimeList = JSON.parse(
+    readFileSync(
+      path.resolve(process.cwd(), 'dist/runtime/offline.json'),
+      'utf8',
+    ),
+  ) as { assets: string[] };
+  const cachedPaths = await page.evaluate(async (cacheVersion) => {
+    const scope = globalThis as unknown as OfflineBrowserScope;
+    const cache = await scope.caches.open(cacheVersion);
+    return (await cache.keys()).map((request) => new URL(request.url).pathname);
+  }, CACHE_VERSION);
+
+  expect(cachedPaths).toContain('/runtime/offline.json');
+  for (const asset of runtimeList.assets) {
+    expect(cachedPaths).toContain(asset);
+  }
+
+  await page.context().setOffline(true);
+  await page.reload();
+  await expect(field).toBeEnabled({ timeout: 60_000 });
+  await field.fill(
+    'print("Hei!")\nprint("Jeg heter Kari.")\nprint("Jeg lærer Python.")',
+  );
+  await program.getByRole('button', { name: 'Sjekk svaret' }).click();
+  await expect(program.getByRole('status', { name: 'Resultat' })).toContainText(
+    'Riktig',
+    { timeout: 60_000 },
+  );
+
+  await page.context().setOffline(false);
+  expect(consoleIssues).toEqual([]);
+});

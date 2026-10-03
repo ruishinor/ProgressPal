@@ -43,7 +43,12 @@ function createWorker() {
   const fetch = vi.fn(async (input: string | RequestLike) => {
     const respond = network.get(key(input));
     if (!respond) throw new TypeError(`Offline or missing: ${key(input)}`);
-    return respond();
+    const response = await respond();
+    // As in a browser, a fetched response carries the URL it came from.
+    Object.defineProperty(response, 'url', {
+      value: new URL(key(input), origin).href,
+    });
+    return response;
   });
   const cache = {
     match: vi.fn(async (input: string | RequestLike) =>
@@ -453,6 +458,39 @@ describe('packaged content and runtime assets (Epic E owner decision 2026-10-03)
     expect(await (await worker.request(runtimeFile, 'cors')).text()).toBe(
       'wasm',
     );
+  });
+
+  it('installs with a listed, hashed worker script and caches it on first use', async () => {
+    // The build lists the Python worker under /assets/ with Vite's
+    // mixed-case content hash; a list the worker refuses would fail install.
+    const workerScript = '/assets/pythonWorker-DUP3fxxp.js';
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+    worker.network.set('/runtime/offline.json', async () =>
+      jsonResponse({ assets: [runtimeFile, workerScript] }),
+    );
+    worker.network.set(
+      workerScript,
+      async () =>
+        new Response('self.onmessage = null;', {
+          headers: { 'Content-Type': 'text/javascript' },
+        }),
+    );
+
+    await worker.install();
+    expect(worker.stored.has('/runtime/offline.json')).toBe(true);
+    await (await worker.request(workerScript, 'cors')).text();
+    expect(worker.stored.has(workerScript)).toBe(true);
+  });
+
+  it('refuses to install with a runtime list naming a path outside its folders', async () => {
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+    worker.network.set('/runtime/offline.json', async () =>
+      jsonResponse({ assets: ['/runtime/../index.html'] }),
+    );
+
+    await expect(worker.install()).rejects.toThrow();
   });
 
   it('never stores an unlisted runtime path or a listed one with the wrong type', async () => {

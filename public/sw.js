@@ -116,9 +116,12 @@ function isValidPackagedAsset(response, assetUrl) {
   );
 }
 
-/** The validated asset paths a packaged-asset list names (same origin only). */
-async function readPackagedList(response, folders) {
-  if (!isValidPackagedAsset(response, '.json')) {
+/**
+ * The validated asset paths a packaged-asset list names (same origin only).
+ * The list itself must be the exact JSON response for its own URL.
+ */
+async function readPackagedList(response, listUrl, folders) {
+  if (!isValidPackagedAsset(response, listUrl)) {
     throw new Error('Service worker received an invalid packaged-asset list.');
   }
 
@@ -129,7 +132,8 @@ async function readPackagedList(response, folders) {
     !assets.every(
       (assetUrl) =>
         typeof assetUrl === 'string' &&
-        /^\/[a-z0-9][a-z0-9._/-]*$/.test(assetUrl) &&
+        // Vite's hashed file names are mixed case (the Python worker script).
+        /^\/[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(assetUrl) &&
         !assetUrl.includes('..') &&
         folders.some((folder) => assetUrl.startsWith(folder)),
     )
@@ -143,7 +147,9 @@ async function readPackagedList(response, folders) {
 /** Caches every listed content asset; stores the list only when all are cached. */
 async function cachePackagedContent(cache) {
   const listResponse = await fetch(CONTENT_LIST_URL, { cache: 'no-cache' });
-  const assets = await readPackagedList(listResponse, ['/content/']);
+  const assets = await readPackagedList(listResponse, CONTENT_LIST_URL, [
+    '/content/',
+  ]);
   const missing = await Promise.all(
     assets.map(async (assetUrl) => {
       const cached = await cache.match(assetUrl, { ignoreVary: true });
@@ -175,7 +181,7 @@ async function cacheRuntimeList(cache) {
     return;
   }
 
-  await readPackagedList(response, ['/runtime/', '/assets/']);
+  await readPackagedList(response, RUNTIME_LIST_URL, ['/runtime/', '/assets/']);
   await cache.put(RUNTIME_LIST_URL, response);
 }
 
@@ -191,7 +197,10 @@ async function fetchListedRuntimeAsset(cache, pathname) {
     return null;
   }
 
-  const assets = await readPackagedList(list, ['/runtime/', '/assets/']);
+  const assets = await readPackagedList(list, RUNTIME_LIST_URL, [
+    '/runtime/',
+    '/assets/',
+  ]);
 
   if (!assets.includes(pathname)) {
     return null;
