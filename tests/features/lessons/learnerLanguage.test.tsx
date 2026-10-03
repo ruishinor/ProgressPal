@@ -11,8 +11,8 @@ import {
 import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
 import { bundledCourseSeed } from '@/seed';
+import { p2Index as manifest } from '../../programmes/p2Content';
 
 /**
  * Owner decision 2026-10-03 (Epic E continuation §9, §19): learners never see

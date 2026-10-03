@@ -10,10 +10,9 @@ import {
   type PythonRuntime,
 } from '@/lib/evaluation';
 import type { ExerciseAnswer, LessonExercise } from '@/lib/domain';
-import moduleOne from '@/programmes/programvareutvikling/content/s1-m01.json';
-import moduleTwo from '@/programmes/programvareutvikling/content/s1-m02.json';
 
 import vectorsFile from '../../fixtures/programvareutvikling/evaluator-vectors.json';
+import { p2Modules } from '../../programmes/p2Content';
 
 /**
  * Epic E §3 item 8, DC-18, DC-22, EV-01/02/11/12: the app evaluators agree
@@ -33,7 +32,7 @@ type Vectors = {
 };
 
 const vectors = vectorsFile.exercises as Record<string, Vectors>;
-const exercises = [moduleOne, moduleTwo]
+const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })

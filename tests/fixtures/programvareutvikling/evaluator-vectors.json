@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "577cd120b514d3df1445380e516916e1816dac16467311171d28764df7d96bc5",
-  "contentVersion": 1,
+  "sourceSha256": "8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f",
+  "contentVersion": 2,
   "exercises": {
     "S1-M01-P01-E01": {
       "examples_ok": ["Python 3.14.4", "Python 3.12.10", "Python 3.13.0"],

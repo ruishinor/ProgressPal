@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { lessonSteps, type LessonStep } from '@/features/lessons/model';
 import type { LessonBundle } from '@/lib/domain';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
+import { p2Index as manifest } from './p2Content';
 
 /**
  * Owner decision 2026-10-03 (Epic E continuation §10): Programme #2 teaches
@@ -13,9 +13,15 @@ import manifest from '@/programmes/programvareutvikling/content/manifest.json';
  * question after every block; it detects batching:
  *
  * - a mission with two or more teaching sections must place active practice
- *   before its last teaching section, and
- * - no run of more than six consecutive exercises, unless the authored
- *   sequence records why that run belongs together.
+ *   before its last teaching section, unless the authored sequence records
+ *   why its first check needs all of them, and
+ * - no run of more than six consecutive exercises on one page, unless the
+ *   authored sequence records why that run belongs together.
+ *
+ * Amended after the RED checkpoint (disclosed in the accepted-oracle record):
+ * a phase boundary ends a run, because each phase renders as its own page
+ * behind "Neste etappe"; and rule 1, like rule 2, accepts only an authored,
+ * recorded reason, never a silent exemption.
  *
  * Labs, quests, repetition, the module checkpoint and the optional
  * reinforcement set are practice surfaces by design and are not teaching
@@ -96,10 +102,20 @@ describe('Programme #2 teaching missions interleave practice with teaching', () 
       const practiceBefore = steps.some(
         (step) => step.block.t === 'exercise' && step.stepIndex < lastSection,
       );
+      const firstPractice = steps.find((step) => step.block.t === 'exercise');
+      const flowIndex =
+        firstPractice === undefined
+          ? -1
+          : bundle.units
+              .find((unit) => unit.unit_id === firstPractice.unitId)!
+              .flow.indexOf(firstPractice.block);
+      const explained =
+        firstPractice !== undefined &&
+        runNotes(bundle).has(`${firstPractice.unitId}#${flowIndex}`);
 
       expect(
-        practiceBefore,
-        `${itemId}: all practice follows all teaching`,
+        practiceBefore || explained,
+        `${itemId}: all practice follows all teaching without a recorded reason`,
       ).toBe(true);
     },
   );
@@ -114,8 +130,15 @@ describe('Programme #2 teaching missions interleave practice with teaching', () 
       const runs: LessonStep[][] = [];
 
       for (const step of [...steps, null]) {
-        if (step !== null && step.block.t === 'exercise') {
+        if (
+          step !== null &&
+          step.block.t === 'exercise' &&
+          (run.length === 0 || run.at(-1)!.phaseIndex === step.phaseIndex)
+        ) {
           run.push(step);
+        } else if (step !== null && step.block.t === 'exercise') {
+          runs.push(run);
+          run = [step];
         } else {
           if (run.length > 0) runs.push(run);
           run = [];

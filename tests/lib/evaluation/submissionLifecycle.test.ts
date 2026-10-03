@@ -9,9 +9,6 @@ import {
   unavailablePythonRuntime,
   type PythonRuntime,
 } from '@/lib/evaluation';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
-import moduleOne from '@/programmes/programvareutvikling/content/s1-m01.json';
-import moduleTwo from '@/programmes/programvareutvikling/content/s1-m02.json';
 
 import { createP2Device, p2ProgrammeId } from '../../db/learnerEvidenceFixture';
 import type { TestDatabaseContext } from '../../db/testDatabase';
@@ -20,6 +17,7 @@ import {
   startLocalDataCoordination,
 } from '@/lib/storage';
 import type { FakeLockManager } from '../localDataCoordinationFakes';
+import { p2Index as manifest, p2Modules } from '../../programmes/p2Content';
 
 /**
  * Epic E / E-SCHEMA-1 §3 invariants 4, 5, 7, 10, 11 and §10 "Submission
@@ -29,7 +27,7 @@ import type { FakeLockManager } from '../localDataCoordinationFakes';
  * failure path keeps the submitted answer.
  */
 
-const exercises = [moduleOne, moduleTwo]
+const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })

@@ -89,7 +89,7 @@ describe('Epic E module boundaries', () => {
       specifiers(file).some(
         (specifier) =>
           /programvareutvikling\/content\//.test(specifier) ||
-          /content\/(manifest|s1-m0\d)\.json$/.test(specifier),
+          /content\/(manifest|s1-m0\d|catalogue)\.json$/.test(specifier),
       ),
     );
 

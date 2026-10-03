@@ -6,7 +6,7 @@ import { createProgrammeRegistry, getProgrammeRegistry } from '@/programmes';
 import { cs50x2026Definition } from '@/programmes/cs50x-2026';
 import { validateProgrammeDefinition } from '@/programmes/definition';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
+import { p2Index as manifest } from './p2Content';
 
 /**
  * Epic E §3 items 1–3 and 17: Programvareutvikling is the second production
@@ -18,7 +18,7 @@ import manifest from '@/programmes/programvareutvikling/content/manifest.json';
  */
 
 const pilotSha256 =
-  '577cd120b514d3df1445380e516916e1816dac16467311171d28764df7d96bc5';
+  '8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f';
 
 const definition: ProgrammeDefinition = programvareutviklingDefinition;
 const units = definition.catalogue.units;
@@ -126,7 +126,7 @@ describe('registration', () => {
 describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () => {
   it('binds the snapshot to the authoritative pilot source hash', () => {
     expect(manifest.source.sha256).toBe(pilotSha256);
-    expect(manifest.source.bytes).toBe(1_110_182);
+    expect(manifest.source.bytes).toBe(1_121_712);
     expect(manifest.programmeId).toBe('programvareutvikling');
   });
 

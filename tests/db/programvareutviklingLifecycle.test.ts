@@ -27,10 +27,10 @@ import {
 } from '@/lib/db';
 import { getProgrammeRegistry } from '@/programmes';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
 import { bundledCourseSeed } from '@/seed';
 
 import { createTestDatabase, type TestDatabaseContext } from './testDatabase';
+import { p2Index as manifest } from '../programmes/p2Content';
 
 /**
  * Epic E §6 RED list, proven with the real production definition and the

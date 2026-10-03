@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { resolveSameOriginAsset } from '@/lib/assets/sameOriginAsset';
+
 /**
  * Module 19 local-only / source-safety guardrail.
  *
@@ -73,6 +75,15 @@ const ALLOWED_URL_PREFIXES: ReadonlyArray<string> = [
 
 const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
 
+/**
+ * The one module allowed a network read (owner decision 2026-10-03): it
+ * reads static, versioned assets packaged with this build from this origin
+ * (programme content and the client-side Python runtime) and refuses any
+ * other path; see the "same-origin packaged assets" tests below. Every other
+ * primitive check still applies to it, and no other file may fetch.
+ */
+const PACKAGED_ASSET_READER = 'src/lib/assets/sameOriginAsset.ts';
+
 /** Recursively collect runtime application source files (excludes tests). */
 function listAppSourceFiles(dir: string): string[] {
   const files: string[] = [];
@@ -137,6 +148,13 @@ describe('local-only source safety guardrail', () => {
         .replace(/\\/g, '/');
 
       for (const { label, pattern } of FORBIDDEN_PATTERNS) {
+        if (
+          label === 'network fetch' &&
+          relativePath === PACKAGED_ASSET_READER
+        ) {
+          continue;
+        }
+
         if (pattern.test(code)) {
           violations.push(`${relativePath}: ${label}`);
         }
@@ -154,5 +172,48 @@ describe('local-only source safety guardrail', () => {
     }
 
     expect(violations).toEqual([]);
+  });
+});
+
+describe('same-origin packaged assets: the one permitted network read', () => {
+  const base = 'https://progresspal.example/';
+
+  it('is a single, fixed module that fetches exactly once', () => {
+    const code = stripComments(
+      readFileSync(path.resolve(process.cwd(), PACKAGED_ASSET_READER), 'utf8'),
+    );
+
+    expect(code.match(/\bfetch\s*\(/g)).toHaveLength(1);
+    expect(code).not.toMatch(URL_PATTERN);
+  });
+
+  it('resolves packaged content and runtime paths on this origin only', () => {
+    expect(
+      resolveSameOriginAsset(
+        'content/programvareutvikling/index.0123456789abcdef.json',
+        base,
+      ).href,
+    ).toBe(
+      'https://progresspal.example/content/programvareutvikling/index.0123456789abcdef.json',
+    );
+    expect(
+      resolveSameOriginAsset('runtime/pyodide-314.0.7/pyodide.mjs', base)
+        .origin,
+    ).toBe('https://progresspal.example');
+  });
+
+  it.each([
+    'https://cdn.example.com/content/x.json',
+    '//cdn.example.com/content/x.json',
+    '/content/x.json',
+    'content/../index.html',
+    'content//x.json',
+    'assets/index.js',
+    'data:application/json,{}',
+    'javascript:alert(1)',
+    'Content/x.json',
+    '',
+  ])('refuses %j before any request', (unsafe) => {
+    expect(() => resolveSameOriginAsset(unsafe, base)).toThrow();
   });
 });

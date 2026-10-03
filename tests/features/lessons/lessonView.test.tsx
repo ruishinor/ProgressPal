@@ -15,10 +15,10 @@ import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import { localCoordinationStorageKeys } from '@/lib/storage';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
 import { bundledCourseSeed } from '@/seed';
 
 import type { FakeLockManager } from '../../lib/localDataCoordinationFakes';
+import { p2Index as manifest } from '../../programmes/p2Content';
 
 /**
  * Epic E §3 items 6–11 and 16, §7: lessons render through the existing

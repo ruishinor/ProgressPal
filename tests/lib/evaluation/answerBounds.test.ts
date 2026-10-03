@@ -2,10 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { answerBounds, type LessonExercise } from '@/lib/domain';
 import { checkAnswerReadiness } from '@/lib/evaluation';
-import moduleOne from '@/programmes/programvareutvikling/content/s1-m01.json';
-import moduleTwo from '@/programmes/programvareutvikling/content/s1-m02.json';
 
 import vectorsFile from '../../fixtures/programvareutvikling/evaluator-vectors.json';
+import { p2Modules } from '../../programmes/p2Content';
 
 /**
  * E-SCHEMA-1 §3 "Answer bound" (an engineering derivation, not an owner
@@ -14,7 +13,7 @@ import vectorsFile from '../../fixtures/programvareutvikling/evaluator-vectors.j
  * input over the bound is refused at the input surface.
  */
 
-const exercises = [moduleOne, moduleTwo]
+const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })

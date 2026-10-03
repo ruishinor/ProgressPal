@@ -168,9 +168,10 @@ export default tseslint.config(
                 '!@/lib/domain',
                 '!@/lib/validation',
                 '!@/lib/achievements',
+                '!@/lib/assets',
               ],
               message:
-                'The programme layer may import only @/lib/domain, @/lib/validation, and the @/lib/achievements entrypoint from lib.',
+                'The programme layer may import only @/lib/domain, @/lib/validation, the @/lib/achievements entrypoint and the @/lib/assets packaged-asset reader from lib.',
             },
             {
               group: [

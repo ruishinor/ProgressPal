@@ -1,12 +1,52 @@
+/**
+ * Release size budgets. Application JavaScript and CSS are budgeted as
+ * before. Two separately counted classes exist since the Epic E owner
+ * decision of 2026-10-03: the packaged curriculum (versioned same-origin
+ * content assets under `content/`) and the pinned client-side Python runtime
+ * (under `runtime/`). Nothing is hidden: every built file is classified, and
+ * an unexpected file type in either class is itself a violation.
+ */
 export const releaseBundleBudget = Object.freeze({
   maxCssGzipBytes: 12_000,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
+  maxCurriculumGzipBytes: 150_000,
+  maxRuntimeAssetGzipBytes: 0,
 });
+
+/** The budget class of a built file, by its path relative to `dist/`. */
+export function classifyBuildFile(distRelativePath) {
+  const path = distRelativePath.replaceAll('\\', '/');
+  const extension = path.slice(path.lastIndexOf('.')).toLowerCase();
+
+  if (path.startsWith('content/')) {
+    return extension === '.json' ? 'curriculum' : 'unexpected';
+  }
+
+  if (path.startsWith('runtime/')) {
+    return ['.mjs', '.wasm', '.zip', '.json'].includes(extension)
+      ? 'runtime'
+      : 'unexpected';
+  }
+
+  if (extension === '.js' || extension === '.mjs') {
+    return 'js';
+  }
+
+  if (extension === '.css') {
+    return 'css';
+  }
+
+  return null;
+}
 
 export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
   const javaScriptEntries = entries.filter((entry) => entry.kind === 'js');
   const cssEntries = entries.filter((entry) => entry.kind === 'css');
+  const sum = (kind) =>
+    entries
+      .filter((entry) => entry.kind === kind)
+      .reduce((total, entry) => total + entry.gzipBytes, 0);
   const largestJavaScriptRawBytes = Math.max(
     0,
     ...javaScriptEntries.map((entry) => entry.rawBytes),
@@ -19,6 +59,8 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
     (total, entry) => total + entry.gzipBytes,
     0,
   );
+  const curriculumGzipBytes = sum('curriculum');
+  const runtimeAssetGzipBytes = sum('runtime');
   const violations = [];
 
   if (largestJavaScriptRawBytes > budget.maxJavaScriptRawBytes) {
@@ -39,10 +81,30 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
     );
   }
 
+  if (curriculumGzipBytes > budget.maxCurriculumGzipBytes) {
+    violations.push(
+      `Packaged curriculum gzip is ${curriculumGzipBytes} bytes; limit is ${budget.maxCurriculumGzipBytes}.`,
+    );
+  }
+
+  if (runtimeAssetGzipBytes > budget.maxRuntimeAssetGzipBytes) {
+    violations.push(
+      `Python runtime assets gzip is ${runtimeAssetGzipBytes} bytes; limit is ${budget.maxRuntimeAssetGzipBytes}.`,
+    );
+  }
+
+  for (const entry of entries.filter((item) => item.kind === 'unexpected')) {
+    violations.push(
+      `${entry.path} is not an allowed file type for its asset class.`,
+    );
+  }
+
   return {
     cssGzipBytes,
+    curriculumGzipBytes,
     javaScriptGzipBytes,
     largestJavaScriptRawBytes,
+    runtimeAssetGzipBytes,
     violations,
   };
 }

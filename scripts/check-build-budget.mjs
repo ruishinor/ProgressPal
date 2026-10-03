@@ -4,6 +4,7 @@ import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 
 import {
+  classifyBuildFile,
   evaluateBundleBudget,
   releaseBundleBudget,
 } from './bundle-budget-utils.mjs';
@@ -41,16 +42,16 @@ if (sourceMaps.length > 0) {
 const entries = [];
 
 for (const path of files) {
-  const extension = extname(path);
+  const kind = classifyBuildFile(relative(DIST, path));
 
-  if (extension !== '.js' && extension !== '.css') {
+  if (kind === null) {
     continue;
   }
 
   const contents = await readFile(path);
   entries.push({
     gzipBytes: gzipSync(contents).byteLength,
-    kind: extension.slice(1),
+    kind,
     path: relative(ROOT, path).replaceAll('\\', '/'),
     rawBytes: contents.byteLength,
   });

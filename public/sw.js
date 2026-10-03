@@ -19,12 +19,31 @@
  * shell. Failed or interrupted asset caching leaves the previous shell usable;
  * older hashed assets remain until the next normal cache-version purge. This
  * requires neither build stamping nor access to learner data.
+ *
+ * Packaged assets (Epic E owner decision 2026-10-03). Programme content is
+ * versioned, content-addressed and same-origin; its exporter writes the list
+ * CONTENT_LIST_URL, and every listed file is cached at install (and refreshed
+ * on navigation), so content works offline after installation. The pinned
+ * Python runtime is large and needed only for some exercises: the build
+ * writes RUNTIME_LIST_URL, and a listed runtime file is cached the first time
+ * it is fetched successfully online. Only files named in those lists are ever
+ * stored, and only with the exact type their extension requires, so a 200
+ * HTML rewrite can never be cached under an asset URL.
  */
 
 const CACHE_PREFIX = 'progresspal-cache-';
 const CACHE_VERSION = 'progresspal-cache-v1.4.0';
 const SHELL_URL = '/index.html';
 const STATIC_ASSET_URLS = ['/assets/character-profile.png'];
+const CONTENT_LIST_URL = '/content/offline.json';
+const RUNTIME_LIST_URL = '/runtime/offline.json';
+const PACKAGED_TYPES = {
+  '.json': ['application/json'],
+  '.js': ['text/javascript', 'application/javascript'],
+  '.mjs': ['text/javascript', 'application/javascript'],
+  '.wasm': ['application/wasm'],
+  '.zip': ['application/zip', 'application/x-zip-compressed'],
+};
 let latestNavigation = 0;
 let pendingShellWrite = Promise.resolve();
 
@@ -81,6 +100,112 @@ function isValidBootAsset(response, assetUrl) {
   );
 }
 
+function packagedExtension(assetUrl) {
+  return assetUrl.slice(assetUrl.lastIndexOf('.')).toLowerCase();
+}
+
+function isValidPackagedAsset(response, assetUrl) {
+  const allowed = PACKAGED_TYPES[packagedExtension(assetUrl)] ?? [];
+
+  return (
+    response.status === 200 &&
+    !response.redirected &&
+    (!response.url ||
+      response.url === new URL(assetUrl, self.location.origin).href) &&
+    allowed.includes(getContentType(response))
+  );
+}
+
+/** The validated asset paths a packaged-asset list names (same origin only). */
+async function readPackagedList(response, folders) {
+  if (!isValidPackagedAsset(response, '.json')) {
+    throw new Error('Service worker received an invalid packaged-asset list.');
+  }
+
+  const list = await response.clone().json();
+  const assets = Array.isArray(list?.assets) ? list.assets : [];
+
+  if (
+    !assets.every(
+      (assetUrl) =>
+        typeof assetUrl === 'string' &&
+        /^\/[a-z0-9][a-z0-9._/-]*$/.test(assetUrl) &&
+        !assetUrl.includes('..') &&
+        folders.some((folder) => assetUrl.startsWith(folder)),
+    )
+  ) {
+    throw new Error('Service worker received an invalid packaged-asset list.');
+  }
+
+  return assets;
+}
+
+/** Caches every listed content asset; stores the list only when all are cached. */
+async function cachePackagedContent(cache) {
+  const listResponse = await fetch(CONTENT_LIST_URL, { cache: 'no-cache' });
+  const assets = await readPackagedList(listResponse, ['/content/']);
+  const missing = await Promise.all(
+    assets.map(async (assetUrl) => {
+      const cached = await cache.match(assetUrl, { ignoreVary: true });
+      if (cached && isValidPackagedAsset(cached, assetUrl)) {
+        return null;
+      }
+
+      const response = await fetch(assetUrl, { cache: 'no-cache' });
+      if (!isValidPackagedAsset(response, assetUrl)) {
+        throw new Error('Service worker received an invalid content asset.');
+      }
+      return { assetUrl, response };
+    }),
+  );
+
+  await Promise.all(
+    missing.map((asset) =>
+      asset === null ? undefined : cache.put(asset.assetUrl, asset.response),
+    ),
+  );
+  await cache.put(CONTENT_LIST_URL, listResponse);
+}
+
+/** Stores the runtime list (not the runtime) when the build ships one. */
+async function cacheRuntimeList(cache) {
+  const response = await fetch(RUNTIME_LIST_URL, { cache: 'no-cache' });
+
+  if (response.status === 404) {
+    return;
+  }
+
+  await readPackagedList(response, ['/runtime/', '/assets/']);
+  await cache.put(RUNTIME_LIST_URL, response);
+}
+
+/**
+ * A listed runtime file missing from the cache is fetched once and stored only
+ * if it has the exact type its extension requires. Anything not listed is
+ * answered from the network and never stored.
+ */
+async function fetchListedRuntimeAsset(cache, pathname) {
+  const list = await cache.match(RUNTIME_LIST_URL, { ignoreVary: true });
+
+  if (!list) {
+    return null;
+  }
+
+  const assets = await readPackagedList(list, ['/runtime/', '/assets/']);
+
+  if (!assets.includes(pathname)) {
+    return null;
+  }
+
+  const response = await fetch(pathname);
+
+  if (isValidPackagedAsset(response, pathname)) {
+    await cache.put(pathname, response.clone());
+  }
+
+  return response;
+}
+
 async function cacheBootAssets(cache, shellResponse) {
   const bootAssets = await discoverBootAssets(shellResponse);
   const missing = await Promise.all(
@@ -115,6 +240,8 @@ self.addEventListener('install', (event) => {
       const response = await fetch(SHELL_URL, { cache: 'no-cache' });
       await cacheBootAssets(cache, response.clone());
       await cache.addAll([...STATIC_ASSET_URLS]);
+      await cachePackagedContent(cache);
+      await cacheRuntimeList(cache);
       await cache.put('/', response.clone());
       await cache.put(SHELL_URL, response);
 
@@ -191,6 +318,10 @@ self.addEventListener('fetch', (event) => {
                 writeShell,
               );
               await pendingShellWrite;
+              // Packaged lists follow the shell, best effort: a failure keeps
+              // the previously cached content and never blocks the shell.
+              await cachePackagedContent(cache).catch(() => undefined);
+              await cacheRuntimeList(cache).catch(() => undefined);
             } catch {
               // Shell refresh is best-effort; the fresh response still wins.
             }
@@ -232,6 +363,14 @@ self.addEventListener('fetch', (event) => {
 
       if (cached) {
         return cached;
+      }
+
+      const listed = await fetchListedRuntimeAsset(cache, url.pathname).catch(
+        () => null,
+      );
+
+      if (listed) {
+        return listed;
       }
 
       const response = await fetch(request);

@@ -1,5 +1,8 @@
 import 'fake-indexeddb/auto';
 import '@testing-library/jest-dom/vitest';
+import { readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+
 import { cleanup, configure } from '@testing-library/react';
 import { afterEach, beforeEach } from 'vitest';
 
@@ -40,6 +43,39 @@ Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
   configurable: true,
   writable: true,
   value: () => undefined,
+});
+
+// The built app serves packaged content and runtime assets from `public/` on
+// its own origin (owner decision 2026-10-03). jsdom has no server, so the
+// harness answers same-origin `/content/` and `/runtime/` requests from the
+// committed files, exactly as the static host would, and refuses everything
+// else: no test reaches a network.
+const publicRoot = resolve(process.cwd(), 'public');
+
+Object.defineProperty(globalThis, 'fetch', {
+  configurable: true,
+  writable: true,
+  value: async (input: RequestInfo | URL) => {
+    const url = new URL(
+      input instanceof Request ? input.url : String(input),
+      window.location.href,
+    );
+    const packaged =
+      url.origin === window.location.origin &&
+      /^\/(?:content|runtime)\/[a-z0-9._/-]+$/.test(url.pathname) &&
+      !url.pathname.includes('..');
+
+    if (!packaged) {
+      throw new TypeError(`Test harness refuses network access: ${url.href}`);
+    }
+
+    try {
+      const body = await readFile(join(publicRoot, url.pathname.slice(1)));
+      return new Response(body, { status: 200 });
+    } catch {
+      return new Response(null, { status: 404 });
+    }
+  },
 });
 
 // jsdom does not implement the Web Locks API. Install a fresh spec-shaped lock

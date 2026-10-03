@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { LearnerEvidence, ProgrammeContentIndex } from '@/lib/domain';
 import { deriveProgrammeMastery } from '@/lib/mastery';
-import manifest from '@/programmes/programvareutvikling/content/manifest.json';
+import { p2Index as manifest } from '../../programmes/p2Content';
 
 /**
  * Epic E §3 items 12–14, DC-28 to DC-32, `08`: skill state, readiness,

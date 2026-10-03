@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "577cd120b514d3df1445380e516916e1816dac16467311171d28764df7d96bc5",
-  "contentVersion": 1,
+  "sourceSha256": "8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f",
+  "contentVersion": 2,
   "units": [
     {
       "unitId": "S1-M01-L01",
@@ -115,7 +115,7 @@
     {
       "unitId": "S1-M01-CHK",
       "stringCount": 483,
-      "sha256": "2da76e53d4543be3c9d1afda409351eec33aabe3299ed0661475855ab4199ec1"
+      "sha256": "55fffbfe721e91902c491ffbdc89444e4a41f235a0a19a75dfed77ef1b33c001"
     },
     {
       "unitId": "S1-M02-L01",

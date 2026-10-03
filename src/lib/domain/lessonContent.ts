@@ -591,9 +591,60 @@ const missionSchema = z
     optional: z.boolean(),
     order: z.number().int().nonnegative(),
     unitIds: z.array(sourceId).min(1),
+    /**
+     * The authored learner order (owner decision 2026-10-03): inclusive block
+     * ranges of the mission's units, interleaving short teaching steps with
+     * practice. Absent means unit order. Coverage is checked at load.
+     */
+    sequence: z
+      .array(
+        z
+          .object({
+            unitId: sourceId,
+            from: z.number().int().nonnegative(),
+            to: z.number().int().nonnegative(),
+            note: text.optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .optional(),
     phases: z.array(phaseSchema).optional(),
   })
   .strict();
+
+/**
+ * The owner-approved checkpoint rule (K-4, 2026-10-03): a module checkpoint
+ * clears at level D only when every gating checkpoint task has qualifying
+ * (counting, correct, unsupported) results on all its gate items.
+ */
+export const CheckpointRuleSchema = z
+  .object({
+    ruleId: z.literal('owner-k4-2026-10-03'),
+    authority: text,
+    criteria: z.literal('every-gating-checkpoint-task'),
+    itemQualification: z.literal('correct-unsupported-counting'),
+    passLevel: z.literal('D'),
+  })
+  .strict();
+export type CheckpointRule = z.infer<typeof CheckpointRuleSchema>;
+
+/**
+ * The owner-approved retry rule (K-3, 2026-10-03): a failed task may be
+ * retried as a new attempt on the same authored task with a refreshed
+ * deterministic shuffle; success after a failure on that task reaches at
+ * most Practised from that task alone.
+ */
+export const GateRetryRuleSchema = z
+  .object({
+    ruleId: z.literal('owner-k3-2026-10-03'),
+    authority: text,
+    retryMode: z.literal('same-task-new-attempt'),
+    presentation: z.literal('deterministic-reshuffle'),
+    masteryAfterFailure: z.literal('practised-from-that-task'),
+  })
+  .strict();
+export type GateRetryRule = z.infer<typeof GateRetryRuleSchema>;
 
 export const ProgrammeContentIndexSchema = z
   .object({
@@ -626,10 +677,10 @@ export const ProgrammeContentIndexSchema = z
         ),
       })
       .strict(),
-    /** Authored or owner-approved checkpoint pass rules (K-4); none exist. */
-    checkpointRules: z.array(z.never()),
-    /** Authored or owner-approved gate-item retry rule (K-3); none exists. */
-    gateRetryRule: z.null(),
+    /** Owner-approved checkpoint pass rules (K-4). */
+    checkpointRules: z.array(CheckpointRuleSchema),
+    /** The owner-approved retry rule (K-3), or none. */
+    gateRetryRule: GateRetryRuleSchema.nullable(),
     modules: z
       .array(
         z
@@ -724,6 +775,11 @@ export const ProgrammeContentIndexSchema = z
             skillIds: z.array(sourceId),
             needsRuntime: z.boolean(),
             hintCount: z.number().int().nonnegative(),
+            /** An authored reward event (a behaviour worth celebrating). */
+            rewardEventId: z
+              .string()
+              .regex(/^(?:RT|PT)-\d\d$/)
+              .nullable(),
             contentHash: sha256Hex,
           })
           .strict(),
@@ -943,10 +999,101 @@ export type LessonContentProvider = {
   loadLesson(itemId: string): Promise<ContentLoadResult<LessonBundle>>;
 };
 
-export type SnapshotLessonContentProviderInput = {
-  readonly manifest: unknown;
-  /** Module loaders keyed by source module ID (for example `S1-M01`). */
-  readonly modules: Readonly<Record<string, () => unknown | Promise<unknown>>>;
+// ------------------------------------------------------------------ catalogue
+
+const assetSchema = z
+  .object({
+    path: z
+      .string()
+      .regex(/^content\/[a-z0-9-]+\/[a-z0-9-]+\.[0-9a-f]{16}\.json$/),
+    sha256: sha256Hex,
+    bytes: z.number().int().positive(),
+  })
+  .strict();
+
+/**
+ * The bundled part of a programme's content (owner decision 2026-10-03):
+ * identity, the catalogue rows the registry needs synchronously, every
+ * exercise subject ID and the content-addressed static assets the provider
+ * loads. Lesson bodies, the full index and evaluator specifications are not
+ * in the application bundle.
+ */
+export const ProgrammeContentCatalogueSchema = z
+  .object({
+    format: z.literal('progresspal-programme-catalogue'),
+    formatVersion: z.literal(1),
+    programmeId: lowerId,
+    contentVersion: z.number().int().positive(),
+    evaluatorContractVersion: z.number().int().positive(),
+    language: languageTag,
+    technicalLanguage: languageTag,
+    sourceSha256: sha256Hex,
+    modules: z
+      .array(
+        z
+          .object({
+            moduleId: sourceId,
+            catalogueUnitId: lowerId,
+            title: text,
+            order: z.number().int().nonnegative(),
+            missions: z
+              .array(
+                z
+                  .object({
+                    missionId: sourceId,
+                    itemId: lowerId,
+                    surface: z.enum(lessonSurfaceValues),
+                    title: text,
+                    minutes: z.number().int().nonnegative(),
+                    optionalMinutes: z.number().int().nonnegative().optional(),
+                    optional: z.boolean(),
+                    order: z.number().int().nonnegative(),
+                  })
+                  .strict(),
+              )
+              .min(1),
+          })
+          .strict(),
+      )
+      .min(1),
+    subjectIds: z.array(lowerId),
+    assets: z
+      .object({
+        index: assetSchema,
+        modules: z.record(sourceId, assetSchema),
+      })
+      .strict(),
+  })
+  .strict();
+
+export type ProgrammeContentCatalogue = z.infer<
+  typeof ProgrammeContentCatalogueSchema
+>;
+
+/** Validates a bundled catalogue; a malformed catalogue fails the build's registry. */
+export function parseProgrammeContentCatalogue(
+  value: unknown,
+): ProgrammeContentCatalogue {
+  const parsed = ProgrammeContentCatalogueSchema.safeParse(value);
+
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid programme content catalogue: ${formatZodIssues(parsed.error)
+        .slice(0, 5)
+        .join('; ')}`,
+    );
+  }
+
+  return parsed.data;
+}
+
+export type ContentAssetProviderInput = {
+  readonly catalogue: ProgrammeContentCatalogue;
+  /**
+   * Loads the text of a same-origin content asset by its catalogue path.
+   * Rejects when the asset cannot be read (offline and not cached, missing).
+   */
+  readonly loadText: (path: string) => Promise<string>;
   /** The evaluator contract version the application implements. */
   readonly evaluatorContractVersion: number;
   readonly copy?: LessonUiCopy;
@@ -1092,94 +1239,160 @@ export function findContentIndexIssues(index: ProgrammeContentIndex): string[] {
   return issues;
 }
 
-function readString(value: unknown, key: string, fallback: string): string {
-  const field = (value as Record<string, unknown> | null)?.[key];
-  return typeof field === 'string' ? field : fallback;
-}
+/**
+ * Every block of every unit exactly once, in authored order inside its unit
+ * (owner decision 2026-10-03). Returns the issues; empty when valid or when
+ * the mission declares no sequence.
+ */
+export function findSequenceIssues(
+  mission: ContentMission,
+  units: readonly LessonUnit[],
+): string[] {
+  if (mission.sequence === undefined) {
+    return [];
+  }
 
-function readNumber(value: unknown, key: string): number {
-  const field = (value as Record<string, unknown> | null)?.[key];
-  return typeof field === 'number' ? field : 0;
-}
+  const issues: string[] = [];
+  const next = new Map(units.map((unit) => [unit.unit_id, 0]));
 
-/** Defensive, schema-free extraction for the synchronous identity members. */
-function readIdentity(manifest: unknown) {
-  const modules = (manifest as { modules?: unknown })?.modules;
-  const exercises = (manifest as { exercises?: unknown })?.exercises;
-  const lessonItemIds = Array.isArray(modules)
-    ? modules.flatMap((module) =>
-        Array.isArray((module as { missions?: unknown })?.missions)
-          ? (module as { missions: unknown[] }).missions
-              .map((mission) => (mission as { itemId?: unknown })?.itemId)
-              .filter((itemId): itemId is string => typeof itemId === 'string')
-          : [],
-      )
-    : [];
-  const subjectIds = Array.isArray(exercises)
-    ? exercises
-        .map((entry) => (entry as { subjectId?: unknown })?.subjectId)
-        .filter(
-          (subjectId): subjectId is string => typeof subjectId === 'string',
-        )
-    : [];
-  const source = (manifest as { source?: unknown })?.source;
+  for (const segment of mission.sequence) {
+    const unit = units.find((entry) => entry.unit_id === segment.unitId);
 
-  return {
-    programmeId: readString(manifest, 'programmeId', ''),
-    contentVersion: readNumber(manifest, 'contentVersion'),
-    evaluatorContractVersion: readNumber(manifest, 'evaluatorContractVersion'),
-    language: readString(manifest, 'language', ''),
-    technicalLanguage: readString(manifest, 'technicalLanguage', ''),
-    sourceSha256: readString(source, 'sha256', ''),
-    lessonItemIds: Object.freeze(lessonItemIds),
-    subjectIds: Object.freeze(subjectIds),
-  };
+    if (unit === undefined) {
+      issues.push(
+        `sequence names unit "${segment.unitId}" outside the mission`,
+      );
+      continue;
+    }
+
+    if (
+      segment.from !== next.get(unit.unit_id) ||
+      segment.to < segment.from ||
+      segment.to >= unit.flow.length
+    ) {
+      issues.push(
+        `sequence segment ${unit.unit_id} ${segment.from}-${segment.to} breaks the authored order`,
+      );
+    }
+
+    next.set(unit.unit_id, segment.to + 1);
+  }
+
+  for (const unit of units) {
+    if (next.get(unit.unit_id) !== unit.flow.length) {
+      issues.push(`sequence does not cover every block of ${unit.unit_id}`);
+    }
+  }
+
+  return issues;
 }
 
 /**
- * A provider over a committed content snapshot. Validation is lazy and
- * fail-closed: the index is schema- and cross-reference-checked once, and
- * every lesson load re-checks its module's version identity and recomputes
- * each exercise's content hash against the index, so new app code is never
+ * A provider over a programme's content assets (owner decision 2026-10-03).
+ * The synchronous identity comes from the bundled catalogue. Content is
+ * loaded asynchronously from same-origin, content-addressed assets and
+ * validated lazily and fail-closed: an asset that cannot be read is
+ * `unavailable`; an asset whose bytes do not match the catalogue's SHA-256,
+ * or whose identity differs from the catalogue's, is `version_mismatch`;
+ * every lesson load re-checks its module's identity and recomputes each
+ * exercise's content hash against the index, so new app code is never
  * combined with stale or tampered content without noticing.
  */
-export function createSnapshotLessonContentProvider(
-  input: SnapshotLessonContentProviderInput,
+export function createContentAssetProvider(
+  input: ContentAssetProviderInput,
 ): LessonContentProvider {
-  const identity = readIdentity(input.manifest);
+  const { catalogue } = input;
   const hash = input.sha256Hex ?? webCryptoSha256Hex;
   let indexResult: Promise<ContentLoadResult<ProgrammeContentIndex>> | null =
     null;
 
+  async function loadAsset(
+    asset: ProgrammeContentCatalogue['assets']['index'],
+  ): Promise<ContentLoadResult<unknown>> {
+    let textValue: string;
+
+    try {
+      textValue = await input.loadText(asset.path);
+    } catch {
+      return {
+        status: 'unavailable',
+        reason: `content asset ${asset.path} could not be read`,
+      };
+    }
+
+    if ((await hash(textValue)) !== asset.sha256) {
+      return {
+        status: 'version_mismatch',
+        reason: `content asset ${asset.path} does not match its recorded hash`,
+      };
+    }
+
+    try {
+      return { status: 'ready', value: JSON.parse(textValue) as unknown };
+    } catch {
+      return {
+        status: 'invalid',
+        reason: `content asset ${asset.path} is not JSON`,
+      };
+    }
+  }
+
   const loadIndex = () => {
-    indexResult ??= Promise.resolve().then(
-      (): ContentLoadResult<ProgrammeContentIndex> => {
-        const parsed = ProgrammeContentIndexSchema.safeParse(input.manifest);
+    indexResult ??= (async (): Promise<
+      ContentLoadResult<ProgrammeContentIndex>
+    > => {
+      const raw = await loadAsset(catalogue.assets.index);
 
-        if (!parsed.success) {
-          return {
-            status: 'invalid',
-            reason: formatZodIssues(parsed.error).slice(0, 5).join('; '),
-          };
-        }
+      if (raw.status !== 'ready') {
+        return raw;
+      }
 
-        if (
-          parsed.data.evaluatorContractVersion !==
-          input.evaluatorContractVersion
-        ) {
-          return {
-            status: 'version_mismatch',
-            reason: `content needs evaluator contract ${parsed.data.evaluatorContractVersion}; this app implements ${input.evaluatorContractVersion}`,
-          };
-        }
+      const parsed = ProgrammeContentIndexSchema.safeParse(raw.value);
 
-        const issues = findContentIndexIssues(parsed.data);
+      if (!parsed.success) {
+        return {
+          status: 'invalid',
+          reason: formatZodIssues(parsed.error).slice(0, 5).join('; '),
+        };
+      }
 
-        return issues.length > 0
-          ? { status: 'invalid', reason: issues.slice(0, 5).join('; ') }
-          : { status: 'ready', value: parsed.data };
-      },
-    );
+      if (
+        parsed.data.evaluatorContractVersion !== input.evaluatorContractVersion
+      ) {
+        return {
+          status: 'version_mismatch',
+          reason: `content needs evaluator contract ${parsed.data.evaluatorContractVersion}; this app implements ${input.evaluatorContractVersion}`,
+        };
+      }
+
+      const indexItems = parsed.data.modules.flatMap((module) =>
+        module.missions.map((mission) => mission.itemId),
+      );
+      const catalogueItems = catalogue.modules.flatMap((module) =>
+        module.missions.map((mission) => mission.itemId),
+      );
+
+      if (
+        parsed.data.programmeId !== catalogue.programmeId ||
+        parsed.data.contentVersion !== catalogue.contentVersion ||
+        parsed.data.source.sha256 !== catalogue.sourceSha256 ||
+        parsed.data.language !== catalogue.language ||
+        indexItems.join('|') !== catalogueItems.join('|') ||
+        parsed.data.exercises.map((entry) => entry.subjectId).join('|') !==
+          catalogue.subjectIds.join('|')
+      ) {
+        return {
+          status: 'version_mismatch',
+          reason: 'the content index does not match the bundled catalogue',
+        };
+      }
+
+      const issues = findContentIndexIssues(parsed.data);
+
+      return issues.length > 0
+        ? { status: 'invalid', reason: issues.slice(0, 5).join('; ') }
+        : { status: 'ready', value: parsed.data };
+    })();
 
     return indexResult;
   };
@@ -1197,28 +1410,25 @@ export function createSnapshotLessonContentProvider(
       entry.missions.some((mission) => mission.itemId === itemId),
     );
     const mission = module?.missions.find((entry) => entry.itemId === itemId);
-    const loader =
-      module === undefined ? undefined : input.modules[module.moduleId];
+    const asset =
+      module === undefined
+        ? undefined
+        : catalogue.assets.modules[module.moduleId];
 
-    if (module === undefined || mission === undefined || loader === undefined) {
+    if (module === undefined || mission === undefined || asset === undefined) {
       return {
         status: 'unavailable',
         reason: `no lesson content for "${itemId}"`,
       };
     }
 
-    let raw: unknown;
+    const raw = await loadAsset(asset);
 
-    try {
-      raw = await loader();
-    } catch {
-      return {
-        status: 'unavailable',
-        reason: `lesson content for "${itemId}" could not be loaded`,
-      };
+    if (raw.status !== 'ready') {
+      return raw;
     }
 
-    const parsed = LessonModuleContentSchema.safeParse(raw);
+    const parsed = LessonModuleContentSchema.safeParse(raw.value);
 
     if (!parsed.success) {
       return {
@@ -1257,6 +1467,15 @@ export function createSnapshotLessonContentProvider(
         };
       }
       units.push(unit);
+    }
+
+    const sequenceIssues = findSequenceIssues(mission, units);
+
+    if (sequenceIssues.length > 0) {
+      return {
+        status: 'invalid',
+        reason: sequenceIssues.slice(0, 5).join('; '),
+      };
     }
 
     const metaById = new Map(
@@ -1314,7 +1533,18 @@ export function createSnapshotLessonContentProvider(
   };
 
   return {
-    ...identity,
+    programmeId: catalogue.programmeId,
+    contentVersion: catalogue.contentVersion,
+    sourceSha256: catalogue.sourceSha256,
+    evaluatorContractVersion: catalogue.evaluatorContractVersion,
+    language: catalogue.language,
+    technicalLanguage: catalogue.technicalLanguage,
+    lessonItemIds: Object.freeze(
+      catalogue.modules.flatMap((module) =>
+        module.missions.map((mission) => mission.itemId),
+      ),
+    ),
+    subjectIds: Object.freeze([...catalogue.subjectIds]),
     ...(input.copy === undefined ? {} : { copy: input.copy }),
     loadIndex,
     loadLesson,

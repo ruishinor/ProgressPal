@@ -6,3 +6,8 @@ coverage
 node_modules
 playwright-report
 test-results
+
+# Generated, content-addressed curriculum assets (byte-exact; their SHA-256 is
+# recorded in the bundled catalogue). Written only by
+# scripts/programvareutvikling-content.mjs.
+public/content

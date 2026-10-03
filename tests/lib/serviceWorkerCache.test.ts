@@ -12,6 +12,12 @@ const shell = (version: string) =>
   `<!doctype html><script type="module" src="/assets/app-${version}.js"></script><link rel="stylesheet" href="/assets/app-${version}.css">`;
 const htmlResponse = (html: string) =>
   new Response(html, { headers: { 'Content-Type': 'text/html' } });
+const jsonResponse = (value: unknown) =>
+  new Response(JSON.stringify(value), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+const contentAsset =
+  '/content/programvareutvikling/index.0123456789abcdef.json';
 
 type RequestLike = { method: string; mode: string; url: string };
 type WorkerEvent = {
@@ -98,6 +104,16 @@ function createWorker() {
         new Response('synthetic image', {
           headers: { 'Content-Type': 'image/png' },
         }),
+    );
+    // Packaged content (Epic E owner decision 2026-10-03): every build ships
+    // its content list; this build ships no runtime list.
+    network.set('/content/offline.json', async () =>
+      jsonResponse({ assets: [contentAsset] }),
+    );
+    network.set(contentAsset, async () => jsonResponse({ content: version }));
+    network.set(
+      '/runtime/offline.json',
+      async () => new Response(null, { status: 404 }),
     );
   }
 
@@ -386,5 +402,79 @@ describe('service worker boot-set updates', () => {
     expect(await worker.stored.get('/index.html')!.clone().text()).toBe(
       shell('newer'),
     );
+  });
+});
+
+describe('packaged content and runtime assets (Epic E owner decision 2026-10-03)', () => {
+  const runtimeFile = '/runtime/pyodide-314.0.7/pyodide.asm.wasm';
+
+  it('caches every listed content asset at install, so content works offline after installation', async () => {
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+
+    await worker.install();
+    worker.network.clear();
+
+    const response = await worker.request(contentAsset, 'cors');
+    expect(await response.json()).toEqual({ content: 'v1' });
+    expect(worker.stored.has('/content/offline.json')).toBe(true);
+  });
+
+  it('refuses to install when a listed content asset comes back as an HTML rewrite', async () => {
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+    worker.network.set(contentAsset, async () => htmlResponse(shell('v1')));
+
+    await expect(worker.install()).rejects.toThrow();
+    expect(worker.stored.has(contentAsset)).toBe(false);
+    expect(worker.skipWaiting).not.toHaveBeenCalled();
+  });
+
+  it('caches a listed runtime file on its first successful fetch, and serves it offline afterwards', async () => {
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+    worker.network.set('/runtime/offline.json', async () =>
+      jsonResponse({ assets: [runtimeFile] }),
+    );
+    worker.network.set(
+      runtimeFile,
+      async () =>
+        new Response('wasm', {
+          headers: { 'Content-Type': 'application/wasm' },
+        }),
+    );
+
+    await worker.install();
+    expect(worker.stored.has(runtimeFile)).toBe(false);
+    await (await worker.request(runtimeFile, 'cors')).text();
+    expect(worker.stored.has(runtimeFile)).toBe(true);
+
+    worker.network.clear();
+    expect(await (await worker.request(runtimeFile, 'cors')).text()).toBe(
+      'wasm',
+    );
+  });
+
+  it('never stores an unlisted runtime path or a listed one with the wrong type', async () => {
+    const worker = createWorker();
+    worker.serve('v1', '/index.html');
+    worker.network.set('/runtime/offline.json', async () =>
+      jsonResponse({ assets: [runtimeFile] }),
+    );
+    worker.network.set(runtimeFile, async () => htmlResponse(shell('v1')));
+    worker.network.set(
+      '/runtime/unlisted.wasm',
+      async () =>
+        new Response('wasm', {
+          headers: { 'Content-Type': 'application/wasm' },
+        }),
+    );
+
+    await worker.install();
+    await worker.request(runtimeFile, 'cors');
+    await worker.request('/runtime/unlisted.wasm', 'cors');
+
+    expect(worker.stored.has(runtimeFile)).toBe(false);
+    expect(worker.stored.has('/runtime/unlisted.wasm')).toBe(false);
   });
 });

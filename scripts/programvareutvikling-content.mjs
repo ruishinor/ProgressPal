@@ -1,25 +1,35 @@
 // Programvareutvikling content export (Epic E, prompt §3 item 5).
 //
-// Authoring source (read only, outside this repository)
+// Authoring source (outside this repository)
 //   → validated product export (this script)
-//   → committed ProgressPal runtime snapshot.
+//   → committed ProgressPal content: a small catalogue in the application
+//     bundle and versioned, hash-named, same-origin static content assets
+//     (owner decision 2026-10-03: curriculum leaves the JavaScript graph).
 //
 // The runtime never reads the authoring workspace. This script reads the
-// protected Programme #2 sources at their recorded hashes, classifies every
-// source field (reverse coverage: an unclassified field fails the export),
-// drops study-only, authoring-only, analytics and reward fields, moves
-// authoring test vectors into a test fixture, scans for study-only language
-// (only the recorded, owner-unresolved D-2 sentence is allowed through, and
-// it must still be present), hashes every exported exercise canonically, and
-// writes the snapshot, the evaluator vectors and the source ledger. Authored
+// Programme #2 sources at their recorded hashes, classifies every source
+// field (reverse coverage: an unclassified field fails the export), drops
+// study-only, authoring-only and analytics fields, moves authoring test
+// vectors into a test fixture, fails on any study-only language, hashes every
+// exported exercise canonically, and writes the catalogue, the content assets,
+// their offline list, the evaluator vectors and the source ledger. Authored
 // text is copied, never rewritten: no trim, no normalisation, no translation.
+// The owner-approved checkpoint (K-4) and retry (K-3) rules are recorded as
+// owner metadata, never as authored content.
 //
 //   node scripts/programvareutvikling-content.mjs --source "<workspace>"
 //   node scripts/programvareutvikling-content.mjs --source "<workspace>" --check
 //   ... --report <file.md>   also writes the field-disposition report
 
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,19 +37,23 @@ import prettier from 'prettier';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTENT_DIR = join(ROOT, 'src/programmes/programvareutvikling/content');
+const PUBLIC_DIR = join(ROOT, 'public');
+/** Same-origin URL prefix (and public/ sub-folder) of the content assets. */
+const ASSET_PREFIX = 'content/programvareutvikling';
+const OFFLINE_LIST = 'content/offline.json';
 const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
 
 /** The authoritative product source recorded by the Pre-E fit analysis. */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '577cd120b514d3df1445380e516916e1816dac16467311171d28764df7d96bc5',
-  bytes: 1_110_182,
+  sha256: '8693b7bac92e2709ab91b97bd31a9693d9ea43a6ac6e7b0a95fa70d1e078d32f',
+  bytes: 1_121_712,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';
 
 const PROGRAMME_ID = 'programvareutvikling';
-const CONTENT_VERSION = 1;
+const CONTENT_VERSION = 2;
 const EVALUATOR_CONTRACT_VERSION = 1;
 
 /**
@@ -65,17 +79,30 @@ const STUDY_ONLY_PATTERNS = [
  * Known source defects that the owner has not resolved. The export does not
  * edit around them: the text passes through unchanged and is recorded, and
  * the export fails if the defect disappears (so the record is removed) or
- * if any other study-only text appears.
+ * if any other study-only text appears. D-2 was corrected at the source
+ * (owner authorization 2026-10-03), so none is open.
  */
-const KNOWN_SOURCE_DEFECTS = [
-  {
-    id: 'D-2',
-    exerciseId: 'S1-M01-CHK-E05',
-    field: 'prompt',
-    text: '(Dette beviset er selvrapportert. Observatøren ser selv på skjermen din at committen finnes.)',
-    stopState: 'EPIC_E_STOP_MISSING_AUTHORITATIVE_PROGRAMME_SOURCE',
-  },
-];
+const KNOWN_SOURCE_DEFECTS = [];
+
+/**
+ * Owner-approved rules (2026-10-03). They are owner decisions recorded as
+ * content metadata so the application executes a named rule and never
+ * invents one (schema record §3 invariant 9); the source authors neither.
+ */
+const OWNER_CHECKPOINT_RULE = {
+  ruleId: 'owner-k4-2026-10-03',
+  authority: 'owner decision K-4, 2026-10-03',
+  criteria: 'every-gating-checkpoint-task',
+  itemQualification: 'correct-unsupported-counting',
+  passLevel: 'D',
+};
+const OWNER_GATE_RETRY_RULE = {
+  ruleId: 'owner-k3-2026-10-03',
+  authority: 'owner decision K-3, 2026-10-03',
+  retryMode: 'same-task-new-attempt',
+  presentation: 'deterministic-reshuffle',
+  masteryAfterFailure: 'practised-from-that-task',
+};
 
 // ---------------------------------------------------------------- disposition
 // Every source field is classified. "keep" ships in the runtime snapshot,
@@ -97,6 +124,13 @@ const MISSION_FIELDS = {
   minutes: 'index',
   optional_minutes: 'index',
   phases: 'index',
+  sequence: 'index',
+};
+const SEQUENCE_FIELDS = {
+  unit_id: 'index',
+  from: 'index',
+  to: 'index',
+  note: 'index',
 };
 const PHASE_FIELDS = {
   phase_id: 'index',
@@ -265,7 +299,7 @@ const EXERCISE_FIELDS = {
   scaffold: 'exclude:authoring',
   retry: 'exclude:authoring',
   misconception_tags: 'exclude:analytics',
-  reward: 'exclude:reward',
+  reward: 'index',
   counts_with_observer_verification: 'exclude:study',
 };
 const EVALUATOR_FIELDS = {
@@ -321,7 +355,7 @@ const TOP_FIELDS = {
   language: 'index',
   generated_with: 'exclude:authoring',
   unverified_transcripts: 'exclude:authoring',
-  reward_events: 'exclude:reward',
+  reward_events: 'index',
   modules: 'keep',
 };
 
@@ -536,6 +570,9 @@ for (const [moduleIndex, module] of pilot.modules.entries()) {
   for (const mission of module.missions) {
     for (const field of Object.keys(mission))
       classify('mission', field, MISSION_FIELDS);
+    for (const segment of mission.sequence ?? [])
+      for (const field of Object.keys(segment))
+        classify('mission.sequence[]', field, SEQUENCE_FIELDS);
     for (const phase of mission.phases ?? []) {
       for (const field of Object.keys(phase))
         classify('phase', field, PHASE_FIELDS);
@@ -598,6 +635,7 @@ for (const [moduleIndex, module] of pilot.modules.entries()) {
     for (const exported of runtimeUnit.flow.filter(
       (block) => block.t === 'exercise',
     )) {
+      const source = unit.flow.find((block) => block.id === exported.id);
       exerciseIndex.push({
         exerciseId: exported.id,
         subjectId: exported.id.toLowerCase(),
@@ -620,6 +658,7 @@ for (const [moduleIndex, module] of pilot.modules.entries()) {
         skillIds: exported.skill_ids,
         needsRuntime: RUNTIME_MODES.has(exported.evaluator.mode),
         hintCount: exported.hints.length,
+        rewardEventId: source?.reward?.id ?? null,
         contentHash: sha256(canonicalJson(exported)),
       });
     }
@@ -710,6 +749,16 @@ const modulesIndex = pilot.modules.map((module, moduleOrder) => {
         ),
         order: missionOrder,
         unitIds: mission.unit_ids,
+        ...(mission.sequence
+          ? {
+              sequence: mission.sequence.map((segment) => ({
+                unitId: segment.unit_id,
+                from: segment.from,
+                to: segment.to,
+                ...(segment.note === undefined ? {} : { note: segment.note }),
+              })),
+            }
+          : {}),
         ...(mission.phases
           ? {
               phases: mission.phases.map((phase) => ({
@@ -817,6 +866,20 @@ for (const [path, text] of studyHits) {
 for (const [path, text] of runtimeJson.flatMap((json) => stringLeaves(json))) {
   if (/https?:\/\//i.test(text)) fail(`URL in exported content at ${path}`);
 }
+// Authored reward events (behaviours worth celebrating) must agree with the
+// exercise-level rewards they were derived from.
+const rewardIds = exerciseIndex.filter((entry) => entry.rewardEventId !== null);
+if (rewardIds.length !== pilot.reward_events.length)
+  fail(
+    `${rewardIds.length} rewarded exercises, ${pilot.reward_events.length} authored reward events`,
+  );
+for (const event of pilot.reward_events) {
+  if (
+    exerciseIndex.find((entry) => entry.exerciseId === event.exercise_id)
+      ?.rewardEventId !== event.event_id
+  )
+    fail(`reward event ${event.event_id} does not match ${event.exercise_id}`);
+}
 
 // ---------------------------------------------------------------- counts
 const counts = {
@@ -887,17 +950,92 @@ const manifest = {
       }),
     ),
   },
-  checkpointRules: [],
-  gateRetryRule: null,
+  checkpointRules: [OWNER_CHECKPOINT_RULE],
+  gateRetryRule: OWNER_GATE_RETRY_RULE,
   modules: modulesIndex,
   units: unitIndex,
   skills,
   exercises: exerciseIndex,
 };
 
+/** Minified, byte-stable asset text and its content-addressed public path. */
+function asset(stem, json) {
+  const text = `${JSON.stringify(json)}\n`;
+  const sha = sha256(text);
+  return {
+    text,
+    sha256: sha,
+    bytes: Buffer.byteLength(text),
+    path: `${ASSET_PREFIX}/${stem}.${sha.slice(0, 16)}.json`,
+  };
+}
+const indexAsset = asset('index', manifest);
+const moduleAssets = moduleFiles.map((file) => ({
+  moduleId: file.json.moduleId,
+  ...asset(file.fileName.replace(/\.json$/, ''), file.json),
+}));
+const describeAsset = ({ path, sha256: sha, bytes }) => ({
+  path,
+  sha256: sha,
+  bytes,
+});
+
+/**
+ * The bundled catalogue: identity, the catalogue rows the registry needs
+ * synchronously, every exercise subject ID (collision checks) and the
+ * content-addressed assets the provider loads and verifies.
+ */
+const catalogue = {
+  format: 'progresspal-programme-catalogue',
+  formatVersion: 1,
+  programmeId: PROGRAMME_ID,
+  contentVersion: CONTENT_VERSION,
+  evaluatorContractVersion: EVALUATOR_CONTRACT_VERSION,
+  language: manifest.language,
+  technicalLanguage: manifest.technicalLanguage,
+  sourceSha256: pilotSha,
+  modules: modulesIndex.map((module) => ({
+    moduleId: module.moduleId,
+    catalogueUnitId: module.catalogueUnitId,
+    title: module.title,
+    order: module.order,
+    missions: module.missions.map((mission) => ({
+      missionId: mission.missionId,
+      itemId: mission.itemId,
+      surface: mission.surface,
+      title: mission.title,
+      minutes: mission.minutes,
+      ...(mission.optionalMinutes === undefined
+        ? {}
+        : { optionalMinutes: mission.optionalMinutes }),
+      optional: mission.optional,
+      order: mission.order,
+    })),
+  })),
+  subjectIds: exerciseIndex.map((entry) => entry.subjectId),
+  assets: {
+    index: describeAsset(indexAsset),
+    modules: Object.fromEntries(
+      moduleAssets.map((entry) => [entry.moduleId, describeAsset(entry)]),
+    ),
+  },
+};
+
+/** Every content asset, for the service worker's install-time cache. */
+const offlineList = {
+  format: 'progresspal-offline-content',
+  formatVersion: 1,
+  assets: [indexAsset, ...moduleAssets].map((entry) => `/${entry.path}`),
+};
+
+const rawOutputs = [
+  [join(PUBLIC_DIR, indexAsset.path), indexAsset.text],
+  ...moduleAssets.map((entry) => [join(PUBLIC_DIR, entry.path), entry.text]),
+];
+
 const outputs = [
-  [join(CONTENT_DIR, 'manifest.json'), manifest],
-  ...moduleFiles.map((file) => [join(CONTENT_DIR, file.fileName), file.json]),
+  [join(CONTENT_DIR, 'catalogue.json'), catalogue],
+  [join(PUBLIC_DIR, OFFLINE_LIST), offlineList],
   [
     join(FIXTURE_DIR, 'evaluator-vectors.json'),
     {
@@ -922,11 +1060,22 @@ const prettierConfig =
 const check = process.argv.includes('--check');
 const stale = [];
 
+const formatted = [];
 for (const [file, json] of outputs) {
-  const text = await prettier.format(JSON.stringify(json), {
-    ...prettierConfig,
-    parser: 'json',
-  });
+  formatted.push([
+    file,
+    await prettier.format(JSON.stringify(json), {
+      ...prettierConfig,
+      parser: 'json',
+    }),
+  ]);
+}
+const assetDir = join(PUBLIC_DIR, ASSET_PREFIX);
+const expectedAssets = new Set(rawOutputs.map(([file]) => resolve(file)));
+const presentAssets = existsSync(assetDir)
+  ? readdirSync(assetDir).map((name) => resolve(join(assetDir, name)))
+  : [];
+for (const [file, text] of [...formatted, ...rawOutputs]) {
   if (check) {
     if (!existsSync(file) || readFileSync(file, 'utf8') !== text)
       stale.push(file);
@@ -934,6 +1083,17 @@ for (const [file, json] of outputs) {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, text);
   }
+}
+for (const file of presentAssets) {
+  if (expectedAssets.has(file)) continue;
+  if (check) stale.push(`${file} (not produced by this export)`);
+  else rmSync(file);
+}
+for (const legacy of ['manifest.json', 's1-m01.json', 's1-m02.json']) {
+  const file = join(CONTENT_DIR, legacy);
+  if (!existsSync(file)) continue;
+  if (check) stale.push(`${file} (superseded by the content assets)`);
+  else rmSync(file);
 }
 
 const reportPath = argValue('--report');
@@ -955,10 +1115,10 @@ if (check) {
     process.exit(1);
   }
   console.log(
-    `Export check passed: ${outputs.length} files match a fresh export of ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
+    `Export check passed: ${outputs.length + rawOutputs.length} files match a fresh export of ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
   );
 } else {
   console.log(
-    `Exported ${outputs.length} files from ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
+    `Exported ${outputs.length + rawOutputs.length} files from ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
   );
 }

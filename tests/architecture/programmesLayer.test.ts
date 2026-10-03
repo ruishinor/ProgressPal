@@ -20,6 +20,9 @@ const PROGRAMME_ALLOWED_TARGETS = [
   'lib/domain/index',
   'lib/validation/index',
   'lib/achievements/index',
+  // Epic E (owner decision 2026-10-03): a programme reads its packaged,
+  // same-origin content assets through this one reader.
+  'lib/assets/index',
   'seed/index',
 ].map((target) => path.join(SRC, target));
 const PROGRAMME_ALLOWED_PACKAGES = ['zod'];
