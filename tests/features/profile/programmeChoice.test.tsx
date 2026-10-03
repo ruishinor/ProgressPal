@@ -38,6 +38,21 @@ async function openFreshOnboarding() {
   );
 }
 
+/**
+ * Onboarding completes with a route-invalidating refresh and a navigation to
+ * RPG Home. The test ends only once Home has published its ready state, so
+ * teardown never closes the database under that refresh.
+ */
+async function expectSettledOnHome() {
+  expect(
+    await screen.findByRole(
+      'heading',
+      { name: 'Start with this quest' },
+      { timeout: 15_000 },
+    ),
+  ).toBeInTheDocument();
+}
+
 describe('fresh onboarding: an explicit programme choice', () => {
   it('offers both real programmes and selects neither for the learner', async () => {
     const group = await openFreshOnboarding();
@@ -81,6 +96,7 @@ describe('fresh onboarding: an explicit programme choice', () => {
     expect(
       (await listProgrammeEnrolments()).map((row) => row.programmeId),
     ).toEqual([p2.programmeId]);
+    await expectSettledOnHome();
   });
 
   it('starts CS50 when the learner chooses it', async () => {
@@ -102,6 +118,7 @@ describe('fresh onboarding: an explicit programme choice', () => {
     expect(
       (await listProgrammeEnrolments()).map((row) => row.programmeId),
     ).toEqual(['cs50x']);
+    await expectSettledOnHome();
   });
 });
 

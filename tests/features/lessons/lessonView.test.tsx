@@ -297,6 +297,14 @@ describe('K-3 (owner rule 2026-10-03): a checkpoint task can be retried as a new
       );
       expect(attempts.map((row) => row.attemptNumber)).toEqual([1, 2]);
     });
+    // The second submission settles (result, bookmark and refresh) before the
+    // test ends, so teardown never closes the database under it.
+    await within(group).findByText('Ikke riktig ennå', {}, { timeout: 15_000 });
+    await waitFor(() =>
+      expect(
+        within(group).getByRole('button', { name: 'Prøv igjen' }),
+      ).toBeEnabled(),
+    );
     expect(group.textContent).not.toMatch(/kan ikke prøves på nytt/);
   });
 });
