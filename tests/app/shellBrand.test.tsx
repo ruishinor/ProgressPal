@@ -114,9 +114,9 @@ describe('programme-aware shell brand', () => {
     expect(document.title).toContain('Syntetisk merkenavn');
   });
 
-  it('carries no brand decision in the real Programvareutvikling definition', () => {
-    expect(
-      programvareutviklingDefinition.content.terminology.shellBrand,
-    ).toBeUndefined();
+  it('carries the decided product brand in the real Programvareutvikling definition (OD-6)', () => {
+    expect(programvareutviklingDefinition.content.terminology.shellBrand).toBe(
+      'ProgressPal',
+    );
   });
 });

@@ -131,11 +131,11 @@ describe('lesson rendering (DC-01 to DC-07, DC-43)', () => {
     expect(lesson).toHaveTextContent('Ekstra øving (valgfri)');
   });
 
-  it('presents the checkpoint without any pass, fail or clearance claim', async () => {
+  it('presents an untouched checkpoint plainly, with no pass claim and no rule-missing notice (K-4 decided)', async () => {
     const lesson = await openLesson('s1-m01-chk');
 
     expect(lesson).toHaveTextContent('Modulsjekk');
-    expect(lesson).toHaveTextContent(/regelen .* ikke fastsatt/i);
+    expect(lesson.textContent).not.toMatch(/regelen .* ikke fastsatt/i);
     expect(lesson.textContent).not.toMatch(
       /\bbestått\b(?! eller)|\bklarert\b|\bcleared\b|\bpassed\b/i,
     );
@@ -213,12 +213,16 @@ describe('hints, submission and feedback (DC-15 to DC-17, DC-23, invariants 5 an
     expect(status).toHaveTextContent(/Riktig|Ikke riktig ennå/);
   });
 
-  it('labels pasted terminal output as self-reported', async () => {
+  it('says plainly what ProgressPal can and cannot check in pasted output', async () => {
     await openLesson('s1-m01-o01');
+    const group = within(screen.getByRole('article', { name: /./ }))
+      .getAllByRole('group', { name: /^Oppgave \d+/ })
+      .find((entry) => /py --version/.test(entry.textContent ?? ''))!;
 
-    expect(
-      within(exerciseGroup(1)).getByText(/Selvrapportert/),
-    ).toBeInTheDocument();
+    expect(group).toHaveTextContent(
+      /ProgressPal kan sjekke teksten du limer inn, men kan ikke se maskinen din/,
+    );
+    expect(group.textContent).not.toMatch(/Selvrapportert/);
   });
 
   it('cannot reveal a hint or submit in a read-only tab', async () => {
@@ -261,23 +265,35 @@ describe('runtime-dependent exercises while executable evaluation is unavailable
   });
 });
 
-describe('K-3: no gate-item retry without an authored rule', () => {
-  it('offers no retry on a checkpoint item after its attempt, and says why', async () => {
+describe('K-3 (owner rule 2026-10-03): a checkpoint task can be retried as a new attempt', () => {
+  it('offers Prøv igjen after an incorrect checkpoint answer and records the retry as attempt 2', async () => {
     const lesson = await openLesson('s1-m01-chk');
     const group = within(lesson)
       .getAllByRole('group', { name: /^Oppgave \d+/ })
-      .find((entry) => within(entry).queryAllByRole('radio').length > 0)!;
+      .find((entry) => /Skriv kommandoen/.test(entry.textContent ?? ''))!;
+    const field = within(group).getByRole('textbox');
 
-    fireEvent.click(within(group).getAllByRole('radio')[0]!);
+    await waitFor(() => expect(field).toBeEnabled());
+    fireEvent.change(field, { target: { value: 'not a command' } });
     fireEvent.click(
       within(group).getByRole('button', { name: 'Sjekk svaret' }),
     );
-    await within(group).findByRole('status', { name: /Resultat/ });
+    await within(group).findByText('Ikke riktig ennå', {}, { timeout: 15_000 });
 
-    expect(
-      within(group).queryByRole('button', { name: 'Prøv igjen' }),
-    ).toBeNull();
-    expect(group).toHaveTextContent(/kan ikke prøves på nytt/);
+    fireEvent.click(within(group).getByRole('button', { name: 'Prøv igjen' }));
+    const retryField = within(group).getByRole('textbox');
+    fireEvent.change(retryField, { target: { value: 'still not a command' } });
+    fireEvent.click(
+      within(group).getByRole('button', { name: 'Sjekk svaret' }),
+    );
+
+    await waitFor(async () => {
+      const attempts = (await listLearnerEvidence()).filter(
+        (row) => row.kind === 'exercise_attempt',
+      );
+      expect(attempts.map((row) => row.attemptNumber)).toEqual([1, 2]);
+    });
+    expect(group.textContent).not.toMatch(/kan ikke prøves på nytt/);
   });
 });
 

@@ -204,7 +204,21 @@ describe('E-SCHEMA-1 §2: the accepted schema-4 store contract', () => {
     ).toEqual([['itemId', true]]);
   });
 
-  it('keeps every schema-3 store definition unchanged', () => {
+  it('adds exactly the programme-ownership index to xp_transactions (E-SCHEMA-1A)', () => {
+    const db = createProgressPalDatabase(defaultTestMigrationContext);
+    const xp = db.tables.find((table) => table.name === 'xp_transactions');
+
+    expect(
+      xp!.schema.indexes.map((index) => [index.name, index.unique]),
+    ).toEqual([
+      ['sourceType', false],
+      ['sourceId', false],
+      ['awardedAt', false],
+      ['programmeId', false],
+    ]);
+  });
+
+  it('keeps every schema-3 store name', () => {
     const db = createProgressPalDatabase(defaultTestMigrationContext);
     const names = db.tables.map((table) => table.name).sort();
 
@@ -259,8 +273,8 @@ describe('E-SCHEMA-1 §2: storage-level uniqueness, proven on the real Dexie', (
   });
 });
 
-describe('E-SCHEMA-1 §6: the live schema 3 → 4 upgrade is additive', () => {
-  it('leaves every schema-3 row byte-identical except app_meta.schemaVersion', async () => {
+describe('E-SCHEMA-1 §6 and E-SCHEMA-1A: the live schema 3 → 4 upgrade', () => {
+  it('leaves every schema-3 row byte-identical except app_meta.schemaVersion and XP ownership', async () => {
     const context = await createSchemaThreeDevice('v3-to-v4-additive');
     const before = await (async () => {
       const legacy = openHistoricalV3(context.name);
@@ -282,6 +296,13 @@ describe('E-SCHEMA-1 §6: the live schema 3 → 4 upgrade is additive', () => {
         expect(after.app_meta).toEqual([
           { ...(rows[0] as object), schemaVersion: 4 },
         ]);
+      } else if (name === 'xp_transactions') {
+        // E-SCHEMA-1A: historical XP belongs to the accepted CS50 identity;
+        // every other field, including the stored ID, is unchanged.
+        expect(rows.length).toBeGreaterThan(0);
+        expect(after.xp_transactions).toEqual(
+          rows.map((row) => ({ ...(row as object), programmeId: 'cs50x' })),
+        );
       } else {
         expect(after[name], name).toEqual(rows);
       }
@@ -302,7 +323,9 @@ describe('E-SCHEMA-1 §6: the live schema 3 → 4 upgrade is additive', () => {
       schemaVersion: 4,
       activeProgrammeId: 'cs50x',
     });
-    expect(snapshot.xpTransactions).toHaveLength(1);
+    expect(snapshot.xpTransactions).toEqual([
+      expect.objectContaining({ id: 'xp-1', programmeId: 'cs50x', xp: 40 }),
+    ]);
     expect(snapshot.achievementUnlocks).toEqual([]);
     expect(snapshot.programmeEnrolments).toEqual([
       { programmeId: 'cs50x', enrolledAt: t0 },
@@ -334,6 +357,28 @@ describe('E-SCHEMA-1 §6: the live schema 3 → 4 upgrade is additive', () => {
       'learner_evidence',
     );
     legacy.close();
+  });
+
+  it('aborts and leaves schema 3 intact when a schema-3 XP row already names another programme', async () => {
+    const context = await createSchemaThreeDevice('v3-to-v4-foreign-xp');
+    const legacy = openHistoricalV3(context.name);
+    await legacy.open();
+    await legacy.table('xp_transactions').put({
+      id: 'xp-foreign',
+      createdAt: t0,
+      updatedAt: t0,
+      sourceType: 'lecture_completed',
+      sourceId: 'week-0-lecture-completed-2',
+      xp: 40,
+      reason: 'Completed lecture: Lecture',
+      awardedAt: t0,
+      programmeId: 'programvareutvikling',
+    });
+    legacy.close();
+
+    await expect(context.db.open()).rejects.toThrow();
+    context.db.close();
+    expect(await nativeVersion(context.name)).toBe(30);
   });
 
   it('upgrades a fresh CS50 seed initialization straight to schema 4', async () => {

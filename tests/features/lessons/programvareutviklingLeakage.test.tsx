@@ -16,15 +16,14 @@ import { bundledCourseSeed } from '@/seed';
 /**
  * Epic E §3 item 15 and §6 "Leaks": with Programvareutvikling active, no
  * reachable surface shows CS50 wording, guides, links, workflow or
- * terminology. The one known exception is the hard-coded shell brand, which
- * is the open owner decision OD-6 and is asserted separately so the gap
- * stays visible instead of silently passing.
+ * terminology. The shell brand follows owner decision OD-6 (2026-10-03):
+ * the product brand "ProgressPal", never the CS50 edition name.
  */
 
 const p2 = programvareutviklingDefinition;
 
 const cs50Leaks = [
-  /\bCS50\b(?! Edition)/,
+  /\bCS50\b/,
   /Harvard|edX|OpenCourseWare/,
   /cs50\.harvard\.edu/,
   /Code Knights|CS Foundations|Generalist/,
@@ -110,11 +109,15 @@ describe('no CS50 leakage with Programvareutvikling active', () => {
   });
 });
 
-describe('OD-6: the visible shell brand is an open owner decision', () => {
-  it('still shows the hard-coded CS50 shell brand, which blocks a final Programvareutvikling-active candidate', async () => {
-    const text = await settledText('/dashboard');
+describe('OD-6 (owner decision 2026-10-03): the shell brand is ProgressPal', () => {
+  it.each(['/dashboard', '/rpg'])(
+    '%s shows the product brand and no CS50 edition name',
+    async (route) => {
+      const text = await settledText(route);
 
-    expect(text).toContain('ProgressPal CS50 Edition');
-    expect(p2.content.terminology.shellBrand).toBeUndefined();
-  });
+      expect(text).toContain('ProgressPal');
+      expect(text).not.toMatch(/CS50 Edition/);
+      expect(document.title).toBe('ProgressPal');
+    },
+  );
 });

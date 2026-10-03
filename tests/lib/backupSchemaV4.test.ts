@@ -14,6 +14,8 @@ import {
   currentApplicationVersion,
   currentDatabaseSchemaVersion,
   getDatabaseSnapshot,
+  addXpTransaction,
+  getXpSummary,
   recordEvaluationResult,
   recordSupportEvent,
   restoreDatabaseFromBackup,
@@ -506,5 +508,123 @@ describe('a maximal realistic evidence dataset stays within the backup cap', () 
         { maxBytes: byteLength - 1 },
       ),
     ).toThrow(BackupValidationError);
+  });
+});
+
+describe('E-SCHEMA-1A: XP ownership in schema-4 backups', () => {
+  async function xpData(label: string) {
+    const source = await device(label);
+    await addXpTransaction(
+      {
+        programmeId: 'cs50x',
+        sourceType: 'exercise_solved',
+        sourceId: 'shared-id',
+        xp: 900,
+        reason: 'CS50 award',
+        awardedAt: exportedAt,
+      },
+      { db: source.db },
+    );
+    await addXpTransaction(
+      {
+        programmeId: p2ProgrammeId,
+        sourceType: 'exercise_solved',
+        sourceId: 'shared-id',
+        xp: 100,
+        reason: 'Programvareutvikling award',
+        awardedAt: exportedAt,
+      },
+      { db: source.db },
+    );
+    return getDatabaseSnapshot({ db: source.db });
+  }
+
+  it('round-trips each row with its owning programme and keeps the ledgers independent', async () => {
+    const snapshot = await xpData('backup-xp-roundtrip');
+    const parsed = parseBackupFile(envelopeText(snapshot), {
+      expectedSchemaVersion: currentDatabaseSchemaVersion,
+      migrationContext: p2MigrationContext,
+    });
+
+    expect(parsed.data.xpTransactions).toEqual(snapshot.xpTransactions);
+    expect(
+      parsed.data.xpTransactions.map((row) => row.programmeId).sort(),
+    ).toEqual(['cs50x', p2ProgrammeId]);
+
+    const target = await device('backup-xp-target');
+    await restoreDatabaseFromBackup(parsed.data, {
+      db: target.db,
+      fileName: 'xp.json',
+    });
+
+    expect(
+      await getXpSummary({ db: target.db, programmeId: 'cs50x' }),
+    ).toMatchObject({ totalXp: 900, level: 4 });
+    expect(
+      await getXpSummary({ db: target.db, programmeId: p2ProgrammeId }),
+    ).toMatchObject({ totalXp: 100, level: 2 });
+  });
+
+  it('rejects an XP row without a programme', async () => {
+    const data = await xpData('backup-xp-ownerless');
+    const xpTransactions = data.xpTransactions.map((row) => {
+      const copy: Record<string, unknown> = { ...row };
+      delete copy.programmeId;
+      return copy;
+    });
+
+    expect(() =>
+      assertBackupDataInvariants(
+        { ...data, xpTransactions } as unknown as BackupData,
+        { expectedSchemaVersion: 4, migrationContext: p2MigrationContext },
+      ),
+    ).toThrow();
+  });
+
+  it('rejects XP owned by a programme the backup does not enrol, or an unknown one', async () => {
+    const data = await xpData('backup-xp-unenrolled');
+
+    expectRejected(
+      {
+        ...data,
+        programmeEnrolments: data.programmeEnrolments.filter(
+          (enrolment) => enrolment.programmeId !== p2ProgrammeId,
+        ),
+        learnerEvidence: [],
+        lessonPositions: [],
+      },
+      /enrol/i,
+    );
+    expectRejected(
+      {
+        ...data,
+        xpTransactions: data.xpTransactions.map((row) => ({
+          ...row,
+          programmeId: 'unknown-programme',
+        })),
+      },
+      /unknown-programme/,
+    );
+  });
+
+  it('rejects a duplicate award inside one programme but not across programmes', async () => {
+    const data = await xpData('backup-xp-duplicate');
+    const p2Row = data.xpTransactions.find(
+      (row) => row.programmeId === p2ProgrammeId,
+    )!;
+
+    expect(() =>
+      assertBackupDataInvariants(data, {
+        expectedSchemaVersion: 4,
+        migrationContext: p2MigrationContext,
+      }),
+    ).not.toThrow();
+    expectRejected(
+      {
+        ...data,
+        xpTransactions: [...data.xpTransactions, { ...p2Row, id: 'xp-copy' }],
+      },
+      /duplicate|shared-id/i,
+    );
   });
 });

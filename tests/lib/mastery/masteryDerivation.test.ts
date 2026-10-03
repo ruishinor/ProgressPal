@@ -7,9 +7,9 @@ import manifest from '@/programmes/programvareutvikling/content/manifest.json';
 /**
  * Epic E §3 items 12–14, DC-28 to DC-32, `08`: skill state, readiness,
  * checkpoint state and retrieval are derived by a pure engine from the
- * evidence and the content version's rules, never stored. Without an
- * authored or owner-approved checkpoint pass rule (K-4) the engine makes no
- * Demonstrated, pass or clearance claim.
+ * evidence and the content version's rules, never stored. Checkpoint
+ * clearance follows the owner-approved K-4 rule and retries the owner-approved
+ * K-3 rule (2026-10-03).
  */
 
 const index = manifest as unknown as ProgrammeContentIndex;
@@ -260,37 +260,118 @@ describe('content-version and exercise-hash binding (schema record §5)', () => 
   });
 });
 
-describe('K-4: checkpoint judgement without an authored pass rule', () => {
-  it('records no judgement, no pass and no clearance for either module', () => {
-    const gates = index.exercises.filter(
-      (entry) =>
-        entry.moduleId === 'S1-M01' && entry.masteryGate && !entry.needsRuntime,
-    );
+describe('K-4 (owner rule 2026-10-03): criterion-referenced checkpoint clearance', () => {
+  const m01Gates = index.exercises.filter(
+    (entry) => entry.moduleId === 'S1-M01' && entry.masteryGate,
+  );
+  const gatesFor = (task: string) =>
+    m01Gates.filter((entry) => entry.checkpointTask === task);
+
+  it('clears a checkpoint at level D when every critical criterion has qualifying unsupported success', () => {
     const mastery = derive(
-      gates.flatMap((entry) => solved(entry.exerciseId)),
+      m01Gates.flatMap((entry) => solved(entry.exerciseId)),
+      [],
+      true,
+    );
+    const judgement = mastery.checkpoints['S1-M01']!;
+
+    expect(judgement.status).toBe('cleared');
+    expect(
+      Object.fromEntries(
+        judgement.criteria.map((criterion) => [criterion.key, criterion.level]),
+      ),
+    ).toEqual({ c: 'D', d: 'D', r: 'D', x: 'D' });
+    expect(mastery.modules['S1-M01']!.cleared).toBe(true);
+    expect(mastery.modules['S1-M01']!.blockers).toEqual([]);
+  });
+
+  it('never manufactures a Strong level', () => {
+    const mastery = derive(
+      m01Gates.flatMap((entry) => solved(entry.exerciseId)),
       [],
       true,
     );
 
-    for (const moduleId of ['S1-M01', 'S1-M02']) {
-      expect(mastery.checkpoints[moduleId]!.status).toBe('rule_missing');
-      expect(mastery.checkpoints[moduleId]).not.toHaveProperty('passed');
-      expect(mastery.modules[moduleId]!.cleared).toBe(false);
-      expect(mastery.modules[moduleId]!.blockers).toContain(
-        'checkpoint_rule_missing',
-      );
-    }
-    for (const skill of Object.values(mastery.skills)) {
-      expect(skill.state).not.toBe('demonstrated');
-      expect(skill.state).not.toBe('retained');
+    for (const criterion of mastery.checkpoints['S1-M01']!.criteria) {
+      expect(criterion.level).not.toBe('S');
     }
   });
 
-  it('uses only attempts whose terminal results qualify as the checkpoint basis (test 11)', () => {
-    const gates = index.exercises.filter(
-      (entry) =>
-        entry.moduleId === 'S1-M01' && entry.masteryGate && !entry.needsRuntime,
+  it('does not let easy successes hide one failed critical criterion', () => {
+    const [failed, ...others] = gatesFor('d');
+    const evidence = [
+      ...m01Gates
+        .filter((entry) => entry.exerciseId !== failed!.exerciseId)
+        .flatMap((entry) => solved(entry.exerciseId)),
+      ...solved(failed!.exerciseId, 'incorrect'),
+    ];
+    const mastery = derive(evidence, [], true);
+    const judgement = mastery.checkpoints['S1-M01']!;
+
+    expect(others.length).toBeGreaterThan(0);
+    expect(judgement.status).toBe('not_yet');
+    expect(
+      judgement.criteria.find((criterion) => criterion.key === 'd')!.level,
+    ).toBe('NY');
+    expect(mastery.modules['S1-M01']!.cleared).toBe(false);
+  });
+
+  it.each([
+    ['a hinted success', { hints: 1 }, 'correct'],
+    ['reopened teaching', { reopened: true }, 'correct'],
+    ['evaluator_error', {}, 'evaluator_error'],
+    ['not_evaluable', {}, 'not_evaluable'],
+  ] as const)(
+    'does not clear a criterion from %s',
+    (_label, options, outcome) => {
+      const [target] = gatesFor('x');
+      const evidence = [
+        ...m01Gates
+          .filter((entry) => entry.exerciseId !== target!.exerciseId)
+          .flatMap((entry) => solved(entry.exerciseId)),
+        ...solved(target!.exerciseId, outcome, options),
+      ];
+      const judgement = derive(evidence, [], true).checkpoints['S1-M01']!;
+
+      expect(judgement.status).toBe('not_yet');
+      expect(
+        judgement.criteria.find((criterion) => criterion.key === 'x')!.level,
+      ).toBe('NY');
+    },
+  );
+
+  it('does not clear a criterion from a pending (unresolved) attempt', () => {
+    const [target] = gatesFor('r');
+    const evidence = [
+      ...m01Gates
+        .filter((entry) => entry.exerciseId !== target!.exerciseId)
+        .flatMap((entry) => solved(entry.exerciseId)),
+      attempt(target!.exerciseId, 1),
+    ];
+
+    expect(derive(evidence, [], true).checkpoints['S1-M01']!.status).toBe(
+      'not_yet',
     );
+  });
+
+  it('keeps a checkpoint that needs Python uncleared while executable evaluation is unavailable', () => {
+    const mastery = derive(
+      m01Gates
+        .filter((entry) => !entry.needsRuntime)
+        .flatMap((entry) => solved(entry.exerciseId)),
+      [],
+      false,
+    );
+
+    expect(mastery.checkpoints['S1-M01']!.status).toBe('not_yet');
+    expect(mastery.modules['S1-M01']!.cleared).toBe(false);
+    expect(mastery.modules['S1-M01']!.blockers).toContain(
+      'executable_evaluation_unavailable',
+    );
+  });
+
+  it('uses only attempts whose terminal results qualify as the checkpoint basis (test 11)', () => {
+    const gates = m01Gates.filter((entry) => !entry.needsRuntime);
     const [qualifying, errored, unresolved, unevaluable] = gates.map(
       (entry) => entry.exerciseId,
     );
@@ -305,7 +386,7 @@ describe('K-4: checkpoint judgement without an authored pass rule', () => {
     expect(basis).toEqual([`attempt-${qualifying!.toLowerCase()}-1`]);
   });
 
-  it('never trusts a stored checkpoint result whose rule the content does not carry', () => {
+  it('never trusts a stored checkpoint result under a rule the content does not carry', () => {
     const stored = {
       id: 'checkpoint-1',
       kind: 'checkpoint_result',
@@ -322,11 +403,40 @@ describe('K-4: checkpoint judgement without an authored pass rule', () => {
     } as LearnerEvidence;
     const mastery = derive([stored]);
 
-    expect(mastery.checkpoints['S1-M01']!.status).toBe('rule_missing');
+    expect(mastery.checkpoints['S1-M01']!.status).toBe('not_yet');
     expect(mastery.checkpoints['S1-M01']!.storedResults).toEqual([
       { id: 'checkpoint-1', disposition: 'cannot_determine' },
     ]);
     expect(mastery.modules['S1-M01']!.cleared).toBe(false);
+  });
+});
+
+describe('K-3 (owner rule 2026-10-03): retry is a new attempt on the same task', () => {
+  const m01Gates = index.exercises.filter(
+    (entry) => entry.moduleId === 'S1-M01' && entry.masteryGate,
+  );
+  const [processItem] = m01Gates.filter((entry) =>
+    entry.skillIds.includes('SK-PRC-01'),
+  );
+
+  it('demonstrates a skill from an independent first success on a checkpoint task', () => {
+    const mastery = derive(solved(processItem!.exerciseId), [], true);
+
+    expect(mastery.skills['SK-PRC-01']!.state).toBe('demonstrated');
+  });
+
+  it('lets a later success clear the criterion but keeps the skill at Practised from that task alone', () => {
+    const evidence = [
+      ...m01Gates
+        .filter((entry) => entry.exerciseId !== processItem!.exerciseId)
+        .flatMap((entry) => solved(entry.exerciseId)),
+      ...solved(processItem!.exerciseId, 'incorrect', {}, 1),
+      ...solved(processItem!.exerciseId, 'correct', {}, 2),
+    ];
+    const mastery = derive(evidence, [], true);
+
+    expect(mastery.checkpoints['S1-M01']!.status).toBe('cleared');
+    expect(mastery.skills['SK-PRC-01']!.state).toBe('practised');
   });
 });
 
