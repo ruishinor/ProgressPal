@@ -26,6 +26,7 @@ import {
 } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, presentResult } from './model';
+import { useLessonSurfaces } from './presentation';
 import { AnswerWidget, CodeView } from './widgets';
 
 /**
@@ -85,6 +86,7 @@ export function ExerciseCard({
   write,
 }: ExerciseCardProps) {
   const { exercise, meta } = entry;
+  const surfaces = useLessonSurfaces();
   const headingId = useId();
   const idPrefix = useId().replace(/:/g, '');
   const [draft, setDraft] = useState<AnswerDraft>(() => emptyDraft(exercise));
@@ -236,11 +238,7 @@ export function ExerciseCard({
       : null;
 
   return (
-    <div
-      aria-labelledby={headingId}
-      className="card card--default card--compact lesson-exercise"
-      role="group"
-    >
+    <div aria-labelledby={headingId} className={surfaces.exercise} role="group">
       <h3 id={headingId}>
         {formatCopy(copy, 'exerciseHeading', { n: number })} · {typeLabel}
       </h3>
@@ -280,7 +278,7 @@ export function ExerciseCard({
           ))}
           {hintsRevealed < exercise.hints.length ? (
             <button
-              className="button button--quiet button--md"
+              className={surfaces.quiet}
               disabled={!canWrite || busy !== 'none'}
               onClick={() => void revealHint()}
               type="button"
@@ -309,7 +307,7 @@ export function ExerciseCard({
       {result !== null ? (
         <div
           aria-label={copy.text.resultLabel}
-          className="card card--subtle card--compact"
+          className={surfaces.result}
           role="status"
         >
           <p>
@@ -327,7 +325,7 @@ export function ExerciseCard({
         {showResult ? (
           permission === 'allowed' ? (
             <button
-              className="button button--secondary button--md"
+              className={surfaces.secondary}
               disabled={!canWrite || busy !== 'none'}
               onClick={() => {
                 setDraft(answerToDraft(exercise, latest!.answer));
@@ -342,7 +340,7 @@ export function ExerciseCard({
         ) : (
           <button
             aria-busy={busy === 'submit' || undefined}
-            className="button button--primary button--md"
+            className={surfaces.primary}
             disabled={formDisabled}
             onClick={() => void submit()}
             type="button"
@@ -356,7 +354,7 @@ export function ExerciseCard({
         onReopenTeaching !== null &&
         remediationTitle !== null ? (
           <button
-            className="button button--quiet button--md"
+            className={surfaces.quiet}
             disabled={!canWrite || busy !== 'none'}
             onClick={() => void reopenTeaching()}
             type="button"

@@ -34,11 +34,6 @@
   white-space: pre;
 }
 
-.lesson-note {
-  color: var(--color-text-soft);
-  font-size: var(--text-sm);
-}
-
 .lesson-blank {
   width: 12ch;
 }

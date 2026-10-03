@@ -38,7 +38,11 @@ export type LessonStep = {
   readonly unitId: string;
   readonly unitIndex: number;
   readonly block: LessonBlock;
-  /** Per-unit exercise number, as the authored learner render numbers them. */
+  /**
+   * The exercise number the learner sees: per unit, as the authored learner
+   * render numbers them, or across the mission when the mission has an
+   * authored interleaved sequence (one flow, one numbering).
+   */
   readonly exerciseNumber: number | null;
   /** Index of the phase the step belongs to, or 0 for an unphased mission. */
   readonly phaseIndex: number;
@@ -46,10 +50,12 @@ export type LessonStep = {
 };
 
 /**
- * Flattens a mission into its steps. Phases follow the authoring workspace's
- * learner-render rule: a phase starts where its first part starts (a unit's
- * beginning, or right before exercise `exercisesFrom` of a unit), and every
- * later block belongs to the most recently started phase.
+ * Flattens a mission into its steps, in the authored learner order: the
+ * mission's interleaved sequence when it has one (owner decision
+ * 2026-10-03), otherwise unit by unit. Phases follow the authoring
+ * workspace's learner-render rule: a phase starts where its first part
+ * starts (a unit's beginning, or right before exercise `exercisesFrom` of a
+ * unit), and every later block belongs to the most recently started phase.
  */
 export function lessonSteps(bundle: LessonBundle): LessonStep[] {
   const phases = bundle.mission.phases ?? [];
@@ -64,29 +70,46 @@ export function lessonSteps(bundle: LessonBundle): LessonStep[] {
     }
   });
 
+  const sequenced = bundle.mission.sequence !== undefined;
+  const segments =
+    bundle.mission.sequence ??
+    bundle.units.map((unit) => ({
+      unitId: unit.unit_id,
+      from: 0,
+      to: unit.flow.length - 1,
+    }));
+  const exercisesByUnit = new Map<string, number>();
   const steps: LessonStep[] = [];
+  let missionExercises = 0;
   let currentPhase = 0;
 
-  bundle.units.forEach((unit, unitIndex) => {
-    let exercises = 0;
-    const unitStart = phaseStart.get(`${unit.unit_id}|0`);
+  for (const segment of segments) {
+    const unitIndex = bundle.units.findIndex(
+      (unit) => unit.unit_id === segment.unitId,
+    );
+    const unit = bundle.units[unitIndex]!;
 
-    if (unitStart !== undefined) {
-      currentPhase = unitStart;
-    }
-
-    unit.flow.forEach((block, flowIndex) => {
-      const midUnitStart =
+    for (
+      let flowIndex = segment.from;
+      flowIndex <= segment.to;
+      flowIndex += 1
+    ) {
+      const block = unit.flow[flowIndex]!;
+      const exercises = exercisesByUnit.get(unit.unit_id) ?? 0;
+      const start =
         flowIndex === 0
-          ? undefined
-          : phaseStart.get(`${unit.unit_id}|${exercises + 1}`);
+          ? phaseStart.get(`${unit.unit_id}|0`)
+          : exercises + 1 > 1
+            ? phaseStart.get(`${unit.unit_id}|${exercises + 1}`)
+            : undefined;
 
-      if (midUnitStart !== undefined && exercises + 1 > 1) {
-        currentPhase = midUnitStart;
+      if (start !== undefined) {
+        currentPhase = start;
       }
 
       if (block.t === 'exercise') {
-        exercises += 1;
+        exercisesByUnit.set(unit.unit_id, exercises + 1);
+        missionExercises += 1;
       }
 
       steps.push({
@@ -94,12 +117,17 @@ export function lessonSteps(bundle: LessonBundle): LessonStep[] {
         unitId: unit.unit_id,
         unitIndex,
         block,
-        exerciseNumber: block.t === 'exercise' ? exercises : null,
+        exerciseNumber:
+          block.t === 'exercise'
+            ? sequenced
+              ? missionExercises
+              : exercises + 1
+            : null,
         phaseIndex: currentPhase,
         firstInUnit: flowIndex === 0,
       });
-    });
-  });
+    }
+  }
 
   return steps;
 }

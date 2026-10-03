@@ -4,6 +4,7 @@ import type { LessonTextBlock, LessonUiCopy } from '@/lib/domain';
 
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy } from './model';
+import { useLessonSurfaces } from './presentation';
 
 /**
  * Renders the authored, non-exercise step kinds (DC-01, DC-02): orientation,
@@ -15,6 +16,7 @@ import { formatCopy } from './model';
  */
 
 function CopyButton({ copy, text }: { copy: LessonUiCopy; text: string }) {
+  const surfaces = useLessonSurfaces();
   const [copied, setCopied] = useState(false);
   const clipboard =
     typeof navigator === 'undefined' ? undefined : navigator.clipboard;
@@ -25,7 +27,7 @@ function CopyButton({ copy, text }: { copy: LessonUiCopy; text: string }) {
 
   return (
     <button
-      className="button button--quiet button--md lesson-copy"
+      className={`${surfaces.quiet} lesson-copy`}
       onClick={() => {
         void clipboard.writeText(text).then(
           () => setCopied(true),
@@ -87,6 +89,8 @@ export function LessonTextBlockView({
   context: MarkupContext;
   copy: LessonUiCopy;
 }) {
+  const surfaces = useLessonSurfaces();
+
   switch (block.t) {
     case 'orient':
     case 'text':
@@ -98,10 +102,7 @@ export function LessonTextBlockView({
     case 'callout':
       return (
         // A note, not a landmark: callouts sit inside the page landmarks.
-        <div
-          className="card card--subtle card--compact lesson-callout"
-          role="note"
-        >
+        <div className={surfaces.callout} role="note">
           <p>
             <strong>{copy.calloutLabels[block.kind] ?? block.kind}</strong>
           </p>
@@ -200,7 +201,7 @@ export function LessonTextBlockView({
       );
     case 'worked':
       return (
-        <section className="card card--subtle card--compact lesson-worked">
+        <section className={surfaces.worked}>
           <p>
             <strong>
               <InlineText context={context} text={block.title} />
@@ -246,7 +247,7 @@ export function LessonTextBlockView({
       );
     case 'recap':
       return (
-        <section className="card card--accent card--compact lesson-recap">
+        <section className={surfaces.recap}>
           <p>
             <strong>{copy.text.recapCan}</strong>
           </p>

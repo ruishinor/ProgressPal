@@ -29,7 +29,8 @@
 /* Shared token bridge for Classic capabilities rendered inside the RPG shell.
    Behavior stays in the shared components; their semantic design-system roles
    resolve to the RPG palette only within these explicit variant wrappers. */
-.rpg-shell :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings) {
+.rpg-shell
+  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings, .lesson--rpg) {
   --color-canvas: var(--rpg-bg);
   --color-canvas-strong: var(--rpg-surface);
   --color-canvas-muted: var(--rpg-surface-raised);

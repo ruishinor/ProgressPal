@@ -44,6 +44,11 @@ import {
   reminderBefore,
   type LessonStep,
 } from './model';
+import {
+  LessonSurfaceContext,
+  lessonSurfaces,
+  type LessonPresentation,
+} from './presentation';
 
 /**
  * The lesson surface for a catalogue item of type `lesson` (Epic E §3 items
@@ -51,7 +56,10 @@ import {
  * headings of authored sections, and no unit, skill, objective or exercise
  * identifier, gating role or difficulty is ever shown (DC-04, INV-11). Long
  * missions are offered through their named phases (DC-05). Content language
- * comes from the content metadata (DC-43).
+ * comes from the content metadata (DC-43). A mission with an authored
+ * interleaved sequence is one flow: lessons keep their headings, practice
+ * continues inline, and exercises are numbered across the mission. The host
+ * chooses the presentation (Classic or RPG); behaviour is shared.
  */
 
 type LessonViewProps = {
@@ -61,6 +69,8 @@ type LessonViewProps = {
   readonly lessonPath: (itemId: string) => string;
   /** Rendered after the lesson (the host's lesson-level progress controls). */
   readonly footer?: ReactNode;
+  /** The hosting experience's surface (default Classic). */
+  readonly presentation?: LessonPresentation;
 };
 
 type LoadState =
@@ -103,17 +113,34 @@ export function LessonView(props: LessonViewProps) {
   );
 }
 
-function LessonContent({
+function LessonContent(
+  props: LessonViewProps & {
+    readonly copy: LessonUiCopy;
+    readonly provider: LessonContentProvider;
+  },
+) {
+  const surfaces = lessonSurfaces(props.presentation ?? 'classic');
+
+  return (
+    <LessonSurfaceContext.Provider value={surfaces}>
+      <LessonSurface {...props} />
+    </LessonSurfaceContext.Provider>
+  );
+}
+
+function LessonSurface({
   copy,
   footer,
   itemId,
   lessonPath,
+  presentation,
   provider,
   scope,
 }: LessonViewProps & {
   readonly copy: LessonUiCopy;
   readonly provider: LessonContentProvider;
 }) {
+  const surfaces = lessonSurfaces(presentation ?? 'classic');
   const { coordination, runLocalMutation } = useAppState();
   const navigate = useNavigate();
   const runtime = getPythonRuntime();
@@ -312,7 +339,7 @@ function LessonContent({
 
   if (load.status === 'failed') {
     return (
-      <div className="card card--danger card--compact" role="alert">
+      <div className={surfaces.alert} role="alert">
         <p>{copy.text[failureCopy[load.reason]]}</p>
       </div>
     );
@@ -350,6 +377,7 @@ function LessonContent({
       .map((entry) => [entry.missionId, entry]),
   );
   const lastStepIndex = steps.length - 1;
+  const sequenced = mission.sequence !== undefined;
   const groups: LessonStep[][] = [];
 
   for (const step of visibleSteps) {
@@ -366,17 +394,18 @@ function LessonContent({
     <>
       <article
         aria-labelledby={titleId}
-        className="page-section lesson"
+        className={surfaces.article}
+        data-presentation={surfaces.name}
         lang={readyBundle.language}
       >
-        <header className="lesson-header">
-          <p className="lesson-note">
+        <header className={surfaces.header}>
+          <p className={surfaces.eyebrow}>
             <span>{copy.surfaceLabels[mission.surface]}</span>
             {' · '}
             <span>{formatCopy(copy, 'minutes', { minutes })}</span>
           </p>
           <h1 id={titleId}>{mission.title}</h1>
-          <p>
+          <p className={surfaces.lede}>
             <em>{copy.text.goalLabel}</em> {mission.goal}
           </p>
         </header>
@@ -398,7 +427,7 @@ function LessonContent({
           <p className="lesson-note">{copy.text.checkpointRuntimeNotice}</p>
         ) : null}
         {position !== null ? (
-          <section className="card card--accent card--compact lesson-resume">
+          <section className={surfaces.resume}>
             <h2>{copy.text.resumeHeading}</h2>
             {reminder === null ? null : (
               <p>{formatCopy(copy, 'resumeReminder', { can: reminder })}</p>
@@ -428,17 +457,26 @@ function LessonContent({
         {groups.map((group) => {
           const unit = readyBundle.units[group[0]!.unitIndex]!;
           const groupEnd = group.at(-1)!.stepIndex;
+          // In an interleaved mission a lesson is headed where it begins and
+          // practice continues inline, without a heading of its own.
+          const headed =
+            !sequenced || (group[0]!.firstInUnit && unit.kind !== 'P');
+          const bookmark = !sequenced || unit.kind !== 'P';
 
           return (
             <section
-              className="page-section lesson-unit"
+              className={surfaces.section}
               key={`${unit.unit_id}-${group[0]!.stepIndex}`}
             >
-              <h2>{unit.title_nb}</h2>
-              <p className="lesson-note">
-                {copy.unitKindLabels[unit.kind]}
-                {unit.optional ? ` · ${copy.text.optionalSuffix}` : ''}
-              </p>
+              {headed ? (
+                <>
+                  <h2>{unit.title_nb}</h2>
+                  <p className="lesson-note">
+                    {copy.unitKindLabels[unit.kind]}
+                    {unit.optional ? ` · ${copy.text.optionalSuffix}` : ''}
+                  </p>
+                </>
+              ) : null}
               {group.map((step) => (
                 <div
                   id={`${anchorPrefix}-step-${step.stepIndex}`}
@@ -508,12 +546,13 @@ function LessonContent({
                   )}
                 </div>
               ))}
-              {groupEnd < lastStepIndex &&
+              {bookmark &&
+              groupEnd < lastStepIndex &&
               steps[groupEnd + 1]?.phaseIndex ===
                 steps[groupEnd]?.phaseIndex ? (
                 <div className="action-row">
                   <button
-                    className="button button--secondary button--md"
+                    className={surfaces.secondary}
                     disabled={!coordination.canWrite}
                     onClick={() => void savePosition(groupEnd + 1)}
                     type="button"
@@ -529,7 +568,7 @@ function LessonContent({
           <div className="action-row">
             {phaseIndex > 0 ? (
               <button
-                className="button button--secondary button--md"
+                className={surfaces.secondary}
                 onClick={() => {
                   const target = steps.find(
                     (step) => step.phaseIndex === phaseIndex - 1,
@@ -546,7 +585,7 @@ function LessonContent({
             ) : null}
             {phaseIndex < phases.length - 1 ? (
               <button
-                className="button button--primary button--md"
+                className={surfaces.primary}
                 onClick={() => {
                   const target = steps.find(
                     (step) => step.phaseIndex === phaseIndex + 1,

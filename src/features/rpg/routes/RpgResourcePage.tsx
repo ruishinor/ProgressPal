@@ -896,6 +896,7 @@ export function RpgResourcePage() {
           footer={saveProgressPanel}
           itemId={summary.itemId}
           lessonPath={getRpgResourcePath}
+          presentation="rpg"
           scope={programme}
         />
       </section>

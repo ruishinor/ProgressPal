@@ -895,7 +895,8 @@
   padding: 0 var(--space-2);
 }
 
-.profile-fieldset__description {
+.profile-fieldset__description,
+.lesson-note {
   color: var(--color-text-soft);
   font-size: var(--text-sm);
 }

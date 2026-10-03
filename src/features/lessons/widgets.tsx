@@ -9,6 +9,7 @@ import type {
 import type { AnswerDraft } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, shuffledOrder } from './model';
+import { useLessonSurfaces } from './presentation';
 
 /**
  * Answer widgets, one per authored response mode (DC-09 to DC-13). Every
@@ -680,6 +681,7 @@ function TestTableWidget({
   exercise,
   onChange,
 }: WidgetProps<'testtable'>) {
+  const surfaces = useLessonSurfaces();
   const rows = draft.rows as Array<{ inputs: string[]; expected: string }>;
   const update = (next: typeof rows) => onChange({ rows: next });
 
@@ -758,7 +760,7 @@ function TestTableWidget({
       </div>
       <div className="action-row">
         <button
-          className="button button--secondary button--md"
+          className={surfaces.secondary}
           disabled={disabled}
           onClick={() =>
             update([
@@ -772,7 +774,7 @@ function TestTableWidget({
         </button>
         {rows.length > 1 ? (
           <button
-            className="button button--quiet button--md"
+            className={surfaces.quiet}
             disabled={disabled}
             onClick={() => update(rows.slice(0, -1))}
             type="button"
