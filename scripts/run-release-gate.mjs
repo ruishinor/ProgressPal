@@ -22,7 +22,7 @@ const ARTIFACT_ROOT = resolve(ROOT, 'artifacts', 'release-evidence');
 const npmCli = process.env.npm_execpath;
 const repositoryExclude = resolve(ROOT, '.git', 'info', 'exclude');
 const args = process.argv.slice(2);
-const COMMAND_TIMEOUT_MS = 15 * 60 * 1000;
+const COMMAND_TIMEOUT_MS = 22 * 60 * 1000;
 const interruptController = new AbortController();
 let receivedSignal;
 

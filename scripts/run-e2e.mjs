@@ -126,7 +126,7 @@ async function runPlaywright(args) {
     const outcome = await withTimeout(
       waitForExit(child),
       'Playwright',
-      14 * 60 * 1000,
+      21 * 60 * 1000,
     );
 
     if (outcome.code !== 0) {

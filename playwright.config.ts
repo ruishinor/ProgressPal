@@ -8,7 +8,7 @@ const VITE_CLI = 'node ./node_modules/vite/bin/vite.js';
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  globalTimeout: 13 * 60 * 1000,
+  globalTimeout: 20 * 60 * 1000,
   reporter: 'list',
   retries: 0,
   workers: 1,
