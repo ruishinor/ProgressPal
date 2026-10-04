@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 2,
+  "module": "epic-e",
+  "reviewer": "ChatGPT GPT-5.6 Sol",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a63fc9fc8041bab59880c89e47c4032595efe9f1",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of ProgressPal Epic E final successor candidate 4172339ad302dd1fbabffa5286d5f55be376eb43 and its unchanged payload tree a63fc9fc8041bab59880c89e47c4032595efe9f1. The review reconstructed the standalone Git bundle; verified candidate, root/src/payload identities; reviewed the programme-scoped XP and result/recovery path, Programme #2 source/export delta, runtime-isolation evidence and mutation controls, candidate-bound automated validation, Home/Campaign Map and changed-copy screenshots, residual risks and Lessons Learned/process controls. A post-candidate external-source closure changed only pilot/render_calibration.js and its generated study-calibration document from 'setup clinics' to 'setup troubleshooting'; the three inputs consumed by ProgressPal remained byte-identical, so candidate 4172339 and this payload tree remain the exact reviewed product bytes.",
+    "evidence": [
+      "Final successor review package ProgressPal_EpicE_FinalSuccessor_4172339_r2.zip, SHA-256 f1b076f57b90bd31649f754cdc246c52f84d7eebddcc209e3d50d549630d19a4; manifest and standalone Git bundle independently verified.",
+      "Candidate identity: commit 4172339ad302dd1fbabffa5286d5f55be376eb43; root tree 65d04141751f1235454f4092b4d63680f4b85c8b; src tree 582d6181636d3f7ecadeaead161b19d5c0c838ff; review payload tree a63fc9fc8041bab59880c89e47c4032595efe9f1.",
+      "Successful candidate-bound pre-review validation on unchanged candidate: 1,991 unit/integration tests passed with 0 skipped; 145 E2E passed with 0 failed, 0 skipped, 0 flaky and 0 retries; lint, format, typecheck, build, bundle budget, circular-dependency check and dependency audit passed; gate diagnostics were empty except the expected independent-review binding refusal.",
+      "The earlier validation attempt on the same immutable candidate is preserved as failed environmental evidence: 144 of 145 E2E completed with 0 test failures before Playwright global timeout; it is not treated as a pass and the successful rerun does not erase it.",
+      "Runtime-isolation closure: adversarial learner Python can remove sys.modules sentinels and reacquire Pyodide bridge modules, proving the sentinels are advisory; under the exact production worker/CSP, awaited pyfetch, open_url, _api.loadBinaryFile and loadPackage probes dispatched zero same-origin or cross-origin requests, while unhardened positive controls and two boundary-weakening mutations produced observable failures/requests. Permanent isolation regressions ran again in the final candidate's E2E suite.",
+      "Programme #2 source identity at candidate freeze: pilot.json SHA-256 5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd, 1,121,807 bytes; all 291 exercise ids/hashes and programme counts remained unchanged by the final owner-copy tranche.",
+      "Source-closure supplement ProgressPal_EpicE_4172339_SourceClosure.zip, SHA-256 180f075ee599589d909ed2b5c0a09eaa8c88771c431ebde5420f5b15514cef46; manifest independently verified. The active study renderer/output now contain 'setup troubleshooting' and no clinic/klinikk naming; pilot.json, 04_SKILL_GRAPH.json and 06_SEMESTER_1_STRUCTURE.json remain byte-identical to the candidate hashes, so no ProgressPal product byte or payload-tree identity changed.",
+      "The Programme #2 authoring pipeline is not represented as globally green: the stale protected-input-verifier mutation harness and the frozen participant-baseline/evidence-snapshot block remain disclosed non-green/skipped governance checks. A later unnecessary broad manual source-pipeline rerun hung in the unrelated delayed-retrieval probe verifier after all source-generation checks relevant to the one-word closure had passed; that failed attempt is preserved and is not acceptance evidence.",
+      "Owner-approved copy is present in shipped Programme #2 assets: 'Det er en av tingene du får forklart i delen Feilsøking av oppsett.' and 'fire vanlige Git-problemer du kan løse selv'. The X-klinikk/clinic naming convention is absent from current active learner-facing/product-authoring and generated product data; remaining literals are limited to enforcement or explicitly frozen/historical evidence outside the live product path.",
+      "Representative 390/1280 Home, Campaign Map and changed-copy screenshots were independently inspected. They support the bounded Epic E UX corrections; mixed-language shared-shell presentation remains known deferred release-quality debt rather than an undisclosed defect."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "EPIC-E-01",
+      "severity": "P1",
+      "description": "An earlier Epic E implementation could persist a terminal correct evaluation result while silently dropping its qualifying XP when award planning failed, leaving durable learner progression inconsistent.",
+      "resolution": "The final candidate performs result persistence and qualifying XP planning/award in one post-attempt transaction. A planning failure aborts that transaction, leaves the already-durable attempt unresolved, and idempotent recovery later records the result and XP exactly once. Failure-injection and recovery tests discriminate the old behavior and remain green in the final candidate.",
+      "status": "resolved"
+    },
+    {
+      "id": "EPIC-E-02",
+      "severity": "P1",
+      "description": "The original Python runtime proof treated mutable sys.modules sentinels as if they were the isolation boundary; adversarial learner Python can remove those sentinels and reacquire Pyodide bridge modules, so the original proof was insufficient for the no-network/no-durable-storage contract.",
+      "resolution": "The final runtime evidence tests the actual capability boundary in the packaged production worker under production CSP. Reacquired bridge modules expose an empty jsglobals; JS evaluation/storage/network routes are denied; awaited same-origin and cross-origin Pyodide network primitives dispatch zero observed requests. Unhardened controls prove observability, and two boundary-weakening mutations make the permanent regression fail. Runtime product bytes are unchanged from the reviewed closure and the regression tests run in the candidate-bound E2E suite.",
+      "status": "resolved"
+    },
+    {
+      "id": "EPIC-E-03",
+      "severity": "P2",
+      "description": "Programme #2 contained rejected X-klinikk/clinic naming and two awkward learner-facing Bokmål sentences across active authoring/generated material.",
+      "resolution": "The final source-first regeneration uses the owner-approved Bokmål wording and plain troubleshooting/practice labels; shipped/current product data contains no clinic/klinikk naming. A post-candidate source-closure removed the last active study-renderer occurrence ('setup clinics') without changing any of the three Programme #2 files consumed by ProgressPal, so candidate 4172339 remains the exact product payload under review.",
+      "status": "resolved"
+    },
+    {
+      "id": "EPIC-E-04",
+      "severity": "P3",
+      "description": "The Python isolation proof is capability- and Pyodide-version-specific rather than a general proof for arbitrary future Pyodide/browser-worker versions.",
+      "resolution": "Accepted risk for this release. The evidence pins Pyodide 314.0.7 and permanent adversarial regression tests act as a tripwire. A Pyodide, worker-global or CSP architecture change must invalidate and rerun the isolation review rather than inherit this conclusion automatically.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-05",
+      "severity": "P3",
+      "description": "Programme #2 source governance is not globally green: a pre-existing protected-input mutation harness is stale and the frozen participant-material baseline/evidence-snapshot block intentionally diverges from evolving product-authoring output.",
+      "resolution": "Accepted as bounded source-governance debt. The candidate and handoff explicitly disclose both checks rather than calling them green; current product-authoring/export checks relevant to Epic E pass, frozen archives remain preserved, and these governance repairs are outside the Epic E product scope.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-06",
+      "severity": "P3",
+      "description": "The successful E2E validation used 752 seconds of a 780-second global timeout, after an earlier run on the same immutable candidate timed out with 144 of 145 tests completed and zero test failures.",
+      "resolution": "Accepted as test-infrastructure/runtime-headroom risk. The failed attempt is preserved, the timeout was not loosened, and the unchanged candidate subsequently passed 145/145 with zero failures, skips, flakiness or retries. If the later native release gate times out on an otherwise idle machine, stop and reassess rather than silently raising the ceiling.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-07",
+      "severity": "P3",
+      "description": "Programvareutvikling learner content is Bokmål while substantial shared ProgressPal/RPG shell navigation and status vocabulary remains English; avatar, selective reset, broader localization and related polish are also deferred.",
+      "resolution": "Accepted as explicit post-Epic-E release-quality debt rather than hidden incompleteness. Epic E preserves Bokmål curriculum quality and multi-language architectural compatibility without broadening into a localization/avatar/data-lifecycle redesign.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent review finds no open P0-P3 blocker in product candidate 4172339 / payload a63fc9fc8041bab59880c89e47c4032595efe9f1. The prior P1 data-integrity and runtime-proof issues are resolved with discriminating tests/evidence. The final owner-copy and clinic/klinikk sanitation are source-closed without changing ProgressPal product inputs or candidate bytes. Known Pyodide-version specificity, source-governance debt, E2E timeout headroom and mixed-language shell debt are explicit P3 accepted risks. Decision: proceed to owner acceptance and, only after this review evidence is deliberately bound to the exact payload, the repository-native release gate. This decision does not itself authorize push, merge, tag, release or deployment."
+  }
+}
