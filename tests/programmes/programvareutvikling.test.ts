@@ -18,7 +18,7 @@ import { p2Index as manifest } from './p2Content';
  */
 
 const pilotSha256 =
-  '58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127';
+  '5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd';
 
 const definition: ProgrammeDefinition = programvareutviklingDefinition;
 const units = definition.catalogue.units;
@@ -126,7 +126,7 @@ describe('registration', () => {
 describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () => {
   it('binds the snapshot to the authoritative pilot source hash', () => {
     expect(manifest.source.sha256).toBe(pilotSha256);
-    expect(manifest.source.bytes).toBe(1_121_792);
+    expect(manifest.source.bytes).toBe(1_121_807);
     expect(manifest.programmeId).toBe('programvareutvikling');
   });
 

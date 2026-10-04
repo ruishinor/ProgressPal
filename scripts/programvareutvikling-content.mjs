@@ -51,8 +51,8 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127',
-  bytes: 1_121_792,
+  sha256: '5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd',
+  bytes: 1_121_807,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';

@@ -1,11 +1,11 @@
 {
-  "sourceSha256": "58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127",
+  "sourceSha256": "5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd",
   "contentVersion": 2,
   "units": [
     {
       "unitId": "S1-M01-L01",
       "stringCount": 77,
-      "sha256": "418597d2034a44d975978e78fef6b0991a0e4bb2a5d7f77d13f2d09996e4ac0e"
+      "sha256": "1fe83ba3b56815e3c2e2109693ce5450955051e91cc03ceae9780b42c28122f4"
     },
     {
       "unitId": "S1-M01-P01",
@@ -80,7 +80,7 @@
     {
       "unitId": "S1-M01-L08",
       "stringCount": 101,
-      "sha256": "ecc9fc8f16ccd8fc09d06fc283a0f7e070c0b7009e17434fc8c8b2696cd5ce5b"
+      "sha256": "6ab61a8b30c55dbd45123f08e326c098c2811166265cd5a8f07322dfe0c55412"
     },
     {
       "unitId": "S1-M01-P08",

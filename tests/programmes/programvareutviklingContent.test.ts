@@ -32,7 +32,7 @@ import {
  */
 
 const pilotSha256 =
-  '58ab9172119470799e6a55b2b408c8a0ef620bec7c82e99fbae5e9ba4893a127';
+  '5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -105,7 +105,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_121_792,
+      bytes: 1_121_807,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
@@ -245,7 +245,7 @@ describe('§6 Programme #2 sanitation', () => {
     expect(manifest.source.knownSourceDefects).toEqual([]);
   });
 
-  it('carries no "-klinikk" naming in any learner-facing string, and keeps "Feilsøking av oppsett"', () => {
+  it('carries no "klinikk" or "clinic" naming in any shipped string, and keeps "Feilsøking av oppsett"', () => {
     const everything: Json[] = [
       ...allSnapshotJson,
       manifest as unknown as Json,
@@ -255,7 +255,7 @@ describe('§6 Programme #2 sanitation', () => {
       stringLeaves(json).map(([, text]) => text),
     );
 
-    expect(strings.filter((text) => /klinikk/i.test(text))).toEqual([]);
+    expect(strings.filter((text) => /klinikk|clinic/i.test(text))).toEqual([]);
     expect(strings).toContain('Feilsøking av oppsett');
   });
 });
