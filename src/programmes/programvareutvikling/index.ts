@@ -1,4 +1,3 @@
-import { sharedAchievementDefinitions } from '@/lib/achievements';
 import { loadSameOriginText } from '@/lib/assets';
 import {
   createContentAssetProvider,
@@ -11,6 +10,7 @@ import {
   validateProgrammeDefinition,
   type ProgrammeDefinition,
 } from '../definition';
+import { programvareutviklingAchievements } from './achievements';
 import catalogueJson from './content/catalogue.json';
 import { programvareutviklingLessonCopy } from './lessonCopy';
 import { programvareutviklingTerminology } from './terminology';
@@ -123,7 +123,7 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
         },
       },
       workflow: { sequenceItemTypes: [], correctionItemTypes: [] },
-      achievements: sharedAchievementDefinitions,
+      achievements: programvareutviklingAchievements,
     },
     content: {
       language: 'nb',

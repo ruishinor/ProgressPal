@@ -20,6 +20,8 @@ export const achievementRuleTypes = [
   'media_clean_stop', // ruleConfig: { minWatchedSeconds: number; stopReasons: string[] }
   'study_session_duration_count', // ruleConfig: { minMinutes: number; minCount: number }
   'study_session_mode_count', // ruleConfig: { mode: string; minCount: number }
+  'evidence_subjects_solved', // evidence-only; ruleConfig: { contentVersion, subjectIds, triggerSourceId }
+  'checkpoint_cleared', // evidence-only; ruleConfig: { contentVersion, moduleId, triggerSourceId }
 ] as const;
 
 export type AchievementRuleType = (typeof achievementRuleTypes)[number];

@@ -184,6 +184,17 @@ test('cold-starts offline after one online production load', async ({
   expect(discovery.cachedPaths).toContain(
     '/assets/avatars/avatar-wavy-bob.png',
   );
+  for (const badge of [
+    'p2-change-calculator',
+    'p2-code-reader',
+    'p2-coffee-change',
+    'p2-error-reader',
+    'p2-foundation-checkpoint',
+    'p2-recall-foundations',
+    'p2-values-checkpoint',
+  ]) {
+    expect(discovery.cachedPaths).toContain(`/assets/badges/${badge}.webp`);
+  }
   for (const asset of discovery.expected) {
     expect(discovery.cachedPaths).toContain(asset);
   }

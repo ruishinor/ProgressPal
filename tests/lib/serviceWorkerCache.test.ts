@@ -13,6 +13,13 @@ const avatarAssets = [
   '/assets/avatars/avatar-auburn-braid.png',
   '/assets/avatars/avatar-short-curls.png',
   '/assets/avatars/avatar-wavy-bob.png',
+  '/assets/badges/p2-change-calculator.webp',
+  '/assets/badges/p2-code-reader.webp',
+  '/assets/badges/p2-coffee-change.webp',
+  '/assets/badges/p2-error-reader.webp',
+  '/assets/badges/p2-foundation-checkpoint.webp',
+  '/assets/badges/p2-recall-foundations.webp',
+  '/assets/badges/p2-values-checkpoint.webp',
 ];
 const installIcons = [
   '/icons/icon-192.png',

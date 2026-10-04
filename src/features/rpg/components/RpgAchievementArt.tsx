@@ -16,6 +16,11 @@ import bugHunter from '@/features/rpg/assets/badges/rpg-badge-bug-hunter.webp?in
 import finalProjectMvp from '@/features/rpg/assets/badges/rpg-badge-final-project-mvp.webp?inline';
 import finalProjectShipped from '@/features/rpg/assets/badges/rpg-badge-final-project-shipped.webp?inline';
 
+// Programvareutvikling badge art is a same-origin static file, pre-cached by the
+// service worker like the character art, not inlined: inlined it would add
+// ~170 kB of base64 to the main JavaScript chunk and break the release budgets.
+const programmeBadge = (name: string) => `/assets/badges/${name}.webp`;
+
 // Artwork is presentation only. Definitions and unlocks stay in the achievement engine.
 const artwork: Readonly<Record<string, string>> = {
   'first-slice': extraArt0,
@@ -35,6 +40,13 @@ const artwork: Readonly<Record<string, string>> = {
   'bug-hunter': bugHunter,
   'final-project-mvp': finalProjectMvp,
   'final-project-shipped': finalProjectShipped,
+  'p2-change-calculator': programmeBadge('p2-change-calculator'),
+  'p2-code-reader': programmeBadge('p2-code-reader'),
+  'p2-coffee-change': programmeBadge('p2-coffee-change'),
+  'p2-error-reader': programmeBadge('p2-error-reader'),
+  'p2-foundation-checkpoint': programmeBadge('p2-foundation-checkpoint'),
+  'p2-recall-foundations': programmeBadge('p2-recall-foundations'),
+  'p2-values-checkpoint': programmeBadge('p2-values-checkpoint'),
 };
 
 export function RpgAchievementArt({

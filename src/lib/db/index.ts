@@ -93,6 +93,7 @@ export {
   type UpsertProgressWithXpResult,
 } from './repositories';
 export {
+  AchievementAwardPlanningError,
   LearnerEvidenceConflictError,
   UnresolvedAttemptError,
   XpAwardPlanningError,
@@ -105,6 +106,7 @@ export {
   saveLessonPosition,
   submitExerciseAttempt,
   type EvaluationResultInput,
+  type EvidenceAchievementPlanner,
   type EvidenceAwardPlanner,
   type EvidenceWriteResult,
   type ExerciseAttemptInput,

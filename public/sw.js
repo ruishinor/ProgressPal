@@ -34,15 +34,22 @@
 const CACHE_PREFIX = 'progresspal-cache-';
 const CACHE_VERSION = 'progresspal-cache-v1.6.0';
 const SHELL_URL = '/index.html';
-// Fixed, unhashed same-origin files: the profile avatar, and the web app
-// manifest with every icon it or the shell links, so an installed app that
-// launches offline still resolves its own manifest and icons. A cache-version
-// bump refreshes them.
+// Fixed, unhashed same-origin files: the profile avatars, the programme badge
+// art, and the web app manifest with every icon it or the shell links, so an
+// installed app that launches offline still resolves its own manifest and
+// icons. A cache-version bump refreshes them.
 const STATIC_ASSET_URLS = [
   '/assets/character-profile.png',
   '/assets/avatars/avatar-auburn-braid.png',
   '/assets/avatars/avatar-short-curls.png',
   '/assets/avatars/avatar-wavy-bob.png',
+  '/assets/badges/p2-change-calculator.webp',
+  '/assets/badges/p2-code-reader.webp',
+  '/assets/badges/p2-coffee-change.webp',
+  '/assets/badges/p2-error-reader.webp',
+  '/assets/badges/p2-foundation-checkpoint.webp',
+  '/assets/badges/p2-recall-foundations.webp',
+  '/assets/badges/p2-values-checkpoint.webp',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

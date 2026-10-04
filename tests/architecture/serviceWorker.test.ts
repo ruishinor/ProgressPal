@@ -127,7 +127,7 @@ describe('service worker source contract', () => {
     ).not.toContain('cache.put(request');
   });
 
-  it('pre-caches all bundled avatars and the install manifest and icons', () => {
+  it('pre-caches all bundled avatars, the programme badge art and the install manifest and icons', () => {
     const list = swSource.match(/const STATIC_ASSET_URLS = \[([^\]]*)\];/);
 
     expect(list, 'sw.js must declare STATIC_ASSET_URLS').not.toBeNull();
@@ -138,6 +138,13 @@ describe('service worker source contract', () => {
       '/assets/avatars/avatar-auburn-braid.png',
       '/assets/avatars/avatar-short-curls.png',
       '/assets/avatars/avatar-wavy-bob.png',
+      '/assets/badges/p2-change-calculator.webp',
+      '/assets/badges/p2-code-reader.webp',
+      '/assets/badges/p2-coffee-change.webp',
+      '/assets/badges/p2-error-reader.webp',
+      '/assets/badges/p2-foundation-checkpoint.webp',
+      '/assets/badges/p2-recall-foundations.webp',
+      '/assets/badges/p2-values-checkpoint.webp',
       '/manifest.webmanifest',
       '/icons/icon-192.png',
       '/icons/icon-512.png',

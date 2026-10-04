@@ -16,7 +16,11 @@ import {
   type PythonRuntime,
   type SubmissionOutcome,
 } from '@/lib/evaluation';
-import { recordSupportEvent, type EvidenceAwardPlanner } from '@/lib/db';
+import {
+  recordSupportEvent,
+  type EvidenceAchievementPlanner,
+  type EvidenceAwardPlanner,
+} from '@/lib/db';
 
 import {
   answerToDraft,
@@ -43,6 +47,8 @@ export type LessonWrite = <Result>(
 
 type ExerciseCardProps = {
   readonly alreadyCorrect: boolean;
+  /** Evidence-backed achievements, or undefined when the programme has none. */
+  readonly awardAchievements: EvidenceAchievementPlanner | undefined;
   /** The programme's lesson XP rules, or undefined when it has none. */
   readonly awardXp: EvidenceAwardPlanner | undefined;
   readonly canWrite: boolean;
@@ -74,6 +80,7 @@ const refusalCopy = {
 
 export function ExerciseCard({
   alreadyCorrect,
+  awardAchievements,
   awardXp,
   canWrite,
   closedLesson,
@@ -208,6 +215,7 @@ export function ExerciseCard({
             gateRetryRule,
             runtime,
             awardXp,
+            awardAchievements,
           },
           { attemptId, resultId: `result-${attemptId}`, answer },
         ),

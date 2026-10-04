@@ -52,6 +52,7 @@ import {
   deriveAchievementUnlockId,
   evaluateAchievements,
   type AchievementEvaluationContext,
+  type SatisfiedAchievement,
 } from '@/lib/achievements';
 import {
   buildLongFormProgressView,
@@ -3403,6 +3404,50 @@ export async function readAchievementsSurfaceData(
 }
 
 /**
+ * Persists the given satisfied achievements that are not yet unlocked. Intended
+ * to run inside a caller's `rw` transaction that includes `achievementUnlocks`.
+ * Unlocks are keyed by the globally unique achievement id; the `&achievementId`
+ * unique index plus the explicit existence check make re-running a no-op.
+ */
+export async function unlockAchievementsOnce(
+  database: ProgressPalDatabase,
+  now: DatabaseClock,
+  satisfied: readonly SatisfiedAchievement[],
+): Promise<AchievementUnlock[]> {
+  const newlyUnlocked: AchievementUnlock[] = [];
+
+  for (const { achievementId, triggerSourceId } of satisfied) {
+    const existing = await database.achievementUnlocks
+      .where('achievementId')
+      .equals(achievementId)
+      .first();
+
+    if (existing !== undefined) {
+      continue;
+    }
+
+    const timestamp = now();
+    const unlock = parseWithSchema(
+      AchievementUnlockSchema,
+      {
+        id: deriveAchievementUnlockId(achievementId),
+        achievementId,
+        unlockedAt: timestamp,
+        triggerSourceId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+      `Achievement unlock "${achievementId}"`,
+    );
+
+    await database.achievementUnlocks.add(unlock);
+    newlyUnlocked.push(unlock);
+  }
+
+  return newlyUnlocked;
+}
+
+/**
  * Evaluates achievements against all accumulated local source data and persists
  * any newly satisfied unlocks. Intended to run inside a caller's `rw`
  * transaction (the caller must include `achievementUnlocks` and the read stores
@@ -3466,37 +3511,7 @@ async function evaluateAndUnlockAchievements(
   };
 
   const satisfied = evaluateAchievements(achievementDefinitions, context);
-  const newlyUnlocked: AchievementUnlock[] = [];
-
-  for (const { achievementId, triggerSourceId } of satisfied) {
-    const existing = await database.achievementUnlocks
-      .where('achievementId')
-      .equals(achievementId)
-      .first();
-
-    if (existing !== undefined) {
-      continue;
-    }
-
-    const timestamp = now();
-    const unlock = parseWithSchema(
-      AchievementUnlockSchema,
-      {
-        id: deriveAchievementUnlockId(achievementId),
-        achievementId,
-        unlockedAt: timestamp,
-        triggerSourceId,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      },
-      `Achievement unlock "${achievementId}"`,
-    );
-
-    await database.achievementUnlocks.add(unlock);
-    newlyUnlocked.push(unlock);
-  }
-
-  return newlyUnlocked;
+  return unlockAchievementsOnce(database, now, satisfied);
 }
 
 export async function upsertProgressAndAwardXp(

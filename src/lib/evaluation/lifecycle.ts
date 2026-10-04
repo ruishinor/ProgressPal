@@ -6,10 +6,12 @@ import {
   recordResultsForUnresolvedAttempts,
   submitAttemptAndRecordResult,
   type DatabaseClock,
+  type EvidenceAchievementPlanner,
   type EvidenceAwardPlanner,
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type {
+  AchievementUnlock,
   EvaluationResultRecord,
   ExerciseAnswer,
   ExerciseAttemptRecord,
@@ -70,6 +72,8 @@ export type SubmissionContext = SubmissionBinding & {
   readonly beforeResultCommitted?: () => void | Promise<void>;
   /** The programme's lesson XP rules, run in the result's transaction. */
   readonly awardXp?: EvidenceAwardPlanner;
+  /** Evidence-backed achievements, committed with the terminal result. */
+  readonly awardAchievements?: EvidenceAchievementPlanner;
 };
 
 export type SubmissionInput = {
@@ -97,12 +101,13 @@ export type SubmissionOutcome =
       /** XP the result earned in its programme (empty without awards). */
       readonly awardedTransactions: readonly XpTransaction[];
       /**
-       * Present only when awards were planned: the reward-mutation shape the
-       * shell announces level-ups from (lesson results unlock no
-       * achievements).
+       * Present only when a reward planner participated: the reward-mutation
+       * shape the shell announces level-ups and achievements from. Callers
+       * with no planner never see either field.
        */
       readonly xpSummary?: XpSummary;
-      readonly unlockedAchievements?: readonly [];
+      /** Achievements the result unlocked; empty when only XP was planned. */
+      readonly unlockedAchievements?: readonly AchievementUnlock[];
     };
 
 export type RetryPermission =
@@ -219,7 +224,12 @@ export async function submitAnswer(
             : { matchedFeedbackKey: verdict.matchedFeedbackKey }),
         };
       },
-      { db: context.db, now: context.now, awardXp: context.awardXp },
+      {
+        db: context.db,
+        now: context.now,
+        awardXp: context.awardXp,
+        awardAchievements: context.awardAchievements,
+      },
     );
 
     return lifecycle.result === null
@@ -233,7 +243,7 @@ export async function submitAnswer(
             ? {}
             : {
                 xpSummary: lifecycle.xpSummary,
-                unlockedAchievements: [] as const,
+                unlockedAchievements: lifecycle.unlockedAchievements ?? [],
               }),
         };
   } catch (error) {
@@ -257,6 +267,8 @@ export type RecoveryOutcome = {
   readonly attemptId: string;
   readonly status: 'recovered' | 'pending';
   readonly result: EvaluationResultRecord | null;
+  /** Present only when an achievement planner participated. */
+  readonly unlockedAchievements?: readonly AchievementUnlock[];
 };
 
 /**
@@ -278,6 +290,8 @@ export async function recoverUnresolvedAttempts(options: {
   readonly now?: DatabaseClock;
   /** The programme's lesson XP rules, run in each result's transaction. */
   readonly awardXp?: EvidenceAwardPlanner;
+  /** Evidence-backed achievements, committed with each recovered result. */
+  readonly awardAchievements?: EvidenceAchievementPlanner;
 }): Promise<RecoveryOutcome[]> {
   const bySubject = new Map(
     options.exercises.map((entry) => [subjectIdOf(entry.exercise), entry]),
@@ -321,13 +335,21 @@ export async function recoverUnresolvedAttempts(options: {
           : { matchedFeedbackKey: verdict.matchedFeedbackKey }),
       };
     },
-    { db: options.db, now: options.now, awardXp: options.awardXp },
+    {
+      db: options.db,
+      now: options.now,
+      awardXp: options.awardXp,
+      awardAchievements: options.awardAchievements,
+    },
   );
 
   return statuses.map((status) => ({
     attemptId: status.attemptId,
     status: status.result === null ? 'pending' : 'recovered',
     result: status.result,
+    ...(status.unlockedAchievements === undefined
+      ? {}
+      : { unlockedAchievements: status.unlockedAchievements }),
   }));
 }
 

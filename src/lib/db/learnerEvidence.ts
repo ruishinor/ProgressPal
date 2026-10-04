@@ -1,3 +1,4 @@
+import type { SatisfiedAchievement } from '@/lib/achievements';
 import {
   EvaluationResultRecordSchema,
   ExerciseAttemptRecordSchema,
@@ -7,6 +8,7 @@ import {
   canonicalJson,
   deriveLessonPositionId,
   findAnswerPayloadIssues,
+  type AchievementUnlock,
   type EvaluationOutcome,
   type EvaluationResultRecord,
   type ExerciseAnswer,
@@ -33,6 +35,7 @@ import {
   resolveDatabase,
   settleLogicalWriteScope,
   sortLearnerEvidence,
+  unlockAchievementsOnce,
   type BaseDatabaseOptions,
   type DatabaseClock,
   type LogicalWriteScope,
@@ -124,6 +127,12 @@ export type EvidenceAwardPlanner = (context: {
   readonly evidence: readonly LearnerEvidence[];
 }) => readonly PotentialXpAward[];
 
+export type EvidenceAchievementPlanner = (context: {
+  readonly attempt: ExerciseAttemptRecord;
+  readonly result: EvaluationResultRecord;
+  readonly evidence: readonly LearnerEvidence[];
+}) => readonly SatisfiedAchievement[];
+
 /** The award planner failed; the result and its XP were not recorded. */
 export class XpAwardPlanningError extends Error {
   constructor(attemptId: string, cause: unknown) {
@@ -135,12 +144,29 @@ export class XpAwardPlanningError extends Error {
   }
 }
 
+/** Achievement planning failed; the terminal result was not recorded. */
+export class AchievementAwardPlanningError extends Error {
+  constructor(attemptId: string, cause: unknown) {
+    super(
+      `Planning achievements for attempt "${attemptId}" failed; its result was not recorded.`,
+      { cause },
+    );
+    this.name = 'AchievementAwardPlanningError';
+  }
+}
+
 type ResultWriteOptions = BaseDatabaseOptions & {
   awardXp?: EvidenceAwardPlanner;
+  awardAchievements?: EvidenceAchievementPlanner;
 };
 
 export type ResultWriteResult = EvidenceWriteResult<EvaluationResultRecord> & {
   awardedTransactions: XpTransaction[];
+  /**
+   * Achievements this result newly unlocked in its transaction; present only
+   * when an achievement planner participated (possibly empty).
+   */
+  unlockedAchievements?: AchievementUnlock[];
   /**
    * The programme's XP summary read in the same transaction, after the
    * awards; null when no planner was supplied.
@@ -381,6 +407,7 @@ async function awardForResult(
   database: ProgressPalDatabase,
   attempt: ExerciseAttemptRecord,
   result: EvaluationResultRecord,
+  evidence: readonly LearnerEvidence[],
   planner: EvidenceAwardPlanner | undefined,
   now: DatabaseClock,
 ): Promise<XpTransaction[]> {
@@ -388,11 +415,6 @@ async function awardForResult(
     return [];
   }
 
-  const evidence = parseEvidenceRows(
-    await database.learnerEvidence
-      .filter((row) => row.programmeId === attempt.programmeId)
-      .toArray(),
-  );
   let awards: readonly PotentialXpAward[];
 
   try {
@@ -421,12 +443,42 @@ async function awardForResult(
   return awarded;
 }
 
+async function unlockForResult(
+  database: ProgressPalDatabase,
+  attempt: ExerciseAttemptRecord,
+  result: EvaluationResultRecord,
+  evidence: readonly LearnerEvidence[],
+  planner: EvidenceAchievementPlanner | undefined,
+  now: DatabaseClock,
+): Promise<AchievementUnlock[] | undefined> {
+  if (planner === undefined) {
+    return undefined;
+  }
+
+  let satisfied: readonly SatisfiedAchievement[];
+
+  try {
+    satisfied = planner({ attempt, result, evidence });
+  } catch (error) {
+    // Aborts the result's transaction, like XP planning: no terminal result
+    // without the achievements its evidence earned.
+    throw new AchievementAwardPlanningError(attempt.id, error);
+  }
+
+  // Storage failures propagate as they are; only planning is classified.
+  return unlockAchievementsOnce(database, now, satisfied);
+}
+
 /** The result transaction body (invariants 4 and 11; E-SCHEMA-1A awards). */
 async function insertResult(
   database: ProgressPalDatabase,
   input: EvaluationResultInput,
   recordedAt: string,
-  options: { awardXp?: EvidenceAwardPlanner; now: DatabaseClock } = {
+  options: {
+    awardXp?: EvidenceAwardPlanner;
+    awardAchievements?: EvidenceAchievementPlanner;
+    now: DatabaseClock;
+  } = {
     now: defaultClock,
   },
 ): Promise<ResultWriteResult> {
@@ -436,6 +488,7 @@ async function insertResult(
       database.learnerEvidence,
       database.programmeEnrolments,
       database.xpTransactions,
+      database.achievementUnlocks,
     ],
     async () => {
       const storedAttempt = await database.learnerEvidence.get(input.attemptId);
@@ -493,6 +546,9 @@ async function insertResult(
             record: existing,
             created: false,
             awardedTransactions: [],
+            ...(options.awardAchievements === undefined
+              ? {}
+              : { unlockedAchievements: [] }),
             xpSummary: null,
           };
         }
@@ -509,11 +565,29 @@ async function insertResult(
       }
 
       await database.learnerEvidence.add(record);
+      // Without a planner no evidence is read, as before.
+      const programmeEvidence =
+        options.awardXp === undefined && options.awardAchievements === undefined
+          ? []
+          : parseEvidenceRows(
+              await database.learnerEvidence
+                .filter((row) => row.programmeId === attempt.programmeId)
+                .toArray(),
+            );
       const awardedTransactions = await awardForResult(
         database,
         attempt,
         record as EvaluationResultRecord,
+        programmeEvidence,
         options.awardXp,
+        options.now,
+      );
+      const unlockedAchievements = await unlockForResult(
+        database,
+        attempt,
+        record as EvaluationResultRecord,
+        programmeEvidence,
+        options.awardAchievements,
         options.now,
       );
 
@@ -521,8 +595,10 @@ async function insertResult(
         record,
         created: true,
         awardedTransactions,
+        ...(unlockedAchievements === undefined ? {} : { unlockedAchievements }),
         xpSummary:
-          options.awardXp === undefined
+          options.awardXp === undefined &&
+          options.awardAchievements === undefined
             ? null
             : await calculateStoredXpSummary(database, attempt.programmeId),
       };
@@ -569,6 +645,7 @@ export async function recordEvaluationResult(
   return runEvidenceWrite(options, async (database, scope) => {
     const written = await insertResult(database, input, now(), {
       awardXp: options.awardXp,
+      awardAchievements: options.awardAchievements,
       now,
     });
     scope.changed ||= written.created;
@@ -587,6 +664,11 @@ export type AttemptLifecycleResult = {
   result: EvaluationResultRecord | null;
   /** XP the newly recorded result earned in its programme (E-SCHEMA-1A). */
   awardedTransactions: XpTransaction[];
+  /**
+   * Achievements newly persisted with this result; present only when an
+   * achievement planner participated in the result transaction.
+   */
+  unlockedAchievements?: AchievementUnlock[];
   /** The programme's XP summary after the result; null without a planner. */
   xpSummary: XpSummary | null;
 };
@@ -626,6 +708,9 @@ export async function submitAttemptAndRecordResult(
         attemptCreated: attempt.created,
         result: result?.kind === 'evaluation_result' ? result : null,
         awardedTransactions: [],
+        ...(options.awardAchievements === undefined
+          ? {}
+          : { unlockedAchievements: [] }),
         xpSummary: null,
       };
     }
@@ -646,7 +731,11 @@ export async function submitAttemptAndRecordResult(
       database,
       { ...produced, attemptId: attempt.record.id },
       now(),
-      { awardXp: options.awardXp, now },
+      {
+        awardXp: options.awardXp,
+        awardAchievements: options.awardAchievements,
+        now,
+      },
     );
     scope.changed ||= result.created;
 
@@ -655,6 +744,9 @@ export async function submitAttemptAndRecordResult(
       attemptCreated: attempt.created,
       result: result.record,
       awardedTransactions: result.awardedTransactions,
+      ...(result.unlockedAchievements === undefined
+        ? {}
+        : { unlockedAchievements: result.unlockedAchievements }),
       xpSummary: result.xpSummary,
     };
   });
@@ -664,6 +756,8 @@ export type AttemptRecoveryStatus = {
   attemptId: string;
   result: EvaluationResultRecord | null;
   awardedTransactions: XpTransaction[];
+  /** Present only when an achievement planner participated in the commit. */
+  unlockedAchievements?: AchievementUnlock[];
 };
 
 /**
@@ -704,6 +798,9 @@ export async function recordResultsForUnresolvedAttempts(
           attemptId,
           result: result?.kind === 'evaluation_result' ? result : null,
           awardedTransactions: [],
+          ...(options.awardAchievements === undefined
+            ? {}
+            : { unlockedAchievements: [] }),
         });
         continue;
       }
@@ -722,10 +819,17 @@ export async function recordResultsForUnresolvedAttempts(
           database,
           { ...produced, attemptId },
           now(),
-          { awardXp: options.awardXp, now },
+          {
+            awardXp: options.awardXp,
+            awardAchievements: options.awardAchievements,
+            now,
+          },
         );
       } catch (error) {
-        if (error instanceof XpAwardPlanningError) {
+        if (
+          error instanceof XpAwardPlanningError ||
+          error instanceof AchievementAwardPlanningError
+        ) {
           statuses.push({ attemptId, result: null, awardedTransactions: [] });
           continue;
         }
@@ -738,6 +842,9 @@ export async function recordResultsForUnresolvedAttempts(
         attemptId,
         result: written.record,
         awardedTransactions: written.awardedTransactions,
+        ...(written.unlockedAchievements === undefined
+          ? {}
+          : { unlockedAchievements: written.unlockedAchievements }),
       });
     }
 

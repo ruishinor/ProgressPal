@@ -11,6 +11,10 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import {
+  createEvidenceAchievementPlanner,
+  hasEvidenceAchievementRules,
+} from '@/lib/achievements';
 import { useAppState } from '@/lib/appState';
 import {
   getLessonPosition,
@@ -289,6 +293,20 @@ function LessonSurface({
           }),
     [lessonXp, load, runtimeAvailable],
   );
+  // The programme's evidence-backed achievements; like XP, they commit in the
+  // result's own transaction. Programmes with none get no planner.
+  const awardAchievements = useMemo(
+    () =>
+      load.status !== 'ready' ||
+      !hasEvidenceAchievementRules(scope.policy.achievements)
+        ? undefined
+        : createEvidenceAchievementPlanner({
+            definitions: scope.policy.achievements,
+            index: load.index,
+            runtimeAvailable,
+          }),
+    [load, runtimeAvailable, scope.policy.achievements],
+  );
 
   const reloadEvidence = useCallback(async () => {
     if (subjectIds.length === 0) {
@@ -343,9 +361,11 @@ function LessonSurface({
         })),
         runtime,
         awardXp,
+        awardAchievements,
       }),
     ).catch(() => undefined);
   }, [
+    awardAchievements,
     awardXp,
     bundle,
     coordination.canWrite,
@@ -574,6 +594,7 @@ function LessonSurface({
                           alreadyCorrect={initialCorrect.has(
                             entry.meta.subjectId,
                           )}
+                          awardAchievements={awardAchievements}
                           awardXp={awardXp}
                           canWrite={coordination.canWrite}
                           closedLesson={readyBundle.closedLesson}

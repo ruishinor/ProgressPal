@@ -389,6 +389,12 @@ function evaluateDefinition(
       };
     }
 
+    case 'evidence_subjects_solved':
+    case 'checkpoint_cleared':
+      // Evaluated only against trusted programme learner evidence. Generic
+      // catalogue/activity saves must not reinterpret mastery semantics.
+      return null;
+
     default: {
       // Exhaustiveness guard: an unhandled rule type is a programming error.
       const exhaustiveCheck: never = ruleType as never;
