@@ -106,7 +106,7 @@ Running the ordinary commands above directly validates a candidate without revie
 
 One workflow, `Release validation`, with one job whose check name is `Final candidate`. It runs on pushes to `master`, pull requests to `master` and manual dispatch, checks out `github.sha`, installs the locked environment and runs `npm run verify:release` once. There is no sharding, no retry and no deployment stage. `npm test` is limited to one worker and no file parallelism because the inherited unconstrained Vitest process model leaked workers on Windows.
 
-Timeout ladder: `13m Playwright → 14m managed wrapper → 15m release command → 30m GitHub job`.
+Timeout ladder: `20m Playwright → 21m managed wrapper → 22m release command → 40m GitHub job`. The inner three were widened from 13/14/15 minutes after a measured hosted timeout (v1.5.1). The green v1.5.1 job then took 27 m 42 s, leaving only 2 m 18 s under its former 30-minute ceiling, so the owner raised the job ceiling to 40 minutes as an outer safety envelope, not a runtime target (2026-10-04).
 
 The check name `Final candidate` is a contract: Vercel stores the required check by name. `tests/architecture/releaseWorkflow.test.ts` pins the workflow name, job name, triggers, single gate invocation and absence of secrets. Renaming the job requires updating the Vercel check at the same time.
 

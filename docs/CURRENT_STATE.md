@@ -46,7 +46,11 @@ Closed work, preserved and not to be reopened without a reproduced defect or a n
 
 Scope: installability and offline-client hardening only. A web app manifest with a stable root identity, standalone display and install icons generated from the existing character artwork; iOS touch icon and title; the install files in the existing service worker's explicit precache. No new dependency or service-worker framework, no schema or learner-data change, and no viewport, layout or browser-mode change. Out of scope: notifications, background sync, cloud, auth, native wrappers or stores, install-promotion UI. Design, decisions, platform caveats and evidence: `docs/pwa.md`.
 
-Status: the commit containing this reconciliation is intended as the v1.6.0 candidate (a file cannot name the commit that contains it; Git is the identity authority). Its validation runs after the commit, on that exact commit, and is recorded with the review handoff outside the tracked tree; this file claims no result for it. If a gate fails, a successor commit replaces it and this record is reconciled again. `npm run verify:release` fails closed at the review binding until independent evidence exists, by design; the implementer never writes that evidence.
+Status and candidate lineage (owner sequencing, 2026-10-04):
+
+1. `86aebad` is the **product-bearing parent**: version identity (`2fa591d`), the PWA implementation (`0cfe4a6`) and this file's first reconciliation. The complete local product regression ran on that exact commit (tree `546c9f33c6d3fdecc3ef9fcff46b1cf2ed13b7cd`, clean before and after): `npm ci`, release-gate unit tests, lint, format check, typecheck, build, bundle budget, 132/132 unit and integration files with 1997/1997 tests, 146/146 end-to-end tests, circular check and audit (0 vulnerabilities), all exit 0 with no skip, retry or warning. `verify:release` was not run, because it fails closed without independent review evidence, by design. The implementer never writes that evidence.
+2. `86aebad` is not the final candidate. Two non-product deltas follow it: `0b4d1c4` raises only the GitHub `Final candidate` job ceiling from 30 to 40 minutes (owner decision; the 20/21/22-minute inner hierarchy is unchanged), and the commit containing this text corrects documentation (`docs/ci.md` timeout ladder, this file). Each had only directly invalidated cheap validation, not a repeat of the product regression.
+3. The commit containing this text is intended as the final v1.6.0 successor for independent review (a file cannot name the commit that contains it; Git is the identity authority). This file claims no hosted result for it.
 
 Open owner decision carried by the tranche: ProgressPal has no logo, so the install icons reuse the shipped character artwork. A dedicated product mark is a branding decision; replacing the icon is a one-input change to `scripts/generate-pwa-icons.mjs`.
 
@@ -69,7 +73,7 @@ Validated before production (`docs/ci.md`).
 
 - **Repository side:** the release gate resolves review evidence by its binding to the candidate's payload tree and fails closed otherwise; the workflow and the `Final candidate` check name are pinned by tests.
 - **Platform side (active):** Vercel Deployment Check `Final candidate` (`chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7`) blocks `deployment-alias` for target `production`. The v1.5.1 promotion of `5cc4c85` passed through it.
-- **Hosted headroom (recorded risk):** the green v1.5.1 job used 27 m 42 s of the 30-minute GitHub job ceiling. The job ceiling, not the 20/21/22-minute inner hierarchy, is now the tightest bound (about 2.3 minutes of headroom). Changing it is a release-infrastructure decision for the owner.
+- **Hosted headroom:** the v1.5.1 hosted release passed in 27 m 42 s against its 30-minute GitHub job ceiling, leaving only 2 m 18 s (about 7.7 %) of headroom. Owner decision 2026-10-04: the `Final candidate` job ceiling is 40 minutes from `feat/pwa-installability` onwards (on `master` only after merge), as an outer safety envelope, not a runtime target. The nested limits stay at 20 / 21 / 22 minutes (Playwright global, managed end-to-end wrapper, release command). CI performance work (duplicate installs, serialisation, sharding) is separate maintenance, not part of this tranche.
 
 ## STOP conditions and next actions
 
