@@ -204,7 +204,7 @@ export function Markup({
           }
           case 'fence':
             return (
-              <pre key={index} lang={context.technicalLanguage}>
+              <pre key={index} tabIndex={0} lang={context.technicalLanguage}>
                 <code>{node.text}</code>
               </pre>
             );

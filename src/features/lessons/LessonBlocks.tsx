@@ -55,7 +55,7 @@ function Preformatted({
   return (
     <div className="lesson-pre">
       {label === undefined ? null : <p className="lesson-note">{label}</p>}
-      <pre lang={context.technicalLanguage}>
+      <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>{text}</code>
       </pre>
       <CopyButton copy={copy} text={text} />

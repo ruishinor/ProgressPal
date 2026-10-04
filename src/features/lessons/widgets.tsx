@@ -51,7 +51,7 @@ function OptionText({
 function CodeView({ code, context }: { code: string; context: MarkupContext }) {
   return (
     <div className="lesson-pre">
-      <pre lang={context.technicalLanguage}>
+      <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>{code}</code>
       </pre>
     </div>
@@ -346,7 +346,7 @@ function FillWidget({
 
   return (
     <div className="lesson-pre">
-      <pre lang={context.technicalLanguage}>
+      <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>
           {parts.map((part, index) => (
             <span key={index}>

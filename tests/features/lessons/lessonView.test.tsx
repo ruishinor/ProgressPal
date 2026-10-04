@@ -92,6 +92,7 @@ describe('lesson rendering (DC-01 to DC-07, DC-43)', () => {
     expect(preformatted.length).toBeGreaterThan(0);
     for (const element of preformatted) {
       expect(element).toHaveAttribute('lang', 'en');
+      expect(element).toHaveAttribute('tabindex', '0');
     }
   });
 
