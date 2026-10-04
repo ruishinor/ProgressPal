@@ -97,60 +97,94 @@ function pythonRuntime(): Plugin {
 export default defineConfig({
   build: {
     chunkSizeWarningLimit: 500,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        // Split stable third-party runtime deps and the cross-tab/storage safety
-        // boundary into separate chunks. All remain statically imported and
-        // module-preloaded, so offline route behavior is unchanged. This does
-        // not pretend to reduce total JS; it enforces meaningful ownership and
-        // keeps each raw chunk below the v1.3 500 kB ceiling.
-        manualChunks(id) {
-          const normalizedId = id.replace(/\\/g, '/');
+        // Static chunk ownership. Every chunk is statically imported and
+        // module-preloaded from the production HTML, which is how the offline
+        // service worker discovers and caches boot assets: nothing is loaded
+        // lazily. This does not pretend to reduce total JS; it names meaningful
+        // ownership and keeps each raw chunk below the 500 kB release ceiling
+        // (scripts/bundle-budget-utils.mjs stays the authority).
+        //
+        // Bundler behaviour the order relies on: a group also captures the
+        // dependencies of its modules, and the higher `priority` wins a module
+        // that two groups reach. So the infrastructure groups outrank the
+        // groups that depend on them, and a dependent group (`lessons`) can
+        // never swallow a shared boundary: `react` outranks `router`,
+        // `storage-safety`/`backup` outrank `lib`, and `lib` outranks `lessons`.
+        // `zod` and `vendor` only take what a higher group has not already
+        // captured (today zod travels with `backup`, its first consumer).
+        codeSplitting: {
+          groups: [
+            // The cross-tab/storage safety boundary.
+            {
+              name: 'storage-safety',
+              test: /[\\/]src[\\/]lib[\\/]storage[\\/]/,
+              priority: 100,
+            },
+            {
+              name: 'backup',
+              test: /[\\/]src[\\/]lib[\\/]backup[\\/]/,
+              priority: 90,
+            },
+            // Programme lesson content: one static chunk per committed
+            // content file, so each stays under the raw per-chunk budget.
+            {
+              name: (id: string) => {
+                const programmeContent = id
+                  .replace(/\\/g, '/')
+                  .match(
+                    /\/src\/programmes\/([a-z0-9-]+)\/content\/([a-z0-9-]+)\.json$/,
+                  );
 
-          if (normalizedId.includes('/src/lib/storage/')) {
-            return 'storage-safety';
-          }
-
-          if (normalizedId.includes('/src/lib/backup/')) {
-            return 'backup';
-          }
-
-          // Programme lesson content: one static chunk per committed content
-          // file, so each stays under the raw per-chunk budget. Statically
-          // imported, so it remains a boot asset the service worker caches.
-          const programmeContent = normalizedId.match(
-            /\/src\/programmes\/([a-z0-9-]+)\/content\/([a-z0-9-]+)\.json$/,
-          );
-
-          if (programmeContent !== null) {
-            return `content-${programmeContent[1]}-${programmeContent[2]}`;
-          }
-
-          if (!normalizedId.includes('/node_modules/')) {
-            return undefined;
-          }
-
-          if (normalizedId.includes('/node_modules/react-router')) {
-            return 'router';
-          }
-
-          if (
-            normalizedId.includes('/node_modules/react-dom') ||
-            normalizedId.includes('/node_modules/react/') ||
-            normalizedId.includes('/node_modules/scheduler')
-          ) {
-            return 'react';
-          }
-
-          if (normalizedId.includes('/node_modules/zod')) {
-            return 'zod';
-          }
-
-          if (normalizedId.includes('/node_modules/dexie')) {
-            return 'dexie';
-          }
-
-          return 'vendor';
+                return programmeContent === null
+                  ? null
+                  : `content-${programmeContent[1]}-${programmeContent[2]}`;
+              },
+              test: /[\\/]src[\\/]programmes[\\/][a-z0-9-]+[\\/]content[\\/][a-z0-9-]+\.json$/,
+              priority: 80,
+            },
+            {
+              name: 'react',
+              test: /[\\/]node_modules[\\/](?:react-dom|react|scheduler)[\\/]/,
+              priority: 70,
+            },
+            {
+              name: 'router',
+              test: /[\\/]node_modules[\\/]react-router/,
+              priority: 60,
+            },
+            {
+              name: 'zod',
+              test: /[\\/]node_modules[\\/]zod/,
+              priority: 50,
+            },
+            {
+              name: 'dexie',
+              test: /[\\/]node_modules[\\/]dexie/,
+              priority: 40,
+            },
+            {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              priority: 30,
+            },
+            // The shared, layer-independent libraries (database, evaluation,
+            // rewards, mastery, app state, routing helpers). Applications
+            // features import these; they belong to no single feature.
+            {
+              name: 'lib',
+              test: /[\\/]src[\\/]lib[\\/]/,
+              priority: 25,
+            },
+            // The lesson feature: one coherent application domain, rendered
+            // by Classic and RPG alike.
+            {
+              name: 'lessons',
+              test: /[\\/]src[\\/]features[\\/]lessons[\\/]/,
+              priority: 20,
+            },
+          ],
         },
       },
     },
