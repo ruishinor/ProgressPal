@@ -22,6 +22,7 @@ import {
   LearnerAvatarConfigSchema,
   LearnerAvatarFaceSchema,
   LearnerAvatarHairSchema,
+  LearnerAvatarIdSchema,
   LearnerAvatarTopColorSchema,
   LearnerProfileSchema,
   MediaProgressEventSchema,
@@ -50,6 +51,7 @@ export type PreferredTheme = z.infer<typeof PreferredThemeSchema>;
 export type StudyDay = z.infer<typeof StudyDaySchema>;
 export type LearnerAvatarFace = z.infer<typeof LearnerAvatarFaceSchema>;
 export type LearnerAvatarHair = z.infer<typeof LearnerAvatarHairSchema>;
+export type LearnerAvatarId = z.infer<typeof LearnerAvatarIdSchema>;
 export type LearnerAvatarTopColor = z.infer<typeof LearnerAvatarTopColorSchema>;
 export type AchievementCategory = z.infer<typeof AchievementCategorySchema>;
 export type BackupRecordType = z.infer<typeof BackupRecordTypeSchema>;

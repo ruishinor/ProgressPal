@@ -20,6 +20,7 @@ const validLearnerProfile: LearnerProfile = {
   id: 'learner-1',
   displayName: 'Alex',
   avatarConfig: {
+    avatarId: 'auburn-braid',
     face: 'round',
     hair: 'curly',
     topColor: 'forest',
@@ -104,6 +105,20 @@ describe('entity schemas', () => {
     expect(StudySessionSchema.parse(validStudySession)).toEqual(
       validStudySession,
     );
+  });
+
+  it('accepts legacy avatar configs without avatarId and rejects unknown avatar identities', () => {
+    const legacy = LearnerProfileSchema.safeParse({
+      ...validLearnerProfile,
+      avatarConfig: { face: 'round', hair: 'curly', topColor: 'forest' },
+    });
+    const invalid = LearnerProfileSchema.safeParse({
+      ...validLearnerProfile,
+      avatarConfig: { ...validLearnerProfile.avatarConfig, avatarId: 'ghost' },
+    });
+
+    expect(legacy.success).toBe(true);
+    expect(invalid.success).toBe(false);
   });
 
   it('rejects malformed long-form assets and unsafe source URLs', () => {

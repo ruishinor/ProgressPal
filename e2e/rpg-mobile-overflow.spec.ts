@@ -80,9 +80,15 @@ test('keyboard focus stays clear of the RPG primary navigation in forms', async 
           'a[href], button, input, select, textarea, summary, [tabindex="0"]',
         )
         .filter({ visible: true });
+      // A native radio group is a single Tab stop (arrow keys move inside it),
+      // and every group here has a selection, so unchecked radios are not stops.
       const expected = await controls.evaluateAll((elements) =>
         elements.flatMap((element, index) =>
-          element.tabIndex >= 0 && !element.matches(':disabled') ? [index] : [],
+          element.tabIndex >= 0 &&
+          !element.matches(':disabled') &&
+          !element.matches('input[type="radio"]:not(:checked)')
+            ? [index]
+            : [],
         ),
       );
       expect(expected.length).toBeGreaterThan(0);

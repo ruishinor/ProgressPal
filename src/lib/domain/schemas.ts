@@ -9,6 +9,7 @@ import {
   courseItemTypeValues,
   learnerAvatarFaceValues,
   learnerAvatarHairValues,
+  learnerAvatarIdValues,
   learnerAvatarTopColorValues,
   courseUnitTypeValues,
   energyRatingMax,
@@ -91,6 +92,7 @@ export const PreferredThemeSchema = z.enum(preferredThemeValues);
 export const StudyDaySchema = z.enum(studyDayValues);
 export const LearnerAvatarFaceSchema = z.enum(learnerAvatarFaceValues);
 export const LearnerAvatarHairSchema = z.enum(learnerAvatarHairValues);
+export const LearnerAvatarIdSchema = z.enum(learnerAvatarIdValues);
 export const LearnerAvatarTopColorSchema = z.enum(learnerAvatarTopColorValues);
 export const AchievementCategorySchema = z.enum(achievementCategoryValues);
 export const BackupRecordTypeSchema = z.enum(backupRecordTypeValues);
@@ -135,6 +137,7 @@ export const ProgrammeEnrolmentSchema = z
 
 export const LearnerAvatarConfigSchema = z
   .object({
+    avatarId: LearnerAvatarIdSchema.optional(),
     face: LearnerAvatarFaceSchema.optional(),
     hair: LearnerAvatarHairSchema.optional(),
     topColor: LearnerAvatarTopColorSchema.optional(),

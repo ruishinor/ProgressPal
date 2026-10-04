@@ -3,6 +3,7 @@ import { hasCompletedOnboarding, normalizeAvatarConfig } from '@/lib/profile';
 import type {
   LearnerAvatarFace,
   LearnerAvatarHair,
+  LearnerAvatarId,
   LearnerAvatarTopColor,
   LearnerProfile,
   PreferredTheme,
@@ -10,6 +11,7 @@ import type {
 } from '@/lib/domain';
 
 export type ProfileFormValues = {
+  avatarId: LearnerAvatarId;
   displayName: string;
   face: LearnerAvatarFace;
   hair: LearnerAvatarHair;
@@ -51,6 +53,7 @@ export function createProfileFormValues(
   const avatarConfig = normalizeAvatarConfig(baseProfile.avatarConfig);
 
   return {
+    avatarId: avatarConfig.avatarId,
     displayName: baseProfile.displayName,
     face: avatarConfig.face,
     hair: avatarConfig.hair,
@@ -63,9 +66,10 @@ export function createProfileFormValues(
 }
 
 export function createAvatarConfig(
-  values: Pick<ProfileFormValues, 'face' | 'hair' | 'topColor'>,
+  values: Pick<ProfileFormValues, 'avatarId' | 'face' | 'hair' | 'topColor'>,
 ) {
   return {
+    avatarId: values.avatarId,
     face: values.face,
     hair: values.hair,
     topColor: values.topColor,

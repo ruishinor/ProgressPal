@@ -175,6 +175,15 @@ test('cold-starts offline after one online production load', async ({
   // The shell and every referenced boot asset are in the versioned SW cache.
   expect(discovery.cachedPaths).toContain('/index.html');
   expect(discovery.cachedPaths).toContain('/assets/character-profile.png');
+  expect(discovery.cachedPaths).toContain(
+    '/assets/avatars/avatar-auburn-braid.png',
+  );
+  expect(discovery.cachedPaths).toContain(
+    '/assets/avatars/avatar-short-curls.png',
+  );
+  expect(discovery.cachedPaths).toContain(
+    '/assets/avatars/avatar-wavy-bob.png',
+  );
   for (const asset of discovery.expected) {
     expect(discovery.cachedPaths).toContain(asset);
   }

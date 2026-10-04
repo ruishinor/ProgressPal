@@ -23,6 +23,7 @@ const baseProfile: LearnerProfile = {
 describe('profile model', () => {
   it('fills legacy avatar config gaps with local defaults', () => {
     expect(normalizeAvatarConfig({})).toEqual({
+      avatarId: 'original',
       face: 'round',
       hair: 'short',
       topColor: 'forest',
@@ -55,10 +56,20 @@ describe('profile model', () => {
         displayName: 'Alex',
       }),
     ).toBe(true);
+    expect(
+      hasCompletedOnboarding(emptyMeta, {
+        ...baseProfile,
+        avatarConfig: {
+          ...baseProfile.avatarConfig,
+          avatarId: 'wavy-bob',
+        },
+      }),
+    ).toBe(true);
   });
 
   it('creates form values from the persisted profile contract', () => {
     expect(createProfileFormValues(baseProfile)).toEqual({
+      avatarId: 'original',
       displayName: 'Learner',
       face: 'round',
       hair: 'short',

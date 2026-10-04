@@ -4690,6 +4690,45 @@ describe('Settings route', () => {
     );
   });
 
+  it('keeps a profile without an avatar selection unset when only the original avatar is shown', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithHistory();
+    const before = await getDatabaseSnapshot();
+
+    expect(before.learnerProfile?.avatarConfig).not.toHaveProperty('avatarId');
+
+    await renderAppAtRoute('/settings');
+    expect(
+      await screen.findByRole('radio', { name: /Original/ }),
+    ).toBeChecked();
+    await user.click(
+      await screen.findByRole('button', { name: 'Save local settings' }),
+    );
+
+    expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
+    expect(
+      (await getDatabaseSnapshot()).learnerProfile?.avatarConfig,
+    ).not.toHaveProperty('avatarId');
+  });
+
+  it('persists a chosen avatar and leaves the legacy avatar fields alone', async () => {
+    const user = userEvent.setup();
+    await seedOnboardedLearnerWithHistory();
+    const before = await getDatabaseSnapshot();
+
+    await renderAppAtRoute('/settings');
+    await user.click(await screen.findByRole('radio', { name: /Short curls/ }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Save local settings' }),
+    );
+
+    expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
+    expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual({
+      ...before.learnerProfile?.avatarConfig,
+      avatarId: 'short-curls',
+    });
+  });
+
   it('does not mutate any local store when settings renders or reloads', async () => {
     await seedOnboardedLearnerWithHistory();
 

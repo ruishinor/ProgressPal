@@ -40,6 +40,9 @@ const SHELL_URL = '/index.html';
 // bump refreshes them.
 const STATIC_ASSET_URLS = [
   '/assets/character-profile.png',
+  '/assets/avatars/avatar-auburn-braid.png',
+  '/assets/avatars/avatar-short-curls.png',
+  '/assets/avatars/avatar-wavy-bob.png',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

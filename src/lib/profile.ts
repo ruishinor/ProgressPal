@@ -49,6 +49,8 @@ export function hasCompletedOnboarding(
       profile.targetStudyDays,
       defaultLearnerProfileValues.targetStudyDays,
     ) ||
+    normalizedAvatarConfig.avatarId !==
+      normalizedDefaultAvatarConfig.avatarId ||
     normalizedAvatarConfig.face !== normalizedDefaultAvatarConfig.face ||
     normalizedAvatarConfig.hair !== normalizedDefaultAvatarConfig.hair ||
     normalizedAvatarConfig.topColor !== normalizedDefaultAvatarConfig.topColor

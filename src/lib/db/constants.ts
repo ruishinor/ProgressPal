@@ -16,6 +16,7 @@ export const singletonIds = {
 } as const;
 
 export const defaultAvatarConfig: Required<LearnerAvatarConfig> = {
+  avatarId: 'original',
   face: 'round',
   hair: 'short',
   topColor: 'forest',

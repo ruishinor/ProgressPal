@@ -127,7 +127,7 @@ describe('service worker source contract', () => {
     ).not.toContain('cache.put(request');
   });
 
-  it('pre-caches the fixed avatar and the install manifest and icons', () => {
+  it('pre-caches all bundled avatars and the install manifest and icons', () => {
     const list = swSource.match(/const STATIC_ASSET_URLS = \[([^\]]*)\];/);
 
     expect(list, 'sw.js must declare STATIC_ASSET_URLS').not.toBeNull();
@@ -135,6 +135,9 @@ describe('service worker source contract', () => {
       Array.from(list![1].matchAll(/'([^']+)'/g), (match) => match[1]),
     ).toEqual([
       '/assets/character-profile.png',
+      '/assets/avatars/avatar-auburn-braid.png',
+      '/assets/avatars/avatar-short-curls.png',
+      '/assets/avatars/avatar-wavy-bob.png',
       '/manifest.webmanifest',
       '/icons/icon-192.png',
       '/icons/icon-512.png',

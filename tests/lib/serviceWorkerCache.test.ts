@@ -8,6 +8,12 @@ import { describe, expect, it, vi } from 'vitest';
 const origin = 'https://progresspal.test';
 const workerSource = readFileSync(path.resolve('public/sw.js'), 'utf8');
 const cacheVersion = 'progresspal-cache-v1.6.0';
+const avatarAssets = [
+  '/assets/character-profile.png',
+  '/assets/avatars/avatar-auburn-braid.png',
+  '/assets/avatars/avatar-short-curls.png',
+  '/assets/avatars/avatar-wavy-bob.png',
+];
 const installIcons = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -108,13 +114,15 @@ function createWorker() {
           headers: { 'Content-Type': 'text/css' },
         }),
     );
-    network.set(
-      '/assets/character-profile.png',
-      async () =>
-        new Response('synthetic image', {
-          headers: { 'Content-Type': 'image/png' },
-        }),
-    );
+    for (const avatar of avatarAssets) {
+      network.set(
+        avatar,
+        async () =>
+          new Response('synthetic image', {
+            headers: { 'Content-Type': 'image/png' },
+          }),
+      );
+    }
     network.set(
       '/manifest.webmanifest',
       async () =>
@@ -363,7 +371,9 @@ describe('service worker boot-set updates', () => {
     );
     expect(worker.stored.has('/assets/app-fresh.js')).toBe(true);
     expect(worker.stored.has('/assets/app-fresh.css')).toBe(true);
-    expect(worker.stored.has('/assets/character-profile.png')).toBe(true);
+    for (const avatar of avatarAssets) {
+      expect(worker.stored.has(avatar)).toBe(true);
+    }
     expect(worker.stored.has('/manifest.webmanifest')).toBe(true);
     for (const icon of installIcons) {
       expect(worker.stored.has(icon)).toBe(true);

@@ -67,6 +67,7 @@ describe('database initialization', () => {
       updatedAt: '2026-06-11T10:00:00.000Z',
       displayName: 'Learner',
       avatarConfig: {
+        avatarId: 'original',
         face: 'round',
         hair: 'short',
         topColor: 'forest',

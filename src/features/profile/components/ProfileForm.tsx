@@ -8,8 +8,9 @@ import { NumberInput } from '@/components/ui/NumberInput';
 import { Select } from '@/components/ui/Select';
 import { TextInput } from '@/components/ui/TextInput';
 import { type SaveLearnerProfileInput } from '@/lib/db';
-import type { LearnerProfile, StudyDay } from '@/lib/domain';
+import type { LearnerAvatarId, LearnerProfile, StudyDay } from '@/lib/domain';
 
+import { avatarOptions } from '@/features/profile/avatars';
 import { ProfileAvatar } from '@/features/profile/components/ProfileAvatar';
 import {
   createAvatarConfig,
@@ -84,9 +85,19 @@ function validateProfileForm(values: ProfileFormValues): {
 function toProfileInput(
   values: ProfileFormValues,
   parsedTargetMinutesPerWeek: number,
+  persistedAvatarId: LearnerAvatarId | undefined,
 ): SaveLearnerProfileInput {
+  // A profile with no explicit avatar selection stays that way until the
+  // learner picks a non-original avatar; saving other settings must not
+  // turn "unset" into a stored choice.
+  const { avatarId, ...legacyAvatarFields } = createAvatarConfig(values);
+  const keepAvatarId =
+    persistedAvatarId !== undefined || avatarId !== 'original';
+
   return {
-    avatarConfig: createAvatarConfig(values),
+    avatarConfig: keepAvatarId
+      ? { avatarId, ...legacyAvatarFields }
+      : legacyAvatarFields,
     displayName: values.displayName.trim(),
     preferredTheme: values.preferredTheme,
     reducedMotion: values.reducedMotion,
@@ -125,7 +136,11 @@ export function ProfileForm({
 
     try {
       await onSubmit(
-        toProfileInput(nextValues, validation.parsedTargetMinutesPerWeek),
+        toProfileInput(
+          nextValues,
+          validation.parsedTargetMinutesPerWeek,
+          profile?.avatarConfig?.avatarId,
+        ),
       );
     } catch (submitError) {
       setErrors({
@@ -251,10 +266,63 @@ export function ProfileForm({
           </fieldset>
         </Card>
         <Card
-          description="The fixed character image is bundled with the app. Profile preferences stay local to this device."
+          description="Choose one of the bundled ProgressPal characters. Profile preferences stay local to this device."
           title="Avatar and preferences"
           titleAs={cardTitleAs}
         >
+          <fieldset className="profile-fieldset">
+            <legend className="profile-fieldset__legend">Avatar</legend>
+            <p className="profile-fieldset__description">
+              The same character is used in Classic and RPG views.
+            </p>
+            <div
+              style={{
+                display: 'grid',
+                gap: '0.75rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
+              }}
+            >
+              {avatarOptions.map((option) => (
+                <label
+                  key={option.id}
+                  style={{
+                    alignItems: 'center',
+                    border:
+                      '1px solid color-mix(in srgb, currentColor 22%, transparent)',
+                    borderRadius: '0.75rem',
+                    cursor: disabled ? 'default' : 'pointer',
+                    display: 'flex',
+                    gap: '0.625rem',
+                    opacity: disabled ? 0.65 : 1,
+                    padding: '0.625rem',
+                  }}
+                >
+                  <input
+                    checked={values.avatarId === option.id}
+                    disabled={disabled}
+                    name={`${fieldPrefix}-avatar`}
+                    onChange={() =>
+                      setValues((currentValues) => ({
+                        ...currentValues,
+                        avatarId: option.id,
+                      }))
+                    }
+                    type="radio"
+                    value={option.id}
+                  />
+                  <ProfileAvatar
+                    avatarConfig={{
+                      ...createAvatarConfig(values),
+                      avatarId: option.id,
+                    }}
+                    label={`${option.label} avatar`}
+                    size="sm"
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="profile-preview-card">
             <ProfileAvatar
               avatarConfig={createAvatarConfig(values)}

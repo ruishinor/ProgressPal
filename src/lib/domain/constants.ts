@@ -71,6 +71,13 @@ export const studySessionModeValues = [
 
 export const preferredThemeValues = ['system', 'light', 'dark'] as const;
 
+export const learnerAvatarIdValues = [
+  'original',
+  'auburn-braid',
+  'short-curls',
+  'wavy-bob',
+] as const;
+
 export const learnerAvatarFaceValues = ['round', 'oval', 'square'] as const;
 
 export const learnerAvatarHairValues = ['short', 'curly', 'parted'] as const;

@@ -1,9 +1,9 @@
 import type { HTMLAttributes } from 'react';
 
 import { classNames } from '@/components/ui/utils';
+import { getAvatarOption } from '@/features/profile/avatars';
 import type { LearnerAvatarConfig } from '@/lib/domain';
-
-const characterProfileAssetPath = '/assets/character-profile.png';
+import { normalizeAvatarConfig } from '@/lib/profile';
 
 export type ProfileAvatarProps = HTMLAttributes<HTMLDivElement> & {
   avatarConfig: LearnerAvatarConfig | undefined;
@@ -19,6 +19,8 @@ export function ProfileAvatar({
   style,
   ...rest
 }: ProfileAvatarProps) {
+  const normalized = normalizeAvatarConfig(avatarConfig);
+  const avatar = getAvatarOption(normalized.avatarId);
   const avatarSource = avatarConfig === undefined ? 'default' : 'configured';
 
   return (
@@ -30,6 +32,7 @@ export function ProfileAvatar({
         `profile-avatar--${size}`,
         className,
       )}
+      data-avatar-id={avatar.id}
       data-avatar-source={avatarSource}
       role="img"
       style={{
@@ -42,7 +45,7 @@ export function ProfileAvatar({
       <img
         alt=""
         aria-hidden="true"
-        src={characterProfileAssetPath}
+        src={avatar.src}
         style={{
           display: 'block',
           height: '100%',
