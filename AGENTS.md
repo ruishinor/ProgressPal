@@ -168,6 +168,7 @@ Read these when their area comes up:
 - `CONTRIBUTING.md` — operating standard, module discipline, Scope Discipline Check, forbidden list.
 - `docs/ci.md` — release pipeline contract, candidate-bound review evidence, validated-before-production, troubleshooting.
 - `docs/storage-safety.md` — cross-tab coordination and persistent-storage policy.
+- `docs/pwa.md` — installable PWA: manifest, icon generation, precached install files, deliberate omissions and platform storage caveats.
 - `docs/post-release/pre-e/` — Pre-E hardening report, Programvareutvikling source-fit report and the refreshed Epic E prompt.
 - `docs/rpg-v2/RPG-PRODUCT-COMPLETION-RESTART.md` — historical RPG completion record and evidence; not current authority.
 - `docs/remediation/3-1-v1-3-release-remediation.md` — historical v1.3 release remediation; do not reopen it as the current work queue.

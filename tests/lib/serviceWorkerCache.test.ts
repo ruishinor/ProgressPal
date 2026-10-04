@@ -8,6 +8,11 @@ import { describe, expect, it, vi } from 'vitest';
 const origin = 'https://progresspal.test';
 const workerSource = readFileSync(path.resolve('public/sw.js'), 'utf8');
 const cacheVersion = 'progresspal-cache-v1.6.0';
+const installIcons = [
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
+];
 const shell = (version: string) =>
   `<!doctype html><script type="module" src="/assets/app-${version}.js"></script><link rel="stylesheet" href="/assets/app-${version}.css">`;
 const htmlResponse = (html: string) =>
@@ -110,6 +115,22 @@ function createWorker() {
           headers: { 'Content-Type': 'image/png' },
         }),
     );
+    network.set(
+      '/manifest.webmanifest',
+      async () =>
+        new Response('{"name":"synthetic"}', {
+          headers: { 'Content-Type': 'application/manifest+json' },
+        }),
+    );
+    for (const icon of installIcons) {
+      network.set(
+        icon,
+        async () =>
+          new Response('synthetic icon', {
+            headers: { 'Content-Type': 'image/png' },
+          }),
+      );
+    }
     // Packaged content (Epic E owner decision 2026-10-03): every build ships
     // its content list; this build ships no runtime list.
     network.set('/content/offline.json', async () =>
@@ -331,7 +352,7 @@ describe('service worker boot-set updates', () => {
     expect(worker.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('installs the validated boot set and fixed avatar before activation', async () => {
+  it('installs the validated boot set, fixed avatar and install metadata before activation', async () => {
     const worker = createWorker();
     worker.serve('fresh', '/index.html');
     worker.network.set('/', async () => htmlResponse(shell('fresh')));
@@ -343,6 +364,10 @@ describe('service worker boot-set updates', () => {
     expect(worker.stored.has('/assets/app-fresh.js')).toBe(true);
     expect(worker.stored.has('/assets/app-fresh.css')).toBe(true);
     expect(worker.stored.has('/assets/character-profile.png')).toBe(true);
+    expect(worker.stored.has('/manifest.webmanifest')).toBe(true);
+    for (const icon of installIcons) {
+      expect(worker.stored.has(icon)).toBe(true);
+    }
     expect(worker.skipWaiting).toHaveBeenCalledOnce();
   });
 

@@ -34,7 +34,17 @@
 const CACHE_PREFIX = 'progresspal-cache-';
 const CACHE_VERSION = 'progresspal-cache-v1.6.0';
 const SHELL_URL = '/index.html';
-const STATIC_ASSET_URLS = ['/assets/character-profile.png'];
+// Fixed, unhashed same-origin files: the profile avatar, and the web app
+// manifest with every icon it or the shell links, so an installed app that
+// launches offline still resolves its own manifest and icons. A cache-version
+// bump refreshes them.
+const STATIC_ASSET_URLS = [
+  '/assets/character-profile.png',
+  '/manifest.webmanifest',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
+];
 const CONTENT_LIST_URL = '/content/offline.json';
 const RUNTIME_LIST_URL = '/runtime/offline.json';
 const PACKAGED_TYPES = {

@@ -1,7 +1,8 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { expect, test, type Page } from '@playwright/test';
+import { chromium, expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
@@ -243,6 +244,85 @@ test('cold-starts offline after one online production load', async ({
 
   await page.context().setOffline(false);
   expect(consoleIssues).toEqual([]);
+});
+
+// Installable PWA (v1.6.0). Chromium's own installability check is the
+// evidence, not a score. It needs the full Chromium build (the default
+// headless shell answers every query with no errors at all, even for a
+// manifest without icons) and a persistent profile (an off-the-record
+// context always reports "in-incognito"). The profile lives in a short OS
+// temp path: under test-results/ on Windows, the worker's cache files exceed
+// the path limit and the service worker silently never activates.
+test('is installable and launches its start URL offline', async ({
+  baseURL,
+}) => {
+  const profile = mkdtempSync(path.join(tmpdir(), 'progresspal-pwa-'));
+  const context = await chromium.launchPersistentContext(profile, {
+    baseURL,
+    channel: 'chromium',
+  });
+  const consoleIssues: string[] = [];
+
+  try {
+    const page = context.pages()[0] ?? (await context.newPage());
+
+    page.on('console', (message) => {
+      // Full Chromium (unlike the headless shell) requests /favicon.ico. The
+      // app ships no favicon: the preview server answers 404, production's
+      // SPA rewrite answers 200. Only that exact request is ignored.
+      if (
+        (message.type() === 'error' || message.type() === 'warning') &&
+        message.location().url !== new URL('/favicon.ico', baseURL).href
+      ) {
+        consoleIssues.push(message.text());
+      }
+    });
+
+    await completeOnboarding(page);
+    await waitForServiceWorkerControl(page);
+
+    const cdp = await context.newCDPSession(page);
+    const manifest = await cdp.send('Page.getAppManifest');
+    expect(manifest.url).toBe(new URL('/manifest.webmanifest', baseURL).href);
+    expect(manifest.errors).toEqual([]);
+    expect(
+      (await cdp.send('Page.getInstallabilityErrors')).installabilityErrors,
+    ).toEqual([]);
+
+    // An installed launch opens start_url. Offline, it must cold-start from
+    // the cached shell into the RPG home with the learner's data, and the
+    // manifest and its icons must still resolve.
+    await context.setOffline(true);
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/rpg$/);
+    await expect(
+      page.getByRole('heading', { name: 'Home', exact: true }),
+    ).toBeVisible({ timeout: 15000 });
+
+    const installFiles = await page.evaluate(async () =>
+      Promise.all(
+        [
+          '/manifest.webmanifest',
+          '/icons/icon-192.png',
+          '/icons/icon-512.png',
+          '/icons/apple-touch-icon.png',
+        ].map(async (file) => {
+          const response = await fetch(file);
+          return `${file} ${response.status} ${response.headers.get('Content-Type')}`;
+        }),
+      ),
+    );
+    expect(installFiles).toEqual([
+      '/manifest.webmanifest 200 application/manifest+json',
+      '/icons/icon-192.png 200 image/png',
+      '/icons/icon-512.png 200 image/png',
+      '/icons/apple-touch-icon.png 200 image/png',
+    ]);
+    expect(consoleIssues).toEqual([]);
+  } finally {
+    await context.close();
+    rmSync(profile, { force: true, recursive: true });
+  }
 });
 
 test('does not cache a 200 HTML rewrite under an unknown asset URL', async ({

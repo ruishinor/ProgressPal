@@ -45,6 +45,12 @@ anywhere; your answer is stored locally like the rest of your data.
   counters); none of your learner data is stored in
   `localStorage`/`sessionStorage`.
 - There is no account, no login, and no server-side copy of anything.
+- Installing ProgressPal as an app (Install, or Add to Home Screen) does not
+  move, back up or sync your data. On desktop and Android browsers the installed
+  app shares the browser's storage for this site. On iPhone and iPad a Home
+  Screen app keeps its own storage, separate from Safari, so progress made in
+  Safari does not appear there; use backup export and import to move it.
+  Uninstalling the app or clearing site data can delete your data.
 
 ## What the app does not do
 
@@ -58,9 +64,9 @@ anywhere; your answer is stored locally like the rest of your data.
 - No social, sharing, leaderboard, or comparison features.
 
 The offline service worker only caches the app's own static files (its HTML,
-JavaScript and CSS, the packaged lesson content and, once it has been used, the
-packaged Python runtime) from the same origin so the app can work without a
-network connection. It never reads, caches, or transmits your stored data.
+JavaScript and CSS, its icons and install manifest, the packaged lesson content
+and, once it has been used, the packaged Python runtime) from the same origin so
+the app can work without a network connection. It never reads, caches, or transmits your stored data.
 
 ## Data you control
 
@@ -97,5 +103,6 @@ files on it.
 ## Scope of this document
 
 This describes the application's behavior as originally reviewed in Module 19 and
-reconciled on 2026-10-02 (`docs/CURRENT_STATE.md`). See `SECURITY.md` for the
+reconciled on 2026-10-04 for installation (`docs/CURRENT_STATE.md`,
+`docs/pwa.md`). See `SECURITY.md` for the
 technical security baseline and known risks.

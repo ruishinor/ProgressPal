@@ -18,7 +18,8 @@ import { describe, expect, it } from 'vitest';
  * - Unrelated static-request misses are never populated. Navigation can cache
  *   its validated boot set, but a 200 SPA rewrite must never be stored as
  *   JavaScript under an unknown asset URL (finding L1).
- * - The fixed profile avatar is part of the explicit install-time static set.
+ * - The fixed profile avatar, the web app manifest and its install icons are
+ *   the explicit install-time static set.
  * - No file under src/ uses dynamic import(): every boot asset must be a
  *   static import so install-time discovery sees the complete boot set
  *   (finding L3; the service worker relies on this to cache everything).
@@ -126,10 +127,19 @@ describe('service worker source contract', () => {
     ).not.toContain('cache.put(request');
   });
 
-  it('pre-caches the fixed same-origin profile avatar', () => {
-    expect(swSource).toContain(
-      "const STATIC_ASSET_URLS = ['/assets/character-profile.png'];",
-    );
+  it('pre-caches the fixed avatar and the install manifest and icons', () => {
+    const list = swSource.match(/const STATIC_ASSET_URLS = \[([^\]]*)\];/);
+
+    expect(list, 'sw.js must declare STATIC_ASSET_URLS').not.toBeNull();
+    expect(
+      Array.from(list![1].matchAll(/'([^']+)'/g), (match) => match[1]),
+    ).toEqual([
+      '/assets/character-profile.png',
+      '/manifest.webmanifest',
+      '/icons/icon-192.png',
+      '/icons/icon-512.png',
+      '/icons/apple-touch-icon.png',
+    ]);
     expect(swSource).toContain('...STATIC_ASSET_URLS');
   });
 
