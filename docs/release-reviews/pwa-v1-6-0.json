@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 2,
+  "module": "pwa-v1-6-0",
+  "reviewer": "ChatGPT GPT-5.6 Sol",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a80dbfaec96122949bee6e900395542ddadc0c14",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of ProgressPal v1.6.0 PWA successor 8067361b7335943e9f194b3ce9addb08c0751d5b against released master 5cc4c85187ab0dd597d8ad5941d76a5e7162027f. Review covered the full master-to-candidate delta, exact post-regression successor delta, manifest and shell integration, generated install icons, service-worker precache changes, browser-native installability/offline evidence, version coupling, CI timeout change, privacy/storage documentation, and the implementer's regression evidence. The full product regression ran on product-bearing parent 86aebadacf0897317577f768c7e59b370d9760ac; the exact successor changes only .github/workflows/test.yml, docs/ci.md and docs/CURRENT_STATE.md.",
+    "evidence": [
+      "Independent review package SHA-256: 77095f19ed7a441a5b1f33abba0b7a8c71c68a851ae89719de4532d88263c64e; all 35 payload-file hashes matched SHA256SUMS.txt.",
+      "Candidate identity: branch feat/pwa-installability; HEAD 8067361b7335943e9f194b3ce9addb08c0751d5b; released base/master 5cc4c85187ab0dd597d8ad5941d76a5e7162027f.",
+      "Product-bearing regression commit 86aebadacf0897317577f768c7e59b370d9760ac passed 132/132 unit/integration files, 1997/1997 tests and 146/146 E2E, with no skips, retries or warnings; lint, format, typecheck, build, bundle budget, circular check and audit also passed.",
+      "Post-regression successor delta is exactly .github/workflows/test.yml, docs/ci.md and docs/CURRENT_STATE.md; the workflow change is only timeout-minutes 30 to 40 and the nested 20/21/22-minute limits remain unchanged.",
+      "Manifest declares root id/start_url/scope, standalone display, ProgressPal name/short_name, 192 and 512 any icons and a 512 maskable icon; exact supplied PNGs were independently inspected as opaque RGB at 192x192, 512x512 and 180x180.",
+      "Existing theme-neutral pre-theme canvas #6a6f76 is documented in src/styles/rpg-shell.css and is used for manifest background_color/theme_color.",
+      "WebKit documents that non-cookie local storage is not copied from Safari into an iOS/iPadOS Home Screen web app; candidate PRIVACY.md and docs/pwa.md explicitly disclose the split and direct existing users to backup export/import.",
+      "Existing backup import is reachable from onboarding/empty state as well as Settings, so the documented iOS transfer path remains available in a fresh installed storage partition."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PWA-01",
+      "severity": "P3",
+      "description": "Automated Chromium evidence proves manifest installability and offline start_url behavior in a persistent full-Chromium profile, but it does not literally automate an operating-system installation and standalone launch.",
+      "resolution": "Accepted as bounded platform-test coverage. No candidate behavior branches on standalone display mode, the manifest is browser-native validated, and the offline start path is exercised with persisted learner data. A physical installed-app smoke test may be performed later without blocking this candidate.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-02",
+      "severity": "P3",
+      "description": "iPhone/iPad Home Screen web apps use storage separate from Safari, so an existing Safari learner will not automatically see Safari IndexedDB progress in the installed app.",
+      "resolution": "Accepted with explicit mitigation already present in candidate documentation: installation is not backup/sync, Safari progress does not appear in the Home Screen app, and users are directed to backup export/import. Import is already reachable from onboarding as well as Settings, so the migration path remains available even in the fresh installed partition.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-03",
+      "severity": "P3",
+      "description": "No physical iOS device validation was performed, including the deliberate decision not to enable viewport-fit=cover and the resulting standalone chrome/safe-area presentation.",
+      "resolution": "Accepted as bounded device-coverage debt. The candidate does not introduce standalone-only layout branches, retains the existing viewport/layout behavior, and documents the limitation. A later device smoke test is appropriate but no broad iOS redesign is justified here.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-04",
+      "severity": "P3",
+      "description": "Install icons reuse existing character artwork because ProgressPal has no dedicated product mark.",
+      "resolution": "Accepted as an explicit branding decision boundary rather than an implementation defect. The supplied icon assets are valid, opaque and visually usable; a dedicated mark can replace the generator input later without changing PWA architecture.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-05",
+      "severity": "P3",
+      "description": "The candidate adds a 239-line dependency-free PNG icon generator for three static install assets, which is more bespoke tooling than strictly required.",
+      "resolution": "Accepted as bounded maintenance debt. The generator is development-only, deterministic, adds no runtime dependency and does not affect application behavior. Do not expand it into a general image pipeline; reconsider only when branding assets change.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-06",
+      "severity": "P3",
+      "description": "The release workflow remains slow and serial: the green v1.5.1 Final candidate took 27m42s and the branch raises only the outer GitHub ceiling to 40 minutes.",
+      "resolution": "Accepted as separate release-infrastructure debt. The 40-minute value is an outer containment envelope; the 20/21/22-minute inner limits remain unchanged. Duplicate install work, serial Vitest execution and E2E sharding should be addressed in a separate CI-performance tranche, not folded into PWA scope.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-07",
+      "severity": "P3",
+      "description": "PRIVACY.md still opens with the legacy name 'ProgressPal CS50 Edition' even though the released product now supports multiple programmes and programme-neutral shell branding.",
+      "resolution": "Accepted as minor pre-existing documentation naming debt. The substantive privacy statements were updated correctly for PWA storage behavior; fixing the heading alone is not worth invalidating the settled candidate and triggering another release cycle.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-08",
+      "severity": "P3",
+      "description": "docs/pwa.md says apple-mobile-web-app-capable is deprecated. Current WebKit documentation still describes the legacy meta tag as supported alongside manifest display behavior, and Safari 26 continues to recognize existing web-app configuration while also allowing any site to open as a web app.",
+      "resolution": "Accepted as documentation wording debt, not an implementation defect. Omitting the legacy meta tag is still correct because the candidate manifest declares display: standalone and current WebKit honors that. Future documentation should say the tag is legacy/unnecessary here rather than categorically deprecated.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PWA-09",
+      "severity": "P3",
+      "description": "docs/pwa.md states that keeping theme_color only in the manifest means only the installed window uses it. Manifest theme_color handling varies by browser and may affect browser/OS UI beyond a standalone window.",
+      "resolution": "Accepted as minor documentation overstatement. The implementation remains valid: no meta theme-color is added, and the manifest color is grounded in the existing pre-theme canvas. Future wording should describe manifest theme_color as the installed/default app theme hint without promising browser-mode non-use.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent review finds no open P0, P1 or P2 blocker in ProgressPal v1.6.0 PWA successor 8067361b7335943e9f194b3ce9addb08c0751d5b / expected review payload a80dbfaec96122949bee6e900395542ddadc0c14. The PWA tranche is bounded: it adds standards-compliant install metadata and icons, preserves the existing service-worker architecture and data model, and adds discriminating browser-native installability/offline evidence without cloud, auth, notifications, background sync or a redesign. The fully regressed product-bearing parent is followed only by the owner-approved outer CI timeout change and documentation. Remaining findings are explicit P3 accepted risks or separate maintenance debt. Decision: proceed to bind this review to the exact payload, run the repository-native hosted release gate, and only then consider production promotion. This review does not itself authorize merge, tag, release or deployment."
+  }
+}
