@@ -4,22 +4,28 @@
   "reviewer": "ChatGPT GPT-5.6 Sol",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "0203519fbc30c92f3ec85af528026ebb4b09eaae",
+    "payloadTree": "79b941de885acf834371ab13264aaa69d345a088",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent successor review of ProgressPal v1.5.1 hotfix candidate 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28, root tree ca6895d8a707320a6500e449d180d20af71e81fd and review payload tree 0203519fbc30c92f3ec85af528026ebb4b09eaae. The candidate is an exact six-file successor to reviewed parent ac0d7c8c88c5c67259889cb5c8c7e804770f2633. Review focused on the release-blocking keyboard-accessibility failure exposed by the immutable GitHub gate, the completeness and side effects of the repair, its regression evidence, release-version integrity and whether any unrelated Epic E area was invalidated. Unchanged Epic E product areas inherit the prior exact-parent review evidence; this review does not claim that the successor native release gate has already passed.",
+    "summary": "Independent successor review of ProgressPal v1.5.1 release candidate 45aa399a8ee0b4d4ff866b2c1d285447f9d5fb98, root tree 9c798f018804723f1e18451a230a3ec89600629c and review payload tree 79b941de885acf834371ab13264aaa69d345a088. This candidate preserves the bounded accessibility repair introduced by 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28 and adds the four release-version coherence corrections required after the native gate exposed incomplete v1.5.1 coupling. Review scope is limited to the accessibility hotfix, release-version identity, service-worker cache identity, directly affected regression evidence and whether those changes invalidate any previously accepted Epic E area. This review does not claim that the final native release gate has already passed.",
     "evidence": [
-      "Candidate identity: commit 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28; parent ac0d7c8c88c5c67259889cb5c8c7e804770f2633; root tree ca6895d8a707320a6500e449d180d20af71e81fd; review payload tree 0203519fbc30c92f3ec85af528026ebb4b09eaae; application version 1.5.1; worktree clean at candidate freeze.",
-      "Delta from the failed v1.5.0 release candidate is exactly six files: package.json, package-lock.json, LessonBlocks.tsx, markup.tsx, widgets.tsx and lessonView.test.tsx; 8 insertions and 7 deletions.",
-      "The immutable GitHub release gate for v1.5.0 exposed a real axe scrollable-region-focusable violation in a Programvareutvikling lesson. The affected lesson CSS permits horizontal preformatted scrolling while the rendered pre elements were not keyboard focusable.",
-      "The repair applies tabIndex={0} to every static lesson pre renderer capable of inheriting the shared horizontal-overflow behaviour: shared Preformatted output, fenced markup, CodeView and FillWidget. This closes the invariant rather than patching only the concrete terminal block that happened to fail in CI.",
-      "The existing real lesson DOM regression was strengthened to require tabindex=0 on every rendered pre element. Targeted validation passed 17 of 17 tests in lessonView.test.tsx.",
-      "The exact Playwright scenario that failed the immutable GitHub gate, 'the lesson passes axe and fits a 375 px phone without horizontal scroll', subsequently passed in a production build with one of one tests passing.",
-      "Post-repair static validation passed: ESLint with zero warnings, Prettier check, TypeScript typecheck and Vite production build.",
-      "Release metadata was independently checked after an initially over-broad textual version replacement was detected. The unrelated lz-string dependency was restored to version 1.5.0 with its matching 1.5.0 tarball and integrity; only the ProgressPal root package and lockfile root package metadata changed to 1.5.1.",
-      "No E2E timeout or release-runner setting was changed. Inspection established that the current managed Playwright ceiling is 14 minutes; the failed GitHub run contained a concrete product accessibility failure, so there is insufficient evidence to justify loosening test-infrastructure limits as part of this hotfix.",
-      "The prior Epic E review remains historical evidence bound only to payload a63fc9fc8041bab59880c89e47c4032595efe9f1. Repository review resolution explicitly permits stale valid evidence for other payload trees and selects only review evidence bound to the exact candidate payload."
+      "Candidate identity: commit 45aa399a8ee0b4d4ff866b2c1d285447f9d5fb98; parent 0d990a25572ce8dfa86fc194391e152e70ca18ed; root tree 9c798f018804723f1e18451a230a3ec89600629c; review payload tree 79b941de885acf834371ab13264aaa69d345a088; application version 1.5.1; worktree clean at candidate freeze.",
+      "The product-bearing delta from failed v1.5.0 candidate ac0d7c8c88c5c67259889cb5c8c7e804770f2633, excluding release-review evidence, is bounded to ten files: package.json, package-lock.json, three lesson renderer files, lessonView.test.tsx, public/sw.js, databaseInitialization.test.ts, settings.spec.ts and serviceWorkerCache.test.ts.",
+      "The immutable v1.5.0 GitHub gate exposed a real axe scrollable-region-focusable violation in Programvareutvikling lesson preformatted regions. Every static lesson pre renderer capable of inheriting horizontal overflow now renders with tabIndex={0}.",
+      "The lesson DOM regression requires tabindex=0 on rendered pre elements and passed 17 of 17 targeted tests. The exact formerly failing Playwright axe/375 px lesson scenario passed one of one after the repair.",
+      "The first v1.5.1 native-gate attempt on evidence commit 3f4d2a3cc620a96a0cc17d16c1e03dae2bd619bb stopped at format:check because the newly created review JSON lacked its terminal newline. The formatting-only successor 0d990a25572ce8dfa86fc194391e152e70ca18ed changed only review evidence and did not change the reviewed product payload.",
+      "The second native-gate attempt on 0d990a25572ce8dfa86fc194391e152e70ca18ed passed review resolution, clean install, release-runner tests, dependency audit, lint, format, typecheck, production build and bundle-budget validation before the unit/integration suite exposed two deterministic version-coherence failures. The suite result was 129 of 131 files and 1989 of 1991 tests passing.",
+      "The two gate failures were classified separately: public/sw.js still declared progresspal-cache-v1.5.0 even though its explicit contract requires CACHE_VERSION to match package.json, while databaseInitialization.test.ts retained an obsolete literal expectation of application version 1.5.0 although currentApplicationVersion already derived 1.5.1 from package.json.",
+      "A complete tracked-version inventory before further mutation identified two additional active current-release literals: the persisted appVersion expectation in e2e/settings.spec.ts and the worker cache identity fixture in tests/lib/serviceWorkerCache.test.ts. Dependency versions such as lz-string 1.5.0 and historical documentation were classified separately and were not modified.",
+      "Candidate 45aa399a8ee0b4d4ff866b2c1d285447f9d5fb98 changes exactly those four active release-version coupling sites from 1.5.0 to 1.5.1: public/sw.js, tests/db/databaseInitialization.test.ts, e2e/settings.spec.ts and tests/lib/serviceWorkerCache.test.ts. The delta is exactly four insertions and four deletions.",
+      "Directly invalidated unit evidence is green: tests/architecture/serviceWorker.test.ts, tests/db/databaseInitialization.test.ts and tests/lib/serviceWorkerCache.test.ts passed 33 of 33 tests.",
+      "Directly affected browser evidence is green: all five settings tests and all five offline/service-worker tests passed, 10 of 10 total with one worker. The targeted E2E invocation also completed a production Vite build successfully before executing the browser tests.",
+      "Post-repair cheap static validation is green: git diff --check, ESLint with zero warnings, repository-wide Prettier check and TypeScript typecheck all passed.",
+      "The unrelated lz-string dependency remains correctly at version 1.5.0 with its matching 1.5.0 package identity. Only ProgressPal release identity is 1.5.1; no dependency version was changed as part of the release-coherence repair.",
+      "No database name, database schema, migration, Pyodide runtime, runtime worker, CSP, programme content, E2E timeout or release-runner limit changed in the successor repair.",
+      "The failed native-gate evidence for the unit/integration failure remains preserved at artifacts/release-evidence/2026-10-04T11-20-01-372Z-epic-e-v1-5-1-hotfix-pass-0.json with SHA-256 1B7C3FA623BB00F9D59917147BAF4A292A35B4727348C7B6904DCF59F00594B4.",
+      "The prior Epic E review remains historical evidence bound to its exact payload tree. Earlier v1.5.1 review states are preserved in Git history; the current hotfix review file is rebound only to payload 79b941de885acf834371ab13264aaa69d345a088. Repository review resolution selects only evidence bound to the exact current candidate payload."
     ]
   },
   "adversarialFindings": [
@@ -64,10 +70,17 @@
       "description": "Programvareutvikling remains Bokmal while substantial shared ProgressPal shell vocabulary remains English.",
       "resolution": "Inherited release-quality debt. The accessibility hotfix does not broaden scope into localization, avatar, selective-reset or other deferred presentation work.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-07",
+      "severity": "P2",
+      "description": "The initial v1.5.1 successor changed the package application version without updating every active current-release consumer. The service-worker cache remained v1.5.0 and two current-version test oracles plus one service-worker fixture also retained v1.5.0.",
+      "resolution": "Before further full-gate execution, all tracked version references were inventoried and classified by meaning. Only four genuine active release couplings were corrected: public/sw.js, databaseInitialization.test.ts, settings.spec.ts and serviceWorkerCache.test.ts. Targeted validation then passed 33 of 33 directly affected unit tests and 10 of 10 affected browser tests, with lint, format and typecheck also green.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Independent successor review finds the v1.5.0 release-blocking accessibility defect resolved in candidate 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28 / payload 0203519fbc30c92f3ec85af528026ebb4b09eaae with discriminating component and real-browser regression evidence. The six-file delta is narrow, version metadata is coherent at 1.5.1, and no unrelated Epic E subsystem was modified. Remaining findings are bounded P3 accepted risks. Decision: proceed to bind this review evidence and run the repository-native release gate. This review does not itself authorize push, merge, tag, release, deployment or production promotion."
+    "summary": "Independent successor review finds the original v1.5.0 accessibility release blocker resolved and the subsequently exposed v1.5.1 release-version coherence defect resolved in candidate 45aa399a8ee0b4d4ff866b2c1d285447f9d5fb98 / payload 79b941de885acf834371ab13264aaa69d345a088. The final corrective tranche is four explicitly classified release-version couplings, with 33 of 33 directly affected unit tests and 10 of 10 affected browser tests passing, plus clean lint, format and typecheck. No schema, migration, runtime, CSP, curriculum, timeout or unrelated Epic E change is introduced. Remaining findings are bounded P3 accepted risks inherited from the prior review. Decision: proceed to the repository-native release gate. This review does not itself authorize push, merge, tag, release, deployment or production promotion."
   }
 }
