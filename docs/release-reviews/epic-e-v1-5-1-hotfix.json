@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "module": "epic-e-v1-5-1-hotfix",
+  "reviewer": "ChatGPT GPT-5.6 Sol",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "0203519fbc30c92f3ec85af528026ebb4b09eaae",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent successor review of ProgressPal v1.5.1 hotfix candidate 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28, root tree ca6895d8a707320a6500e449d180d20af71e81fd and review payload tree 0203519fbc30c92f3ec85af528026ebb4b09eaae. The candidate is an exact six-file successor to reviewed parent ac0d7c8c88c5c67259889cb5c8c7e804770f2633. Review focused on the release-blocking keyboard-accessibility failure exposed by the immutable GitHub gate, the completeness and side effects of the repair, its regression evidence, release-version integrity and whether any unrelated Epic E area was invalidated. Unchanged Epic E product areas inherit the prior exact-parent review evidence; this review does not claim that the successor native release gate has already passed.",
+    "evidence": [
+      "Candidate identity: commit 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28; parent ac0d7c8c88c5c67259889cb5c8c7e804770f2633; root tree ca6895d8a707320a6500e449d180d20af71e81fd; review payload tree 0203519fbc30c92f3ec85af528026ebb4b09eaae; application version 1.5.1; worktree clean at candidate freeze.",
+      "Delta from the failed v1.5.0 release candidate is exactly six files: package.json, package-lock.json, LessonBlocks.tsx, markup.tsx, widgets.tsx and lessonView.test.tsx; 8 insertions and 7 deletions.",
+      "The immutable GitHub release gate for v1.5.0 exposed a real axe scrollable-region-focusable violation in a Programvareutvikling lesson. The affected lesson CSS permits horizontal preformatted scrolling while the rendered pre elements were not keyboard focusable.",
+      "The repair applies tabIndex={0} to every static lesson pre renderer capable of inheriting the shared horizontal-overflow behaviour: shared Preformatted output, fenced markup, CodeView and FillWidget. This closes the invariant rather than patching only the concrete terminal block that happened to fail in CI.",
+      "The existing real lesson DOM regression was strengthened to require tabindex=0 on every rendered pre element. Targeted validation passed 17 of 17 tests in lessonView.test.tsx.",
+      "The exact Playwright scenario that failed the immutable GitHub gate, 'the lesson passes axe and fits a 375 px phone without horizontal scroll', subsequently passed in a production build with one of one tests passing.",
+      "Post-repair static validation passed: ESLint with zero warnings, Prettier check, TypeScript typecheck and Vite production build.",
+      "Release metadata was independently checked after an initially over-broad textual version replacement was detected. The unrelated lz-string dependency was restored to version 1.5.0 with its matching 1.5.0 tarball and integrity; only the ProgressPal root package and lockfile root package metadata changed to 1.5.1.",
+      "No E2E timeout or release-runner setting was changed. Inspection established that the current managed Playwright ceiling is 14 minutes; the failed GitHub run contained a concrete product accessibility failure, so there is insufficient evidence to justify loosening test-infrastructure limits as part of this hotfix.",
+      "The prior Epic E review remains historical evidence bound only to payload a63fc9fc8041bab59880c89e47c4032595efe9f1. Repository review resolution explicitly permits stale valid evidence for other payload trees and selects only review evidence bound to the exact candidate payload."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "EPIC-E-HOTFIX-01",
+      "severity": "P2",
+      "description": "Horizontally scrollable lesson preformatted regions could not receive keyboard focus, causing the immutable v1.5.0 release gate to fail axe's scrollable-region-focusable rule.",
+      "resolution": "All static lesson pre render paths that can inherit horizontal overflow now render with tabIndex={0}. A real lesson DOM regression asserts the invariant, and the exact formerly failing Playwright axe/375 px scenario passes against the repaired production build.",
+      "status": "resolved"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-02",
+      "severity": "P3",
+      "description": "Using static tabIndex={0} makes every affected preformatted region a keyboard stop even when that particular instance does not currently overflow.",
+      "resolution": "Accepted as a bounded keyboard-ergonomics trade-off. Horizontal overflow depends on viewport, content and font metrics, so deterministic focusability is more robust than conditionally adding focus only after overflow measurement. The behaviour remains semantically local to preformatted lesson content and can be revisited if keyboard-navigation feedback shows excessive tab stops.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-03",
+      "severity": "P3",
+      "description": "The earlier Epic E release process has shown limited E2E runtime headroom across environments, but the current runner code uses a 14-minute managed Playwright ceiling and the failed immutable v1.5.0 run contained a genuine accessibility defect rather than evidence that the ceiling itself caused the release failure.",
+      "resolution": "No timeout change is included in this hotfix. The successor must pass the repository-native release gate under the existing limit; a future timeout without a product-test failure should be investigated separately rather than hidden by increasing the ceiling pre-emptively.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-04",
+      "severity": "P3",
+      "description": "The inherited Python-isolation evidence remains specific to the pinned Pyodide/runtime-worker/CSP implementation rather than proving arbitrary future runtime versions.",
+      "resolution": "Inherited accepted risk from the exact parent review. The hotfix does not alter Pyodide, the worker, CSP or the runtime capability boundary, so the existing tripwire requirement remains applicable.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-05",
+      "severity": "P3",
+      "description": "Programme #2 source governance still contains the previously disclosed stale protected-input mutation harness and frozen participant-baseline divergence.",
+      "resolution": "Inherited bounded source-governance debt. None of the six hotfix files modifies Programme #2 authoring inputs, generated curriculum data or source-governance machinery.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EPIC-E-HOTFIX-06",
+      "severity": "P3",
+      "description": "Programvareutvikling remains Bokmal while substantial shared ProgressPal shell vocabulary remains English.",
+      "resolution": "Inherited release-quality debt. The accessibility hotfix does not broaden scope into localization, avatar, selective-reset or other deferred presentation work.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent successor review finds the v1.5.0 release-blocking accessibility defect resolved in candidate 4f2f6d4402442c1cc01bb91be8bf0b42314bcc28 / payload 0203519fbc30c92f3ec85af528026ebb4b09eaae with discriminating component and real-browser regression evidence. The six-file delta is narrow, version metadata is coherent at 1.5.1, and no unrelated Epic E subsystem was modified. Remaining findings are bounded P3 accepted risks. Decision: proceed to bind this review evidence and run the repository-native release gate. This review does not itself authorize push, merge, tag, release, deployment or production promotion."
+  }
+}
