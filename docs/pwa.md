@@ -4,14 +4,22 @@ ProgressPal installs as a standalone app from Chromium browsers (desktop and And
 
 ## What ships
 
-| File                                        | Purpose                                                                                                                                                                                                        |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `public/manifest.webmanifest`               | `id`, `start_url` and `scope` are `/` (the router sends `/` to `/rpg`, and every route is in scope); `display: standalone`; name and short name `ProgressPal` (the product name of OD-6, programme-neutral).   |
-| `public/icons/icon-192.png`, `icon-512.png` | Install icons (`any`); the 512 icon is also declared `maskable`.                                                                                                                                               |
-| `public/icons/apple-touch-icon.png`         | 180×180 iOS Home Screen icon.                                                                                                                                                                                  |
-| `index.html`                                | Links the manifest and the touch icon and sets `apple-mobile-web-app-title`. The `<title>` and viewport are unchanged.                                                                                         |
-| `public/sw.js`                              | The manifest and the three icons join the explicit install-time precache (`STATIC_ASSET_URLS`), so an installed app launched offline still resolves them. A cache-version bump refreshes them like the avatar. |
-| `scripts/generate-pwa-icons.mjs`            | Regenerates the icons, deterministically, with Node's `zlib` only.                                                                                                                                             |
+| File                                        | Purpose                                                                                                                                                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `public/manifest.webmanifest`               | `id`, `start_url` and `scope` are `/` (the router sends `/` to `/rpg`, and every route is in scope); `display: standalone`; name and short name `ProgressPal` (the product name of OD-6, programme-neutral).                   |
+| `public/icons/icon-192.png`, `icon-512.png` | Install icons (`any`); the 512 icon is also declared `maskable`.                                                                                                                                                               |
+| `public/icons/apple-touch-icon.png`         | 180×180 iOS Home Screen icon.                                                                                                                                                                                                  |
+| `index.html`                                | Links the manifest and the touch icon and sets `apple-mobile-web-app-title`. The `<title>` and viewport are unchanged.                                                                                                         |
+| `public/sw.js`                              | The manifest, the icons and the static artwork join the explicit install-time precache (`STATIC_ASSET_URLS`; categories below), so an installed app launched offline still resolves them. A cache-version bump refreshes them. |
+| `scripts/generate-pwa-icons.mjs`            | Regenerates the icons, deterministically, with Node's `zlib` only.                                                                                                                                                             |
+
+**Static precache (`STATIC_ASSET_URLS`).** Fixed same-origin files cached at install, by category:
+
+- Install and PWA files: `/manifest.webmanifest`, `/icons/icon-192.png`, `/icons/icon-512.png`, `/icons/apple-touch-icon.png`.
+- Avatar images: the original `/assets/character-profile.png` and the three alternatives under `/assets/avatars/` (`avatar-auburn-braid.png`, `avatar-short-curls.png`, `avatar-wavy-bob.png`).
+- Programme #2 achievement badges: seven `p2-*.webp` files under `/assets/badges/`.
+
+Everything else the service worker caches is outside this list: the boot set discovered from the production HTML, the listed programme content, and the Python runtime files cached on first use. Adding a static file means adding it to the list and bumping `CACHE_VERSION` with the package version.
 
 **Icon source.** ProgressPal has no separate logo. The icons reuse the shipped character artwork (`public/assets/character-profile.png`, 384×384, a medallion on black). Nothing is upscaled: the art sits unscaled on a 512 canvas of its own black background, and every painted pixel lies within about 154 px of the centre, inside the maskable safe zone (radius 204.8 px). Smaller sizes are area-averaged downscales. A dedicated product mark would be an owner branding decision. If one is made, change the generator's input and rerun it.
 
