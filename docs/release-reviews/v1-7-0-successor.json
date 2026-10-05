@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "module": "v1-7-0-successor",
+  "reviewer": "Claude Sonnet 5.5 (fresh-context delta review, not the implementing session)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f73e386f2d659afb8dd862e944b5251258349f45",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Narrow independent review of the v1.7.0 successor delta a7a86f0f..12637108 (commits a8a3f12 docs reconciliation, fd0b093 v1.7.0 release identity, 1263710 storage-error regression test) on branch release/v1.7.0-candidate. The predecessor a7a86f0 carries its own independent result (P2_AVATAR_ACHIEVEMENTS_REVIEW_PASS_WITH_BOUNDED_REPAIRS: avatar/profile compatibility, avatar UI, evidence-backed Programvareutvikling achievements, transaction atomicity, recovery and idempotency, content-version binding, programme isolation, static badge and bundle architecture); that review was not repeated because the delta changes no product source. This review answers only the risks the delta introduces.",
+    "evidence": [
+      "Identity verified read-only before review: HEAD 12637108395b8916e0cba2a9306b19455359919a, root tree a6c3c5ff2bda403d9e079a24b304515e7c546847, review payload tree f73e386f2d659afb8dd862e944b5251258349f45 (npm run review:payload-tree), worktree clean, package version 1.7.0.",
+      "git diff a7a86f0 HEAD -- src is empty (independently verified); the delta touches only docs/CURRENT_STATE.md, docs/pwa.md, e2e/settings.spec.ts, package.json, package-lock.json, public/sw.js, tests/db/databaseInitialization.test.ts, tests/db/programmeAchievements.test.ts and tests/lib/serviceWorkerCache.test.ts.",
+      "Version identity: package.json, the lockfile top-level version and the lockfile root package entry all read 1.7.0; CACHE_VERSION in public/sw.js is progresspal-cache-v1.7.0 with the stable progresspal-cache- prefix; the three test pins (databaseInitialization, serviceWorkerCache, settings e2e) agree. The lockfile diff is exactly those two root lines, so third-party versions (including lz-string 1.5.0) were not altered. The remaining 1.6.0 literals in the tree are three historical comments naming when the PWA shipped and are correctly unchanged.",
+      "Database identity is unchanged: no file under src/lib/db or src/lib/domain differs from the predecessor, so the database name, schema v4 and Dexie native version 40 are untouched, and the Programme #2 content version stays 2 (no src or content change).",
+      "Tag state: v1.6.0 is an annotated tag on ce5d4a640e2b8e153f3c04d779199f2378249ca7 locally and on origin; no v1.7* tag exists locally or on origin, so 1.7.0 is an unused, sensible successor to 1.6.0.",
+      "Documentation: CURRENT_STATE now states production = v1.6.0 and the v1.7.0 candidate as unreleased, with nothing pushed, merged, tagged or deployed, and keeps the independent-review and artwork-provenance conditions open. The docs/pwa.md static-precache categories (four install/PWA files, the original avatar plus three alternatives, seven p2-*.webp badges) match STATIC_ASSET_URLS in public/sw.js entry for entry.",
+      "Storage-error regression (tests/db/programmeAchievements.test.ts): the planner returns a valid qualifying achievement, and a row with a different achievementId is seeded under the derived unlock primary key. unlockAchievementsOnce checks existence by achievementId, so it finds nothing and its add collides with the seeded key, giving a ConstraintError inside the result transaction. The production boundary in src/lib/db/learnerEvidence.ts wraps only the planner call in a try block that throws AchievementAwardPlanningError; the unlock insert is outside it, with a comment that storage failures propagate as they are. The test asserts the raw error is not an AchievementAwardPlanningError, is a ConstraintError, and that the attempt evidence kind list, the programme XP list and the unlock list show the whole result rolled back. Widening the try block to cover storage would fail the not-instanceof assertion, so the test discriminates a storage or unlock failure from a planning failure. The test file ran green (9/9) on the exact candidate."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "V170-01",
+      "severity": "P3",
+      "description": "docs/CURRENT_STATE.md still carries older framing outside the delta: the 'Last reconciled' line, the 'Released baseline: v1.5.1' and 'Product facts (Production, v1.5.1)' headings, and the PWA 'Active work' branch narrative describe the earlier tranche, while the corrected bullets now say production is v1.6.0.",
+      "resolution": "Accepted. The delta deliberately made only bounded corrections and the brief forbids reopening general documentation. Live identity is Git, the file says so, and the added v1.7.0 paragraph and corrected application-version bullet are accurate. Reconcile the headings when the release is actually promoted.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V170-02",
+      "severity": "P3",
+      "description": "Provenance and licence of the new artwork (three avatars, seven badges, replacement character image) is not confirmed by the owner.",
+      "resolution": "Accepted as a publication condition only; it is recorded in CURRENT_STATE as open and does not affect the local payload certification. Owner confirmation is required before any push, tag, release or deployment.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V170-03",
+      "severity": "P3",
+      "description": "The discrimination of the new storage-error test was established by reading the production boundary and the unlock insert path, not by executing a mutation that widens the try block.",
+      "resolution": "Accepted. The reasoning is direct (one try block, one narrow call, the insert outside it) and the test passes on the candidate; a throwaway mutation run was judged poor value against the risk and would have required modifying the certified worktree or duplicating its dependencies.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No P0, P1 or P2 finding. The delta from the independently reviewed predecessor changes no product source (src diff empty), moves the application and service-worker cache identity coherently to 1.7.0 without touching the database name, schema v4, Programme #2 content version 2 or third-party versions, corrects documentation accurately as production v1.6.0 versus unreleased v1.7.0, and adds a regression that genuinely separates a storage failure while unlocking from an achievement-planning failure. Decision: proceed to the repository-native release gate for this exact payload tree. This review does not authorize push, merge, tag, release or deployment; those require explicit owner instruction and the owner's artwork provenance confirmation."
+  }
+}
