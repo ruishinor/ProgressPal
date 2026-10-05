@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import { classNames } from '@/components/ui/utils';
 import { ProfileAvatar } from '@/features/profile';
 import guildEmblem from '@/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.webp?inline';
@@ -9,6 +11,8 @@ type RpgHeroIdentityProps = {
   avatarConfig: LearnerAvatarConfig | null;
   identity: RpgHubIdentity;
   name: string;
+  /** When set, the avatar becomes the entry point to the Hero Profile. */
+  profileHref?: string;
   variant?: 'hud' | 'profile';
 };
 
@@ -17,6 +21,7 @@ export function RpgHeroIdentity({
   avatarConfig,
   identity,
   name,
+  profileHref,
   variant = 'hud',
 }: RpgHeroIdentityProps) {
   const initials =
@@ -27,19 +32,32 @@ export function RpgHeroIdentity({
       .map((part) => part.charAt(0).toUpperCase())
       .join('') || 'L';
 
+  const portrait =
+    avatarConfig === null ? (
+      <div aria-hidden="true" className="rpg-identity__portrait">
+        {initials}
+      </div>
+    ) : (
+      <ProfileAvatar
+        avatarConfig={avatarConfig}
+        className="rpg-identity__portrait"
+        label={`${name} hero avatar`}
+        size="lg"
+      />
+    );
+
   return (
     <div className={classNames('rpg-identity', `rpg-identity--${variant}`)}>
-      {avatarConfig === null ? (
-        <div aria-hidden="true" className="rpg-identity__portrait">
-          {initials}
-        </div>
+      {profileHref === undefined ? (
+        portrait
       ) : (
-        <ProfileAvatar
-          avatarConfig={avatarConfig}
-          className="rpg-identity__portrait"
-          label={`${name} hero avatar`}
-          size="lg"
-        />
+        <Link
+          aria-label="Open Hero Profile"
+          className="rpg-identity__profile-link"
+          to={profileHref}
+        >
+          {portrait}
+        </Link>
       )}
       <div className="rpg-identity__copy">
         <p

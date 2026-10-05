@@ -39,7 +39,7 @@ const freshSurfaces: readonly Surface[] = [
 const progressedSurfaces: readonly Surface[] = [
   { heading: 'Home', path: '/rpg', state: 'progressed', surface: 'hub' },
   {
-    heading: 'Campaign Map',
+    heading: 'Campaign',
     path: '/rpg/map',
     state: 'progressed',
     surface: 'map',

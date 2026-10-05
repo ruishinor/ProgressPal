@@ -3,14 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   rpgBadgesPath,
   rpgFocusPath,
-  rpgHeroPath,
   rpgLogPath,
   rpgMapPath,
   rpgRoutePath,
   rpgWeekPathPattern,
 } from '@/lib/routing/rpgRoutePaths';
 
-type RpgNavIconName = 'awards' | 'focus' | 'hero' | 'hub' | 'insights' | 'map';
+type RpgNavIconName = 'awards' | 'focus' | 'hub' | 'insights' | 'map';
 
 type RpgNavItem = {
   activePaths: readonly string[];
@@ -19,15 +18,23 @@ type RpgNavItem = {
   to: string;
 };
 
+/**
+ * Persistent primary destinations, in display order. Hero/Profile is reached
+ * from the learner identity in the HUD, not from here. A lesson
+ * (`/rpg/resource/:itemId`) is a focused route of its own: it belongs to no
+ * destination, so no item is marked current there.
+ */
 const navItems = [
   {
-    activePaths: [
-      rpgMapPath,
-      rpgWeekPathPattern.replace('/:unitId', ''),
-      '/rpg/resource',
-    ],
+    activePaths: [rpgRoutePath],
+    icon: 'hub',
+    label: 'Home',
+    to: rpgRoutePath,
+  },
+  {
+    activePaths: [rpgMapPath, rpgWeekPathPattern.replace('/:unitId', '')],
     icon: 'map',
-    label: 'Map',
+    label: 'Campaign',
     to: rpgMapPath,
   },
   {
@@ -35,18 +42,6 @@ const navItems = [
     icon: 'focus',
     label: 'Focus',
     to: rpgFocusPath,
-  },
-  {
-    activePaths: [rpgHeroPath],
-    icon: 'hero',
-    label: 'Hero',
-    to: rpgHeroPath,
-  },
-  {
-    activePaths: [rpgRoutePath],
-    icon: 'hub',
-    label: 'Home',
-    to: rpgRoutePath,
   },
   {
     activePaths: [rpgBadgesPath],
@@ -99,15 +94,6 @@ function RpgNavIcon({ name }: { name: RpgNavIconName }) {
           cy="12"
           r="1.6"
         />
-      </svg>
-    );
-  }
-
-  if (name === 'hero') {
-    return (
-      <svg {...commonProps}>
-        <path d="M12 3.1 18.4 6v5.4c0 4.1-2.5 7.4-6.4 9.5-3.9-2.1-6.4-5.4-6.4-9.5V6L12 3.1Z" />
-        <path d="M9.1 11.2h5.8M10 8.2h4M10.1 14.2l1.9 2 1.9-2" />
       </svg>
     );
   }

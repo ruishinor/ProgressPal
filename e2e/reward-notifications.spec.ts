@@ -163,7 +163,7 @@ test('a crossed level and a first achievement present once over the RPG shell at
   await expect(notice(page)).toHaveText('Level up! Level 2');
   await expect(notice(page)).toHaveAttribute('data-reward-kind', 'level-up');
   // In-app navigation while it shows neither restarts nor duplicates it.
-  await page.getByRole('link', { name: 'Hero', exact: true }).click();
+  await page.getByRole('link', { name: 'Open Hero Profile' }).click();
   await expect(
     page.getByRole('heading', { name: 'Hero Profile', exact: true }),
   ).toBeVisible();

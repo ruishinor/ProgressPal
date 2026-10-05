@@ -146,7 +146,7 @@ test('captures fresh and progressed B3 Hub and Campaign Map states for owner vis
 
   await page.goto('/rpg/map');
   await expect(
-    page.getByRole('heading', { exact: true, name: 'Campaign Map' }),
+    page.getByRole('heading', { exact: true, name: 'Campaign' }),
   ).toBeVisible();
   await expect(
     page

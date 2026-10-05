@@ -31,10 +31,7 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
 
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
   await expect(hud.locator('.rpg-hero-hud__name')).toHaveText('Morgan');
-  await page
-    .getByRole('navigation', { name: 'RPG primary navigation' })
-    .getByRole('link', { name: 'Hero', exact: true })
-    .click();
+  await hud.getByRole('link', { name: 'Open Hero Profile' }).click();
   await expect(
     page.locator('.rpg-identity--profile .rpg-identity__name'),
   ).toHaveText('Morgan');
@@ -146,7 +143,7 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
   );
   expect(corrected.achievementUnlocks).toEqual(saved.achievementUnlocks);
   saved = corrected;
-  await page.getByRole('link', { name: 'Hero', exact: true }).click();
+  await page.getByRole('link', { name: 'Open Hero Profile' }).click();
   await expect(page.locator('.rpg-hero')).toContainText('25 min');
   await page.goto('/rpg/badges');
   await expect(

@@ -224,7 +224,7 @@ for (const quest of stressQuests) {
       await page.setViewportSize({ height: 900, width });
       await page.goto('/rpg/map');
       await expect(
-        page.getByRole('heading', { exact: true, name: 'Campaign Map' }),
+        page.getByRole('heading', { exact: true, name: 'Campaign' }),
       ).toBeVisible();
 
       const hud = page.getByRole('region', { name: 'Persistent hero HUD' });

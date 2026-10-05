@@ -73,7 +73,7 @@ export function RpgFocusPage() {
             nextQuest === null ? rpgMapPath : getRpgResourcePath(nextQuest.id),
           nextActionLabel:
             nextQuest === null
-              ? 'Open Campaign Map'
+              ? 'Open Campaign'
               : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
           refreshStatus: 'ready',
           totalXp: hudSummary.xpSummary.totalXp,

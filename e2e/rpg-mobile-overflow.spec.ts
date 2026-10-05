@@ -7,7 +7,7 @@ const rpgRoutes = [
   // chrome); its page heading stays for assistive technology.
   { heading: 'Home', headerSelector: null, path: '/rpg' },
   {
-    heading: 'Campaign Map',
+    heading: 'Campaign',
     headerSelector: '.rpg-map__header',
     path: '/rpg/map',
   },
@@ -420,7 +420,7 @@ test('touch navigation does not preserve hover styling on a previous destination
   await context.close();
 });
 
-test('mobile navigation keeps the six RPG destinations direct and moves Classic to Settings', async ({
+test('mobile navigation keeps the five RPG destinations direct and moves Classic to Settings', async ({
   page,
 }) => {
   await page.setViewportSize({ height: 844, width: 390 });
@@ -435,9 +435,10 @@ test('mobile navigation keeps the six RPG destinations direct and moves Classic 
     name: 'RPG primary navigation',
   });
 
-  for (const label of ['Map', 'Focus', 'Hero', 'Home', 'Awards', 'Insights']) {
+  for (const label of ['Home', 'Campaign', 'Focus', 'Awards', 'Insights']) {
     await expect(bottomNav.getByRole('link', { name: label })).toBeVisible();
   }
+  await expect(bottomNav.getByRole('link')).toHaveCount(5);
 
   await expect(bottomNav.getByRole('button', { name: 'More' })).toHaveCount(0);
   await expect(
@@ -553,4 +554,10 @@ test('mobile campaign path reaches a Week task and its real resource action', as
   ).toBeVisible();
   await expect(page).toHaveURL(/\/rpg\/resource\/week-0-lecture$/);
   await expectNoHorizontalOverflow(page, '/rpg/resource/week-0-lecture');
+  // A lesson is its own route: no primary destination is marked current.
+  await expect(
+    page
+      .getByRole('navigation', { name: 'RPG primary navigation' })
+      .locator('[aria-current="page"]'),
+  ).toHaveCount(0);
 });

@@ -663,7 +663,7 @@ const classicLightAxeRoutes = [
 
 const rpgAxeRoutes = [
   { heading: 'Home', path: '/rpg' },
-  { heading: 'Campaign Map', path: '/rpg/map' },
+  { heading: 'Campaign', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
   { heading: 'Live focus session', path: '/rpg/focus' },
@@ -742,7 +742,7 @@ test('route changes move focus to the main content region', async ({
   ).toBeVisible({ timeout: 15000 });
   await page
     .getByRole('navigation', { name: 'RPG primary navigation' })
-    .getByRole('link', { name: 'Map' })
+    .getByRole('link', { name: 'Campaign' })
     .click();
   await expect(page.locator('#rpg-main-content')).toBeFocused();
 });

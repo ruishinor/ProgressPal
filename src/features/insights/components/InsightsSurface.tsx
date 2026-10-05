@@ -26,11 +26,7 @@ import {
 } from '@/lib/db';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
-import {
-  rpgBadgesPath,
-  rpgMapPath,
-  rpgRoutePath,
-} from '@/lib/routing/rpgRoutePaths';
+import { rpgBadgesPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 import { formatMinutes } from '@/lib/time';
 
 // The same insights surface renders in two shells: the classic Insights route
@@ -290,20 +286,6 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               Study time, progress, and earned rewards. Dates use your device’s
               local time.
             </p>
-          </div>
-          <div className="rpg-log__actions">
-            <Link
-              className="button button--secondary button--md"
-              to={rpgRoutePath}
-            >
-              Back to Home
-            </Link>
-            <Link
-              className="button button--secondary button--md"
-              to={rpgMapPath}
-            >
-              Open Campaign Map
-            </Link>
           </div>
         </div>
       ) : (

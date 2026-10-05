@@ -12,7 +12,7 @@ const routeChecks = [
   { heading: 'Insights', path: '/insights' },
   { heading: 'Settings', path: '/settings' },
   { heading: 'Home', path: '/rpg' },
-  { heading: 'Campaign Map', path: '/rpg/map' },
+  { heading: 'Campaign', path: '/rpg/map' },
   { heading: 'Week 4: Memory', path: '/rpg/week/week-4' },
   { heading: 'Lecture 0: Scratch', path: '/rpg/resource/week-0-lecture' },
   { heading: 'Live focus session', path: '/rpg/focus' },

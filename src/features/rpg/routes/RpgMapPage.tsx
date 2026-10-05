@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -102,7 +103,7 @@ function RpgMapLoadingState() {
     <section className="page-section rpg-map">
       <div className="rpg-map__header rpg-page-header">
         <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
-        <h1>Campaign Map</h1>
+        <h1>Campaign</h1>
       </div>
       <LoadingState
         description="Building the campaign map from local course progress."
@@ -178,7 +179,7 @@ export function RpgMapPage() {
         <section className="page-section rpg-map">
           <div className="rpg-map__header rpg-page-header">
             <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Campaign Map</h1>
+            <h1>Campaign</h1>
           </div>
           <ErrorState
             action={
@@ -213,7 +214,7 @@ export function RpgMapPage() {
           <p className="rpg-map__eyebrow rpg-page-eyebrow">
             Your learning campaign
           </p>
-          <h1>Campaign Map</h1>
+          <h1>Campaign</h1>
           <p className="rpg-map__lede rpg-page-lede">
             {`Pick up where you left off, or open any ${unitNoun.lowercase}.`}
           </p>
@@ -329,11 +330,11 @@ export function RpgMapPage() {
                           ) : null}
                         </div>
                       ) : (
-                        <a
+                        <Link
                           aria-label={getMapNodeAriaLabel(module)}
                           className="rpg-map__node"
                           data-status={module.statusVariant}
-                          href={getRpgWeekPath(module.id)}
+                          to={getRpgWeekPath(module.id)}
                         >
                           <span
                             className="rpg-map__node-index"
@@ -378,7 +379,7 @@ export function RpgMapPage() {
                               />
                             </span>
                           ) : null}
-                        </a>
+                        </Link>
                       )}
 
                       {isCurrent ? (
@@ -409,10 +410,10 @@ export function RpgMapPage() {
                                   {getQuestMarker(quest.statusVariant)}
                                 </span>
                                 <span className="rpg-map__quest-copy">
-                                  {/* Each quest opens directly. */}
-                                  <a href={getRpgResourcePath(quest.id)}>
+                                  {/* Each quest opens its own lesson route. */}
+                                  <Link to={getRpgResourcePath(quest.id)}>
                                     <strong>{quest.title}</strong>
-                                  </a>
+                                  </Link>
                                   <span>{quest.typeLabel}</span>
                                 </span>
                                 <span className="rpg-map__quest-status">

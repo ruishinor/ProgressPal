@@ -25,7 +25,7 @@ const contentVersion = programvareutviklingAchievementContentVersion;
 const programmeDefinitions = [
   {
     id: 'p2-code-reader',
-    title: 'Les før du kjører',
+    title: 'Read Before You Run',
     description: 'Løs de kontrollerbare oppgavene i «Les og forutsi kode».',
     category: 'course_progress',
     ruleType: 'evidence_subjects_solved',
@@ -50,7 +50,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-error-reader',
-    title: 'Feilen på sporet',
+    title: 'Trace the Bug',
     description: 'Løs de kontrollerbare oppgavene i «Feilmeldinger».',
     category: 'debugging',
     ruleType: 'evidence_subjects_solved',
@@ -74,7 +74,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-foundation-checkpoint',
-    title: 'Kjør, rett og lagre',
+    title: 'Run, Fix, Commit',
     description: 'Bestå modulsjekken i «Kom i gang: kjør, les feil, commit».',
     category: 'course_progress',
     ruleType: 'checkpoint_cleared',
@@ -86,7 +86,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-change-calculator',
-    title: 'Veksel som stemmer',
+    title: 'Making Change',
     description: 'Løs krav-, test- og kodeoppgavene i «Lab: Vekselkalkulator».',
     category: 'course_progress',
     ruleType: 'evidence_subjects_solved',
@@ -104,7 +104,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-coffee-change',
-    title: 'Kaffekassa vokser',
+    title: 'Coffee Fund Builder',
     description:
       'Løs krav-, test- og kodeoppgavene i «Oppdrag: Kaffekassa vokser».',
     category: 'course_progress',
@@ -124,7 +124,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-recall-foundations',
-    title: 'Tilbake til grunnlaget',
+    title: 'Back to Basics',
     description:
       'Løs repetisjonsoppgavene fra forrige modul. Hjelp er tillatt.',
     category: 'course_progress',
@@ -145,7 +145,7 @@ const programmeDefinitions = [
   },
   {
     id: 'p2-values-checkpoint',
-    title: 'Verdier i samspill',
+    title: 'Values in Sync',
     description: 'Bestå modulsjekken i «Verdier, typer og input».',
     category: 'course_progress',
     ruleType: 'checkpoint_cleared',

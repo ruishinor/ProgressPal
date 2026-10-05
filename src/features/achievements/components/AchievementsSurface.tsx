@@ -27,7 +27,7 @@ import {
 import { readAchievementsSurfaceData, type AchievementsView } from '@/lib/db';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
-import { rpgMapPath, rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 // The same achievements surface renders in two shells: the classic Achievements
 // route and the RPG "Awards" route (/rpg/badges). Achievements are the product
@@ -250,20 +250,6 @@ export function AchievementsSurface({
               {headerDescription}
             </p>
             <div className="meta-cluster">{headerMeta}</div>
-          </div>
-          <div className="rpg-badges__actions">
-            <Link
-              className="button button--secondary button--md"
-              to={rpgRoutePath}
-            >
-              Back to Home
-            </Link>
-            <Link
-              className="button button--secondary button--md"
-              to={rpgMapPath}
-            >
-              Open Campaign Map
-            </Link>
           </div>
         </div>
       ) : (

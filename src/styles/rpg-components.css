@@ -933,6 +933,21 @@
   font-size: var(--text-xl);
 }
 
+/* The avatar is the profile entry: a link only as large as the portrait, which
+   is already well above the minimum touch target. */
+.rpg-identity__profile-link {
+  border-radius: 50%;
+  color: inherit;
+  display: grid;
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rpg-identity__profile-link:hover .rpg-identity__portrait {
+    border-color: var(--rpg-accent);
+  }
+}
+
 .rpg-identity__copy {
   display: grid;
   gap: 0.2rem;
@@ -1108,7 +1123,13 @@
   text-transform: uppercase;
 }
 
-.rpg-shell :where(.rpg-button, .rpg-quest-row a, .rpg-map__node):focus-visible {
+.rpg-shell
+  :where(
+    .rpg-button,
+    .rpg-quest-row a,
+    .rpg-map__node,
+    .rpg-identity__profile-link
+  ):focus-visible {
   outline: 3px solid var(--rpg-focus-ring);
   outline-offset: 3px;
 }

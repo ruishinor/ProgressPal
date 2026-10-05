@@ -354,7 +354,7 @@ export function RpgResourcePage() {
                   : getRpgResourcePath(nextQuest.id),
               nextActionLabel:
                 nextQuest === null
-                  ? 'Open Campaign Map'
+                  ? 'Open Campaign'
                   : `${getQuestActionLabel(nextQuest.status)}: ${nextQuest.title}`,
               refreshStatus: 'ready',
               totalXp: nextHudSummary.xpSummary.totalXp,

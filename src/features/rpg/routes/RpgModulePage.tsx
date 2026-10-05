@@ -186,7 +186,7 @@ export function RpgModulePage() {
               <h1>{`RPG ${unitNoun.capitalized}`}</h1>
             </div>
             <RpgButton href={rpgMapPath} variant="secondary">
-              Back to Campaign Map
+              Back to Campaign
             </RpgButton>
           </div>
           <ErrorState
@@ -233,7 +233,7 @@ export function RpgModulePage() {
         </div>
         <div className="rpg-week__actions">
           <RpgButton href={rpgMapPath} variant="secondary">
-            Back to Campaign Map
+            Back to Campaign
           </RpgButton>
           {summary.officialLink !== null ? (
             <RpgButton

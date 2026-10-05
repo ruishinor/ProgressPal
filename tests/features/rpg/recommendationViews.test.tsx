@@ -121,9 +121,10 @@ describe('recommendation presentation', () => {
       screen.getByText(/does not confirm official CS50 completion/),
     ).toBeInTheDocument();
     expect(screen.getByText(/optional tasks remain/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Open Campaign Map' }),
-    ).toHaveAttribute('href', '/rpg/map');
+    expect(screen.getByRole('link', { name: 'Open Campaign' })).toHaveAttribute(
+      'href',
+      '/rpg/map',
+    );
   });
 
   it.each(['/rpg', '/rpg/map'])(

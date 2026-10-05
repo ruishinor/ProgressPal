@@ -49,6 +49,87 @@ describe('Programvareutvikling achievements', () => {
     }
   });
 
+  // Owner-locked display titles (display only). Ids, descriptions and rules are
+  // asserted alongside so a title change can never drift into semantics.
+  it('shows the seven owner-locked English titles and changes nothing else', () => {
+    const expected = [
+      {
+        id: 'p2-code-reader',
+        title: 'Read Before You Run',
+        description: 'Løs de kontrollerbare oppgavene i «Les og forutsi kode».',
+        ruleType: 'evidence_subjects_solved',
+        triggerSourceId: 's1-m01-o05',
+        subjectCount: 12,
+      },
+      {
+        id: 'p2-error-reader',
+        title: 'Trace the Bug',
+        description: 'Løs de kontrollerbare oppgavene i «Feilmeldinger».',
+        ruleType: 'evidence_subjects_solved',
+        triggerSourceId: 's1-m01-o06',
+        subjectCount: 11,
+      },
+      {
+        id: 'p2-foundation-checkpoint',
+        title: 'Run, Fix, Commit',
+        description:
+          'Bestå modulsjekken i «Kom i gang: kjør, les feil, commit».',
+        ruleType: 'checkpoint_cleared',
+        triggerSourceId: 's1-m01',
+        subjectCount: null,
+      },
+      {
+        id: 'p2-change-calculator',
+        title: 'Making Change',
+        description:
+          'Løs krav-, test- og kodeoppgavene i «Lab: Vekselkalkulator».',
+        ruleType: 'evidence_subjects_solved',
+        triggerSourceId: 's1-m02-lab2',
+        subjectCount: 5,
+      },
+      {
+        id: 'p2-coffee-change',
+        title: 'Coffee Fund Builder',
+        description:
+          'Løs krav-, test- og kodeoppgavene i «Oppdrag: Kaffekassa vokser».',
+        ruleType: 'evidence_subjects_solved',
+        triggerSourceId: 's1-m02-q01',
+        subjectCount: 6,
+      },
+      {
+        id: 'p2-recall-foundations',
+        title: 'Back to Basics',
+        description:
+          'Løs repetisjonsoppgavene fra forrige modul. Hjelp er tillatt.',
+        ruleType: 'evidence_subjects_solved',
+        triggerSourceId: 's1-m02-ret',
+        subjectCount: 7,
+      },
+      {
+        id: 'p2-values-checkpoint',
+        title: 'Values in Sync',
+        description: 'Bestå modulsjekken i «Verdier, typer og input».',
+        ruleType: 'checkpoint_cleared',
+        triggerSourceId: 's1-m02',
+        subjectCount: null,
+      },
+    ];
+
+    expect(
+      programvareutviklingAchievementDefinitions.map((definition) => ({
+        id: definition.id,
+        title: definition.title,
+        description: definition.description,
+        ruleType: definition.ruleType,
+        triggerSourceId: (definition.ruleConfig as { triggerSourceId: string })
+          .triggerSourceId,
+        subjectCount:
+          (definition.ruleConfig as { subjectIds?: string[] }).subjectIds
+            ?.length ?? null,
+      })),
+    ).toEqual(expected);
+  });
+
   it('keeps every P2 achievement reward-free and on an evidence-backed rule', () => {
     for (const definition of programvareutviklingAchievementDefinitions) {
       expect(definition.xpReward).toBe(0);

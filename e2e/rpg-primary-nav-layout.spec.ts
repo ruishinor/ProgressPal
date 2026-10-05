@@ -27,7 +27,7 @@ const rpgRoutes = {
   hero: { heading: 'Hero Profile', path: '/rpg/hero' },
   hub: { heading: 'Home', path: '/rpg' },
   insights: { heading: 'Insights', path: '/rpg/log' },
-  map: { heading: 'Campaign Map', path: '/rpg/map' },
+  map: { heading: 'Campaign', path: '/rpg/map' },
   settings: { heading: 'Settings', path: '/rpg/settings' },
 } as const;
 
@@ -285,7 +285,7 @@ for (const theme of ['dark', 'light'] as const) {
       await page.setViewportSize(viewport);
       await completeOnboarding(page, { theme });
 
-      const labels = ['Map', 'Focus', 'Hero', 'Home', 'Awards', 'Insights'];
+      const labels = ['Home', 'Campaign', 'Focus', 'Awards', 'Insights'];
       const styleOf = async (label: string) => {
         const link = primaryNav(page).getByRole('link', {
           exact: true,
@@ -300,7 +300,7 @@ for (const theme of ['dark', 'light'] as const) {
       };
 
       for (const [route, current] of [
-        [rpgRoutes.map, 'Map'],
+        [rpgRoutes.map, 'Campaign'],
         [rpgRoutes.hub, 'Home'],
         [rpgRoutes.insights, 'Insights'],
       ] as const) {
@@ -356,10 +356,9 @@ test('the skip link, utility link and primary navigation form a logical keyboard
   const stops = [
     'Skip to RPG content',
     'Open Settings',
-    'Map',
-    'Focus',
-    'Hero',
     'Home',
+    'Campaign',
+    'Focus',
     'Awards',
     'Insights',
   ];
@@ -381,7 +380,12 @@ test('the skip link, utility link and primary navigation form a logical keyboard
     expect(Number.parseFloat(outline.outlineWidth!)).toBeGreaterThan(0);
   }
 
-  // The persistent HUD action follows the navigation, before the page content.
+  // The persistent HUD follows the navigation, before the page content: the
+  // avatar opens the Hero Profile, then the current-quest action.
+  await page.keyboard.press('Tab');
+  await expect(page.locator(':focus')).toHaveAccessibleName(
+    'Open Hero Profile',
+  );
   await page.keyboard.press('Tab');
   await expect(page.locator(':focus')).toHaveAccessibleName(
     /^(Start|Continue) quest$/,

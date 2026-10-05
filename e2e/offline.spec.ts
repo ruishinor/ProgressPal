@@ -227,7 +227,7 @@ test('cold-starts offline after one online production load', async ({
   // content avoids false passes on the route loading headings.
   await page.goto('/rpg');
   await expect(
-    page.getByRole('link', { name: 'Open Campaign Map' }).first(),
+    page.getByRole('link', { name: 'Open Campaign' }).first(),
   ).toBeVisible({ timeout: 15000 });
   await expect(page).toHaveURL(/\/rpg$/);
   await expect(page.locator('.rpg-identity__guild img')).toHaveJSProperty(

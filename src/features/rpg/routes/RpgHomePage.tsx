@@ -122,10 +122,10 @@ export function RpgHomePage() {
                 </p>
                 {recommendation.state === 'required_complete' &&
                 recommendation.optionalRemainingCount > 0 ? (
-                  <p className="rpg-hub__note">{`${recommendation.optionalRemainingCount} optional tasks remain. You can explore them on the Campaign Map.`}</p>
+                  <p className="rpg-hub__note">{`${recommendation.optionalRemainingCount} optional tasks remain. You can explore them in Campaign.`}</p>
                 ) : null}
               </div>
-              <RpgButton href={rpgMapPath}>Open Campaign Map</RpgButton>
+              <RpgButton href={rpgMapPath}>Open Campaign</RpgButton>
             </div>
           ) : (
             <div className="rpg-hub__quest-primary">
@@ -233,7 +233,7 @@ export function RpgHomePage() {
           </details>
           {currentQuest === null ? null : (
             <RpgButton href={rpgMapPath} variant="secondary">
-              Open Campaign Map
+              Open Campaign
             </RpgButton>
           )}
         </RpgPanel>

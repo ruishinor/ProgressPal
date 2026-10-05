@@ -142,6 +142,7 @@ function RpgHeroHud({
         avatarConfig={summary.learnerAvatarConfig}
         identity={summary.identity}
         name={summary.learnerName}
+        profileHref={rpgHeroPath}
       />
       <RpgLevelProgress xp={summary.xpSummary} />
 
@@ -172,7 +173,7 @@ function RpgHeroHud({
           </div>
           <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
             {currentQuest === null
-              ? 'Open map'
+              ? 'Open Campaign'
               : getQuestActionLabel(currentQuest.status)}
           </Link>
         </div>
