@@ -32,7 +32,7 @@
  */
 
 const CACHE_PREFIX = 'progresspal-cache-';
-const CACHE_VERSION = 'progresspal-cache-v1.6.0';
+const CACHE_VERSION = 'progresspal-cache-v1.7.0';
 const SHELL_URL = '/index.html';
 // Fixed, unhashed same-origin files: the profile avatars, the programme badge
 // art, and the web app manifest with every icon it or the shell links, so an

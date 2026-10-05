@@ -27,7 +27,7 @@ Closed work, preserved and not to be reopened without a reproduced defect or a n
 
 ## Product facts (Production, v1.5.1)
 
-- Application version: `1.5.1` in Production; `1.6.0` on `feat/pwa-installability` (`package.json` is authoritative). The version moves with application behaviour and is independent of the database.
+- Application version: `1.6.0` in Production; `1.7.0` on the unreleased successor candidate (`package.json` is authoritative). The version moves with application behaviour and is independent of the database.
 - Database: IndexedDB `progresspal-cs50-edition`, **schema v4**, exactly as the accepted record `docs/post-release/epic-e/E_SCHEMA_CHANGE_DECISION_RECORD.md` (E-SCHEMA-1, amended by E-SCHEMA-1A in section 13) specifies: Dexie native version 40, the append-only `learner_evidence` store and the mutable `lesson_positions` store, every XP row owned by exactly one programme, an additive live v3 → v4 upgrade (v2 devices upgrade through v3), the database name unchanged, and mastery derived, never stored.
 - Offline cache identity moves with the package version by contract (`CACHE_VERSION` in `public/sw.js`, pinned by `tests/architecture/serviceWorker.test.ts`); its `progresspal-cache-` prefix is stable. The service worker caches the boot set, the fixed static files and the listed programme content at install, and each listed Python runtime file the first time it is used online.
 - Programme registry: **`cs50x`** (the explicit default) and **`programvareutvikling`**. A fresh learner explicitly chooses the starting programme during onboarding (nothing preselected); existing and restored learners are never re-prompted. Enrolling in or switching to the other programme stays in Settings → Programme.
