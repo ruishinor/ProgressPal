@@ -761,6 +761,18 @@
   grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
 }
 
+/* Programme names are long single words ("Programvareutvikling"): a narrow
+   viewport gets one full-width column, and a label may still break rather than
+   push the document wider than the screen. */
+.checkbox-grid--programmes {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.checkbox-grid--programmes .checkbox > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .checkbox {
   align-items: center;
   background: var(--color-canvas-strong);

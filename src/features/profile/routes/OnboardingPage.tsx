@@ -137,7 +137,7 @@ export function OnboardingPage() {
           Pick the programme you want to start with. You can add or switch
           programmes later in Settings.
         </p>
-        <div className="checkbox-grid">
+        <div className="checkbox-grid checkbox-grid--programmes">
           {programmeChoices.map((choice) => (
             <label className="checkbox" key={choice.programmeId}>
               <input
