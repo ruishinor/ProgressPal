@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { createEvidenceAchievementPlanner } from '@/lib/achievements';
+import {
+  createEvidenceAchievementPlanner,
+  deriveAchievementUnlockId,
+} from '@/lib/achievements';
 import {
   AchievementAwardPlanningError,
   getDatabaseSnapshot,
@@ -223,6 +226,58 @@ describe('achievement planning is atomic with the terminal result', () => {
         })
       ).map((attempt) => attempt.id),
     ).toEqual([`attempt-${codeReaderSubjects[0]}`]);
+  });
+});
+
+describe('a storage failure while unlocking is not reclassified as a planning failure', () => {
+  it('escapes as the raw storage error and still rolls the whole result back', async () => {
+    const context = await device('ach-storage-failure');
+    const now = clock();
+    const qualifying: EvidenceAchievementPlanner = () => [
+      { achievementId: 'p2-code-reader', triggerSourceId: 's1-m01-o05' },
+    ];
+
+    // The planner is sound, but the unlock's primary key is already taken by
+    // another row, so the insert itself fails inside the result transaction.
+    const takenAt = now();
+    await context.db.achievementUnlocks.add({
+      id: deriveAchievementUnlockId('p2-code-reader'),
+      achievementId: 'p2-someone-else',
+      unlockedAt: takenAt,
+      triggerSourceId: 's1-m01-o05',
+      createdAt: takenAt,
+      updatedAt: takenAt,
+    });
+
+    const failure = await submitAttemptAndRecordResult(
+      input(codeReaderSubjects[0]!),
+      correct,
+      {
+        db: context.db,
+        now,
+        awardXp,
+        awardAchievements: qualifying,
+      },
+    ).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(Error);
+    expect(failure).not.toBeInstanceOf(AchievementAwardPlanningError);
+    expect((failure as Error).name).toBe('ConstraintError');
+
+    expect(
+      (await getDatabaseSnapshot({ db: context.db })).learnerEvidence.map(
+        (row) => row.kind,
+      ),
+    ).toEqual(['exercise_attempt']);
+    expect(
+      await listXpTransactions({ db: context.db, programmeId: p2ProgrammeId }),
+    ).toEqual([]);
+    expect(
+      (await unlocks(context)).map((unlock) => unlock.achievementId),
+    ).toEqual(['p2-someone-else']);
   });
 });
 
