@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 2,
+  "module": "v1-7-1-learner-feedback",
+  "reviewer": "ChatGPT GPT-5.6 Sol (independent frozen-candidate review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f81cd0cba1ffb66bd8c63a05eae70768f6d16032",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent frozen-candidate review of ProgressPal v1.7.1 candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8, root tree 12736746f2cc6ab0c8e23c9018dfc290f06d7f8a and review payload tree f81cd0cba1ffb66bd8c63a05eae70768f6d16032. The review covers the bounded learner-feedback tranche: Programvareutvikling content v3 and source authority, lesson readability and semantic presentation, source-only copy affordances, Fortsett bookmark/focus/scroll behavior, local-completion versus XP/mastery semantics, existing level-up behavior, Home icon correction, release/version/cache identity, offline content packaging, security boundaries and release provenance. It also reviews the supplied focused/unit/E2E evidence and the exact eight-exercise content-hash delta. It does not treat historical Package 21 study-baseline coupling as a product gate.",
+    "evidence": [
+      "Frozen identity: candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8; parent/production base 3241c741b7a29131e3433dcf9e743d93f3f8ff38; root tree 12736746f2cc6ab0c8e23c9018dfc290f06d7f8a; review payload tree f81cd0cba1ffb66bd8c63a05eae70768f6d16032; application version 1.7.1; Programvareutvikling content version 3.",
+      "Candidate scope is bounded to 32 changed paths. No database schema, migration, CSP, cloud, analytics, authentication, remote-course-data or dependency feature change is present. package.json/package-lock.json move only the application version from 1.7.0 to 1.7.1; public/sw.js moves only CACHE_VERSION to progresspal-cache-v1.7.1.",
+      "Authoritative Programvareutvikling pilot identity is SHA-256 4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e, 1125575 bytes. Fresh export reported 7 files and counts modules 2, missions 25, units 47, exercises 291, evaluable 276, needsRuntime 49, masteryGate 25 and hints 245.",
+      "Authoring QA passed before freeze: learner-render check, all 43 pilot/learner-render mutation probes, independent pilot verification, deterministic fixtures, all 39 curriculum mutation probes, output/locator/document-reference validation. The historical Package 21 manifest check was correctly excluded because it pins the frozen study baseline to the pre-v3 pilot and explicitly is not the product-content release gate.",
+      "All 291 exercise IDs are stable. Exactly eight exercise content hashes changed: s1-m01-p01-e05, s1-m01-p02-e03, s1-m01-p02-e07, s1-m01-p02-e08, s1-m01-p03-e02, s1-m01-p03-e04, s1-m01-p03-e06 and s1-m01-p06-e01; the other 283 remain unchanged.",
+      "PowerShell curriculum correctness was checked at source: cd.. is registered and accepted as valid shorthand at S1-M01-P02 while cd .. remains the taught canonical form; malformed alternatives retain distinct near-miss feedback. The source also introduces the requested filename-extension wording, ls/list mnemonic with dir note, minimum str/int/float vocabulary, text-frame examples, exact-output presentation and duplicate answer-format cleanup.",
+      "Data-architecture review confirms a v2 to v3 content-version bump does not erase valid unchanged-hash mastery evidence: deriveProgrammeMastery classifies older attempts as counting when subject and current contentHash still match; only newer-content evidence or hash-mismatched stale bindings are excluded. Achievement planning derives solved subjects/checkpoints from that mastery state, so unchanged v2 evidence can continue to satisfy v3 achievement predicates while the one achievement-referenced exercise whose hash changed correctly becomes stale for current-content judgement.",
+      "Manual/local completion regression records completed progress but zero Programvareutvikling XP and no learner-evidence/mastery row; the existing First Step achievement can still unlock independently. A real Programvareutvikling exercise crosses the level threshold, produces exactly one Level up notice and does not replay after reload.",
+      "Fortsett keeps read-only-tab disabling and bookmark persistence, and now programmatically focuses and scrolls to the next logical section. Unit coverage checks bookmark and focus targets; final Chromium E2E passed 2/2 after the final CSS change and checks keyboard activation, focus placement near the viewport top, horizontal overflow absence and axe violations.",
+      "Presentation review: prose is constrained to 68ch while code/terminal/table surfaces remain full-width; mobile spacing is narrower through the existing breakpoint. Source code alone is copyable; terminal transcripts, output and error blocks are not. Callout meaning is carried by labels and distinct glyphs in addition to color, and error/success states retain textual cues.",
+      "Final native evidence before freeze reported format PASS, typecheck PASS, lint PASS, production build PASS, circular-dependency check PASS, fresh export PASS and CSS bundle budget PASS at 12495 of 12500 gzip bytes. Full repository certification remains intentionally pending until this independent review is bound.",
+      "The E2E uses synthetic data only and adds no network capability. Candidate paths contain no CSP or remote-source change; service-worker behavior changes only cache identity/content-addressed asset references. No new dependency is added.",
+      "Canonical authoring-source promotion is a release-sequence obligation outside the product Git payload. Before this review evidence is committed and before certification, the reviewed source files must be promoted without isolation-only path rewrites and the canonical authoring workspace must reproduce the exact reviewed pilot hash and bytes."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "V171-01",
+      "severity": "P2",
+      "description": "Fortsett previously wrote a resume bookmark but appeared inert on the fully expanded lesson page, creating a user-visible control/action mismatch.",
+      "resolution": "The candidate keeps the bookmark write, keeps the control disabled in read-only tabs, and then focuses and instant-scrolls to the next section heading or first unheaded block. Unit tests cover bookmark/focus/read-only behavior and the final Chromium E2E verifies keyboard activation and visible focus placement.",
+      "status": "resolved"
+    },
+    {
+      "id": "V171-02",
+      "severity": "P2",
+      "description": "The initial learner feedback exposed curriculum correctness and explanation gaps around terminal commands, file extensions, basic type vocabulary, exact output and text frames; treating valid PowerShell cd.. as malformed would have taught a false rule.",
+      "resolution": "Source-first content v3 corrects the requested explanations and accepts both cd .. and valid PowerShell cd.. while keeping the spaced form canonical. Authoring validators and mutation suites pass, 291 exercise IDs remain stable, and exactly eight expected exercise hashes change.",
+      "status": "resolved"
+    },
+    {
+      "id": "V171-03",
+      "severity": "P2",
+      "description": "A global content-version bump can accidentally discard valid learner evidence or achievement progress if derivation keys only on contentVersion rather than current subject/hash semantics.",
+      "resolution": "The unchanged mastery engine was independently inspected: older-version attempts count when the current subject exists and contentHash still matches; hash-mismatched attempts are stale and newer-than-app evidence is not interpreted. Achievement planning derives from this current-hash mastery state. Therefore 283 unchanged hashes preserve valid evidence semantics while the eight changed exercises are correctly re-bound.",
+      "status": "resolved"
+    },
+    {
+      "id": "V171-04",
+      "severity": "P2",
+      "description": "Manual lesson completion risked being interpreted as XP or mastery, while the learner still needed real exercise XP and generic level-up notifications to behave normally.",
+      "resolution": "Programme-specific completion copy explicitly states zero XP and no mastery. Regression coverage proves completed progress with zero programme XP and no learner-evidence row, proves a real exercise still awards XP, and proves one level-up notice with no reload replay.",
+      "status": "resolved"
+    },
+    {
+      "id": "V171-05",
+      "severity": "P2",
+      "description": "Preformatted Copy controls and visually similar callouts could encourage copying terminal/error output or communicate meaning primarily by color.",
+      "resolution": "The candidate introduces an explicit preformatted role policy: only reusable source is copyable; terminal, output and error transcripts are not. Callout kind remains named by text and gains distinct decorative glyphs; error/success presentation retains textual labels/status semantics. Targeted DOM tests and final axe analysis pass.",
+      "status": "resolved"
+    },
+    {
+      "id": "V171-06",
+      "severity": "P3",
+      "description": "The final learner-feedback browser regression is Chromium-only at 1280 px and 390 px in light/dark themes; it is not a physical-device, Safari or Firefox visual certification and does not use golden-image comparison.",
+      "resolution": "Accepted for this bounded patch. The test exercises the actual product build, checks keyboard continuation/focus, copy policy, completion description, horizontal overflow and axe violations at both widths/themes, while the owner separately judged the mobile/light result acceptable. Cross-browser/device polish remains outside this correction tranche unless a reproduced defect appears.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V171-07",
+      "severity": "P3",
+      "description": "The candidate passes the CSS gzip budget with only 5 bytes of headroom (12495 / 12500), so even a tiny future CSS addition may fail the budget.",
+      "resolution": "Accepted as mechanically bounded maintenance pressure, not a runtime defect. The budget itself remains unchanged and will fail future growth immediately; raising or weakening it was explicitly avoided.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Five-plus adversarial review passes across release management, learner/UX, UI/accessibility, QA/testing, data/evidence architecture, security and retrospective process found no open P0, P1 or P2 blocker in frozen candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8 / payload f81cd0cba1ffb66bd8c63a05eae70768f6d16032. The candidate is materially bounded to learner-feedback corrections, preserves the local-first/security/schema boundary, carries content v3 with stable IDs and precisely scoped hash invalidation, preserves older unchanged-hash evidence semantics, and has focused/unit/browser evidence for the interaction and progression changes. Remaining items are explicit P3 accepted risks. Decision: proceed after canonical authoring-source promotion reproduces the reviewed pilot exactly, then commit this candidate-bound review evidence as evidence-only and run one repository-native final release gate before any publication."
+  }
+}
