@@ -1590,9 +1590,19 @@ export function ContentDetailPage() {
     </Card>
   );
 
+  // A programme whose lessons earn XP only through their tasks says so here
+  // instead of the general line (its own copy; other programmes have none).
+  const lessonCompletionNote =
+    detail.item.type === 'lesson'
+      ? programme.content.lessons?.copy?.text.localCompletionNote
+      : undefined;
+
   const progressCard = (
     <Card
-      description="Saved here. Updates your progress, XP, achievements, and dashboard."
+      description={
+        lessonCompletionNote ??
+        'Saved here. Updates your progress, XP, achievements, and dashboard.'
+      }
       title={getProgressCardTitle(detail.item.type)}
       variant="accent"
     >

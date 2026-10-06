@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd",
-  "contentVersion": 2,
+  "sourceSha256": "4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e",
+  "contentVersion": 3,
   "exercises": {
     "S1-M01-P01-E01": {
       "examples_ok": ["Python 3.14.4", "Python 3.12.10", "Python 3.13.0"],
@@ -36,7 +36,7 @@
       "examples_bad": ["py hei.py", "cd ..", "ls"]
     },
     "S1-M01-P02-E08": {
-      "examples_ok": ["cd .."],
+      "examples_ok": ["cd ..", "cd.."],
       "examples_bad": ["cd", "cd ...", "up", "cd /"]
     },
     "S1-M01-P02-E11": {

@@ -946,6 +946,7 @@ export const lessonUiTextKeys = [
   'alreadyCorrect',
   'remediation',
   'completionDisclaimer',
+  'localCompletionNote',
   'afterSubmitExplanation',
   'revealedTests',
   'copyCode',

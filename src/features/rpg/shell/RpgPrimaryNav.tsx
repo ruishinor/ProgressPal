@@ -101,8 +101,9 @@ function RpgNavIcon({ name }: { name: RpgNavIconName }) {
   if (name === 'hub') {
     return (
       <svg {...commonProps}>
-        <path d="m5 15.8 5.3-6.1 2.3 2.7 2.1-4.2L19 15.8" />
-        <path d="M7.5 18h9" />
+        <path d="M3.8 11.4 12 4l8.2 7.4" />
+        <path d="M6.2 9.6V20h11.6V9.6" />
+        <path d="M10 20v-5.4h4V20" />
       </svg>
     );
   }

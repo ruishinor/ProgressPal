@@ -14,10 +14,17 @@ import {
  * against the new content and then bump this number; the unit test
  * `programvareutviklingAchievements.test.ts` fails until you do.
  *
+ * Re-reviewed for content version 3 (2026-10-06): every referenced subject,
+ * mission and module still exists; the gating exercises, checkpoint rule and
+ * retry rule of both modules are identical to version 2; the only referenced
+ * exercise whose content hash changed is `s1-m01-p06-e01` (a duplicated
+ * answer-format instruction was removed from its prompt), so the predicates
+ * and their meaning are unchanged and only this binding moved from 2 to 3.
+ *
  * Ids are global (unlocks are keyed by achievement id alone), so every
  * Programvareutvikling-specific id carries the `p2-` namespace.
  */
-export const programvareutviklingAchievementContentVersion = 2;
+export const programvareutviklingAchievementContentVersion = 3;
 export const programvareutviklingAchievementIdPrefix = 'p2-';
 
 const contentVersion = programvareutviklingAchievementContentVersion;

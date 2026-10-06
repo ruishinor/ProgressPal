@@ -47,18 +47,21 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  * The authoritative product source: the Pre-E fit analysis's pilot, as
  * corrected at the source on 2026-10-03 (D-2 sentence, interleaved mission
  * sequences, and "Oppsettsklinikken" renamed "Feilsøking av oppsett") and on
- * 2026-10-04 (every "-klinikk" learner-facing name replaced by plain wording).
+ * 2026-10-04 (every "-klinikk" learner-facing name replaced by plain wording)
+ * and on 2026-10-06 (learner-feedback corrections, content version 3: filename
+ * extension and type vocabulary, `ls`/`dir`, `ramme`, exact-output block,
+ * `cd` near misses, duplicated answer-format instructions removed).
  */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd',
-  bytes: 1_121_807,
+  sha256: '4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e',
+  bytes: 1_125_575,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';
 
 const PROGRAMME_ID = 'programvareutvikling';
-const CONTENT_VERSION = 2;
+const CONTENT_VERSION = 3;
 const EVALUATOR_CONTRACT_VERSION = 1;
 
 /**

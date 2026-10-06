@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import type { LessonTextBlock, LessonUiCopy } from '@/lib/domain';
 
+import { copyableRoles, type PreformattedRole } from './copyPolicy';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy } from './model';
 import { useLessonSurfaces } from './presentation';
@@ -11,8 +12,9 @@ import { useLessonSurfaces } from './presentation';
  * text, callouts, executed terminal sessions, code with expected output,
  * parsed error transcripts, tables, worked examples, documented-but-
  * unreproduced transcripts with their source, and recaps. Code, commands and
- * tool output keep whitespace, case and quotes exactly as authored, are
- * copyable, and are never executed by being displayed.
+ * tool output keep whitespace, case and quotes exactly as authored and are
+ * never executed by being displayed. Whether a block offers Copy is decided by
+ * its role, never by the fact that it is preformatted.
  */
 
 function CopyButton({ copy, text }: { copy: LessonUiCopy; text: string }) {
@@ -45,20 +47,22 @@ function Preformatted({
   context,
   copy,
   label,
+  role,
   text,
 }: {
   context: MarkupContext;
   copy: LessonUiCopy;
   label?: string;
+  role: PreformattedRole;
   text: string;
 }) {
   return (
-    <div className="lesson-pre">
+    <div className={`lesson-pre lesson-pre--${role}`}>
       {label === undefined ? null : <p className="lesson-note">{label}</p>}
       <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>{text}</code>
       </pre>
-      <CopyButton copy={copy} text={text} />
+      {copyableRoles[role] ? <CopyButton copy={copy} text={text} /> : null}
     </div>
   );
 }
@@ -79,6 +83,36 @@ const sessionText = (
       (step) => `${step.prompt}${step.cmd}${step.out ? `\n${step.out}` : ''}`,
     )
     .join('\n');
+
+/**
+ * Small inline glyphs, one per callout kind, so the kind is never carried by
+ * colour alone (the label stays the primary signal). They are decorative.
+ */
+const calloutGlyphs: Readonly<Record<string, string>> = {
+  tip: 'M12 3.5a5.5 5.5 0 0 0-3 10.1V16h6v-2.4A5.5 5.5 0 0 0 12 3.5ZM9.5 19h5M10.5 21h3',
+  merk: 'M6 4.5h12v15H6zM9 9h6M9 12.5h6M9 16h3.5',
+  'pass-paa': 'M12 4 2.8 19.5h18.4L12 4ZM12 10v4.5M12 17v.2',
+  veikart: 'M5 21V4M5 5h11l-2 3.5 2 3.5H5',
+  hjelp:
+    'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8M12 17v.2',
+  norsk:
+    'M4 6h9M8.5 4v2M6 6c.5 3 2.5 5.5 5.5 7M11 6c-.5 3-2.5 5.5-5.5 7M13 20l4-9 4 9M14.5 17h5',
+};
+
+function CalloutGlyph({ kind }: { kind: string }) {
+  const path = calloutGlyphs[kind] ?? calloutGlyphs.merk!;
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="lesson-callout__glyph"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path d={path} />
+    </svg>
+  );
+}
 
 export function LessonTextBlockView({
   block,
@@ -102,8 +136,12 @@ export function LessonTextBlockView({
     case 'callout':
       return (
         // A note, not a landmark: callouts sit inside the page landmarks.
-        <div className={surfaces.callout} role="note">
-          <p>
+        <div
+          className={`${surfaces.callout} lesson-callout--${block.kind}`}
+          role="note"
+        >
+          <p className="lesson-callout__label">
+            <CalloutGlyph kind={block.kind} />
             <strong>{copy.calloutLabels[block.kind] ?? block.kind}</strong>
           </p>
           <Markup context={context} text={block.nb} />
@@ -115,6 +153,7 @@ export function LessonTextBlockView({
           <Preformatted
             context={context}
             copy={copy}
+            role="terminal"
             text={sessionText(block.session)}
           />
           <Caption context={context} text={block.nb} />
@@ -127,6 +166,7 @@ export function LessonTextBlockView({
             context={context}
             copy={copy}
             label={formatCopy(copy, 'fileLabel', { file: block.file })}
+            role="source"
             text={block.code}
           />
           {block.stdout ? (
@@ -134,6 +174,7 @@ export function LessonTextBlockView({
               context={context}
               copy={copy}
               label={copy.text.output}
+              role="output"
               text={block.stdout}
             />
           ) : null}
@@ -142,6 +183,7 @@ export function LessonTextBlockView({
               context={context}
               copy={copy}
               label={copy.text.errorOutput}
+              role="error"
               text={block.error}
             />
           ) : null}
@@ -155,16 +197,28 @@ export function LessonTextBlockView({
             context={context}
             copy={copy}
             label={formatCopy(copy, 'fileLabel', { file: block.file })}
+            role="source"
             text={block.code}
           />
-          <Preformatted context={context} copy={copy} text={block.terminal} />
+          <Preformatted
+            context={context}
+            copy={copy}
+            label={copy.text.errorOutput}
+            role="error"
+            text={block.terminal}
+          />
           <Caption context={context} text={block.nb} />
         </figure>
       );
     case 'doc-terminal':
       return (
         <figure className="lesson-figure">
-          <Preformatted context={context} copy={copy} text={block.text} />
+          <Preformatted
+            context={context}
+            copy={copy}
+            role="terminal"
+            text={block.text}
+          />
           <Caption context={context} text={block.nb} />
           <p className="lesson-note">
             {formatCopy(copy, 'unverifiedTranscript', { source: block.source })}
@@ -215,6 +269,7 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
+                    role="source"
                     text={step.code}
                   />
                 ) : null}
@@ -222,6 +277,7 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
+                    role="terminal"
                     text={sessionText(step.session)}
                   />
                 ) : null}
@@ -230,6 +286,7 @@ export function LessonTextBlockView({
                     context={context}
                     copy={copy}
                     label={copy.text.output}
+                    role="output"
                     text={step.stdout}
                   />
                 ) : null}
@@ -237,6 +294,8 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
+                    label={copy.text.errorOutput}
+                    role="error"
                     text={step.error}
                   />
                 ) : null}

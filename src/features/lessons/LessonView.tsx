@@ -401,6 +401,34 @@ function LessonSurface({
     [bundle, itemId, programmeId, steps, write],
   );
 
+  // `Fortsett` after a section: keep the bookmark (when this tab may write)
+  // and then bring the learner to the next section. The page is one long,
+  // fully expanded flow, so the move is the visible part of the action.
+  // Focus goes to the next section's heading (or its first block when the
+  // practice continues without a heading), which also tells assistive
+  // technology where the learner is now. The scroll is instant and
+  // deterministic (no smooth animation to reduce), and it still happens, as a
+  // focus move, when the next section is already on screen.
+  const continueTo = useCallback(
+    async (nextStepIndex: number) => {
+      if (coordination.canWrite) {
+        await savePosition(nextStepIndex);
+      }
+
+      const target =
+        document.getElementById(`${anchorPrefix}-group-${nextStepIndex}`) ??
+        document.getElementById(`${anchorPrefix}-step-${nextStepIndex}`);
+
+      if (target === null) {
+        return;
+      }
+
+      target.focus({ preventScroll: true });
+      target.scrollIntoView?.({ behavior: 'auto', block: 'start' });
+    },
+    [anchorPrefix, coordination.canWrite, savePosition],
+  );
+
   if (load.status === 'loading') {
     return <p className="lesson-note">{copy.text.lessonLoading}</p>;
   }
@@ -567,13 +595,19 @@ function LessonSurface({
                     {copy.unitKindLabels[unit.kind]}
                     {unit.optional ? ` · ${copy.text.optionalSuffix}` : ''}
                   </p>
-                  <h2>{unit.title_nb}</h2>
+                  <h2
+                    id={`${anchorPrefix}-group-${group[0]!.stepIndex}`}
+                    tabIndex={-1}
+                  >
+                    {unit.title_nb}
+                  </h2>
                 </header>
               ) : null}
-              {group.map((step) => (
+              {group.map((step, indexInGroup) => (
                 <div
                   id={`${anchorPrefix}-step-${step.stepIndex}`}
                   key={step.stepIndex}
+                  tabIndex={!headed && indexInGroup === 0 ? -1 : undefined}
                 >
                   {step.block.t === 'exercise' ? (
                     (() => {
@@ -650,7 +684,7 @@ function LessonSurface({
                   <button
                     className={surfaces.secondary}
                     disabled={!coordination.canWrite}
-                    onClick={() => void savePosition(groupEnd + 1)}
+                    onClick={() => void continueTo(groupEnd + 1)}
                     type="button"
                   >
                     {copy.text.continue}

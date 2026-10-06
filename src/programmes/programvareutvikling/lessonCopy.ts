@@ -173,6 +173,10 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     xpEarned: '+{xp} XP',
     completionDisclaimer:
       'Fullført betyr at du har gått gjennom økta. Det betyr ikke at du har vist at du mestrer ferdighetene.',
+    // Shown at the manual completion action of a lesson. Marking a lesson
+    // complete stores its status only: XP is earned by solving its tasks.
+    localCompletionNote:
+      'Dette markerer økta som gjennomgått. Det gir ikke XP og betyr ikke at ferdigheten er mestret. XP tjenes i oppgavene.',
     afterSubmitExplanation: 'Forklaring',
     revealedTests: 'Testene du ikke så før du leverte:',
     copyCode: 'Kopier',

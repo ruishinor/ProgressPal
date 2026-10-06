@@ -592,6 +592,13 @@ export function RpgResourcePage() {
     return <RpgResourceLoadingState />;
   }
 
+  // A programme whose lessons earn XP only through their tasks says so at the
+  // manual completion action (its own copy; CS50 and other programmes have none).
+  const completionNote =
+    summary.itemType === 'lesson'
+      ? programme.content.lessons?.copy?.text.localCompletionNote
+      : undefined;
+  const completionNoteId = 'rpg-resource-completion-note';
   const formValues = formState?.values ?? createFormValues(summary);
   const selectedProgressStatus = formValues.status;
   const showEvidenceField =
@@ -804,6 +811,15 @@ export function RpgResourcePage() {
           </p>
         ) : null}
 
+        {completionNote === undefined ? null : (
+          <p
+            className="rpg-study-resource__note"
+            id={completionNoteId}
+            role="note"
+          >
+            {completionNote}
+          </p>
+        )}
         <div className="rpg-study-resource__form-actions">
           <RpgButton
             disabled={
@@ -825,6 +841,9 @@ export function RpgResourcePage() {
                 { ...formValues, status: 'completed' },
                 savedFormValues,
               )
+            }
+            aria-describedby={
+              completionNote === undefined ? undefined : completionNoteId
             }
             onClick={handleMarkComplete}
             type="button"

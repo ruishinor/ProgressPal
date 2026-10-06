@@ -343,7 +343,7 @@ export function ExerciseCard({
       {result !== null ? (
         <div
           aria-label={copy.text.resultLabel}
-          className={surfaces.result}
+          className={`${surfaces.result} lesson-result lesson-result--${result.tone}`}
           role="status"
         >
           <p>

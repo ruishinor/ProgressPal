@@ -2,11 +2,11 @@
   "format": "progresspal-programme-catalogue",
   "formatVersion": 1,
   "programmeId": "programvareutvikling",
-  "contentVersion": 2,
+  "contentVersion": 3,
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd",
+  "sourceSha256": "4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -546,19 +546,19 @@
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.485e153494679c48.json",
-      "sha256": "485e153494679c4894cefc1cb13fe7e88f1ee9b89f1b1bd945de7cddb48b1a2c",
-      "bytes": 197989
+      "path": "content/programvareutvikling/index.ad570d500d3cba87.json",
+      "sha256": "ad570d500d3cba8749d08f3a71ff263155f0f04fb6ac3500f19a1497c8b7fb86",
+      "bytes": 197990
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.c1d1e02ac31134cf.json",
-        "sha256": "c1d1e02ac31134cfa98e44ef37dab7ada5c1235e1e84729b79e212474e0a95fe",
-        "bytes": 270380
+        "path": "content/programvareutvikling/s1-m01.e1477531714cddf1.json",
+        "sha256": "e1477531714cddf13ce2369c889b8b5ecd28f29d029d245a0d9946decc1f8e91",
+        "bytes": 273442
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.60f7f5058101dd8b.json",
-        "sha256": "60f7f5058101dd8bebc8e462aa8f20a472c6fb93f439314b05c16a30003459b1",
+        "path": "content/programvareutvikling/s1-m02.d8c2b697f3bc28d5.json",
+        "sha256": "d8c2b697f3bc28d5fc308d4a09e410ce30b4f42358396bc8dba09f0edaff8887",
         "bytes": 265687
       }
     }

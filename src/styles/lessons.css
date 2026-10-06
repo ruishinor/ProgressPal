@@ -21,6 +21,18 @@
   padding: 0;
 }
 
+/* A labelled answer control. The keyboard focus outline (3px, offset 3px)
+   reaches 6px past the control, so the label sits further away than that:
+   the outline stays strong and never lands on the label or nearby text. */
+.lesson-field {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.lesson-field > label {
+  font-weight: 600;
+}
+
 .lesson pre {
   background: var(--color-surface-muted);
   border-radius: var(--radius-sm);
@@ -43,12 +55,152 @@
    title and goal, and authored prose spaces its paragraphs, lists and
    headings, with more room above a heading than between paragraphs. */
 .lesson-unit__header,
-.lesson-header:not(.rpg-page-header),
-.lesson-text {
+.lesson-header:not(.rpg-page-header) {
   display: grid;
   gap: var(--space-2);
 }
 
+.lesson-text {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .lesson-text > :is(h3, h4) {
-  margin-top: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.lesson-text :is(ul, ol) > li + li {
+  margin-top: var(--space-2);
+}
+
+/* Section rhythm: more air between the blocks of a section than inside a
+   block, and a clear step down from the section heading. */
+.lesson .lesson-unit {
+  gap: var(--space-6);
+}
+
+.lesson .lesson-unit__header {
+  margin-bottom: var(--space-2);
+}
+
+/* Reading measure. Prose keeps a comfortable line length on wide screens;
+   code, terminal text and tables are not prose and use the full width. */
+.lesson :is(p, ul, ol) {
+  max-inline-size: 68ch;
+}
+
+/* Balanced headings keep long titles readable; unsupported browsers wrap normally. */
+.lesson :is(h1, h2, h3, h4) {
+  text-wrap: balance;
+}
+
+/* Inline literals (commands, file and folder names) read differently from
+   prose: monospace, a tinted chip and a hairline border. The tint and the
+   border are derived from the text colour, so they hold in light and dark
+   themes and on every lesson surface; the text colour is unchanged. */
+.lesson :not(pre) > code {
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-text) 22%, transparent);
+  border-radius: 0.375rem;
+  box-decoration-break: clone;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+  padding: 0.05em 0.35em;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Callouts: the kind is told by its label and glyph; the bar and tint only
+   reinforce it. Existing tokens decide the colours. */
+.lesson .lesson-callout {
+  --callout-accent: var(--color-border-strong);
+  background: var(--color-surface-muted);
+  border-inline-start: 0.3rem solid var(--callout-accent);
+  gap: var(--space-2);
+}
+
+.lesson-callout__label {
+  align-items: center;
+  color: var(--callout-accent);
+  display: flex;
+  gap: var(--space-2);
+}
+
+.lesson-callout__glyph {
+  flex: none;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 1.25rem;
+}
+
+.lesson-callout__label strong {
+  color: var(--color-text);
+}
+
+.lesson .lesson-callout--tip,
+.lesson .lesson-callout--hjelp {
+  --callout-accent: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.lesson .lesson-callout--pass-paa {
+  --callout-accent: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.lesson .lesson-callout--veikart {
+  --callout-accent: var(--color-accent);
+  background: var(--color-accent-soft);
+  border: 2px dashed var(--callout-accent);
+}
+
+.lesson .lesson-callout--merk,
+.lesson .lesson-callout--norsk {
+  --callout-accent: var(--color-text-soft);
+}
+
+/* Error output and correct results. The label text ("Feilmelding:",
+   "Riktig") is the signal; the bar is a second cue. Red is reserved for
+   errors, green for a correct result. */
+.lesson-pre--error pre {
+  border-inline-start: 0.3rem solid var(--color-danger);
+}
+
+.lesson-pre--error > .lesson-note {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.lesson-result--success {
+  border-inline-start: 0.3rem solid var(--color-success);
+}
+
+.lesson-result--notice {
+  border-inline-start: 0.3rem solid var(--color-warning);
+}
+
+/* Targets that `Fortsett` moves focus to are focusable by script only. They
+   show a visible outline when focused, also after a mouse click, so the move
+   is perceivable without any animation, and they keep clear of the viewport
+   edge when scrolled into view. */
+.lesson [tabindex='-1'] {
+  scroll-margin-block-start: var(--space-8);
+}
+
+.lesson [tabindex='-1']:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (max-width: 42rem) {
+  .lesson .lesson-unit {
+    gap: var(--space-5);
+  }
+
+  .lesson-text {
+    gap: var(--space-3);
+  }
 }

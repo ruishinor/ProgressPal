@@ -27,12 +27,13 @@ import {
  * is absent in CI, so source fidelity is proven through the exporter's source
  * ledger (digests of the source objects taken from `pilot.json` at the
  * recorded hash) plus the exporter's own `--check` run against the real
- * source before freeze. Content version 2 follows the source corrections of
- * 2026-10-03 (D-2 and the authored interleaving).
+ * source before freeze. Content version 3 follows the learner-feedback corrections of
+ * 2026-10-06 (version 2: the source corrections of 2026-10-03, D-2 and the
+ * authored interleaving).
  */
 
 const pilotSha256 =
-  '5ece045cc6bea695d729b5ca974f0da1f96a3eff715d1a8e2c348874f4380ddd';
+  '4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -94,7 +95,7 @@ describe('E0: source identity and re-derived counts', () => {
   it('records the authoritative source identity, content version and language metadata', () => {
     expect(manifest.format).toBe('progresspal-programme-content');
     expect(manifest.formatVersion).toBe(1);
-    expect(manifest.contentVersion).toBe(2);
+    expect(manifest.contentVersion).toBe(3);
     expect(manifest.evaluatorContractVersion).toBe(
       lessonEvaluatorContractVersion,
     );
@@ -105,7 +106,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_121_807,
+      bytes: 1_125_575,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
@@ -348,7 +349,7 @@ describe('content binding: contentVersion, source hash and per-exercise content 
       id: 'attempt-1',
       kind: 'exercise_attempt',
       programmeId: 'programvareutvikling',
-      contentVersion: 2,
+      contentVersion: 3,
       subjectId: manifest.exercises[0]!.subjectId,
       contentHash: manifest.exercises[0]!.contentHash,
       recordedAt: '2026-10-03T10:00:00.000Z',
@@ -435,7 +436,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
       expect(Buffer.byteLength(text), asset.path).toBe(asset.bytes);
       expect(asset.path, asset.path).toContain(asset.sha256.slice(0, 16));
     }
-    expect(p2Catalogue.contentVersion).toBe(2);
+    expect(p2Catalogue.contentVersion).toBe(3);
     expect(p2Catalogue.sourceSha256).toBe(pilotSha256);
     expect(p2Catalogue.subjectIds).toEqual(
       manifest.exercises.map((entry) => entry.subjectId),
@@ -449,7 +450,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
       expect(result.status, itemId).toBe('ready');
       if (result.status === 'ready') {
         expect(result.value.itemId).toBe(itemId);
-        expect(result.value.contentVersion).toBe(2);
+        expect(result.value.contentVersion).toBe(3);
         expect(result.value.sourceSha256).toBe(pilotSha256);
         expect(result.value.language).toBe('nb');
         expect(result.value.units.length).toBeGreaterThan(0);
@@ -513,7 +514,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
 
   it('returns version_mismatch when a module carries another content version or source', async () => {
     const otherVersion = tamperedProvider(({ m1 }) => {
-      (m1 as { contentVersion: number }).contentVersion = 3;
+      (m1 as { contentVersion: number }).contentVersion = 4;
     });
     const otherSource = tamperedProvider(({ m2 }) => {
       (m2 as { sourceSha256: string }).sourceSha256 = 'f'.repeat(64);
@@ -529,7 +530,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
 
   it('returns version_mismatch when the index disagrees with the bundled catalogue', async () => {
     const otherIndex = tamperedProvider(({ index }) => {
-      (index as { contentVersion: number }).contentVersion = 3;
+      (index as { contentVersion: number }).contentVersion = 4;
     });
     const otherCatalogue = tamperedProvider(() => undefined, {
       catalogue: (copy) => {
