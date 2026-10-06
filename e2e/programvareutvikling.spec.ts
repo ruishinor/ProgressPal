@@ -528,7 +528,7 @@ const keyboardModes = [
   {
     mode: 'prediction',
     item: 's1-m01-o05',
-    prompt: 'Forutsi utskriften. (Hint: hver linje for seg.)',
+    prompt: 'Forutsi utskriften.',
   },
   {
     mode: 'reflection choice',
