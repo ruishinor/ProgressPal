@@ -4,11 +4,11 @@
   "reviewer": "ChatGPT GPT-5.6 Sol (independent senior product/engineering review, 2026-10-06)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "313994c931e3e1220ddf06049bcdb4bb368d307d",
+    "payloadTree": "bc13d85d8281898c6b0001547c658d1260e8a77a",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent review of the frozen ProgressPal navigation/information-architecture candidate 36f688b7c3c01c836be2f806f3d231c298cae2e8, root tree 43608b3218ef00d560ef7bcc63c4d10bbb0e8db8 and review payload tree 313994c931e3e1220ddf06049bcdb4bb368d307d, against released v1.7.0 base fe2e9878d8417309a9cca517a84498a5f02c3c88. Scope covered candidate identity and cleanliness, bounded IA/title/overflow diff, UX/IA, UI/accessibility, QA discrimination, state/data integrity, routing/lifecycle behavior, adversarial failure modes and process/owner burden. Locked product decisions and explicitly accepted backlog items were not reopened absent a blocker.",
+    "summary": "Independent review of the final ProgressPal navigation/information-architecture payload. The previously reviewed IA candidate was unchanged except for one bounded dev-only lockfile security remediation required by the repository-native release gate: source-map-js 1.2.1 was updated to 1.2.2. The complete lockfile diff was independently reviewed and changed only that package resolution. npm audit --audit-level=moderate returned zero vulnerabilities. The IA implementation, UX decisions, routing, persistence, schemas, PWA behavior and product scope were not reopened.",
     "evidence": [
       "Frozen candidate identity reviewed: base fe2e9878d8417309a9cca517a84498a5f02c3c88; candidate 36f688b7c3c01c836be2f806f3d231c298cae2e8; root tree 43608b3218ef00d560ef7bcc63c4d10bbb0e8db8; branch feat/navigation-ia-consolidation; clean captured status. The independent evidence ZIP hash manifest was verified without mismatches.",
       "The candidate range contains exactly two commits: 30f0bc0 refactor: consolidate primary navigation and 36f688b fix: keep programme selection within narrow viewports.",
@@ -19,7 +19,8 @@
       "Committed IA regression coverage is discriminating rather than only snapshotting the new labels: it asserts exact primary-nav count/order/hrefs, absence of the removed Hero/Profile/Map primary entries, active-state behavior, Profile/avatar keyboard access, Campaign-to-resource navigation and narrow viewport geometry at 320, 360 and 384 px.",
       "The mobile overflow repair is local: programme selection receives a scoped modifier and wrapping/single-column behavior at narrow widths rather than changing the generic checkbox primitive globally.",
       "A physical Galaxy S22+ owner test had already passed before independent review. The independent review therefore did not substitute another implementation cycle for owner/device validation.",
-      "Independent disposition: no P0, P1 or P2 defect requiring repair before integration was found; review concluded INDEPENDENT_REVIEW_PASS_WITH_NONBLOCKING_FINDINGS."
+      "Independent disposition: no P0, P1 or P2 defect requiring repair before integration was found; review concluded INDEPENDENT_REVIEW_PASS_WITH_NONBLOCKING_FINDINGS.",
+      "Final dependency-security remediation: package-lock.json changed only the node_modules/source-map-js resolution from 1.2.1 to 1.2.2, including its registry URL and integrity value; the dependency remained dev-only. npm audit --audit-level=moderate then reported zero vulnerabilities."
     ]
   },
   "adversarialFindings": [
@@ -47,6 +48,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "The frozen IA candidate is bounded to the approved navigation/title/overflow tranche and preserves the reviewed persistence, schema, release/PWA and progression semantics. Five-item navigation, Profile access, Campaign/resource routing, achievement identity and narrow-screen behavior are supported by the supplied Git evidence and regression definitions. No open P0/P1/P2 product defect was found. Remaining findings are explicit P3 accepted risks. Decision: proceed with an evidence-only successor commit that binds this independent review to payload tree 313994c931e3e1220ddf06049bcdb4bb368d307d, then require the repository-native immutable release gate to pass on that successor before treating the release state as green."
+    "summary": "The final payload consists of the independently accepted IA candidate plus one bounded dev-only source-map-js lockfile security remediation required by the immutable release gate. The security patch was independently reviewed from its complete diff and cleared the audit that had been the sole remaining release blocker. No open P0, P1 or P2 product defect was identified. Decision: proceed to one final repository-native immutable release certification for this exact payload."
   }
 }
