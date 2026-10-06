@@ -1,15 +1,21 @@
 {
   "schemaVersion": 2,
   "module": "v1-7-1-learner-feedback",
-  "reviewer": "ChatGPT GPT-5.6 Sol (independent frozen-candidate review)",
+  "reviewer": "ChatGPT GPT-5.6 Sol (independent narrow successor review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "f81cd0cba1ffb66bd8c63a05eae70768f6d16032",
+    "payloadTree": "02f4578c2c00a9077b886c4fa55bf7223cafd9e1",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent frozen-candidate review of ProgressPal v1.7.1 candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8, root tree 12736746f2cc6ab0c8e23c9018dfc290f06d7f8a and review payload tree f81cd0cba1ffb66bd8c63a05eae70768f6d16032. The review covers the bounded learner-feedback tranche: Programvareutvikling content v3 and source authority, lesson readability and semantic presentation, source-only copy affordances, Fortsett bookmark/focus/scroll behavior, local-completion versus XP/mastery semantics, existing level-up behavior, Home icon correction, release/version/cache identity, offline content packaging, security boundaries and release provenance. It also reviews the supplied focused/unit/E2E evidence and the exact eight-exercise content-hash delta. It does not treat historical Package 21 study-baseline coupling as a product gate.",
+    "summary": "Independent narrow successor review of ProgressPal v1.7.1 candidate 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737, root tree eca3b12ce034e191d4b2614b0f7671400ed9a78c, payload tree 02f4578c2c00a9077b886c4fa55bf7223cafd9e1. The previously approved learner-feedback product/runtime/curriculum payload is carried forward. The only successor delta is two test expectations corrected from stale 1.7.0 identities to the already-approved v1.7.1 application/cache identities.",
     "evidence": [
+      "Successor candidate 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737; tree eca3b12ce034e191d4b2614b0f7671400ed9a78c; payload 02f4578c2c00a9077b886c4fa55bf7223cafd9e1.",
+      "Exact successor delta: tests/db/databaseInitialization.test.ts changes its expected currentApplicationVersion from 1.7.0 to 1.7.1.",
+      "Exact successor delta: tests/lib/serviceWorkerCache.test.ts changes its cache fixture from progresspal-cache-v1.7.0 to progresspal-cache-v1.7.1.",
+      "Targeted successor validation passed 27/27 tests across those two files.",
+      "The first authoritative gate had already passed review resolution, clean install, release-gate unit checks, lint, format, typecheck, build and bundle validation before finding only these two stale test expectations.",
+      "No application, curriculum, source, schema, CSP, dependency or learner-facing bytes changed in this successor repair.",
       "Frozen identity: candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8; parent/production base 3241c741b7a29131e3433dcf9e743d93f3f8ff38; root tree 12736746f2cc6ab0c8e23c9018dfc290f06d7f8a; review payload tree f81cd0cba1ffb66bd8c63a05eae70768f6d16032; application version 1.7.1; Programvareutvikling content version 3.",
       "Candidate scope is bounded to 32 changed paths. No database schema, migration, CSP, cloud, analytics, authentication, remote-course-data or dependency feature change is present. package.json/package-lock.json move only the application version from 1.7.0 to 1.7.1; public/sw.js moves only CACHE_VERSION to progresspal-cache-v1.7.1.",
       "Authoritative Programvareutvikling pilot identity is SHA-256 4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e, 1125575 bytes. Fresh export reported 7 files and counts modules 2, missions 25, units 47, exercises 291, evaluable 276, needsRuntime 49, masteryGate 25 and hints 245.",
@@ -74,10 +80,17 @@
       "description": "The candidate passes the CSS gzip budget with only 5 bytes of headroom (12495 / 12500), so even a tiny future CSS addition may fail the budget.",
       "resolution": "Accepted as mechanically bounded maintenance pressure, not a runtime defect. The budget itself remains unchanged and will fail future growth immediately; raising or weakening it was explicitly avoided.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "V171-R2-01",
+      "severity": "P2",
+      "description": "The first authoritative release gate exposed two stale test expectations still pinned to release 1.7.0 although the approved executable and service-worker cache identity are 1.7.1.",
+      "resolution": "Only the two stale test expectations were updated to 1.7.1 / progresspal-cache-v1.7.1. The targeted two-file suite passes 27/27. No runtime or learner-facing bytes changed.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Five-plus adversarial review passes across release management, learner/UX, UI/accessibility, QA/testing, data/evidence architecture, security and retrospective process found no open P0, P1 or P2 blocker in frozen candidate 1e8ce0dbf24872979da2cc785b318b3f56021eb8 / payload f81cd0cba1ffb66bd8c63a05eae70768f6d16032. The candidate is materially bounded to learner-feedback corrections, preserves the local-first/security/schema boundary, carries content v3 with stable IDs and precisely scoped hash invalidation, preserves older unchanged-hash evidence semantics, and has focused/unit/browser evidence for the interaction and progression changes. Remaining items are explicit P3 accepted risks. Decision: proceed after canonical authoring-source promotion reproduces the reviewed pilot exactly, then commit this candidate-bound review evidence as evidence-only and run one repository-native final release gate before any publication."
+    "summary": "Independent narrow successor review approves 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737 / 02f4578c2c00a9077b886c4fa55bf7223cafd9e1. The prior product review remains valid because product/runtime/curriculum bytes are unchanged. The exact test-only delta corrects two stale release-version expectations exposed by the authoritative gate. There are no open P0/P1/P2 findings. Proceed to one final repository-native release certification."
   }
 }
