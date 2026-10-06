@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 2,
+  "module": "navigation-ia-consolidation",
+  "reviewer": "ChatGPT GPT-5.6 Sol (independent senior product/engineering review, 2026-10-06)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "313994c931e3e1220ddf06049bcdb4bb368d307d",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of the frozen ProgressPal navigation/information-architecture candidate 36f688b7c3c01c836be2f806f3d231c298cae2e8, root tree 43608b3218ef00d560ef7bcc63c4d10bbb0e8db8 and review payload tree 313994c931e3e1220ddf06049bcdb4bb368d307d, against released v1.7.0 base fe2e9878d8417309a9cca517a84498a5f02c3c88. Scope covered candidate identity and cleanliness, bounded IA/title/overflow diff, UX/IA, UI/accessibility, QA discrimination, state/data integrity, routing/lifecycle behavior, adversarial failure modes and process/owner burden. Locked product decisions and explicitly accepted backlog items were not reopened absent a blocker.",
+    "evidence": [
+      "Frozen candidate identity reviewed: base fe2e9878d8417309a9cca517a84498a5f02c3c88; candidate 36f688b7c3c01c836be2f806f3d231c298cae2e8; root tree 43608b3218ef00d560ef7bcc63c4d10bbb0e8db8; branch feat/navigation-ia-consolidation; clean captured status. The independent evidence ZIP hash manifest was verified without mismatches.",
+      "The candidate range contains exactly two commits: 30f0bc0 refactor: consolidate primary navigation and 36f688b fix: keep programme selection within narrow viewports.",
+      "Production/source changes are bounded to the approved navigation semantics/order, learner-avatar Profile access, Campaign labels/client-side quest links, removal of redundant RPG header shortcuts, seven Programvareutvikling achievement display-title strings and a local narrow-screen onboarding/programme-selection overflow repair. No candidate change to package identity, service worker, database implementation, schema/domain contract or persistence model was found.",
+      "Persistent navigation implements the locked five-item order Home - Campaign - Focus - Awards - Insights. Resource/lesson context does not falsely mark Campaign active, and Profile remains reachable through a native React Router link on the learner avatar with an accessible name and visible focus treatment.",
+      "Achievement changes were reviewed as display-title-only: stable IDs, descriptions/rules, trigger/source relationships, persistence identity and programme bindings remain unchanged.",
+      "Campaign quest links use client-side routing into the existing resource route. RpgResourcePage reload behavior is keyed by itemId/programme scope and uses active/page-version checks around asynchronous load/save/refresh paths; no concrete stale-resource or stale-HUD state-integrity defect was established.",
+      "Committed IA regression coverage is discriminating rather than only snapshotting the new labels: it asserts exact primary-nav count/order/hrefs, absence of the removed Hero/Profile/Map primary entries, active-state behavior, Profile/avatar keyboard access, Campaign-to-resource navigation and narrow viewport geometry at 320, 360 and 384 px.",
+      "The mobile overflow repair is local: programme selection receives a scoped modifier and wrapping/single-column behavior at narrow widths rather than changing the generic checkbox primitive globally.",
+      "A physical Galaxy S22+ owner test had already passed before independent review. The independent review therefore did not substitute another implementation cycle for owner/device validation.",
+      "Independent disposition: no P0, P1 or P2 defect requiring repair before integration was found; review concluded INDEPENDENT_REVIEW_PASS_WITH_NONBLOCKING_FINDINGS."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "IA-01",
+      "severity": "P3",
+      "description": "The committed suite does not contain a dedicated regression that navigates resource A to resource B sequentially in one mounted application session and then explicitly asserts both the second resource content and the relevant HUD state.",
+      "resolution": "Accepted as a non-blocking coverage gap for this payload. The reviewed implementation reloads on itemId, guards asynchronous work with active/page-version checks, resource-context HUD exposure is limited, progression-changing actions explicitly refresh shared HUD state, and the physical Galaxy S22+ owner test exercised sequential quest changes without reproducing stale data. Add a focused lifecycle regression later if this routing area is touched again.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "IA-02",
+      "severity": "P3",
+      "description": "docs/CURRENT_STATE.md in the reviewed payload still describes the physical-device and independent IA review as outstanding, which became stale when those gates completed.",
+      "resolution": "Accepted as non-runtime documentation debt rather than a reason to mutate the frozen IA payload. Any correction outside docs/release-reviews would change the payload tree and invalidate this review, so reconcile current-state documentation only in a separately reviewed successor change.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "IA-03",
+      "severity": "P3",
+      "description": "The independent evidence bundle contained the committed regression definitions and review summaries but did not freeze raw logs for every previously reported full-suite execution or the reported negative-control run.",
+      "resolution": "Accepted because the independent review did not treat those reported executions as dispositive proof: it inspected the committed tests and implementation directly, and the repository-native immutable release gate remains the required clean-environment certification for the evidence-only successor commit.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The frozen IA candidate is bounded to the approved navigation/title/overflow tranche and preserves the reviewed persistence, schema, release/PWA and progression semantics. Five-item navigation, Profile access, Campaign/resource routing, achievement identity and narrow-screen behavior are supported by the supplied Git evidence and regression definitions. No open P0/P1/P2 product defect was found. Remaining findings are explicit P3 accepted risks. Decision: proceed with an evidence-only successor commit that binds this independent review to payload tree 313994c931e3e1220ddf06049bcdb4bb368d307d, then require the repository-native immutable release gate to pass on that successor before treating the release state as green."
+  }
+}
