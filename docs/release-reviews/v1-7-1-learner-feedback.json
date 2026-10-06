@@ -1,15 +1,21 @@
 {
   "schemaVersion": 2,
   "module": "v1-7-1-learner-feedback",
-  "reviewer": "ChatGPT GPT-5.6 Sol (independent narrow successor review)",
+  "reviewer": "ChatGPT GPT-5.6 Sol (independent final test-only successor review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "02f4578c2c00a9077b886c4fa55bf7223cafd9e1",
+    "payloadTree": "6e1c8f36127119fa17d5845229bc65a6283ea8c8",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent narrow successor review of ProgressPal v1.7.1 candidate 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737, root tree eca3b12ce034e191d4b2614b0f7671400ed9a78c, payload tree 02f4578c2c00a9077b886c4fa55bf7223cafd9e1. The previously approved learner-feedback product/runtime/curriculum payload is carried forward. The only successor delta is two test expectations corrected from stale 1.7.0 identities to the already-approved v1.7.1 application/cache identities.",
+    "summary": "Independent final test-only successor review of ProgressPal v1.7.1 candidate ca21de704286e7c7b76943703c34db7b9c4a72d2, root tree 2492c37c940cfa7c87fd0066d32f0b33f83a6916, payload tree 6e1c8f36127119fa17d5845229bc65a6283ea8c8. The approved application/runtime/curriculum implementation is unchanged. The exact successor delta only corrects two stale Playwright expectations exposed by the authoritative release gate.",
     "evidence": [
+      "Final candidate ca21de704286e7c7b76943703c34db7b9c4a72d2; tree 2492c37c940cfa7c87fd0066d32f0b33f83a6916; payload 6e1c8f36127119fa17d5845229bc65a6283ea8c8.",
+      "Previous release gate reached Chromium E2E with 152 tests passing and exactly two failures.",
+      "e2e/settings.spec.ts expected stale application version 1.7.0 although the approved application version is 1.7.1.",
+      "e2e/programvareutvikling.spec.ts selected the prediction exercise using the superseded prompt 'Forutsi utskriften. (Hint: hver linje for seg.)' after content v3 intentionally removed that duplicate answer-format hint.",
+      "Only those two E2E files changed in this successor repair.",
+      "The two previously failing Chromium E2Es pass before freeze.",
       "Successor candidate 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737; tree eca3b12ce034e191d4b2614b0f7671400ed9a78c; payload 02f4578c2c00a9077b886c4fa55bf7223cafd9e1.",
       "Exact successor delta: tests/db/databaseInitialization.test.ts changes its expected currentApplicationVersion from 1.7.0 to 1.7.1.",
       "Exact successor delta: tests/lib/serviceWorkerCache.test.ts changes its cache fixture from progresspal-cache-v1.7.0 to progresspal-cache-v1.7.1.",
@@ -87,10 +93,17 @@
       "description": "The first authoritative release gate exposed two stale test expectations still pinned to release 1.7.0 although the approved executable and service-worker cache identity are 1.7.1.",
       "resolution": "Only the two stale test expectations were updated to 1.7.1 / progresspal-cache-v1.7.1. The targeted two-file suite passes 27/27. No runtime or learner-facing bytes changed.",
       "status": "resolved"
+    },
+    {
+      "id": "V171-R3-01",
+      "severity": "P2",
+      "description": "The final aggregate exposed two stale Playwright oracles after already-approved v1.7.1/content-v3 changes.",
+      "resolution": "Only the Settings version assertion and Programvareutvikling prediction selector were corrected. No production/runtime/curriculum bytes changed. Both formerly failing Chromium tests pass.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Independent narrow successor review approves 58ed632edbb8a4faabe1bc6d6cd5b82f9bdef737 / 02f4578c2c00a9077b886c4fa55bf7223cafd9e1. The prior product review remains valid because product/runtime/curriculum bytes are unchanged. The exact test-only delta corrects two stale release-version expectations exposed by the authoritative gate. There are no open P0/P1/P2 findings. Proceed to one final repository-native release certification."
+    "summary": "Independent final test-only successor review approves ca21de704286e7c7b76943703c34db7b9c4a72d2 / 6e1c8f36127119fa17d5845229bc65a6283ea8c8. Previous independent product review remains applicable because application/runtime/curriculum bytes are unchanged. No open P0/P1/P2 finding remains. Proceed to one final repository-native release certification."
   }
 }
