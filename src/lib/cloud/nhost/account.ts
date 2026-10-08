@@ -28,7 +28,9 @@ import {
   type CloudSignOutResult,
   type CloudSignUpResult,
 } from '../port';
+import type { CloudBackupStore } from '../backupPort';
 import { cloudError, mapAuthError } from './authErrors';
+import { createNhostBackupStore } from './backupStore';
 import { nhostAuthUrl, nhostGraphqlUrl } from './endpoints';
 import {
   createSessionScopedBackend,
@@ -84,9 +86,19 @@ export interface NhostAccountDependencies {
   graphqlUrl?: string;
 }
 
-export function createNhostCloudAccount(
+/**
+ * The account and the backup store the application shares. They are built from
+ * one SDK client, so the store sends exactly the session the account holds
+ * (and the SDK refreshes it inside the store's requests, never separately).
+ */
+export interface NhostCloud {
+  account: CloudAccountPort;
+  backups: CloudBackupStore;
+}
+
+export function createNhostCloud(
   dependencies: NhostAccountDependencies = {},
-): CloudAccountPort {
+): NhostCloud {
   const readPreferences = dependencies.readPreferences ?? readCloudPreferences;
   const writePreferences =
     dependencies.writePreferences ?? writeCloudPreferences;
@@ -254,7 +266,7 @@ export function createNhostCloudAccount(
     return currentTokenKnown ? 'confirmed' : 'unconfirmed';
   }
 
-  return {
+  const account: CloudAccountPort = {
     getState,
 
     subscribe(listener) {
@@ -461,13 +473,33 @@ export function createNhostCloudAccount(
       emit();
     },
   };
+
+  return {
+    account,
+    backups: createNhostBackupStore({ getClient: ensureClient }),
+  };
 }
 
-let sharedAccount: CloudAccountPort | null = null;
+export function createNhostCloudAccount(
+  dependencies: NhostAccountDependencies = {},
+): CloudAccountPort {
+  return createNhostCloud(dependencies).account;
+}
+
+let sharedCloud: NhostCloud | null = null;
+
+function getSharedCloud(): NhostCloud {
+  sharedCloud ??= createNhostCloud();
+
+  return sharedCloud;
+}
 
 /** Lazily created; creating it performs no I/O and no network request. */
 export function getCloudAccount(): CloudAccountPort {
-  sharedAccount ??= createNhostCloudAccount();
+  return getSharedCloud().account;
+}
 
-  return sharedAccount;
+/** The store that shares the account's session; same laziness, same silence. */
+export function getCloudBackupStore(): CloudBackupStore {
+  return getSharedCloud().backups;
 }

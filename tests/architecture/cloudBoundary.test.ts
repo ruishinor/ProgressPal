@@ -154,8 +154,8 @@ describe('cloud boundary: learner data stays out of reach', () => {
 });
 
 describe('cloud boundary: nothing in the application boots or calls cloud code yet', () => {
-  it('no file outside src/lib/cloud imports the cloud library in this tranche', () => {
-    const offenders = sourceFiles
+  it('only the G5/G6 domain folder imports the cloud library (UI and routes do not, yet)', () => {
+    const importers = sourceFiles
       .filter((file) => !file.path.startsWith(CLOUD_DIR))
       .filter((file) =>
         importsOf(file.text).some(
@@ -165,7 +165,9 @@ describe('cloud boundary: nothing in the application boots or calls cloud code y
       .map((file) => file.path);
 
     // A later story that wires the UI must change this list on purpose.
-    expect(offenders).toEqual([]);
+    expect(
+      importers.filter((file) => !file.startsWith('src/lib/cloudBackup/')),
+    ).toEqual([]);
   });
 
   it('nothing in the adapter performs work at import time (no top-level calls)', () => {
@@ -181,9 +183,7 @@ describe('cloud boundary: nothing in the application boots or calls cloud code y
       );
 
     expect(topLevel).toEqual([]);
-    expect(account).toMatch(
-      /let sharedAccount: CloudAccountPort \| null = null;/,
-    );
+    expect(account).toMatch(/let sharedCloud: NhostCloud \| null = null;/);
   });
 });
 

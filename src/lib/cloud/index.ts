@@ -10,6 +10,19 @@ export {
   type CloudSignUpResult,
 } from './port';
 export {
+  backupSlotCount,
+  compareStoredAt,
+  parseStoredAt,
+  type CloudBackupStore,
+  type CloudRequestResult,
+  type RemoteBackupDownload,
+  type RemoteBackupLookup,
+  type RemoteBackupSlot,
+  type RemoteBackupWrite,
+  type RemoteBackupWritten,
+  type StoredAtKey,
+} from './backupPort';
+export {
   cloudPreferencesStorageKey,
   defaultCloudPreferences,
   readCloudPreferences,
@@ -20,8 +33,11 @@ export { cloudCallbackPath } from './callbackUrl';
 export {
   cloudPasswordMaxLength,
   cloudPasswordMinLength,
+  createNhostCloud,
   createNhostCloudAccount,
   getCloudAccount,
+  getCloudBackupStore,
+  type NhostCloud,
 } from './nhost/account';
 export {
   classifyCloudRequest,
@@ -29,5 +45,6 @@ export {
 } from './nhost/requestFailure';
 export {
   acceptedBackupGeneration,
+  backupConstraintNames,
   remoteBackupPayloadCeilingBytes,
 } from './nhost/backupConstraints';
