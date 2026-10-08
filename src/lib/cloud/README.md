@@ -1,6 +1,6 @@
 # src/lib/cloud — optional cloud account foundation (Epic G, unreleased)
 
-Scope: the application-facing **cloud port** and the single **Nhost adapter** behind it. Cloud is an optional manual recovery copy; IndexedDB/Dexie is the only learner-state authority. There is no synchronization, outbox, dirty tracking or automatic backup, and nothing in the application imports this folder yet (pinned by `tests/architecture/cloudBoundary.test.ts`).
+Scope: the application-facing **cloud port** and the single **Nhost adapter** behind it. Cloud is an optional manual recovery copy; IndexedDB/Dexie is the only learner-state authority. There is no synchronization, outbox, dirty tracking or automatic backup. The only importer is the G5/G6 domain folder `src/lib/cloudBackup/`; no UI, route or boot code imports this folder yet (pinned by `tests/architecture/cloudBoundary.test.ts` and `cloudBackupBoundary.test.ts`).
 
 ## Rules
 
@@ -17,12 +17,19 @@ Scope: the application-facing **cloud port** and the single **Nhost adapter** be
 - **No learner data.** This folder may not import the database, domain, backup, progress or any UI layer.
 - **A failed code exchange cannot be retried with the same link.** The one-time code is removed from the address bar and the verifier is consumed before the exchange runs (the safe order), so a transient network failure means requesting a new email link. Requesting a second reset email replaces the first one's verifier, so only the newest link can complete.
 - **No fake step-up.** The provider enforces no password re-authentication for the default configuration; none is simulated.
+- **One store, no decisions (G5/G6).** `CloudBackupStore` (`backupPort.ts`) lists slots (metadata only), replaces a slot (delete the observed occupant and insert, one request), finds an attempt by its own identity, and downloads one slot only if it still holds the chosen backup. It returns plain results (`ok` or a classified `CloudRequestFailure`); it never retries, never chooses a slot and never judges an outcome. Those belong to `src/lib/cloudBackup/`.
+- **The store shares the account's session.** `createNhostCloud` builds the account and the store from one SDK client, so the store sends exactly the session the account holds and the SDK refreshes it inside the store's own requests. Signed out, the store sends **nothing** (no anonymous request) and reports `unauthenticated`; disabled, it throws `disabled` and sends nothing.
+- **Server time is compared by value, never as text.** The provider trims trailing zeros (`...04.37582+00:00`), so `compareStoredAt` compares parsed seconds and a nine-digit fraction. A `Date` would drop sub-millisecond digits and two inserts in one millisecond would tie.
+- **A transport fault is never a database answer.** The SDK throws for any body with `errors` (every Hasura refusal, with HTTP 200) and for a body that is not JSON (a gateway page). The adapter maps the first to the named constraint and the second to a provider fault; a 5xx or no response is `provider-unavailable`, never a rejection.
+- **Strict answers.** A row that is not exactly the asked-for shape (slot outside 0..4, a bad id, a hash that is not 32 bytes of hex, a timestamp it cannot read, two rows for one slot, more than five rows, a row for another slot or backup than requested) is an `unexpected-response`, not a best guess.
 
 ## Files
 
 | File                                             | Role                                                               |
 | ------------------------------------------------ | ------------------------------------------------------------------ |
 | `port.ts`                                        | `CloudAccountPort`, errors, request-failure types                  |
+| `backupPort.ts`                                  | `CloudBackupStore`, slot types, server-time ordering               |
+| `nhost/backupStore.ts`                           | the four documents, strict answer parsing, failure mapping         |
 | `preferences.ts`                                 | device-local flags                                                 |
 | `pkceVerifierStore.ts`, `callbackUrl.ts`         | verifier lifecycle and email-link address handling                 |
 | `nhost/account.ts`                               | the adapter (`createNhostCloudAccount`, `getCloudAccount`)         |
@@ -31,4 +38,4 @@ Scope: the application-facing **cloud port** and the single **Nhost adapter** be
 | `nhost/backupConstraints.ts`                     | constraint names, ceiling and generation shared with `infra/nhost` |
 | `nhost/endpoints.ts`                             | the two Stockholm service URLs (must equal the CSP)                |
 
-Later stories (G5 backup, G6 restore, G7 lifecycle) extend the port; they do not reach around it.
+The orchestration of a backup and of a restore (slot choice, hashing, reconciliation, verification) lives in `src/lib/cloudBackup/`, which uses this folder only through its public entry. Later stories (G7 lifecycle) extend the port; they do not reach around it.
