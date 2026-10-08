@@ -350,6 +350,20 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
     expect(JSON.stringify(calls[0]?.body)).not.toContain(stored.verifier);
   });
 
+  it('a failure to create the PKCE pair is a mapped error: nothing is sent and no verifier is left', async () => {
+    enable();
+    const digest = vi
+      .spyOn(crypto.subtle, 'digest')
+      .mockRejectedValue(new Error('WebCrypto unavailable'));
+
+    await expectCloudError(account().signUp({ email, password }), 'unknown');
+    await expectCloudError(account().requestPasswordReset(email), 'unknown');
+
+    digest.mockRestore();
+    expect(calls).toHaveLength(0);
+    expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+  });
+
   it('removes the verifier when the sign-up fails', async () => {
     enable();
     handler = () => json(409, { error: 'email-already-in-use' });

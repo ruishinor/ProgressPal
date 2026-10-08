@@ -11,6 +11,7 @@ Scope: the application-facing **cloud port** and the single **Nhost adapter** be
 - **Session-scoped by default.** The session lives in `sessionStorage`; `trustedDevice` (an explicit choice, only while signed out) selects the SDK's persistent store. A session is never moved between the two.
 - **PKCE only.** Verification and reset links carry a one-time `code`; the verifier is a single-use record under its own key. A link carrying a refresh token is never honoured. The address bar is scrubbed before anything else happens.
 - **No learner data.** This folder may not import the database, domain, backup, progress or any UI layer.
+- **A failed code exchange cannot be retried with the same link.** The one-time code is removed from the address bar and the verifier is consumed before the exchange runs (the safe order), so a transient network failure means requesting a new email link. Requesting a second reset email replaces the first one's verifier, so only the newest link can complete.
 - **No fake step-up.** The provider enforces no password re-authentication for the default configuration; none is simulated.
 
 ## Files

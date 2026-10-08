@@ -192,9 +192,9 @@ export function createNhostCloudAccount(
       validatePassword(input.password);
 
       const active = ensureClient();
-      const codeChallenge = await startPkce('signup');
 
       try {
+        const codeChallenge = await startPkce('signup');
         const response = await active.auth.signUpEmailPassword({
           email: input.email,
           password: input.password,
@@ -248,6 +248,12 @@ export function createNhostCloudAccount(
       }
 
       const active = ensureClient();
+      // The SDK refreshes a near-expiry token inside the next request, which
+      // rotates the refresh token. Refresh first so the token invalidated by
+      // the sign-out request is the CURRENT one, not an already-revoked one.
+      // (A failed refresh leaves the session as it was; sign-out then reports
+      // the server side as unconfirmed.)
+      await active.refreshSession(60);
       const session = active.getUserSession();
       let serverInvalidation: CloudSignOutResult['serverInvalidation'] =
         session === null ? 'confirmed' : 'unconfirmed';
@@ -271,9 +277,9 @@ export function createNhostCloudAccount(
       validateEmail(email);
 
       const active = ensureClient();
-      const codeChallenge = await startPkce('reset');
 
       try {
+        const codeChallenge = await startPkce('reset');
         await active.auth.sendPasswordResetEmail({
           email,
           options: { redirectTo: callbackUrl() },
