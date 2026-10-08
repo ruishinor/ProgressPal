@@ -23,8 +23,8 @@ import {
 import {
   cloudCallbackPath,
   parseCloudCallback,
-  scrubCloudCallbackUrl,
   stripCloudCallbackParams,
+  takeCloudCallback,
 } from '@/lib/cloud/callbackUrl';
 
 const verifier = 'v'.repeat(64);
@@ -368,7 +368,7 @@ describe('email-link address handling', () => {
     );
     const lengthBefore = window.history.length;
 
-    expect(scrubCloudCallbackUrl(window)).toBe(true);
+    expect(takeCloudCallback(window).scrubbed).toBe(true);
 
     expect(window.location.pathname + window.location.search).toBe(
       '/cloud/callback',
@@ -381,7 +381,7 @@ describe('email-link address handling', () => {
     window.history.pushState({ key: 'abc' }, '', '/cloud/callback?keep=1');
     const replace = vi.spyOn(window.history, 'replaceState');
 
-    expect(scrubCloudCallbackUrl(window)).toBe(true);
+    expect(takeCloudCallback(window).scrubbed).toBe(true);
 
     expect(replace).not.toHaveBeenCalled();
     replace.mockRestore();
@@ -398,7 +398,7 @@ describe('email-link address handling', () => {
       },
     };
 
-    expect(scrubCloudCallbackUrl(hostile)).toBe(false);
+    expect(takeCloudCallback(hostile).scrubbed).toBe(false);
   });
 
   it('reports a rewrite that did not take effect as not scrubbed', () => {
@@ -407,6 +407,120 @@ describe('email-link address handling', () => {
       history: { state: null, replaceState: () => undefined },
     };
 
-    expect(scrubCloudCallbackUrl(stuck)).toBe(false);
+    expect(takeCloudCallback(stuck).scrubbed).toBe(false);
+  });
+});
+
+describe('takeCloudCallback: one read of the browser address decides what is parsed and what is scrubbed', () => {
+  const origin = 'https://progresspal.example';
+  const callback = `${origin}${cloudCallbackPath}`;
+
+  function windowReading(
+    hrefs: string[],
+    replaced: string[],
+    options: { replaceThrows?: boolean; ignoreReplace?: boolean } = {},
+  ) {
+    let reads = 0;
+
+    return {
+      reads: () => reads,
+      win: {
+        location: {
+          get href() {
+            const href = hrefs[Math.min(reads, hrefs.length - 1)] ?? '';
+            reads += 1;
+            return href;
+          },
+        },
+        history: {
+          state: { routerKey: 1 },
+          replaceState: (_state: unknown, _title: string, url?: unknown) => {
+            if (options.replaceThrows) throw new Error('SecurityError');
+            if (!options.ignoreReplace) replaced.push(String(url));
+          },
+        },
+      },
+    };
+  }
+
+  it('parses the very address it removes the parameters from, even if the location changes afterwards', () => {
+    const replaced: string[] = [];
+    const reading = windowReading(
+      [`${callback}?code=firstreadcode1&keep=1`, `${callback}?keep=1`],
+      replaced,
+    );
+
+    const result = takeCloudCallback(reading.win);
+
+    expect(result).toEqual({
+      callback: { kind: 'code', code: 'firstreadcode1' },
+      scrubbed: true,
+    });
+    // What was rewritten is the stripped form of the address that was parsed.
+    expect(replaced).toEqual(['/cloud/callback?keep=1']);
+    // The decisive read and the read-back; nothing else consults the location.
+    expect(reading.reads()).toBe(2);
+  });
+
+  it.each([
+    [`${callback}?code=abcdefgh12345678`, 'code'],
+    [`${callback}?error=access_denied`, 'provider-error'],
+    [`${callback}?refreshToken=x`, 'token-in-url'],
+    [`${callback}?code=a&code=b`, 'malformed'],
+    [`${callback}?keep=1`, 'none'],
+  ])('%s: reports %s and leaves nothing callback-shaped', (href, kind) => {
+    window.history.replaceState({ key: 'abc' }, '', href.replace(origin, ''));
+
+    const result = takeCloudCallback(window);
+
+    expect(result.callback.kind).toBe(kind);
+    expect(result.scrubbed).toBe(true);
+    expect(window.location.search).not.toMatch(/code|error|refreshToken/);
+    expect(window.history.state).toEqual({ key: 'abc' });
+  });
+
+  it('still reports what it found when the rewrite cannot happen, but not as scrubbed', () => {
+    const throwing = windowReading([`${callback}?code=abcdefgh12345678`], [], {
+      replaceThrows: true,
+    });
+    const ignoring = windowReading([`${callback}?code=abcdefgh12345678`], [], {
+      ignoreReplace: true,
+    });
+
+    expect(takeCloudCallback(throwing.win)).toEqual({
+      callback: { kind: 'code', code: 'abcdefgh12345678' },
+      scrubbed: false,
+    });
+    expect(takeCloudCallback(ignoring.win)).toEqual({
+      callback: { kind: 'code', code: 'abcdefgh12345678' },
+      scrubbed: false,
+    });
+  });
+
+  it('never rewrites history when there is nothing to scrub', () => {
+    const replaced: string[] = [];
+    const reading = windowReading([`${callback}?keep=1`], replaced);
+
+    expect(takeCloudCallback(reading.win)).toEqual({
+      callback: { kind: 'none' },
+      scrubbed: true,
+    });
+    expect(replaced).toEqual([]);
+  });
+
+  it('an address that cannot be read is nothing found and not scrubbed', () => {
+    const unreadable = {
+      location: {
+        get href(): string {
+          throw new Error('SecurityError');
+        },
+      },
+      history: { state: null, replaceState: () => undefined },
+    };
+
+    expect(takeCloudCallback(unreadable)).toEqual({
+      callback: { kind: 'none' },
+      scrubbed: false,
+    });
   });
 });

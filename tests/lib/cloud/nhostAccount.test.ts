@@ -146,10 +146,7 @@ describe('cloud disabled (the default)', () => {
       '/cloud/callback?code=abcdefgh12345678',
     );
 
-    await expectCloudError(
-      account().completeEmailLink(window.location.href),
-      'disabled',
-    );
+    await expectCloudError(account().completeEmailLink(), 'disabled');
 
     expect(window.location.search).toBe('');
     expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
@@ -471,7 +468,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?code=abcdefgh12345678&type=signup&keep=1',
     );
 
-    const outcome = await port.completeEmailLink(window.location.href);
+    const outcome = await port.completeEmailLink();
 
     expect(outcome).toEqual({ kind: 'verified-signed-in' });
     expect(calls).toHaveLength(1);
@@ -499,7 +496,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?code=abcdefgh12345678',
     );
 
-    expect(await port.completeEmailLink(window.location.href)).toEqual({
+    expect(await port.completeEmailLink()).toEqual({
       kind: 'password-reset-session',
     });
   });
@@ -513,7 +510,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?code=abcdefgh12345678',
     );
 
-    expect(await port.completeEmailLink(window.location.href)).toEqual({
+    expect(await port.completeEmailLink()).toEqual({
       kind: 'sign-in-required',
       purpose: 'unknown',
     });
@@ -539,7 +536,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?code=abcdefgh12345678',
     );
 
-    expect(await port.completeEmailLink(window.location.href)).toEqual({
+    expect(await port.completeEmailLink()).toEqual({
       kind: 'sign-in-required',
       purpose: 'signup',
     });
@@ -557,10 +554,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?code=abcdefgh12345678',
     );
 
-    await expectCloudError(
-      port.completeEmailLink(window.location.href),
-      'link-expired',
-    );
+    await expectCloudError(port.completeEmailLink(), 'link-expired');
     expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
     expect(window.location.search).toBe('');
     expect(port.getState().status).toBe('signed-out');
@@ -575,7 +569,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       '/cloud/callback?refreshToken=22222222-2222-4222-8222-222222222222&type=signup',
     );
 
-    expect(await port.completeEmailLink(window.location.href)).toEqual({
+    expect(await port.completeEmailLink()).toEqual({
       kind: 'invalid-link',
     });
     expect(window.location.search).toBe('');
@@ -611,7 +605,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
         calls = [];
         window.history.replaceState({ routerKey: 7 }, '', address);
 
-        expect(await port.completeEmailLink(window.location.href)).toEqual({
+        expect(await port.completeEmailLink()).toEqual({
           kind: 'invalid-link',
         });
 
@@ -629,9 +623,9 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
       enable();
       window.history.replaceState(null, '', '/cloud/callback?error=x&keep=1');
 
-      expect(
-        await account().completeEmailLink('https://progresspal.example/other'),
-      ).toEqual({ kind: 'invalid-link' });
+      expect(await account().completeEmailLink()).toEqual({
+        kind: 'invalid-link',
+      });
       expect(window.location.search).toBe('?keep=1');
       expect(calls).toHaveLength(0);
     });
@@ -646,7 +640,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
         '/cloud/callback?code=a%2Fb%2Bc%3D%3D~%C3%A9x&keep=1',
       );
 
-      expect(await port.completeEmailLink(window.location.href)).toEqual({
+      expect(await port.completeEmailLink()).toEqual({
         kind: 'verified-signed-in',
       });
       expect(calls[0]?.body?.code).toBe('a/b+c==~\u00e9x');
@@ -662,7 +656,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
         '/cloud/callback?a=1%202&error=x&b=%C3%A5#view=list&error_description=y',
       );
 
-      await port.completeEmailLink(window.location.href);
+      await port.completeEmailLink();
 
       expect(window.location.search).toBe('?a=1%202&b=%C3%A5');
       expect(window.location.hash).toBe('#view=list');
@@ -689,7 +683,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
         }),
       });
 
-      expect(await stuck.completeEmailLink(window.location.href)).toEqual({
+      expect(await stuck.completeEmailLink()).toEqual({
         kind: 'invalid-link',
       });
       expect(calls).toHaveLength(0);
@@ -713,7 +707,7 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
         }),
       });
 
-      expect(await ignoring.completeEmailLink(window.location.href)).toEqual({
+      expect(await ignoring.completeEmailLink()).toEqual({
         kind: 'invalid-link',
       });
       expect(calls).toHaveLength(0);
@@ -721,13 +715,118 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
     });
   });
 
+  describe('CALLBACK_PARSE_AND_SCRUB_USE_ONE_BROWSER_LOCATION_AUTHORITY (carried P3)', () => {
+    // The port used to take an address. A caller could hand it one URL while
+    // the browser's own address bar (the one that is scrubbed) held another.
+    // These tests call the port the way the old API allowed, to prove that no
+    // second address can reach the exchange any more.
+    type PortWithSuppliedAddress = (
+      href?: string,
+    ) => ReturnType<CloudAccountPort['completeEmailLink']>;
+
+    const withSuppliedAddress = (port: CloudAccountPort, href: string) =>
+      (port.completeEmailLink as PortWithSuppliedAddress)(href);
+
+    const suppliedCode =
+      'https://progresspal.example/cloud/callback?code=suppliedcode123456';
+
+    it('declares no address parameter, in type or at run time', () => {
+      const port = account();
+
+      expect(port.completeEmailLink.length).toBe(0);
+
+      const misuse = () =>
+        // @ts-expect-error the port reads the browser address itself; passing one is a type error
+        port.completeEmailLink(suppliedCode);
+
+      expect(typeof misuse).toBe('function');
+    });
+
+    it('a supplied address that differs from the browser address cannot cause an exchange', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(null, '', '/cloud/callback?keep=1');
+
+      expect(await withSuppliedAddress(port, suppliedCode)).toEqual({
+        kind: 'invalid-link',
+      });
+      expect(calls).toHaveLength(0);
+      expect(port.getState().status).toBe('signed-out');
+    });
+
+    it('exchanges the code that was scrubbed from the browser address, never a supplied one', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?code=browsercode123456&keep=1',
+      );
+
+      expect(await withSuppliedAddress(port, suppliedCode)).toEqual({
+        kind: 'verified-signed-in',
+      });
+      expect(calls).toHaveLength(1);
+      expect(calls[0]?.body?.code).toBe('browsercode123456');
+      expect(calls[0]?.search).toBe('?keep=1');
+      expect(window.location.search).toBe('?keep=1');
+    });
+
+    it.each([
+      [
+        'a token link',
+        'https://progresspal.example/cloud/callback?refreshToken=x',
+      ],
+      ['an error link', 'https://progresspal.example/cloud/callback?error=x'],
+      ['not an address at all', 'not a url'],
+    ])(
+      'a supplied address that is %s does not change what the browser address decides',
+      async (_label, supplied) => {
+        const port = await startFlow('signup');
+        calls = [];
+        handler = () => json(200, { session: fakeSession() });
+        window.history.replaceState(
+          null,
+          '',
+          '/cloud/callback?code=browsercode123456',
+        );
+
+        expect(await withSuppliedAddress(port, supplied)).toEqual({
+          kind: 'verified-signed-in',
+        });
+        expect(calls).toHaveLength(1);
+        expect(calls[0]?.body?.code).toBe('browsercode123456');
+      },
+    );
+
+    it('an unusable browser address is refused even when a usable address is supplied', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?error=access_denied&keep=1',
+      );
+
+      expect(await withSuppliedAddress(port, suppliedCode)).toEqual({
+        kind: 'invalid-link',
+      });
+      expect(calls).toHaveLength(0);
+      expect(window.location.search).toBe('?keep=1');
+      expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+    });
+  });
+
   it('an address without a code is simply not a link', async () => {
     enable();
-    expect(
-      await account().completeEmailLink(
-        'https://progresspal.example/cloud/callback',
-      ),
-    ).toEqual({ kind: 'invalid-link' });
+    window.history.replaceState(null, '', '/cloud/callback');
+
+    expect(await account().completeEmailLink()).toEqual({
+      kind: 'invalid-link',
+    });
     expect(calls).toHaveLength(0);
   });
 });

@@ -10,8 +10,7 @@ import {
 } from '../pkceVerifierStore';
 import {
   cloudCallbackPath,
-  parseCloudCallback,
-  scrubCloudCallbackUrl,
+  takeCloudCallback,
   type CallbackWindow,
 } from '../callbackUrl';
 import {
@@ -368,11 +367,12 @@ export function createNhostCloud(
       }
     },
 
-    async completeEmailLink(href: string): Promise<CloudEmailLinkOutcome> {
+    async completeEmailLink(): Promise<CloudEmailLinkOutcome> {
       // First act: take anything callback-shaped (code, token, error) out of
-      // the address bar, before anything below can render, log or throw.
-      const scrubbed = scrubCloudCallbackUrl(getWindow());
-      const parsed = parseCloudCallback(href);
+      // the address bar, before anything below can render, log or throw. The
+      // address that is judged is the one that is scrubbed: a single read of
+      // the browser location, with no caller-supplied address to disagree.
+      const { callback: parsed, scrubbed } = takeCloudCallback(getWindow());
 
       if (!scrubbed) {
         // A credential that cannot be removed from the address is never used.

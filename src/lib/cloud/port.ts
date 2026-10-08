@@ -90,10 +90,13 @@ export interface CloudAccountPort {
   signOut(): Promise<CloudSignOutResult>;
   requestPasswordReset(email: string): Promise<void>;
   /**
-   * Handles the address the learner was sent back to by an email link. Removes
-   * the one-time code from the address bar before doing anything else.
+   * Handles the address the learner was sent back to by an email link. It
+   * takes no address: it reads this browser's own address bar once, removes
+   * everything callback-shaped from it before doing anything else, and judges
+   * and exchanges exactly what it removed. A caller therefore cannot supply a
+   * second address that differs from the one that was cleaned.
    */
-  completeEmailLink(href: string): Promise<CloudEmailLinkOutcome>;
+  completeEmailLink(): Promise<CloudEmailLinkOutcome>;
   /**
    * Changes the password for the signed-in account. After a successful change
    * ProgressPal deliberately clears this device's local session and requires

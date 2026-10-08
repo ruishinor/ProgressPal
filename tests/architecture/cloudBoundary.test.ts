@@ -153,6 +153,41 @@ describe('cloud boundary: learner data stays out of reach', () => {
   });
 });
 
+describe('cloud boundary: the callback location has exactly one authority (carried P3)', () => {
+  const code = (text: string) => text.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+
+  it('no module outside callbackUrl.ts can parse, strip or separately scrub an address', () => {
+    const offenders = sourceFiles
+      .filter((file) => file.path !== `${CLOUD_DIR}callbackUrl.ts`)
+      .filter((file) =>
+        /\b(parseCloudCallback|stripCloudCallbackParams|scrubCloudCallbackUrl)\b/.test(
+          code(file.text),
+        ),
+      )
+      .map((file) => file.path);
+
+    expect(offenders).toEqual([]);
+  });
+
+  it('the port takes no address, and the adapter consumes the browser location only through takeCloudCallback', () => {
+    const port =
+      sourceFiles.find((file) => file.path === `${CLOUD_DIR}port.ts`)?.text ??
+      '';
+    const account = code(
+      sourceFiles.find((file) => file.path === `${ADAPTER_DIR}account.ts`)
+        ?.text ?? '',
+    );
+
+    expect(port).toMatch(
+      /completeEmailLink\(\): Promise<CloudEmailLinkOutcome>;/,
+    );
+    expect(account).toMatch(/async completeEmailLink\(\): Promise</);
+    expect(account).toMatch(/takeCloudCallback\(getWindow\(\)\)/);
+    // No other read of the address bar inside the completion path.
+    expect(account).not.toMatch(/location\.(href|search|hash)/);
+  });
+});
+
 describe('cloud boundary: nothing in the application boots or calls cloud code yet', () => {
   it('only the G5/G6 domain folder imports the cloud library (UI and routes do not, yet)', () => {
     const importers = sourceFiles

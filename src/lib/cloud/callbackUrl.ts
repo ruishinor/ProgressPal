@@ -8,10 +8,13 @@
  *  - a link that carries a token (the non-PKCE shape) is never honoured;
  *  - every callback-shaped parameter, usable or not, is removed from the
  *    address bar before the rest of the app can render, log, or report it, and
- *    a caller learns whether that removal actually took effect.
+ *    a caller learns whether that removal actually took effect;
+ *  - the address that is parsed is the address that is scrubbed: both come from
+ *    one read of the browser location (`takeCloudCallback`), never from a
+ *    caller-supplied string.
  */
 
-/** The route the provider is asked to redirect to (wired in a later story). */
+/** The route the provider is asked to redirect to (`/cloud/callback`). */
 export const cloudCallbackPath = '/cloud/callback';
 
 /** A sanity bound on an opaque value, not a statement about the provider. */
@@ -143,17 +146,36 @@ export type CallbackWindow = {
   history: Pick<History, 'replaceState' | 'state'>;
 };
 
+export interface CloudCallbackTake {
+  /** What the browser address held when it was read, before it was scrubbed. */
+  callback: CloudCallbackParse;
+  /**
+   * True only when the address bar, read back afterwards, holds nothing
+   * callback-shaped. A caller that gets false must not use `callback`.
+   */
+  scrubbed: boolean;
+}
+
 /**
- * Rewrites the current history entry in place (never adds one) when it holds
- * anything callback-shaped. Returns true only when the address bar, read back
- * afterwards, holds nothing callback-shaped; a caller that gets false must not
- * use what it read from that address.
+ * The one way to consume a callback address
+ * (CALLBACK_PARSE_AND_SCRUB_USE_ONE_BROWSER_LOCATION_AUTHORITY).
+ *
+ * The browser location is read ONCE to decide what the callback is; the very
+ * string that was parsed is the one stripped and written back (the current
+ * history entry is rewritten in place, never added, and its state is kept).
+ * There is deliberately no entry point that scrubs one address and parses
+ * another: nothing here accepts an address from a caller, so what is exchanged
+ * is exactly what was removed from the address bar.
  */
-export function scrubCloudCallbackUrl(win: CallbackWindow): boolean {
+export function takeCloudCallback(win: CallbackWindow): CloudCallbackTake {
+  let callback: CloudCallbackParse = { kind: 'none' };
+
   try {
     const href = win.location.href;
 
-    if (parseCloudCallback(href).kind !== 'none') {
+    callback = parseCloudCallback(href);
+
+    if (callback.kind !== 'none') {
       win.history.replaceState(
         win.history.state,
         '',
@@ -165,8 +187,11 @@ export function scrubCloudCallbackUrl(win: CallbackWindow): boolean {
   }
 
   try {
-    return parseCloudCallback(win.location.href).kind === 'none';
+    return {
+      callback,
+      scrubbed: parseCloudCallback(win.location.href).kind === 'none',
+    };
   } catch {
-    return false;
+    return { callback, scrubbed: false };
   }
 }
