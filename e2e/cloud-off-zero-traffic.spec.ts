@@ -85,14 +85,12 @@ test('instrument check: the same capture does see a request to an allowed Nhost 
 
   page.context().on('request', (request) => seen.push(request.url()));
   // Fulfilled inside the browser: no real connection to the provider is made.
-  await page
-    .context()
-    .route(`https://${PROJECT_HOSTS[0]}/**`, (route) =>
-      route.fulfill({
-        status: 204,
-        headers: { 'access-control-allow-origin': '*' },
-      }),
-    );
+  await page.context().route(`https://${PROJECT_HOSTS[0]}/**`, (route) =>
+    route.fulfill({
+      status: 204,
+      headers: { 'access-control-allow-origin': '*' },
+    }),
+  );
   await page.goto('/');
 
   await page.evaluate(

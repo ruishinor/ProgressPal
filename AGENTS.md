@@ -14,6 +14,7 @@ Product boundary (do not cross it):
 - No runtime external course-data fetching, no embedded external course content, no remote assets or scripts. Versioned curriculum and the pinned Python runtime ship as same-origin static assets packaged with the build (`public/content/`, `runtime/`), read only through `src/lib/assets` and verified against hashes in the bundle; that is not external fetching.
 - CS50x-focused study companion; not affiliated with Harvard, CS50, edX, or OpenCourseWare. Never add CS50/Harvard branding.
 - User data can be lost when browser storage is cleared — backup export/import is the mitigation, not sync.
+- **Owner-authorized, unreleased exception (Epic G):** an optional, off-by-default manual cloud backup through one Nhost project exists only on `epic-g/*` branches (`src/lib/cloud/`, `infra/nhost/`). It is not on a released build, adds no synchronization, and leaves IndexedDB the only authority; the released boundary above is unchanged until the owner ships it. Scope, gates and limits: `docs/CURRENT_STATE.md` ("Epic G"). Do not extend it beyond what that section records.
 
 `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. Push, PR, merge, tag, release, deployment and version decisions each need explicit owner instruction; an earlier one-off authorization does not carry forward. Any push to `master` is promoted to Production by Vercel, so confirm the release model in `docs/CURRENT_STATE.md` before one.
 
