@@ -1,0 +1,69 @@
+{
+  "type": "bulk",
+  "args": [
+    {
+      "type": "pg_track_table",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" }
+      }
+    },
+    {
+      "type": "pg_create_insert_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user",
+        "permission": {
+          "check": { "user_id": { "_eq": "X-Hasura-User-Id" } },
+          "set": { "user_id": "x-hasura-user-id" },
+          "columns": [
+            "slot",
+            "backup_id",
+            "format_version",
+            "schema_version",
+            "app_version",
+            "exported_at",
+            "payload",
+            "expected_sha256"
+          ]
+        }
+      }
+    },
+    {
+      "type": "pg_create_select_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user",
+        "permission": {
+          "columns": [
+            "slot",
+            "backup_id",
+            "format_version",
+            "schema_version",
+            "app_version",
+            "exported_at",
+            "payload",
+            "payload_bytes",
+            "payload_sha256",
+            "stored_at"
+          ],
+          "filter": { "user_id": { "_eq": "X-Hasura-User-Id" } },
+          "allow_aggregations": false
+        }
+      }
+    },
+    {
+      "type": "pg_create_delete_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user",
+        "permission": {
+          "filter": { "user_id": { "_eq": "X-Hasura-User-Id" } }
+        }
+      }
+    }
+  ]
+}

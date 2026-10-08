@@ -1,0 +1,37 @@
+{
+  "type": "bulk",
+  "args": [
+    {
+      "type": "pg_drop_delete_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user"
+      }
+    },
+    {
+      "type": "pg_drop_select_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user"
+      }
+    },
+    {
+      "type": "pg_drop_insert_permission",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "role": "user"
+      }
+    },
+    {
+      "type": "pg_untrack_table",
+      "args": {
+        "source": "default",
+        "table": { "schema": "public", "name": "backup_slots" },
+        "cascade": true
+      }
+    }
+  ]
+}
