@@ -146,9 +146,12 @@ describe('App', () => {
         name: 'Start with ProgressPal',
       }),
     ).toBeInTheDocument();
+    // Epic G repair 01: true with the optional remote backup off AND on (the
+    // earlier "Everything stays in this browser. No account, no cloud sync …"
+    // is replaced by statements that hold in both states).
     expect(
       screen.getByText(
-        'Everything stays in this browser. No account, no cloud sync, no analytics. You can export, import, or reset it later.',
+        'Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later.',
       ),
     ).toBeInTheDocument();
     expect(
@@ -3747,10 +3750,16 @@ describe('RPG routes', () => {
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();
 
-    // The collapsed local-first + course-boundary disclaimer is preserved.
+    // The collapsed local-first + course-boundary disclaimer is preserved. Its
+    // local-first statements were reworded in Epic G repair 01 so they stay
+    // true when the optional remote backup is in use; the course boundary is
+    // unchanged. (tests/app/localFirstCopy.test.tsx covers both cloud states.)
     const bodyText = document.body.textContent ?? '';
 
-    expect(bodyText).toMatch(/no account, no cloud sync, and no analytics/i);
+    expect(bodyText).toMatch(
+      /No account is needed, nothing is synced, and there is no analytics/i,
+    );
+    expect(bodyText).not.toMatch(/no account, no cloud sync/i);
     expect(bodyText).toMatch(
       /not CS50, Harvard, edX, or OpenCourseWare status/i,
     );

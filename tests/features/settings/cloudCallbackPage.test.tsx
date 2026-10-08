@@ -385,29 +385,40 @@ describe('every other way a link can end', () => {
     expectNothingOfTheLinkWasKept(['SDK internals', 'abc.def.ghi']);
   });
 
-  it('a password-reset link reports that reset is not available here, without a password form', async () => {
+  // Epic G repair 01 supersedes the earlier "a password-reset link reports that
+  // reset is not available here, without a password form". The old guarantee
+  // was that a reset link never led to a password form; the new one is that it
+  // leads to the form only after a successful RESET exchange, claims nothing
+  // until the provider acknowledges a change, and still renders nothing the
+  // link carried. The journey itself is in cloudPasswordRecoveryCallback.test.tsx.
+  it('a password-reset link leads to the new-password form, not to a dead end, and shows nothing the link carried', async () => {
     enable();
     const port = account();
     handler = () => json(200, {});
     await port.requestPasswordReset(email);
     calls = [];
     handler = () => json(200, { session: fakeSession() });
-    land(`/cloud/callback?code=${code}`);
+    land(`/cloud/callback?code=${code}&keep=1`);
 
     renderPage(port);
     await result();
 
     expect(
-      screen.getByRole('heading', { name: 'Link accepted' }),
+      screen.getByRole('heading', { level: 2, name: 'Choose a new password' }),
     ).toBeVisible();
     expect(
-      screen.getByText(/Password reset is not available in this version/),
-    ).toBeVisible();
-    expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
+      screen.queryByText(/Password reset is not available/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Password changed/i)).not.toBeInTheDocument();
+    expect(calls).toHaveLength(1);
+    expect(window.location.search).toBe('?keep=1');
+    expectNothingOfTheLinkWasKept([code]);
   });
 });
 
 describe('the page is a bare landing, not part of the app', () => {
+  // Unchanged guarantee for every outcome except a reset session; the one
+  // exception (two password fields and one submit) is pinned just below.
   it('renders no navigation, no cloud controls and no account actions', async () => {
     const port = await startSignUp();
     land('/cloud/callback');
@@ -422,6 +433,29 @@ describe('the page is a bare landing, not part of the app', () => {
       }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole('link')).toHaveLength(1);
+  });
+
+  it('a reset session adds exactly its own form: two password fields, one submit, still no navigation and no other account action', async () => {
+    enable();
+    const port = account();
+    handler = () => json(200, {});
+    await port.requestPasswordReset(email);
+    calls = [];
+    handler = () => json(200, { session: fakeSession() });
+    land(`/cloud/callback?code=${code}`);
+
+    renderPage(port);
+    await result();
+
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button').map((button) => button.textContent ?? ''),
+    ).toEqual(['Change password']);
+    expect(
+      Array.from(document.querySelectorAll('input')).map((field) => field.type),
+    ).toEqual(['password', 'password']);
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('is keyboard reachable: the only interactive element is the Settings link', async () => {

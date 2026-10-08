@@ -115,7 +115,7 @@ async function openSettings(route: '/settings' | '/rpg/settings') {
   await screen.findByRole('heading', { name: 'Settings' }, slow);
 
   return screen
-    .getByRole('heading', { name: 'Cloud backup (optional)' })
+    .getByRole('heading', { name: 'Remote backup — Alpha' })
     .closest('.card') as HTMLElement;
 }
 
@@ -154,13 +154,13 @@ describe.each([
     expect(
       within(card).getByRole('heading', {
         level: headingLevel,
-        name: 'Cloud backup (optional)',
+        name: 'Remote backup — Alpha',
       }),
     ).toBeInTheDocument();
-    expect(headings.indexOf('Cloud backup (optional)')).toBeGreaterThan(
+    expect(headings.indexOf('Remote backup — Alpha')).toBeGreaterThan(
       headings.indexOf('Import a backup'),
     );
-    expect(headings.indexOf('Cloud backup (optional)')).toBeLessThan(
+    expect(headings.indexOf('Remote backup — Alpha')).toBeLessThan(
       headings.indexOf('Reset local data'),
     );
     expect(

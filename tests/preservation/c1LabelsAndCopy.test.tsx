@@ -352,8 +352,12 @@ const renderedCs50Copy: Array<[route: string, strings: string[]]> = [
     '/dashboard',
     [
       'ProgressPal CS50 Edition',
-      'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, backup, restore, reset, and offline support all run on this device.',
-      'Your CS50 progress on this device. Nothing is synced or stored remotely.',
+      // Epic G repair 01 (owner-authorized): the pre-C4 wording said backup,
+      // restore and reset "all run on this device" and that nothing is "stored
+      // remotely". Both stopped being true with the optional remote backup, so
+      // they now state what holds in every state.
+      'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, and offline support all run on this device. Backups are manual.',
+      'Your CS50 progress on this device. Nothing is synced; backups are manual.',
     ],
   ],
   [

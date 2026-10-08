@@ -25,7 +25,9 @@ import {
  * The account half of the Settings cloud card: off by default and silent,
  * explicit sign-in and sign-out, a trusted-device choice that is the learner's,
  * keyboard operation, and no capability beyond what the accepted account model
- * already has (no account deletion, no password reset, no sync).
+ * already has (no account deletion, no password change in Settings, no sync).
+ * The one recovery entry, "Forgot password?", is covered by
+ * cloudPasswordRecovery.test.tsx (Epic G repair 01).
  */
 
 let device: Device;
@@ -61,9 +63,11 @@ function dependencies(
   };
 }
 
+const cardTitle = 'Remote backup — Alpha';
+
 const card = () =>
   screen
-    .getByRole('heading', { name: 'Cloud backup (optional)' })
+    .getByRole('heading', { name: cardTitle })
     .closest('.card') as HTMLElement;
 
 async function signInThroughTheForm(address = ` ${learnerEmail} `) {
@@ -72,7 +76,10 @@ async function signInThroughTheForm(address = ` ${learnerEmail} `) {
 }
 
 describe('cloud off (the default)', () => {
-  it('is one factual sentence and one button, and does nothing else', () => {
+  // Epic G repair 01: the card now also carries the three-paragraph disclosure
+  // (cloudSettingsDisclosure.test.tsx). What is unchanged: one factual status
+  // sentence, one button, and nothing else.
+  it('is the disclosure, one factual status sentence and one button, and does nothing else', () => {
     const { account } = makeAccount();
 
     renderCard({ dependencies: dependencies(account) });
@@ -80,7 +87,7 @@ describe('cloud off (the default)', () => {
     expect(
       screen.getByRole('heading', {
         level: 3,
-        name: 'Cloud backup (optional)',
+        name: cardTitle,
       }),
     ).toBeInTheDocument();
     expect(
@@ -192,6 +199,9 @@ describe('signed out', () => {
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled();
     expect(
       screen.getByRole('button', { name: 'Create account' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Forgot password?' }),
     ).toBeEnabled();
     expect(
       screen.getByRole('button', { name: 'Turn off cloud backup' }),
@@ -398,6 +408,8 @@ describe('signed out', () => {
         screen.getByRole('checkbox', { name: /Stay signed in on this device/ }),
       () => screen.getByRole('button', { name: 'Sign in' }),
       () => screen.getByRole('button', { name: 'Create account' }),
+      // Epic G repair 01: the one recovery entry sits before "Turn off".
+      () => screen.getByRole('button', { name: 'Forgot password?' }),
       () => screen.getByRole('button', { name: 'Turn off cloud backup' }),
     ];
 
@@ -510,11 +522,25 @@ describe('signed in', () => {
 });
 
 describe('what is deliberately not offered', () => {
+  // Epic G repair 01 supersedes the earlier guard that allowed no mention of a
+  // password reset anywhere in the card. The old guarantee was "nothing about
+  // password reset, forgot or change"; the new one is narrower: the signed-out
+  // "Forgot password?" is the SINGLE recovery entry, and still absent in every
+  // state are account deletion, a password change inside Settings, and any
+  // synchronization or automatic-backup control or claim. The disclosure may
+  // only DENY the last two.
   const forbidden =
-    /delete|remove (my )?account|close account|erase|password reset|forgot|reset password|change password|sync|automatic(ally)? back/i;
+    /delete|remove (my )?account|close account|erase|password reset|reset password|forgot|change password|sync|automatic(ally)? back/i;
+  const allowedMentions = [
+    'Forgot password?',
+    'Remote backup is experimental. It is a manual backup, not automatic synchronization: nothing is uploaded when you open Settings or sign in, only when you press Back up now.',
+    'Nothing is sent automatically.',
+  ];
+  const withoutAllowed = (text: string) =>
+    allowedMentions.reduce((rest, phrase) => rest.replace(phrase, ''), text);
 
   it.each(['off', 'signed out', 'signed in'])(
-    'while %s there is no account deletion, password reset or change, sync or automatic-backup control or claim',
+    'while %s there is no account deletion, password change in Settings, sync or automatic-backup control or claim',
     (state) => {
       if (state !== 'off') {
         enableCloud();
@@ -529,18 +555,33 @@ describe('what is deliberately not offered', () => {
 
       const names = screen
         .getAllByRole('button')
-        .map((button) => button.textContent ?? '');
+        .map((button) => withoutAllowed(button.textContent ?? ''));
 
       expect(names.filter((name) => forbidden.test(name))).toEqual([]);
-      expect(
-        // "Nothing is sent automatically" is the one allowed mention.
-        (card().textContent ?? '').replace(
-          'Nothing is sent automatically.',
-          '',
-        ),
-      ).not.toMatch(forbidden);
+      expect(withoutAllowed(card().textContent ?? '')).not.toMatch(forbidden);
     },
   );
+
+  it.each([
+    ['off', false],
+    ['signed out', true],
+    ['signed in', false],
+  ])('%s: "Forgot password?" is offered: %s', (state, offered) => {
+    if (state !== 'off') {
+      enableCloud();
+    }
+    const made = makeAccount();
+
+    if (state === 'signed in') {
+      made.signInDirectly();
+    }
+
+    renderCard({ dependencies: dependencies(made.account) });
+
+    expect(
+      screen.queryByRole('button', { name: 'Forgot password?' }) !== null,
+    ).toBe(offered);
+  });
 
   it('renders no navigation, HUD, dashboard or onboarding entry for the cloud', () => {
     renderCard({ dependencies: dependencies(makeAccount().account) });
@@ -562,7 +603,7 @@ describe('both Settings shells share one capability', () => {
       expect(
         screen.getByRole('heading', {
           level: Number(titleAs.slice(1)),
-          name: 'Cloud backup (optional)',
+          name: cardTitle,
         }),
       ).toBeInTheDocument();
     },

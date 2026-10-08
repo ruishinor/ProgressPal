@@ -635,7 +635,7 @@ describe('the inventory states server facts only', () => {
       seen.push(
         screen
           .getByRole('heading', {
-            name: 'Cloud backup (optional)',
+            name: 'Remote backup — Alpha',
           })
           .closest('.card')?.textContent ?? '',
       );

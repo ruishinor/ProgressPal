@@ -51,13 +51,18 @@ const cloudUiFiles = walk(path.join(root, 'src/features/settings'))
 const code = (file: { text: string }) => stripComments(file.text);
 
 describe('cloud UI: made of what already exists', () => {
+  // Epic G repair 01 adds exactly two components, both for the password
+  // recovery journey: the request panel (Settings) and the new-password form
+  // (the callback page). Any other new module is a reviewer's question.
   it('finds the reviewed cloud UI modules', () => {
     expect(cloudUiFiles.map((file) => file.path).sort()).toEqual([
       `${FEATURE}cloudDependencies.ts`,
       `${FEATURE}cloudModel.ts`,
       `${FEATURE}components/CloudBackupCard.tsx`,
       `${FEATURE}components/CloudBackupPanel.tsx`,
+      `${FEATURE}components/CloudNewPasswordForm.tsx`,
       `${FEATURE}components/CloudNotice.tsx`,
+      `${FEATURE}components/CloudResetRequestPanel.tsx`,
       `${FEATURE}components/CloudRestorePanel.tsx`,
       `${FEATURE}components/CloudSignInPanel.tsx`,
       `${FEATURE}routes/CloudCallbackPage.tsx`,
@@ -114,7 +119,9 @@ describe('cloud UI: nothing runs a cloud request by itself', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('has exactly the reviewed effects: subscribe, focus, restore preview focus, and the single callback completion', () => {
+  // Epic G repair 01 adds two focus effects (moving keyboard focus after a view
+  // change); neither names a cloud operation, which the next test proves.
+  it('has exactly the reviewed effects: subscribe, focus (card, sign-in views, callback result), restore preview focus, and the single callback completion', () => {
     const effects = Object.fromEntries(
       cloudUiFiles
         .map((file) => [
@@ -127,7 +134,8 @@ describe('cloud UI: nothing runs a cloud request by itself', () => {
     expect(effects).toEqual({
       'components/CloudBackupCard.tsx': 2, // subscribe to account state; focus
       'components/CloudRestorePanel.tsx': 1, // focus the checked-backup preview
-      'routes/CloudCallbackPage.tsx': 1, // complete the email link, once
+      'components/CloudSignInPanel.tsx': 1, // focus after sign-in / reset view change
+      'routes/CloudCallbackPage.tsx': 2, // complete the email link, once; focus the result
     });
   });
 
@@ -161,18 +169,18 @@ describe('cloud UI: nothing runs a cloud request by itself', () => {
     const inspected = cloudUiFiles.flatMap((file) =>
       effectBodies(code(file)).map((body) => ({ file: file.path, body })),
     );
-    const offenders = inspected
-      .filter((effect) => !effect.file.endsWith('CloudCallbackPage.tsx'))
-      .filter((effect) => operations.test(effect.body))
-      .map((effect) => effect.file);
+    const withOperation = inspected.filter((effect) =>
+      operations.test(effect.body),
+    );
 
     // Positive controls: every effect was really inspected, and the scan can
-    // see an operation where one is (the callback page's single completion).
-    expect(inspected).toHaveLength(4);
-    expect(
-      inspected.filter((effect) => operations.test(effect.body)),
-    ).toHaveLength(1);
-    expect(offenders).toEqual([]);
+    // see an operation where one is — exactly one effect in the whole UI, the
+    // callback page's single completion. (The callback page's second effect,
+    // which moves focus, and every effect elsewhere, name no operation.)
+    expect(inspected).toHaveLength(6);
+    expect(withOperation).toHaveLength(1);
+    expect(withOperation[0]?.file.endsWith('CloudCallbackPage.tsx')).toBe(true);
+    expect(withOperation[0]?.body).toMatch(/completeEmailLink\(\)/);
   });
 });
 
@@ -226,6 +234,70 @@ describe('cloud UI: how Settings mounts the card', () => {
     );
     // One component for both shells: no variant-specific cloud branch.
     expect(surface).not.toMatch(/isRpgVariant\s*\?\s*<CloudBackupCard/);
+  });
+});
+
+describe('cloud UI: the password recovery journey stays inside the existing boundary', () => {
+  const file = (suffix: string) =>
+    cloudUiFiles.find((candidate) => candidate.path.endsWith(suffix));
+
+  it('asks for a reset link from one component only, once, through the account it is given', () => {
+    const asking = cloudUiFiles.filter((candidate) =>
+      /\.requestPasswordReset\(/.test(code(candidate)),
+    );
+
+    expect(asking.map((candidate) => candidate.path)).toEqual([
+      `${FEATURE}components/CloudResetRequestPanel.tsx`,
+    ]);
+    expect(
+      code(file('CloudResetRequestPanel.tsx') ?? { text: '' }).match(
+        /\.requestPasswordReset\(/g,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('changes the password from one component only, once, and only that component is shown on the callback page', () => {
+    const changing = cloudUiFiles.filter((candidate) =>
+      /\.changePassword\(/.test(code(candidate)),
+    );
+    const showing = cloudUiFiles.filter((candidate) =>
+      /<CloudNewPasswordForm\b/.test(code(candidate)),
+    );
+
+    expect(changing.map((candidate) => candidate.path)).toEqual([
+      `${FEATURE}components/CloudNewPasswordForm.tsx`,
+    ]);
+    expect(
+      code(file('CloudNewPasswordForm.tsx') ?? { text: '' }).match(
+        /\.changePassword\(/g,
+      ),
+    ).toHaveLength(1);
+    // Settings never shows it: a password is chosen only after a reset link.
+    expect(showing.map((candidate) => candidate.path)).toEqual([
+      `${FEATURE}routes/CloudCallbackPage.tsx`,
+    ]);
+  });
+
+  it('neither component reads the address, navigates, or touches browser storage', () => {
+    for (const name of [
+      'CloudResetRequestPanel.tsx',
+      'CloudNewPasswordForm.tsx',
+    ]) {
+      const text = code(file(name) ?? { text: '' });
+
+      expect(text.length, name).toBeGreaterThan(200);
+      expect(text, name).not.toMatch(
+        /\b(window|location|history|URLSearchParams|useLocation|useSearchParams|useNavigate|navigate|localStorage|sessionStorage)\b/,
+      );
+    }
+  });
+
+  it('keeps no password beyond the attempt that used it', () => {
+    for (const name of ['CloudNewPasswordForm.tsx', 'CloudSignInPanel.tsx']) {
+      const text = code(file(name) ?? { text: '' });
+
+      expect(text, name).toMatch(/finally\s*\{[\s\S]*?set\w*Password\(''\)/);
+    }
   });
 });
 

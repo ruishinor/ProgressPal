@@ -69,8 +69,10 @@ describe('C1 transient-state CS50 copy in real rendered states (semantic, CS50-o
   it('shows the programme-neutral first-run onboarding copy on a fresh database', async () => {
     await initializeDatabase({ seed: bundledCourseSeed });
     await renderAppAtRoute('/');
+    // Epic G repair 01: "Everything stays on this device." is no longer true
+    // once a learner may choose a remote backup; the data is still stored here.
     await expectRendered(
-      'Choose a programme and set up a local learner profile. Everything stays on this device.',
+      'Choose a programme and set up a local learner profile. Your data is stored on this device.',
     );
     expect(document.body.textContent).not.toContain(
       'Track CS50 work, sessions, XP, achievements, notes, and progress on this device.',
