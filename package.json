@@ -26,6 +26,7 @@
     "validate": "npm run verify:release"
   },
   "dependencies": {
+    "@nhost/nhost-js": "4.9.0",
     "date-fns": "^4.4.0",
     "dexie": "^4.4.3",
     "react": "^19.2.7",

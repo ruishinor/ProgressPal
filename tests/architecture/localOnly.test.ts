@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { resolveSameOriginAsset } from '@/lib/assets/sameOriginAsset';
+import { nhostAuthUrl, nhostGraphqlUrl } from '@/lib/cloud/nhost/endpoints';
 
 /**
  * Module 19 local-only / source-safety guardrail.
@@ -71,6 +72,19 @@ const ALLOWED_URL_PREFIXES: ReadonlyArray<string> = [
   // learner navigate to the official CS50 course pages. No fetch, XHR, or
   // WebSocket is involved; the browser navigates on click, not the app.
   'https://cs50.harvard.edu/',
+];
+
+/**
+ * Epic G (owner-authorized cloud backup): the only two non-allowlisted
+ * absolute URLs in runtime source are the Stockholm Nhost Auth and GraphQL
+ * service URLs, and only inside the one endpoint module. Exact strings, not
+ * a prefix: a third host, a different path or the same literal anywhere else
+ * is still a violation.
+ */
+const CLOUD_ENDPOINT_MODULE = 'src/lib/cloud/nhost/endpoints.ts';
+const CLOUD_ENDPOINT_URLS: ReadonlyArray<string> = [
+  nhostAuthUrl,
+  nhostGraphqlUrl,
 ];
 
 const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
@@ -189,9 +203,10 @@ describe('local-only source safety guardrail', () => {
       }
 
       for (const url of code.match(URL_PATTERN) ?? []) {
-        const allowed = ALLOWED_URL_PREFIXES.some((prefix) =>
-          url.startsWith(prefix),
-        );
+        const allowed =
+          ALLOWED_URL_PREFIXES.some((prefix) => url.startsWith(prefix)) ||
+          (relativePath === CLOUD_ENDPOINT_MODULE &&
+            CLOUD_ENDPOINT_URLS.includes(url));
 
         if (!allowed) {
           violations.push(`${relativePath}: external URL ${url}`);
