@@ -29,6 +29,10 @@ const representativeRoutes = [
   '/achievements',
   '/insights',
   '/settings',
+  // The email-link landing route, bare and with a code in the address: with
+  // cloud off it must clean the address and send nothing (Epic G).
+  '/cloud/callback',
+  '/cloud/callback?code=abcdefgh12345678&keep=1',
 ];
 
 test('cloud disabled (default): normal local use makes no request to any Nhost host or any foreign origin', async ({
