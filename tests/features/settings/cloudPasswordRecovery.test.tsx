@@ -1,7 +1,8 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CloudResetRequestPanel } from '@/features/settings/components/CloudResetRequestPanel';
 import { CloudError, type CloudErrorCode } from '@/lib/cloud';
 
 import { FakeBackupStore } from '../../lib/cloudBackup/fakeBackupStore';
@@ -250,6 +251,29 @@ describe('asking for the link', () => {
     expect(made.card.textContent).not.toContain(learnerEmail);
     expect(made.account.signIn).not.toHaveBeenCalled();
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  // A browser's email field strips the spaces around what is typed, so typing
+  // cannot show this; the panel is therefore given the spaced address directly.
+  it('trims the address it is given, whatever the field did with it', async () => {
+    const requestPasswordReset = vi.fn(async () => undefined);
+
+    render(
+      <CloudResetRequestPanel
+        account={{ requestPasswordReset }}
+        email={`  ${learnerEmail}  `}
+        onBack={() => undefined}
+        onEmailChange={() => undefined}
+        onSent={() => undefined}
+        sent={false}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Send reset link' }),
+    );
+
+    expect(requestPasswordReset).toHaveBeenCalledTimes(1);
+    expect(requestPasswordReset).toHaveBeenCalledWith(learnerEmail);
   });
 
   it('Enter in the email field sends the reset request, never a sign-in', async () => {

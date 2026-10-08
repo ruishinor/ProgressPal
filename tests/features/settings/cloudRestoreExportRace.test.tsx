@@ -241,6 +241,13 @@ describe('a pending local export holds the destructive restore', () => {
     await act(async () => {
       reactProps(confirm)?.onClick?.();
     });
+    // A restore that had started would already show as busy (the first thing
+    // the handler does); and nothing may reach the restore afterwards either.
+    expect(confirm).not.toHaveAttribute('aria-busy');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+    expect(confirm).not.toHaveAttribute('aria-busy');
     expect(s.restoreLocal).not.toHaveBeenCalled();
     expect(s.state.runLocalMutation).not.toHaveBeenCalled();
 
