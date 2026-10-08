@@ -33,6 +33,8 @@ export type StoreMethod =
   | 'downloadBackup';
 
 export type Fault =
+  /** Lets this request run normally (to script a later one differently). */
+  | { kind: 'pass' }
   /** The request has no effect and fails as described. */
   | { kind: 'fail'; failure: CloudRequestFailure }
   /** The request takes effect, then its answer is lost as described. */

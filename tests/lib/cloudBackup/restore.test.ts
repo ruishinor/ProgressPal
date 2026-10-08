@@ -62,6 +62,7 @@ afterAll(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await Promise.all(devices.splice(0).map((device) => device.cleanup()));
 });
 
@@ -401,6 +402,17 @@ describe('prepareRestore refusals leave local data untouched, each for its own r
       expect(setup.restoreLocal).not.toHaveBeenCalled();
     },
   );
+
+  it('a browser that cannot compute SHA-256 cannot verify, so it refuses instead of throwing', async () => {
+    const fresh = await target('fresh');
+    const setup = restoreSetup(fresh);
+
+    vi.spyOn(crypto.subtle, 'digest').mockRejectedValueOnce(
+      new Error('WebCrypto unavailable'),
+    );
+
+    await expectRefused(setup, fresh, { reason: 'verification-unavailable' });
+  });
 
   it('an unreadable local database is refused rather than guessed about', async () => {
     const fresh = await target('fresh');

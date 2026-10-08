@@ -48,6 +48,7 @@ afterAll(async () => {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const expectedText = (snapshot: BackupData = data) =>
@@ -955,6 +956,48 @@ describe('only one cloud operation at a time', () => {
 
     await expect(h.service.backUpNow()).rejects.toThrow('boom');
     expect((await h.service.backUpNow()).kind).toBe('stored');
+  });
+});
+
+describe('environment and ordering edge cases', () => {
+  it('a browser that cannot compute SHA-256 cannot hash, so nothing is sent', async () => {
+    const h = createHarness({ data });
+
+    vi.spyOn(crypto.subtle, 'digest').mockRejectedValueOnce(
+      new Error('WebCrypto unavailable'),
+    );
+
+    expect(await h.service.backUpNow()).toEqual({
+      kind: 'not-stored',
+      reason: 'local-export-failed',
+      failure: null,
+    });
+    expect(h.store.requests).toHaveLength(0);
+  });
+
+  it('absent once, then the inventory cannot be re-read: no second write, outcome unknown', async () => {
+    const h = createHarness({ data });
+
+    h.store.fault('replaceSlot', { kind: 'fail', failure: gatewayFault });
+    h.store.fault(
+      'listSlots',
+      { kind: 'pass' },
+      { kind: 'fail', failure: networkFault },
+    );
+
+    expect(await h.service.backUpNow()).toEqual({
+      kind: 'outcome-unknown',
+      attempt: {
+        backupId: idFor(1),
+        expectedSha256: sha256Of(expectedText()),
+        slot: 0,
+        payloadBytes: Buffer.byteLength(expectedText(), 'utf8'),
+      },
+      lastCheck: 'absent',
+      failure: networkFault,
+    });
+    expect(h.store.count('replaceSlot')).toBe(1);
+    expect(h.store.count('findBackup')).toBe(1);
   });
 });
 

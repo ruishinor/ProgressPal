@@ -121,7 +121,17 @@ export function createRestoreRunner(options: RestoreRunnerOptions) {
       return refused('incompatible');
     }
 
-    if ((await sha256Hex(payload)) !== payloadSha256) {
+    let computed: string;
+
+    try {
+      computed = await sha256Hex(payload);
+    } catch {
+      // No WebCrypto (an insecure context, say): nothing can be verified, so
+      // nothing is trusted. This is not a mismatch and not a bad backup.
+      return refused('verification-unavailable');
+    }
+
+    if (computed !== payloadSha256) {
       return refused('hash-mismatch');
     }
 

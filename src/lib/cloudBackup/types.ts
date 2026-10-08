@@ -172,6 +172,8 @@ export type PrepareRefusal =
   | 'slot-changed'
   | 'incompatible'
   | 'hash-mismatch'
+  /** This browser could not compute SHA-256, so nothing can be verified. */
+  | 'verification-unavailable'
   | 'invalid-backup'
   | 'local-state-unreadable';
 
