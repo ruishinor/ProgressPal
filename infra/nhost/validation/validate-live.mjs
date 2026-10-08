@@ -64,6 +64,10 @@ const secrets = [password];
 const results = [];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let lastRequestAt = 0;
+// 800 ms between requests keeps the run under the project's 100 requests per
+// minute. Only the offline self-test (tests/infra/liveValidationRun.test.ts),
+// which installs a simulated stack and sets this flag, runs without pacing.
+const PACE_MS = globalThis.__PROGRESSPAL_SIMULATED_NHOST__ === true ? 0 : 800;
 
 async function raw(url, { headers = {}, json } = {}) {
   const target = new URL(url);
@@ -72,7 +76,7 @@ async function raw(url, { headers = {}, json } = {}) {
     throw new HarnessAbort(`refusing to contact ${target.host}`);
   }
 
-  const wait = 800 - (Date.now() - lastRequestAt);
+  const wait = PACE_MS - (Date.now() - lastRequestAt);
   if (wait > 0) await sleep(wait);
   lastRequestAt = Date.now();
 
@@ -205,16 +209,18 @@ async function main() {
     .map((f) => f.name)
     .sort();
   const selectFields = (type('backup_slots')?.fields ?? []).map((f) => f.name);
+  // Both sides sorted with the same comparator (a hand-ordered list once put
+  // exported_at before expected_sha256 and would have failed a correct stack).
   const expectedInsert = [
-    'app_version',
-    'backup_id',
-    'exported_at',
-    'expected_sha256',
-    'format_version',
-    'payload',
-    'schema_version',
     'slot',
-  ];
+    'backup_id',
+    'format_version',
+    'schema_version',
+    'app_version',
+    'exported_at',
+    'payload',
+    'expected_sha256',
+  ].sort();
 
   record(
     'T4-surface-1',

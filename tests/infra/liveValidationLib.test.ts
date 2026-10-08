@@ -278,7 +278,11 @@ describe('the runner script obeys the harness rules', () => {
 
   it('contacts only the project hosts, paces requests, and never logs credentials', () => {
     expect(source).toContain('ALLOWED_HOSTS');
-    expect(source).toContain(squash('800 - (Date.now() - lastRequestAt)'));
+    // 800 ms pacing; removed only when the offline simulation sets its flag.
+    expect(source).toContain(squash('PACE_MS - (Date.now() - lastRequestAt)'));
+    expect(source).toMatch(
+      /constPACE_MS=globalThis\.__PROGRESSPAL_SIMULATED_NHOST__===true\?0:800;/,
+    );
     expect(source).not.toMatch(
       /console\.(log|error)\([^)]*(password|token|secret)/i,
     );
