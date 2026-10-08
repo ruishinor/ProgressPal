@@ -412,6 +412,30 @@ describe('an outcome that is not known', () => {
     );
   });
 
+  it('a check that cannot even be made says so and keeps the attempt, so it can be checked again', async () => {
+    const s = await setup();
+
+    unknownOutcome();
+    renderCard(s.options);
+    await click('Back up now');
+    await screen.findByText('Backup outcome unknown');
+
+    store.fault('findBackup', {
+      kind: 'throw',
+      error: new CloudError('session-ended', 'Sign in to use cloud backup.'),
+    });
+    await click('Check again');
+
+    const notice = await noticeWith('Could not check');
+
+    expect(notice).toHaveTextContent('Sign in to use cloud backup.');
+    expect(
+      within(notice).getByRole('button', { name: 'Check again' }),
+    ).toBeEnabled();
+    // Not stored, not refused: still not known.
+    expect(notice).not.toHaveTextContent(/Backed up|Nothing was changed/);
+  });
+
   it('Check again that still finds nothing stays unknown and offers the check again', async () => {
     const s = await setup();
 

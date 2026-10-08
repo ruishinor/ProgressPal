@@ -3,6 +3,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useAppState } from '@/lib/appState';
 import {
+  backupSlotCount,
   getCloudBackupStore,
   type CloudAccountPort,
   type CloudSignOutResult,
@@ -205,7 +206,9 @@ export function CloudBackupPanel({
       </p>
       <p className="card__description">
         Back up now sends a full copy of your ProgressPal data to the cloud
-        service. Nothing is sent automatically.
+        service. The cloud keeps up to {backupSlotCount} backups; when all{' '}
+        {backupSlotCount} are in use, the one stored earliest is replaced.
+        Nothing is sent automatically.
       </p>
       <div className="action-row">
         <Button

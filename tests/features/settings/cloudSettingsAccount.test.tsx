@@ -451,12 +451,12 @@ describe('signed in', () => {
     expect(account.signOut).not.toHaveBeenCalled();
   });
 
-  it('says plainly what Back up now sends, and that nothing is automatic', () => {
+  it('says plainly what Back up now sends, that a full set replaces the one stored earliest, and that nothing is automatic', () => {
     renderCard({ dependencies: dependencies(signedIn().account) });
 
     expect(
       screen.getByText(
-        'Back up now sends a full copy of your ProgressPal data to the cloud service. Nothing is sent automatically.',
+        'Back up now sends a full copy of your ProgressPal data to the cloud service. The cloud keeps up to 5 backups; when all 5 are in use, the one stored earliest is replaced. Nothing is sent automatically.',
       ),
     ).toBeVisible();
   });

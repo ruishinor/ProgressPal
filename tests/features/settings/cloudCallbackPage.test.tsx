@@ -168,11 +168,17 @@ describe('a good verification link', () => {
 
   it('exchanges the one-time code once even when React runs the effect twice (development StrictMode)', async () => {
     const port = await startSignUp();
+    const complete = vi.spyOn(port, 'completeEmailLink');
+
     land(`/cloud/callback?code=${code}`);
 
     renderPage(port, { strict: true });
     await result();
 
+    // The link is handed to the account boundary once: a second call would
+    // find an already-clean address and could end the page on "cannot be used"
+    // after a success, depending on which answer arrived last.
+    expect(complete).toHaveBeenCalledTimes(1);
     expect(
       calls.filter((call) => call.url.endsWith('/token/exchange')),
     ).toHaveLength(1);

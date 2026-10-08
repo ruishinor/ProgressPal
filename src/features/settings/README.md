@@ -32,4 +32,4 @@ Scope: the smallest usable account, manual backup and manual restore UI over the
 
 ## Known copy to revisit in G8/G9 (not changed here)
 
-The RPG Settings "Local-first and course boundary" card and the onboarding screen say "no account, no cloud sync" and the shell badge says "Offline only". Those statements are true for the released build and for the default (cloud off) state, and are pinned by existing tests; they become inaccurate for a learner who turns the cloud card on. They belong to the status (G8) and privacy-text (G9) tranches and are intentionally left alone here.
+The RPG Settings "Local-first and course boundary" card and its lede ("Stored only in this browser on this device"), the onboarding screen ("no account, no cloud sync") and the shell badge ("Offline only") make local-only statements. Those statements are true for the released build and for the default (cloud off) state, and are pinned by existing tests; they become inaccurate for a learner who turns the cloud card on. They belong to the status (G8) and privacy-text (G9) tranches and are intentionally left alone here.
