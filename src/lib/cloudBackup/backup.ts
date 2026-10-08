@@ -292,8 +292,26 @@ export function createBackupRunner(options: BackupRunnerOptions) {
       const verdict = judgeWrite(written.failure);
 
       switch (verdict.kind) {
-        case 'refused':
+        case 'refused': {
+          if (earlier !== null) {
+            const priorAttempt = attemptAt(earlier.slot);
+            const found = await reconcile(priorAttempt);
+
+            if ('found' in found) {
+              return found.found;
+            }
+
+            return outcomeUnknown(
+              priorAttempt,
+              'absent' in found ? 'absent' : 'unreachable',
+              'unreachable' in found
+                ? found.unreachable
+                : (earlier.failure ?? written.failure),
+            );
+          }
+
           return notStored(verdict.reason, written.failure);
+        }
 
         case 'id-exists': {
           const found = await reconcile(attempt);
@@ -311,16 +329,23 @@ export function createBackupRunner(options: BackupRunnerOptions) {
 
         case 'lost-race': {
           if (earlier !== null) {
-            // An earlier write may have landed late in this very slot.
-            const found = await reconcile(attempt);
+            // An earlier write may still land. A later race cannot prove that
+            // earlier attempt was not stored, so reconcile its identity and
+            // otherwise keep the overall result outcome-unknown.
+            const priorAttempt = attemptAt(earlier.slot);
+            const found = await reconcile(priorAttempt);
 
             if ('found' in found) {
               return found.found;
             }
 
-            if ('unreachable' in found) {
-              return outcomeUnknown(attempt, 'unreachable', found.unreachable);
-            }
+            return outcomeUnknown(
+              priorAttempt,
+              'absent' in found ? 'absent' : 'unreachable',
+              'unreachable' in found
+                ? found.unreachable
+                : (earlier.failure ?? written.failure),
+            );
           }
 
           if (number < maxWriteAttempts) {

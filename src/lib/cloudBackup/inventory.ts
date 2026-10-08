@@ -108,7 +108,8 @@ export function classifyInventory(
       // Only a slot that is strictly newer AND not restorable here is worth a
       // second statement; an equal time is not "newer".
       newerIncompatible:
-        !newest.compatible && byAge(newest, latestCompatible) > 0
+        !newest.compatible &&
+        compareStoredAt(newest.storedAt, latestCompatible.storedAt) > 0
           ? newest
           : null,
     },

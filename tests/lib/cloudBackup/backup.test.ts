@@ -767,6 +767,82 @@ describe('outcome unknown: reconciled by identity AND hash, never by identity al
     expect(h.store.rows.size).toBe(1);
   });
 
+  it('an earlier unknown write is not downgraded when the retry is rate-limited, and can reconcile if it lands late', async () => {
+    const h = createHarness({ data });
+
+    h.store.fault(
+      'replaceSlot',
+      { kind: 'fail', failure: gatewayFault },
+      { kind: 'fail', failure: { kind: 'rate-limited' } },
+    );
+
+    const unknown = await h.service.backUpNow();
+
+    expect(unknown).toMatchObject({
+      kind: 'outcome-unknown',
+      lastCheck: 'absent',
+      attempt: { backupId: idFor(1) },
+    });
+    expect(h.store.count('replaceSlot')).toBe(2);
+    expect(h.store.count('findBackup')).toBe(2);
+
+    if (unknown.kind !== 'outcome-unknown') {
+      throw new Error('expected an unknown outcome');
+    }
+
+    const attempted = lastWrite(h.store);
+    h.store.seed(unknown.attempt.slot, {
+      backupId: unknown.attempt.backupId,
+      payload: attempted.payload,
+    });
+
+    expect(await h.service.checkAttempt(unknown.attempt)).toMatchObject({
+      kind: 'stored',
+      reconciled: true,
+      backup: { backupId: idFor(1) },
+    });
+  });
+
+  it('an earlier unknown write is not downgraded by a later named database refusal', async () => {
+    const h = createHarness({ data });
+
+    h.store.fault(
+      'replaceSlot',
+      { kind: 'fail', failure: gatewayFault },
+      {
+        kind: 'fail',
+        failure: {
+          kind: 'rejected',
+          reason: 'unsupported-generation',
+          constraint: 'backup_slots_generation_gate',
+        },
+      },
+    );
+
+    expect(await h.service.backUpNow()).toMatchObject({
+      kind: 'outcome-unknown',
+      lastCheck: 'absent',
+      attempt: { backupId: idFor(1) },
+    });
+  });
+
+  it('an earlier unknown write is not downgraded by a later lost race', async () => {
+    const h = createHarness({ data });
+
+    h.store.fault(
+      'replaceSlot',
+      { kind: 'fail', failure: gatewayFault },
+      { kind: 'race', run: (store) => void store.seed(0) },
+    );
+
+    expect(await h.service.backUpNow()).toMatchObject({
+      kind: 'outcome-unknown',
+      lastCheck: 'absent',
+      attempt: { backupId: idFor(1) },
+    });
+    expect(h.store.count('replaceSlot')).toBe(2);
+  });
+
   it('absent twice: bounded at two writes, then honest "outcome unknown" with what is needed to check later', async () => {
     const h = createHarness({ data });
 

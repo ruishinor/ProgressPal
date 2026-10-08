@@ -221,6 +221,19 @@ describe('classifyInventory: facts only (Epic F section 8.1)', () => {
     });
   });
 
+  it('an incompatible slot with the same stored_at is not reported as newer just because its slot is higher', () => {
+    const sameTime = at(20);
+    const { facts } = classifyInventory(
+      [slotRow(0, sameTime), slotRow(4, sameTime, { schemaVersion: 5 })],
+      current,
+    );
+
+    expect(facts).toMatchObject({
+      kind: 'has-compatible-backup',
+      newerIncompatible: null,
+    });
+  });
+
   it('only incompatible slots: "no compatible backup", with how many exist and the newest', () => {
     const { facts } = classifyInventory(
       [
