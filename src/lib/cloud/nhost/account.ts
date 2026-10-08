@@ -54,6 +54,9 @@ import {
 export const cloudPasswordMinLength = 9;
 export const cloudPasswordMaxLength = 50;
 
+/** The SDK's own near-expiry window; sign-out refreshes inside it first. */
+const refreshMarginSeconds = 60;
+
 const emailShape = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateEmail(email: string) {
@@ -168,12 +171,87 @@ export function createNhostCloudAccount(
     return `${getWindow().location.origin}${cloudCallbackPath}`;
   }
 
+  /**
+   * The emailed link can only be completed with the verifier kept here, so an
+   * email is never requested unless the verifier was really stored. There is
+   * deliberately no fallback to a flow without one.
+   */
   async function startPkce(purpose: PkcePurpose): Promise<string> {
     const pair = await generatePKCEPair();
 
-    savePkceFlow({ verifier: pair.verifier, purpose, createdAt: now() });
+    if (!savePkceFlow({ verifier: pair.verifier, purpose, createdAt: now() })) {
+      clearPkceFlow();
+      throw cloudError('unknown');
+    }
 
     return pair.challenge;
+  }
+
+  /** Removes the local session from memory and from both stores; never throws. */
+  function removeLocalSession() {
+    try {
+      client?.clearSession();
+    } catch {
+      // The stores are emptied directly below.
+    }
+
+    removeStoredCloudSessions();
+  }
+
+  /**
+   * Asks the provider to invalidate the current refresh token and reports
+   * `confirmed` only when that was observed for the token that is really
+   * current. A near-expiry access token is refreshed first (the SDK would do
+   * it inside the next request and rotate the refresh token), but a refresh
+   * that fails or cannot be observed leaves the current token unknown, so the
+   * result is then never `confirmed`.
+   */
+  async function invalidateOnServer(
+    active: NhostClient,
+  ): Promise<CloudSignOutResult['serverInvalidation']> {
+    const before = active.getUserSession();
+
+    if (
+      before === null ||
+      typeof before.refreshToken !== 'string' ||
+      before.refreshToken === ''
+    ) {
+      // No session, or a leftover record that is not a usable one: there is
+      // nothing to ask the provider to invalidate.
+      return 'unconfirmed';
+    }
+
+    const exp = before.decodedToken?.exp;
+    const refreshNeeded =
+      !exp || exp - Date.now() <= refreshMarginSeconds * 1000;
+    let refreshFailed = false;
+
+    try {
+      await active.refreshSession(refreshMarginSeconds);
+    } catch {
+      refreshFailed = true;
+    }
+
+    const session = active.getUserSession();
+
+    if (session === null) {
+      // The provider rejected the refresh token and the SDK dropped it.
+      return 'unconfirmed';
+    }
+
+    const refreshObserved =
+      session.accessToken !== before.accessToken ||
+      session.refreshToken !== before.refreshToken;
+    const currentTokenKnown =
+      !refreshFailed && (!refreshNeeded || refreshObserved);
+
+    try {
+      await active.auth.signOut({ refreshToken: session.refreshToken });
+    } catch {
+      return 'unconfirmed';
+    }
+
+    return currentTokenKnown ? 'confirmed' : 'unconfirmed';
   }
 
   return {
@@ -242,32 +320,19 @@ export function createNhostCloudAccount(
     },
 
     async signOut(): Promise<CloudSignOutResult> {
-      if (!readPreferences().enabled) {
-        removeStoredCloudSessions();
-        return { localSessionRemoved: true, serverInvalidation: 'unconfirmed' };
-      }
-
-      const active = ensureClient();
-      // The SDK refreshes a near-expiry token inside the next request, which
-      // rotates the refresh token. Refresh first so the token invalidated by
-      // the sign-out request is the CURRENT one, not an already-revoked one.
-      // (A failed refresh leaves the session as it was; sign-out then reports
-      // the server side as unconfirmed.)
-      await active.refreshSession(60);
-      const session = active.getUserSession();
       let serverInvalidation: CloudSignOutResult['serverInvalidation'] =
-        session === null ? 'confirmed' : 'unconfirmed';
+        'unconfirmed';
 
       try {
-        if (session !== null) {
-          await active.auth.signOut({ refreshToken: session.refreshToken });
-          serverInvalidation = 'confirmed';
+        // Cloud disabled: there is no client and no request, only local cleanup.
+        if (readPreferences().enabled) {
+          serverInvalidation = await invalidateOnServer(ensureClient());
         }
       } catch {
-        serverInvalidation = 'unconfirmed';
+        // Stays unconfirmed: nothing was acknowledged by the provider.
       } finally {
-        active.clearSession();
-        removeStoredCloudSessions();
+        // Whatever happened above, this device never keeps the session.
+        removeLocalSession();
       }
 
       return { localSessionRemoved: true, serverInvalidation };
@@ -292,17 +357,24 @@ export function createNhostCloudAccount(
     },
 
     async completeEmailLink(href: string): Promise<CloudEmailLinkOutcome> {
+      // First act: take anything callback-shaped (code, token, error) out of
+      // the address bar, before anything below can render, log or throw.
+      const scrubbed = scrubCloudCallbackUrl(getWindow());
       const parsed = parseCloudCallback(href);
+
+      if (!scrubbed) {
+        // A credential that cannot be removed from the address is never used.
+        clearPkceFlow();
+        return { kind: 'invalid-link' };
+      }
 
       if (parsed.kind === 'none') {
         return { kind: 'invalid-link' };
       }
 
-      // First act: take the one-time code (or an unsafe token) out of the
-      // address bar, before anything below can render, log or throw.
-      scrubCloudCallbackUrl(getWindow());
-
-      if (parsed.kind === 'token-in-url') {
+      if (parsed.kind !== 'code') {
+        // A token link, a provider error or an unusable code: a pending
+        // verifier belongs to a link that cannot be completed any more.
         clearPkceFlow();
         return { kind: 'invalid-link' };
       }
@@ -363,10 +435,10 @@ export function createNhostCloudAccount(
         throw mapAuthError(error);
       }
 
-      // The provider revokes every session of the account, this one included:
-      // never leave the UI claiming an active session.
-      active.clearSession();
-      removeStoredCloudSessions();
+      // Deliberately conservative: whatever the provider does with its other
+      // sessions (a live-validation fact, not an assumption), this device drops
+      // its own session and asks for a fresh sign-in.
+      removeLocalSession();
     },
 
     setTrustedDevice(value: boolean): void {

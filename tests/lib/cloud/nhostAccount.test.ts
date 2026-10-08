@@ -37,15 +37,15 @@ interface Call {
 const base64Url = (value: unknown) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
 
-function fakeJwt() {
-  const exp = Math.floor(Date.now() / 1000) + 900;
+function fakeJwt(secondsToExpiry = 900) {
+  const exp = Math.floor(Date.now() / 1000) + secondsToExpiry;
   return `${base64Url({ alg: 'none' })}.${base64Url({ sub: 'user-1', exp, iat: exp - 900 })}.sig`;
 }
 
-function fakeSession() {
+function fakeSession(secondsToExpiry = 900) {
   return {
-    accessToken: fakeJwt(),
-    accessTokenExpiresIn: 900,
+    accessToken: fakeJwt(secondsToExpiry),
+    accessTokenExpiresIn: secondsToExpiry,
     refreshTokenId: '11111111-1111-4111-8111-111111111111',
     refreshToken: '22222222-2222-4222-8222-222222222222',
     user: { id: 'user-1', email, displayName: 'x', roles: ['user'] },
@@ -364,6 +364,68 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
     expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
   });
 
+  describe('a verifier that cannot be stored (CR-3)', () => {
+    function failVerifierWrites() {
+      const original = Storage.prototype.setItem;
+
+      return vi
+        .spyOn(Storage.prototype, 'setItem')
+        .mockImplementation(function (
+          this: Storage,
+          key: string,
+          value: string,
+        ) {
+          if (key === pkceVerifierStorageKey) {
+            throw new DOMException('quota', 'QuotaExceededError');
+          }
+
+          original.call(this, key, value);
+        });
+    }
+
+    it('sign-up sends nothing, leaves no verifier (not even a stale one) and says so honestly', async () => {
+      enable();
+      localStorage.setItem(
+        pkceVerifierStorageKey,
+        JSON.stringify({ stale: true }),
+      );
+      const failing = failVerifierWrites();
+
+      await expectCloudError(account().signUp({ email, password }), 'unknown');
+
+      failing.mockRestore();
+      expect(calls).toHaveLength(0);
+      expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+    });
+
+    it('password reset sends nothing and leaves no verifier', async () => {
+      enable();
+      localStorage.setItem(
+        pkceVerifierStorageKey,
+        JSON.stringify({ stale: true }),
+      );
+      const failing = failVerifierWrites();
+
+      await expectCloudError(account().requestPasswordReset(email), 'unknown');
+
+      failing.mockRestore();
+      expect(calls).toHaveLength(0);
+      expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+    });
+
+    it('does not fall back to a flow without a verifier', async () => {
+      enable();
+      const failing = failVerifierWrites();
+
+      await account()
+        .signUp({ email, password })
+        .catch(() => undefined);
+
+      failing.mockRestore();
+      expect(calls.filter((call) => call.url.includes('/signup/'))).toEqual([]);
+    });
+  });
+
   it('removes the verifier when the sign-up fails', async () => {
     enable();
     handler = () => json(409, { error: 'email-already-in-use' });
@@ -522,6 +584,143 @@ describe('sign-up, verification and PKCE (T3, T6)', () => {
     expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
   });
 
+  describe('every callback-shaped address is scrubbed (CR-2)', () => {
+    it.each([
+      [
+        'an error-only callback',
+        '/cloud/callback?error=invalid-ticket&errorDescription=Ticket%20expired&keep=1',
+        '?keep=1',
+      ],
+      [
+        'an error in the fragment',
+        '/cloud/callback?keep=1#error=x&b=2',
+        '?keep=1',
+      ],
+      ['an empty code', '/cloud/callback?code=&type=signup&keep=1', '?keep=1'],
+      ['a duplicated code', '/cloud/callback?code=a&code=b&keep=1', '?keep=1'],
+      [
+        'a code in the fragment only',
+        '/cloud/callback?keep=1#code=abcdefgh',
+        '?keep=1',
+      ],
+      ['a lone type', '/cloud/callback?type=signup', ''],
+    ])(
+      '%s: no request, verifier dropped, nothing callback-shaped left in the address',
+      async (_label, address, expectedSearch) => {
+        const port = await startFlow('signup');
+        calls = [];
+        window.history.replaceState({ routerKey: 7 }, '', address);
+
+        expect(await port.completeEmailLink(window.location.href)).toEqual({
+          kind: 'invalid-link',
+        });
+
+        expect(calls).toHaveLength(0);
+        expect(window.location.search).toBe(expectedSearch);
+        expect(window.location.hash.includes('error')).toBe(false);
+        expect(window.location.hash.includes('code')).toBe(false);
+        expect(window.history.state).toEqual({ routerKey: 7 });
+        expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+        expect(port.getState().status).toBe('signed-out');
+      },
+    );
+
+    it('scrubs the address even for an invocation that is not a link at all', async () => {
+      enable();
+      window.history.replaceState(null, '', '/cloud/callback?error=x&keep=1');
+
+      expect(
+        await account().completeEmailLink('https://progresspal.example/other'),
+      ).toEqual({ kind: 'invalid-link' });
+      expect(window.location.search).toBe('?keep=1');
+      expect(calls).toHaveLength(0);
+    });
+
+    it('exchanges an opaque code exactly as the provider issued it, URL-encoded characters included', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?code=a%2Fb%2Bc%3D%3D~%C3%A9x&keep=1',
+      );
+
+      expect(await port.completeEmailLink(window.location.href)).toEqual({
+        kind: 'verified-signed-in',
+      });
+      expect(calls[0]?.body?.code).toBe('a/b+c==~\u00e9x');
+      expect(calls[0]?.search).toBe('?keep=1');
+    });
+
+    it('keeps unrelated query and fragment parameters', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?a=1%202&error=x&b=%C3%A5#view=list&error_description=y',
+      );
+
+      await port.completeEmailLink(window.location.href);
+
+      expect(window.location.search).toBe('?a=1%202&b=%C3%A5');
+      expect(window.location.hash).toBe('#view=list');
+    });
+
+    it('fails closed when the address bar cannot be rewritten: the code is not exchanged and the verifier is dropped', async () => {
+      const port = await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?code=abcdefgh12345678',
+      );
+      const stuck = createNhostCloudAccount({
+        getWindow: () => ({
+          location: window.location,
+          history: {
+            state: null,
+            replaceState: () => {
+              throw new Error('SecurityError');
+            },
+          },
+        }),
+      });
+
+      expect(await stuck.completeEmailLink(window.location.href)).toEqual({
+        kind: 'invalid-link',
+      });
+      expect(calls).toHaveLength(0);
+      expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+      expect(port.getState().status).toBe('signed-out');
+    });
+
+    it('fails closed when a rewrite is silently ignored', async () => {
+      await startFlow('signup');
+      calls = [];
+      handler = () => json(200, { session: fakeSession() });
+      window.history.replaceState(
+        null,
+        '',
+        '/cloud/callback?code=abcdefgh12345678',
+      );
+      const ignoring = createNhostCloudAccount({
+        getWindow: () => ({
+          location: window.location,
+          history: { state: null, replaceState: () => undefined },
+        }),
+      });
+
+      expect(await ignoring.completeEmailLink(window.location.href)).toEqual({
+        kind: 'invalid-link',
+      });
+      expect(calls).toHaveLength(0);
+      expect(localStorage.getItem(pkceVerifierStorageKey)).toBeNull();
+    });
+  });
+
   it('an address without a code is simply not a link', async () => {
     enable();
     expect(
@@ -577,7 +776,161 @@ describe('sign-out and password change', () => {
     expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
   });
 
-  it('password change leaves the port signed out, because the provider revokes every session', async () => {
+  describe('sign-out when the access token is near expiry (CR-1)', () => {
+    const rotated = '33333333-3333-4333-8333-333333333333';
+
+    async function signedInNearExpiry() {
+      enable();
+      handler = () => json(200, { session: fakeSession(20) });
+      const port = account();
+      await port.signIn({ email, password });
+      calls = [];
+      return port;
+    }
+
+    function silenceSdkWarnings() {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('refresh succeeds: the CURRENT rotated refresh token is the one invalidated, and only then is it confirmed', async () => {
+      const port = await signedInNearExpiry();
+      handler = (call) =>
+        call.url.endsWith('/token')
+          ? json(200, { ...fakeSession(900), refreshToken: rotated })
+          : json(200, 'OK');
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'confirmed',
+      });
+      expect(calls.map((call) => call.url.split('/').pop())).toEqual([
+        'token',
+        'signout',
+      ]);
+      expect(calls[1]?.body).toEqual({ refreshToken: rotated });
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('refresh fails and the sign-out request then succeeds: the local session is removed and the server side is NOT claimed confirmed', async () => {
+      silenceSdkWarnings();
+      const port = await signedInNearExpiry();
+      handler = (call) =>
+        call.url.endsWith('/token')
+          ? json(503, { error: 'unavailable' })
+          : json(200, 'OK');
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(port.getState().status).toBe('signed-out');
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('refresh fails and so does everything else: still signed out locally', async () => {
+      silenceSdkWarnings();
+      const port = await signedInNearExpiry();
+      handler = () => {
+        throw new TypeError('Failed to fetch');
+      };
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(port.getState().status).toBe('signed-out');
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('near expiry and the provider rejects the refresh (401): removed locally, never claimed confirmed', async () => {
+      silenceSdkWarnings();
+      const port = await signedInNearExpiry();
+      handler = (call) =>
+        call.url.endsWith('/token')
+          ? json(401, { error: 'invalid-refresh-token' })
+          : json(200, 'OK');
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(port.getState().status).toBe('signed-out');
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('already expired and the provider rejects the refresh (401): the SDK drops the session itself, no sign-out request follows', async () => {
+      silenceSdkWarnings();
+      enable();
+      handler = () => json(200, { session: fakeSession(-30) });
+      const port = account();
+      await port.signIn({ email, password });
+      calls = [];
+      handler = () => json(401, { error: 'invalid-refresh-token' });
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(calls.some((call) => call.url.endsWith('/signout'))).toBe(false);
+      expect(port.getState().status).toBe('signed-out');
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('refresh succeeds but the sign-out request fails: removed locally, unconfirmed', async () => {
+      const port = await signedInNearExpiry();
+      handler = (call) =>
+        call.url.endsWith('/token')
+          ? json(200, { ...fakeSession(900), refreshToken: rotated })
+          : json(503, { error: 'unavailable' });
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+
+    it('an expired access token whose refresh fails is also removed locally and reported unconfirmed', async () => {
+      silenceSdkWarnings();
+      enable();
+      handler = () => json(200, { session: fakeSession(-30) });
+      const port = account();
+      await port.signIn({ email, password });
+      calls = [];
+      handler = (call) =>
+        call.url.endsWith('/token')
+          ? json(503, { error: 'unavailable' })
+          : json(200, 'OK');
+
+      expect(await port.signOut()).toEqual({
+        localSessionRemoved: true,
+        serverInvalidation: 'unconfirmed',
+      });
+      expect(port.getState().status).toBe('signed-out');
+      expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    });
+  });
+
+  it('with cloud enabled but no session, sign-out sends nothing, clears leftovers and does not claim a server invalidation', async () => {
+    enable();
+    sessionStorage.setItem(cloudSessionStorageKey, '{"leftover":true}');
+    localStorage.setItem(persistentSessionStorageKey, '{"leftover":true}');
+
+    expect(await account().signOut()).toEqual({
+      localSessionRemoved: true,
+      serverInvalidation: 'unconfirmed',
+    });
+    expect(calls).toHaveLength(0);
+    expect(sessionStorage.getItem(cloudSessionStorageKey)).toBeNull();
+    expect(localStorage.getItem(persistentSessionStorageKey)).toBeNull();
+  });
+
+  it("password change deliberately clears this device's local session, so the port is signed out and sign-in is required again", async () => {
     const port = await signedIn();
     const seen: string[] = [];
     port.subscribe((state) => seen.push(state.status));

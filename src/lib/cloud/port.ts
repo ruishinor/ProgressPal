@@ -55,8 +55,10 @@ export type CloudSignOutResult = {
   /** The session is always removed from this device. */
   localSessionRemoved: true;
   /**
-   * `confirmed` only when the provider acknowledged the server-side
-   * invalidation; `unconfirmed` when the request could not be completed.
+   * `confirmed` only when the provider acknowledged the invalidation of the
+   * refresh token that was really current. `unconfirmed` in every other case:
+   * the request failed, no request was made (no session, cloud disabled), or a
+   * failed near-expiry refresh left the current token unknown.
    */
   serverInvalidation: 'confirmed' | 'unconfirmed';
 };
@@ -72,7 +74,11 @@ export type CloudEmailLinkOutcome =
    * remembers having started, or `unknown`.
    */
   | { kind: 'sign-in-required'; purpose: 'signup' | 'reset' | 'unknown' }
-  /** Not a link this build can honour (no code, or a non-PKCE token link). */
+  /**
+   * Not a link this build can honour: no usable code, a provider error, a
+   * non-PKCE token link, or an address that could not be scrubbed. The address
+   * bar has been cleaned (or the code was refused because it could not be).
+   */
   | { kind: 'invalid-link' };
 
 export interface CloudAccountPort {
@@ -89,9 +95,11 @@ export interface CloudAccountPort {
    */
   completeEmailLink(href: string): Promise<CloudEmailLinkOutcome>;
   /**
-   * Changes the password for the signed-in account. The provider revokes every
-   * session of the account, including this one, so a successful call leaves
-   * the port `signed-out`.
+   * Changes the password for the signed-in account. After a successful change
+   * ProgressPal deliberately clears this device's local session and requires
+   * signing in again, so a successful call leaves the port `signed-out`. What
+   * the provider does with the account's other sessions is a live-validation
+   * fact, not something this port assumes.
    */
   changePassword(newPassword: string): Promise<void>;
 

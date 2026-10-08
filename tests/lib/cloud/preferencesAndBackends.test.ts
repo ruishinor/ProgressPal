@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   cloudPreferencesStorageKey,
@@ -236,48 +236,128 @@ describe('PKCE verifier store', () => {
 
 describe('email-link address handling', () => {
   const origin = 'https://progresspal.example';
+  const callback = `${origin}${cloudCallbackPath}`;
 
   it('recognises a one-time code', () => {
-    expect(
-      parseCloudCallback(`${origin}${cloudCallbackPath}?code=abcdefgh12345678`),
-    ).toEqual({
+    expect(parseCloudCallback(`${callback}?code=abcdefgh12345678`)).toEqual({
       kind: 'code',
       code: 'abcdefgh12345678',
     });
   });
 
+  it('treats the code as opaque: no provider alphabet, only emptiness and a length bound', () => {
+    // URL-encoded characters decode to the code the provider issued.
+    expect(
+      parseCloudCallback(`${callback}?code=a%2Fb%2Bc%3D%3D~%C3%A9x`),
+    ).toEqual({ kind: 'code', code: 'a/b+c==~éx' });
+    expect(parseCloudCallback(`${callback}?code=short`)).toEqual({
+      kind: 'code',
+      code: 'short',
+    });
+    expect(parseCloudCallback(`${callback}?code=${'a'.repeat(2048)}`)).toEqual({
+      kind: 'code',
+      code: 'a'.repeat(2048),
+    });
+  });
+
   it.each([
-    [
-      `${origin}/cloud/callback?refreshToken=22222222-2222-4222-8222-222222222222`,
-    ],
-    [`${origin}/cloud/callback?refresh_token=x`],
-    [`${origin}/cloud/callback#refreshToken=x`],
-    [`${origin}/cloud/callback#access_token=x&type=signup`],
-    [`${origin}/cloud/callback?code=abcdefgh12345678&refreshToken=x`],
+    [`${callback}?refreshToken=22222222-2222-4222-8222-222222222222`],
+    [`${callback}?refresh_token=x`],
+    [`${callback}?accessToken=x`],
+    [`${callback}?access_token=x`],
+    [`${callback}?ticket=x&type=emailVerify`],
+    [`${callback}#refreshToken=x`],
+    [`${callback}#access_token=x&type=signup`],
+    [`${callback}?code=abcdefgh12345678&refreshToken=x`],
+    [`${callback}?error=x&refreshToken=x`],
   ])('refuses a token-bearing (non-PKCE) address: %s', (href) => {
     expect(parseCloudCallback(href)).toEqual({ kind: 'token-in-url' });
   });
 
   it.each([
-    [`${origin}/cloud/callback`],
-    [`${origin}/cloud/callback?code=`],
-    [`${origin}/cloud/callback?code=short`],
-    [`${origin}/cloud/callback?code=${'a'.repeat(513)}`],
-    [`${origin}/cloud/callback?code=<script>alert(1)</script>`],
-    ['not a url'],
-  ])('is not a link: %s', (href) => {
-    expect(parseCloudCallback(href)).toEqual({ kind: 'none' });
+    [`${callback}?error=access_denied`],
+    [`${callback}?error=invalid-ticket&errorDescription=Ticket%20expired`],
+    [`${callback}?error_description=x`],
+    [`${callback}?error_code=otp_expired`],
+    [`${callback}#error=access_denied&error_description=x`],
+    [`${callback}?code=abcdefgh12345678&error=x`],
+  ])('an error callback is recognised and never usable: %s', (href) => {
+    expect(parseCloudCallback(href)).toEqual({ kind: 'provider-error' });
   });
+
+  it.each([
+    [`${callback}?code=`],
+    [`${callback}?code=${'a'.repeat(2049)}`],
+    [`${callback}?code=a&code=b`],
+    [`${callback}#code=abcdefgh12345678`],
+    [`${callback}?code=abcdefgh12345678#code=abcdefgh12345678`],
+    [`${callback}?type=signup`],
+    [`${callback}?CODE=`],
+  ])('callback-shaped but unusable is its own outcome: %s', (href) => {
+    expect(parseCloudCallback(href)).toEqual({ kind: 'malformed' });
+  });
+
+  it.each([[callback], [`${callback}?keep=1#top`], ['not a url']])(
+    'is not callback-shaped at all: %s',
+    (href) => {
+      expect(parseCloudCallback(href)).toEqual({ kind: 'none' });
+    },
+  );
 
   it('strips every callback parameter and keeps the rest of the address', () => {
     expect(
       stripCloudCallbackParams(
-        `${origin}/cloud/callback?code=abc&type=signup&error=x&errorDescription=y&keep=1#top`,
+        `${callback}?code=abc&type=signup&error=x&errorDescription=y&keep=1#top`,
       ),
     ).toBe('/cloud/callback?keep=1#top');
+    expect(stripCloudCallbackParams(`${callback}#refreshToken=x`)).toBe(
+      '/cloud/callback',
+    );
+  });
+
+  it('strips every documented alias from the query and from the fragment', () => {
+    const names = [
+      'code',
+      'type',
+      'refreshToken',
+      'refresh_token',
+      'accessToken',
+      'access_token',
+      'ticket',
+      'error',
+      'errorDescription',
+      'error_description',
+      'error_code',
+      'errorCode',
+      'error_uri',
+      'errorUri',
+    ];
+    const query = names.map((name) => `${name}=v`).join('&');
+
+    expect(stripCloudCallbackParams(`${callback}?${query}`)).toBe(
+      '/cloud/callback',
+    );
+    expect(stripCloudCallbackParams(`${callback}#${query}`)).toBe(
+      '/cloud/callback',
+    );
+    expect(stripCloudCallbackParams(`${callback}?CODE=v&Error=v`)).toBe(
+      '/cloud/callback',
+    );
+  });
+
+  it('keeps unrelated parameters byte for byte, in the query and in the fragment', () => {
     expect(
-      stripCloudCallbackParams(`${origin}/cloud/callback#refreshToken=x`),
-    ).toBe('/cloud/callback');
+      stripCloudCallbackParams(
+        `${callback}?a=1%202&code=x&b=%C3%A5+c&flag#anchor`,
+      ),
+    ).toBe('/cloud/callback?a=1%202&b=%C3%A5+c&flag#anchor');
+    expect(
+      stripCloudCallbackParams(`${callback}?q=1#section=2&error=x&view=list`),
+    ).toBe('/cloud/callback?q=1#section=2&view=list');
+    // A fragment that is not a parameter list is left alone.
+    expect(stripCloudCallbackParams(`${callback}?code=x#plain-anchor`)).toBe(
+      '/cloud/callback#plain-anchor',
+    );
   });
 
   it('rewrites the current history entry in place and preserves router state', () => {
@@ -288,7 +368,7 @@ describe('email-link address handling', () => {
     );
     const lengthBefore = window.history.length;
 
-    scrubCloudCallbackUrl(window);
+    expect(scrubCloudCallbackUrl(window)).toBe(true);
 
     expect(window.location.pathname + window.location.search).toBe(
       '/cloud/callback',
@@ -297,7 +377,17 @@ describe('email-link address handling', () => {
     expect(window.history.length).toBe(lengthBefore);
   });
 
-  it('never throws if the address cannot be rewritten', () => {
+  it('does not touch history when the address has nothing to scrub', () => {
+    window.history.pushState({ key: 'abc' }, '', '/cloud/callback?keep=1');
+    const replace = vi.spyOn(window.history, 'replaceState');
+
+    expect(scrubCloudCallbackUrl(window)).toBe(true);
+
+    expect(replace).not.toHaveBeenCalled();
+    replace.mockRestore();
+  });
+
+  it('never throws if the address cannot be rewritten, and says it was not scrubbed', () => {
     const hostile = {
       location: { href: `${origin}/cloud/callback?code=abcdefgh12345678` },
       history: {
@@ -308,6 +398,15 @@ describe('email-link address handling', () => {
       },
     };
 
-    expect(() => scrubCloudCallbackUrl(hostile)).not.toThrow();
+    expect(scrubCloudCallbackUrl(hostile)).toBe(false);
+  });
+
+  it('reports a rewrite that did not take effect as not scrubbed', () => {
+    const stuck = {
+      location: { href: `${origin}/cloud/callback?code=abcdefgh12345678` },
+      history: { state: null, replaceState: () => undefined },
+    };
+
+    expect(scrubCloudCallbackUrl(stuck)).toBe(false);
   });
 });
