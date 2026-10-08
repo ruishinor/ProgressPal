@@ -64,6 +64,29 @@ Apply it immediately before promoting the new app, run the live validation again
 
 **Result and cleanup are separate facts.** The result (`PASS`, `FAIL` or `INCONCLUSIVE`) is decided before cleanup and cleanup can never change it. Every run starts by clearing the synthetic rows of users A and B. After the run, whether it passed, failed or aborted, the harness _attempts_ to clear them again and records `cleanup` as `complete` (both inventories read back empty), `incomplete` (it could not be finished, for example during a provider outage) or `not-attempted` (no user signed in, so nothing could have been written). Cleanup is best-effort, not guaranteed: during an outage the rows stay until the next run clears them first. The synthetic Auth users are never deleted by the harness. Exit codes: `0` PASS with cleanup complete, `1` FAIL or INCONCLUSIVE, `2` not configured, `3` PASS with cleanup incomplete.
 
+### Observed on the real stack (2026-10-08, owner-run)
+
+The Stage-1 schema and permissions are applied on `progresspal-g0` and the harness passed **23 of 23** with `cleanup: complete` (`live-validation-1791459666984.json`, SHA-256 `03d33359a257ecafb40a6acfa233359b46ad127e06653aa7717a353b1c42e71a`; the evidence file does not record the commit, which is the owner script's pinned HEAD `11de98a`).
+
+| Property              | Observed                                                                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Positive controls     | empty-slot insert, occupied-slot replacement (delete + insert, one request) and the current generation `(1, 4)` succeed; the server hash equals the client hash                                                                        |
+| 10 MiB                | exactly 10 MiB accepted (request body 14,519,135 bytes after JSON escaping, 4.2 s)                                                                                                                                                     |
+| 10 MiB + 1 byte       | refused by `backup_slots_payload_ceiling`, i.e. by the **database constraint**; the gateway-only branch of `T5-ceiling` was not taken                                                                                                  |
+| Lost race             | fails on `backup_slots_pkey`; the winner is not overwritten; inventory unchanged                                                                                                                                                       |
+| Generation gate       | `(1, 5)` and format `2` refused by `backup_slots_generation_gate`; the old row survives                                                                                                                                                |
+| Exact-bytes gate      | wrong, missing and 31-byte expected hashes are all refused by the same `backup_slots_exact_bytes_gate`; the old row survives                                                                                                           |
+| Slot range            | slot 5 refused by `backup_slots_slot_range`                                                                                                                                                                                            |
+| Isolation and surface | no update and no aggregate root; insertable columns are exactly the client-owned set; `expected_sha256` and `user_id` not selectable; B sees none of A's rows and deletes none; a forged `user_id` and anonymous access are impossible |
+| Exact text            | `\u0000` escapes, an emoji and a combining mark round-trip byte for byte                                                                                                                                                               |
+| Ordering              | two inserts in one transaction get strictly increasing `stored_at` (`clock_timestamp()`, not `now()`)                                                                                                                                  |
+
+Lessons from the run:
+
+- Both synthetic users must be **verified** before the harness runs. The first run aborted at sign-in (HTTP 401) with zero checks and `cleanup: not-attempted`; that is the intended behaviour, not a result (`live-validation-1791459368636.json`, SHA-256 `ed715258912bd0c686ad824aebbf41e99e270a417eda55316f5f886a05fc6de5`).
+- Once the schema exists, re-running the whole owner script stops at the schema step ("relation already exists") by design and applies nothing further. Repeat only the validation with `$validationOnly = $true`.
+- What this does **not** cover: live account flows (email delivery, redirects, the real code exchange, whether a password change revokes other sessions), the callback route and UI, and everything from G5 onwards.
+
 ## Provider configuration delta (for the owner-run step; nothing is applied from here)
 
 Development state (while migrations and metadata are being applied) versus final intent:
