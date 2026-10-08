@@ -23,7 +23,7 @@ import {
   RpgShell,
 } from '@/features/rpg';
 import { SessionsPage } from '@/features/sessions';
-import { SettingsPage } from '@/features/settings';
+import { CloudCallbackPage, SettingsPage } from '@/features/settings';
 
 const onboardingRoute = getRouteDefinition('onboarding');
 const dashboardRoute = getRouteDefinition('dashboard');
@@ -42,6 +42,7 @@ const sessionsRoute = getRouteDefinition('sessions');
 const achievementsRoute = getRouteDefinition('achievements');
 const insightsRoute = getRouteDefinition('insights');
 const settingsRoute = getRouteDefinition('settings');
+const cloudCallbackRoute = getRouteDefinition('cloudCallback');
 const notFoundRoute = getRouteDefinition('notFound');
 const homeRoute = getRouteDefinition('home');
 const profileRoute = getRouteDefinition('profile');
@@ -50,6 +51,12 @@ export const router = createBrowserRouter([
   {
     path: homeRoute.to,
     element: <Navigate replace to="/rpg" />,
+  },
+  {
+    // Outside both shells: a shell may redirect (to onboarding) before the
+    // one-time code is consumed, and this page needs no learner data.
+    path: cloudCallbackRoute.to,
+    element: <CloudCallbackPage />,
   },
   {
     path: '/',

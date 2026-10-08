@@ -12,7 +12,8 @@ import { describe, expect, it } from 'vitest';
  *    caller injects (the existing atomic restore), so this folder imports no
  *    database code at all.
  *  - It does no background work and makes no recency judgement.
- *  - Nothing in the application imports it yet (no UI, no route wiring).
+ *  - Only the Settings cloud card imports it (the callback route and the
+ *    account UI, Epic G); nothing else in the application does.
  * A change that widens any of this must edit this file in the same commit.
  */
 
@@ -171,9 +172,9 @@ describe('cloud backup domain: restore makes no recency judgement', () => {
   });
 });
 
-describe('cloud backup domain: not wired into the application', () => {
-  it('nothing outside the domain folder imports it', () => {
-    const offenders = sourceFiles
+describe('cloud backup domain: wired only into the Settings cloud card', () => {
+  it('only the listed Settings modules import it, and only through its public entry', () => {
+    const importers = sourceFiles
       .filter((file) => !file.path.startsWith(DOMAIN_DIR))
       .filter((file) =>
         importsOf(file.text).some(
@@ -181,20 +182,43 @@ describe('cloud backup domain: not wired into the application', () => {
             spec === '@/lib/cloudBackup' ||
             spec.startsWith('@/lib/cloudBackup/'),
         ),
-      )
-      .map((file) => file.path);
+      );
 
-    // A later story that wires the UI must change this list on purpose.
-    expect(offenders).toEqual([]);
+    // The whole wiring. Anything else (a route, a shell, a provider, another
+    // feature) importing the domain must be added here on purpose.
+    expect(importers.map((file) => file.path).sort()).toEqual([
+      'src/features/settings/cloudModel.ts',
+      'src/features/settings/components/CloudBackupPanel.tsx',
+      'src/features/settings/components/CloudRestorePanel.tsx',
+    ]);
+    expect(
+      importers.flatMap((file) =>
+        importsOf(file.text).filter((spec) =>
+          spec.startsWith('@/lib/cloudBackup/'),
+        ),
+      ),
+    ).toEqual([]);
   });
 
-  it('adds no route and no service-worker change', () => {
-    const touchesRoute = sourceFiles
-      .filter((file) => file.path.startsWith('src/app/router/'))
-      .some((file) => /cloudBackup|lib\/cloud/.test(file.text));
+  it('adds one route that renders only the Settings feature entry, and no service-worker change', () => {
+    const router = sourceFiles.find(
+      (file) => file.path === 'src/app/router/router.tsx',
+    );
+    const definitions = sourceFiles.find(
+      (file) => file.path === 'src/app/router/routeDefinitions.ts',
+    );
     const sw = readFileSync(path.join(root, 'public/sw.js'), 'utf8');
 
-    expect(touchesRoute).toBe(false);
+    // The router reaches cloud code only through the feature's public entry.
+    expect(
+      importsOf(router?.text ?? '').filter((s) => /cloud/i.test(s)),
+    ).toEqual([]);
+    expect(router?.text).toMatch(/CloudCallbackPage/);
+    // The route definitions take the callback path from the cloud entry point.
+    expect(
+      importsOf(definitions?.text ?? '').filter((s) => /cloud/i.test(s)),
+    ).toEqual(['@/lib/cloud']);
+    // The offline worker neither names the provider nor the cloud feature.
     expect(sw).not.toMatch(/cloud|nhost/i);
   });
 });

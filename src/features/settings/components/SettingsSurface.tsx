@@ -34,6 +34,8 @@ import {
 import { getSharedDatabase } from '@/lib/db/database';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
+import { CloudBackupCard } from './CloudBackupCard';
+
 // The same settings surface renders in two shells: the classic Settings route
 // and the RPG settings route (/rpg/settings). Settings is the product concept;
 // the RPG view is only a visual wrapper, not a second settings engine. Only the
@@ -449,6 +451,12 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         expectedSchemaVersion={currentDatabaseSchemaVersion}
         migrationContext={getSharedDatabase().migrationContext}
         onConfirmImport={handleImport}
+      />
+      <CloudBackupCard
+        exporting={exporting}
+        localBusy={importing || resetting}
+        onExportLocal={handleExport}
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
       />
       <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">

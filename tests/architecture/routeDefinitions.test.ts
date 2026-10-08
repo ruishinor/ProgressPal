@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getCourseItemDetailPath,
+  getRouteDefinition,
   getRpgResourcePath,
   getRpgWeekPath,
   getStudySessionsPath,
@@ -9,8 +10,20 @@ import {
   primaryNavigationItems,
   routeDefinitions,
 } from '@/app/router/routeDefinitions';
+import { cloudCallbackPath } from '@/lib/cloud';
 
 describe('routeDefinitions', () => {
+  it('the cloud callback route is the path the provider is asked to redirect to, and is not navigation', () => {
+    const route = getRouteDefinition('cloudCallback');
+
+    expect(route.to).toBe(cloudCallbackPath);
+    expect(`/${route.segment}`).toBe(cloudCallbackPath);
+    expect(route.includeInPrimaryNavigation).toBe(false);
+    expect(primaryNavigationItems.map((item) => item.to)).not.toContain(
+      cloudCallbackPath,
+    );
+  });
+
   it('keeps the baseline routes in a single source of truth', () => {
     expect(knownRoutePaths).toEqual([
       '/',
@@ -32,6 +45,7 @@ describe('routeDefinitions', () => {
       '/achievements',
       '/insights',
       '/settings',
+      '/cloud/callback',
     ]);
     expect(primaryNavigationItems.map((item) => item.to)).toEqual([
       '/profile',

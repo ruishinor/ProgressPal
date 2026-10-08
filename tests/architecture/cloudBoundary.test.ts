@@ -188,8 +188,23 @@ describe('cloud boundary: the callback location has exactly one authority (carri
   });
 });
 
-describe('cloud boundary: nothing in the application boots or calls cloud code yet', () => {
-  it('only the G5/G6 domain folder imports the cloud library (UI and routes do not, yet)', () => {
+describe('cloud boundary: the application boots no cloud code and only the reviewed modules call it', () => {
+  // Epic G callback route and Settings UI: this list is the whole wiring. A
+  // module that is not here (the entry point, the providers, a shell, any other
+  // feature) importing the cloud library fails this test until it is added on
+  // purpose.
+  const cloudImporters = [
+    // The path the provider redirects to is the route's path: one source.
+    'src/app/router/routeDefinitions.ts',
+    'src/features/settings/cloudDependencies.ts',
+    'src/features/settings/cloudModel.ts',
+    'src/features/settings/components/CloudBackupCard.tsx',
+    'src/features/settings/components/CloudBackupPanel.tsx',
+    'src/features/settings/components/CloudSignInPanel.tsx',
+    'src/features/settings/routes/CloudCallbackPage.tsx',
+  ];
+
+  it('only the G5/G6 domain folder and the listed Settings and route modules import the cloud library', () => {
     const importers = sourceFiles
       .filter((file) => !file.path.startsWith(CLOUD_DIR))
       .filter((file) =>
@@ -197,12 +212,28 @@ describe('cloud boundary: nothing in the application boots or calls cloud code y
           (spec) => spec === '@/lib/cloud' || spec.startsWith('@/lib/cloud/'),
         ),
       )
+      .map((file) => file.path)
+      .filter((file) => !file.startsWith('src/lib/cloudBackup/'));
+
+    expect(importers.sort()).toEqual(cloudImporters);
+  });
+
+  it('nothing that runs at start-up imports cloud code, directly or through the cloud-backup domain', () => {
+    const startup = [
+      'src/main.tsx',
+      'src/app/App.tsx',
+      'src/app/providers/AppProviders.tsx',
+      'src/app/shell/AppShell.tsx',
+      'src/app/shell/RpgRouteShell.tsx',
+    ];
+    const offenders = sourceFiles
+      .filter((file) => startup.includes(file.path))
+      .filter((file) =>
+        importsOf(file.text).some((spec) => /^@\/lib\/cloud/.test(spec)),
+      )
       .map((file) => file.path);
 
-    // A later story that wires the UI must change this list on purpose.
-    expect(
-      importers.filter((file) => !file.startsWith('src/lib/cloudBackup/')),
-    ).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 
   it('nothing in the adapter performs work at import time (no top-level calls)', () => {

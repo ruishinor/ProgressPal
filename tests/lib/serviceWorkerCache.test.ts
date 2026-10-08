@@ -558,3 +558,58 @@ describe('packaged content and runtime assets (Epic E owner decision 2026-10-03)
     expect(worker.stored.has('/runtime/unlisted.wasm')).toBe(false);
   });
 });
+
+describe('the email-link callback navigation (Epic G)', () => {
+  const secret = 'SECRETONETIMECODE123';
+  const callback = `/cloud/callback?code=${secret}&type=signup&keep=1`;
+  const urlOf = (input: string | RequestLike) =>
+    typeof input === 'string' ? input : input.url;
+
+  it('is served like any route, and the one-time code is never used as a cache key or stored anywhere', async () => {
+    const worker = createWorker();
+    worker.prime('old');
+    worker.serve('candidate', '/cloud/callback');
+
+    expect(await (await worker.request(callback)).text()).toBe(
+      shell('candidate'),
+    );
+
+    // Every write was to a fixed shell name or an asset path from the shell.
+    const written = worker.cache.put.mock.calls.map(([input]) => urlOf(input));
+
+    expect(written.length).toBeGreaterThan(0);
+    expect(
+      written.filter((url) => /code=|SECRET|type=signup/.test(url)),
+    ).toEqual([]);
+    expect(
+      [...worker.stored.keys()].filter((key) => key.includes('callback')),
+    ).toEqual([]);
+    for (const [, response] of worker.cache.put.mock.calls) {
+      expect(await response.clone().text()).not.toContain(secret);
+    }
+    // The browser's own navigation carried the code; the worker issued no
+    // other request that does.
+    const carrying = worker.fetch.mock.calls
+      .map(([input]) => urlOf(input))
+      .filter((url) => url.includes(secret));
+
+    expect(carrying).toEqual([`${origin}${callback}`]);
+  });
+
+  it('opens offline from the cached shell, without storing or replaying the code', async () => {
+    const worker = createWorker();
+    worker.prime('old');
+    worker.serve('candidate', '/rpg');
+    await worker.request('/rpg');
+    worker.network.clear();
+    worker.cache.put.mockClear();
+
+    expect(await (await worker.request(callback)).text()).toBe(
+      shell('candidate'),
+    );
+    expect(worker.cache.put).not.toHaveBeenCalled();
+    expect(
+      [...worker.stored.keys()].filter((key) => key.includes('callback')),
+    ).toEqual([]);
+  });
+});

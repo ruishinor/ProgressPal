@@ -1,3 +1,4 @@
+import { cloudCallbackPath } from '@/lib/cloud';
 import {
   getRpgResourcePath as buildRpgResourcePath,
   getRpgWeekPath as buildRpgWeekPath,
@@ -33,6 +34,7 @@ export type AppRouteId =
   | 'achievements'
   | 'insights'
   | 'settings'
+  | 'cloudCallback'
   | 'notFound';
 
 type AppRouteDefinition = {
@@ -173,6 +175,14 @@ export const routeDefinitions: AppRouteDefinition[] = [
     to: '/settings',
     label: 'Settings',
     includeInPrimaryNavigation: true,
+  },
+  {
+    // Where the provider's email link lands. The path is the one the account
+    // adapter asks the provider to redirect to (`@/lib/cloud`): one source.
+    id: 'cloudCallback',
+    segment: cloudCallbackPath.slice(1),
+    to: cloudCallbackPath,
+    includeInPrimaryNavigation: false,
   },
   {
     id: 'notFound',
