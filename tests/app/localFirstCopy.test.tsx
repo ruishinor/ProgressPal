@@ -62,7 +62,8 @@ const rpgBoundary =
 const retiredClaims: ReadonlyArray<[string, RegExp]> = [
   ['"Offline only"', /Offline only/i],
   ['"Everything stays …"', /Everything (here )?stays/i],
-  ['"Stored only …"', /Stored only/i],
+  // ("created and stored only by you", about exported files, is true.)
+  ['"Stored only in/on this …"', /Stored only (in|on) this/i],
   ['"only in/on this browser/device"', /only (in|on) this (browser|device)/i],
   ['"stay local to this device"', /stays? local to this device/i],
   ['"never shared"', /never shared/i],

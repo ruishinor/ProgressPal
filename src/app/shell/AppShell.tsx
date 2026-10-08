@@ -20,6 +20,11 @@ import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 import { useShellBrand } from './shellBrand';
 
+// True with the optional remote backup off and on: the working data and the
+// source of truth are on this device either way. ("Offline only" stopped being
+// true once a learner could choose a manual remote backup.)
+const localFirstMode = 'Local-first';
+
 export function AppShell() {
   const location = useLocation();
   const {
@@ -52,7 +57,7 @@ export function AppShell() {
           {
             label: 'Mode',
             tone: 'accent',
-            value: 'Offline only',
+            value: localFirstMode,
           },
           {
             label: 'State',
@@ -95,7 +100,7 @@ export function AppShell() {
           {
             label: 'Mode',
             tone: 'accent',
-            value: 'Offline only',
+            value: localFirstMode,
           },
           {
             label: 'State',
@@ -170,7 +175,7 @@ export function AppShell() {
         {
           label: 'Mode',
           tone: 'accent',
-          value: 'Offline only',
+          value: localFirstMode,
         },
         {
           label: 'Learner',
@@ -207,7 +212,7 @@ export function AppShell() {
       }
       summary={
         requiresOnboarding
-          ? 'Create the local learner profile before opening the rest of the app. Nothing is synced or sent anywhere.'
+          ? 'Create the local learner profile before opening the rest of the app. Nothing is uploaded automatically.'
           : requireProgrammeScope(programmeScope).content.terminology.copy
               .shellActiveSummary
       }

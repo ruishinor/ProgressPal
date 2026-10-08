@@ -65,6 +65,15 @@ export function CloudRestorePanel({
     prepared !== null &&
     (prepared.localData === 'has-learner-data' || dataAppeared);
   const working = busy !== null || busyElsewhere;
+  // Replacing this device's data is unavailable while the learner's own local
+  // export is still running: that export may still be reading the data this
+  // restore would replace, and the file it hands over must be what was here
+  // when the learner asked for it. Exporting is never consent by itself.
+  const canReplace =
+    !working &&
+    !exporting &&
+    blockedReason === null &&
+    (!needsAcknowledgement || acknowledged);
 
   useEffect(() => {
     if (prepared !== null) {
@@ -113,7 +122,9 @@ export function CloudRestorePanel({
   }
 
   async function confirm() {
-    if (prepared === null) {
+    // The button is disabled in these states; this keeps the handler honest
+    // if it is ever reached another way (a stale event, a script).
+    if (prepared === null || !canReplace) {
       return;
     }
 
@@ -269,11 +280,7 @@ export function CloudRestorePanel({
               </Button>
             ) : null}
             <Button
-              disabled={
-                working ||
-                blockedReason !== null ||
-                (needsAcknowledgement && !acknowledged)
-              }
+              disabled={!canReplace}
               loading={busy === 'confirm'}
               onClick={() => {
                 void confirm();

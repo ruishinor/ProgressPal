@@ -33,11 +33,11 @@ export const cs50Terminology: ProgrammeTerminology = {
     startupLoadingSummary:
       'Preparing local profile data and the bundled CS50 catalog.',
     shellActiveSummary:
-      'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, backup, restore, reset, and offline support all run on this device.',
+      'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, and offline support all run on this device. Backups are manual.',
     profileDescription:
       'Your local CS50 profile is the starting point for ProgressPal. It keeps your study target, theme preference, reduced-motion preference, and learning identity on this device.',
     dashboardDescription:
-      'Your CS50 progress on this device. Nothing is synced or stored remotely.',
+      'Your CS50 progress on this device. Nothing is synced; backups are manual.',
     dashboardErrorDescription:
       'This page shows your CS50 progress on this device.',
     courseMapEyebrow: 'CS50 course map',

@@ -112,12 +112,12 @@ export function OnboardingPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="Choose a programme and set up a local learner profile. Everything stays on this device."
+        description="Choose a programme and set up a local learner profile. Your data is stored on this device."
         eyebrow="Setup"
         meta={
           <>
             <StatusPill variant="planned">First run required</StatusPill>
-            <Badge tone="accent">Stored only on this device</Badge>
+            <Badge tone="accent">Stored on this device</Badge>
           </>
         }
         title="Start with ProgressPal"
@@ -155,7 +155,7 @@ export function OnboardingPage() {
       </fieldset>
       {mode === 'quick' ? (
         <Card
-          description="Everything stays in this browser. No account, no cloud sync, no analytics. You can export, import, or reset it later."
+          description="Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later."
           title="Start now"
         >
           <div className="onboarding-quick">

@@ -270,8 +270,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             <h1>Settings</h1>
             <p className="rpg-settings__lede rpg-page-lede">
               Edit your local profile and manage on-device data: export a
-              backup, import one, or reset everything. Stored only in this
-              browser on this device.
+              backup, import one, or reset everything. Your working data is
+              stored in this browser on this device.
             </p>
           </div>
           <div className="rpg-settings__actions">
@@ -495,9 +495,11 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       {isRpgVariant ? (
         <Card title="Local-first and course boundary" titleAs="h2">
           <p className="card__description">
-            ProgressPal keeps everything in this browser on this device. There
-            is no account, no cloud sync, and no analytics. Browser storage can
-            be cleared by you, your browser, or your device, so export a backup
+            ProgressPal keeps your working data in this browser on this device.
+            No account is needed, nothing is synced, and there is no analytics.
+            The optional remote backup (Alpha) is manual: no learner data is
+            uploaded unless you press Back up now. Browser storage can be
+            cleared by you, your browser, or your device, so export a backup
             before clearing data or switching devices.
           </p>
           <p className="card__description">{copy.rpgCourseBoundary}</p>

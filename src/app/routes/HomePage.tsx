@@ -86,14 +86,14 @@ export function HomePage() {
           </div>
         </Card>
         <Card
-          description="ProgressPal stores your progress in this browser. It does not create an account, sync to a server, send analytics, or back up data automatically. Exported backup files are your responsibility."
+          description="ProgressPal stores your progress in this browser. It does not sync to a server, send analytics, or back up data automatically. The optional remote backup in Settings sends a copy only when you press Back up now, and needs an account. Exported backup files are your responsibility."
           title="Privacy boundary"
         >
           {null}
         </Card>
       </div>
       <Card
-        description="Your learning identity, theme, motion, and study schedule are stored on this device and never shared."
+        description="Your learning identity, theme, motion, and study schedule are stored on this device. They leave it only in a backup that you make."
         title="Current local state"
       >
         <dl className="profile-summary-list">

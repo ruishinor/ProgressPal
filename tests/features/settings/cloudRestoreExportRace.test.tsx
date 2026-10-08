@@ -266,6 +266,14 @@ describe('a pending local export holds the destructive restore', () => {
     await userEvent.click(
       screen.getByRole('checkbox', { name: acknowledgement }),
     );
+    // What the card announces before the export starts (the backup list, the
+    // destructive warning): the failed export must add nothing to it.
+    const announcedNow = () =>
+      [...screen.queryAllByRole('alert'), ...screen.queryAllByRole('status')]
+        .map((region) => region.textContent ?? '')
+        .join(' | ');
+    const announcedBefore = announcedNow();
+
     await click('Export local backup first');
 
     const confirm = screen.getByRole('button', { name: replace });
@@ -277,15 +285,9 @@ describe('a pending local export holds the destructive restore', () => {
 
     await waitFor(() => expect(confirm).toBeEnabled());
     expect(s.restoreLocal).not.toHaveBeenCalled();
-    // Nothing announced here says a copy exists: the host reports the failure.
-    const announced = [
-      ...screen.queryAllByRole('alert'),
-      ...screen.queryAllByRole('status'),
-    ]
-      .map((region) => region.textContent ?? '')
-      .join(' ');
-
-    expect(announced).not.toMatch(/export|saved|stored|download|copy|safe/i);
+    // Nothing new is announced, so nothing says a copy exists: the host (the
+    // Settings page) reports the failure itself.
+    expect(announcedNow()).toBe(announcedBefore);
     expect(document.body.textContent).not.toMatch(/disk full/);
     // Still the learner's call, still with the consent they gave.
     expect(

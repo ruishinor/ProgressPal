@@ -168,7 +168,7 @@ export function ProfileForm({
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
       <div className="profile-page-grid">
         <Card
-          description="Everything here stays on this device. You can revise it later in settings."
+          description="Everything here is stored on this device. You can revise it later in settings."
           title={mode === 'onboarding' ? 'Profile setup' : 'Edit profile'}
           titleAs={cardTitleAs}
         >
@@ -266,7 +266,7 @@ export function ProfileForm({
           </fieldset>
         </Card>
         <Card
-          description="Choose one of the bundled ProgressPal characters. Profile preferences stay local to this device."
+          description="Choose one of the bundled ProgressPal characters. Profile preferences are stored on this device."
           title="Avatar and preferences"
           titleAs={cardTitleAs}
         >

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CloudError,
   type CloudEmailLinkOutcome,
+  type CloudErrorCode,
   type CloudRequestFailure,
 } from '@/lib/cloud';
 import type {
@@ -17,6 +18,8 @@ import type {
 
 import {
   breakablePieces,
+  checkNewPassword,
+  cloudCardTitle,
   describeBackupOutcome,
   describeCallbackFailure,
   describeCallbackOutcome,
@@ -24,10 +27,19 @@ import {
   describeConfirmRefusal,
   describeFailure,
   describeInventory,
+  describePasswordChangeFailure,
+  describePasswordResetRequestError,
   describePrepareRefusal,
   formatBytes,
   formatStoredAt,
+  invalidResetAddress,
   inventoryScopeNote,
+  isPlausibleEmail,
+  newPasswordText,
+  passwordChangedView,
+  passwordResetSent,
+  remoteBackupDisclosure,
+  resetRequestText,
 } from '@/features/settings/cloudModel';
 
 /**
@@ -201,6 +213,24 @@ const inventories: CloudInventoryResult[] = [
   ),
 ];
 
+/** Every code the port can throw; a new code makes this fail to compile. */
+const errorCodes: Record<CloudErrorCode, true> = {
+  disabled: true,
+  'invalid-state': true,
+  'invalid-input': true,
+  'invalid-credentials': true,
+  'unverified-email': true,
+  'email-in-use': true,
+  'not-permitted': true,
+  'rate-limited': true,
+  'link-expired': true,
+  'session-ended': true,
+  unavailable: true,
+  unsupported: true,
+  unknown: true,
+};
+const everyErrorCode = Object.keys(errorCodes) as CloudErrorCode[];
+
 const callbackOutcomes: CloudEmailLinkOutcome[] = [
   { kind: 'verified-signed-in' },
   { kind: 'password-reset-session' },
@@ -253,6 +283,46 @@ function everySentence(): string[] {
     if (view.kind === 'done') text.push(view.title, view.detail);
     text.push(describeCloudError(error));
   });
+
+  // Epic G repair 01: the heading, the disclosure and the whole recovery journey.
+  text.push(cloudCardTitle, ...remoteBackupDisclosure);
+  text.push(
+    ...Object.values(resetRequestText),
+    ...Object.values(newPasswordText),
+  );
+  notice(passwordResetSent);
+  notice(invalidResetAddress);
+  for (const code of everyErrorCode) {
+    const request = describePasswordResetRequestError(
+      new CloudError(code, `provider says ${code}`),
+    );
+
+    if (request.kind === 'failed') notice(request.notice);
+
+    const change = describePasswordChangeFailure(new CloudError(code, 'x'));
+
+    if (change.kind === 'retry') notice(change.notice);
+    else if (change.view.kind === 'done') {
+      text.push(change.view.title, change.view.detail);
+    }
+  }
+  const unexpected = describePasswordChangeFailure(new Error('boom'));
+
+  if (unexpected.kind === 'retry') notice(unexpected.notice);
+  for (const attempt of [
+    ['', ''],
+    ['x'.repeat(40), ''],
+    ['short', 'short'],
+    ['y'.repeat(60), 'y'.repeat(60)],
+    ['a-fine-passphrase-9', 'a-different-one-9'],
+  ] as const) {
+    const problem = checkNewPassword(attempt[0], attempt[1]);
+
+    if (problem !== null) notice(problem);
+  }
+  if (passwordChangedView.kind === 'done') {
+    text.push(passwordChangedView.title, passwordChangedView.detail);
+  }
 
   return text;
 }
@@ -511,14 +581,18 @@ describe('the email-link landing result', () => {
       describeCallbackOutcome(outcome, false),
     );
 
+    // Epic G repair 01: a reset session is no longer a "Link accepted" message
+    // (which said reset was unavailable); it asks for the new password, and is
+    // not reported as a change.
     expect(views.map((view) => view.kind === 'done' && view.tone)).toEqual([
       'success',
-      'warning',
+      false,
       'warning',
       'warning',
       'warning',
       'danger',
     ]);
+    expect(views[1]).toEqual({ kind: 'new-password' });
   });
 
   it('mentions being signed in only as a fact read from the account', () => {
@@ -547,5 +621,231 @@ describe('the email-link landing result', () => {
     expect(unknown).toMatchObject({ title: 'Sign-in could not be completed' });
     // An unexpected error's own text never reaches the learner.
     expect(JSON.stringify(unknown)).not.toMatch(/secret-detail|SDK/);
+  });
+
+  it('adds the way to ask again to the failures a reset link can end in, and only to those', () => {
+    const again = 'choose Forgot password? in Settings';
+    const detail = (view: ReturnType<typeof describeCallbackOutcome>) =>
+      view.kind === 'done' ? view.detail : '';
+
+    expect(
+      detail(
+        describeCallbackOutcome(
+          { kind: 'sign-in-required', purpose: 'unknown' },
+          false,
+        ),
+      ),
+    ).toContain(again);
+    expect(
+      detail(
+        describeCallbackOutcome(
+          { kind: 'sign-in-required', purpose: 'reset' },
+          false,
+        ),
+      ),
+    ).toContain(again);
+    expect(
+      detail(
+        describeCallbackOutcome(
+          { kind: 'sign-in-required', purpose: 'signup' },
+          false,
+        ),
+      ),
+    ).not.toContain(again);
+    expect(
+      detail(
+        describeCallbackFailure(
+          new CloudError('link-expired', 'This link has expired.'),
+        ),
+      ),
+    ).toContain(again);
+    expect(
+      detail(describeCallbackFailure(new CloudError('unavailable', 'x'))),
+    ).not.toContain(again);
+    expect(
+      detail(describeCallbackOutcome({ kind: 'invalid-link' }, false)),
+    ).not.toContain(again);
+  });
+});
+
+describe('the heading and the disclosure', () => {
+  it('name the capability and say what it is, who can read it and what it is not', () => {
+    expect(cloudCardTitle).toBe('Remote backup — Alpha');
+    expect(remoteBackupDisclosure).toHaveLength(3);
+
+    const all = remoteBackupDisclosure.join(' ');
+
+    expect(all).toMatch(/experimental/);
+    expect(all).toMatch(/manual backup, not automatic synchronization/);
+    expect(all).toMatch(
+      /nothing is uploaded when you open Settings or sign in/,
+    );
+    expect(all).toMatch(/working data stays on this device/);
+    expect(all).toMatch(
+      /cloud provider and the service operator can read the backups you upload/,
+    );
+    expect(all).toMatch(/Exporting a backup file .* separate way/);
+  });
+
+  it('make no claim of encryption, privacy, protection, legal standing or retention', () => {
+    expect([cloudCardTitle, ...remoteBackupDisclosure].join(' ')).not.toMatch(
+      /end-to-end|encrypt|private|privacy|secure|safe|protect|confidential|only you|no one else|GDPR|legal|guarantee|retention|retained/i,
+    );
+  });
+});
+
+describe('asking for a password reset link', () => {
+  const independent: CloudErrorCode[] = [
+    'disabled',
+    'invalid-state',
+    'rate-limited',
+    'unavailable',
+    'unsupported',
+    'unknown',
+  ];
+
+  it.each(everyErrorCode)(
+    '%s is classified as success-looking or as a failure, and the classification is the documented one',
+    (code) => {
+      const result = describePasswordResetRequestError(
+        new CloudError(code, `provider says ${code}`),
+      );
+
+      if (independent.includes(code)) {
+        expect(result.kind).toBe('failed');
+        expect(result).toMatchObject({
+          notice: { title: 'Reset link not requested', tone: 'danger' },
+        });
+      } else {
+        // The answer to a refusal that could reflect the account is the
+        // generic one; nothing of the provider's own words is kept.
+        expect(result).toEqual({ kind: 'sent' });
+      }
+    },
+  );
+
+  it('an error that is not the account port’s is a failure that shows none of its own text', () => {
+    const result = describePasswordResetRequestError(
+      new Error('SDK internals: bearer abc.def.ghi'),
+    );
+
+    expect(result).toEqual({
+      kind: 'failed',
+      notice: {
+        tone: 'danger',
+        title: 'Reset link not requested',
+        lines: ['Something went wrong. Local data is unaffected.'],
+      },
+    });
+  });
+
+  it('the generic answer does not mention an address, an account state or a provider', () => {
+    expect(JSON.stringify(passwordResetSent)).not.toMatch(
+      /@|nhost|unverified|disabled|not found|no such|does not exist|isn't|not registered/i,
+    );
+  });
+
+  it.each([
+    ['an ordinary address', 'learner@example.com', true],
+    ['a plus tag', 'learner+tag@example.com', true],
+    ['no @', 'learner.example.com', false],
+    ['no dot after the @', 'learner@example', false],
+    ['two @', 'a@b@example.com', false],
+    ['a space', 'lea rner@example.com', false],
+    ['nothing', '', false],
+    ['254 characters', `${'a'.repeat(242)}@example.com`, true],
+    ['255 characters', `${'a'.repeat(243)}@example.com`, false],
+  ])('%s is %s', (_label, address, plausible) => {
+    expect(isPlausibleEmail(address)).toBe(plausible);
+  });
+});
+
+describe('choosing the new password', () => {
+  it('checks in a fixed order and reports what is wrong, never the password', () => {
+    expect(checkNewPassword('', '')?.lines).toEqual([
+      'Enter the new password twice.',
+    ]);
+    expect(checkNewPassword('a-fine-passphrase-9', '')?.lines).toEqual([
+      'Enter the new password twice.',
+    ]);
+    expect(checkNewPassword('short', 'short')?.lines).toEqual([
+      'Passwords are 9 to 50 characters.',
+    ]);
+    expect(checkNewPassword('y'.repeat(51), 'y'.repeat(51))?.lines).toEqual([
+      'Passwords are 9 to 50 characters.',
+    ]);
+    expect(
+      checkNewPassword('a-fine-passphrase-9', 'a-different-one-9')?.lines,
+    ).toEqual(['The two passwords do not match.']);
+    expect(checkNewPassword('a-fine-passphrase-9', 'a-fine-passphrase-9')).toBe(
+      null,
+    );
+    expect(JSON.stringify(checkNewPassword('short', 'other'))).not.toMatch(
+      /short|other/,
+    );
+  });
+
+  it('accepts the policy’s own limits and refuses one beyond them', () => {
+    expect(checkNewPassword('x'.repeat(9), 'x'.repeat(9))).toBe(null);
+    expect(checkNewPassword('x'.repeat(50), 'x'.repeat(50))).toBe(null);
+    expect(checkNewPassword('x'.repeat(8), 'x'.repeat(8))).not.toBe(null);
+    expect(checkNewPassword('x'.repeat(51), 'x'.repeat(51))).not.toBe(null);
+  });
+
+  it('success is worded as a signed-out device and nothing about any other session', () => {
+    expect(passwordChangedView).toEqual({
+      kind: 'done',
+      tone: 'success',
+      title: 'Password changed',
+      detail:
+        'You were signed out on this device. Sign in with your new password.',
+    });
+    expect(JSON.stringify(passwordChangedView)).not.toMatch(
+      /other|all |every|revoke|invalidat/i,
+    );
+  });
+
+  it.each(everyErrorCode)(
+    '%s: a refusal is worded as a refusal, a doubt as a doubt, and closed only when nothing more can be done',
+    (code) => {
+      const result = describePasswordChangeFailure(
+        new CloudError(code, `message for ${code}`),
+      );
+
+      if (code === 'session-ended' || code === 'disabled') {
+        expect(result.kind).toBe('closed');
+      } else {
+        expect(result.kind).toBe('retry');
+      }
+
+      if (result.kind === 'retry') {
+        const refused: CloudErrorCode[] = [
+          'invalid-input',
+          'rate-limited',
+          'not-permitted',
+        ];
+
+        expect(result.notice.title).toBe(
+          refused.includes(code)
+            ? 'Password not changed'
+            : 'Password change not confirmed',
+        );
+        // A doubt never says "not changed" and never says "changed".
+        if (!refused.includes(code)) {
+          expect(JSON.stringify(result.notice)).not.toMatch(
+            /Password not changed|Password changed/,
+          );
+        }
+      }
+    },
+  );
+
+  it('an error that is not the account port’s is a doubt that shows none of its own text', () => {
+    const result = describePasswordChangeFailure(
+      new Error('SDK internals: bearer abc.def.ghi'),
+    );
+
+    expect(result.kind).toBe('retry');
+    expect(JSON.stringify(result)).not.toMatch(/SDK|bearer|abc\.def/);
   });
 });

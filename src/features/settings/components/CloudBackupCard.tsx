@@ -14,7 +14,11 @@ import {
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 import type { CloudSettingsDependencies } from '../cloudDependencies';
-import type { Notice } from '../cloudModel';
+import {
+  cloudCardTitle,
+  remoteBackupDisclosure,
+  type Notice,
+} from '../cloudModel';
 import { CloudBackupPanel } from './CloudBackupPanel';
 import { CloudNotice } from './CloudNotice';
 import { CloudSignInPanel } from './CloudSignInPanel';
@@ -42,11 +46,12 @@ function readState(account: Pick<CloudAccountPort, 'getState'>): CardState {
 }
 
 /**
- * Optional cloud backup in Settings (Epic G). Off by default and invisible on
- * the network until the learner turns it on, signs in and presses a button.
- * Reading the account state builds no request; there is no effect that
- * contacts the cloud. IndexedDB stays the only authority: nothing here reads
- * the cloud to decide anything about this device.
+ * Optional remote backup in Settings (Epic G alpha). Off by default and
+ * invisible on the network until the learner turns it on, signs in and presses
+ * a button. Reading the account state builds no request; there is no effect
+ * that contacts the cloud. IndexedDB stays the only authority: nothing here
+ * reads the cloud to decide anything about this device. Every state, including
+ * "off" and "unavailable", opens with the same short disclosure.
  */
 export function CloudBackupCard({
   dependencies,
@@ -110,8 +115,13 @@ export function CloudBackupCard({
   }
 
   return (
-    <Card title="Cloud backup (optional)" titleAs={titleAs}>
+    <Card title={cloudCardTitle} titleAs={titleAs}>
       <div className="card__body" ref={body}>
+        {remoteBackupDisclosure.map((paragraph) => (
+          <p className="card__description" key={paragraph}>
+            {paragraph}
+          </p>
+        ))}
         {state.status === 'disabled' ? (
           <>
             <p className="card__description">

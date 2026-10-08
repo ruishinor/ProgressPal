@@ -31,11 +31,11 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
     startupLoadingSummary:
       'Gjør klar den lokale profilen og innholdet i Programvareutvikling.',
     shellActiveSummary:
-      'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner, innsikt, sikkerhetskopi, gjenoppretting og tilbakestilling lagres bare på denne enheten.',
+      'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.',
     profileDescription:
       'Den lokale profilen din lagrer studiemål, tema, valg for redusert bevegelse og læringsidentiteten din på denne enheten.',
     dashboardDescription:
-      'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres eller lagres eksternt.',
+      'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.',
     dashboardErrorDescription:
       'Denne siden viser framdriften din i Programvareutvikling på denne enheten.',
     courseMapEyebrow: 'Programvareutvikling – moduler',

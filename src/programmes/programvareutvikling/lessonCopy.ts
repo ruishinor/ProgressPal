@@ -122,8 +122,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
       'Den automatiske sjekken klarte ikke å lese svaret. Det teller ikke mot deg.',
     evaluatorErrorBody:
       'Dette er et problem i appen, ikke i svaret ditt. Svaret er lagret og teller verken for eller mot deg.',
-    recordedBody:
-      'Svaret er lagret bare på denne enheten. Det gir ingen poeng.',
+    recordedBody: 'Svaret er lagret på denne enheten. Det gir ingen poeng.',
     retry: 'Prøv igjen',
     gateNoRetry:
       'Denne oppgaven i modulsjekken kan ikke prøves på nytt ennå, fordi regelen for nye forsøk ikke er bestemt.',

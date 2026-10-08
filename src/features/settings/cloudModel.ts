@@ -1,7 +1,10 @@
 import {
   CloudError,
+  cloudPasswordMaxLength,
+  cloudPasswordMinLength,
   remoteBackupPayloadCeilingBytes,
   type CloudEmailLinkOutcome,
+  type CloudErrorCode,
   type CloudRequestFailure,
 } from '@/lib/cloud';
 import type {
@@ -42,6 +45,21 @@ export interface BackupNotice extends Notice {
   /** Set only for an unknown outcome: what "Check again" needs. In memory only. */
   attempt: CloudBackupAttempt | null;
 }
+
+/** The card's heading in every state it can be shown in. */
+export const cloudCardTitle = 'Remote backup — Alpha';
+
+/**
+ * What every state of the card says first. Plain words about what the feature
+ * is and who can read an uploaded copy; no legal assertion, no promise about
+ * protection or retention, and nothing that implies encryption or that the
+ * provider cannot read a backup. (A full privacy notice is a later tranche.)
+ */
+export const remoteBackupDisclosure: readonly string[] = [
+  'Remote backup is experimental. It is a manual backup, not automatic synchronization: nothing is uploaded when you open Settings or sign in, only when you press Back up now.',
+  "Your working data stays on this device, in this browser's storage. A backup is a full copy that you choose to send.",
+  'The cloud provider and the service operator can read the backups you upload. Exporting a backup file to your device remains a separate way to keep and restore a copy.',
+];
 
 const operationRunning = 'Another cloud operation is still running.';
 
@@ -376,13 +394,36 @@ export function describeCloudError(error: unknown): string {
 
 export type CallbackView =
   | { kind: 'working' }
+  /** A reset link was accepted: the new password is chosen on this page. */
+  | { kind: 'new-password' }
   | { kind: 'done'; tone: NoticeTone; title: string; detail: string };
 
 const signInWithPassword = 'Sign in with your email and password.';
+const resetAgain =
+  'To reset a password, choose Forgot password? in Settings and open the new link in this browser.';
+
+/** What a link that needs this browser's own record says when it has none. */
+function signInRequiredDetail(
+  purpose: Extract<
+    CloudEmailLinkOutcome,
+    { kind: 'sign-in-required' }
+  >['purpose'],
+): string {
+  switch (purpose) {
+    case 'unknown':
+      return `This browser has no record of starting this request. ${signInWithPassword} ${resetAgain}`;
+    case 'reset':
+      return `The password reset request started in this browser has expired. ${resetAgain}`;
+    case 'signup':
+      return `The request started in this browser has expired. ${signInWithPassword}`;
+  }
+}
 
 /**
  * What the learner is told after the email link was handled. Never mentions
- * the link's contents: the page that shows this never held them.
+ * the link's contents: the page that shows this never held them. A reset link
+ * that really was exchanged leads to the new-password form and is NOT reported
+ * as a change: only the provider's acknowledgement of the new password is.
  */
 export function describeCallbackOutcome(
   outcome: CloudEmailLinkOutcome,
@@ -397,22 +438,13 @@ export function describeCallbackOutcome(
         detail: 'You are signed in on this device.',
       };
     case 'password-reset-session':
-      return {
-        kind: 'done',
-        tone: 'warning',
-        title: 'Link accepted',
-        detail:
-          'Password reset is not available in this version. You are signed in on this device.',
-      };
+      return { kind: 'new-password' };
     case 'sign-in-required':
       return {
         kind: 'done',
         tone: 'warning',
         title: 'Sign in to continue',
-        detail:
-          outcome.purpose === 'unknown'
-            ? `This browser has no record of starting this request. ${signInWithPassword}`
-            : `The request started in this browser has expired. ${signInWithPassword}`,
+        detail: signInRequiredDetail(outcome.purpose),
       };
     case 'invalid-link':
       return {
@@ -436,13 +468,213 @@ export function describeCallbackFailure(error: unknown): CallbackView {
     };
   }
 
+  const expired = error instanceof CloudError && error.code === 'link-expired';
+
   return {
     kind: 'done',
     tone: 'danger',
-    title:
-      error instanceof CloudError && error.code === 'link-expired'
-        ? 'This link has expired'
-        : 'Sign-in could not be completed',
-    detail: `${describeCloudError(error)} ${signInWithPassword}`,
+    title: expired ? 'This link has expired' : 'Sign-in could not be completed',
+    // An expired or used link may have been a reset link: say how to ask again.
+    detail: `${describeCloudError(error)} ${signInWithPassword}${expired ? ` ${resetAgain}` : ''}`,
   };
+}
+
+/* ------------------------------------------------------------------------ *
+ * Password recovery (Epic G repair 01). Two halves of one journey through the
+ * existing account port: asking for a reset link in Settings (a generic answer,
+ * the same whether or not an account exists) and choosing the new password on
+ * the callback page after the emailed link was exchanged.
+ * ------------------------------------------------------------------------ */
+
+export const resetRequestText = {
+  forgot: 'Forgot password?',
+  title: 'Reset your password',
+  lead: "Enter your account's email address. If an account exists for it, the cloud service sends a link for choosing a new password. Open the link in this browser.",
+  send: 'Send reset link',
+  back: 'Back to sign in',
+} as const;
+
+const resetNotRequested = 'Reset link not requested';
+
+/** The one answer to a request, whether or not the address has an account. */
+export const passwordResetSent: Notice = {
+  tone: 'success',
+  title: 'Check your email',
+  lines: [
+    'If an account exists for that address, a password reset link is on its way.',
+    'Open the link in this browser. If you ask for more than one link, only the last one you asked for works.',
+  ],
+};
+
+export const invalidResetAddress: Notice = {
+  tone: 'danger',
+  title: resetNotRequested,
+  lines: ['Enter a valid email address.'],
+};
+
+const emailShape = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const longestAddress = 254;
+
+/**
+ * The same shape check the account makes before it contacts the provider (a
+ * test pins the two together). It is what lets a refusal that arrives AFTER
+ * this check be treated as the provider's answer about the account, not about
+ * the way the address was typed.
+ */
+export function isPlausibleEmail(address: string): boolean {
+  return emailShape.test(address) && address.length <= longestAddress;
+}
+
+/** Failures that say nothing about whether an account exists. */
+const accountIndependent: ReadonlySet<CloudErrorCode> = new Set([
+  'disabled',
+  'invalid-state',
+  'rate-limited',
+  'unavailable',
+  'unsupported',
+  'unknown',
+]);
+
+export type PasswordResetRequestResult =
+  | { kind: 'sent' }
+  | { kind: 'failed'; notice: Notice };
+
+/**
+ * What a rejected request means to the learner. A refusal that could reflect
+ * the account (not permitted, unverified, no such user as the provider words
+ * it, a rejected input) is reported exactly like success, so the answer cannot
+ * be used to find out which addresses have accounts. Only failures that are
+ * about the request itself (cloud off, a limit, no connection) are reported.
+ */
+export function describePasswordResetRequestError(
+  error: unknown,
+): PasswordResetRequestResult {
+  if (error instanceof CloudError && !accountIndependent.has(error.code)) {
+    return { kind: 'sent' };
+  }
+
+  return {
+    kind: 'failed',
+    notice: {
+      tone: 'danger',
+      title: resetNotRequested,
+      lines: [describeCloudError(error)],
+    },
+  };
+}
+
+export const newPasswordText = {
+  title: 'Choose a new password',
+  lead: 'This link signed you in on this device. Your password has not changed yet.',
+  newLabel: 'New password',
+  confirmLabel: 'Confirm new password',
+  hint: `${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`,
+  submit: 'Change password',
+} as const;
+
+const passwordNotChanged = 'Password not changed';
+
+/** Checked here, before anything is sent. Null when the two entries are usable. */
+export function checkNewPassword(
+  password: string,
+  confirmation: string,
+): Notice | null {
+  const refuse = (line: string): Notice => ({
+    tone: 'danger',
+    title: passwordNotChanged,
+    lines: [line],
+  });
+
+  if (password === '' || confirmation === '') {
+    return refuse('Enter the new password twice.');
+  }
+
+  if (
+    password.length < cloudPasswordMinLength ||
+    password.length > cloudPasswordMaxLength
+  ) {
+    return refuse(
+      `Passwords are ${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`,
+    );
+  }
+
+  if (password !== confirmation) {
+    return refuse('The two passwords do not match.');
+  }
+
+  return null;
+}
+
+/** Said only after the provider acknowledged the change. */
+export const passwordChangedView: CallbackView = {
+  kind: 'done',
+  tone: 'success',
+  title: 'Password changed',
+  detail: 'You were signed out on this device. Sign in with your new password.',
+};
+
+const passwordChangeUnclear: Notice = {
+  tone: 'warning',
+  title: 'Password change not confirmed',
+  lines: [
+    'The cloud service did not give a clear answer, so it is not known whether the password was changed.',
+    'Try again. When signing in, try the new password first, then the old one.',
+  ],
+};
+
+export type PasswordChangeFailure =
+  | { kind: 'retry'; notice: Notice }
+  | { kind: 'closed'; view: CallbackView };
+
+/**
+ * A refusal the provider made (nothing changed) is worded as a refusal; a
+ * doubt (no answer, a server fault, anything unrecognised) is worded as a
+ * doubt, never as success and never as "not changed". When the sign-in the
+ * link created is gone, or cloud was turned off, the form is closed.
+ */
+export function describePasswordChangeFailure(
+  error: unknown,
+): PasswordChangeFailure {
+  if (error instanceof CloudError) {
+    switch (error.code) {
+      case 'invalid-input':
+        return {
+          kind: 'retry',
+          notice: {
+            tone: 'danger',
+            title: passwordNotChanged,
+            lines: [
+              `The new password was not accepted. Use ${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters, or choose a different password.`,
+            ],
+          },
+        };
+      case 'rate-limited':
+      case 'not-permitted':
+        return {
+          kind: 'retry',
+          notice: {
+            tone: 'danger',
+            title: passwordNotChanged,
+            lines: [describeCloudError(error)],
+          },
+        };
+      case 'session-ended':
+        return {
+          kind: 'closed',
+          view: {
+            kind: 'done',
+            tone: 'danger',
+            title: passwordNotChanged,
+            detail:
+              'The sign-in from this link has ended, so the password was not changed. To try again, choose Forgot password? in Settings.',
+          },
+        };
+      case 'disabled':
+        return { kind: 'closed', view: describeCallbackFailure(error) };
+      default:
+        break;
+    }
+  }
+
+  return { kind: 'retry', notice: passwordChangeUnclear };
 }

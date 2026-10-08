@@ -42,7 +42,8 @@ const sources = walk(path.join(root, 'src'))
 const retired: ReadonlyArray<[string, RegExp]> = [
   ['"Offline only"', /Offline only/i],
   ['"Everything (here) stays …"', /Everything (here )?stays/i],
-  ['"Stored only …"', /Stored only/i],
+  // ("created and stored only by you", about exported files, is true.)
+  ['"Stored only in/on this …"', /Stored only (in|on) this/i],
   ['"only in/on this browser/device"', /only (in|on) this (browser|device)/i],
   ['"stay(s) local to this device"', /stays? local to this device/i],
   ['"never shared"', /never shared/i],

@@ -19,7 +19,10 @@ import { installSimulatedProvider } from './support/simulatedProvider';
 
 const code = 'ONETIMECODE12345';
 const password = 'correct-horse-9';
+const newPassword = 'a-new-passphrase-9';
 const learnerEmail = 'learner@example.com';
+const cloudTitle = 'Remote backup — Alpha';
+const newPasswordTitle = 'Choose a new password';
 
 type BrowserElement = {
   clientWidth: number;
@@ -87,15 +90,16 @@ const providerCalls = (page: Page) =>
 /**
  * The app shell clips the page, so `scrollWidth` alone can look fine while a
  * card is far wider than the screen (a long address once did exactly that).
- * Each box of the cloud card is therefore measured against the screen itself.
+ * Each box of the card named by `title` is therefore measured against the
+ * screen itself.
  */
-async function overflow(page: Page) {
-  return page.evaluate(() => {
+async function overflow(page: Page, title: string) {
+  return page.evaluate((cardTitle) => {
     const scope = globalThis as unknown as BrowserScope;
     const cards = Array.from(scope.document.querySelectorAll('.card'));
     const heading = Array.from(
       scope.document.querySelectorAll('.card__title'),
-    ).find((element) => element.textContent === 'Cloud backup (optional)');
+    ).find((element) => element.textContent === cardTitle);
     const cloud = heading?.closest('.card') ?? null;
     const boxes = cloud
       ? [cloud, ...Array.from(cloud.querySelectorAll('*'))]
@@ -116,13 +120,17 @@ async function overflow(page: Page) {
       found: cloud !== null,
       beyondScreen: Math.max(rightmost - scope.innerWidth, -leftmost),
     };
-  });
+  }, title);
 }
 
-async function expectContained(page: Page, label: string) {
+async function expectContained(
+  page: Page,
+  label: string,
+  title: string = cloudTitle,
+) {
   for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
-    const measured = await overflow(page);
+    const measured = await overflow(page, title);
 
     expect(
       measured.page,
@@ -148,8 +156,15 @@ async function expectAccessible(page: Page, label: string) {
 
 const card = (page: Page) =>
   page
-    .getByRole('heading', { name: 'Cloud backup (optional)' })
+    .getByRole('heading', { name: cloudTitle })
     .locator('xpath=ancestor::section[contains(@class,"card")][1]');
+
+/** One line per provider request: the method and the Auth path (or GraphQL). */
+const traffic = (calls: Array<{ method: string; path: string }>) =>
+  calls.map(
+    (call) =>
+      `${call.method} ${call.path.replace(/^\/v1(?=\/|$)/, '') || '/graphql'}`,
+  );
 
 test.describe('the email-link landing route', () => {
   test('a good link: the address is clean before the code leaves, and nothing keeps the code', async ({
@@ -476,4 +491,269 @@ test.describe('Settings cloud card in a real browser', () => {
     await expectContained(page, 'outcome unknown');
     await expectAccessible(page, 'RPG Settings, outcome unknown (light)');
   });
+});
+
+test.describe('password recovery in a real browser', () => {
+  test('keyboard only: ask for a link, choose a new password from the emailed link, then sign in with it', async ({
+    page,
+    baseURL,
+  }) => {
+    test.setTimeout(180_000);
+
+    const provider = await installSimulatedProvider(page, {
+      exchangeCode: code,
+      accounts: { [learnerEmail]: password },
+    });
+    const logged = recordConsole(page);
+
+    await completeOnboarding(page, { theme: 'dark' });
+    await page.goto('/settings');
+    await expect(card(page)).toBeVisible();
+
+    // Turn on, type the address, and reach "Forgot password?" by Tab alone.
+    await card(page)
+      .getByRole('button', { name: 'Turn on cloud backup' })
+      .focus();
+    await page.keyboard.press('Enter');
+    await expect(card(page).getByLabel('Email')).toBeFocused();
+    await page.keyboard.type(learnerEmail);
+    // Password, Stay signed in, Sign in, Create account, Forgot password?
+    for (let stop = 0; stop < 5; stop += 1) {
+      await page.keyboard.press('Tab');
+    }
+    await expect(
+      card(page).getByRole('button', { name: 'Forgot password?' }),
+    ).toBeFocused();
+    await page.keyboard.press('Enter');
+
+    // Opening the reset view sent nothing; the address typed so far is kept.
+    await expect(card(page).getByText('Reset your password')).toBeVisible();
+    await expect(card(page).getByLabel('Email')).toBeFocused();
+    await expect(card(page).getByLabel('Email')).toHaveValue(learnerEmail);
+    expect(provider.calls).toEqual([]);
+
+    // Enter sends the one request, and the answer does not repeat the address.
+    await page.keyboard.press('Enter');
+    await expect(card(page).getByText('Check your email')).toBeVisible();
+    await expect(
+      card(page).getByRole('button', { name: 'Back to sign in' }),
+    ).toBeFocused();
+    await expect(card(page)).not.toContainText(learnerEmail);
+    expect(traffic(provider.calls)).toEqual(['POST /user/password/reset']);
+    expect(provider.seen.resetRequests).toEqual([learnerEmail]);
+    expect(provider.seen.redirectTo).toBe(`${baseURL}/cloud/callback`);
+
+    // The learner opens the emailed link (a full navigation, like a new tab).
+    await page.goto(`/cloud/callback?code=${code}&keep=1`);
+    await expect(
+      page.getByRole('heading', { level: 2, name: newPasswordTitle }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel('New password', { exact: true }),
+    ).toBeFocused();
+    expect(page.url()).toBe(`${baseURL}/cloud/callback?keep=1`);
+    // The link alone is not a change: only the exchange has happened.
+    expect(traffic(provider.calls)).toEqual([
+      'POST /user/password/reset',
+      'POST /token/exchange',
+    ]);
+    await expect(page.getByText('Password changed')).toHaveCount(0);
+
+    await page.keyboard.type(newPassword);
+    await page.keyboard.press('Tab');
+    await expect(page.getByLabel('Confirm new password')).toBeFocused();
+    await page.keyboard.type(newPassword);
+    await page.keyboard.press('Enter');
+
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Password changed' }),
+    ).toBeVisible();
+    await expect(page.locator('#main-content')).toBeFocused();
+    expect(traffic(provider.calls)).toEqual([
+      'POST /user/password/reset',
+      'POST /token/exchange',
+      'POST /user/password',
+    ]);
+    // The change arrived with the session the link created, and took effect.
+    expect(provider.seen.changeBearers).toEqual([true]);
+    expect(provider.passwords.get(learnerEmail)).toBe(newPassword);
+    // This device holds no session any more.
+    expect(
+      (await page.evaluate(
+        `JSON.stringify({ local: Object.entries(localStorage), session: Object.entries(sessionStorage) })`,
+      )) as string,
+    ).not.toMatch(/refreshToken|accessToken/);
+
+    // Tab reaches the way on, and the old password no longer signs in.
+    await page.keyboard.press('Tab');
+    await expect(
+      page.getByRole('link', { name: 'Open Settings' }),
+    ).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
+    await expect(card(page).getByLabel('Email')).toBeVisible();
+    await card(page).getByLabel('Email').fill(learnerEmail);
+    await card(page).getByLabel('Password').fill(password);
+    await card(page).getByRole('button', { name: 'Sign in' }).click();
+    await expect(
+      card(page)
+        .getByRole('alert')
+        .filter({ hasText: 'The email or password was not accepted.' }),
+    ).toBeVisible();
+    await card(page).getByLabel('Password').fill(newPassword);
+    await card(page).getByRole('button', { name: 'Sign in' }).click();
+    await expect(
+      card(page).getByRole('button', { name: 'Back up now' }),
+    ).toBeVisible();
+
+    // Nothing secret was rendered, logged, stored or kept in the call log.
+    const stored = (await page.evaluate(
+      `JSON.stringify({ local: Object.entries(localStorage), session: Object.entries(sessionStorage) })`,
+    )) as string;
+
+    for (const secret of [password, newPassword, code]) {
+      expect(stored).not.toContain(secret);
+      expect(await page.content()).not.toContain(secret);
+      expect(logged.filter((line) => line.includes(secret))).toEqual([]);
+    }
+    // The call log redacts passwords. (It does hold the one-time code: the
+    // exchange request carries it to the provider, as it must.)
+    for (const secret of [password, newPassword]) {
+      expect(JSON.stringify(provider.calls)).not.toContain(secret);
+    }
+  });
+
+  test('a request for an address the provider refuses is answered exactly like one it accepts', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+
+    const provider = await installSimulatedProvider(page, {
+      accounts: { [learnerEmail]: password },
+      refuseUnknownResetAddress: true,
+    });
+
+    await completeOnboarding(page);
+    await page.goto('/settings');
+    await card(page)
+      .getByRole('button', { name: 'Turn on cloud backup' })
+      .click();
+
+    const answer = async (address: string) => {
+      await card(page)
+        .getByRole('button', { name: 'Forgot password?' })
+        .click();
+      await card(page).getByLabel('Email').fill(address);
+      await card(page).getByRole('button', { name: 'Send reset link' }).click();
+      await expect(card(page).getByText('Check your email')).toBeVisible();
+
+      const text = await card(page)
+        .getByRole('status')
+        .filter({ hasText: 'Check your email' })
+        .innerText();
+
+      await card(page).getByRole('button', { name: 'Back to sign in' }).click();
+
+      return text;
+    };
+
+    const unknown = await answer('nobody@example.com');
+    const known = await answer(learnerEmail);
+
+    expect(unknown).toBe(known);
+    expect(unknown).toContain(
+      'If an account exists for that address, a password reset link is on its way.',
+    );
+    // Both really were asked of the provider, one request each.
+    expect(provider.seen.resetRequests).toEqual([
+      'nobody@example.com',
+      learnerEmail,
+    ]);
+  });
+
+  for (const theme of ['light', 'dark'] as const) {
+    test(`the recovery views stay inside 320, 390 and 1280 pixel screens and are accessible (${theme})`, async ({
+      page,
+    }) => {
+      test.setTimeout(240_000);
+
+      const provider = await installSimulatedProvider(page, {
+        exchangeCode: code,
+        changePasswordStatus: 503,
+      });
+      // The part most likely to push a narrow card wider than the screen.
+      const longEmail = `${'a'.repeat(58)}@${'b'.repeat(40)}.example.com`;
+
+      await completeOnboarding(page, { theme });
+      await page.goto('/rpg/settings');
+      await card(page)
+        .getByRole('button', { name: 'Turn on cloud backup' })
+        .click();
+      await card(page)
+        .getByRole('button', { name: 'Forgot password?' })
+        .click();
+      await card(page).getByLabel('Email').fill(longEmail);
+      await expectContained(page, `reset request (${theme})`);
+      await expectAccessible(page, `RPG Settings, reset request (${theme})`);
+
+      // The shortest local error, then the generic answer.
+      await card(page).getByLabel('Email').fill('not an address');
+      await card(page).getByRole('button', { name: 'Send reset link' }).click();
+      await expect(
+        card(page).getByText('Enter a valid email address.'),
+      ).toBeVisible();
+      await expectContained(page, `reset request refused (${theme})`);
+      await expectAccessible(page, `RPG Settings, bad address (${theme})`);
+
+      await card(page).getByLabel('Email').fill(longEmail);
+      await card(page).getByRole('button', { name: 'Send reset link' }).click();
+      await expect(card(page).getByText('Check your email')).toBeVisible();
+      await expectContained(page, `reset answer (${theme})`);
+      await expectAccessible(page, `RPG Settings, reset answer (${theme})`);
+
+      // The emailed link: the new-password form, in the theme chosen above.
+      await page.goto(`/cloud/callback?code=${code}`);
+      await expect(
+        page.getByRole('heading', { level: 2, name: newPasswordTitle }),
+      ).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await expectContained(
+        page,
+        `new-password form (${theme})`,
+        newPasswordTitle,
+      );
+      await expectAccessible(page, `callback, new-password form (${theme})`);
+
+      // A mistake the form catches itself.
+      await page.getByLabel('New password', { exact: true }).fill(newPassword);
+      await page.getByLabel('Confirm new password').fill(`${newPassword}x`);
+      await page.getByRole('button', { name: 'Change password' }).click();
+      await expect(
+        page.getByText('The two passwords do not match.'),
+      ).toBeVisible();
+      await expectContained(page, `mismatch (${theme})`, newPasswordTitle);
+      await expectAccessible(page, `callback, mismatch (${theme})`);
+
+      // The longest notice: the provider did not give a clear answer.
+      await page.getByLabel('New password', { exact: true }).fill(newPassword);
+      await page.getByLabel('Confirm new password').fill(newPassword);
+      await page.getByRole('button', { name: 'Change password' }).click();
+      await expect(
+        page.getByText('Password change not confirmed'),
+      ).toBeVisible();
+      await expectContained(page, `not confirmed (${theme})`, newPasswordTitle);
+      await expectAccessible(page, `callback, not confirmed (${theme})`);
+
+      // And the result when it works.
+      provider.control.changePasswordStatus = 200;
+      await page.getByLabel('New password', { exact: true }).fill(newPassword);
+      await page.getByLabel('Confirm new password').fill(newPassword);
+      await page.getByRole('button', { name: 'Change password' }).click();
+      await expect(
+        page.getByRole('heading', { level: 2, name: 'Password changed' }),
+      ).toBeVisible();
+      await expectContained(page, `changed (${theme})`, 'Password changed');
+      await expectAccessible(page, `callback, changed (${theme})`);
+    });
+  }
 });

@@ -200,6 +200,10 @@ describe('cloud boundary: the application boots no cloud code and only the revie
     'src/features/settings/cloudModel.ts',
     'src/features/settings/components/CloudBackupCard.tsx',
     'src/features/settings/components/CloudBackupPanel.tsx',
+    // Epic G repair 01: the two password-recovery components. Each takes the
+    // account it is given (a Pick of the port) and imports only its types.
+    'src/features/settings/components/CloudNewPasswordForm.tsx',
+    'src/features/settings/components/CloudResetRequestPanel.tsx',
     'src/features/settings/components/CloudSignInPanel.tsx',
     'src/features/settings/routes/CloudCallbackPage.tsx',
   ];
