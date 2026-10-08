@@ -199,7 +199,7 @@ export default defineConfig({
     // stays Vercel-only. Keep this block in sync with vercel.json.
     headers: {
       'Content-Security-Policy':
-        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://enuikiiweoscywaixedr.auth.eu-north-1.nhost.run https://enuikiiweoscywaixedr.graphql.eu-north-1.nhost.run; worker-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'",
       'Permissions-Policy':
         'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
       'Referrer-Policy': 'no-referrer',

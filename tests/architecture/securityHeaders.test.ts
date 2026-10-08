@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { nhostConnectOrigins } from '@/lib/cloud/nhost/endpoints';
+
 /**
  * Module 5 security headers contract guard.
  *
@@ -117,7 +119,15 @@ describe('vercel.json security headers contract', () => {
       "'wasm-unsafe-eval'",
     ]);
     expect(directives.get('worker-src')).toEqual(["'self'"]);
-    expect(directives.get('connect-src')).toEqual(["'self'"]);
+    // Epic G (owner-authorized cloud backup): self plus exactly the two
+    // Stockholm Nhost service origins (Auth, GraphQL). No wildcard, no
+    // WebSocket scheme, no Storage or Functions host.
+    expect(directives.get('connect-src')).toEqual([
+      "'self'",
+      ...nhostConnectOrigins,
+    ]);
+    expect(csp).not.toMatch(/\bwss?:/);
+    expect(csp).not.toMatch(/\*/);
     expect(csp).not.toMatch(/'unsafe-eval'/);
   });
 
