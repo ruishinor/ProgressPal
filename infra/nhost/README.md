@@ -62,6 +62,8 @@ Apply it immediately before promoting the new app, run the live validation again
 
 `validation/validate-live.mjs` needs two verified synthetic users whose email and a shared password you place in `NHOST_USER_A_EMAIL`, `NHOST_USER_B_EMAIL`, `NHOST_USER_PASSWORD`. It runs positive controls first, then the negatives (stale occupant, wrong generation, wrong/missing/short hash, slot 5, 10 MiB + 1, isolation, forged user id, hidden hash, exact text, insert-time ordering). A 5xx or dropped connection aborts the run as inconclusive; only a database refusal that names the expected constraint counts as a rejection. Evidence is redacted and written to the OS temp folder.
 
+**Result and cleanup are separate facts.** The result (`PASS`, `FAIL` or `INCONCLUSIVE`) is decided before cleanup and cleanup can never change it. Every run starts by clearing the synthetic rows of users A and B. After the run, whether it passed, failed or aborted, the harness _attempts_ to clear them again and records `cleanup` as `complete` (both inventories read back empty), `incomplete` (it could not be finished, for example during a provider outage) or `not-attempted` (no user signed in, so nothing could have been written). Cleanup is best-effort, not guaranteed: during an outage the rows stay until the next run clears them first. The synthetic Auth users are never deleted by the harness. Exit codes: `0` PASS with cleanup complete, `1` FAIL or INCONCLUSIVE, `2` not configured, `3` PASS with cleanup incomplete.
+
 ## Provider configuration delta (for the owner-run step; nothing is applied from here)
 
 Development state (while migrations and metadata are being applied) versus final intent:

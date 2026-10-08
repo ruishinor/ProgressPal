@@ -14,10 +14,20 @@
 //    Hasura devMode off);
 //  - rollback proofs compare the whole slot inventory before and after;
 //  - requests are paced (the project rate-limits GraphQL to 100/minute);
+//  - every run starts by clearing the synthetic rows of users A and B, and
+//    ENDS by trying to clear them again, whether the run passed, failed or
+//    aborted. That cleanup is best-effort, not guaranteed: during a provider
+//    outage it cannot run, and the evidence then says `cleanup: incomplete`.
+//    The result (PASS / FAIL / INCONCLUSIVE) is decided before cleanup and is
+//    never changed by it. The synthetic Auth users themselves are not deleted;
 //  - evidence is redacted (no tokens, passwords or full email addresses) and is
 //    written to the OS temp directory unless --out <dir> is given.
 //
 //   node infra/nhost/validation/validate-live.mjs [--out <dir>]
+//
+// Exit codes: 0 PASS and cleanup complete; 1 FAIL or INCONCLUSIVE; 2 not
+// configured; 3 PASS but cleanup incomplete (the evidence is valid; the next
+// run clears the rows first).
 //
 // Talks only to the project's Auth and GraphQL hosts (Stockholm).
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -181,17 +191,80 @@ const record = (id, title, pass, detail, extra = {}) => {
   );
 };
 
+const DELETE_ALL =
+  'mutation { delete_backup_slots(where: {}) { affected_rows } }';
+
 async function deleteAll(user) {
-  const response = await run(
-    user,
-    'mutation { delete_backup_slots(where: {}) { affected_rows } }',
-  );
+  const response = await run(user, DELETE_ALL);
   requireSuccess(classifyHttpOutcome(response), 'cleanup delete');
 }
 
+// Set the moment each sign-in succeeds, so the cleanup that follows main()
+// knows which users could have written rows.
+const users = { a: null, b: null };
+
+/**
+ * Best-effort removal of the synthetic rows, run after main() however it
+ * ended. It never throws and never touches the run's result: it only reports
+ * `complete` (both users' inventories read back empty), `incomplete` (it could
+ * not be finished, e.g. during an outage) or `not-attempted` (no user session
+ * was ever established, so nothing could have been written).
+ */
+async function cleanUp() {
+  const targets = [
+    ['A', users.a],
+    ['B', users.b],
+  ].filter(([, user]) => user !== null);
+
+  if (targets.length === 0) {
+    return {
+      status: 'not-attempted',
+      detail: 'no user session was established, so no rows could be written',
+    };
+  }
+
+  const problems = [];
+
+  for (const [label, user] of targets) {
+    try {
+      const deleted = classifyHttpOutcome(await run(user, DELETE_ALL));
+
+      if (deleted.kind !== 'success') {
+        problems.push(
+          `user ${label}: delete ${deleted.kind}${deleted.status ? ` (HTTP ${deleted.status})` : ''}`,
+        );
+        continue;
+      }
+
+      const left = await inventory(user);
+
+      if (left.length > 0) {
+        problems.push(`user ${label}: ${left.length} row(s) still present`);
+      }
+    } catch (error) {
+      problems.push(
+        `user ${label}: ${error instanceof HarnessAbort ? error.message : error.name}`,
+      );
+    }
+  }
+
+  // (If only one user signed in, the run aborted before writing anything.)
+  return problems.length === 0
+    ? {
+        status: 'complete',
+        detail: `${targets.length === 2 ? 'both synthetic users own' : 'the signed-in synthetic user owns'} no rows (read back empty)`,
+      }
+    : {
+        status: 'incomplete',
+        detail: `${problems.join('; ')}. The next run clears these rows first.`,
+      };
+}
+
 async function main() {
-  const a = await signIn(emailA);
-  const b = await signIn(emailB);
+  users.a = await signIn(emailA);
+  const a = users.a;
+  users.b = await signIn(emailB);
+  const b = users.b;
   await deleteAll(a);
   await deleteAll(b);
 
@@ -496,9 +569,7 @@ async function main() {
       Date.parse(two.json.data.first.stored_at),
     `${two.json.data.first.stored_at} < ${two.json.data.second.stored_at}`,
   );
-
-  await deleteAll(a);
-  await deleteAll(b);
+  // No cleanup here: it runs after main() on every path (see cleanUp).
 }
 
 let aborted = null;
@@ -515,11 +586,30 @@ try {
   }
 }
 
+// The verdict is fixed here, BEFORE cleanup runs, and cleanup cannot change it.
 const failed = results.filter((r) => !r.pass);
+const result =
+  failed.length > 0 ? 'FAIL' : aborted !== null ? 'INCONCLUSIVE' : 'PASS';
+
+let cleanup;
+
+try {
+  cleanup = await cleanUp();
+} catch (error) {
+  cleanup = {
+    status: 'incomplete',
+    detail: `cleanup failed unexpectedly (${error.name}). The next run clears these rows first.`,
+  };
+}
+
+console.log(`\nCLEANUP ${cleanup.status}: ${cleanup.detail}`);
+
 const summary = {
   at: new Date().toISOString(),
   project: PROJECT,
+  result,
   aborted,
+  cleanup,
   total: results.length,
   failed: failed.length,
   results,
@@ -528,6 +618,6 @@ mkdirSync(outDir, { recursive: true });
 const file = join(outDir, `live-validation-${Date.now()}.json`);
 writeFileSync(file, scrubEvidence(summary, secrets));
 console.log(
-  `\n${results.length - failed.length}/${results.length} checks passed${aborted ? ' - RUN ABORTED' : ''}. Evidence: ${file}`,
+  `\nRESULT ${result}: ${results.length - failed.length}/${results.length} checks passed${aborted ? ' - RUN ABORTED' : ''}. Cleanup: ${cleanup.status}. Evidence: ${file}`,
 );
-process.exit(aborted || failed.length > 0 ? 1 : 0);
+process.exit(result !== 'PASS' ? 1 : cleanup.status === 'incomplete' ? 3 : 0);

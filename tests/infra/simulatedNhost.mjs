@@ -8,13 +8,35 @@
 // This is a test double. It proves the harness logic; it proves nothing about
 // the real provider, which is exactly why the owner-run live step exists.
 import { createHash } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
 
 globalThis.__PROGRESSPAL_SIMULATED_NHOST__ = true;
 
+// Modes besides the original ones:
+//  - outage-after-abort   the 502 that aborts the run also starts a provider
+//                         outage: every later GraphQL request fails to connect;
+//  - signin-fails         Auth refuses both sign-ins;
+//  - preseeded            each user already owns rows from an earlier run;
+//  - outage-before-cleanup  every check passes, then the provider goes away.
 const mode = process.env.FAKE_NHOST_MODE ?? 'healthy';
 const users = new Map(); // token -> { id }
 const rowsByUser = new Map(); // id -> Map(slot -> row)
 let tick = 0;
+let outage = false;
+let graphqlRequests = 0;
+
+// Lets the test see what the run left behind: rows per signed-in token.
+process.on('exit', () => {
+  const file = process.env.FAKE_NHOST_STATE_FILE;
+
+  if (!file) return;
+
+  const rows = {};
+  for (const [token, user] of users) {
+    rows[token] = rowsByUser.get(user.id)?.size ?? 0;
+  }
+  writeFileSync(file, JSON.stringify({ rows, graphqlRequests, outage }));
+});
 
 const sha = (text) =>
   createHash('sha256').update(Buffer.from(text, 'utf8')).digest('hex');
@@ -211,6 +233,9 @@ function graphql(request, user) {
     if (first instanceof Response) return first;
     const second = insertRow(rows, variables.y);
     if (second instanceof Response) return second;
+    // The last check of a healthy run: the provider then goes away, so the
+    // cleanup that follows cannot run (a PASS must stay a PASS).
+    if (mode === 'outage-before-cleanup') outage = true;
     return jsonResponse(200, {
       data: {
         first: { stored_at: first.stored_at },
@@ -239,8 +264,13 @@ function graphql(request, user) {
 
     if (mode === 'p1-fails' && input.slot === 1 && !table(user.id).has(1))
       return gateway();
-    if (mode === 'gateway-502-on-generation' && input.schema_version === 5)
+    if (
+      (mode === 'gateway-502-on-generation' || mode === 'outage-after-abort') &&
+      input.schema_version === 5
+    ) {
+      outage = mode === 'outage-after-abort';
       return gateway();
+    }
     if (
       mode === 'ceiling-gateway' &&
       Buffer.byteLength(String(input.payload), 'utf8') > 10 * 1024 * 1024
@@ -296,11 +326,31 @@ globalThis.fetch = async (input, init = {}) => {
   const body = init.body ? JSON.parse(init.body) : {};
 
   if (url.pathname.endsWith('/signin/email-password')) {
+    if (mode === 'signin-fails')
+      return jsonResponse(401, { error: 'invalid-email-password' });
+
     const id = `00000000-0000-4000-8000-${String(users.size + 1).padStart(12, '0')}`;
     const token = `sim-token-${body.email}`;
     const known = [...users.entries()].find(([key]) => key === token);
     const user = known ? known[1] : { id };
     users.set(token, user);
+
+    if (mode === 'preseeded' && !known) {
+      for (const slot of [0, 2, 4]) {
+        const payload = `earlier run ${slot}`;
+        insertRow(table(user.id), {
+          slot,
+          backup_id: `00000000-0000-4000-9000-00000000000${slot}`,
+          format_version: 1,
+          schema_version: 4,
+          app_version: 'earlier',
+          exported_at: '2026-10-01T00:00:00.000Z',
+          payload,
+          expected_sha256: `\\x${sha(payload)}`,
+        });
+      }
+    }
+
     return jsonResponse(200, {
       session: {
         accessToken: token,
@@ -311,6 +361,10 @@ globalThis.fetch = async (input, init = {}) => {
   }
 
   if (url.pathname.endsWith('/v1')) {
+    graphqlRequests += 1;
+
+    if (outage) throw new TypeError('fetch failed');
+
     const header = new Headers(init.headers).get('authorization');
     const user = header
       ? (users.get(header.replace('Bearer ', '')) ?? null)

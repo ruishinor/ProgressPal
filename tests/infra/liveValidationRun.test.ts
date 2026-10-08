@@ -25,8 +25,15 @@ const emailA = 'alice.synthetic@example.test';
 const emailB = 'bob.synthetic@example.test';
 const password = 'throwaway-pass-123';
 
+interface SimulatedState {
+  rows: Record<string, number>;
+  graphqlRequests: number;
+  outage: boolean;
+}
+
 function run(mode: string) {
   const out = path.join(scratch, mode);
+  const stateFile = path.join(scratch, `${mode}-state.json`);
   const result = spawnSync(
     process.execPath,
     ['--import', simulation, harness, '--out', out],
@@ -35,6 +42,7 @@ function run(mode: string) {
       env: {
         PATH: process.env.PATH ?? '',
         FAKE_NHOST_MODE: mode,
+        FAKE_NHOST_STATE_FILE: stateFile,
         NHOST_USER_A_EMAIL: emailA,
         NHOST_USER_B_EMAIL: emailB,
         NHOST_USER_PASSWORD: password,
@@ -43,8 +51,12 @@ function run(mode: string) {
     },
   );
   const evidenceFile = readdirSync(out).find((name) => name.endsWith('.json'));
+  const state = JSON.parse(readFileSync(stateFile, 'utf8')) as SimulatedState;
+  const rowsLeft = Object.values(state.rows).reduce((a, b) => a + b, 0);
   const evidence = evidenceFile
     ? (JSON.parse(readFileSync(path.join(out, evidenceFile), 'utf8')) as {
+        result: 'PASS' | 'FAIL' | 'INCONCLUSIVE';
+        cleanup: { status: string; detail: string };
         aborted: string | null;
         failed: number;
         results: Array<{
@@ -58,6 +70,8 @@ function run(mode: string) {
 
   return {
     ...result,
+    state,
+    rowsLeft,
     evidence,
     evidenceText: evidenceFile
       ? readFileSync(path.join(out, evidenceFile), 'utf8')
@@ -167,6 +181,91 @@ describe('the live-validation harness against a simulated stack', () => {
           id.startsWith('T20') || id.startsWith('T21') || id.startsWith('T7'),
       ),
     ).toEqual([]);
+  });
+
+  describe('cleanup of the synthetic rows (CR-4)', () => {
+    it('a normal PASS removes the rows afterwards and says so', () => {
+      const result = run('healthy');
+
+      expect(result.status).toBe(0);
+      expect(result.evidence?.result).toBe('PASS');
+      expect(result.evidence?.cleanup.status).toBe('complete');
+      expect(result.rowsLeft).toBe(0);
+      expect(result.stdout).toMatch(/CLEANUP complete/);
+      expect(result.stdout).toMatch(/RESULT PASS/);
+    });
+
+    it('a FAIL still cleans up, and stays a FAIL', () => {
+      const result = run('no-generation-gate');
+
+      expect(result.status).toBe(1);
+      expect(result.evidence?.result).toBe('FAIL');
+      expect(result.evidence?.cleanup.status).toBe('complete');
+      expect(result.rowsLeft).toBe(0);
+    });
+
+    it('an abort leaves no rows behind when the provider is still there, and stays INCONCLUSIVE', () => {
+      const result = run('gateway-502-on-generation');
+
+      expect(result.status).toBe(1);
+      expect(result.evidence?.result).toBe('INCONCLUSIVE');
+      expect(result.evidence?.aborted).toMatch(/transport\/gateway fault/);
+      expect(result.evidence?.cleanup.status).toBe('complete');
+      // The positive controls wrote rows before the abort; they are gone now.
+      expect(result.rowsLeft).toBe(0);
+    });
+
+    it('an abort during an outage keeps the original result and records the cleanup as INCOMPLETE', () => {
+      const result = run('outage-after-abort');
+
+      expect(result.status).toBe(1);
+      expect(result.evidence?.result).toBe('INCONCLUSIVE');
+      expect(result.evidence?.aborted).toMatch(/transport\/gateway fault/);
+      expect(result.evidence?.cleanup.status).toBe('incomplete');
+      expect(result.evidence?.cleanup.detail).toMatch(/delete transport/);
+      expect(result.evidence?.cleanup.detail).toMatch(/next run clears/);
+      // The rows really are still there; the evidence does not pretend otherwise.
+      expect(result.rowsLeft).toBeGreaterThan(0);
+      expect(result.stdout).toMatch(/CLEANUP incomplete/);
+    });
+
+    it('a PASS whose cleanup cannot run stays a PASS, with its own exit code', () => {
+      const result = run('outage-before-cleanup');
+
+      expect(result.evidence?.result).toBe('PASS');
+      expect(result.evidence?.failed).toBe(0);
+      expect(result.evidence?.aborted).toBeNull();
+      expect(result.evidence?.cleanup.status).toBe('incomplete');
+      expect(result.status).toBe(3);
+      expect(result.rowsLeft).toBeGreaterThan(0);
+    });
+
+    it('when no sign-in succeeded nothing is written and cleanup is not attempted', () => {
+      const result = run('signin-fails');
+
+      expect(result.status).toBe(1);
+      expect(result.evidence?.result).toBe('INCONCLUSIVE');
+      expect(result.evidence?.aborted).toMatch(/could not sign in/);
+      expect(result.evidence?.cleanup.status).toBe('not-attempted');
+      expect(result.state.graphqlRequests).toBe(0);
+    });
+
+    it('every run begins by clearing rows left by an earlier run', () => {
+      const result = run('preseeded');
+
+      // Rows in slots 0, 2 and 4 would have broken the positive controls.
+      expect(result.evidence?.result).toBe('PASS');
+      expect(result.evidence?.cleanup.status).toBe('complete');
+      expect(result.rowsLeft).toBe(0);
+    });
+
+    it('cleanup evidence carries no secret, token or full address', () => {
+      const { evidenceText } = run('outage-after-abort');
+
+      expect(evidenceText).not.toContain(password);
+      expect(evidenceText).not.toContain('sim-token');
+      expect(evidenceText).not.toContain(emailA);
+    });
   });
 
   it('records a gateway-only refusal of the oversize request honestly', () => {
