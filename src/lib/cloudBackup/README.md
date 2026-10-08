@@ -1,6 +1,6 @@
 # src/lib/cloudBackup — manual cloud backup and restore (Epic G, G5/G6, unreleased)
 
-Scope: the **domain logic** of one optional, manual, one-shot cloud backup (G5) and a manual restore (G6), on top of the `src/lib/cloud` store port. Code only: no UI, no route, no stylesheet, and nothing in the application imports this folder yet (pinned by `tests/architecture/cloudBackupBoundary.test.ts`). Dexie/IndexedDB remains the only learner-state authority; the cloud copy is a recovery copy and nothing is synchronised.
+Scope: the **domain logic** of one optional, manual, one-shot cloud backup (G5) and a manual restore (G6), on top of the `src/lib/cloud` store port. This folder itself contains no UI, no route and no stylesheet; the only modules that import it are the Settings cloud card's panels and presentation model in `src/features/settings/` (an exact allow-list pinned by `tests/architecture/cloudBackupBoundary.test.ts`). Dexie/IndexedDB remains the only learner-state authority; the cloud copy is a recovery copy and nothing is synchronised.
 
 ## What it may touch
 
@@ -34,11 +34,11 @@ It imports no database code, no Dexie, no SDK, no UI layer, and names no provide
 
 `createCloudBackupService(dependencies)` returns `listBackups`, `backUpNow`, `checkAttempt`, `prepareRestore`, `confirmRestore`. Pure helpers `chooseTargetSlot`, `classifyInventory`, `hasLearnerData`, `produceBackupPayload` and `sha256Hex` are exported for tests and for a future UI that needs the same facts.
 
-## Wiring contract for a later UI story (not done here)
+## Wiring contract (done in `src/features/settings/components/CloudBackupPanel.tsx`)
 
 - Inject `account` and `store` from `@/lib/cloud` (`getCloudAccount()`, `getCloudBackupStore()`), `readSnapshot` as `getDatabaseSnapshot`, `appVersion` and `schemaVersion` as the database constants, the database's `migrationContext`, and `restoreLocal` as the existing `restoreDatabaseFromBackup` **wrapped in the app's local-mutation runner** so app state refreshes exactly as after a file import. The service catches that function's errors and reports them as `failed`, so the wrapper must be the one that refreshes state on success.
 - The warning and the file-export offer before a destructive restore are a UI concern; the service enforces only the acknowledgement. The existing file export remains the way to take a local copy first.
-- A UI must show an inventory as "metadata only, payload not downloaded, integrity not checked", must never use words such as _latest_, _current_, _up to date_ or _everything is backed up_ for anything but the facts in `InventoryFacts`, and must never claim a backup exists on `outcome-unknown`.
+- A UI must show an inventory as "metadata only, payload not downloaded, integrity not checked", must never use words such as _latest_, _current_, _up to date_ or _everything is backed up_ for anything but the facts in `InventoryFacts`, and must never claim a backup exists on `outcome-unknown`. The Settings model (`src/features/settings/cloudModel.ts`) chooses every such sentence, and `tests/features/settings/cloudModel.test.ts` scans all of them for that vocabulary.
 
 ## Not proven here
 

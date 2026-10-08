@@ -102,6 +102,27 @@ Two facts about the SDK that the adapter depends on and the tests pin: any respo
 
 The offline simulated stack (`tests/infra/simulatedNhostCore.mjs`) understands these documents and the harness's, and nothing else. It lets the repository gate exercise the whole path (service, adapter, SDK) without a provider, including a write that commits and then loses its answer. It proves application logic, not the provider: the first live exercise of the inventory, find and download forms is a **separate owner-run G5/G6 live validation**, which this branch does not perform and has not been authorized to perform.
 
+## Callback URLs for the owner-run configuration step (nothing is applied from here)
+
+The application asks the provider to send the learner back to **`<the page's own origin>/cloud/callback`** (`window.location.origin` plus `cloudCallbackPath`, `src/lib/cloud/callbackUrl.ts`). The route of that path exists in the app (`src/app/router/routeDefinitions.ts`, rendered by `src/features/settings/routes/CloudCallbackPage.tsx`, outside both shells). Because the origin is read from the page, **each origin the app is served from needs its own entry**:
+
+| Where the app runs                                | Origin                                  | Exact callback URL                                     |
+| ------------------------------------------------- | --------------------------------------- | ------------------------------------------------------ |
+| Production (alias recorded in `CURRENT_STATE.md`) | `https://progress-pal-seven.vercel.app` | `https://progress-pal-seven.vercel.app/cloud/callback` |
+| Local development (`npm run dev`, Vite's default) | `http://localhost:5173`                 | `http://localhost:5173/cloud/callback`                 |
+| Local production preview (`npm run preview`)      | `http://localhost:4173`                 | `http://localhost:4173/cloud/callback`                 |
+
+Neither local port is set by the repository: they are Vite's defaults for `vite` and `vite preview`, so they change if you pass `--port` or Vite finds the port taken. (The managed E2E run uses `http://127.0.0.1:42183` against a simulated provider; it needs no provider setting.)
+
+Notes for the owner:
+
+- **Where they go.** The "Provider configuration delta" table below names the settings (`auth.redirections.clientUrl` and `allowedUrls`; `hasura.settings.corsDomain` for the same origins). A natural reading is `clientUrl` = the production origin and each callback URL above listed in `allowedUrls`. The repository cannot confirm how the provider matches entries (exact or prefix), so **verify it in the owner step**; nothing in this repository changes the project.
+- **The production alias is read from the repository's own records**, not from the platform. Confirm the live alias before entering it; if production is served from another origin, that origin's `/cloud/callback` is the entry.
+- **`localhost` and `127.0.0.1` are different origins.** Add the one you actually open. The local entries are needed only to try the real account flows from your own machine; the repository gate and the E2E run use a simulation and need no provider setting.
+- **Other origins are refused by design.** A Vercel per-deployment preview URL (or any origin not listed) will send a redirect the provider does not allow, so sign-up and password-email requests from it will fail; the app reports a plain refusal. This is expected, and it has not been observed live.
+- **What the app does with the link.** The learner lands on `/cloud/callback?code=…`. The page reads that address once, removes everything callback-shaped from it, and only then exchanges the one-time code (PKCE, with the verifier this browser stored when the email was requested). It shows nothing the link carried and ends at Settings. A link opened in a browser that did not start the request cannot be completed there and says so.
+- **Not proven yet (live account flows, still an owner-run step):** that the email arrives, that its link carries `?code=` to exactly this route, that the real code exchange succeeds, and what the provider does with an error redirect. The offline tests and the simulated-provider browser tests prove the application's handling of those shapes, not the provider.
+
 ## Provider configuration delta (for the owner-run step; nothing is applied from here)
 
 Development state (while migrations and metadata are being applied) versus final intent:
