@@ -50,18 +50,35 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  * 2026-10-04 (every "-klinikk" learner-facing name replaced by plain wording)
  * and on 2026-10-06 (learner-feedback corrections, content version 3: filename
  * extension and type vocabulary, `ls`/`dir`, `ramme`, exact-output block,
- * `cd` near misses, duplicated answer-format instructions removed).
+ * `cd` near misses, duplicated answer-format instructions removed) and on
+ * 2026-10-10 (learner-feedback remediation, content version 4: programme
+ * wording, copy and paste, quotation marks and `print()` arguments, first
+ * wrong answers that no longer print the answer, Task 6 and Task 7).
+ *
+ * The pin is the pilot as the authoring pipeline generated it on 2026-10-10.
+ * Since 2026-10-09 that file also carries S1-M03, an authoring candidate under
+ * independent review that is not product content; see PRODUCT_MODULE_IDS.
+ * The previous pin (4334588c…, 1,125,575 bytes) held S1-M01 and S1-M02 only;
+ * both modules were verified deep-equal to that file before they were edited.
  */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e',
-  bytes: 1_125_575,
+  sha256: '706b110504135b4bb03de65bcd4593793d51902f5729c541955e1000085c3fac',
+  bytes: 1_477_510,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';
 
+/**
+ * The modules that ship. The authoring pilot may carry modules that are not
+ * product content yet (S1-M03 is an unreviewed candidate); they are neither
+ * exported nor hashed into the product ledgers, and the export fails if a
+ * shipped module is missing from the source.
+ */
+const PRODUCT_MODULE_IDS = ['S1-M01', 'S1-M02'];
+
 const PROGRAMME_ID = 'programvareutvikling';
-const CONTENT_VERSION = 3;
+const CONTENT_VERSION = 4;
 const EVALUATOR_CONTRACT_VERSION = 1;
 
 /**
@@ -456,6 +473,20 @@ const skillGraph = JSON.parse(skillGraphBytes.toString('utf8'));
 const structure = JSON.parse(structureBytes.toString('utf8'));
 
 for (const field of Object.keys(pilot)) classify('$', field, TOP_FIELDS);
+
+const sourceModuleIds = pilot.modules.map((module) => module.module_id);
+for (const moduleId of PRODUCT_MODULE_IDS) {
+  if (!sourceModuleIds.includes(moduleId)) {
+    console.error(`Shipped module ${moduleId} is missing from the source.`);
+    process.exit(1);
+  }
+}
+const excludedModuleIds = sourceModuleIds.filter(
+  (moduleId) => !PRODUCT_MODULE_IDS.includes(moduleId),
+);
+pilot.modules = pilot.modules.filter((module) =>
+  PRODUCT_MODULE_IDS.includes(module.module_id),
+);
 
 // ---------------------------------------------------------------- export units
 const vectors = {};
@@ -911,7 +942,9 @@ const expectedCounts = {
   evaluable: 276,
   needsRuntime: 49,
   masteryGate: 25,
-  hints: 245,
+  // 245 before the 2026-10-10 remediation; it added eight hints (pwd 2, ls,
+  // git init, int, :.2f, Task 6, Task 7) and nothing else changed a count.
+  hints: 253,
 };
 for (const [key, value] of Object.entries(expectedCounts)) {
   if (counts[key] !== value)
@@ -1123,10 +1156,10 @@ if (check) {
     process.exit(1);
   }
   console.log(
-    `Export check passed: ${outputs.length + rawOutputs.length} files match a fresh export of ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
+    `Export check passed: ${outputs.length + rawOutputs.length} files match a fresh export of ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}. Source modules not exported: ${excludedModuleIds.join(', ') || 'none'}.`,
   );
 } else {
   console.log(
-    `Exported ${outputs.length + rawOutputs.length} files from ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}.`,
+    `Exported ${outputs.length + rawOutputs.length} files from ${EXPECTED_PILOT.path} (${pilotSha}). Counts ${JSON.stringify(counts)}. Source modules not exported: ${excludedModuleIds.join(', ') || 'none'}.`,
   );
 }

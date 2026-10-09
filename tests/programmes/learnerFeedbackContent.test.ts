@@ -24,6 +24,13 @@ const exercises = units
 
 const byId = (id: string) => exercises.find((exercise) => exercise.id === id)!;
 
+/** The answer as a whole word or phrase: `int` is not inside `hint`. */
+const wholeWord = (text: string) => {
+  const literal = text.replace(/[.*+?^$(){}|[\]\\]/g, '\\$&');
+
+  return new RegExp(`(?<![\\p{L}\\p{N}_])${literal}(?![\\p{L}\\p{N}_])`, 'u');
+};
+
 /** Authored code spans carry guillemets or backticks around the visible text. */
 const plain = (text: string) => text.replace(/[‹›`]/g, '').toLowerCase();
 
@@ -47,7 +54,7 @@ describe('LF-005: the first wrong answer to a typed-answer task is not the answe
       const feedback = plain(exercise.feedback.incorrect);
 
       for (const answer of answers) {
-        expect(feedback).not.toContain(plain(answer));
+        expect(feedback).not.toMatch(wholeWord(plain(answer)));
       }
     },
   );

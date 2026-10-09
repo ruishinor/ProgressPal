@@ -2,11 +2,11 @@
   "format": "progresspal-programme-catalogue",
   "formatVersion": 1,
   "programmeId": "programvareutvikling",
-  "contentVersion": 3,
+  "contentVersion": 4,
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "4334588c5dd2125adb2bd33fd8f51933d54d456295d6ca309080670527cb7d4e",
+  "sourceSha256": "706b110504135b4bb03de65bcd4593793d51902f5729c541955e1000085c3fac",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -37,7 +37,7 @@
           "itemId": "s1-m01-o03",
           "surface": "mission",
           "title": "Ditt første program og feilsøking av oppsett",
-          "minutes": 115,
+          "minutes": 120,
           "optional": false,
           "order": 2
         },
@@ -546,20 +546,20 @@
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.ad570d500d3cba87.json",
-      "sha256": "ad570d500d3cba8749d08f3a71ff263155f0f04fb6ac3500f19a1497c8b7fb86",
-      "bytes": 197990
+      "path": "content/programvareutvikling/index.df8eb7c92c1803ea.json",
+      "sha256": "df8eb7c92c1803eac70a81b7af9942199830890825cce55eb6ab1668026eedea",
+      "bytes": 197992
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.e1477531714cddf1.json",
-        "sha256": "e1477531714cddf13ce2369c889b8b5ecd28f29d029d245a0d9946decc1f8e91",
-        "bytes": 273442
+        "path": "content/programvareutvikling/s1-m01.b4476bd60c2b6626.json",
+        "sha256": "b4476bd60c2b6626e61e47c75af779ffbcc0bc073a0c6086ebb785729e387be4",
+        "bytes": 280245
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.d8c2b697f3bc28d5.json",
-        "sha256": "d8c2b697f3bc28d5fc308d4a09e410ce30b4f42358396bc8dba09f0edaff8887",
-        "bytes": 265687
+        "path": "content/programvareutvikling/s1-m02.a24b14c0132b0f4c.json",
+        "sha256": "a24b14c0132b0f4ce2ab8dab8e8994cb1f0e33cfa58e02482446fca32b3b3d18",
+        "bytes": 266152
       }
     }
   }

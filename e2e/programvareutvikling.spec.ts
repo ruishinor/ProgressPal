@@ -426,16 +426,29 @@ function unitExercise(page: Page, unitTitle: string, number: number): Locator {
 }
 
 /**
- * Fills a card with the keyboard only: every select gets a distinct option
- * by arrow keys, one radio per group and one checkbox are chosen with Space,
- * and every text field is typed into. Then the answer is submitted with
- * Enter on the focused button.
+ * Fills a card with the keyboard only: an ordering task is built by pressing
+ * Enter on the first step of its pool until the pool is empty (focus must
+ * stay in the pool by itself), every select gets a distinct option by arrow
+ * keys, one radio per group and one checkbox are chosen with Space, and every
+ * text field is typed into. Then the answer is submitted with Enter on the
+ * focused button.
  */
 async function answerByKeyboard(page: Page, card: Locator) {
   // Controls stay disabled until this tab holds the local write lease.
   await expect(
     card.getByRole('button', { name: 'Sjekk svaret' }),
   ).toBeEnabled();
+  const pool = card.getByRole('group', { name: 'Steg å plassere' });
+
+  if ((await pool.count()) > 0) {
+    await pool.getByRole('button').first().focus();
+
+    while ((await pool.getByRole('button').count()) > 0) {
+      await expect(pool.getByRole('button').first()).toBeFocused();
+      await page.keyboard.press('Enter');
+    }
+  }
+
   const selects = card.locator('select');
   const selectCount = await selects.count();
 
@@ -523,7 +536,7 @@ const keyboardModes = [
   {
     mode: 'match',
     item: 's1-m01-o04',
-    prompt: 'Koble hvert steg til det du har etterpå',
+    prompt: 'Koble hvert utsagn til det utvikleren har i hånden etterpå',
   },
   {
     mode: 'prediction',

@@ -72,7 +72,7 @@ describe('module length excludes optional lessons for Programvareutvikling', () 
     );
 
     expect(map.units.map((unit) => [unit.id, unit.estimatedMinutes])).toEqual([
-      ['s1-m01', 760],
+      ['s1-m01', 765],
       ['s1-m02', 1_220],
     ]);
   });

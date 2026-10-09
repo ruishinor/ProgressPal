@@ -21,10 +21,21 @@ import {
  * answer-format instruction was removed from its prompt), so the predicates
  * and their meaning are unchanged and only this binding moved from 2 to 3.
  *
+ * Re-reviewed for content version 4 (2026-10-10, learner-feedback
+ * remediation): every referenced subject, mission and module still exists;
+ * no checkpoint exercise changed, so the checkpoint rule, the gating exercises
+ * and the retry rule are identical to version 3. Fifteen exercise hashes
+ * changed; the only one an achievement names is `s1-m02-ret-e07` (its first
+ * wrong-answer feedback no longer prints the answer), in `p2-recall-foundations`'s
+ * subject list. Unlocks already earned stay; a learner part-way through that
+ * one achievement solves that one task again under its new hash. The
+ * predicates and their meaning are unchanged; only this binding moved from 3
+ * to 4.
+ *
  * Ids are global (unlocks are keyed by achievement id alone), so every
  * Programvareutvikling-specific id carries the `p2-` namespace.
  */
-export const programvareutviklingAchievementContentVersion = 3;
+export const programvareutviklingAchievementContentVersion = 4;
 export const programvareutviklingAchievementIdPrefix = 'p2-';
 
 const contentVersion = programvareutviklingAchievementContentVersion;
