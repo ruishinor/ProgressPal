@@ -1057,12 +1057,6 @@
   font-weight: 700;
 }
 
-.course-detail-grid {
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.9fr);
-}
-
 .sessions-layout {
   display: grid;
   gap: var(--space-4);
@@ -1543,7 +1537,6 @@
 @media (max-width: 960px) {
   .shell-header,
   .page-header,
-  .course-detail-grid,
   .sessions-layout,
   .course-map-summary-grid,
   .profile-page-grid,

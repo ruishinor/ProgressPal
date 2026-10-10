@@ -26,6 +26,8 @@ import {
   answerToDraft,
   draftToAnswer,
   emptyDraft,
+  retryDraft,
+  reviewAnswer,
   type AnswerDraft,
 } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
@@ -158,8 +160,26 @@ export function ExerciseCard({
     showResult && latest !== undefined
       ? answerToDraft(exercise, latest.answer)
       : draft;
+  // After a wrong answer to a formative ordering or matching task, each
+  // place says whether it was right. Gate items give no such help: their
+  // retry restores the whole answer and independent evidence stays independent.
+  const review =
+    showResult &&
+    latest !== undefined &&
+    latestResult?.outcome === 'incorrect' &&
+    !meta.masteryGate
+      ? reviewAnswer(exercise, latest.answer)
+      : null;
+  const sortLabel =
+    exercise.type === 'sort'
+      ? exercise.kind === 'order'
+        ? copy.text.sortOrderLabel
+        : exercise.kind === 'match'
+          ? copy.text.sortMatchLabel
+          : null
+      : null;
   const typeLabel = [
-    copy.exerciseTypeLabels[exercise.response_mode],
+    sortLabel ?? copy.exerciseTypeLabels[exercise.response_mode],
     exercise.optional ? copy.text.optionalSuffix : null,
     exercise.evaluable ? null : copy.text.noPointsSuffix,
   ]
@@ -298,6 +318,7 @@ export function ExerciseCard({
         exercise={exercise}
         idPrefix={idPrefix}
         onChange={setDraft}
+        review={review}
         seed={`${meta.subjectId}|${attempts.length + (showResult ? 0 : 1)}`}
       />
       {exercise.hints.length > 0 ? (
@@ -371,7 +392,11 @@ export function ExerciseCard({
               className={surfaces.secondary}
               disabled={!canWrite || busy !== 'none'}
               onClick={() => {
-                setDraft(answerToDraft(exercise, latest!.answer));
+                setDraft(
+                  meta.masteryGate
+                    ? answerToDraft(exercise, latest!.answer)
+                    : retryDraft(exercise, latest!.answer),
+                );
                 setRetrying(true);
                 setNotice(null);
                 setEarnedXp(0);

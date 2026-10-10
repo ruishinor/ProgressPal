@@ -1,11 +1,13 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
 /**
  * Learner feedback 2026-10-08, in a real browser (synthetic data only):
- * LF-014 a stage change from far down a long stage, and LF-016 the reward
- * notice while the page is scrolled.
+ * LF-014 a stage change from far down a long stage, LF-016 the reward notice
+ * while the page is scrolled, LF-023/024/026 the ordering and matching tasks by
+ * keyboard and at narrow widths, and LF-029 the end of a lesson.
  */
 
 type ScrollScope = {
@@ -91,4 +93,107 @@ test('a level-up shows inside the viewport while the page is scrolled far down',
     .filter({ hasText: 'Level up! Level 2' });
 
   await expect(notice).toBeInViewport({ ratio: 1 });
+});
+
+const steps = [
+  'Problem',
+  'Behov',
+  'Krav',
+  'Modellering',
+  'Planlegging',
+  'Programmering',
+  'Testing',
+  'Forbedring',
+  'Dokumentasjon',
+  'Presentasjon',
+];
+
+for (const width of [1280, 390, 320]) {
+  test(`Task 6 and Task 7 work by keyboard, mark the wrong places and fit at ${width}px`, async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width, height: width === 1280 ? 800 : 700 });
+    await startOnProgrammeTwo(page);
+    await page.goto('/rpg/resource/s1-m01-o04');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    const task = page.getByRole('group', { name: /^Oppgave 6 · / });
+    const pool = task.getByRole('group', { name: 'Steg å plassere' });
+    const submit = task.getByRole('button', { name: 'Sjekk svaret' });
+
+    await expect(submit).toBeEnabled();
+    // Steps 3 and 4 swapped: pick by keyboard, Enter on the focused button.
+    const attempt = [...steps];
+    [attempt[2], attempt[3]] = [attempt[3]!, attempt[2]!];
+    for (const step of attempt) {
+      const button = pool.getByRole('button', { name: `Legg til: ${step}` });
+
+      await button.focus();
+      await page.keyboard.press('Enter');
+      // Focus stays in the pool (or on the list when the pool is empty).
+      await expect(page.locator(':focus')).not.toHaveJSProperty(
+        'tagName',
+        'BODY',
+      );
+    }
+    await submit.focus();
+    await page.keyboard.press('Enter');
+    await expect(task.getByRole('status', { name: 'Resultat' })).toContainText(
+      'Ikke riktig ennå',
+    );
+    await expect(task.getByText('Feil plass', { exact: true })).toHaveCount(2);
+    await expect(task.getByText('Riktig plass', { exact: true })).toHaveCount(
+      8,
+    );
+
+    const axe = await new AxeBuilder({ page })
+      .include('[aria-label="Din rekkefølge"]')
+      .analyze();
+
+    expect(axe.violations).toEqual([]);
+
+    await task.getByRole('button', { name: 'Prøv igjen' }).click();
+    await expect(pool.getByRole('button')).toHaveCount(2);
+    await pool.getByRole('button', { name: 'Legg til: Krav' }).click();
+    await pool.getByRole('button', { name: 'Legg til: Modellering' }).click();
+    await task.getByRole('button', { name: 'Sjekk svaret' }).click();
+    await expect(task.getByRole('status', { name: 'Resultat' })).toContainText(
+      'Riktig',
+    );
+
+    // Task 7 is a different interaction: one option per answer, no repeats.
+    const match = page.getByRole('group', { name: /^Oppgave 7 · / });
+    const first = match.getByRole('combobox').first();
+    const second = match.getByRole('combobox').nth(1);
+
+    await expect(match).toBeVisible();
+    await first.selectOption({ index: 1 });
+    const chosen = await first.inputValue();
+
+    await expect(second.locator(`option[value="${chosen}"]`)).toBeDisabled();
+
+    const overflow = (await page.evaluate(
+      'document.documentElement.scrollWidth - document.documentElement.clientWidth',
+    )) as number;
+
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+}
+
+test('the end of a lesson names the next lesson and the link opens it', async ({
+  page,
+}) => {
+  await startOnProgrammeTwo(page);
+  await page.goto('/rpg/resource/s1-m01-o04');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+  const next = page.getByRole('region', { name: 'Slik går du videre' });
+
+  await expect(next).toContainText('4 av 12');
+  await next.getByRole('link', { name: 'Les og forutsi kode' }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Les og forutsi kode' }),
+  ).toBeVisible();
+  expect(page.url()).toMatch(/\/rpg\/resource\/s1-m01-o05$/);
 });

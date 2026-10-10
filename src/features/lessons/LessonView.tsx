@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
   createEvidenceAchievementPlanner,
@@ -163,6 +163,8 @@ function LessonSurface({
   const [position, setPosition] = useState<LessonPosition | null>(null);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const recoveryAttemptedRef = useRef(false);
+  const phaseHeadingRef = useRef<HTMLParagraphElement>(null);
+  const phaseMovePendingRef = useRef(false);
   const programmeId = scope.programmeId;
 
   // The lesson is published only once its content, the learner's evidence
@@ -429,6 +431,22 @@ function LessonSurface({
     [anchorPrefix, coordination.canWrite, savePosition],
   );
 
+  // `Neste etappe` / `Forrige etappe` open another stage of one long page:
+  // the learner is brought to that stage's heading, which also takes focus so
+  // assistive technology announces where they are. Only a learner-made move
+  // does this, never the first render or a resumed bookmark.
+  useEffect(() => {
+    if (!phaseMovePendingRef.current) {
+      return;
+    }
+
+    phaseMovePendingRef.current = false;
+    const heading = phaseHeadingRef.current;
+
+    heading?.focus({ preventScroll: true });
+    heading?.scrollIntoView?.({ behavior: 'auto', block: 'start' });
+  }, [phaseIndex]);
+
   if (load.status === 'loading') {
     return <p className="lesson-note">{copy.text.lessonLoading}</p>;
   }
@@ -479,6 +497,24 @@ function LessonSurface({
       .map((entry) => [entry.missionId, entry]),
   );
   const lastStepIndex = steps.length - 1;
+  // Where the learner is in the module and what comes next, from the content
+  // index only. It states a position, never a completion.
+  const modules = [...index.modules].sort((a, b) => a.order - b.order);
+  const moduleEntry = modules.find(
+    (candidate) => candidate.moduleId === readyBundle.moduleId,
+  );
+  const moduleMissions = moduleEntry?.missions ?? [];
+  const missionPosition = moduleMissions.findIndex(
+    (candidate) => candidate.missionId === mission.missionId,
+  );
+  const nextMission =
+    missionPosition < 0 ? undefined : moduleMissions[missionPosition + 1];
+  const nextModule =
+    moduleEntry === undefined
+      ? undefined
+      : modules[modules.indexOf(moduleEntry) + 1];
+  const nextModuleFirst = nextModule?.missions[0];
+  const atLessonEnd = phases.length === 0 || phaseIndex === phases.length - 1;
   const sequenced = mission.sequence !== undefined;
   const groups: LessonStep[][] = [];
 
@@ -560,7 +596,7 @@ function LessonSurface({
         {phases.length > 0 ? (
           <>
             <p>{formatCopy(copy, 'phaseIntro', { count: phases.length })}</p>
-            <p>
+            <p ref={phaseHeadingRef} tabIndex={-1}>
               <strong>
                 {formatCopy(copy, 'phaseHeading', {
                   n: phaseIndex + 1,
@@ -703,6 +739,7 @@ function LessonSurface({
                   const target = steps.find(
                     (step) => step.phaseIndex === phaseIndex - 1,
                   );
+                  phaseMovePendingRef.current = true;
                   setPhaseIndex(phaseIndex - 1);
                   if (target !== undefined) {
                     void savePosition(target.stepIndex);
@@ -720,6 +757,7 @@ function LessonSurface({
                   const target = steps.find(
                     (step) => step.phaseIndex === phaseIndex + 1,
                   );
+                  phaseMovePendingRef.current = true;
                   setPhaseIndex(phaseIndex + 1);
                   if (target !== undefined) {
                     void savePosition(target.stepIndex);
@@ -731,6 +769,53 @@ function LessonSurface({
               </button>
             ) : null}
           </div>
+        ) : null}
+        {atLessonEnd ? (
+          <section
+            aria-labelledby={`${anchorPrefix}-where-next`}
+            className={surfaces.recap}
+          >
+            <h2 id={`${anchorPrefix}-where-next`}>
+              {copy.text.whereNextHeading}
+            </h2>
+            <p>{formatCopy(copy, 'whereNextEnd', { title: mission.title })}</p>
+            {missionPosition < 0 ? null : (
+              <p>
+                {formatCopy(copy, 'whereNextPosition', {
+                  n: missionPosition + 1,
+                  count: moduleMissions.length,
+                  module: readyBundle.moduleTitle,
+                })}
+              </p>
+            )}
+            {nextMission === undefined ? (
+              <>
+                <p>{copy.text.whereNextLastInModule}</p>
+                {nextModule !== undefined && nextModuleFirst !== undefined ? (
+                  <p>
+                    {formatCopy(copy, 'whereNextNextModule', {
+                      module: nextModule.title,
+                    })}{' '}
+                    <Link to={lessonPath(nextModuleFirst.itemId)}>
+                      {nextModuleFirst.title}
+                    </Link>
+                  </p>
+                ) : (
+                  <p>{copy.text.whereNextNoMore}</p>
+                )}
+              </>
+            ) : (
+              <p>
+                {copy.text.whereNextNext}{' '}
+                <Link to={lessonPath(nextMission.itemId)}>
+                  {nextMission.title}
+                </Link>
+                {nextMission.optional ? ` ${copy.text.optionalSuffix}` : ''}
+              </p>
+            )}
+            <p>{copy.text.whereNextModuleRule}</p>
+            {footer === undefined ? null : <p>{copy.text.whereNextMark}</p>}
+          </section>
         ) : null}
         <p className="lesson-note">{copy.text.completionDisclaimer}</p>
       </article>

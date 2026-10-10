@@ -142,6 +142,18 @@ describe('LF-029: the end of a lesson says where the learner is and what is next
 
   it('at the last available lesson, says plainly that nothing more exists yet', async () => {
     const lesson = await openLesson('s1-m02-chk');
+
+    // The module check has three stages; the guidance belongs to the last.
+    expect(
+      within(lesson).queryByRole('region', { name: 'Slik går du videre' }),
+    ).toBeNull();
+    for (const stage of [2, 3]) {
+      fireEvent.click(
+        within(lesson).getByRole('button', { name: 'Neste etappe' }),
+      );
+      await within(lesson).findByText(new RegExp(`^Etappe ${stage} av 3`));
+    }
+
     const next = within(lesson).getByRole('region', {
       name: 'Slik går du videre',
     });

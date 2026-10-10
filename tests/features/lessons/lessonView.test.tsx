@@ -330,7 +330,9 @@ describe('resume and recovery (DC-06, invariant 10)', () => {
     expect(
       within(lesson).getByRole('heading', { name: /Fortsett der du slapp/ }),
     ).toBeInTheDocument();
-    expect(lesson).toHaveTextContent(/Du kan nå/);
+    // The lesson's summaries claim exposure and a goal, not a capability.
+    expect(lesson).toHaveTextContent(/Du har gått gjennom dette/);
+    expect(lesson.textContent).not.toMatch(/Du kan nå/);
   });
 
   it('finishes an interrupted attempt on load without creating another attempt', async () => {

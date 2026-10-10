@@ -117,3 +117,65 @@ export function answerToDraft(
 
   return structuredClone(answer) as AnswerDraft;
 }
+
+/**
+ * Which parts of a submitted ordering or matching answer are in their right
+ * place, by item. It reads only the answer and the exercise's own public
+ * content; it never decides correctness (the stored evaluation result does).
+ * Null for every other kind of exercise.
+ */
+export function reviewAnswer(
+  exercise: LessonExercise,
+  answer: ExerciseAnswer,
+): readonly boolean[] | null {
+  if (exercise.type !== 'sort') {
+    return null;
+  }
+
+  const draft = answerToDraft(exercise, answer);
+
+  if (exercise.kind === 'order') {
+    return (draft.positions as number[]).map(
+      (position, itemIndex) => position === itemIndex + 1,
+    );
+  }
+
+  if (exercise.kind === 'match' && exercise.evaluator.mode === 'match') {
+    const { pairs } = exercise.evaluator;
+
+    return (draft.matches as string[]).map(
+      (match, itemIndex) => match === pairs[itemIndex]?.[1],
+    );
+  }
+
+  return null;
+}
+
+/**
+ * The draft a retry starts from. For an ordering or matching task the places
+ * that were right stay and the others are cleared, so the learner corrects
+ * only what was wrong; every other exercise restores the whole answer.
+ */
+export function retryDraft(
+  exercise: LessonExercise,
+  answer: ExerciseAnswer,
+): AnswerDraft {
+  const draft = answerToDraft(exercise, answer);
+  const review = reviewAnswer(exercise, answer);
+
+  if (review === null || exercise.type !== 'sort') {
+    return draft;
+  }
+
+  return exercise.kind === 'order'
+    ? {
+        positions: (draft.positions as number[]).map((position, index) =>
+          review[index] ? position : 0,
+        ),
+      }
+    : {
+        matches: (draft.matches as string[]).map((match, index) =>
+          review[index] ? match : '',
+        ),
+      };
+}

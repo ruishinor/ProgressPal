@@ -65,7 +65,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     phaseMinutes: '(ca. {minutes} min). Her kan du ta pause.',
     nextPhase: 'Neste etappe',
     previousPhase: 'Forrige etappe',
-    recapCan: 'Du kan nå:',
+    recapCan: 'Du har gått gjennom dette. Målet er at du kan:',
     recapNext: 'Neste:',
     output: 'Utskrift:',
     errorOutput: 'Feilmelding:',
@@ -78,8 +78,9 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     traceLine: 'Linje',
     categoryLabel: 'Kategori',
     matchInstruction:
-      'Koble hvert punkt til riktig svar. Noen svar passer ikke til noen.',
-    orderInstruction: 'Sett i riktig rekkefølge.',
+      'Koble hvert utsagn til riktig svar. Hvert svar kan bare brukes én gang, og noen svar passer ikke til noe.',
+    orderInstruction:
+      'Velg ett steg om gangen, i den rekkefølgen de kommer. Du kan fjerne et steg og velge det på nytt.',
     positionLabel: 'Plass',
     chooseOption: 'Velg …',
     diagnoseIntro: 'Svar på tre ting:',
@@ -183,6 +184,32 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     blankLabel: 'Felt {n}',
     traceCellLabel: '{name} etter linje {line}',
     rowLabel: 'Rad {n}',
+    sortOrderLabel: 'Sett i rekkefølge',
+    sortMatchLabel: 'Koble',
+    orderListLabel: 'Din rekkefølge',
+    orderPoolLabel: 'Steg å plassere',
+    orderEmptySlot: 'Tom plass',
+    orderAdd: 'Legg til: {item}',
+    orderRemove: 'Fjern: {item}',
+    orderRemoveButton: 'Fjern',
+    orderPlaced: '{item} er satt på plass {n}.',
+    orderRemoved: '{item} er fjernet.',
+    orderRight: 'Riktig plass',
+    orderWrong: 'Feil plass',
+    matchRight: 'Riktig kobling',
+    matchWrong: 'Feil kobling',
+    whereNextHeading: 'Slik går du videre',
+    whereNextEnd: 'Du har kommet til slutten av «{title}».',
+    whereNextPosition: 'Dette er del {n} av {count} i modulen «{module}».',
+    whereNextNext: 'Neste del:',
+    whereNextLastInModule: 'Dette var siste del av modulen.',
+    whereNextNextModule: 'Neste modul er «{module}». Første del:',
+    whereNextNoMore:
+      'Dette er det siste innholdet som er tilgjengelig i programmet akkurat nå. Flere moduler er ikke tilgjengelige ennå.',
+    whereNextModuleRule:
+      'Campaign-kartet viser modulen som fullført først når alle obligatoriske deler er markert som fullført. Modulsjekken viser separat om du har vist at du mestrer ferdighetene.',
+    whereNextMark:
+      'Når du er ferdig, kan du markere denne delen som fullført i panelet under.',
   },
   /**
    * The authoring workspace's learner-facing wording rules, verbatim from its

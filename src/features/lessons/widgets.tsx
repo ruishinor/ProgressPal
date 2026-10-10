@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import type {
   LessonExercise,
@@ -14,10 +14,10 @@ import { useLessonSurfaces } from './presentation';
 /**
  * Answer widgets, one per authored response mode (DC-09 to DC-13). Every
  * control is a native, labelled form control: nothing is drag-only (sorting
- * and ordering use the authored keyboard alternative, numbered selects),
- * choices are shuffled at delivery and evaluated by option ID (DC-10), and
- * structured items keep partial progress while editing (DC-13). Widgets
- * never show answer keys, evaluator wording or hidden variants.
+ * and ordering are built from native selects and buttons), choices are
+ * shuffled at delivery and evaluated by option ID (DC-10), and structured
+ * items keep partial progress while editing (DC-13). Widgets never show
+ * answer keys, evaluator wording or hidden variants.
  */
 
 type WidgetProps<Type extends LessonExercise['type']> = {
@@ -28,6 +28,8 @@ type WidgetProps<Type extends LessonExercise['type']> = {
   readonly exercise: LessonExerciseOf<Type>;
   readonly idPrefix: string;
   readonly onChange: (draft: AnswerDraft) => void;
+  /** For a sort result: which items were in their right place, else null. */
+  readonly review?: readonly boolean[] | null;
   readonly seed: string;
 };
 
@@ -147,6 +149,7 @@ function SelectControl({
   disabled,
   id,
   label,
+  mark,
   onChange,
   options,
   placeholder,
@@ -155,8 +158,14 @@ function SelectControl({
   disabled: boolean;
   id: string;
   label: ReactNode;
+  /** The result of this row after a submission, outside the label. */
+  mark?: ReactNode;
   onChange: (value: string) => void;
-  options: ReadonlyArray<{ label: string; value: string }>;
+  options: ReadonlyArray<{
+    label: string;
+    value: string;
+    unavailable?: boolean;
+  }>;
   placeholder: string;
   value: string;
 }) {
@@ -172,11 +181,16 @@ function SelectControl({
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            disabled={option.unavailable}
+            key={option.value}
+            value={option.value}
+          >
             {option.label}
           </option>
         ))}
       </select>
+      {mark ?? null}
     </div>
   );
 }
@@ -189,6 +203,7 @@ function SortWidget({
   exercise,
   idPrefix,
   onChange,
+  review,
   seed,
 }: WidgetProps<'sort'>) {
   const order = shuffledOrder(exercise.items.length, `${seed}|items`);
@@ -227,36 +242,18 @@ function SortWidget({
   }
 
   if (exercise.kind === 'order') {
-    const positions = draft.positions as number[];
-
     return (
-      <div className="lesson-fieldset">
-        <p>{copy.text.orderInstruction}</p>
-        {order.map((itemIndex) => (
-          <SelectControl
-            disabled={disabled}
-            id={`${idPrefix}-item-${itemIndex}`}
-            key={itemIndex}
-            label={
-              <InlineText
-                context={context}
-                text={exercise.items[itemIndex]![0]!}
-              />
-            }
-            onChange={(value) => {
-              const next = [...positions];
-              next[itemIndex] = Number(value) || 0;
-              onChange({ positions: next });
-            }}
-            options={exercise.items.map((_, position) => ({
-              label: `${copy.text.positionLabel} ${position + 1}`,
-              value: String(position + 1),
-            }))}
-            placeholder={copy.text.chooseOption}
-            value={positions[itemIndex] ? String(positions[itemIndex]) : ''}
-          />
-        ))}
-      </div>
+      <OrderWidget
+        context={context}
+        copy={copy}
+        disabled={disabled}
+        draft={draft}
+        exercise={exercise}
+        idPrefix={idPrefix}
+        onChange={onChange}
+        review={review}
+        seed={seed}
+      />
     );
   }
 
@@ -276,6 +273,15 @@ function SortWidget({
           id={`${idPrefix}-item-${itemIndex}`}
           key={itemIndex}
           label={<InlineText context={context} text={item[0]!} />}
+          mark={
+            review ? (
+              <strong>
+                {review[itemIndex]
+                  ? copy.text.matchRight
+                  : copy.text.matchWrong}
+              </strong>
+            ) : null
+          }
           onChange={(value) => {
             const next = [...matches];
             next[itemIndex] = value;
@@ -284,11 +290,167 @@ function SortWidget({
           options={rightOrder.map((index) => ({
             label: rights[index]!,
             value: rights[index]!,
+            // Each answer is used once: one already chosen in another row is
+            // not offered here, so nothing has to be remembered.
+            unavailable: matches.some(
+              (chosen, other) =>
+                other !== itemIndex && chosen === rights[index],
+            ),
           }))}
           placeholder={copy.text.chooseOption}
           value={matches[itemIndex] ?? ''}
         />
       ))}
+    </div>
+  );
+}
+
+/**
+ * Ordering by choosing one step at a time: the learner builds the sequence
+ * from the first place onwards instead of keeping ten selections in mind.
+ * Plain buttons and a list, so it works by keyboard and touch; a placed step
+ * can be removed again. After a wrong submission each place says whether it
+ * was right, and a retry keeps the right places.
+ */
+function OrderWidget({
+  context,
+  copy,
+  disabled,
+  draft,
+  exercise,
+  onChange,
+  review,
+  seed,
+}: WidgetProps<'sort'>) {
+  const surfaces = useLessonSurfaces();
+  const positions = draft.positions as number[];
+  const poolRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  // The step whose pool button should take focus after a change, or -1 for
+  // the first remaining one: focus must not fall to the page when a button
+  // leaves the pool.
+  const focusItem = useRef<number | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  const total = exercise.items.length;
+  const itemText = (index: number) => exercise.items[index]![0]!;
+  // Spoken names carry no markup characters: `cd kode` is read as cd kode.
+  const spoken = (index: number) => itemText(index).replace(/[`*]/g, '');
+  const slotItems = Array.from({ length: total }, (_, slot) =>
+    positions.findIndex((position) => position === slot + 1),
+  );
+  const pool = shuffledOrder(total, `${seed}|items`).filter(
+    (index) => !positions[index],
+  );
+
+  useEffect(() => {
+    if (focusItem.current === null) {
+      return;
+    }
+
+    const wanted =
+      focusItem.current >= 0
+        ? poolRef.current?.querySelector<HTMLButtonElement>(
+            `[data-item="${focusItem.current}"]`,
+          )
+        : null;
+
+    focusItem.current = null;
+    (
+      wanted ??
+      poolRef.current?.querySelector<HTMLButtonElement>('button') ??
+      listRef.current
+    )?.focus();
+  }, [positions]);
+
+  function place(index: number) {
+    const slot = slotItems.findIndex((item) => item === -1) + 1;
+
+    if (slot === 0) {
+      return;
+    }
+
+    const next = [...positions];
+
+    next[index] = slot;
+    focusItem.current = -1;
+    setAnnouncement(
+      formatCopy(copy, 'orderPlaced', { item: spoken(index), n: slot }),
+    );
+    onChange({ positions: next });
+  }
+
+  function remove(index: number) {
+    const next = [...positions];
+
+    next[index] = 0;
+    focusItem.current = index;
+    setAnnouncement(formatCopy(copy, 'orderRemoved', { item: spoken(index) }));
+    onChange({ positions: next });
+  }
+
+  return (
+    <div className="lesson-fieldset">
+      <p>{copy.text.orderInstruction}</p>
+      <ol
+        aria-label={copy.text.orderListLabel}
+        className="lesson-order"
+        ref={listRef}
+        tabIndex={-1}
+      >
+        {slotItems.map((itemIndex, slot) => (
+          <li key={slot}>
+            {itemIndex === -1 ? (
+              <span>{copy.text.orderEmptySlot}</span>
+            ) : (
+              <>
+                <InlineText context={context} text={itemText(itemIndex)} />{' '}
+                {review ? (
+                  <strong>
+                    {review[itemIndex]
+                      ? copy.text.orderRight
+                      : copy.text.orderWrong}
+                  </strong>
+                ) : null}
+                {disabled ? null : (
+                  <button
+                    aria-label={formatCopy(copy, 'orderRemove', {
+                      item: spoken(itemIndex),
+                    })}
+                    className={surfaces.quiet}
+                    onClick={() => remove(itemIndex)}
+                    type="button"
+                  >
+                    {copy.text.orderRemoveButton}
+                  </button>
+                )}
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+      <div
+        aria-label={copy.text.orderPoolLabel}
+        className="action-row"
+        ref={poolRef}
+        role="group"
+      >
+        {pool.map((index) => (
+          <button
+            aria-label={formatCopy(copy, 'orderAdd', { item: spoken(index) })}
+            className={surfaces.secondary}
+            data-item={index}
+            disabled={disabled}
+            key={index}
+            onClick={() => place(index)}
+            type="button"
+          >
+            <InlineText context={context} text={itemText(index)} />
+          </button>
+        ))}
+      </div>
+      <p className="sr-only" role="status">
+        {announcement}
+      </p>
     </div>
   );
 }
