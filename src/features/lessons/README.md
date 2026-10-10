@@ -13,7 +13,10 @@ Scope:
   content's language metadata on the lesson and the technical language on
   code, commands and tool output.
 - Offer an answer widget per authored response mode, hints one at a time,
-  and feedback only after the terminal evaluation result is durable.
+  and feedback only after the terminal evaluation result is durable. A
+  card shows only evidence bound to the exercise's current content hash
+  (`isCurrentEvidence`); answers to an earlier version stay stored as
+  history.
 - On an ordering task a programme opens to it (`progressCheckSubjectIds` on
   its content provider; Programvareutvikling: Task 6 only), offer a limited
   "check so far" (`progressCheck.ts`): how many placed steps stand right,
