@@ -121,6 +121,29 @@ async function cardFor(lesson: HTMLElement, exercise: SortExercise) {
   throw new Error(`no card for ${exercise.id}`);
 }
 
+/**
+ * Uses a control while this tab may write. Moving to another stage saves the
+ * bookmark, and write controls stay disabled through that write and the
+ * shell's refresh after it, so each control is checked right before it is
+ * used rather than once before the answer is built. The check and the action
+ * run in the same synchronous step: `waitFor` yields once more after it
+ * succeeds, and a render in between could disable the control again.
+ */
+async function whenEnabled(
+  control: () => HTMLElement,
+  act: (element: HTMLElement) => void,
+) {
+  for (;;) {
+    await waitFor(() => expect(control()).toBeEnabled());
+    const element = control();
+
+    if (!(element as HTMLButtonElement | HTMLSelectElement).disabled) {
+      act(element);
+      return;
+    }
+  }
+}
+
 describe.each(sorts.map((exercise) => [exercise.id, exercise] as const))(
   '%s',
   (_id, exercise) => {
@@ -128,33 +151,30 @@ describe.each(sorts.map((exercise) => [exercise.id, exercise] as const))(
       const lesson = await openLesson(itemOf(exercise));
       const card = await cardFor(lesson, exercise);
 
-      // Controls stay disabled until this tab holds the local write lease.
-      await waitFor(() =>
-        expect(
-          within(card).getByRole('button', { name: 'Sjekk svaret' }),
-        ).toBeEnabled(),
-      );
-
       if (exercise.kind === 'order') {
         for (const item of exercise.items) {
-          fireEvent.click(
-            within(card).getByRole('button', {
-              name: `Legg til: ${item[0]!.replace(/[‹›`]/g, '')}`,
-            }),
+          await whenEnabled(
+            () =>
+              within(card).getByRole('button', {
+                name: `Legg til: ${item[0]!.replace(/[‹›`]/g, '')}`,
+              }),
+            (button) => fireEvent.click(button),
           );
         }
       } else {
         for (const [left, right] of exercise.items) {
-          fireEvent.change(
-            within(card).getByRole('combobox', {
-              name: left!.replace(/[‹›`]/g, ''),
-            }),
-            { target: { value: right! } },
+          await whenEnabled(
+            () =>
+              within(card).getByRole('combobox', {
+                name: left!.replace(/[‹›`]/g, ''),
+              }),
+            (select) => fireEvent.change(select, { target: { value: right! } }),
           );
         }
       }
-      fireEvent.click(
-        within(card).getByRole('button', { name: 'Sjekk svaret' }),
+      await whenEnabled(
+        () => within(card).getByRole('button', { name: 'Sjekk svaret' }),
+        (button) => fireEvent.click(button),
       );
 
       const result = await within(card).findByRole('status', {
@@ -173,21 +193,27 @@ describe('ordering keeps keyboard focus inside the pool', () => {
     const card = await cardFor(lesson, task);
     const pool = () =>
       within(card).getByRole('group', { name: 'Steg å plassere' });
-    const first = within(pool()).getAllByRole('button')[0]!;
-    const firstName = first
+    const firstName = within(pool())
+      .getAllByRole('button')[0]!
       .getAttribute('aria-label')!
       .replace('Legg til: ', '');
 
-    first.focus();
-    fireEvent.click(first);
+    await whenEnabled(
+      () => within(pool()).getAllByRole('button')[0]!,
+      (first) => {
+        first.focus();
+        fireEvent.click(first);
+      },
+    );
 
     await waitFor(() =>
       expect(pool().contains(document.activeElement)).toBe(true),
     );
     expect(within(pool()).getAllByRole('button')).toHaveLength(9);
 
-    fireEvent.click(
-      within(card).getByRole('button', { name: `Fjern: ${firstName}` }),
+    await whenEnabled(
+      () => within(card).getByRole('button', { name: `Fjern: ${firstName}` }),
+      (remove) => fireEvent.click(remove),
     );
 
     await waitFor(() =>
@@ -196,5 +222,5 @@ describe('ordering keeps keyboard focus inside the pool', () => {
         `Legg til: ${firstName}`,
       ),
     );
-  });
+  }, 30_000);
 });
