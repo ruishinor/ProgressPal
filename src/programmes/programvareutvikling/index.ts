@@ -104,6 +104,14 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
       // tasks carry about two thirds of a normal run, larger bonuses go to
       // independent recall and a cleared module checkpoint, and repeats,
       // reloads and hints add nothing.
+      //
+      // Effort rubric (owner decision 2026-10-10, simulated in
+      // tests/programmes/xpCalibration.test.ts): the family values above are
+      // the standard tier. A choice task (one click among options) earns 1
+      // less; writing or changing a program, diagnosing an error (type, line
+      // and cause), tracing values line by line and designing tests earn 4
+      // more, as does Task 6 (ordering the ten steps of the development
+      // process). Everything else is standard.
       lessonXp: {
         solved: {
           formative: 5,
@@ -117,6 +125,14 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
         lessonCompleted: 15,
         checkpointCleared: 60,
         moduleCompleted: 30,
+        effort: {
+          introductory: { adjust: -1, responseModes: ['mcq'] },
+          complex: {
+            adjust: 4,
+            responseModes: ['program', 'diagnose', 'trace', 'testtable'],
+            subjectIds: ['s1-m01-p05-e06'],
+          },
+        },
         reasons: {
           solved: 'Løste en oppgave i «{lesson}»',
           authoredMilestone: 'Nådde et delmål i «{lesson}»',
@@ -126,6 +142,11 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
           moduleCompleted: 'Fullførte modulen «{module}»',
         },
       },
+      // Level curve (owner decision 2026-10-10): 40 XP for level 2, then 15
+      // more for each next level (40, 55, 70, ...). About five solved tasks
+      // reach level 2, eight more level 3 and eleven more level 4; later
+      // levels take gradually longer. CS50x keeps the shared curve.
+      levelCurve: { firstLevelXp: 40, levelStepXp: 15 },
       workflow: { sequenceItemTypes: [], correctionItemTypes: [] },
       achievements: programvareutviklingAchievements,
     },

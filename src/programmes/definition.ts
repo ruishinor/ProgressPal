@@ -5,6 +5,7 @@ import {
   AchievementDefinitionSchema,
   CatalogueRulesSchema,
   LessonXpPolicySchema,
+  LevelCurveSchema,
   SubmissionWorkflowSchema,
   XpPolicySchema,
   findCatalogueRuleIssues,
@@ -146,6 +147,7 @@ const definitionSchema = z
         catalogueRules: CatalogueRulesSchema,
         xp: XpPolicySchema,
         lessonXp: LessonXpPolicySchema.optional(),
+        levelCurve: LevelCurveSchema.optional(),
         workflow: SubmissionWorkflowSchema,
         achievements: z.array(AchievementDefinitionSchema).min(1),
       })

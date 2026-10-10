@@ -8,6 +8,7 @@ import {
   unitCompletionSourceType,
   type CourseItem,
   type CourseUnit,
+  type LevelCurve,
   type ProgressEntry,
   type SubmissionWorkflow,
   type XpPolicy,
@@ -25,9 +26,20 @@ export type XpSummary = {
 
 /**
  * Calculates level and progress thresholds based on total XP.
- * level = floor(sqrt(totalXp / 100)) + 1
+ * Shared curve: level = floor(sqrt(totalXp / 100)) + 1, that is 100 XP for
+ * level 2 and 200 more for each next level. A programme's own curve
+ * (`ProgrammePolicy.levelCurve`) needs `firstLevelXp` for level 2 and
+ * `levelStepXp` more for each next level; a programme without one, such as
+ * CS50x, keeps the shared curve exactly.
  */
-export function calculateXpSummary(totalXp: number): XpSummary {
+export function calculateXpSummary(
+  totalXp: number,
+  curve?: LevelCurve,
+): XpSummary {
+  if (curve !== undefined) {
+    return calculateCurveSummary(totalXp, curve);
+  }
+
   const level = Math.floor(Math.sqrt(totalXp / 100)) + 1;
   const nextLevelXp = 100 * level * level;
   const currentLevelFloorXp = 100 * (level - 1) * (level - 1);
@@ -37,6 +49,29 @@ export function calculateXpSummary(totalXp: number): XpSummary {
     totalXp,
     level,
     xpToNextLevel,
+    currentLevelFloorXp,
+    nextLevelXp,
+  };
+}
+
+/** Integer walk up a programme's curve: exact at every threshold. */
+function calculateCurveSummary(totalXp: number, curve: LevelCurve): XpSummary {
+  let level = 1;
+  let currentLevelFloorXp = 0;
+  let needed = curve.firstLevelXp;
+
+  while (totalXp >= currentLevelFloorXp + needed) {
+    currentLevelFloorXp += needed;
+    level += 1;
+    needed += curve.levelStepXp;
+  }
+
+  const nextLevelXp = currentLevelFloorXp + needed;
+
+  return {
+    totalXp,
+    level,
+    xpToNextLevel: nextLevelXp - totalXp,
     currentLevelFloorXp,
     nextLevelXp,
   };

@@ -41,6 +41,7 @@ import {
 import type {
   CourseItem,
   CourseUnit,
+  LevelCurve,
   ProgrammeScope,
   ProgressEntry,
 } from '@/lib/domain';
@@ -499,8 +500,8 @@ function buildRecentActivityFromReadData(
   return entries.slice(0, rpgHubRecentActivityLimit);
 }
 
-function buildXpPresentation(totalXp: number) {
-  const xpSummary = calculateXpSummary(totalXp);
+function buildXpPresentation(totalXp: number, levelCurve?: LevelCurve) {
+  const xpSummary = calculateXpSummary(totalXp, levelCurve);
 
   return {
     ...getLevelProgressDisplay(xpSummary),
@@ -708,7 +709,7 @@ export function buildRpgHubSummary(
     courseMapSummary.modules,
     snapshot,
   );
-  // E-SCHEMA-1A: progression is the programme's own ledger.
+  // E-SCHEMA-1A: progression is the programme's own ledger and curve.
   const xpSummary = calculateXpSummary(
     snapshot.xpTransactions
       .filter(
@@ -717,6 +718,7 @@ export function buildRpgHubSummary(
       .reduce((total, transaction) => {
         return total + transaction.xp;
       }, 0),
+    programme.policy.levelCurve,
   );
   const totalMinutes = snapshot.studySessions.reduce((total, session) => {
     return total + session.durationMinutes;
@@ -775,7 +777,7 @@ function buildRpgHudSummaryFromReadData(
     identity: buildIdentity(getRankLabel(courseMapSummary), programme),
     learnerAvatarConfig: data.learnerProfile?.avatarConfig ?? null,
     learnerName: data.learnerProfile?.displayName ?? 'Learner',
-    xpSummary: buildXpPresentation(data.totalXp),
+    xpSummary: buildXpPresentation(data.totalXp, programme.policy.levelCurve),
   };
 }
 
@@ -814,7 +816,7 @@ function buildRpgHubSummaryFromReadData(
     },
     weeklyProgress: buildWeeklyProgressFromReadData(data, nowIso),
     weekFour: courseMapSummary.weekFour,
-    xpSummary: buildXpPresentation(data.totalXp),
+    xpSummary: buildXpPresentation(data.totalXp, programme.policy.levelCurve),
   };
 }
 
@@ -836,7 +838,10 @@ function buildRpgHeroProfileSummaryFromReadData(
   const earnedBadgeCount = achievementDefinitions.filter((definition) =>
     earnedAchievementIds.has(definition.id),
   ).length;
-  const xpSummary = buildXpPresentation(data.totalXp);
+  const xpSummary = buildXpPresentation(
+    data.totalXp,
+    programme.policy.levelCurve,
+  );
 
   return {
     badges: {

@@ -773,9 +773,10 @@ export function AppStateProvider({
       mutation: () => Promise<Result>,
       options: RefreshOptions = {},
     ) => {
-      // The definitions the caller's mutation evaluated: the scope published
-      // with the render that handed the caller this function.
+      // The definitions and level curve the caller's mutation used: the
+      // scope published with the render that handed the caller this function.
       const achievementDefinitions = programmeScope?.policy.achievements ?? [];
+      const levelCurve = programmeScope?.policy.levelCurve;
       localMutationInProgressRef.current += 1;
 
       try {
@@ -789,7 +790,9 @@ export function AppStateProvider({
           providerActiveRef.current &&
           isRewardMutationResult(result)
         ) {
-          announceRewards(deriveRewardEvents(result, achievementDefinitions));
+          announceRewards(
+            deriveRewardEvents(result, achievementDefinitions, levelCurve),
+          );
         }
 
         await requestRefresh({

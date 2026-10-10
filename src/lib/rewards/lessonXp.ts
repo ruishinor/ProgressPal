@@ -20,7 +20,9 @@ import type { PotentialXpAward } from '@/lib/xp/engine';
  *   award. Reading, opening, navigating, revealing a hint, a wrong answer,
  *   `not_evaluable`, `evaluator_error` and `recorded` award nothing, and
  *   nothing is ever taken away.
- * - A solved task earns its ordinary XP once, with or without hints.
+ * - A solved task earns its ordinary XP once, with or without hints. Its
+ *   amount is its family's value, adjusted by the programme's effort rubric
+ *   when it has one (introductory, standard or complex; never below 1).
  * - Larger bonuses are kept for independent performance: an unsupported
  *   first answer to a retrieval task, and a cleared module checkpoint.
  * - A lesson completes when every required practice task in it is solved; a
@@ -53,6 +55,49 @@ function family(meta: ContentExerciseMeta): keyof LessonXpPolicy['solved'] {
   if (meta.role === 'retrieval') return 'retrieval';
   if (meta.role === 'lab' || meta.role === 'quest') return 'practical';
   return 'formative';
+}
+
+export type LessonEffortTier = 'introductory' | 'standard' | 'complex';
+
+/**
+ * A task's effort tier under the programme's rubric: a named task first,
+ * then its authored response mode. Without a rubric every task is standard.
+ */
+export function lessonEffortTier(
+  policy: LessonXpPolicy,
+  meta: Pick<ContentExerciseMeta, 'subjectId' | 'responseMode'>,
+): LessonEffortTier {
+  const effort = policy.effort;
+
+  if (effort === undefined) {
+    return 'standard';
+  }
+
+  if (
+    effort.complex.subjectIds.includes(meta.subjectId) ||
+    effort.complex.responseModes.includes(meta.responseMode)
+  ) {
+    return 'complex';
+  }
+
+  return effort.introductory.responseModes.includes(meta.responseMode)
+    ? 'introductory'
+    : 'standard';
+}
+
+/** The XP a solved task earns: its family's value, adjusted by its tier. */
+export function solvedTaskXp(
+  policy: LessonXpPolicy,
+  meta: ContentExerciseMeta,
+): number {
+  const base = policy.solved[family(meta)];
+  const tier = lessonEffortTier(policy, meta);
+  const adjust =
+    tier === 'standard' || policy.effort === undefined
+      ? 0
+      : policy.effort[tier].adjust;
+
+  return Math.max(1, base + adjust);
 }
 
 /** Subjects with a `correct` result under their current content hash. */
@@ -113,7 +158,7 @@ export function planLessonXpAwards(
   awards.push({
     sourceType: 'exercise_solved',
     sourceId: meta.subjectId,
-    xp: policy.solved[family(meta)],
+    xp: solvedTaskXp(policy, meta),
     reason: fill(policy.reasons.solved, values),
   });
 

@@ -9,9 +9,12 @@ export {
 export { RewardNotificationProvider } from '@/lib/rewards/RewardNotificationProvider';
 export {
   createLessonAwardPlanner,
+  lessonEffortTier,
   planLessonXpAwards,
+  solvedTaskXp,
   type LessonAwardContext,
   type LessonAwardPlannerInput,
+  type LessonEffortTier,
 } from '@/lib/rewards/lessonXp';
 export {
   deriveRewardEvents,

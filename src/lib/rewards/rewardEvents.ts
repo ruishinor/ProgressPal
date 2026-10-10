@@ -1,4 +1,8 @@
-import type { AchievementDefinition, AchievementUnlock } from '@/lib/domain';
+import type {
+  AchievementDefinition,
+  AchievementUnlock,
+  LevelCurve,
+} from '@/lib/domain';
 import { calculateXpSummary, type XpSummary } from '@/lib/xp/engine';
 
 /**
@@ -51,13 +55,15 @@ export function isRewardMutationResult(
  * unlocked, in the order the mutation reports them. The previous level comes
  * from the same transaction's total minus the XP awarded in it, so persisted
  * state alone never yields an event. A multi-level jump is one event for the
- * level reached.
+ * level reached. Both levels are read on the programme's own curve, the one
+ * the mutation's summary was computed with.
  */
 export function deriveRewardEvents(
   result: RewardMutationResult,
   achievementDefinitions: ReadonlyArray<
     Pick<AchievementDefinition, 'id' | 'title'>
   >,
+  levelCurve?: LevelCurve,
 ): RewardEvent[] {
   const events: RewardEvent[] = [];
   const awardedXp = result.awardedTransactions.reduce(
@@ -66,6 +72,7 @@ export function deriveRewardEvents(
   );
   const previousLevel = calculateXpSummary(
     result.xpSummary.totalXp - awardedXp,
+    levelCurve,
   ).level;
 
   if (awardedXp > 0 && result.xpSummary.level > previousLevel) {

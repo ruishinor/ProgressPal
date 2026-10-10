@@ -17,6 +17,7 @@ import type {
   ExerciseAttemptRecord,
   LearnerEvidence,
   LessonExercise,
+  LevelCurve,
   XpTransaction,
 } from '@/lib/domain';
 import type { XpSummary } from '@/lib/xp/engine';
@@ -74,6 +75,8 @@ export type SubmissionContext = SubmissionBinding & {
   readonly awardXp?: EvidenceAwardPlanner;
   /** Evidence-backed achievements, committed with the terminal result. */
   readonly awardAchievements?: EvidenceAchievementPlanner;
+  /** The programme's level curve for the reward summary. */
+  readonly levelCurve?: LevelCurve;
 };
 
 export type SubmissionInput = {
@@ -229,6 +232,7 @@ export async function submitAnswer(
         now: context.now,
         awardXp: context.awardXp,
         awardAchievements: context.awardAchievements,
+        levelCurve: context.levelCurve,
       },
     );
 
@@ -292,6 +296,8 @@ export async function recoverUnresolvedAttempts(options: {
   readonly awardXp?: EvidenceAwardPlanner;
   /** Evidence-backed achievements, committed with each recovered result. */
   readonly awardAchievements?: EvidenceAchievementPlanner;
+  /** The programme's level curve for each recovered result's summary. */
+  readonly levelCurve?: LevelCurve;
 }): Promise<RecoveryOutcome[]> {
   const bySubject = new Map(
     options.exercises.map((entry) => [subjectIdOf(entry.exercise), entry]),
@@ -340,6 +346,7 @@ export async function recoverUnresolvedAttempts(options: {
       now: options.now,
       awardXp: options.awardXp,
       awardAchievements: options.awardAchievements,
+      levelCurve: options.levelCurve,
     },
   );
 

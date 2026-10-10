@@ -6,6 +6,7 @@ import type {
   LearnerEvidence,
   LessonExerciseEntry,
   LessonUiCopy,
+  LevelCurve,
   SupportEventRecord,
 } from '@/lib/domain';
 import {
@@ -68,6 +69,8 @@ type ExerciseCardProps = {
   readonly evidence: readonly LearnerEvidence[];
   /** Whether the content carries the owner-approved gate retry rule (K-3). */
   readonly gateRetryRule: boolean;
+  /** The programme's level curve (`ProgrammePolicy.levelCurve`). */
+  readonly levelCurve: LevelCurve | undefined;
   readonly number: number;
   readonly onReopenTeaching: (() => Promise<void>) | null;
   readonly onSubmitted: () => Promise<void>;
@@ -100,6 +103,7 @@ export function ExerciseCard({
   entry,
   evidence,
   gateRetryRule,
+  levelCurve,
   number,
   onReopenTeaching,
   onSubmitted,
@@ -261,6 +265,7 @@ export function ExerciseCard({
             runtime,
             awardXp,
             awardAchievements,
+            ...(levelCurve === undefined ? {} : { levelCurve }),
           },
           { attemptId, resultId: `result-${attemptId}`, answer },
         ),

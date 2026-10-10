@@ -16,6 +16,7 @@ import {
   type ExerciseResponseMode,
   type LearnerEvidence,
   type LessonPosition,
+  type LevelCurve,
   type SupportEventRecord,
   type SupportKind,
   type XpTransaction,
@@ -158,6 +159,8 @@ export class AchievementAwardPlanningError extends Error {
 type ResultWriteOptions = BaseDatabaseOptions & {
   awardXp?: EvidenceAwardPlanner;
   awardAchievements?: EvidenceAchievementPlanner;
+  /** The programme's level curve for the returned summary. */
+  levelCurve?: LevelCurve;
 };
 
 export type ResultWriteResult = EvidenceWriteResult<EvaluationResultRecord> & {
@@ -477,6 +480,7 @@ async function insertResult(
   options: {
     awardXp?: EvidenceAwardPlanner;
     awardAchievements?: EvidenceAchievementPlanner;
+    levelCurve?: LevelCurve;
     now: DatabaseClock;
   } = {
     now: defaultClock,
@@ -600,7 +604,11 @@ async function insertResult(
           options.awardXp === undefined &&
           options.awardAchievements === undefined
             ? null
-            : await calculateStoredXpSummary(database, attempt.programmeId),
+            : await calculateStoredXpSummary(
+                database,
+                attempt.programmeId,
+                options.levelCurve,
+              ),
       };
     },
   );
@@ -646,6 +654,7 @@ export async function recordEvaluationResult(
     const written = await insertResult(database, input, now(), {
       awardXp: options.awardXp,
       awardAchievements: options.awardAchievements,
+      levelCurve: options.levelCurve,
       now,
     });
     scope.changed ||= written.created;
@@ -734,6 +743,7 @@ export async function submitAttemptAndRecordResult(
       {
         awardXp: options.awardXp,
         awardAchievements: options.awardAchievements,
+        levelCurve: options.levelCurve,
         now,
       },
     );
@@ -822,6 +832,7 @@ export async function recordResultsForUnresolvedAttempts(
           {
             awardXp: options.awardXp,
             awardAchievements: options.awardAchievements,
+            levelCurve: options.levelCurve,
             now,
           },
         );

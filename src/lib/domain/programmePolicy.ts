@@ -15,6 +15,7 @@ import type {
 // Importing @/lib/validation also applies its jitless Zod configuration before
 // the schemas below are created (app CSP: no dynamic code).
 import { getDuplicateValues } from '@/lib/validation';
+import { exerciseResponseModeValues } from '@/lib/domain/learnerEvidence';
 
 /**
  * Programme policy contracts (Epic C / C3). These are neutral shapes only: the
@@ -212,6 +213,60 @@ export const XpPolicySchema = z
 
 export type XpPolicy = z.infer<typeof XpPolicySchema>;
 
+const responseModeListSchema = z.array(z.enum(exerciseResponseModeValues));
+
+/**
+ * An auditable effort rubric for solved-task XP (owner decision 2026-10-10).
+ * A task's tier comes from its authored response mode; a short explicit
+ * list of subject IDs places named tasks in the complex tier whatever their
+ * mode. The tier adjusts the task family's standard `solved` value, never
+ * below 1 XP. Without a rubric every task of a family earns the same.
+ */
+export const LessonXpEffortSchema = z
+  .object({
+    introductory: z
+      .object({
+        adjust: z.number().int().max(0),
+        responseModes: responseModeListSchema,
+      })
+      .strict(),
+    complex: z
+      .object({
+        adjust: z.number().int().min(0),
+        responseModes: responseModeListSchema,
+        subjectIds: z.array(entityIdSchema),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((effort, ctx) => {
+    for (const mode of effort.introductory.responseModes) {
+      if (effort.complex.responseModes.includes(mode)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Response mode "${mode}" cannot be both introductory and complex.`,
+        });
+      }
+    }
+  });
+
+export type LessonXpEffort = z.infer<typeof LessonXpEffortSchema>;
+
+/**
+ * A programme's level curve (owner decision 2026-10-10): `firstLevelXp` for
+ * level 1 to 2, and each next level needs `levelStepXp` more than the one
+ * before. A programme without one keeps the shared curve, which is the same
+ * shape with 100 and 200 (level = floor(sqrt(total / 100)) + 1).
+ */
+export const LevelCurveSchema = z
+  .object({
+    firstLevelXp: xpAmountSchema,
+    levelStepXp: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type LevelCurve = z.infer<typeof LevelCurveSchema>;
+
 /**
  * XP for authored lessons (owner decision 2026-10-03; E-SCHEMA-1A), owned by
  * the programme that delivers them. Only correct work earns: a solved task
@@ -235,6 +290,7 @@ export const LessonXpPolicySchema = z
     lessonCompleted: xpAmountSchema,
     checkpointCleared: xpAmountSchema,
     moduleCompleted: xpAmountSchema,
+    effort: LessonXpEffortSchema.optional(),
     reasons: z
       .object({
         solved: reasonSchema,
@@ -367,6 +423,8 @@ export type ProgrammePolicy = {
   readonly xp: XpPolicy;
   /** XP for authored lessons, when the programme delivers them. */
   readonly lessonXp?: LessonXpPolicy;
+  /** The programme's own level curve; absent means the shared curve. */
+  readonly levelCurve?: LevelCurve;
   readonly workflow: SubmissionWorkflow;
   /**
    * The composed, ordered achievement catalogue: the programme's own

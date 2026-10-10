@@ -374,6 +374,9 @@ function LessonSurface({
         runtime,
         awardXp,
         awardAchievements,
+        ...(scope.policy.levelCurve === undefined
+          ? {}
+          : { levelCurve: scope.policy.levelCurve }),
       }),
     ).catch(() => undefined);
   }, [
@@ -386,6 +389,7 @@ function LessonSurface({
     programmeId,
     runtime,
     runtimeStatus,
+    scope.policy.levelCurve,
     write,
   ]);
 
@@ -686,6 +690,7 @@ function LessonSurface({
                             (row) => row.subjectId === entry.meta.subjectId,
                           )}
                           gateRetryRule={index.gateRetryRule !== null}
+                          levelCurve={scope.policy.levelCurve}
                           number={step.exerciseNumber!}
                           onReopenTeaching={
                             teaching === undefined || teaching.itemId === itemId

@@ -35,6 +35,7 @@ import {
   type LearnerEvidence,
   type LearnerProfile,
   type LessonPosition,
+  type LevelCurve,
   type MediaProgressEvent,
   type MediaStopReason,
   type ProgrammeEnrolment,
@@ -484,6 +485,8 @@ type ScopedProgrammeOptions = ProgrammePolicyOptions & CatalogueScopeOptions;
  */
 export type ProgrammeXpOptions = BaseDatabaseOptions & {
   programmeId: string;
+  /** The programme's level curve (`ProgrammePolicy.levelCurve`). */
+  levelCurve?: LevelCurve;
 };
 
 /**
@@ -3246,11 +3249,13 @@ export async function listXpTransactions(
 export async function calculateStoredXpSummary(
   database: ProgressPalDatabase,
   programmeId: string,
+  levelCurve?: LevelCurve,
 ) {
   const transactions = await readProgrammeXp(database, programmeId);
 
   return calculateXpSummary(
     transactions.reduce((total, transaction) => total + transaction.xp, 0),
+    levelCurve,
   );
 }
 
@@ -3260,7 +3265,7 @@ export async function getXpSummary(
 ): Promise<XpSummary> {
   const programmeId = requireProgrammeId(options?.programmeId);
   const database = await ensureOpen(resolveDatabase(options.db));
-  return calculateStoredXpSummary(database, programmeId);
+  return calculateStoredXpSummary(database, programmeId, options.levelCurve);
 }
 
 export type AchievementView = {
@@ -3397,7 +3402,7 @@ export async function readAchievementsSurfaceData(
 
       return {
         view: buildAchievementsView(unlocks, achievementDefinitions),
-        xpSummary: calculateXpSummary(totalXp),
+        xpSummary: calculateXpSummary(totalXp, options.policy.levelCurve),
       };
     },
   );
@@ -3558,12 +3563,20 @@ export async function upsertProgressAndAwardXp(
         // 2. Evaluate and award XP
         const item = await database.courseItems.get(progressEntry!.itemId);
         if (!item) {
-          xpSummary = await calculateStoredXpSummary(database, programmeId);
+          xpSummary = await calculateStoredXpSummary(
+            database,
+            programmeId,
+            options.policy.levelCurve,
+          );
           return;
         }
         const unit = await database.courseUnits.get(item.unitId);
         if (!unit) {
-          xpSummary = await calculateStoredXpSummary(database, programmeId);
+          xpSummary = await calculateStoredXpSummary(
+            database,
+            programmeId,
+            options.policy.levelCurve,
+          );
           return;
         }
 
@@ -3617,7 +3630,11 @@ export async function upsertProgressAndAwardXp(
           options.policy.achievements,
           options.catalogueId,
         );
-        xpSummary = await calculateStoredXpSummary(database, programmeId);
+        xpSummary = await calculateStoredXpSummary(
+          database,
+          programmeId,
+          options.policy.levelCurve,
+        );
       },
     ),
   );
@@ -3825,7 +3842,11 @@ export async function logMediaProgressAndAwardXp(
           options.policy.achievements,
           options.catalogueId,
         );
-        xpSummary = await calculateStoredXpSummary(database, programmeId);
+        xpSummary = await calculateStoredXpSummary(
+          database,
+          programmeId,
+          options.policy.levelCurve,
+        );
       },
     ),
   );
@@ -3931,7 +3952,11 @@ export async function addStudySessionAndAwardXp(
           options.catalogueId,
         );
         changed ||= unlockedAchievements.length > 0;
-        xpSummary = await calculateStoredXpSummary(database, programmeId);
+        xpSummary = await calculateStoredXpSummary(
+          database,
+          programmeId,
+          options.policy.levelCurve,
+        );
       },
     );
 

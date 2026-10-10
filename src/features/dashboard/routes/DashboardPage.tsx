@@ -113,7 +113,10 @@ export function DashboardPage() {
           getCatalogueCourseState({ catalogueId: scope.catalogueId }),
           listStudySessions(),
           listXpTransactions({ programmeId: scope.programmeId }),
-          getXpSummary({ programmeId: scope.programmeId }),
+          getXpSummary({
+            programmeId: scope.programmeId,
+            levelCurve: scope.policy.levelCurve,
+          }),
           getAchievementsView({ policy: scope.policy }),
         ]);
 

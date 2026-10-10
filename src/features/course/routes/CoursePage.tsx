@@ -69,6 +69,7 @@ export function CoursePage() {
           }),
           getXpSummary({
             programmeId: requireProgrammeScope(programmeScope).programmeId,
+            levelCurve: requireProgrammeScope(programmeScope).policy.levelCurve,
           }),
         ]);
 
