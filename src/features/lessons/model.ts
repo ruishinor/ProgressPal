@@ -1,11 +1,25 @@
 import type {
   EvaluationResultRecord,
+  LearnerEvidence,
   LessonBlock,
   LessonBundle,
   LessonExercise,
   LessonUiCopy,
   LessonUiTextKey,
 } from '@/lib/domain';
+
+/**
+ * Whether an evidence row is about the exercise as it is now. Every row is
+ * bound to the content hash the learner answered; once the authored
+ * exercise changes, rows under the earlier hash are history, not the state
+ * of the task on screen. XP and mastery read evidence the same way.
+ */
+export function isCurrentEvidence(
+  row: LearnerEvidence,
+  contentHash: string | undefined,
+): boolean {
+  return row.contentHash === contentHash;
+}
 
 /** Fills a copy template's {name} placeholders. */
 export function formatCopy(

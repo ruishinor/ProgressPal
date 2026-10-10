@@ -31,7 +31,7 @@ import {
   type AnswerDraft,
 } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
-import { formatCopy, presentResult } from './model';
+import { formatCopy, isCurrentEvidence, presentResult } from './model';
 import { useLessonSurfaces } from './presentation';
 import { AnswerWidget, CodeView } from './widgets';
 
@@ -113,9 +113,13 @@ export function ExerciseCard({
   // XP the last submission in this view earned, from its committed result.
   const [earnedXp, setEarnedXp] = useState(0);
 
+  // The card shows only answers to the exercise as it is now; answers to an
+  // earlier version stay stored as history.
   const attempts = evidence
     .filter(
-      (row): row is ExerciseAttemptRecord => row.kind === 'exercise_attempt',
+      (row): row is ExerciseAttemptRecord =>
+        row.kind === 'exercise_attempt' &&
+        isCurrentEvidence(row, meta.contentHash),
     )
     .sort((left, right) => left.attemptNumber - right.attemptNumber);
   const resultsByAttempt = new Map(
@@ -129,7 +133,11 @@ export function ExerciseCard({
   const latest = attempts.at(-1);
   const latestResult =
     latest === undefined ? undefined : resultsByAttempt.get(latest.id);
-  const unresolved = latest !== undefined && latestResult === undefined;
+  // An attempt still waiting for its result blocks the next submission,
+  // whichever version it answered, until recovery on load resolves it.
+  const unresolved = evidence.some(
+    (row) => row.kind === 'exercise_attempt' && !resultsByAttempt.has(row.id),
+  );
   const permission = retryPermission(
     { exercise, masteryGate: meta.masteryGate, gateRetryRule },
     evidence,

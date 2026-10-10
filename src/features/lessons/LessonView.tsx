@@ -47,6 +47,7 @@ import type { MarkupContext } from './markup';
 import {
   createWording,
   formatCopy,
+  isCurrentEvidence,
   lessonSteps,
   reminderBefore,
   type LessonStep,
@@ -209,13 +210,22 @@ function LessonSurface({
         return;
       }
 
+      const hashBySubject = new Map(
+        lessonBundle.exercises.map((entry) => [
+          entry.meta.subjectId,
+          entry.meta.contentHash,
+        ]),
+      );
+
       setEvidence(rows);
       setInitialCorrect(
         new Set(
           rows
             .filter(
               (row) =>
-                row.kind === 'evaluation_result' && row.outcome === 'correct',
+                row.kind === 'evaluation_result' &&
+                row.outcome === 'correct' &&
+                isCurrentEvidence(row, hashBySubject.get(row.subjectId)),
             )
             .map((row) => row.subjectId),
         ),
