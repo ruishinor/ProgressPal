@@ -160,11 +160,20 @@ export type RpgBadgeGallerySummary = {
   totalBadgeCount: number;
 };
 
+/** An earned badge for the Hero Profile's short "recent badges" list. */
+export type RpgHeroRecentBadge = {
+  id: string;
+  title: string;
+  unlockedAt: string;
+};
+
 export type RpgHeroProfileSummary = {
   badges: {
     earnedBadgeCount: number;
     totalBadgeCount: number;
   };
+  /** At most three earned badges, newest first (see selectRecentBadges). */
+  recentBadges: RpgHeroRecentBadge[];
   courseProgress: RpgCourseProgressSummary;
   hasLocalActivity: boolean;
   identity: RpgHubIdentity;

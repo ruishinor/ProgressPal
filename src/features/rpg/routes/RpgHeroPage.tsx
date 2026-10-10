@@ -3,6 +3,7 @@ import { startTransition, useEffect, useState } from 'react';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { formatMinutes } from '@/lib/time';
+import { RpgAchievementArt } from '@/features/rpg/components/RpgAchievementArt';
 import {
   RpgButton,
   RpgEmptyState,
@@ -174,6 +175,32 @@ export function RpgHeroPage() {
           <p className="rpg-hero__note">
             Rank reflects local required-course progress only.
           </p>
+        </RpgPanel>
+
+        <RpgPanel
+          className="rpg-hero__recent"
+          title="Recent badges"
+          titleAs="h2"
+        >
+          {summary.recentBadges.length === 0 ? (
+            <p className="rpg-hero__note">
+              The badges you earn will appear here.
+            </p>
+          ) : (
+            <ul className="rpg-hero__badges">
+              {summary.recentBadges.map((badge) => (
+                <li key={badge.id}>
+                  <RpgAchievementArt achievementId={badge.id} />
+                  <span>{badge.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="rpg-hero__actions">
+            <RpgButton href={rpgBadgesPath} size="sm" variant="quiet">
+              View all badges
+            </RpgButton>
+          </div>
         </RpgPanel>
 
         {summary.hasLocalActivity ? null : (

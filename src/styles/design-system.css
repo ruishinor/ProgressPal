@@ -1526,14 +1526,6 @@
   gap: var(--space-2);
 }
 
-.placeholder-card__footer {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  justify-content: space-between;
-}
-
 @media (max-width: 960px) {
   .shell-header,
   .page-header,
@@ -1575,8 +1567,7 @@
 
   .profile-preview-card,
   .progress-bar__header,
-  .slice-progress__header,
-  .placeholder-card__footer {
+  .slice-progress__header {
     align-items: start;
     flex-direction: column;
   }

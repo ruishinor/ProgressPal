@@ -39,6 +39,8 @@ import {
   type ProgressPalDatabase,
 } from '@/lib/db';
 import type {
+  AchievementDefinition,
+  AchievementUnlock,
   CourseItem,
   CourseUnit,
   LevelCurve,
@@ -57,6 +59,7 @@ import type {
   RpgBadgeGallerySummary,
   RpgCourseMapSummary,
   RpgHeroProfileSummary,
+  RpgHeroRecentBadge,
   RpgHubSummary,
   RpgHudSummary,
   RpgHubIdentity,
@@ -95,6 +98,7 @@ type CourseMapContext = {
 };
 
 const rpgHubRecentActivityLimit = 5;
+const rpgHeroRecentBadgeLimit = 3;
 
 function toDateOnly(isoTimestamp: string) {
   return isoTimestamp.slice(0, 10);
@@ -577,6 +581,40 @@ export function buildRpgBadgeGallerySummary(
   };
 }
 
+/**
+ * The learner's most recently earned badges in this programme's catalogue,
+ * newest first by their stored unlock time (set by the clock when the unlock
+ * committed and kept by backup and restore). Badges unlocked at the same
+ * moment, as one mutation can unlock several, keep the catalogue's display
+ * order. Only badges with an unlock row appear, at most three.
+ */
+export function selectRecentBadges(
+  unlocks: readonly Pick<AchievementUnlock, 'achievementId' | 'unlockedAt'>[],
+  definitions: readonly Pick<AchievementDefinition, 'id' | 'title'>[],
+): RpgHeroRecentBadge[] {
+  const catalogueOrder = new Map(
+    definitions.map((definition, index) => [definition.id, index]),
+  );
+  const titles = new Map(
+    definitions.map((definition) => [definition.id, definition.title]),
+  );
+
+  return unlocks
+    .filter((unlock) => catalogueOrder.has(unlock.achievementId))
+    .sort(
+      (left, right) =>
+        right.unlockedAt.localeCompare(left.unlockedAt) ||
+        catalogueOrder.get(left.achievementId)! -
+          catalogueOrder.get(right.achievementId)!,
+    )
+    .slice(0, rpgHeroRecentBadgeLimit)
+    .map((unlock) => ({
+      id: unlock.achievementId,
+      title: titles.get(unlock.achievementId)!,
+      unlockedAt: unlock.unlockedAt,
+    }));
+}
+
 export function buildRpgHeroProfileSummary(
   snapshot: DatabaseSnapshot,
   nowIso = new Date().toISOString(),
@@ -590,6 +628,10 @@ export function buildRpgHeroProfileSummary(
       earnedBadgeCount: badgeGallery.earnedBadgeCount,
       totalBadgeCount: badgeGallery.totalBadgeCount,
     },
+    recentBadges: selectRecentBadges(
+      snapshot.achievementUnlocks,
+      programme.policy.achievements,
+    ),
     courseProgress: hubSummary.courseProgress,
     hasLocalActivity:
       hubSummary.courseProgress.completedRequiredItemCount > 0 ||
@@ -848,6 +890,10 @@ function buildRpgHeroProfileSummaryFromReadData(
       earnedBadgeCount,
       totalBadgeCount: achievementDefinitions.length,
     },
+    recentBadges: selectRecentBadges(
+      data.achievementUnlocks,
+      achievementDefinitions,
+    ),
     courseProgress,
     hasLocalActivity:
       courseProgress.completedRequiredItemCount > 0 ||

@@ -114,6 +114,7 @@ const emptyHeroSummary = {
     earnedBadgeCount: 0,
     totalBadgeCount: 0,
   },
+  recentBadges: [],
   courseProgress: {
     completedRequiredItemCount: 0,
     completionPercent: 0,
