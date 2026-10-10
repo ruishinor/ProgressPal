@@ -119,6 +119,15 @@ export function answerToDraft(
 }
 
 /**
+ * Whether each step of an ordering draft stands in its right place. The
+ * authored items are listed in their right order, so item i belongs in
+ * place i + 1; an unplaced step (0) is never right.
+ */
+export function rightOrderPlaces(positions: readonly number[]): boolean[] {
+  return positions.map((position, itemIndex) => position === itemIndex + 1);
+}
+
+/**
  * Which parts of a submitted ordering or matching answer are in their right
  * place, by item. It reads only the answer and the exercise's own public
  * content; it never decides correctness (the stored evaluation result does).
@@ -135,9 +144,7 @@ export function reviewAnswer(
   const draft = answerToDraft(exercise, answer);
 
   if (exercise.kind === 'order') {
-    return (draft.positions as number[]).map(
-      (position, itemIndex) => position === itemIndex + 1,
-    );
+    return rightOrderPlaces(draft.positions as number[]);
   }
 
   if (exercise.kind === 'match' && exercise.evaluator.mode === 'match') {

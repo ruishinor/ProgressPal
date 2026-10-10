@@ -190,11 +190,15 @@ describe('LF-023/LF-024: ordering the ten steps', () => {
         within(card).getByRole('group', { name: 'Steg å plassere' }),
       ).getAllByRole('button'),
     ).toHaveLength(10);
+    // Oracle replaced 2026-10-10 (continuation A2, owner-authorized density
+    // work): the list no longer shows ten empty places before anything is
+    // placed; it states the total and grows from the next empty place.
+    expect(card).toHaveTextContent('Plassert: 0 av 10');
     expect(
       within(
         within(card).getByRole('list', { name: 'Din rekkefølge' }),
       ).getAllByRole('listitem'),
-    ).toHaveLength(10);
+    ).toHaveLength(1);
   });
 
   it('accepts the correct order placed step by step', async () => {

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { resolveDatabaseMigrationContext } from '@/app/providers/programmeComposition';
+import { lessonSteps } from '@/features/lessons/model';
 import {
   defaultLearnerProfileValues,
   enrolAndSwitchActiveProgramme,
@@ -11,6 +12,7 @@ import {
   listLearnerEvidence,
   listXpTransactions,
   saveLearnerProfile,
+  saveLessonPosition,
 } from '@/lib/db';
 import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import type { LessonExercise } from '@/lib/domain';
@@ -456,20 +458,15 @@ describe('scope: the check and the move controls are Task 6 only', () => {
   it.each(otherSorts.map((exercise) => [exercise.id, exercise] as const))(
     '%s keeps its accepted widget: no check, no move controls',
     async (_id, exercise) => {
-      const meta = p2Index.exercises.find(
-        (entry) => entry.exerciseId === exercise.id,
-      )!;
-      const mission = p2Index.modules
-        .flatMap((module) => module.missions)
-        .find((entry) => entry.missionId === meta.missionId)!;
+      const itemId = await bookmarkStageOf(exercise);
 
-      await renderAppAtRoute(`/course/${mission.itemId}`);
+      await renderAppAtRoute(`/course/${itemId}`);
       const lesson = await screen.findByRole(
         'article',
         { name: /./ },
         { timeout: 15_000 },
       );
-      const card = await cardFor(lesson, exercise);
+      const card = cardFor(lesson, exercise);
 
       expect(
         within(card).queryByRole('button', { name: 'Sjekk så langt' }),
@@ -483,46 +480,60 @@ describe('scope: the check and the move controls are Task 6 only', () => {
   );
 });
 
-/** The card of a sorting task, moving through stages when needed. */
-async function cardFor(lesson: HTMLElement, exercise: SortExercise) {
-  const plain = (text: string) => text.replace(/[‹›`]/g, '');
-  const find = () =>
-    within(lesson)
-      .queryAllByRole('group', { name: /^Oppgave \d+ · / })
-      .find((card) =>
-        exercise.kind === 'order'
-          ? within(card).queryByRole('group', { name: 'Steg å plassere' }) !==
-              null &&
-            exercise.items.every((item) =>
-              (card.textContent ?? '').includes(plain(item[0]!)),
-            )
-          : within(card).queryAllByRole('combobox').length ===
-              exercise.items.length &&
-            (card.textContent ?? '').includes(exercise.items[0]![0]!),
-      );
+/**
+ * Saves the bookmark at the task's own step, so its lesson opens on the
+ * stage that holds it and nothing is written while the test looks.
+ */
+async function bookmarkStageOf(exercise: SortExercise) {
+  const meta = p2Index.exercises.find(
+    (entry) => entry.exerciseId === exercise.id,
+  )!;
+  const itemId = p2Index.modules
+    .flatMap((module) => module.missions)
+    .find((entry) => entry.missionId === meta.missionId)!.itemId;
+  const loaded = await p2.content.lessons!.loadLesson(itemId);
 
-  for (let guard = 0; guard < 6; guard += 1) {
-    const card = find();
-
-    if (card !== undefined) {
-      return card;
-    }
-
-    const next = within(lesson).queryByRole('button', {
-      name: 'Neste etappe',
-    });
-
-    if (next === null) {
-      break;
-    }
-
-    const stage = () =>
-      within(lesson).getByText(/^Etappe \d+ av \d+/).textContent;
-    const before = stage();
-
-    fireEvent.click(next);
-    await waitFor(() => expect(stage()).not.toBe(before));
+  if (loaded.status !== 'ready') {
+    throw new Error(`lesson ${itemId} did not load`);
   }
 
-  throw new Error(`no card for ${exercise.id}`);
+  const step = lessonSteps(loaded.value).find(
+    (candidate) =>
+      candidate.block.t === 'exercise' &&
+      (candidate.block as { id?: string }).id === exercise.id,
+  )!;
+
+  await saveLessonPosition({
+    itemId,
+    programmeId: p2.programmeId,
+    contentVersion: loaded.value.contentVersion,
+    unitId: step.unitId.toLowerCase(),
+    stepIndex: step.stepIndex,
+  });
+  return itemId;
+}
+
+/** The card of a sorting task on the stage on screen. */
+function cardFor(lesson: HTMLElement, exercise: SortExercise) {
+  const plain = (text: string) => text.replace(/[‹›`]/g, '');
+  const card = within(lesson)
+    .queryAllByRole('group', { name: /^Oppgave \d+ · / })
+    .find((candidate) =>
+      exercise.kind === 'order'
+        ? within(candidate).queryByRole('group', {
+            name: 'Steg å plassere',
+          }) !== null &&
+          exercise.items.every((item) =>
+            (candidate.textContent ?? '').includes(plain(item[0]!)),
+          )
+        : within(candidate).queryAllByRole('combobox').length ===
+            exercise.items.length &&
+          (candidate.textContent ?? '').includes(exercise.items[0]![0]!),
+    );
+
+  if (card === undefined) {
+    throw new Error(`no card for ${exercise.id}`);
+  }
+
+  return card;
 }

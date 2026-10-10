@@ -14,6 +14,10 @@ Scope:
   code, commands and tool output.
 - Offer an answer widget per authored response mode, hints one at a time,
   and feedback only after the terminal evaluation result is durable.
+- On an ordering task a programme opens to it (`progressCheckSubjectIds` on
+  its content provider; Programvareutvikling: Task 6 only), offer a limited
+  "check so far" (`progressCheck.ts`): how many placed steps stand right,
+  never which, at most twice per card, and never evidence, XP or mastery.
 - Write evidence and lesson positions only through `runLocalMutation`
   without route invalidation, so the writer tab re-synchronizes after every
   committed write.

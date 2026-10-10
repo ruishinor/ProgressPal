@@ -33,6 +33,12 @@ import {
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, isCurrentEvidence, presentResult } from './model';
 import { useLessonSurfaces } from './presentation';
+import {
+  noProgressChecks,
+  progressCheckAvailability,
+  takeProgressCheck,
+  type ProgressCheckState,
+} from './progressCheck';
 import { AnswerWidget, CodeView } from './widgets';
 
 /**
@@ -65,6 +71,8 @@ type ExerciseCardProps = {
   readonly number: number;
   readonly onReopenTeaching: (() => Promise<void>) | null;
   readonly onSubmitted: () => Promise<void>;
+  /** Whether the programme opened this task to the check of the work so far. */
+  readonly progressCheck: boolean;
   readonly programmeId: string;
   readonly remediationTitle: string | null;
   readonly runtime: PythonRuntime;
@@ -95,6 +103,7 @@ export function ExerciseCard({
   number,
   onReopenTeaching,
   onSubmitted,
+  progressCheck,
   programmeId,
   remediationTitle,
   runtime,
@@ -112,6 +121,14 @@ export function ExerciseCard({
   const [notice, setNotice] = useState<string | null>(null);
   // XP the last submission in this view earned, from its committed result.
   const [earnedXp, setEarnedXp] = useState(0);
+  // The check of the work so far: local to this card, never evidence.
+  const [checks, setChecks] = useState<ProgressCheckState>(noProgressChecks);
+  const progressCheckOn =
+    progressCheck &&
+    exercise.type === 'sort' &&
+    exercise.kind === 'order' &&
+    meta.role === 'formative' &&
+    !meta.masteryGate;
 
   // The card shows only answers to the exercise as it is now; answers to an
   // earlier version stay stored as history.
@@ -258,6 +275,7 @@ export function ExerciseCard({
       setNotice(copy.text.notSaved);
     } else {
       setRetrying(false);
+      setChecks((current) => ({ ...current, result: null }));
       setEarnedXp(
         outcome.status === 'evaluated'
           ? outcome.awardedTransactions.reduce(
@@ -328,6 +346,22 @@ export function ExerciseCard({
         onChange={setDraft}
         review={review}
         seed={`${meta.subjectId}|${attempts.length + (showResult ? 0 : 1)}`}
+        {...(progressCheckOn
+          ? {
+              progressCheck: {
+                answering: !showResult,
+                availability: progressCheckAvailability(
+                  shownDraft.positions as number[],
+                  checks,
+                ),
+                result: checks.result,
+                onCheck: () =>
+                  setChecks((current) =>
+                    takeProgressCheck(draft.positions as number[], current),
+                  ),
+              },
+            }
+          : {})}
       />
       {exercise.hints.length > 0 ? (
         <div className="lesson-hints">

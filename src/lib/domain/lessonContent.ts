@@ -966,6 +966,24 @@ export const lessonUiTextKeys = [
   'orderRemoved',
   'orderRight',
   'orderWrong',
+  'orderPlacedCount',
+  'orderMoveInstruction',
+  'orderMoveUp',
+  'orderMoveDown',
+  'orderMoveUpButton',
+  'orderMoveDownButton',
+  'orderMoved',
+  'progressCheckButton',
+  'progressCheckRule',
+  'progressCheckFirst',
+  'progressCheckSecond',
+  'progressCheckLeft',
+  'progressCheckNearlyDone',
+  'progressCheckUsed',
+  'progressCheckResult',
+  'progressCheckAllRight',
+  'progressCheckSomeRight',
+  'progressCheckNoneRight',
   'matchRight',
   'matchWrong',
   'whereNextHeading',
@@ -1024,6 +1042,13 @@ export type LessonContentProvider = {
   readonly subjectIds: readonly string[];
   /** The lesson surface's interface copy, in the programme's language. */
   readonly copy?: LessonUiCopy;
+  /**
+   * Lowercase subject IDs of formative ordering tasks that offer a limited
+   * "check so far" while the answer is built: a programme's product choice
+   * that writes no evidence. The lesson surface still ignores it for any
+   * task that is not a formative ordering task outside the mastery gates.
+   */
+  readonly progressCheckSubjectIds?: readonly string[];
   loadIndex(): Promise<ContentLoadResult<ProgrammeContentIndex>>;
   loadLesson(itemId: string): Promise<ContentLoadResult<LessonBundle>>;
 };
@@ -1126,6 +1151,7 @@ export type ContentAssetProviderInput = {
   /** The evaluator contract version the application implements. */
   readonly evaluatorContractVersion: number;
   readonly copy?: LessonUiCopy;
+  readonly progressCheckSubjectIds?: readonly string[];
   readonly sha256Hex?: (text: string) => Promise<string>;
 };
 
@@ -1575,6 +1601,13 @@ export function createContentAssetProvider(
     ),
     subjectIds: Object.freeze([...catalogue.subjectIds]),
     ...(input.copy === undefined ? {} : { copy: input.copy }),
+    ...(input.progressCheckSubjectIds === undefined
+      ? {}
+      : {
+          progressCheckSubjectIds: Object.freeze([
+            ...input.progressCheckSubjectIds,
+          ]),
+        }),
     loadIndex,
     loadLesson,
   };

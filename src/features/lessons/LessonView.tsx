@@ -706,6 +706,11 @@ function LessonSurface({
                                 }
                           }
                           onSubmitted={() => savePosition(step.stepIndex + 1)}
+                          progressCheck={
+                            provider.progressCheckSubjectIds?.includes(
+                              entry.meta.subjectId,
+                            ) ?? false
+                          }
                           programmeId={programmeId}
                           remediationTitle={teaching?.title ?? null}
                           runtime={runtime}

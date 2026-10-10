@@ -196,6 +196,33 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     orderRemoved: '{item} er fjernet.',
     orderRight: 'Riktig plass',
     orderWrong: 'Feil plass',
+    orderPlacedCount: 'Plassert: {placed} av {total}',
+    orderMoveInstruction:
+      'Med pilene flytter du et plassert steg én plass opp eller ned.',
+    orderMoveUp: 'Flytt opp: {item}',
+    orderMoveDown: 'Flytt ned: {item}',
+    orderMoveUpButton: '↑',
+    orderMoveDownButton: '↓',
+    orderMoved: '{item} er flyttet til plass {n}.',
+    progressCheckButton: 'Sjekk så langt',
+    progressCheckRule:
+      'Underveis kan du sjekke to ganger hvor mange av de plasserte stegene som står på riktig plass. Sjekken sier ikke hvilke, og den teller ikke som et svar.',
+    progressCheckFirst: 'Første sjekk: når minst {n} steg er plassert.',
+    progressCheckSecond:
+      'Andre sjekk: når minst {n} steg er plassert og minst {changed} plasser har et annet steg enn ved første sjekk.',
+    progressCheckLeft: 'Sjekker igjen: {left} av {max}.',
+    progressCheckNearlyDone:
+      'Når høyst ett steg gjenstår, sjekker du hele svaret med «Sjekk svaret».',
+    progressCheckUsed:
+      'Du har brukt begge sjekkene. Sjekk hele svaret med «Sjekk svaret» når du er klar.',
+    progressCheckResult:
+      'Da du sjekket, sto {correct} av {placed} plasserte steg på riktig plass.',
+    progressCheckAllRight:
+      'Så langt stemmer rekkefølgen. Fortsett med neste steg.',
+    progressCheckSomeRight:
+      'Les rekkefølgen fra start: følger hvert steg naturlig etter det forrige? Flytt det som ikke passer.',
+    progressCheckNoneRight:
+      'Begynn med det som må skje aller først, og bygg videre derfra.',
     matchRight: 'Riktig kobling',
     matchWrong: 'Feil kobling',
     whereNextHeading: 'Slik går du videre',

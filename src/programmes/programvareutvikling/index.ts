@@ -72,6 +72,10 @@ const lessons = createContentAssetProvider({
   loadText: loadSameOriginText,
   evaluatorContractVersion: lessonEvaluatorContractVersion,
   copy: programvareutviklingLessonCopy,
+  // Owner decision 2026-10-10: Task 6 of S1-M01 (the ten steps from problem
+  // to presentation) may be checked twice while it is built. Content and
+  // every other task are unchanged.
+  progressCheckSubjectIds: ['s1-m01-p05-e06'],
 });
 
 export const programvareutviklingDefinition: ProgrammeDefinition =

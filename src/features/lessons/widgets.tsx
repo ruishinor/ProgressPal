@@ -10,6 +10,12 @@ import type { AnswerDraft } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, shuffledOrder } from './model';
 import { useLessonSurfaces } from './presentation';
+import {
+  moveOrderItem,
+  progressCheckRule,
+  type ProgressCheckAvailability,
+  type ProgressCheckCount,
+} from './progressCheck';
 
 /**
  * Answer widgets, one per authored response mode (DC-09 to DC-13). Every
@@ -31,6 +37,19 @@ type WidgetProps<Type extends LessonExercise['type']> = {
   /** For a sort result: which items were in their right place, else null. */
   readonly review?: readonly boolean[] | null;
   readonly seed: string;
+  /**
+   * Only for an ordering task the programme opened to it: the check of the
+   * work so far, and with it the move controls and compact list.
+   */
+  readonly progressCheck?: ProgressCheckView;
+};
+
+export type ProgressCheckView = {
+  /** False while a submitted answer is shown read-only beside its result. */
+  readonly answering: boolean;
+  readonly availability: ProgressCheckAvailability;
+  readonly result: ProgressCheckCount | null;
+  readonly onCheck: () => void;
 };
 
 /** Status-code options keep their significant leading blanks (authored rule). */
@@ -203,6 +222,7 @@ function SortWidget({
   exercise,
   idPrefix,
   onChange,
+  progressCheck,
   review,
   seed,
 }: WidgetProps<'sort'>) {
@@ -251,6 +271,7 @@ function SortWidget({
         exercise={exercise}
         idPrefix={idPrefix}
         onChange={onChange}
+        {...(progressCheck === undefined ? {} : { progressCheck })}
         review={review}
         seed={seed}
       />
@@ -311,6 +332,12 @@ function SortWidget({
  * Plain buttons and a list, so it works by keyboard and touch; a placed step
  * can be removed again. After a wrong submission each place says whether it
  * was right, and a retry keeps the right places.
+ *
+ * A task the programme opened to the check of the work so far
+ * (`progressCheck`, Task 6) also says how many steps are placed, lists the
+ * places only up to the next empty one, lets a placed step move one place up
+ * or down without touching the others, and offers that limited check. Every
+ * other ordering task renders exactly as before.
  */
 function OrderWidget({
   context,
@@ -318,7 +345,9 @@ function OrderWidget({
   disabled,
   draft,
   exercise,
+  idPrefix,
   onChange,
+  progressCheck,
   review,
   seed,
 }: WidgetProps<'sort'>) {
@@ -330,6 +359,12 @@ function OrderWidget({
   // the first remaining one: focus must not fall to the page when a button
   // leaves the pool.
   const focusItem = useRef<number | null>(null);
+  // After a move, focus stays on the moved step's control in the direction
+  // it moved, or on its other move control once it reaches an end.
+  const focusMove = useRef<{
+    readonly item: number;
+    readonly direction: 'up' | 'down';
+  } | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const total = exercise.items.length;
   const itemText = (index: number) => exercise.items[index]![0]!;
@@ -341,8 +376,34 @@ function OrderWidget({
   const pool = shuffledOrder(total, `${seed}|items`).filter(
     (index) => !positions[index],
   );
+  const placed = positions.filter((position) => position > 0).length;
+  const lastFilled = slotItems.reduce(
+    (last, item, slot) => (item === -1 ? last : slot + 1),
+    0,
+  );
+  const shownSlots =
+    progressCheck === undefined
+      ? slotItems
+      : slotItems.slice(0, Math.min(total, lastFilled + 1));
 
   useEffect(() => {
+    const moved = focusMove.current;
+
+    if (moved !== null) {
+      focusMove.current = null;
+      const control = (direction: 'up' | 'down') =>
+        listRef.current?.querySelector<HTMLButtonElement>(
+          `[data-move="${direction}-${moved.item}"]`,
+        );
+      const same = control(moved.direction);
+
+      (same && !same.disabled
+        ? same
+        : control(moved.direction === 'up' ? 'down' : 'up')
+      )?.focus();
+      return;
+    }
+
     if (focusItem.current === null) {
       return;
     }
@@ -388,29 +449,48 @@ function OrderWidget({
     onChange({ positions: next });
   }
 
+  function move(index: number, offset: -1 | 1) {
+    const next = moveOrderItem(positions, index, offset);
+
+    focusMove.current = { item: index, direction: offset < 0 ? 'up' : 'down' };
+    setAnnouncement(
+      formatCopy(copy, 'orderMoved', { item: spoken(index), n: next[index]! }),
+    );
+    onChange({ positions: next });
+  }
+
+  const mark = (itemIndex: number) =>
+    review ? (
+      <strong>
+        {review[itemIndex] ? copy.text.orderRight : copy.text.orderWrong}
+      </strong>
+    ) : null;
+
   return (
     <div className="lesson-fieldset">
-      <p>{copy.text.orderInstruction}</p>
+      <p>
+        {copy.text.orderInstruction}
+        {progressCheck === undefined
+          ? null
+          : ` ${copy.text.orderMoveInstruction}`}
+      </p>
+      {progressCheck === undefined ? null : (
+        <p>{formatCopy(copy, 'orderPlacedCount', { placed, total })}</p>
+      )}
       <ol
         aria-label={copy.text.orderListLabel}
         className="lesson-order"
         ref={listRef}
         tabIndex={-1}
       >
-        {slotItems.map((itemIndex, slot) => (
+        {shownSlots.map((itemIndex, slot) => (
           <li key={slot}>
             {itemIndex === -1 ? (
               <span>{copy.text.orderEmptySlot}</span>
-            ) : (
+            ) : progressCheck === undefined ? (
               <>
                 <InlineText context={context} text={itemText(itemIndex)} />{' '}
-                {review ? (
-                  <strong>
-                    {review[itemIndex]
-                      ? copy.text.orderRight
-                      : copy.text.orderWrong}
-                  </strong>
-                ) : null}
+                {mark(itemIndex)}
                 {disabled ? null : (
                   <button
                     aria-label={formatCopy(copy, 'orderRemove', {
@@ -423,6 +503,52 @@ function OrderWidget({
                     {copy.text.orderRemoveButton}
                   </button>
                 )}
+              </>
+            ) : (
+              <>
+                <span>
+                  <InlineText context={context} text={itemText(itemIndex)} />
+                </span>{' '}
+                {mark(itemIndex)}
+                {progressCheck.answering ? (
+                  <>
+                    <button
+                      aria-label={formatCopy(copy, 'orderMoveUp', {
+                        item: spoken(itemIndex),
+                      })}
+                      className={surfaces.quietSmall}
+                      data-move={`up-${itemIndex}`}
+                      disabled={disabled || slot === 0}
+                      onClick={() => move(itemIndex, -1)}
+                      type="button"
+                    >
+                      {copy.text.orderMoveUpButton}
+                    </button>{' '}
+                    <button
+                      aria-label={formatCopy(copy, 'orderMoveDown', {
+                        item: spoken(itemIndex),
+                      })}
+                      className={surfaces.quietSmall}
+                      data-move={`down-${itemIndex}`}
+                      disabled={disabled || slot === total - 1}
+                      onClick={() => move(itemIndex, 1)}
+                      type="button"
+                    >
+                      {copy.text.orderMoveDownButton}
+                    </button>{' '}
+                    <button
+                      aria-label={formatCopy(copy, 'orderRemove', {
+                        item: spoken(itemIndex),
+                      })}
+                      className={surfaces.quietSmall}
+                      disabled={disabled}
+                      onClick={() => remove(itemIndex)}
+                      type="button"
+                    >
+                      {copy.text.orderRemoveButton}
+                    </button>
+                  </>
+                ) : null}
               </>
             )}
           </li>
@@ -448,9 +574,93 @@ function OrderWidget({
           </button>
         ))}
       </div>
+      {progressCheck?.answering ? (
+        <ProgressCheckControls
+          check={progressCheck}
+          copy={copy}
+          disabled={disabled}
+          helpId={`${idPrefix}-check-help`}
+        />
+      ) : null}
       <p className="sr-only" role="status">
         {announcement}
       </p>
+    </div>
+  );
+}
+
+/**
+ * The check of the work so far: what it is for, when it is available (the
+ * button's description), and, after a check, how many placed steps stood
+ * right with one short next step. It never names a step or a place.
+ */
+function ProgressCheckControls({
+  check,
+  copy,
+  disabled,
+  helpId,
+}: {
+  check: ProgressCheckView;
+  copy: LessonUiCopy;
+  disabled: boolean;
+  helpId: string;
+}) {
+  const surfaces = useLessonSurfaces();
+  const rule = progressCheckRule;
+  const { availability, result } = check;
+  const help =
+    availability.status === 'available'
+      ? formatCopy(copy, 'progressCheckLeft', {
+          left: availability.left,
+          max: rule.maxChecks,
+        })
+      : availability.reason === 'first'
+        ? formatCopy(copy, 'progressCheckFirst', { n: rule.firstAt })
+        : availability.reason === 'second'
+          ? formatCopy(copy, 'progressCheckSecond', {
+              n: rule.secondAt,
+              changed: rule.changedSinceFirst,
+            })
+          : availability.reason === 'nearly_complete'
+            ? copy.text.progressCheckNearlyDone
+            : copy.text.progressCheckUsed;
+  const guidance =
+    result === null
+      ? null
+      : result.correct === result.placed
+        ? copy.text.progressCheckAllRight
+        : result.correct === 0
+          ? copy.text.progressCheckNoneRight
+          : copy.text.progressCheckSomeRight;
+
+  return (
+    <div className="lesson-field">
+      <p>{copy.text.progressCheckRule}</p>
+      <div className="action-row">
+        <button
+          aria-describedby={helpId}
+          className={surfaces.secondary}
+          disabled={disabled || availability.status !== 'available'}
+          onClick={check.onCheck}
+          type="button"
+        >
+          {copy.text.progressCheckButton}
+        </button>
+        <span id={helpId}>{help}</span>
+      </div>
+      <div className="lesson-field" role="status">
+        {result === null ? null : (
+          <>
+            <p>
+              {formatCopy(copy, 'progressCheckResult', {
+                correct: result.correct,
+                placed: result.placed,
+              })}
+            </p>
+            <p>{guidance}</p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
