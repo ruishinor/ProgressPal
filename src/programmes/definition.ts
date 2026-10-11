@@ -113,6 +113,8 @@ const terminologySchema = z
         rpgRequiredCompleteNote: nonEmptyString,
         rpgHeroProgressNote: nonEmptyString,
         rpgCourseBoundary: nonEmptyString,
+        settingsBoundaryTitle: nonEmptyString,
+        settingsBoundaryText: nonEmptyString,
         officialResourceOpenLabel: nonEmptyString,
         officialResourceReviewLabel: nonEmptyString,
         sharedMilestoneRewardNote: nonEmptyString,

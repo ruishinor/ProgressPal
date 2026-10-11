@@ -60,6 +60,9 @@ export type ProgrammeCopy = {
   readonly rpgRequiredCompleteNote: string;
   readonly rpgHeroProgressNote: string;
   readonly rpgCourseBoundary: string;
+  /** Heading and local-storage text of the RPG Settings boundary card. */
+  readonly settingsBoundaryTitle: string;
+  readonly settingsBoundaryText: string;
   readonly officialResourceOpenLabel: string;
   readonly officialResourceReviewLabel: string;
   /** Appended in parentheses to a task reward shared by linked milestone items. */

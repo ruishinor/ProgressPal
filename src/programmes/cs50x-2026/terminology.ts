@@ -54,6 +54,9 @@ export const cs50Terminology: ProgrammeTerminology = {
       'All required tasks are marked complete locally. This does not confirm official CS50 completion.',
     rpgHeroProgressNote:
       'Local ProgressPal progress, not official CS50 completion.',
+    settingsBoundaryTitle: 'Local-first and course boundary',
+    settingsBoundaryText:
+      'ProgressPal keeps your working data in this browser on this device. No account is needed, nothing is synced, and there is no analytics. The optional remote backup (Alpha) is manual: no learner data is uploaded unless you press Back up now. Browser storage can be cleared by you, your browser, or your device, so export a backup before clearing data or switching devices.',
     rpgCourseBoundary:
       'RPG ranks, badges, and profile summaries are local ProgressPal interpretations, not CS50, Harvard, edX, or OpenCourseWare status. Use official course systems for enrollment, submission, grading, and certificates.',
     officialResourceOpenLabel: 'Open official CS50x resource',

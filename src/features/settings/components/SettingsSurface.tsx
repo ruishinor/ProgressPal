@@ -493,15 +493,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
       </Card>
       {isRpgVariant ? (
-        <Card title="Local-first and course boundary" titleAs="h2">
-          <p className="card__description">
-            ProgressPal keeps your working data in this browser on this device.
-            No account is needed, nothing is synced, and there is no analytics.
-            The optional remote backup (Alpha) is manual: no learner data is
-            uploaded unless you press Back up now. Browser storage can be
-            cleared by you, your browser, or your device, so export a backup
-            before clearing data or switching devices.
-          </p>
+        <Card title={copy.settingsBoundaryTitle} titleAs="h2">
+          <p className="card__description">{copy.settingsBoundaryText}</p>
           <p className="card__description">{copy.rpgCourseBoundary}</p>
         </Card>
       ) : null}
