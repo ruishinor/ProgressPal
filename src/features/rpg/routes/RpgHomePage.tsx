@@ -43,8 +43,9 @@ function hasLocalActivity(summary: RpgHubSummary) {
 }
 
 export function RpgHomePage() {
-  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
-    .terminology;
+  const { copy, notesOnDemand } = requireProgrammeScope(
+    useAppState().programmeScope,
+  ).content.terminology;
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
 
@@ -117,7 +118,11 @@ export function RpgHomePage() {
                     : 'Course data unavailable'}
                 </h3>
                 {recommendation.state === 'required_complete' ? (
-                  <RpgInfoNote label="About completion">
+                  <RpgInfoNote
+                    className="rpg-hub__note"
+                    inline={!notesOnDemand}
+                    label="About completion"
+                  >
                     {copy.rpgRequiredCompleteNote}
                   </RpgInfoNote>
                 ) : (

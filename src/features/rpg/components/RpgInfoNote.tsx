@@ -9,13 +9,22 @@ import { RpgButton } from '@/features/rpg/components/RpgButton';
  */
 export function RpgInfoNote({
   children,
+  className,
+  inline = false,
   label,
 }: {
   children: ReactNode;
+  className?: string;
+  /** Show the text as it was, for a programme whose copy stays visible. */
+  inline?: boolean;
   label: string;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
+
+  if (inline) {
+    return <p className={className}>{children}</p>;
+  }
 
   return (
     <>

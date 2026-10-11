@@ -92,6 +92,13 @@ export type ProgrammeTerminology = {
    * an owner decision; a programme carries one only once it is decided.
    */
   readonly shellBrand?: string;
+  /**
+   * Whether the Hero and Home explanations that local progress is not an
+   * assessment sit behind an (i) instead of showing as text (owner decision
+   * 2026-10-11, Programvareutvikling). Absent keeps them visible, as CS50x's
+   * frozen copy requires.
+   */
+  readonly notesOnDemand?: boolean;
 };
 
 /** Everything a programme owns that runtime code renders (Epic C / C4). */

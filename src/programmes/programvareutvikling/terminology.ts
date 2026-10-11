@@ -22,6 +22,7 @@ export const programvareutviklingDisplayName = 'Programvareutvikling 1';
  */
 export const programvareutviklingTerminology: ProgrammeTerminology = {
   shellBrand: 'ProgressPal',
+  notesOnDemand: true,
   unitNoun: { lowercase: 'modul', capitalized: 'Modul' },
   // RPG identity (owner correction 2026-10-03): the guild and class are the
   // product's RPG identity, not the programme or a learner stage; the path

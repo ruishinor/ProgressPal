@@ -40,8 +40,9 @@ const initialState: RpgHeroPageState = {
 
 export function RpgHeroPage() {
   const { programmeScope } = useAppState();
-  const { copy } = requireProgrammeScope(useAppState().programmeScope).content
-    .terminology;
+  const { copy, notesOnDemand } = requireProgrammeScope(
+    useAppState().programmeScope,
+  ).content.terminology;
   const [state, setState] = useState<RpgHeroPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -217,7 +218,11 @@ export function RpgHeroPage() {
             showValue={summary.courseProgress.requiredItemCount > 0}
             value={summary.courseProgress.completionPercent}
           />
-          <RpgInfoNote label="About required progress">
+          <RpgInfoNote
+            className="rpg-hero__note"
+            inline={!notesOnDemand}
+            label="About required progress"
+          >
             {copy.rpgHeroProgressNote}
           </RpgInfoNote>
         </RpgPanel>

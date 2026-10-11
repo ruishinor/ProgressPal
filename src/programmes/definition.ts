@@ -119,6 +119,7 @@ const terminologySchema = z
       })
       .strict(),
     shellBrand: nonEmptyString.optional(),
+    notesOnDemand: z.boolean().optional(),
   })
   .strict();
 
