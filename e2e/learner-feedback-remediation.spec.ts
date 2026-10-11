@@ -55,9 +55,9 @@ test('a level-up shows inside the viewport while the page is scrolled far down',
   page,
 }) => {
   await startOnProgrammeTwo(page);
-  // Synthetic: 36 XP already in this programme's ledger, so the next correct
-  // answer (a choice task, 4 XP) lands on Programme #2's Level 2 threshold
-  // at 40 (its own curve since 2026-10-10).
+  // Synthetic: 49 XP already in this programme's ledger, so the next correct
+  // answer (a choice task, 6 XP) lands on Programme #2's Level 2 threshold
+  // at 55 (its own curve since 2026-10-11).
   await page.evaluate(`new Promise((resolve, reject) => {
     const request = indexedDB.open('progresspal-cs50-edition');
     request.onerror = () => reject(request.error);
@@ -67,7 +67,7 @@ test('a level-up shows inside the viewport while the page is scrolled far down',
       const now = new Date().toISOString();
       transaction.objectStore('xp_transactions').add({
         id: 'seed-xp-1', createdAt: now, updatedAt: now,
-        sourceType: 'exercise_solved', sourceId: 'seed-xp-1', xp: 36,
+        sourceType: 'exercise_solved', sourceId: 'seed-xp-1', xp: 49,
         reason: 'synthetic seed', awardedAt: now,
         programmeId: 'programvareutvikling',
       });

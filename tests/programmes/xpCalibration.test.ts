@@ -19,10 +19,10 @@ import {
 } from './xpSimulation';
 
 /**
- * Programme #2 XP and level calibration (owner work order 2026-10-10,
- * checkpoint B). The simulation walks the real M01/M02 content with the real
- * award planner; this file pins the calibration targets the owner set as
- * starting hypotheses and keeps the old and new policies side by side.
+ * Programme #2 XP and level calibration (owner work orders 2026-10-10,
+ * checkpoint B, and 2026-10-11). The simulation walks the real M01/M02
+ * content with the real award planner; this file pins the calibration
+ * targets and keeps the previous policy (8560194) beside the current one.
  *
  * Reproduce the full report:
  *   LF_XP_SIMULATION_OUT=<folder> npx vitest run tests/programmes/xpCalibration.test.ts
@@ -32,8 +32,8 @@ const policy = programvareutviklingDefinition.policy;
 const lessonXp = policy.lessonXp!;
 const curve = policy.levelCurve!;
 
-/** The Programme #2 policy before this calibration (bc2bc9a), for comparison. */
-const previous: { lessonXp: LessonXpPolicy; curve?: LevelCurve } = {
+/** The Programme #2 policy of 8560194 before the 2026-10-11 calibration. */
+const previous: { lessonXp: LessonXpPolicy; curve: LevelCurve } = {
   lessonXp: {
     ...lessonXp,
     solved: {
@@ -48,8 +48,16 @@ const previous: { lessonXp: LessonXpPolicy; curve?: LevelCurve } = {
     lessonCompleted: 15,
     checkpointCleared: 60,
     moduleCompleted: 30,
-    effort: undefined,
+    effort: {
+      introductory: { adjust: -1, responseModes: ['mcq'] },
+      complex: {
+        adjust: 4,
+        responseModes: ['program', 'diagnose', 'trace', 'testtable'],
+        subjectIds: ['s1-m01-p05-e06'],
+      },
+    },
   },
+  curve: { firstLevelXp: 40, levelStepXp: 15 },
 };
 
 const patterns: readonly LearnerPattern[] = [
@@ -75,6 +83,7 @@ beforeAll(async () => {
         index: p2Index,
         order,
         policy: previous.lessonXp,
+        curve: previous.curve,
         pattern,
       }),
     );
@@ -107,8 +116,8 @@ describe('the effort rubric is explicit and bound to real content', () => {
 
     expect(lessonEffortTier(lessonXp, task6)).toBe('complex');
     expect(lessonEffortTier(lessonXp, choice)).toBe('introductory');
-    expect(solvedTaskXp(lessonXp, task6)).toBe(9);
-    expect(solvedTaskXp(lessonXp, choice)).toBe(4);
+    expect(solvedTaskXp(lessonXp, task6)).toBe(13);
+    expect(solvedTaskXp(lessonXp, choice)).toBe(6);
 
     for (const entry of p2Index.exercises.filter((item) => item.optional)) {
       const required = {
@@ -127,11 +136,6 @@ describe('the effort rubric is explicit and bound to real content', () => {
     const required = order.filter((task) => !task.meta.optional);
 
     expect(solvedXpDistribution(previous.lessonXp, required)).toEqual({
-      '5 XP': 183,
-      '6 XP': 14,
-      '8 XP': 67,
-    });
-    expect(solvedXpDistribution(lessonXp, required)).toEqual({
       '4 XP': 60,
       '5 XP': 75,
       '6 XP': 9,
@@ -141,23 +145,38 @@ describe('the effort rubric is explicit and bound to real content', () => {
       '10 XP': 4,
       '12 XP': 22,
     });
+    // 60 of 264 (23%) earn the lowest value; a demanding task earns twice a
+    // choice task or more.
+    expect(solvedXpDistribution(lessonXp, required)).toEqual({
+      '6 XP': 60,
+      '8 XP': 74,
+      '9 XP': 1,
+      '10 XP': 2,
+      '11 XP': 9,
+      '12 XP': 24,
+      '13 XP': 49,
+      '14 XP': 19,
+      '16 XP': 4,
+      '17 XP': 9,
+      '19 XP': 13,
+    });
   });
 });
 
 describe('the level curve', () => {
-  it('needs 40 XP for level 2 and 15 more for each next level, exactly at the threshold', () => {
-    expect(calculateXpSummary(39, curve)).toMatchObject({
+  it('needs 55 XP for level 2 and 20 more for each next level, exactly at the threshold', () => {
+    expect(calculateXpSummary(54, curve)).toMatchObject({
       level: 1,
       xpToNextLevel: 1,
-      nextLevelXp: 40,
+      nextLevelXp: 55,
     });
-    expect(calculateXpSummary(40, curve)).toMatchObject({
+    expect(calculateXpSummary(55, curve)).toMatchObject({
       level: 2,
-      currentLevelFloorXp: 40,
-      nextLevelXp: 95,
+      currentLevelFloorXp: 55,
+      nextLevelXp: 130,
     });
-    expect(calculateXpSummary(95, curve).level).toBe(3);
-    expect(calculateXpSummary(165, curve).level).toBe(4);
+    expect(calculateXpSummary(130, curve).level).toBe(3);
+    expect(calculateXpSummary(225, curve).level).toBe(4);
   });
 
   it('grows every level requirement monotonically', () => {
@@ -185,27 +204,30 @@ describe('the level curve', () => {
 });
 
 describe('simulated progression through M01 and M02', () => {
-  it('reaches level 2 after about five solved tasks, then 7-10 and 10-13 more', () => {
+  it('reaches level 2 after four to seven substantive tasks', () => {
     for (const pattern of patterns) {
-      const perLevel = tasksPerLevel(runs.get(`new|${pattern}`)!);
+      const first = tasksPerLevel(runs.get(`new|${pattern}`)!)[0]!;
 
-      expect(perLevel[0]).toBeGreaterThanOrEqual(4);
-      expect(perLevel[0]).toBeLessThanOrEqual(6);
-      expect(perLevel[1]).toBeGreaterThanOrEqual(7);
-      expect(perLevel[1]).toBeLessThanOrEqual(10);
-      expect(perLevel[2]).toBeGreaterThanOrEqual(10);
-      expect(perLevel[2]).toBeLessThanOrEqual(13);
+      expect(first).toBeGreaterThanOrEqual(4);
+      expect(first).toBeLessThanOrEqual(7);
     }
   });
 
-  it('keeps later levels attainable, without a level that takes most of a module', () => {
+  it('asks more tasks per level over time, without a level that takes most of a module', () => {
+    const mean = (values: number[]) =>
+      values.reduce((sum, value) => sum + value, 0) / values.length;
+
     for (const pattern of patterns) {
       const perLevel = tasksPerLevel(runs.get(`new|${pattern}`)!);
+      const thirds = [0, 1, 2].map((third) =>
+        mean(perLevel.slice(third * 5, third * 5 + 5)),
+      );
 
-      expect(Math.max(...perLevel)).toBeLessThanOrEqual(40);
+      // Milestones and task mix make single levels noisy; the trend is up.
+      expect(thirds[0]).toBeLessThan(thirds[1]!);
+      expect(thirds[1]).toBeLessThan(thirds[2]!);
+      expect(Math.max(...perLevel)).toBeLessThanOrEqual(30);
     }
-    // The previous policy reached only level 5 in M01 and M02 together.
-    expect(runs.get('old|normal')!.finalLevel).toBe(5);
     expect(runs.get('new|normal')!.finalLevel).toBeGreaterThanOrEqual(12);
   });
 
@@ -227,14 +249,14 @@ describe('simulated progression through M01 and M02', () => {
     expect(hintHeavy.xpBySource.checkpoint_cleared).toBeUndefined();
   });
 
-  it('keeps lesson, checkpoint and module bonuses below a third of all XP', () => {
+  it('keeps lesson, checkpoint and module bonuses below a fifth of all XP', () => {
     const normal = runs.get('new|normal')!;
     const bonuses =
       (normal.xpBySource.lesson_completed ?? 0) +
       (normal.xpBySource.checkpoint_cleared ?? 0) +
       (normal.xpBySource.module_completed ?? 0);
 
-    expect(bonuses / normal.totalXp).toBeLessThan(1 / 3);
+    expect(bonuses / normal.totalXp).toBeLessThan(1 / 5);
   });
 
   it('writes the full comparison when asked', () => {
@@ -278,54 +300,130 @@ function thresholdOf(level: number, levelCurve: LevelCurve) {
   return total;
 }
 
+const tierOrder = ['introductory', 'standard', 'complex'] as const;
+const familyOf = (meta: { role: string }) =>
+  meta.role === 'lab' || meta.role === 'quest' ? 'practical' : meta.role;
+
 function report(): string {
+  const required = order.filter((task) => !task.meta.optional);
   const lines: string[] = [
-    '# Programme #2 XP and level simulation (M01 + M02)',
+    '# Programme #2 XP and level calibration (M01 + M02)',
     '',
     `Generated by tests/programmes/xpCalibration.test.ts from content version ${p2Index.contentVersion}.`,
-    `Evaluable tasks in learner order: ${order.length} (required ${order.filter((task) => !task.meta.optional).length}; optional tasks are not simulated).`,
+    `Required evaluable tasks in learner order: ${required.length}; optional tasks are not simulated.`,
     '',
-    'Old: bc2bc9a values (flat per family; shared curve 100, +200).',
-    `New: effort rubric ${JSON.stringify(lessonXp.effort)}; curve ${JSON.stringify(curve)}.`,
+    `Previous (8560194): curve ${JSON.stringify(previous.curve)}, solved ${JSON.stringify(previous.lessonXp.solved)}, effort -1 / +4.`,
+    `Current: curve ${JSON.stringify(curve)}, solved ${JSON.stringify(lessonXp.solved)}, effort ${lessonXp.effort!.introductory.adjust} / +${lessonXp.effort!.complex.adjust}; bonuses lesson ${lessonXp.lessonCompleted}, milestone ${lessonXp.authoredMilestone}, recall ${lessonXp.independentRecall}, checkpoint ${lessonXp.checkpointCleared}, module ${lessonXp.moduleCompleted}.`,
     '',
+    '## (a) Solved-task XP by difficulty tier and role family (required tasks)',
+    '',
+    'Tiers: introductory = choice tasks; complex = program, diagnose, trace, test table and Task 6; standard = the rest.',
+    '',
+    '| Tier | Role family | Previous XP | Current XP | Tasks |',
+    '| --- | --- | ---: | ---: | ---: |',
   ];
 
+  for (const tier of tierOrder) {
+    for (const family of [
+      'formative',
+      'practical',
+      'retrieval',
+      'checkpoint',
+    ]) {
+      const group = required.filter(
+        (task) =>
+          lessonEffortTier(lessonXp, task.meta) === tier &&
+          familyOf(task.meta) === family,
+      );
+
+      if (group.length === 0) {
+        continue;
+      }
+
+      const range = (policy: LessonXpPolicy) => {
+        const values = group.map((task) => solvedTaskXp(policy, task.meta));
+        const low = Math.min(...values);
+        const high = Math.max(...values);
+
+        return low === high ? `${low}` : `${low}-${high}`;
+      };
+
+      lines.push(
+        `| ${tier} | ${family} | ${range(previous.lessonXp)} | ${range(lessonXp)} | ${group.length} |`,
+      );
+    }
+  }
+
+  const normalNew = runs.get('new|normal')!;
+  const normalOld = runs.get('old|normal')!;
+  const reachedOld = [...normalOld.levelReachedAt.entries()];
+  const reachedNew = [...normalNew.levelReachedAt.entries()];
+
+  lines.push(
+    '',
+    '## (b) Thresholds and solved-task intervals per level (normal pattern)',
+    '',
+    '| Level reached | Previous threshold XP | Previous interval | Current threshold XP | Current interval |',
+    '| ---: | ---: | ---: | ---: | ---: |',
+  );
+  for (
+    let level = 2;
+    level <= Math.max(normalNew.finalLevel, normalOld.finalLevel);
+    level += 1
+  ) {
+    const cell = (
+      reached: typeof reachedNew,
+      levelCurve: LevelCurve,
+    ): [string, string] => {
+      const at = reached.find(([l]) => l === level);
+      const before = reached.find(([l]) => l === level - 1);
+
+      return at === undefined
+        ? ['-', '-']
+        : [`${thresholdOf(level, levelCurve)}`, `${at[1] - before![1]}`];
+    };
+    const [oldThreshold, oldInterval] = cell(reachedOld, previous.curve);
+    const [newThreshold, newInterval] = cell(reachedNew, curve);
+
+    lines.push(
+      `| ${level} | ${oldThreshold} | ${oldInterval} | ${newThreshold} | ${newInterval} |`,
+    );
+  }
+
+  lines.push(
+    '',
+    '## (c) and (d) Levels at the end of M01 and M02, previous against current',
+    '',
+    '| Pattern | Previous XP | Previous M01 / M02 level | Current XP | Current M01 / M02 level | Previous intervals | Current intervals |',
+    '| --- | ---: | --- | ---: | --- | --- | --- |',
+  );
   for (const pattern of patterns) {
     const old = runs.get(`old|${pattern}`)!;
     const next = runs.get(`new|${pattern}`)!;
+    const end = (run: SimulationResult, mission: string) =>
+      run.missionEnds.find((entry) => entry.missionId === mission)!.level;
 
-    lines.push(`## ${pattern}`, '');
     lines.push(
-      `Old: ${old.totalXp} XP, level ${old.finalLevel}. Solved tasks per level: ${tasksPerLevel(old).join(', ')}.`,
+      `| ${pattern} | ${old.totalXp} | ${end(old, 'S1-M01-CHK')} / ${end(old, 'S1-M02-CHK')} | ${next.totalXp} | ${end(next, 'S1-M01-CHK')} / ${end(next, 'S1-M02-CHK')} | ${tasksPerLevel(old).join(', ')} | ${tasksPerLevel(next).join(', ')} |`,
     );
-    lines.push(
-      `New: ${next.totalXp} XP, level ${next.finalLevel}. Solved tasks per level: ${tasksPerLevel(next).join(', ')}.`,
-    );
-    lines.push(`Old XP by source: ${JSON.stringify(old.xpBySource)}`);
-    lines.push(`New XP by source: ${JSON.stringify(next.xpBySource)}`, '');
-    lines.push(
-      '| Mission end | Solved | Old XP | Old level (to next) | New XP | New level (to next) |',
-      '| --- | ---: | ---: | --- | ---: | --- |',
-    );
-    next.missionEnds.forEach((end, index) => {
-      const before = old.missionEnds[index]!;
-
-      lines.push(
-        `| ${end.missionId} ${end.title} | ${end.solved} | ${before.totalXp} | ${before.level} (+${before.xpToNextLevel}) | ${end.totalXp} | ${end.level} (+${end.xpToNextLevel}) |`,
-      );
-    });
-    lines.push('', 'First ten solved tasks (new):', '');
-    lines.push(
-      '| # | Task | Mode | Awards | XP | Total | Level |',
-      '| ---: | --- | --- | --- | ---: | ---: | ---: |',
-    );
-    for (const task of next.tasks.slice(0, 10)) {
-      lines.push(
-        `| ${task.n} | ${task.exerciseId} | ${task.responseMode} | ${task.awards.map((award) => `${award.sourceType} ${award.xp}`).join(', ')} | ${task.xp} | ${task.totalXp} | ${task.level} |`,
-      );
-    }
-    lines.push('');
   }
+
+  lines.push(
+    '',
+    `XP by source, current normal: ${JSON.stringify(normalNew.xpBySource)}`,
+    `XP by source, previous normal: ${JSON.stringify(normalOld.xpBySource)}`,
+    '',
+    'First ten solved tasks (current, normal):',
+    '',
+    '| # | Task | Mode | Awards | XP | Total | Level |',
+    '| ---: | --- | --- | --- | ---: | ---: | ---: |',
+  );
+  for (const task of normalNew.tasks.slice(0, 10)) {
+    lines.push(
+      `| ${task.n} | ${task.exerciseId} | ${task.responseMode} | ${task.awards.map((award) => `${award.sourceType} ${award.xp}`).join(', ')} | ${task.xp} | ${task.totalXp} | ${task.level} |`,
+    );
+  }
+  lines.push('');
 
   return lines.join('\n');
 }

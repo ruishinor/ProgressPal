@@ -52,9 +52,9 @@ const awardXp = createLessonAwardPlanner({
   runtimeAvailable: false,
 });
 
-// S1-M01-P01-E03: a formative choice task (introductory: 5 - 1 = 4 XP).
+// S1-M01-P01-E03: a formative choice task (introductory: 8 - 2 = 6 XP).
 const choice = exercises.find((entry) => entry.id === 'S1-M01-P01-E03')!;
-// Task 6: ordering the ten steps (complex by name: 5 + 4 = 9 XP).
+// Task 6: ordering the ten steps (complex by name: 8 + 5 = 13 XP).
 const task6 = exercises.find((entry) => entry.id === 'S1-M01-P05-E06')!;
 
 const databases: TestDatabaseContext[] = [];
@@ -121,7 +121,7 @@ async function seedP2Xp(context: TestDatabaseContext, xp: number) {
 describe('Programme #2 levels in the result transaction', () => {
   it('reads the summary on the programme curve and levels up exactly at the threshold', async () => {
     const context = await device('p2-curve-threshold');
-    await seedP2Xp(context, curve.firstLevelXp - 4);
+    await seedP2Xp(context, curve.firstLevelXp - 6);
 
     const outcome = await submit(context, choice, rightChoice, 'attempt-1');
 
@@ -129,7 +129,7 @@ describe('Programme #2 levels in the result transaction', () => {
     if (outcome.status !== 'evaluated' || !isRewardMutationResult(outcome)) {
       throw new Error('expected an evaluated reward result');
     }
-    expect(outcome.awardedTransactions.map((row) => row.xp)).toEqual([4]);
+    expect(outcome.awardedTransactions.map((row) => row.xp)).toEqual([6]);
     expect(outcome.xpSummary).toMatchObject({
       totalXp: curve.firstLevelXp,
       level: 2,
@@ -149,7 +149,7 @@ describe('Programme #2 levels in the result transaction', () => {
 
   it('awards a solved task once: a repeat adds nothing and announces nothing', async () => {
     const context = await device('p2-curve-repeat');
-    await seedP2Xp(context, curve.firstLevelXp - 4);
+    await seedP2Xp(context, curve.firstLevelXp - 6);
 
     await submit(context, choice, rightChoice, 'attempt-1');
     const repeat = await submit(context, choice, rightChoice, 'attempt-2');
@@ -183,7 +183,7 @@ describe('Programme #2 levels in the result transaction', () => {
     if (outcome.status !== 'evaluated') {
       throw new Error('expected an evaluated result');
     }
-    expect(outcome.awardedTransactions.map((row) => row.xp)).toEqual([4]);
+    expect(outcome.awardedTransactions.map((row) => row.xp)).toEqual([6]);
   });
 
   it('awards nothing for an answer bound to another content version', async () => {
@@ -217,7 +217,7 @@ describe('Programme #2 levels in the result transaction', () => {
       outcome.awardedTransactions.find(
         (row) => row.sourceType === 'exercise_solved',
       )?.xp,
-    ).toBe(9);
+    ).toBe(13);
   });
 });
 
@@ -253,13 +253,13 @@ describe('programme isolation', () => {
       currentLevelFloorXp: 100,
       nextLevelXp: 400,
     });
-    // Programme #2 curve: 40, 95, 165 for levels 2, 3 and 4.
+    // Programme #2 curve: 55, 130, 225 for levels 2, 3 and 4.
     expect(programmeTwo).toEqual({
       totalXp: 150,
       level: 3,
-      xpToNextLevel: 15,
-      currentLevelFloorXp: 95,
-      nextLevelXp: 165,
+      xpToNextLevel: 75,
+      currentLevelFloorXp: 130,
+      nextLevelXp: 225,
     });
   });
 });

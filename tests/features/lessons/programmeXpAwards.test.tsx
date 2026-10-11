@@ -173,8 +173,8 @@ describe('Programvareutvikling earns its own XP for correct work', () => {
   });
 
   it('announces a real Programvareutvikling level-up and does not replay it after reload', async () => {
-    // Programme #2's own curve (2026-10-10): level 2 at exactly 40 XP. The
-    // seed leaves the 5 XP command task to land on the threshold itself.
+    // Programme #2's own curve (2026-10-11): level 2 at exactly 55 XP. The
+    // seed leaves the 8 XP command task to land on the threshold itself.
     const levelTwoXp = p2.policy.levelCurve!.firstLevelXp;
 
     await addXpTransaction({
@@ -184,7 +184,7 @@ describe('Programvareutvikling earns its own XP for correct work', () => {
       sourceId: 'p2-level-seed',
       programmeId: p2.programmeId,
       sourceType: 'study_session',
-      xp: levelTwoXp - 5,
+      xp: levelTwoXp - 8,
     });
 
     const lesson = await openLesson('s1-m01-o02');

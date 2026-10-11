@@ -99,36 +99,37 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
         itemMilestones: [],
       },
       // Lesson XP (owner decision 2026-10-03; E-SCHEMA-1A): only correct
-      // work earns, in this programme's own ledger. Values from the measured
-      // calibration (artifacts XP_CALIBRATION_REPORT.md): ordinary solved
-      // tasks carry about two thirds of a normal run, larger bonuses go to
-      // independent recall and a cleared module checkpoint, and repeats,
-      // reloads and hints add nothing.
+      // work earns, in this programme's own ledger, and the same task earns
+      // the same at every level. Repeats, reloads and hints add nothing.
       //
-      // Effort rubric (owner decision 2026-10-10, simulated in
-      // tests/programmes/xpCalibration.test.ts): the family values above are
-      // the standard tier. A choice task (one click among options) earns 1
-      // less; writing or changing a program, diagnosing an error (type, line
-      // and cause), tracing values line by line and designing tests earn 4
-      // more, as does Task 6 (ordering the ten steps of the development
-      // process). Everything else is standard.
+      // Effort rubric (owner decisions 2026-10-10 and 2026-10-11, simulated in
+      // tests/programmes/xpCalibration.test.ts): the family values are the
+      // standard tier. A choice task (one click among options) earns 2 less;
+      // writing or changing a program, diagnosing an error (type, line and
+      // cause), tracing values line by line and designing tests earn 5 more,
+      // as does Task 6 (ordering the ten steps of the development process).
+      // Authored guided/independent adds nothing: every independent task is
+      // already a program or a test table. A choice task earns 6, a standard
+      // task 8 and a demanding one 13 in a lesson; practical work (lab and
+      // quest) 12, 14 and 19. Bonuses (a finished lesson, a cleared module
+      // checkpoint, a finished module) stay below a fifth of all XP.
       lessonXp: {
         solved: {
-          formative: 5,
-          practical: 8,
-          retrieval: 6,
-          checkpoint: 8,
-          optional: 2,
+          formative: 8,
+          practical: 14,
+          retrieval: 11,
+          checkpoint: 12,
+          optional: 3,
         },
         authoredMilestone: 10,
         independentRecall: 4,
-        lessonCompleted: 15,
+        lessonCompleted: 12,
         checkpointCleared: 60,
         moduleCompleted: 30,
         effort: {
-          introductory: { adjust: -1, responseModes: ['mcq'] },
+          introductory: { adjust: -2, responseModes: ['mcq'] },
           complex: {
-            adjust: 4,
+            adjust: 5,
             responseModes: ['program', 'diagnose', 'trace', 'testtable'],
             subjectIds: ['s1-m01-p05-e06'],
           },
@@ -142,11 +143,11 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
           moduleCompleted: 'Fullførte modulen «{module}»',
         },
       },
-      // Level curve (owner decision 2026-10-10): 40 XP for level 2, then 15
-      // more for each next level (40, 55, 70, ...). About five solved tasks
-      // reach level 2, eight more level 3 and eleven more level 4; later
-      // levels take gradually longer. CS50x keeps the shared curve.
-      levelCurve: { firstLevelXp: 40, levelStepXp: 15 },
+      // Level curve (owner decisions 2026-10-10, 2026-10-11): 55 XP for
+      // level 2, then 20 more for each next level (55, 75, 95, ...). About
+      // five solved tasks reach level 2, then roughly 9, 10, 17, 16 more;
+      // later levels take gradually longer. CS50x keeps the shared curve.
+      levelCurve: { firstLevelXp: 55, levelStepXp: 20 },
       workflow: { sequenceItemTypes: [], correctionItemTypes: [] },
       achievements: programvareutviklingAchievements,
     },
