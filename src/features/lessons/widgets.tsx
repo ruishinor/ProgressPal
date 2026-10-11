@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import type {
   LessonExercise,
@@ -6,6 +6,8 @@ import type {
   LessonUiCopy,
 } from '@/lib/domain';
 
+import { transcriptHeading } from './codeLabels';
+import { LeadingSpaceNote } from './LeadingSpaceNote';
 import type { AnswerDraft } from './drafts';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, shuffledOrder } from './model';
@@ -70,12 +72,43 @@ function OptionText({
   );
 }
 
-function CodeView({ code, context }: { code: string; context: MarkupContext }) {
+/**
+ * Code or output of an exercise. With a `label` it is a named group (a Python
+ * source file, or a terminal transcript); `copy` also adds the note for a
+ * leading space in source. The text itself is shown exactly as authored.
+ */
+function CodeView({
+  code,
+  context,
+  copy,
+  label,
+  source = false,
+}: {
+  code: string;
+  context: MarkupContext;
+  copy?: LessonUiCopy;
+  label?: string | undefined;
+  source?: boolean;
+}) {
+  const labelId = useId();
+
   return (
-    <div className="lesson-pre">
+    <div
+      aria-labelledby={label === undefined ? undefined : labelId}
+      className="lesson-pre"
+      role={label === undefined ? undefined : 'group'}
+    >
+      {label === undefined ? null : (
+        <p className="lesson-note" id={labelId}>
+          {label}
+        </p>
+      )}
       <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>{code}</code>
       </pre>
+      {source && copy !== undefined ? (
+        <LeadingSpaceNote code={code} copy={copy} />
+      ) : null}
     </div>
   );
 }
@@ -958,9 +991,23 @@ function DiagnoseWidget({
 }: WidgetProps<'diagnose'>) {
   return (
     <>
-      <CodeView code={exercise.code} context={context} />
+      <CodeView
+        code={exercise.code}
+        context={context}
+        copy={copy}
+        label={formatCopy(copy, 'fileLabel', { file: exercise.file })}
+        source
+      />
       <p>{copy.text.pythonAnswered}</p>
-      <CodeView code={exercise.terminal} context={context} />
+      <CodeView
+        code={exercise.terminal}
+        context={context}
+        label={transcriptHeading(
+          copy,
+          exercise.terminal,
+          copy.text.errorOutput,
+        )}
+      />
       <p>{copy.text.diagnoseIntro}</p>
       <SelectControl
         disabled={disabled}
@@ -1048,7 +1095,13 @@ function ProgramWidget({
               ? copy.text.programToFix
               : copy.text.programToChange}
           </p>
-          <CodeView code={exercise.starter} context={context} />
+          <CodeView
+            code={exercise.starter}
+            context={context}
+            copy={copy}
+            label={copy.text.sourceLabel}
+            source
+          />
           <p>
             {exercise.broken_run.stdin
               ? formatCopy(copy, 'programRunWithInput', {
@@ -1058,7 +1111,15 @@ function ProgramWidget({
                 })
               : copy.text.programRun}
           </p>
-          <CodeView code={exercise.broken_run.terminal} context={context} />
+          <CodeView
+            code={exercise.broken_run.terminal}
+            context={context}
+            label={transcriptHeading(
+              copy,
+              exercise.broken_run.terminal,
+              copy.text.errorOutput,
+            )}
+          />
         </>
       ) : exercise.starter ? (
         <CodeView code={exercise.starter} context={context} />

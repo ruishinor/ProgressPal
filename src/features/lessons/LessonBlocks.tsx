@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import type { LessonTextBlock, LessonUiCopy } from '@/lib/domain';
 
+import { transcriptHeading } from './codeLabels';
+import { LeadingSpaceNote } from './LeadingSpaceNote';
 import { copyableRoles, type PreformattedRole } from './copyPolicy';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy } from './model';
@@ -56,12 +58,23 @@ function Preformatted({
   role: PreformattedRole;
   text: string;
 }) {
+  const labelId = useId();
+
   return (
-    <div className={`lesson-pre lesson-pre--${role}`}>
-      {label === undefined ? null : <p className="lesson-note">{label}</p>}
+    <div
+      aria-labelledby={label === undefined ? undefined : labelId}
+      className={`lesson-pre lesson-pre--${role}`}
+      role={label === undefined ? undefined : 'group'}
+    >
+      {label === undefined ? null : (
+        <p className="lesson-note" id={labelId}>
+          {label}
+        </p>
+      )}
       <pre tabIndex={0} lang={context.technicalLanguage}>
         <code>{text}</code>
       </pre>
+      {role === 'source' ? <LeadingSpaceNote code={text} copy={copy} /> : null}
       {copyableRoles[role] ? <CopyButton copy={copy} text={text} /> : null}
     </div>
   );
@@ -153,6 +166,7 @@ export function LessonTextBlockView({
           <Preformatted
             context={context}
             copy={copy}
+            label={copy.text.terminalLabel}
             role="terminal"
             text={sessionText(block.session)}
           />
@@ -182,7 +196,11 @@ export function LessonTextBlockView({
             <Preformatted
               context={context}
               copy={copy}
-              label={copy.text.errorOutput}
+              label={transcriptHeading(
+                copy,
+                block.error,
+                copy.text.errorOutput,
+              )}
               role="error"
               text={block.error}
             />
@@ -203,7 +221,11 @@ export function LessonTextBlockView({
           <Preformatted
             context={context}
             copy={copy}
-            label={copy.text.errorOutput}
+            label={transcriptHeading(
+              copy,
+              block.terminal,
+              copy.text.errorOutput,
+            )}
             role="error"
             text={block.terminal}
           />
@@ -216,6 +238,7 @@ export function LessonTextBlockView({
           <Preformatted
             context={context}
             copy={copy}
+            label={transcriptHeading(copy, block.text, undefined)}
             role="terminal"
             text={block.text}
           />
@@ -269,6 +292,7 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
+                    label={copy.text.sourceLabel}
                     role="source"
                     text={step.code}
                   />
@@ -277,6 +301,7 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
+                    label={copy.text.terminalLabel}
                     role="terminal"
                     text={sessionText(step.session)}
                   />
@@ -294,7 +319,11 @@ export function LessonTextBlockView({
                   <Preformatted
                     context={context}
                     copy={copy}
-                    label={copy.text.errorOutput}
+                    label={transcriptHeading(
+                      copy,
+                      step.error,
+                      copy.text.errorOutput,
+                    )}
                     role="error"
                     text={step.error}
                   />

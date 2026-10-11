@@ -71,7 +71,11 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     errorOutput: 'Feilmelding:',
     pythonAnswered: 'Python svarte:',
     unverifiedTranscript: 'Kilde: {source}',
-    fileLabel: '# {file}',
+    fileLabel: 'Python-fil: {file}',
+    sourceLabel: 'Python-kode',
+    terminalLabel: 'Terminal – PowerShell',
+    leadingSpaceNote:
+      'Første linje starter med {count} mellomrom. Markøren · viser hvert mellomrom; den er ikke en del av koden.',
     selectAll: 'Velg alle som passer.',
     traceInstruction:
       'Fyll ut tabellen med verdien til {vars} etter hver linje (skriv - hvis variabelen ikke finnes ennå).',

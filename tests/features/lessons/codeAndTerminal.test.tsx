@@ -86,7 +86,7 @@ describe('source and transcript are told apart', () => {
     const source = screen.getByRole('group', { name: 'Python-fil: hei.py' });
 
     expect(within(source).getByText(/ett mellomrom/i)).toBeInTheDocument();
-    expect(within(source).getByText('␣print("Hei")')).toBeInTheDocument();
+    expect(within(source).getByText('·print("Hei")')).toBeInTheDocument();
     expect(container.querySelector('pre')!.textContent).toBe(' print("Hei")');
     expect(writeText).not.toHaveBeenCalled();
   });
