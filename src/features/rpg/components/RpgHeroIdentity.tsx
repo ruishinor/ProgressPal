@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { classNames } from '@/components/ui/utils';
 import { ProfileAvatar } from '@/features/profile';
 import guildEmblem from '@/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.webp?inline';
-import { RpgButton } from '@/features/rpg/components/RpgButton';
+import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { RpgRankBadge } from '@/features/rpg/components/RpgRankBadge';
 import type { RpgHubIdentity } from '@/features/rpg/model/types';
 import type { LearnerAvatarConfig } from '@/lib/domain';
@@ -17,34 +16,6 @@ type RpgHeroIdentityProps = {
   profileHref?: string;
   variant?: 'hud' | 'profile';
 };
-
-/**
- * The short explanation of Rank, behind an (i) next to it on the profile only:
- * the compact HUD and the profile page itself carry no recurring note.
- */
-function RankInfo() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <RpgButton
-        aria-controls="rpg-rank-info"
-        aria-expanded={open}
-        aria-label="About rank"
-        onClick={() => setOpen((current) => !current)}
-        size="sm"
-        variant="quiet"
-      >
-        (i)
-      </RpgButton>
-      {open ? (
-        <p id="rpg-rank-info">
-          Rank follows how much of the required course you have completed.
-        </p>
-      ) : null}
-    </>
-  );
-}
 
 /** One visual vocabulary for learner identity; all facts come from the read model. */
 export function RpgHeroIdentity({
@@ -101,7 +72,9 @@ export function RpgHeroIdentity({
         {variant === 'profile' ? (
           <div className="action-row">
             <RpgRankBadge rank={identity.rankLabel} />
-            <RankInfo />
+            <RpgInfoNote label="About rank">
+              Rank follows how much of the required course you have completed.
+            </RpgInfoNote>
           </div>
         ) : (
           <RpgRankBadge rank={identity.rankLabel} />

@@ -4,6 +4,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { formatMinutes } from '@/lib/time';
 import { RpgAchievementArt } from '@/features/rpg/components/RpgAchievementArt';
+import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import {
   RpgButton,
   RpgEmptyState,
@@ -216,7 +217,9 @@ export function RpgHeroPage() {
             showValue={summary.courseProgress.requiredItemCount > 0}
             value={summary.courseProgress.completionPercent}
           />
-          <p className="rpg-hero__note">{copy.rpgHeroProgressNote}</p>
+          <RpgInfoNote label="About required progress">
+            {copy.rpgHeroProgressNote}
+          </RpgInfoNote>
         </RpgPanel>
 
         <RpgPanel title="Local activity totals" titleAs="h2">

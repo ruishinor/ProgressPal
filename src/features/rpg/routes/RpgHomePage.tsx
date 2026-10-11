@@ -1,3 +1,4 @@
+import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import { useOutletContext } from 'react-router-dom';
 
@@ -115,11 +116,16 @@ export function RpgHomePage() {
                     ? 'Required tasks complete in ProgressPal'
                     : 'Course data unavailable'}
                 </h3>
-                <p className="rpg-hub__note">
-                  {recommendation.state === 'required_complete'
-                    ? copy.rpgRequiredCompleteNote
-                    : 'The course could not be summarized. This does not mean your required work is complete.'}
-                </p>
+                {recommendation.state === 'required_complete' ? (
+                  <RpgInfoNote label="About completion">
+                    {copy.rpgRequiredCompleteNote}
+                  </RpgInfoNote>
+                ) : (
+                  <p className="rpg-hub__note">
+                    The course could not be summarized. This does not mean your
+                    required work is complete.
+                  </p>
+                )}
                 {recommendation.state === 'required_complete' &&
                 recommendation.optionalRemainingCount > 0 ? (
                   <p className="rpg-hub__note">{`${recommendation.optionalRemainingCount} optional tasks remain. You can explore them in Campaign.`}</p>

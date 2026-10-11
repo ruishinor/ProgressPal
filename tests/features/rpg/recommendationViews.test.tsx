@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -117,6 +117,11 @@ describe('recommendation presentation', () => {
         name: 'Required tasks complete in ProgressPal',
       }),
     ).toBeInTheDocument();
+    // The boundary note sits behind an (i) since 2026-10-11.
+    expect(
+      screen.queryByText(/does not confirm official CS50 completion/),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'About completion' }));
     expect(
       screen.getByText(/does not confirm official CS50 completion/),
     ).toBeInTheDocument();
