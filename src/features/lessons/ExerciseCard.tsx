@@ -37,6 +37,7 @@ import { useLessonSurfaces } from './presentation';
 import {
   noProgressChecks,
   progressCheckAvailability,
+  progressCheckNeed,
   takeProgressCheck,
   type ProgressCheckState,
 } from './progressCheck';
@@ -356,6 +357,10 @@ export function ExerciseCard({
               progressCheck: {
                 answering: !showResult,
                 availability: progressCheckAvailability(
+                  shownDraft.positions as number[],
+                  checks,
+                ),
+                need: progressCheckNeed(
                   shownDraft.positions as number[],
                   checks,
                 ),

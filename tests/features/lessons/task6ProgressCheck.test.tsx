@@ -111,7 +111,12 @@ const checkButton = (card: HTMLElement) =>
 function placedOrder(card: HTMLElement) {
   return within(within(card).getByRole('list', { name: 'Din rekkefølge' }))
     .getAllByRole('listitem')
-    .map((item) => item.firstChild?.textContent?.trim() ?? '');
+    .map(
+      (item) =>
+        item.querySelector('.lesson-order__name')?.textContent?.trim() ??
+        item.textContent?.trim() ??
+        '',
+    );
 }
 
 async function nothingRecorded() {
@@ -125,23 +130,24 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
     const card = await openTask6();
 
     expect(card).toHaveTextContent('Plassert: 0 av 10');
-    expect(card).toHaveTextContent(
-      'Sjekken sier ikke hvilke, og den teller ikke som et svar.',
-    );
+    expect(card).toHaveTextContent('Gratis, og teller ikke som svar.');
     expect(checkButton(card)).toBeDisabled();
     expect(checkButton(card)).toHaveAccessibleDescription(
-      'Første sjekk: når minst 4 steg er plassert.',
+      'Velg fire steg før du kan sjekke.',
     );
 
     await place(card, steps.slice(0, 3));
     expect(card).toHaveTextContent('Plassert: 3 av 10');
     expect(checkButton(card)).toBeDisabled();
+    expect(checkButton(card)).toHaveAccessibleDescription(
+      'Velg ett steg til før du kan sjekke.',
+    );
 
     await place(card, [steps[3]]);
     expect(card).toHaveTextContent('Plassert: 4 av 10');
     await waitFor(() => expect(checkButton(card)).toBeEnabled());
     expect(checkButton(card)).toHaveAccessibleDescription(
-      'Sjekker igjen: 2 av 2.',
+      'Du kan sjekke nå (2 igjen).',
     );
   }, 30_000);
 
@@ -153,13 +159,9 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
     await whenEnabled(() => checkButton(card));
 
     expect(
-      await within(card).findByText(
-        'Da du sjekket, sto 2 av 4 plasserte steg på riktig plass.',
-      ),
+      await within(card).findByText('2 av 4 står riktig.'),
     ).toBeInTheDocument();
-    expect(card).toHaveTextContent(
-      'Les rekkefølgen fra start: følger hvert steg naturlig etter det forrige? Flytt det som ikke passer.',
-    );
+    expect(card).toHaveTextContent('Flytt på det som ikke passer.');
     expect(
       within(card).queryByText('Riktig plass', { exact: true }),
     ).toBeNull();
@@ -180,23 +182,21 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
 
     await place(card, ['Problem', 'Krav', 'Behov', 'Modellering']);
     await whenEnabled(() => checkButton(card));
-    await within(card).findByText(/sto 2 av 4 plasserte steg/);
+    await within(card).findByText('2 av 4 står riktig.');
     expect(checkButton(card)).toBeDisabled();
     expect(checkButton(card)).toHaveAccessibleDescription(
-      'Andre sjekk: når minst 7 steg er plassert og minst 3 plasser har et annet steg enn ved første sjekk.',
+      'Velg tre steg til før du kan sjekke igjen.',
     );
 
     await place(card, ['Planlegging', 'Programmering', 'Testing']);
     await whenEnabled(() => checkButton(card));
 
     expect(
-      await within(card).findByText(
-        'Da du sjekket, sto 5 av 7 plasserte steg på riktig plass.',
-      ),
+      await within(card).findByText('5 av 7 står riktig.'),
     ).toBeInTheDocument();
     expect(checkButton(card)).toBeDisabled();
     expect(checkButton(card)).toHaveAccessibleDescription(
-      'Du har brukt begge sjekkene. Sjekk hele svaret med «Sjekk svaret» når du er klar.',
+      'Begge sjekkene er brukt. Bruk «Sjekk svaret» når du er klar.',
     );
     await nothingRecorded();
   }, 30_000);
@@ -207,17 +207,17 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
     await place(card, steps.slice(0, 6));
     await whenEnabled(() => checkButton(card));
     expect(
-      await within(card).findByText(
-        'Da du sjekket, sto 6 av 6 plasserte steg på riktig plass.',
-      ),
+      await within(card).findByText('6 av 6 står riktig.'),
     ).toBeInTheDocument();
-    expect(card).toHaveTextContent(
-      'Så langt stemmer rekkefølgen. Fortsett med neste steg.',
-    );
+    expect(card).toHaveTextContent('Fortsett med neste steg.');
 
-    // One more step: seven placed, but only one place changed.
+    // One more step: seven placed, but only one place changed. The line says
+    // the order must change too, not that more steps must be chosen.
     await place(card, [steps[6]]);
     expect(checkButton(card)).toBeDisabled();
+    expect(checkButton(card)).toHaveAccessibleDescription(
+      'Endre rekkefølgen litt før du kan sjekke igjen.',
+    );
 
     // Moving the first step down changes two more places.
     await whenEnabled(() =>
@@ -233,7 +233,7 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
     await place(card, steps.slice(0, 9));
     expect(checkButton(card)).toBeDisabled();
     expect(checkButton(card)).toHaveAccessibleDescription(
-      'Når høyst ett steg gjenstår, sjekker du hele svaret med «Sjekk svaret».',
+      'Nesten ferdig. Bruk «Sjekk svaret» når du er klar.',
     );
   }, 30_000);
 
@@ -248,8 +248,10 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
         fireEvent.click(button);
       },
     );
-    await within(card).findByText(/sto 4 av 4 plasserte steg/);
-    expect(checkButton(card)).toHaveAccessibleDescription(/^Andre sjekk: /);
+    await within(card).findByText('4 av 4 står riktig.');
+    expect(checkButton(card)).toHaveAccessibleDescription(
+      'Velg tre steg til før du kan sjekke igjen.',
+    );
   }, 30_000);
 
   it('can be used by keyboard alone (Enter and Space on native buttons)', async () => {
@@ -272,7 +274,7 @@ describe('Task 6: Sjekk så langt is a limited, aggregate, formative check', () 
     await user.keyboard('{Enter}');
 
     expect(
-      await within(card).findByText(/sto 4 av 4 plasserte steg/),
+      await within(card).findByText('4 av 4 står riktig.'),
     ).toBeInTheDocument();
   }, 30_000);
 });
@@ -387,7 +389,7 @@ describe('Task 6: the scored answer and editing', () => {
 
     await place(card, wrong.slice(0, 4));
     await whenEnabled(() => checkButton(card));
-    await within(card).findByText(/sto 2 av 4 plasserte steg/);
+    await within(card).findByText('2 av 4 står riktig.');
     await place(card, wrong.slice(4));
     await whenEnabled(() =>
       within(card).getByRole('button', { name: 'Sjekk svaret' }),
@@ -404,9 +406,9 @@ describe('Task 6: the scored answer and editing', () => {
       within(card).getByRole('button', { name: 'Prøv igjen' }),
     );
     expect(card).toHaveTextContent('Plassert: 8 av 10');
-    expect(within(card).queryByText(/^Da du sjekket/)).toBeNull();
+    expect(within(card).queryByText(/står riktig\./)).toBeNull();
     expect(checkButton(card)).toHaveAccessibleDescription(
-      /^(Andre sjekk|Sjekker igjen: 1 av 2)/,
+      /^(Velg .* til før du kan sjekke igjen|Du kan sjekke nå \(1 igjen\))/,
     );
     expect(
       (await listLearnerEvidence()).filter(

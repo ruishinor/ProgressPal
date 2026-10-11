@@ -19,6 +19,17 @@
   padding-inline-start: 2.5rem;
 }
 
+/* Task 6 rows: the name beside its number, the actions or the verdict in one
+   right-hand cluster (an action row) that wraps whole on narrow widths. */
+.lesson-order__name {
+  flex: 1 1 12rem;
+}
+
+.lesson-order__side {
+  justify-content: flex-end;
+  margin-inline-start: auto;
+}
+
 .lesson-fieldset {
   border: 0;
   margin: 0;

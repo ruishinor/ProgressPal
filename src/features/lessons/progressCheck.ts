@@ -103,6 +103,38 @@ export function progressCheckAvailability(
     : { status: 'blocked', reason: 'second' };
 }
 
+/**
+ * What a blocked check still waits for, for the one short line that tells the
+ * learner what to do: steps to choose (`place`) and whether the order also
+ * needs to change. A step chosen into a place that held another step at the
+ * first check counts for both, so choosing is enough when it covers the
+ * places still to change.
+ */
+export type ProgressCheckNeed = {
+  readonly place: number;
+  readonly rearrange: boolean;
+};
+
+export function progressCheckNeed(
+  positions: readonly number[],
+  state: ProgressCheckState,
+): ProgressCheckNeed {
+  const rule = progressCheckRule;
+  const { placed } = progressCheckCount(positions);
+
+  if (state.used === 0 || state.firstSlots === null) {
+    return { place: Math.max(0, rule.firstAt - placed), rearrange: false };
+  }
+
+  const place = Math.max(0, rule.secondAt - placed);
+  const changeLeft = Math.max(
+    0,
+    rule.changedSinceFirst - changedSince(state.firstSlots, positions),
+  );
+
+  return { place, rearrange: changeLeft > place };
+}
+
 /** The state after a check, or the same state when none is available. */
 export function takeProgressCheck(
   positions: readonly number[],

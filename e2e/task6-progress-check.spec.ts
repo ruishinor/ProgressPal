@@ -68,10 +68,8 @@ for (const width of [320, 390, 672, 673, 1280]) {
     await check.focus();
     await page.keyboard.press('Enter');
     await expect(
-      task.getByRole('status').filter({ hasText: /^Da du/ }),
-    ).toContainText(
-      'Da du sjekket, sto 2 av 4 plasserte steg på riktig plass.',
-    );
+      task.getByRole('status').filter({ hasText: /står riktig\./ }),
+    ).toContainText('2 av 4 står riktig.');
     await expect(check).toBeDisabled();
 
     // Move Behov up one place by keyboard; focus stays on its control.
@@ -91,11 +89,9 @@ for (const width of [320, 390, 672, 673, 1280]) {
     await expect(check).toBeEnabled();
     await check.focus();
     await page.keyboard.press(' ');
-    await expect(task).toContainText(
-      'Da du sjekket, sto 7 av 7 plasserte steg på riktig plass.',
-    );
+    await expect(task).toContainText('7 av 7 står riktig.');
     await expect(check).toBeDisabled();
-    await expect(task).toContainText('Du har brukt begge sjekkene.');
+    await expect(task).toContainText('Begge sjekkene er brukt.');
     // No step or place is ever named by a check, and nothing was stored.
     await expect(task.getByText('Riktig plass', { exact: true })).toHaveCount(
       0,
@@ -127,10 +123,37 @@ for (const width of [320, 390, 672, 673, 1280]) {
       );
 
     expect(card).not.toBeNull();
+    // One right-hand column: every row's last action ends at the same edge.
+    const removeEdges = await task
+      .getByRole('button', { name: /^Fjern: / })
+      .evaluateAll((elements) =>
+        elements.map((element) =>
+          Math.round(element.getBoundingClientRect().right),
+        ),
+      );
+
+    expect(new Set(removeEdges).size).toBe(1);
     for (const control of controls) {
       expect(control.left).toBeGreaterThanOrEqual(card!.x);
       expect(control.right).toBeLessThanOrEqual(card!.x + card!.width);
     }
+
+    // The scored action stays reachable above the fixed navigation: focusing
+    // it brings it into view, and it is what a tap on its centre hits.
+    const submit = task.getByRole('button', { name: 'Sjekk svaret' });
+
+    await submit.focus();
+    expect(
+      await submit.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const hit = element.ownerDocument.elementFromPoint(
+          box.left + box.width / 2,
+          box.top + box.height / 2,
+        );
+
+        return hit !== null && element.contains(hit);
+      }),
+    ).toBe(true);
 
     // The scored answer still needs all ten and is evaluated once.
     for (const step of steps.slice(7)) {

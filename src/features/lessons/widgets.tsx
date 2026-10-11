@@ -12,9 +12,9 @@ import { formatCopy, shuffledOrder } from './model';
 import { useLessonSurfaces } from './presentation';
 import {
   moveOrderItem,
-  progressCheckRule,
   type ProgressCheckAvailability,
   type ProgressCheckCount,
+  type ProgressCheckNeed,
 } from './progressCheck';
 
 /**
@@ -48,6 +48,7 @@ export type ProgressCheckView = {
   /** False while a submitted answer is shown read-only beside its result. */
   readonly answering: boolean;
   readonly availability: ProgressCheckAvailability;
+  readonly need: ProgressCheckNeed;
   readonly result: ProgressCheckCount | null;
   readonly onCheck: () => void;
 };
@@ -505,51 +506,53 @@ function OrderWidget({
                 )}
               </>
             ) : (
-              <>
-                <span>
+              <div className="action-row">
+                <span className="lesson-order__name">
                   <InlineText context={context} text={itemText(itemIndex)} />
-                </span>{' '}
-                {mark(itemIndex)}
-                {progressCheck.answering ? (
-                  <>
-                    <button
-                      aria-label={formatCopy(copy, 'orderMoveUp', {
-                        item: spoken(itemIndex),
-                      })}
-                      className={surfaces.quietSmall}
-                      data-move={`up-${itemIndex}`}
-                      disabled={disabled || slot === 0}
-                      onClick={() => move(itemIndex, -1)}
-                      type="button"
-                    >
-                      {copy.text.orderMoveUpButton}
-                    </button>{' '}
-                    <button
-                      aria-label={formatCopy(copy, 'orderMoveDown', {
-                        item: spoken(itemIndex),
-                      })}
-                      className={surfaces.quietSmall}
-                      data-move={`down-${itemIndex}`}
-                      disabled={disabled || slot === total - 1}
-                      onClick={() => move(itemIndex, 1)}
-                      type="button"
-                    >
-                      {copy.text.orderMoveDownButton}
-                    </button>{' '}
-                    <button
-                      aria-label={formatCopy(copy, 'orderRemove', {
-                        item: spoken(itemIndex),
-                      })}
-                      className={surfaces.quietSmall}
-                      disabled={disabled}
-                      onClick={() => remove(itemIndex)}
-                      type="button"
-                    >
-                      {copy.text.orderRemoveButton}
-                    </button>
-                  </>
-                ) : null}
-              </>
+                </span>
+                <span className="action-row lesson-order__side">
+                  {mark(itemIndex)}
+                  {progressCheck.answering ? (
+                    <>
+                      <button
+                        aria-label={formatCopy(copy, 'orderMoveUp', {
+                          item: spoken(itemIndex),
+                        })}
+                        className={surfaces.quietSmall}
+                        data-move={`up-${itemIndex}`}
+                        disabled={disabled || slot === 0}
+                        onClick={() => move(itemIndex, -1)}
+                        type="button"
+                      >
+                        {copy.text.orderMoveUpButton}
+                      </button>
+                      <button
+                        aria-label={formatCopy(copy, 'orderMoveDown', {
+                          item: spoken(itemIndex),
+                        })}
+                        className={surfaces.quietSmall}
+                        data-move={`down-${itemIndex}`}
+                        disabled={disabled || slot === total - 1}
+                        onClick={() => move(itemIndex, 1)}
+                        type="button"
+                      >
+                        {copy.text.orderMoveDownButton}
+                      </button>
+                      <button
+                        aria-label={formatCopy(copy, 'orderRemove', {
+                          item: spoken(itemIndex),
+                        })}
+                        className={surfaces.quietSmall}
+                        disabled={disabled}
+                        onClick={() => remove(itemIndex)}
+                        type="button"
+                      >
+                        {copy.text.orderRemoveButton}
+                      </button>
+                    </>
+                  ) : null}
+                </span>
+              </div>
             )}
           </li>
         ))}
@@ -580,6 +583,7 @@ function OrderWidget({
           copy={copy}
           disabled={disabled}
           helpId={`${idPrefix}-check-help`}
+          placed={placed}
         />
       ) : null}
       <p className="sr-only" role="status">
@@ -589,38 +593,60 @@ function OrderWidget({
   );
 }
 
+/** Everyday number words for a short instruction ("tre steg"). */
+const countWords = [
+  'null',
+  'ett',
+  'to',
+  'tre',
+  'fire',
+  'fem',
+  'seks',
+  'syv',
+  'åtte',
+  'ni',
+  'ti',
+] as const;
+
 /**
- * The check of the work so far: what it is for, when it is available (the
- * button's description), and, after a check, how many placed steps stood
- * right with one short next step. It never names a step or a place.
+ * The check of the work so far: a short note that it is free, one line that
+ * says what remains before the next check (or that it is available), and,
+ * after a check, how many placed steps stood right with one next step. It
+ * never names a step or a place.
  */
 function ProgressCheckControls({
   check,
   copy,
   disabled,
   helpId,
+  placed,
 }: {
   check: ProgressCheckView;
   copy: LessonUiCopy;
   disabled: boolean;
   helpId: string;
+  placed: number;
 }) {
   const surfaces = useLessonSurfaces();
-  const rule = progressCheckRule;
-  const { availability, result } = check;
+  const { availability, need, result } = check;
+  const n = formatCount(need.place);
   const help =
     availability.status === 'available'
-      ? formatCopy(copy, 'progressCheckLeft', {
-          left: availability.left,
-          max: rule.maxChecks,
-        })
+      ? formatCopy(copy, 'progressCheckLeft', { left: availability.left })
       : availability.reason === 'first'
-        ? formatCopy(copy, 'progressCheckFirst', { n: rule.firstAt })
+        ? formatCopy(
+            copy,
+            placed === 0 ? 'progressCheckFirst' : 'progressCheckMore',
+            { n },
+          )
         : availability.reason === 'second'
-          ? formatCopy(copy, 'progressCheckSecond', {
-              n: rule.secondAt,
-              changed: rule.changedSinceFirst,
-            })
+          ? need.place === 0
+            ? copy.text.progressCheckRearrange
+            : formatCopy(
+                copy,
+                need.rearrange ? 'progressCheckBoth' : 'progressCheckSecond',
+                { n },
+              )
           : availability.reason === 'nearly_complete'
             ? copy.text.progressCheckNearlyDone
             : copy.text.progressCheckUsed;
@@ -635,7 +661,6 @@ function ProgressCheckControls({
 
   return (
     <div className="lesson-field">
-      <p>{copy.text.progressCheckRule}</p>
       <div className="action-row">
         <button
           aria-describedby={helpId}
@@ -648,6 +673,7 @@ function ProgressCheckControls({
         </button>
         <span id={helpId}>{help}</span>
       </div>
+      <p>{copy.text.progressCheckRule}</p>
       <div className="lesson-field" role="status">
         {result === null ? null : (
           <>
@@ -663,6 +689,10 @@ function ProgressCheckControls({
       </div>
     </div>
   );
+}
+
+function formatCount(count: number): string {
+  return countWords[count] ?? String(count);
 }
 
 function AssembleWidget({

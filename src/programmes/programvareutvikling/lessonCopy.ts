@@ -205,24 +205,22 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     orderMoveDownButton: '↓',
     orderMoved: '{item} er flyttet til plass {n}.',
     progressCheckButton: 'Sjekk så langt',
-    progressCheckRule:
-      'Underveis kan du sjekke to ganger hvor mange av de plasserte stegene som står på riktig plass. Sjekken sier ikke hvilke, og den teller ikke som et svar.',
-    progressCheckFirst: 'Første sjekk: når minst {n} steg er plassert.',
-    progressCheckSecond:
-      'Andre sjekk: når minst {n} steg er plassert og minst {changed} plasser har et annet steg enn ved første sjekk.',
-    progressCheckLeft: 'Sjekker igjen: {left} av {max}.',
+    progressCheckRule: 'Gratis, og teller ikke som svar.',
+    progressCheckFirst: 'Velg {n} steg før du kan sjekke.',
+    progressCheckMore: 'Velg {n} steg til før du kan sjekke.',
+    progressCheckSecond: 'Velg {n} steg til før du kan sjekke igjen.',
+    progressCheckRearrange: 'Endre rekkefølgen litt før du kan sjekke igjen.',
+    progressCheckBoth:
+      'Velg {n} steg til og endre rekkefølgen litt før du kan sjekke igjen.',
+    progressCheckLeft: 'Du kan sjekke nå ({left} igjen).',
     progressCheckNearlyDone:
-      'Når høyst ett steg gjenstår, sjekker du hele svaret med «Sjekk svaret».',
+      'Nesten ferdig. Bruk «Sjekk svaret» når du er klar.',
     progressCheckUsed:
-      'Du har brukt begge sjekkene. Sjekk hele svaret med «Sjekk svaret» når du er klar.',
-    progressCheckResult:
-      'Da du sjekket, sto {correct} av {placed} plasserte steg på riktig plass.',
-    progressCheckAllRight:
-      'Så langt stemmer rekkefølgen. Fortsett med neste steg.',
-    progressCheckSomeRight:
-      'Les rekkefølgen fra start: følger hvert steg naturlig etter det forrige? Flytt det som ikke passer.',
-    progressCheckNoneRight:
-      'Begynn med det som må skje aller først, og bygg videre derfra.',
+      'Begge sjekkene er brukt. Bruk «Sjekk svaret» når du er klar.',
+    progressCheckResult: '{correct} av {placed} står riktig.',
+    progressCheckAllRight: 'Fortsett med neste steg.',
+    progressCheckSomeRight: 'Flytt på det som ikke passer.',
+    progressCheckNoneRight: 'Start med det som må skje aller først.',
     matchRight: 'Riktig kobling',
     matchWrong: 'Feil kobling',
     whereNextHeading: 'Slik går du videre',
