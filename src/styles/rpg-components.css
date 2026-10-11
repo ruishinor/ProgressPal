@@ -1001,7 +1001,7 @@
 }
 .rpg-identity__traits dd {
   color: var(--rpg-text);
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   overflow-wrap: anywhere;
 }

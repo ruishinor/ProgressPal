@@ -1,6 +1,14 @@
 import type { ProgrammeTerminology } from '../definition';
 
 /**
+ * The learner-facing name of the programme (owner decision 2026-10-11),
+ * written once: the definition's title, the Hero path and every sentence
+ * below take it from here. The stable programme ID, catalogue identity and
+ * routes are unchanged.
+ */
+export const programvareutviklingDisplayName = 'Programvareutvikling 1';
+
+/**
  * Programvareutvikling terminology (Epic E). Programme-owned copy for the
  * shared surfaces, in Bokmål, authored by Epic E as app copy (not curriculum)
  * and pending native-language review with the rest of the programme. It
@@ -21,34 +29,28 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
   rpgIdentity: {
     guildLabel: 'Code Knights',
     classLabel: 'Generalist',
-    pathLabel: 'Programvareutvikling · Semester 1',
+    pathLabel: programvareutviklingDisplayName,
   },
   unitMapOrdinals: {
     's1-m01': '1',
     's1-m02': '2',
   },
   copy: {
-    startupLoadingSummary:
-      'Gjør klar den lokale profilen og innholdet i Programvareutvikling.',
-    shellActiveSummary:
-      'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.',
+    startupLoadingSummary: `Gjør klar den lokale profilen og innholdet i ${programvareutviklingDisplayName}.`,
+    shellActiveSummary: `${programvareutviklingDisplayName} kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.`,
     profileDescription:
       'Den lokale profilen din lagrer studiemål, tema, valg for redusert bevegelse og læringsidentiteten din på denne enheten.',
-    dashboardDescription:
-      'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.',
-    dashboardErrorDescription:
-      'Denne siden viser framdriften din i Programvareutvikling på denne enheten.',
-    courseMapEyebrow: 'Programvareutvikling – moduler',
+    dashboardDescription: `Framdriften din i ${programvareutviklingDisplayName} på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.`,
+    dashboardErrorDescription: `Denne siden viser framdriften din i ${programvareutviklingDisplayName} på denne enheten.`,
+    courseMapEyebrow: `${programvareutviklingDisplayName} – moduler`,
     courseMapLoadingDescription:
       'Appen åpner modulene og den lagrede framdriften din.',
     courseMapErrorDescription:
       'Denne siden bruker de innebygde modulene og den lagrede framdriften din.',
-    catalogueDescription:
-      'Modul 1 og 2 i semester 1 er innebygd. Verktøyene i modulene forutsetter Windows (PowerShell, py-startprogrammet og VS Code).',
+    catalogueDescription: `Modul 1 og 2 i ${programvareutviklingDisplayName} er innebygd. Verktøyene i modulene forutsetter Windows (PowerShell, py-startprogrammet og VS Code).`,
     insightsDescription:
       'Studieaktiviteten din over tid. Lagrede økter og opptjent XP vises her. Dager og uker følger lokal tid på denne enheten.',
-    insightsErrorDescription:
-      'Denne siden viser studieaktiviteten din i Programvareutvikling.',
+    insightsErrorDescription: `Denne siden viser studieaktiviteten din i ${programvareutviklingDisplayName}.`,
     rpgRequiredCompleteNote:
       'Alle påkrevde økter er markert som fullført lokalt. Det betyr ikke at du har vist at du mestrer ferdighetene.',
     rpgHeroProgressNote:

@@ -172,9 +172,6 @@ export function RpgHeroPage() {
             />
             <RpgLevelProgress xp={summary.xpSummary} />
           </div>
-          <p className="rpg-hero__note">
-            Rank reflects local required-course progress only.
-          </p>
         </RpgPanel>
 
         <RpgPanel

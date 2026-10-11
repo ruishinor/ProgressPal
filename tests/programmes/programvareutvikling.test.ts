@@ -42,7 +42,7 @@ describe('registration', () => {
     expect(definition.definitionKey).toBe('programvareutvikling-2026');
     expect(definition.catalogueId).toBe('programvareutvikling-2026');
     expect(definition.catalogue.courseId).toBe('programvareutvikling-2026');
-    expect(definition.title).toBe('Programvareutvikling');
+    expect(definition.title).toBe('Programvareutvikling 1');
   });
 
   it('passes the real definition validator', () => {
@@ -277,12 +277,27 @@ describe('programme-owned content and language identity', () => {
   // Owner correction 2026-10-03: the guild and class are the product's RPG
   // identity (not the programme name or a learner stage); the path names the
   // programme and its stage.
-  it('uses the owner-given RPG identity: Code Knights, Generalist, Programvareutvikling · Semester 1', () => {
+  it('uses the owner-given RPG identity: Code Knights, Generalist, Programvareutvikling 1', () => {
     expect(definition.content.terminology.rpgIdentity).toEqual({
       guildLabel: 'Code Knights',
       classLabel: 'Generalist',
-      pathLabel: 'Programvareutvikling · Semester 1',
+      pathLabel: 'Programvareutvikling 1',
     });
+  });
+
+  // Owner correction 2026-10-11: one learner-facing name, from one owner. The
+  // stable identities above stay as they are.
+  it('shows one display name, Programvareutvikling 1, in every learner-facing programme string', () => {
+    const { terminology } = definition.content;
+    const strings = [
+      definition.title,
+      terminology.rpgIdentity.pathLabel,
+      ...Object.values(terminology.copy),
+    ].filter((text): text is string => typeof text === 'string');
+
+    expect(strings.join(' ')).not.toMatch(/semester/i);
+    expect(strings.join(' ')).not.toMatch(/Programvareutvikling(?! 1)/);
+    expect(terminology.rpgIdentity.pathLabel).toBe(definition.title);
   });
 
   it('serves every lesson item through the content provider and nothing else', () => {

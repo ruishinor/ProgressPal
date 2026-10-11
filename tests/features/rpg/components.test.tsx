@@ -16,6 +16,7 @@ import {
   RpgResourceCard,
   RpgStatusPill,
 } from '@/features/rpg';
+import { RpgHeroIdentity } from '@/features/rpg/components/RpgHeroIdentity';
 
 describe('RPG visual primitives', () => {
   it('renders panel, rank, and empty-state text as DOM text', () => {
@@ -49,6 +50,47 @@ describe('RPG visual primitives', () => {
     expect(
       screen.getByText('Start by opening the campaign map.'),
     ).toBeInTheDocument();
+  });
+
+  it('explains Rank behind an (i) on the profile only, never as recurring text', async () => {
+    const user = userEvent.setup();
+    const identity = {
+      rankLabel: 'Apprentice',
+      guildLabel: 'Code Knights',
+      classLabel: 'Generalist',
+      pathLabel: 'Programvareutvikling 1',
+    };
+    const { rerender } = render(
+      <MemoryRouter>
+        <RpgHeroIdentity
+          avatarConfig={null}
+          identity={identity}
+          name="Alex"
+          variant="profile"
+        />
+      </MemoryRouter>,
+    );
+    const info = screen.getByRole('button', { name: 'About rank' });
+
+    expect(info).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/Rank follows/)).toBeNull();
+    await user.click(info);
+    expect(info).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/Rank follows/)).toBeInTheDocument();
+    await user.click(info);
+    expect(screen.queryByText(/Rank follows/)).toBeNull();
+
+    rerender(
+      <MemoryRouter>
+        <RpgHeroIdentity
+          avatarConfig={null}
+          identity={identity}
+          name="Alex"
+          variant="hud"
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('button', { name: 'About rank' })).toBeNull();
   });
 
   it('renders semantic button and link controls', () => {

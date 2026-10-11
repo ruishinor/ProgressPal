@@ -41,9 +41,9 @@ const cs50Summary =
 const cs50Dashboard =
   'Your CS50 progress on this device. Nothing is synced; backups are manual.';
 const nbSummary =
-  'Programvareutvikling kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.';
+  'Programvareutvikling 1 kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.';
 const nbDashboard =
-  'Framdriften din i Programvareutvikling på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.';
+  'Framdriften din i Programvareutvikling 1 på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.';
 const nbRecorded = 'Svaret er lagret på denne enheten. Det gir ingen poeng.';
 const profilePrivacy =
   'ProgressPal stores your progress in this browser. It does not sync to a server, send analytics, or back up data automatically. The optional remote backup in Settings sends a copy only when you press Back up now, and needs an account. Exported backup files are your responsibility.';

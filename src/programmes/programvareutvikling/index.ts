@@ -13,7 +13,10 @@ import {
 import { programvareutviklingAchievements } from './achievements';
 import catalogueJson from './content/catalogue.json';
 import { programvareutviklingLessonCopy } from './lessonCopy';
-import { programvareutviklingTerminology } from './terminology';
+import {
+  programvareutviklingDisplayName,
+  programvareutviklingTerminology,
+} from './terminology';
 
 /**
  * Programvareutvikling (Epic E): the first real additional programme,
@@ -83,7 +86,7 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
     definitionKey: catalogueId,
     catalogueId,
     programmeId: 'programvareutvikling',
-    title: 'Programvareutvikling',
+    title: programvareutviklingDisplayName,
     catalogue,
     policy: {
       catalogueRules: {
