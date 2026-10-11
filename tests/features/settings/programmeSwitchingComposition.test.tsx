@@ -147,7 +147,7 @@ describe('production registry: two real programmes, nothing switches on render',
         within(target)
           .getAllByRole('option')
           .map((option) => option.textContent),
-      ).toEqual(['Programvareutvikling (not enrolled)']);
+      ).toEqual(['Programvareutvikling 1 (not enrolled)']);
       expect(
         screen.getByRole('button', { name: 'Enrol and switch' }),
       ).toBeInTheDocument();
