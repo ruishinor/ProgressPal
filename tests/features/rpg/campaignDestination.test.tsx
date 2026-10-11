@@ -74,5 +74,8 @@ describe('Campaign destinations', () => {
         ),
       { timeout: 15_000 },
     );
+    // The row says it is the next task, in text, for a learner who sees no
+    // focus ring after a mouse click.
+    expect(document.activeElement!.closest('li')).toHaveTextContent('Up next');
   }, 30_000);
 });

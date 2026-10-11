@@ -95,8 +95,9 @@ function RpgWeekLoadingState() {
 
 export function RpgModulePage() {
   const { programmeScope } = useAppState();
-  const { unitNoun } = requireProgrammeScope(useAppState().programmeScope)
-    .content.terminology;
+  const { campaignOpensAtTask, unitNoun } = requireProgrammeScope(
+    useAppState().programmeScope,
+  ).content.terminology;
   const { unitId } = useParams();
   const { hash } = useLocation();
   const taskListRef = useRef<HTMLOListElement>(null);
@@ -327,7 +328,7 @@ export function RpgModulePage() {
                 key={quest.id}
                 meta={`${quest.typeLabel} - ${formatMinutes(
                   quest.estimatedMinutes,
-                )}`}
+                )}${campaignOpensAtTask && quest.id === summary.nextQuestId ? ' - Up next' : ''}`}
                 requiredLabel={quest.required ? 'Required' : 'Optional'}
                 rewardLabel={quest.rewardLabel}
                 status={
