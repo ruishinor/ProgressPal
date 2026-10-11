@@ -122,6 +122,7 @@ const terminologySchema = z
       .strict(),
     shellBrand: nonEmptyString.optional(),
     notesOnDemand: z.boolean().optional(),
+    campaignOpensAtTask: z.boolean().optional(),
   })
   .strict();
 

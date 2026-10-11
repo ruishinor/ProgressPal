@@ -115,9 +115,8 @@ function RpgMapLoadingState() {
 
 export function RpgMapPage() {
   const { programmeScope } = useAppState();
-  const { unitMapOrdinals, unitNoun } = requireProgrammeScope(
-    useAppState().programmeScope,
-  ).content.terminology;
+  const { campaignOpensAtTask, unitMapOrdinals, unitNoun } =
+    requireProgrammeScope(useAppState().programmeScope).content.terminology;
   const [state, setState] = useState<RpgMapPageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -334,7 +333,10 @@ export function RpgMapPage() {
                           aria-label={getMapNodeAriaLabel(module)}
                           className="rpg-map__node"
                           data-status={module.statusVariant}
-                          to={getRpgWeekPath(module.id)}
+                          to={getRpgWeekPath(
+                            module.id,
+                            campaignOpensAtTask ? module.nextQuestId : null,
+                          )}
                         >
                           <span
                             className="rpg-map__node-index"
@@ -426,7 +428,12 @@ export function RpgMapPage() {
                           <RpgButton
                             aria-current="step"
                             className="rpg-map__continue"
-                            href={getRpgWeekPath(module.id)}
+                            href={
+                              !campaignOpensAtTask ||
+                              module.nextQuestId === null
+                                ? getRpgWeekPath(module.id)
+                                : getRpgResourcePath(module.nextQuestId)
+                            }
                             size="sm"
                           >
                             Continue learning

@@ -223,11 +223,40 @@ function buildQuestSummary(
   };
 }
 
+/**
+ * The required task to continue with: one already under way, else the first
+ * not blocked, else (all blocked) the first left, which needs attention.
+ * Completed and optional tasks are never chosen. The hub's recommendation and
+ * each module's `nextQuestId` both use it.
+ */
+function pickNextQuest(quests: readonly RpgQuestSummary[]) {
+  const incomplete = quests.filter(
+    (quest) => quest.required && !isItemComplete(quest.status),
+  );
+  const actionable = incomplete.filter((quest) => quest.status !== 'blocked');
+  const next =
+    actionable.find(
+      (quest) =>
+        quest.statusVariant === 'inProgress' ||
+        quest.longFormProgress?.hasProgress === true,
+    ) ?? actionable[0];
+
+  return {
+    incomplete,
+    quest: next ?? incomplete[0],
+    actionable: next !== undefined,
+  };
+}
+
 function buildModuleSummary(
   unit: CourseMapUnit,
   snapshot: QuestRewardData,
   programme: ProgrammeContentScope,
 ): RpgModuleSummary {
+  const quests = unit.items.map((item) =>
+    buildQuestSummary(unit, item, snapshot, programme),
+  );
+
   return {
     completedRequiredItemCount: unit.completedRequiredItemCount,
     completionPercent: unit.completionPercent,
@@ -237,9 +266,8 @@ function buildModuleSummary(
     officialLink: toRpgOfficialLink(
       getProgrammeUnitLink(programme.content.externalResources, unit.id),
     ),
-    quests: unit.items.map((item) =>
-      buildQuestSummary(unit, item, snapshot, programme),
-    ),
+    nextQuestId: pickNextQuest(quests).quest?.id ?? null,
+    quests,
     requiredItemCount: unit.requiredItemCount,
     statusLabel: unit.statusLabel,
     statusVariant: unit.statusVariant,
@@ -269,9 +297,7 @@ function selectQuestRecommendation(
     return { state: 'unavailable', quest: null };
   }
 
-  const incomplete = requiredQuests.filter(
-    (quest) => !isItemComplete(quest.status),
-  );
+  const { incomplete, quest: next, actionable } = pickNextQuest(requiredQuests);
   const optionalRemainingCount = quests.filter(
     (quest) =>
       !quest.required &&
@@ -288,17 +314,9 @@ function selectQuestRecommendation(
     };
   }
 
-  const actionable = incomplete.filter((quest) => quest.status !== 'blocked');
-  const nextActionable =
-    actionable.find(
-      (quest) =>
-        quest.statusVariant === 'inProgress' ||
-        quest.longFormProgress?.hasProgress === true,
-    ) ?? actionable[0];
-
   return {
-    state: nextActionable === undefined ? 'needs_attention' : 'actionable',
-    quest: nextActionable ?? incomplete[0],
+    state: actionable ? 'actionable' : 'needs_attention',
+    quest: next!,
     remainingRequiredCount: incomplete.length,
     optionalRemainingCount,
   };

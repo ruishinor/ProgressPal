@@ -20,8 +20,14 @@ export const rpgRouteSegments = {
   week: 'week/:unitId',
 } as const;
 
-export function getRpgWeekPath(unitId: string) {
-  return rpgWeekPathPattern.replace(':unitId', unitId);
+/**
+ * A module's page. With a task ID the page opens at that task (route hash),
+ * so a deep link and a reload land at the same place.
+ */
+export function getRpgWeekPath(unitId: string, questId?: string | null) {
+  const path = rpgWeekPathPattern.replace(':unitId', unitId);
+
+  return questId ? `${path}#${encodeURIComponent(questId)}` : path;
 }
 
 export function getRpgResourcePath(itemId: string) {

@@ -1,5 +1,5 @@
-import { startTransition, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { startTransition, useEffect, useRef, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -98,8 +98,12 @@ export function RpgModulePage() {
   const { unitNoun } = requireProgrammeScope(useAppState().programmeScope)
     .content.terminology;
   const { unitId } = useParams();
+  const { hash } = useLocation();
+  const taskListRef = useRef<HTMLOListElement>(null);
   const [state, setState] = useState<RpgModulePageState>(initialState);
   const [reloadToken, setReloadToken] = useState(0);
+  const targetQuestId =
+    hash.length > 1 ? decodeURIComponent(hash.slice(1)) : null;
 
   useEffect(() => {
     let isActive = true;
@@ -175,6 +179,25 @@ export function RpgModulePage() {
       isActive = false;
     };
   }, [programmeScope, reloadToken, unitId, unitNoun.lowercase]);
+
+  // A route hash names the task this page was opened for (a Campaign node or
+  // a link to one). Once the tasks are on the page, that task's action is
+  // scrolled to the middle of the view, clear of the fixed navigation above
+  // and below, and takes focus. Nothing happens without a hash or when the
+  // task is not here.
+  useEffect(() => {
+    if (state.status !== 'ready' || targetQuestId === null) {
+      return;
+    }
+
+    const row = [...(taskListRef.current?.children ?? [])].find(
+      (child) => child.getAttribute('data-quest-id') === targetQuestId,
+    );
+    const action = row?.querySelector<HTMLElement>('a');
+
+    action?.scrollIntoView?.({ behavior: 'auto', block: 'center' });
+    action?.focus({ preventScroll: true });
+  }, [state.status, targetQuestId]);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -276,7 +299,7 @@ export function RpgModulePage() {
           title="Tasks and resources"
           titleAs="h2"
         >
-          <ol className="rpg-week__task-list">
+          <ol className="rpg-week__task-list" ref={taskListRef}>
             {summary.quests.map((quest) => (
               <RpgQuestRow
                 action={
@@ -299,6 +322,7 @@ export function RpgModulePage() {
                     </RpgButton>
                   </div>
                 }
+                data-quest-id={quest.id}
                 data-testid={`rpg-resource-${quest.id}`}
                 key={quest.id}
                 meta={`${quest.typeLabel} - ${formatMinutes(

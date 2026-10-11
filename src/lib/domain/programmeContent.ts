@@ -102,6 +102,13 @@ export type ProgrammeTerminology = {
    * frozen copy requires.
    */
   readonly notesOnDemand?: boolean;
+  /**
+   * Whether a Campaign module node opens its module at the task it leads to,
+   * and "Continue learning" opens that lesson (owner decision 2026-10-11,
+   * Programvareutvikling: long module pages). Absent keeps the module page's
+   * top for both, as CS50x's preserved Campaign requires.
+   */
+  readonly campaignOpensAtTask?: boolean;
 };
 
 /** Everything a programme owns that runtime code renders (Epic C / C4). */

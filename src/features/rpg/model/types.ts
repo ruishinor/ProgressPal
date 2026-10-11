@@ -65,6 +65,8 @@ export type RpgModuleSummary = {
   estimatedMinutes: number;
   id: string;
   itemCount: number;
+  /** The required task to continue with in this module, if any is left. */
+  nextQuestId: string | null;
   officialLink: RpgOfficialLink | null;
   quests: RpgQuestSummary[];
   requiredItemCount: number;
