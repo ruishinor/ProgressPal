@@ -440,6 +440,6 @@ test('automatically recovers a blocked startup repair after the active peer clos
           });
         `)) as string,
     )
-    .toBe('1.7.1');
+    .toBe('1.8.0');
   expect(consoleIssues).toEqual([]);
 });

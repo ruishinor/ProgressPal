@@ -26,7 +26,7 @@ describe('database initialization', () => {
   });
 
   it('uses the selected executable release version', () => {
-    expect(currentApplicationVersion).toBe('1.7.1');
+    expect(currentApplicationVersion).toBe('1.8.0');
   });
 
   it('keeps database identity and schema independent of the application version', () => {
