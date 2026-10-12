@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "module": "learner-feedback-v1-8-0",
+  "reviewer": "OpenAI ChatGPT GPT-6 (independent review of the exact v1.8.0 successor patch, 2026-10-12)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "ee91a348b135e6d7e79583daf09d1687a4dfff72",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent exact six-file version/cache successor review of commit b7f5d1c50a821dd7282f76a69955069e9b105ec8 (parent 4c38701f616618957c70449aeb1ee5dcffed619c, tree bb308603e415e8e5f498138f0d726aae6fab4adc, release payload tree ee91a348b135e6d7e79583daf09d1687a4dfff72). The previously reviewed learner-feedback product changes are carried forward unmodified. The review approves proceeding to the native release gate, not a claim that release certification, deployment or live Nhost journeys have passed.",
+    "evidence": [
+      "User-exported exact binary Git patch: 0001-release-update-application-and-PWA-cache-to-v1.8.0.patch; SHA-256 9BD55C1554F98CE7A7082128677AD989D7AC2F7ABE5F0C35D2E644EF3CE909FA. The separate ZIP copy is byte-identical.",
+      "Diff contains exactly six files, seven insertions and seven deletions: package.json, package-lock.json, public/sw.js, tests/db/databaseInitialization.test.ts, tests/lib/serviceWorkerCache.test.ts, e2e/settings.spec.ts.",
+      "Package version and both lockfile root version fields move solely 1.7.1 to 1.8.0; no dependency package or version changes.",
+      "Service worker CACHE_VERSION moves solely progresspal-cache-v1.7.1 to progresspal-cache-v1.8.0; cache prefix and caching algorithms unchanged.",
+      "The three test expectations update only the selected application or cache version literal, retaining the same test structure and assertions.",
+      "Owner-reported V3 Stage 1 output: format check PASS, typecheck PASS, 29/29 focused unit tests PASS, clean release-only commit and reported exact payload identity. These are not a substitute for native release certification.",
+      "Separate predecessor review examined learner UX, Campaign routing, Settings language and retained 3081 unit / 186 E2E pass logs at 4c38701; the predecessor used a custom final-check runner rather than native verify:release.",
+      "The 46-entry dirty primary feature worktree and separate mobility commit are excluded from the release; permanent Nhost region is Stockholm eu-north-1."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "V180-01",
+      "severity": "P3",
+      "description": "Version-only patch cannot independently prove that an already-installed PWA has picked up the new service worker and cache identity on an actual device.",
+      "resolution": "Cache ID changed coherently; retained service-worker unit tests are unchanged except expected version. Validate an existing-install update during hosted smoke without deleting learner data.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V180-02",
+      "severity": "P2",
+      "description": "The predecessor learner UI distinguishes Python source and PowerShell terminal semantically but does not use a full terminal-window visual treatment.",
+      "resolution": "Owner explicitly directed shipping this independently reviewed bounded-alpha UX result. Keep the visual limitation as a follow-up rather than silently changing the exact release candidate.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V180-03",
+      "severity": "P3",
+      "description": "Programme #2 module shell retains an English Up next label, and a malformed manually supplied Campaign hash may not be safely decoded.",
+      "resolution": "Existing normal learner navigation and focus were browser-tested; these bounded presentation/robustness follow-ups do not justify new product mutation in the version-only release.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V180-04",
+      "severity": "P2",
+      "description": "Epic G Stage-1 optional Nhost Alpha backup and live account recovery are not fully validated by this six-file delta review.",
+      "resolution": "Permanent region is Stockholm eu-north-1. Existing Alpha disclosures and local-first boundaries are preserved; hosted smoke and provider-specific live flows must not be claimed passing until separately checked.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "V180-05",
+      "severity": "P3",
+      "description": "Application, cache and assertion versions must remain consistent without weakening accepted tests or changing database identity.",
+      "resolution": "All six changed paths and every altered line inspected. Package, lockfile, cache and test pins agree at 1.8.0; no production database/schema, curriculum, XP, achievements, cloud or dependency changes appear in the patch.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent exact release-only delta review PASS for progressing to repository-native verify:release. Retain valid reviewed product evidence, preserve unrelated dirty feature checkout, and publish only after the native gate certifies the exact review-bearing candidate, remote master is proven fast-forward, and owner executes the explicit publication step. Release gate and live deployment are NOT pre-certified by this review."
+  }
+}
