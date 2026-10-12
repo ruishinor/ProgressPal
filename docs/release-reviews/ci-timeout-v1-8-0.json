@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "module": "ci-timeout-v1-8-0",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent review of owner-supplied exact four-line Git diff on 2026-10-12",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "9d5e2a8a40d9a92392873976a911b66eed43ec23",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of four configuration-only changes in commit 5f69d1bc91b9bd052dc0fe8fb9b1fbbbe1800e08, whose parent is the published v1.8.0 review-bound commit eab80fcfaa57d7eb6d0de36f0392b78e0eeb04d9. Supports advancing to native release certification only, not a declaration of GitHub CI success or production promotion.",
+    "evidence": [
+      "Owner supplied git --no-pager show --format= --unified=1 HEAD showing exactly four paths and four replacements; the same owner output reports 4 files changed, 4 insertions, 4 deletions.",
+      ".github/workflows/test.yml job timeout-minutes: 40 -> 60.",
+      "playwright.config.ts globalTimeout: 20 * 60 * 1000 -> 30 * 60 * 1000.",
+      "scripts/run-e2e.mjs Playwright watchdog: 21 * 60 * 1000 -> 31 * 60 * 1000.",
+      "scripts/run-release-gate.mjs COMMAND_TIMEOUT_MS: 22 * 60 * 1000 -> 32 * 60 * 1000.",
+      "Owner reported format check and Node syntax checks passed before committing; HEAD/tree were not independently fetched from private GitHub.",
+      "Owner reported candidate payload tree 9d5e2a8a40d9a92392873976a911b66eed43ec23. Release script must independently recompute it.",
+      "Earlier Linux GitHub CI release gate stopped at 20-minute Playwright global timeout after 175 tests passed and 11 unexecuted; native Windows gate passed 186 E2E. The timeout increase does not prove there is no separate Task 6 hang."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "CI18-01",
+      "severity": "P2",
+      "description": "Increasing a global timeout does not make the E2E suite faster; 30 minutes may still be insufficient on Linux.",
+      "resolution": "Bounded 30/31/32/60-minute ceilings with 1-minute nested buffers were reviewed. Require one complete green GitHub Linux gate; if still incomplete, diagnose the actual slow/hung case rather than increasing limits again.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CI18-02",
+      "severity": "P2",
+      "description": "A screenshot showed Task 6 during Lagrer og sjekker svaret; overall timeout does not rule out an individual saving/synchronization hang.",
+      "resolution": "No test assertion failure was established. Preserve the test unchanged and require the complete 186-case Linux suite; isolate Task 6 if the same state stalls again.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CI18-03",
+      "severity": "P3",
+      "description": "The four timeout layers previously had inconsistent budgets for the observed Linux suite duration.",
+      "resolution": "The four-line diff coordinates limits without changing product code, test count, retries, or worker configuration.",
+      "status": "resolved"
+    },
+    {
+      "id": "CI18-04",
+      "severity": "P2",
+      "description": "Vercel READY does not establish GitHub CI success or production alias promotion.",
+      "resolution": "After a green remote gate, independently check Vercel checks, alias resolution at the exact SHA, and hosted learner smoke. Do not force alias promotion as a workaround.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The four-line release-runner configuration change is adequately bounded for native release certification. Approval is conditional on future exact-candidate native gate and full green remote CI; do not claim the current failed production release is complete."
+  }
+}
