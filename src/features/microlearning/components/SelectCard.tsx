@@ -42,6 +42,9 @@ export function SelectCard({
     <PracticeFrame
       card={card}
       idle="Trykk på svaret du tror stemmer."
+      missFeedback={
+        card.options.find((option) => option.id === lastId)?.feedback
+      }
       nextLabel={nextLabel}
       onNext={onNext}
       practice={practice}

@@ -38,9 +38,11 @@ function CardView({ card, ...props }: CardProps & { card: MicroCard }) {
  */
 export function SessionRunner({
   onExit,
+  pickAnotherLabel,
   session,
 }: {
   onExit: () => void;
+  pickAnotherLabel?: string;
   session: MicroSession;
 }) {
   const [index, setIndex] = useState(0);
@@ -57,7 +59,12 @@ export function SessionRunner({
       }}
     >
       {card === undefined ? (
-        <DoneCard closeTo={rpgRoutePath} onPickAnother={onExit} />
+        <DoneCard
+          closeTo={rpgRoutePath}
+          onPickAnother={onExit}
+          pickAnotherLabel={pickAnotherLabel}
+          takeaway={session.takeaway}
+        />
       ) : (
         <CardView
           card={card}

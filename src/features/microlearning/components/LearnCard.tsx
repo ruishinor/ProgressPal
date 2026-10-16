@@ -4,9 +4,10 @@ import { ActionButton } from './ActionButton';
 import { CardFrame } from './CardFrame';
 
 /**
- * One bounded idea and a tiny example. A Learn card is never assessed: it has
- * no answer, no check and no retry. It ends in a bridge that names the
- * practice that follows, shown where the other cards show their feedback.
+ * One bounded idea and, where the idea is code, a tiny example. A Learn card
+ * is never assessed: it has no answer, no check and no retry. It ends in a
+ * bridge that names the practice that follows, shown where the other cards
+ * show their feedback. A line break in the idea starts a new paragraph.
  */
 export function LearnCard({
   card,
@@ -24,13 +25,19 @@ export function LearnCard({
       kindLabel="Lær"
       prompt={
         <>
-          <p className="micro-card__text">{card.idea}</p>
-          <figure className="micro-code">
-            <pre>
-              <code>{card.example.code}</code>
-            </pre>
-            <figcaption>{card.example.note}</figcaption>
-          </figure>
+          {card.idea.split('\n').map((paragraph, index) => (
+            <p className="micro-card__text" key={index}>
+              {paragraph}
+            </p>
+          ))}
+          {card.example === undefined ? null : (
+            <figure className="micro-code">
+              <pre>
+                <code>{card.example.code}</code>
+              </pre>
+              <figcaption>{card.example.note}</figcaption>
+            </figure>
+          )}
         </>
       }
       title={card.title}

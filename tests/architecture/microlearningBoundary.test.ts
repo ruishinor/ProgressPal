@@ -68,7 +68,7 @@ const contract = load('src/lib/domain').filter(({ file }) =>
 describe('microlearning feature boundary', () => {
   it('finds the sources it guards', () => {
     expect(feature.length).toBeGreaterThanOrEqual(15);
-    expect(bank.length).toBe(6);
+    expect(bank.length).toBe(7);
     expect(contract).toHaveLength(1);
   });
 

@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { HomePage } from '@/app/routes/HomePage';
 import { MicrolearningRoute } from '@/app/routes/MicrolearningRoute';
 import { NotFoundPage } from '@/app/routes/NotFoundPage';
+import { MicroTrackRoute } from '@/app/routes/MicroTrackRoute';
 import { getRouteDefinition } from '@/app/router/routeDefinitions';
 import { AppShell } from '@/app/shell/AppShell';
 import { RpgRouteShell } from '@/app/shell/RpgRouteShell';
@@ -40,6 +41,7 @@ const rpgBadgesRoute = getRouteDefinition('rpgBadges');
 const rpgLogRoute = getRouteDefinition('rpgLog');
 const rpgSettingsRoute = getRouteDefinition('rpgSettings');
 const rpgMicroRoute = getRouteDefinition('rpgMicro');
+const rpgTrackRoute = getRouteDefinition('rpgTrack');
 const sessionsRoute = getRouteDefinition('sessions');
 const achievementsRoute = getRouteDefinition('achievements');
 const insightsRoute = getRouteDefinition('insights');
@@ -156,6 +158,12 @@ export const router = createBrowserRouter([
         // the RPG primary navigation and hero HUD never render around it.
         path: rpgMicroRoute.segment,
         element: <MicrolearningRoute />,
+      },
+      {
+        // A voluntary track: the same immersive shell, open regardless of
+        // the Campaign.
+        path: rpgTrackRoute.segment,
+        element: <MicroTrackRoute />,
       },
     ],
   },

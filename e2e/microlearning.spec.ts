@@ -56,6 +56,7 @@ const { programvareutviklingMicrolearning: bank } = (await import(
   programvareutviklingMicrolearning: {
     primers: BankSession[];
     sessions: BankSession[];
+    tracks: { id: string; sessions: BankSession[]; title: string }[];
   };
 };
 const { needsCheck, rightTaps, wrongTaps } = (await import(plansPath)) as Plans;
@@ -1185,7 +1186,7 @@ test.describe('the way into microlearning from Home', () => {
     await page.goto('/rpg');
 
     await expect(
-      page.getByRole('link', { name: /Campaign Map/ }).first(),
+      page.getByRole('link', { name: 'Campaign' }).first(),
     ).toBeVisible();
     await expect(page.getByRole('link', { name: 'Åpne mikroøkt' })).toHaveCount(
       0,
@@ -1305,3 +1306,252 @@ async function snapshotDatabase(page: Page) {
     });
   `)) as string;
 }
+
+// «Tenk som en utvikler», the voluntary track: the same card contract (one
+// card is one viewport at 360 x 560, every state of every card; enlarged text
+// scrolls the route and clips nothing), its own six-row list, and a Home entry
+// that needs no Campaign progress. Screenshots are written only when
+// TRACK_SCREENSHOT_DIR is set, outside the repository.
+const [thinkingTrack] = bank.tracks;
+const trackPath = `/rpg/track/${thinkingTrack!.id}`;
+const screenshotDir = process.env.TRACK_SCREENSHOT_DIR;
+
+async function shoot(page: Page, name: string) {
+  if (screenshotDir !== undefined) {
+    await page.screenshot({ path: join(screenshotDir, `${name}.png`) });
+  }
+}
+
+async function openTrack(page: Page, theme: 'dark' | 'light', scale?: Scale) {
+  await completeOnboarding(page, { programme: 'Programvareutvikling', theme });
+  await page.goto(trackPath);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    thinkingTrack!.title,
+  );
+  if (scale !== undefined) {
+    await page.addStyleTag({ content: scaleCss(scale) });
+  }
+}
+
+async function runTrackSession(
+  page: Page,
+  index: number,
+  mode: Mode,
+  checks: Checks,
+  shots = false,
+) {
+  const session = thinkingTrack!.sessions[index]!;
+  const heading = page.getByRole('heading', { level: 1 });
+
+  await expect(heading).toHaveText(thinkingTrack!.title);
+  await assertState(page, `${session.id}: list`, checks);
+  if (checks.axe) {
+    await assertAccessible(page, `${session.id}: list`);
+  }
+  await activate(
+    page,
+    page.getByRole('button', { name: new RegExp(`^${index + 1}\\. `) }),
+  );
+
+  for (const [cardIndex, card] of session.cards.entries()) {
+    if (shots && cardIndex < 3) {
+      await expect(heading).toHaveText(card.title);
+      await shoot(page, `${session.id}-${cardIndex + 1}-prompt`);
+    }
+    await playCard(page, card, cardIndex, session.cards.length, mode, checks);
+  }
+
+  await expect(heading).toHaveText('Hva tar jeg med meg?');
+  await assertState(page, `${session.id}: takeaway`, checks);
+  if (checks.axe) {
+    await assertAccessible(page, `${session.id}: takeaway`);
+  }
+  if (shots) {
+    await shoot(page, `${session.id}-takeaway`);
+  }
+  await press(page, 'Velg en annen aktivitet');
+}
+
+const trackIndexes = thinkingTrack!.sessions.map((_, index) => index);
+
+test.describe('«Tenk som en utvikler» at 360 x 560', () => {
+  test.use({ viewport: HARD });
+
+  test('every card state fits when missed twice, dark theme, with axe', async ({
+    page,
+  }) => {
+    test.setTimeout(420_000);
+    await openTrack(page, 'dark');
+    await shoot(page, 'track-list-360x560');
+    for (const index of trackIndexes) {
+      await runTrackSession(page, index, 'miss-twice', {
+        axe: true,
+        slack: false,
+      });
+    }
+  });
+
+  test('every card state fits when solved first time, light theme, with axe', async ({
+    page,
+  }) => {
+    test.setTimeout(420_000);
+    await openTrack(page, 'light');
+    for (const index of trackIndexes) {
+      await runTrackSession(
+        page,
+        index,
+        'right',
+        { axe: true, slack: false },
+        index === 0 || index === 3,
+      );
+    }
+  });
+
+  test('a wrong option says why it is wrong, then the retry offers the hint', async ({
+    page,
+  }) => {
+    await openTrack(page, 'dark');
+    await activate(page, page.getByRole('button', { name: /^1\. / }));
+    await press(page, 'Neste');
+    const card = thinkingTrack!.sessions[0]!.cards[1] as unknown as {
+      correctId: string;
+      hint: string;
+      options: { feedback?: string; id: string; label: string }[];
+    };
+    const wrong = card.options.find((option) => option.id !== card.correctId)!;
+
+    await page.getByRole('button', { name: wrong.label }).click();
+    await expect(status(page)).toContainText(wrong.feedback!);
+    await shoot(page, 'feedback-wrong-option-360x560');
+    await press(page, 'Prøv igjen');
+    await expect(status(page)).toContainText(card.hint);
+  });
+
+  test('a fresh learner with no Campaign progress finds the entry on Home, and it fits', async ({
+    page,
+  }) => {
+    await completeOnboarding(page, {
+      programme: 'Programvareutvikling',
+      theme: 'dark',
+    });
+    await page.goto('/rpg');
+    const entry = page.getByRole('link', {
+      name: `Åpne ${thinkingTrack!.title}`,
+    });
+
+    await expect(entry).toBeVisible();
+    await entry.scrollIntoViewIfNeeded();
+    const box = (await entry.boundingBox())!;
+
+    expect(box.height).toBeGreaterThanOrEqual(43.5);
+    expect(box.x + box.width).toBeLessThanOrEqual(HARD.width + 0.5);
+    await shoot(page, 'home-entry-360x560');
+    await entry.click();
+    await expect(page).toHaveURL(new RegExp(`${trackPath}$`));
+    await expect(page.getByRole('listitem')).toHaveCount(6);
+  });
+
+  test('the keyboard reaches an activity, and focus lands on each new card', async ({
+    page,
+  }) => {
+    await openTrack(page, 'dark');
+    const first = page.getByRole('button', { name: /^1\. / });
+
+    await first.focus();
+    await expect(first).toBeFocused();
+    await waitOutGuard(page);
+    await page.keyboard.press('Enter');
+    const heading = page.getByRole('heading', { level: 1 });
+
+    await expect(heading).toHaveText(
+      thinkingTrack!.sessions[0]!.cards[0]!.title,
+    );
+    await expect(heading).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(action(page, 'Neste')).toBeFocused();
+    // A keyboard press is not recorded by activate(): wait the guard out.
+    await page.waitForTimeout(GUARD_WAIT_MS);
+    await page.keyboard.press('Enter');
+    await expect(heading).toHaveText(
+      thinkingTrack!.sessions[0]!.cards[1]!.title,
+    );
+    await expect(heading).toBeFocused();
+  });
+
+  test('closing leaves for Home, and the track starts over; nothing is stored', async ({
+    page,
+  }) => {
+    await openTrack(page, 'dark');
+    const before = await snapshotDatabase(page);
+
+    await activate(page, page.getByRole('button', { name: /^2\. / }));
+    await press(page, 'Neste');
+    await page.getByRole('link', { name: 'Lukk mikroøkten' }).click();
+    await expect(page).toHaveURL(/\/rpg$/);
+    await page.goto(trackPath);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      thinkingTrack!.title,
+    );
+    expect(await snapshotDatabase(page)).toBe(before);
+  });
+
+  test('CS50x has neither the entry nor the track', async ({ page }) => {
+    await completeOnboarding(page);
+    await page.goto('/rpg');
+    await expect(page.getByRole('navigation').first()).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: `Åpne ${thinkingTrack!.title}` }),
+    ).toHaveCount(0);
+    await page.goto(trackPath);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Ingenting å øve på her',
+    );
+    await assertFits(page, 'CS50x track notice');
+  });
+});
+
+test.describe('«Tenk som en utvikler» on a Galaxy S22+ class phone', () => {
+  test.use({ viewport: PHONE });
+
+  test('every card state fits when solved on the retry', async ({ page }) => {
+    test.setTimeout(420_000);
+    await openTrack(page, 'dark');
+    await shoot(page, 'track-list-384x800');
+    for (const index of trackIndexes) {
+      await runTrackSession(
+        page,
+        index,
+        'retry-right',
+        { axe: false, slack: false },
+        index === 1,
+      );
+    }
+  });
+});
+
+test.describe('«Tenk som en utvikler» at enlarged text', () => {
+  test.use({ viewport: HARD });
+
+  for (const scale of [
+    { mechanism: 'text', percent: 150 },
+    { mechanism: 'root', percent: 200 },
+  ] as Scale[]) {
+    test(`every card state stays reachable at ${scale.percent}% (${scale.mechanism} scale)`, async ({
+      page,
+    }) => {
+      test.setTimeout(420_000);
+      routeScrolled = 0;
+      await openTrack(page, 'dark', scale);
+      for (const index of trackIndexes) {
+        await runTrackSession(page, index, 'miss-twice', {
+          axe: false,
+          enlarged: true,
+          slack: false,
+        });
+      }
+      expect(routeScrolled, 'states where the route scrolled').toBeGreaterThan(
+        0,
+      );
+    });
+  }
+});

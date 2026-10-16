@@ -29,6 +29,7 @@ export function PracticeFrame({
   check,
   children,
   idle,
+  missFeedback,
   nextLabel,
   onNext,
   practice,
@@ -39,6 +40,8 @@ export function PracticeFrame({
   check?: { onCheck: () => void; ready: boolean };
   children: ReactNode;
   idle: string;
+  /** Why the learner's own miss is wrong, when the card says; else the hint. */
+  missFeedback?: string;
   nextLabel: string;
   onNext: () => void;
   practice: Practice;
@@ -47,7 +50,11 @@ export function PracticeFrame({
   const { phase, tries } = practice.state;
   const feedback: MicroFeedback =
     phase === 'wrong'
-      ? { state: 'incorrect', label: 'Ikke helt.', message: card.hint }
+      ? {
+          state: 'incorrect',
+          label: 'Ikke helt.',
+          message: missFeedback ?? card.hint,
+        }
       : phase === 'correct'
         ? {
             state: 'correct',

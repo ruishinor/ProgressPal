@@ -23,6 +23,7 @@ import type {
 } from '@/features/rpg/model/types';
 import {
   getRpgResourcePath,
+  getRpgTrackPath,
   rpgMapPath,
   rpgMicroPath,
 } from '@/lib/routing/rpgRoutePaths';
@@ -282,6 +283,21 @@ export function RpgHomePage() {
               )}
             </div>
           )}
+
+          {/* Voluntary tracks: open whatever the Campaign position, so the
+              line needs no progress read and is never held up by one. Only a
+              programme that ships a track shows it. */}
+          {(scope.content.microlearning?.tracks ?? []).map((track) => (
+            <div className="rpg-hub__module-context" key={track.id}>
+              <p className="rpg-hub__note">
+                {track.title}: {track.sessions.length} korte, frivillige
+                aktiviteter.
+              </p>
+              <RpgButton href={getRpgTrackPath(track.id)} variant="secondary">
+                Åpne {track.title}
+              </RpgButton>
+            </div>
+          ))}
         </RpgPanel>
 
         <RpgPanel

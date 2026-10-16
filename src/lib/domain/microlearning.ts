@@ -40,7 +40,15 @@ export type MicroSource = {
   readonly skillIds: readonly string[];
 };
 
-export type MicroOption = { readonly id: string; readonly label: string };
+export type MicroOption = {
+  readonly id: string;
+  readonly label: string;
+  /**
+   * Why this particular wrong option is wrong, shown when the learner picks
+   * it in place of the card's general hint. Optional; never on the answer.
+   */
+  readonly feedback?: string;
+};
 
 /** A code token. `name` is the spoken form for symbols such as `(`. */
 export type MicroToken = {
@@ -70,8 +78,14 @@ type MicroPracticeBase = MicroCardBase & {
 export type MicroLearnCard = MicroCardBase & {
   readonly kind: 'learn';
   readonly role: 'explain';
+  /** Plain text; a line break starts a new paragraph. */
   readonly idea: string;
-  readonly example: { readonly code: string; readonly note: string };
+  /**
+   * A tiny worked example. Required in «Forbered deg» and «Repeter»; a
+   * voluntary track (`MicroTrack`) may teach in text alone, never in
+   * explanation written as fake code.
+   */
+  readonly example?: { readonly code: string; readonly note: string };
   /** The explicit hand-over to the practice that follows. */
   readonly bridge: string;
 };
@@ -138,6 +152,22 @@ export type MicroSession = {
   readonly summary: string;
   readonly minutes: number;
   readonly cards: readonly MicroCard[];
+  /** What to take away, shown on the finished screen. Optional. */
+  readonly takeaway?: string;
+};
+
+/**
+ * A voluntary track: a small, named set of sessions the learner may open at
+ * any time, in any order. It is not tied to the Campaign: nothing about it is
+ * gated by, derived from or written to Campaign progress, and its cards cite
+ * the track itself (`source.moduleId` is the track ID, `lessonUnitIds` the
+ * authored activity IDs) rather than catalogue units.
+ */
+export type MicroTrack = {
+  readonly id: string;
+  readonly title: string;
+  readonly summary: string;
+  readonly sessions: readonly MicroSession[];
 };
 
 /**
@@ -157,6 +187,8 @@ export type MicrolearningBank = {
   readonly sessions: readonly MicroSession[];
   /** Preparation ("Forbered deg"), in Campaign order. Optional. */
   readonly primers?: readonly MicroPrimer[];
+  /** Voluntary tracks, open regardless of the Campaign. Optional. */
+  readonly tracks?: readonly MicroTrack[];
 };
 
 /** Every reinforcement card of a bank, in session order. */
@@ -328,15 +360,25 @@ function sameSequence(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
-function findCardShapeIssues(card: MicroCard): string[] {
+function findCardShapeIssues(
+  card: MicroCard,
+  { textOnlyLearn = false }: { textOnlyLearn?: boolean } = {},
+): string[] {
   const label = `card "${card.id}"`;
   const issues: string[] = [];
   const unique = (ids: readonly string[]) => new Set(ids).size === ids.length;
 
   switch (card.kind) {
     case 'learn':
-      if (card.example.code.trim() === '') {
+      if (card.example === undefined) {
+        if (!textOnlyLearn) {
+          issues.push(`${label} has no example code`);
+        }
+      } else if (card.example.code.trim() === '') {
         issues.push(`${label} has no example code`);
+      }
+      if (card.idea.trim() === '') {
+        issues.push(`${label} has no idea`);
       }
       if (card.bridge.trim() === '') {
         issues.push(`${label} has no bridge into the practice that follows`);
@@ -349,6 +391,16 @@ function findCardShapeIssues(card: MicroCard): string[] {
       }
       if (!unique(ids) || !ids.includes(card.correctId)) {
         issues.push(`${label} options must be unique and include the answer`);
+      }
+      for (const option of card.options) {
+        if (option.feedback === undefined) {
+          continue;
+        }
+        if (option.id === card.correctId) {
+          issues.push(`${label} gives the answer wrong-option feedback`);
+        } else if (option.feedback.trim() === '') {
+          issues.push(`${label} option "${option.id}" has empty feedback`);
+        }
       }
       break;
     }
@@ -526,21 +578,108 @@ export function findMicrolearningBankIssues(
     });
   }
 
+  issues.push(...findTrackIssues(bank, sessionIds, primerIds, cardIds));
+
   return issues;
 }
 
+/**
+ * Voluntary tracks: the same card rules as the rest of the bank (one Learn
+ * card at a time, each followed by practice; two or three options; three or
+ * four pairs; nothing shown already solved), with three differences that
+ * follow from what a track is. Cards cite the track, not a catalogue unit. A
+ * Learn card may teach in text alone. A session starts by teaching and ends
+ * on what to take away. The track's own list is one screen, so it holds at
+ * most six sessions.
+ */
+function findTrackIssues(
+  bank: MicrolearningBank,
+  sessionIds: ReadonlySet<string>,
+  primerIds: ReadonlySet<string>,
+  cardIds: Set<string>,
+): string[] {
+  const issues: string[] = [];
+  const trackIds = new Set<string>();
+  const trackSessionIds = new Set<string>();
+  const taken = (id: string) =>
+    sessionIds.has(id) || primerIds.has(id) || trackSessionIds.has(id);
+
+  for (const track of bank.tracks ?? []) {
+    if (!idPattern.test(track.id) || trackIds.has(track.id)) {
+      issues.push(`track "${track.id}" needs a unique lowercase ID`);
+    }
+    trackIds.add(track.id);
+    if (track.title.trim() === '' || track.summary.trim() === '') {
+      issues.push(`track "${track.id}" needs a title and a summary`);
+    }
+    if (track.sessions.length === 0 || track.sessions.length > 6) {
+      issues.push(`track "${track.id}" needs one to six sessions`);
+    }
+
+    for (const session of track.sessions) {
+      if (!idPattern.test(session.id) || taken(session.id)) {
+        issues.push(`session "${session.id}" needs a unique lowercase ID`);
+      }
+      trackSessionIds.add(session.id);
+      if (session.cards.length < 4 || session.cards.length > 8) {
+        issues.push(`session "${session.id}" needs four to eight cards`);
+      }
+      if (session.title.trim() === '' || session.summary.trim() === '') {
+        issues.push(`session "${session.id}" needs a title and a summary`);
+      }
+      if (!Number.isInteger(session.minutes) || session.minutes < 1) {
+        issues.push(`session "${session.id}" needs whole minutes`);
+      }
+      if (session.cards[0]?.kind !== 'learn') {
+        issues.push(`session "${session.id}" must start by teaching`);
+      }
+      if ((session.takeaway ?? '').trim() === '') {
+        issues.push(`session "${session.id}" needs a takeaway`);
+      }
+
+      session.cards.forEach((card, index) => {
+        if (!idPattern.test(card.id) || cardIds.has(card.id)) {
+          issues.push(`card "${card.id}" needs a unique lowercase ID`);
+        }
+        cardIds.add(card.id);
+        issues.push(...findCardIssues(card, new Set(), track));
+        if (card.kind === 'learn') {
+          const next = session.cards[index + 1];
+          if (next === undefined || next.kind === 'learn') {
+            issues.push(
+              `Learn card "${card.id}" must be followed by a practice card`,
+            );
+          }
+        }
+      });
+    }
+  }
+
+  return issues;
+}
+
+/**
+ * A card of «Forbered deg» or «Repeter» cites a catalogue unit; a card of a
+ * voluntary `track` cites that track instead and may teach in text alone.
+ */
 function findCardIssues(
   card: MicroCard,
   catalogueUnitIds: ReadonlySet<string>,
+  track?: MicroTrack,
 ): string[] {
   const issues: string[] = [];
 
   if (card.title.trim() === '') {
     issues.push(`card "${card.id}" has no title`);
   }
-  if (!catalogueUnitIds.has(card.source.moduleId)) {
+  if (track === undefined && !catalogueUnitIds.has(card.source.moduleId)) {
     issues.push(
       `card "${card.id}" cites module "${card.source.moduleId}", which is not a catalogue unit`,
+    );
+  }
+  if (track !== undefined && card.source.moduleId !== track.id) {
+    issues.push(
+      `card "${card.id}" cites "${card.source.moduleId}", not its track "${track.id}"`,
     );
   }
   if (
@@ -551,5 +690,8 @@ function findCardIssues(
     issues.push(`card "${card.id}" needs lesson units and skill IDs`);
   }
 
-  return [...issues, ...findCardShapeIssues(card)];
+  return [
+    ...issues,
+    ...findCardShapeIssues(card, { textOnlyLearn: track !== undefined }),
+  ];
 }
