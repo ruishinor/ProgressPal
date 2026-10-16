@@ -9,10 +9,12 @@ import {
   SubmissionWorkflowSchema,
   XpPolicySchema,
   findCatalogueRuleIssues,
+  findMicrolearningBankIssues,
   type CourseSeed,
   type ExternalResourceLink,
   type ItemGuide,
   type LessonContentProvider,
+  type MicrolearningBank,
   type ProgrammeContent,
   type ProgrammeCopy,
   type ProgrammeExternalResources,
@@ -184,6 +186,16 @@ const definitionSchema = z
                 'function' &&
               typeof (value as LessonContentProvider).loadIndex === 'function',
             { message: 'must be a lesson content provider' },
+          )
+          .optional(),
+        // Structure is checked below, against this programme's own catalogue.
+        microlearning: z
+          .custom<MicrolearningBank>(
+            (value) =>
+              typeof value === 'object' &&
+              value !== null &&
+              Array.isArray((value as MicrolearningBank).sessions),
+            { message: 'must be a microlearning bank' },
           )
           .optional(),
       })
@@ -383,6 +395,10 @@ export function validateProgrammeDefinition(
   }
 
   issues.push(...findLessonProviderIssues(definition));
+
+  if (content.microlearning !== undefined) {
+    issues.push(...findMicrolearningBankIssues(content.microlearning, unitIds));
+  }
 
   if (issues.length > 0) {
     throw new SchemaValidationError(label, issues);

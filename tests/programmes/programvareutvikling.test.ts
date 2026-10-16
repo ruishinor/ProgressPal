@@ -73,6 +73,8 @@ describe('registration', () => {
       },
       content: {
         ...definition.content,
+        // Another programme: it has its own catalogue and no microlearning.
+        microlearning: undefined,
         lessons: withLessons
           ? {
               ...definition.content.lessons!,

@@ -7,6 +7,7 @@ import {
   rpgHeroPath,
   rpgLogPath,
   rpgMapPath,
+  rpgMicroPath,
   rpgResourcePathPattern,
   rpgRoutePath,
   rpgRouteSegments,
@@ -30,6 +31,7 @@ export type AppRouteId =
   | 'rpgBadges'
   | 'rpgLog'
   | 'rpgSettings'
+  | 'rpgMicro'
   | 'sessions'
   | 'achievements'
   | 'insights'
@@ -146,6 +148,12 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'rpgSettings',
     segment: rpgRouteSegments.settings,
     to: rpgSettingsPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgMicro',
+    segment: rpgRouteSegments.micro,
+    to: rpgMicroPath,
     includeInPrimaryNavigation: false,
   },
   {

@@ -1,0 +1,267 @@
+/* Microlearning (/rpg/micro): an immersive surface that fills the viewport.
+   At normal text size one card is one screen and nothing scrolls (the
+   viewport tests fail if one ever does). Nothing is clipped or fixed in
+   height, so when the learner's text is larger the route simply grows past
+   the viewport and the route itself scrolls: one scroll context, no nested
+   ones, and every line and control stays reachable in reading order. Answer,
+   feedback and the action only change the footer. It reads the RPG palette
+   and reuses rpg-button, so it follows the learner's theme. Every control is
+   at least 44 x 44 CSS px and no state depends on colour alone. The
+   interaction sits at the bottom of the body, next to the footer, so on a tall
+   phone it moves toward the thumb instead of leaving a gap above the footer.
+   Kept small: the stylesheet shares the build's CSS budget. */
+
+html:has(.micro),
+body:has(.micro) {
+  overflow: hidden;
+}
+
+.micro {
+  /* Tap targets: 44px on a short phone, growing to 56px on a tall one. */
+  --micro-tap: clamp(2.75rem, 6.5dvh, 3.5rem);
+
+  background: var(--rpg-bg);
+  color: var(--rpg-text);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  inset: 0;
+  /* Long words break rather than push the route sideways at larger text. */
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  position: fixed;
+  scroll-padding-block: var(--space-4);
+  z-index: 20;
+}
+
+.micro-card__body,
+.micro-card__prompt,
+.micro-card__foot,
+.micro-options,
+.micro-order,
+.micro-lines,
+.micro-sessions,
+.micro-actions,
+.micro-match__column {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--space-2), 1.4dvh, var(--space-3));
+}
+
+.micro__top {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--space-3);
+  min-height: 3.25rem;
+  padding: 0 var(--space-4) 0 var(--space-2);
+}
+
+.micro__progress {
+  display: flex;
+  flex: 1;
+  gap: var(--space-1);
+}
+
+.micro__segment {
+  background: var(--rpg-track);
+  border-radius: var(--radius-pill);
+  flex: 1;
+  height: 0.5rem;
+}
+
+.micro__segment[data-state='done'] {
+  background: var(--rpg-progress);
+}
+
+.micro__segment[data-state='current'] {
+  background: var(--rpg-accent);
+  height: 0.875rem;
+}
+
+.micro-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.micro-card__body {
+  flex: 1;
+  padding: var(--space-1) var(--space-4) var(--space-2);
+}
+
+.micro-card__play {
+  margin-top: auto;
+}
+
+.micro-card__kind {
+  color: var(--rpg-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.micro-card__title {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+
+.micro-card__text,
+.micro-feedback {
+  line-height: 1.4;
+}
+
+.micro-card__foot {
+  background: var(--rpg-surface);
+  border-top: 1px solid var(--rpg-border);
+  flex: none;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.micro-card__foot .rpg-button {
+  width: 100%;
+}
+
+.micro-feedback {
+  align-items: center;
+  border: 2px solid var(--rpg-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  font-size: var(--text-sm);
+  min-height: 4.5rem;
+  padding: var(--space-1) var(--space-3);
+}
+
+.micro-feedback[data-state='correct'] {
+  border-color: var(--rpg-success);
+}
+
+.micro-feedback[data-state='incorrect'] {
+  border: 2px dashed var(--rpg-danger);
+}
+
+.micro-code,
+.micro-error {
+  background: var(--rpg-surface-raised);
+  border: 1px solid var(--rpg-border);
+  border-radius: var(--radius-sm);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+}
+
+.micro-error {
+  border-left: 4px solid var(--rpg-danger);
+}
+
+.micro pre,
+.micro code,
+.micro-token {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+.micro pre,
+.micro-error code {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.micro-tap {
+  font-weight: 400;
+  justify-content: flex-start;
+  min-height: var(--micro-tap);
+  min-width: 2.75rem;
+  padding: 0 var(--space-3);
+  text-align: left;
+}
+
+.micro .micro-tap[aria-disabled='true'] {
+  cursor: default;
+  opacity: 1;
+}
+
+.micro-tap[aria-pressed='true'] {
+  border-color: var(--rpg-accent);
+}
+
+/* A result changes colour and style, never size: a mark must not reflow the
+   row it sits in, or the next tap target moves under the learner's finger. */
+.micro-tap[data-result='correct'] {
+  border-color: var(--rpg-success);
+  box-shadow: inset 0 0 0 1px var(--rpg-success);
+}
+
+.micro-tap[data-result='incorrect'] {
+  border-color: var(--rpg-danger);
+  border-style: dashed;
+  box-shadow: inset 0 0 0 1px var(--rpg-danger);
+}
+
+.micro-options .micro-tap,
+.micro-match .micro-tap {
+  justify-content: space-between;
+}
+
+.micro-slot {
+  align-items: center;
+  border: 2px dashed var(--rpg-border-strong);
+  border-radius: 50%;
+  display: inline-flex;
+  flex: none;
+  font-weight: 700;
+  height: 1.75rem;
+  justify-content: center;
+  width: 1.75rem;
+}
+
+.micro-tap[aria-pressed='true'] .micro-slot {
+  background: var(--rpg-accent);
+  border-style: solid;
+  color: var(--rpg-on-accent);
+}
+
+.micro-match {
+  display: grid;
+  gap: var(--space-3);
+  /* Two columns while each keeps a readable width, one when text is larger. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+}
+
+.micro-sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.micro-session {
+  align-items: flex-start;
+  flex-direction: column;
+  width: 100%;
+}
+
+.micro-line,
+.micro-built,
+.micro-pool {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.micro-token {
+  justify-content: center;
+}
+
+.micro-built {
+  align-content: flex-start;
+  background: var(--rpg-surface-raised);
+  border: 2px dashed var(--rpg-border-strong);
+  border-radius: var(--radius-sm);
+  /* Room for two rows of parts, so the line never grows as parts land. */
+  min-height: calc(var(--micro-tap) * 2 + 1.75rem);
+  padding: var(--space-2);
+}
+
+.micro [inert] {
+  visibility: hidden;
+}

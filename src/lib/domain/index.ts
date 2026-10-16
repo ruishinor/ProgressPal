@@ -5,3 +5,4 @@ export * from './schemas';
 export * from './types';
 export * from './learnerEvidence';
 export * from './lessonContent';
+export * from './microlearning';

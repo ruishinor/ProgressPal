@@ -1,5 +1,10 @@
 import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
+import {
+  loadRpgMicroAvailability,
+  type RpgMicroAvailability,
+} from '@/features/rpg/model/readModels';
+import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -16,10 +21,14 @@ import type {
   RpgHubSummary,
   RpgQuestSummary,
 } from '@/features/rpg/model/types';
-import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgResourcePath,
+  rpgMapPath,
+  rpgMicroPath,
+} from '@/lib/routing/rpgRoutePaths';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
-import { requireProgrammeScope } from '@/lib/domain';
+import { requireProgrammeScope, type ProgrammeScope } from '@/lib/domain';
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
@@ -42,12 +51,65 @@ function hasLocalActivity(summary: RpgHubSummary) {
   );
 }
 
+/**
+ * What the Microlearning line on Home may promise, from the very function that
+ * fills the `/rpg/micro` picker (a read, nothing written). `null` until it has
+ * answered for the current summary, when the programme ships no bank, and when
+ * the answer failed: Home then says nothing rather than advertise a session
+ * that may not exist, and the quest above is never held up waiting for it.
+ */
+function useMicroOffer(scope: ProgrammeScope, summary: RpgHubSummary | null) {
+  const hasBank = scope.content.microlearning !== undefined;
+  const [read, setRead] = useState<{
+    availability: RpgMicroAvailability;
+    summary: RpgHubSummary;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!hasBank || summary === null) {
+      return undefined;
+    }
+    let active = true;
+
+    void loadRpgMicroAvailability(scope).then((availability) => {
+      if (active) {
+        setRead({ availability, summary });
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [hasBank, scope, summary]);
+
+  if (read === null || read.summary !== summary) {
+    return null;
+  }
+  const { availability } = read;
+
+  return availability.status === 'ready'
+    ? {
+        primer: availability.primerId !== null,
+        repeat: availability.repeatSessionIds.size > 0,
+      }
+    : null;
+}
+
+function getMicroCopy(offer: { primer: boolean; repeat: boolean }) {
+  if (offer.primer && offer.repeat) {
+    return 'Mikroøkt: forbered deg eller repeter på noen få minutter.';
+  }
+  return offer.primer
+    ? 'Mikroøkt: forbered deg på neste oppgave på noen få minutter.'
+    : 'Mikroøkt: repeter det du har jobbet med på noen få minutter.';
+}
+
 export function RpgHomePage() {
-  const { copy, notesOnDemand } = requireProgrammeScope(
-    useAppState().programmeScope,
-  ).content.terminology;
+  const scope = requireProgrammeScope(useAppState().programmeScope);
+  const { copy, notesOnDemand } = scope.content.terminology;
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
+  const microOffer = useMicroOffer(scope, state.summary);
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -196,6 +258,28 @@ export function RpgHomePage() {
                 showValue={summary.currentModule.requiredItemCount > 0}
                 value={summary.currentModule.completionPercent}
               />
+            </div>
+          )}
+
+          {/* A secondary, contextual way in: only a programme that ships
+              microlearning has it, it never replaces the quest above, and the
+              button exists only while the picker would list a session. Some
+              Campaign phases (Lab, Oppdrag) honestly have none; Home then
+              says so and links nowhere. */}
+          {microOffer === null ? null : (
+            <div className="rpg-hub__module-context">
+              {microOffer.primer || microOffer.repeat ? (
+                <>
+                  <p className="rpg-hub__note">{getMicroCopy(microOffer)}</p>
+                  <RpgButton href={rpgMicroPath} variant="secondary">
+                    Åpne mikroøkt
+                  </RpgButton>
+                </>
+              ) : (
+                <p className="rpg-hub__note">
+                  Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.
+                </p>
+              )}
             </div>
           )}
         </RpgPanel>

@@ -7,6 +7,7 @@ export const rpgHeroPath = '/rpg/hero' as const;
 export const rpgBadgesPath = '/rpg/badges' as const;
 export const rpgLogPath = '/rpg/log' as const;
 export const rpgSettingsPath = '/rpg/settings' as const;
+export const rpgMicroPath = '/rpg/micro' as const;
 
 export const rpgRouteSegments = {
   badges: 'badges',
@@ -14,6 +15,7 @@ export const rpgRouteSegments = {
   hero: 'hero',
   log: 'log',
   map: 'map',
+  micro: 'micro',
   resource: 'resource/:itemId',
   root: 'rpg',
   settings: 'settings',

@@ -41,6 +41,7 @@ describe('routeDefinitions', () => {
       '/rpg/badges',
       '/rpg/log',
       '/rpg/settings',
+      '/rpg/micro',
       '/sessions',
       '/achievements',
       '/insights',

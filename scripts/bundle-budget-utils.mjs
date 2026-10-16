@@ -9,9 +9,16 @@
 export const releaseBundleBudget = Object.freeze({
   // Owner-authorized raise (2026-10-03: at most 14,000 B after one measured
   // dedupe pass). The pass took 12,004 B to 11,969 B; the bounded lesson
-  // hierarchy rules then measured 12,008 B, so the bound is 12,500 B (about
+  // hierarchy rules then measured 12,008 B, so the bound was 12,500 B (about
   // 4 % headroom).
-  maxCssGzipBytes: 12_500,
+  // Recalibrated to 13,250 B (owner decision, 2026-10-05) for the accepted
+  // microlearning surface. It measured 12,704 B after two consolidation
+  // passes (rpg-button, the RPG tokens and shared flex rules reused; no rule
+  // dropped that a physical device test had validated), and 13,250 B keeps
+  // about the same 4 % headroom over that new baseline. This is a guardrail
+  // moved once for one accepted surface, not room to grow into, and it changes
+  // nothing about what ships.
+  maxCssGzipBytes: 13_250,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,

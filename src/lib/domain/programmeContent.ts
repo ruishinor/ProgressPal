@@ -7,6 +7,7 @@
  */
 
 import type { LessonContentProvider } from '@/lib/domain/lessonContent';
+import type { MicrolearningBank } from '@/lib/domain/microlearning';
 
 export type ExternalResourceLink = {
   readonly label: string;
@@ -127,4 +128,9 @@ export type ProgrammeContent = {
    * authored lessons (Epic E). Absent for programmes without lesson content.
    */
   readonly lessons?: LessonContentProvider;
+  /**
+   * The programme's curated, stateless microlearning sessions. Absent for a
+   * programme that ships none; such a programme has no microlearning surface.
+   */
+  readonly microlearning?: MicrolearningBank;
 };
