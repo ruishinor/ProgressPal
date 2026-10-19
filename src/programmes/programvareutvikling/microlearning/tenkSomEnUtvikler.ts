@@ -1,7 +1,7 @@
 import type { MicroSource, MicroTrack } from '@/lib/domain';
 
 /**
- * «Tenk som en utvikler»: a voluntary track of six short activities about how
+ * «Utviklerblikk»: a voluntary track of six short activities about how
  * developers think before and around the code: need versus solution,
  * requirement types, information versus function, partial failure when data
  * is missing, user action versus system behaviour, and how work is organised.
@@ -30,9 +30,11 @@ const a6 = source('TSU-A6', 'SK-METH-01', 'SK-REQ-05');
 
 export const tenkSomEnUtviklerTrack: MicroTrack = {
   id: trackId,
-  title: 'Tenk som en utvikler',
+  title: 'Utviklerblikk',
   summary:
-    'Seks korte aktiviteter om behov, krav, data, systemer og samarbeid.',
+    'Øv på å stille gode spørsmål, forstå krav og se hvordan valgene dine påvirker systemet og andre.',
+  about:
+    'I Utviklerblikk øver du på å stille gode spørsmål og se sammenhenger gjennom korte oppgaver uten å skrive kode.',
   sessions: [
     {
       id: 'tsu-behov-eller-losning',
@@ -40,35 +42,45 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary: 'Finn behovet bak et løsningsforslag.',
       minutes: 3,
       takeaway:
-        'Når noen sier «vi trenger X», spør: Hvilket problem skal X løse? Hvem har behovet? Hva tar vi for gitt?\nDa kan du vurdere om X er den beste løsningen – eller bare den første ideen.',
+        'Når noen foreslår en løsning: Hvilket problem skal den løse?\nHvem trenger hjelp?\nHva vet vi ikke ennå?\nUndersøk behovet før du bestemmer løsningen.',
       cards: [
         {
           kind: 'learn',
           id: 'tsu-a1-ord',
-          title: 'Fire ord som hjelper deg',
+          title: 'Fire stikkord som hjelper deg',
           role: 'explain',
           source: a1,
-          idea: 'Problem: det som ikke fungerer godt i dag.\nBehov: det noen trenger å få til.\nLøsningsforslag: én mulig måte å dekke behovet på.\nAntakelse: noe vi tror, men ikke har sjekket.',
+          idea: 'Disse fire stikkordene hjelper deg å holde ting fra hverandre.',
+          definitions: [
+            { term: 'Problem', text: 'det som ikke fungerer godt i dag.' },
+            { term: 'Behov', text: 'det noen trenger å få til.' },
+            {
+              term: 'Løsningsforslag',
+              text: 'én mulig måte å dekke behovet på.',
+            },
+            { term: 'Antakelse', text: 'noe vi tror, men ikke har sjekket.' },
+          ],
           bridge: 'Neste: et treningssenter vil ha en app.',
         },
         {
           kind: 'select',
           id: 'tsu-a1-behov',
-          title: 'Hva er det egentlige behovet?',
+          title: 'Et treningssenter',
+          question: 'Hva er det egentlige behovet?',
           role: 'scaffold',
           source: a1,
           context:
-            'Et treningssenter sier: «Vi trenger en app med QR-kode for innsjekk.» Grunnen er lang kø om morgenen, fordi de ansatte skriver inn hvert medlem for hånd.',
+            'Et treningssenter sier: «Vi trenger en app med QR-kode for innsjekk.» Det er lang kø om morgenen, fordi de ansatte skriver inn hvert medlem.',
           options: [
+            {
+              id: 'rask',
+              label: 'Rask innsjekk uten kø.',
+            },
             {
               id: 'app',
               label: 'En app med QR-kode.',
               feedback:
                 'Dette er løsningen de foreslår. Hva skal QR-koden hjelpe medlemmene med?',
-            },
-            {
-              id: 'rask',
-              label: 'Rask innsjekk uten kø.',
             },
             {
               id: 'liker',
@@ -84,6 +96,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a1-sorter',
           title: 'Koble hvert utsagn til riktig ord',
           role: 'representation',
@@ -98,58 +111,61 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             },
             {
               id: 'behov',
-              left: 'Innsjekk på sekunder',
+              left: 'Rask innsjekk',
               right: 'Behov',
             },
             {
               id: 'losning',
-              left: 'En app med QR-kode',
-              right: 'Løsningsforslag',
+              left: 'App med QR-kode',
+              right: 'Forslag',
             },
             {
               id: 'antakelse',
-              left: 'Alle har smarttelefon',
+              left: 'Alle har mobil',
               right: 'Antakelse',
             },
           ],
           rightOrder: ['losning', 'antakelse', 'problem', 'behov'],
           hint: 'Hvilket utsagn tar noe for gitt uten at det er sjekket?',
           explanation:
-            'Køen er problemet. Rask innsjekk er behovet. Appen er ett forslag. At alle har mobil, er en antakelse som bør sjekkes.',
+            'Køen er problemet, rask innsjekk behovet, appen ett forslag og «Alle har mobil» en antakelse.',
         },
         {
           kind: 'select',
           id: 'tsu-a1-hvorfor',
-          title: 'Hvorfor finne behovet før du lager appen?',
+          title: 'Før dere velger løsning',
           role: 'application',
           source: a1,
+          context: 'Teamet på treningssenteret vurderer QR-appen for innsjekk.',
+          question: 'Hva bør dere undersøke først?',
           options: [
             {
               id: 'darlig',
-              label: 'QR-kode er alltid dårlig.',
+              label: 'Hvilken QR-app er billigst.',
               feedback:
-                'QR-kode kan godt være et godt valg. Poenget er å vite hvilket behov den skal dekke.',
-            },
-            {
-              id: 'sammenligne',
-              label: 'For å se flere løsninger.',
+                'Pris er viktig, men først må dere forstå hvorfor det blir kø.',
             },
             {
               id: 'feil',
-              label: 'Kunden tar som regel feil.',
+              label: 'Om folk vil bruke appen.',
               feedback:
-                'Kunden kjenner ofte problemet godt. Forslaget er nyttig, men ikke nødvendigvis det eneste.',
+                'Det tar for gitt at appen er løsningen. Først må dere forstå hvorfor det blir kø.',
+            },
+            {
+              id: 'sammenligne',
+              label: 'Hvorfor det blir kø.',
             },
           ],
           correctId: 'sammenligne',
-          hint: 'Hva kan gå galt hvis en antakelse viser seg å være feil?',
+          hint: 'Hva må dere vite før dere velger løsning?',
           explanation:
-            'Kjenner du behovet, kan du vurdere flere løsninger – og unngå å løse feil problem.',
+            'Undersøk hvor køen oppstår og hvem den rammer. Da kan dere vurdere om QR-kode faktisk hjelper.',
         },
         {
           kind: 'select',
           id: 'tsu-a1-bibliotek',
-          title: 'Ny situasjon: Hva trenger lånerne?',
+          title: 'Ny situasjon: biblioteket',
+          question: 'Hva trenger lånerne?',
           role: 'application',
           source: a1,
           context:
@@ -182,26 +198,38 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     {
       id: 'tsu-kravtyper',
       title: 'Funksjonelle og ikke-funksjonelle krav',
-      summary: 'Skill funksjon, egenskap og regel.',
+      summary:
+        'Skill hva systemet gjør fra kvaliteter som svartid og brukervennlighet.',
       minutes: 4,
       takeaway:
-        'Spør om hvert krav: Sier det hva systemet skal gjøre, hvor godt det skal fungere, eller er det en konkret regel?\nOrdet «sikkerhet» avgjør ikke svaret. Et vagt krav må gjøres konkret før du kan teste det.',
+        'Funksjonelle krav sier hva appen skal gjøre, som å sperre kontoen etter fem mislykkede innloggingsforsøk.\nIkke-funksjonelle krav gjelder egenskaper som svartid, sikkerhet, brukervennlighet og stabilitet.\n«Svar innen to sekunder» er et målbart kvalitetskrav. Ikke alle kvalitetskrav trenger tall, men teamet må vite hvordan de skal sjekkes.',
       cards: [
         {
           kind: 'learn',
           id: 'tsu-a2-typer',
-          title: 'Tre slags krav',
+          title: 'To typer krav',
           role: 'explain',
           source: a2,
-          idea: 'Et krav beskriver noe systemet skal gjøre eller oppfylle.\nFunksjonelt krav: hva systemet skal kunne gjøre.\nIkke-funksjonelt krav: hvor godt det skal fungere, for eksempel fart eller sikkerhet. Vi kaller det en egenskap.\nRegel: hva systemet konkret skal tillate eller avvise.',
+          idea: 'Et krav beskriver noe et system må gjøre eller oppfylle.',
+          definitions: [
+            {
+              term: 'Funksjonelt krav (functional requirement)',
+              text: 'hva systemet skal gjøre. Eksempel: «Kunden skal kunne betale med kort.»',
+            },
+            {
+              term: 'Ikke-funksjonelt krav (non-functional requirement)',
+              text: 'egenskaper som svartid, sikkerhet, brukervennlighet og stabilitet. Eksempel: «Betalingen skal være ferdig innen fem sekunder.» Krav må kunne sjekkes, men trenger ikke alltid tall.',
+            },
+          ],
           bridge: 'Neste: to krav om innlogging.',
         },
         {
           kind: 'select',
           id: 'tsu-a2-innlogging',
-          title: 'Hvilket krav beskriver en egenskap?',
+          title: 'To krav om innlogging',
           context:
-            'A: «Brukeren skal kunne logge inn.» B: «Innloggingen skal beskytte mot uvedkommende tilgang.»',
+            'A: «Brukeren skal kunne logge inn.»\nB: «Innloggingen skal gi svar innen to sekunder.»',
+          question: 'Hvilket krav beskriver en egenskap?',
           role: 'scaffold',
           source: a2,
           options: [
@@ -209,144 +237,172 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
               id: 'logge-inn',
               label: 'Krav A',
               feedback:
-                'Krav A sier hva systemet skal kunne gjøre. Det er en funksjon.',
+                'Krav A sier hva brukeren skal kunne gjøre. Det er en handling, altså et funksjonelt krav.',
+            },
+            {
+              id: 'begge',
+              label: 'Begge kravene',
+              feedback:
+                'Begge handler om innlogging, men bare B stiller krav til svartiden. A sier hva brukeren skal kunne gjøre.',
             },
             {
               id: 'beskytte',
               label: 'Krav B',
             },
-            {
-              id: 'begge',
-              label: 'Begge er funksjoner.',
-              feedback:
-                'Det ene kravet sier ikke hva systemet gjør, men hvor trygt det skal være.',
-            },
           ],
           correctId: 'beskytte',
-          hint: 'Hvilket krav sier hvor godt, ikke hva?',
+          hint: 'Hvilket krav sier noe om svartiden, ikke bare handlingen?',
           explanation:
-            'Å beskytte mot uvedkommende er en egenskap: hvor trygg løsningen skal være. Den sier ikke nøyaktig hva systemet skal gjøre.',
+            'B beskriver en egenskap: hvor raskt løsningen svarer. «To sekunder» gjør kravet målbart, så teamet kan teste det.',
+        },
+        {
+          kind: 'learn',
+          id: 'tsu-a2-sider',
+          title: 'Tre sider ved et krav',
+          role: 'explain',
+          source: a2,
+          idea: 'Handling, regel og kvalitet er ikke tre egne typer krav, men sider ved et krav. Handling og regel hører til funksjonelle krav, kvalitet til ikke-funksjonelle.',
+          definitions: [
+            { term: 'Handling', text: 'hva systemet skal gjøre.' },
+            {
+              term: 'Regel for handling',
+              text: 'når eller under hvilke betingelser handlingen skjer.',
+            },
+            {
+              term: 'Kvalitet',
+              text: 'egenskaper som svartid, sikkerhet, brukervennlighet og stabilitet.',
+            },
+          ],
+          bridge: 'Neste: tre krav til en bibliotekapp.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a2-bibliotek',
-          title: 'Bibliotekapp: koble kravet til typen',
+          title: 'Tre krav til en bibliotekapp',
+          question: 'Hva beskriver hvert krav?',
           role: 'representation',
           source: a2,
           leftLabel: 'Krav',
-          rightLabel: 'Type',
+          rightLabel: 'Beskrivelse',
           pairs: [
             {
               id: 'funksjon',
               left: 'Forlenge et lån',
-              right: 'Funksjon',
+              right: 'Handling',
             },
             {
               id: 'egenskap',
               left: 'Svar innen 2 sekunder',
-              right: 'Egenskap',
+              right: 'Kvalitet',
             },
             {
               id: 'regel',
-              left: 'Sperr etter 5 feil passord',
-              right: 'Regel',
+              left: 'Sperr etter 5 mislykkede forsøk',
+              right: 'Regel for handling',
             },
           ],
           rightOrder: ['regel', 'funksjon', 'egenskap'],
-          hint: 'Hvilket krav sier nøyaktig hva systemet gjør i en bestemt situasjon?',
+          hint: 'Hvilket krav sier hvor raskt, ikke hva?',
           explanation:
-            'Lån er en funksjon, svartid en egenskap, og sperringen en konkret regel.',
+            'Å forlenge et lån er en handling. Sperringen er også en handling, og regelen sier når den skjer. Begge er funksjonelle. Svartiden er en kvalitet.',
         },
         {
           kind: 'select',
           id: 'tsu-a2-sikkerhet',
-          title: 'Er sperringen et ikke-funksjonelt krav?',
+          title: 'Et sikkerhetskrav',
           role: 'retrieval',
           source: a2,
           context:
-            '«Sperr kontoen i 15 min etter fem feil passord.» Det handler om sikkerhet.',
+            'Et sikkerhetskrav sier at kontoen skal sperres i 15 minutter etter fem mislykkede innloggingsforsøk.',
+          question: 'Hvilken type krav beskriver selve sperringen?',
           options: [
             {
-              id: 'ja',
-              label: 'Ja, alt om sikkerhet er det.',
-              feedback:
-                'Ordet «sikkerhet» avgjør ikke typen. Sier kravet hva systemet gjør, eller hvor godt det skal fungere?',
+              id: 'regel',
+              label: 'Funksjonelt krav',
             },
             {
-              id: 'regel',
-              label: 'Nei, det er en konkret regel.',
+              id: 'ja',
+              label: 'Ikke-funksjonelt krav',
+              feedback:
+                'Målet er sikkerhet, men kravet sier hva systemet skal gjøre: sperre kontoen.',
             },
             {
               id: 'ikke-krav',
-              label: 'Nei, det er ikke et krav.',
+              label: 'Et ytelseskrav',
               feedback:
-                'Det er et krav: Du kan sjekke om systemet faktisk gjør det.',
+                'Tallene sier når og hvor lenge, ikke hvor raskt. Kravet beskriver noe systemet gjør.',
             },
           ],
           correctId: 'regel',
-          hint: 'Kan du teste kravet ved å gjøre noe og se hva systemet svarer?',
+          hint: 'Se på hva kravet ber systemet om å gjøre.',
           explanation:
-            'Sikkerhet er en egenskap. Sperringen er en konkret regel som gjør systemet sikrere.',
+            'Sperringen er noe systemet gjør, med sikkerhet som mål. Sikkerhet kan også være en egenskap, men da må den gjøres konkret.',
         },
         {
           kind: 'select',
           id: 'tsu-a2-testbart',
-          title: 'Hvilken omskriving kan du teste?',
+          title: 'Biblioteket og lånedata',
           role: 'application',
           source: a2,
-          context: '«Systemet skal være sikkert» er vanskelig å teste.',
+          context:
+            'Biblioteket vil beskytte lånernes opplysninger. «Systemet skal være sikkert» er for uklart til at teamet kan sjekke det.',
+          question: 'Hvilken formulering kan teamet teste?',
           options: [
             {
               id: 'svaert',
-              label: 'Svært sikkert system.',
+              label: 'Lånedata skal lagres trygt.',
               feedback:
-                '«Svært sikkert» er fortsatt uklart. Hvordan skulle du sjekke det?',
+                'Det høres konkret ut, men hva betyr «trygt»? Teamet vet ikke hva de skal sjekke.',
+            },
+            {
+              id: 'ny',
+              label: 'Følg god sikkerhetspraksis.',
+              feedback:
+                'Det høres riktig ut, men sier ikke hva som skal skje. «God praksis» kan ikke testes direkte.',
             },
             {
               id: 'egen',
               label: 'Låneren ser bare egne lån.',
             },
-            {
-              id: 'ny',
-              label: 'Bruk den nyeste teknologien.',
-              feedback:
-                'Ny teknologi gjør ikke et system sikkert av seg selv, og kravet sier ikke hva som skal sjekkes.',
-            },
           ],
           correctId: 'egen',
-          hint: 'Velg kravet der du kan si: «Jeg gjør … og forventer at …».',
+          hint: 'Hvilket krav kan du sjekke med ett konkret forsøk?',
           explanation:
-            'Test: Logg inn som én låner og åpne en annens historikk. Systemet skal si nei.',
+            'Test: Logg inn som én låner og prøv å åpne en annens lån. Systemet skal si nei. Kravet sier hva som skal skje.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a2-billett',
-          title: 'Billettapp: koble kravet til typen',
+          title: 'En billettapp',
+          question:
+            'Appen selger og sjekker billetter. Hva beskriver hvert krav?',
           role: 'application',
           source: a2,
           leftLabel: 'Krav',
-          rightLabel: 'Type',
+          rightLabel: 'Beskrivelse',
           pairs: [
             {
               id: 'funksjon',
               left: 'Kjøpe enkeltbillett',
-              right: 'Funksjon',
+              right: 'Handling',
             },
             {
               id: 'egenskap',
               left: 'Åpner på under 3 sek.',
-              right: 'Egenskap',
+              right: 'Kvalitet',
             },
             {
               id: 'regel',
               left: 'Utløpt billett avvises',
-              right: 'Regel',
+              right: 'Regel for handling',
             },
           ],
           rightOrder: ['egenskap', 'regel', 'funksjon'],
           hint: 'Hvilket krav handler om hvor raskt, ikke om hva?',
           explanation:
-            'Kjøpe billett er en funksjon. Åpningstid er en egenskap. At utløpte billetter avvises, er en regel.',
+            'Kjøp og avvisning er handlinger, og en regel styrer avvisningen. Åpningstiden er en kvalitet.',
         },
       ],
     },
@@ -356,7 +412,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary: 'Skill det systemet vet fra det det gjør.',
       minutes: 3,
       takeaway:
-        'For hver funksjon: Hvilken informasjon trenger den?\nFor hver opplysning: Hvilke funksjoner bruker den, og hvilke endrer den?\nDa ser du hvordan delene henger sammen – uten å skrive kode.',
+        'For hver funksjon: Hvilken informasjon trenger den?\nFor hver opplysning: Hvilke funksjoner bruker den?\nHva skjer med disse funksjonene hvis opplysningen mangler eller er feil?\nDa ser du hvordan delene henger sammen – uten å skrive kode.',
       cards: [
         {
           kind: 'learn',
@@ -364,7 +420,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Det systemet vet, og det systemet gjør',
           role: 'explain',
           source: a3,
-          idea: 'Informasjon er det systemet må vite og huske. «Gruppetime» med tid, sal og antall plasser er informasjon.\nEn funksjon er noe som gjøres med informasjonen. «Bestille gruppetime» er en funksjon.\nTips: Informasjon er ofte et substantiv, en funksjon ofte et verb.',
+          idea: 'Informasjon er det systemet må vite og huske. «Gruppetime» med tid, sal og antall plasser er informasjon.\nEn funksjon er noe som gjøres med informasjonen. «Bestille gruppetime» er en funksjon.\nSpør: Hva må systemet vite? Og hva skal det gjøre med opplysningene?',
           bridge: 'Neste: en app for gruppetimer.',
         },
         {
@@ -376,14 +432,14 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           context: 'Et treningssenter lager en app for gruppetimer.',
           options: [
             {
-              id: 'time',
-              label: 'Gruppetime: tid, sal, plasser',
-            },
-            {
               id: 'melde',
               label: 'Melde seg på en time',
               feedback:
                 '«Melde seg på» er en handling. Den bruker og endrer informasjon.',
+            },
+            {
+              id: 'time',
+              label: 'Gruppetime: tid, sal, plasser',
             },
             {
               id: 'se',
@@ -399,6 +455,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a3-koble',
           title: 'Koble funksjonen til informasjonen den trenger',
           role: 'representation',
@@ -414,7 +471,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             {
               id: 'logge-inn',
               left: 'Logge inn',
-              right: 'Medlemmer: e-post og passord',
+              right: 'E-postadresse og opplysninger for innlogging',
             },
             {
               id: 'deltakere',
@@ -425,25 +482,26 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           rightOrder: ['deltakere', 'timeplan', 'logge-inn'],
           hint: 'Hva må systemet slå opp for å gjøre hver handling?',
           explanation:
-            'Timeplanen bygger på gruppetimene, innloggingen på medlemmene, og deltakerlisten på påmeldingene.',
+            'Timeplanen bruker tid og sal. Innlogging bruker e-postadresse og innloggingsopplysninger for å kontrollere hvem du er. Deltakerlisten bruker påmeldingene.',
         },
         {
           kind: 'select',
           id: 'tsu-a3-pamelding',
-          title: 'Hva må påmeldingen vite?',
+          title: 'Hva trenger systemet ved påmelding?',
           role: 'retrieval',
           source: a3,
-          context: 'Funksjonen «Melde seg på en time».',
+          context:
+            'Et medlem vil melde seg på en gruppetime. Systemet må sjekke om det er plass og registrere hvem som deltar.',
           options: [
+            {
+              id: 'alt',
+              label: 'Time, medlem, antall plasser og påmeldinger.',
+            },
             {
               id: 'bare-time',
               label: 'Bare hvilken time.',
               feedback:
                 'Da vet ikke systemet hvem som meldte seg på, eller om timen er full.',
-            },
-            {
-              id: 'alt',
-              label: 'Time, medlem og påmeldte.',
             },
             {
               id: 'musikk',
@@ -455,7 +513,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           correctId: 'alt',
           hint: 'Hva må systemet sjekke før det sier «Du er påmeldt»?',
           explanation:
-            'Én funksjon trenger ofte flere opplysninger. Uten antall påmeldte kan systemet ikke vite om det er plass.',
+            'Systemet trenger timen som velges og medlemmet som melder seg på. Antall plasser er kapasiteten. Sammen med antall eksisterende påmeldinger brukes den til å sjekke om det er plass.',
         },
         {
           kind: 'select',
@@ -466,52 +524,54 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           context: 'Påmeldinger: hvem som er meldt på hvilken time.',
           options: [
             {
+              id: 'ledige',
+              label: 'Vise antall ledige plasser.',
+            },
+            {
               id: 'beskrivelse',
-              label: 'Beskrivelsen av timen.',
+              label: 'Vise beskrivelsen av timen.',
               feedback:
                 'Beskrivelsen hører til timen og endrer seg ikke når noen melder seg på.',
             },
             {
-              id: 'ledige',
-              label: 'Antall ledige plasser.',
-            },
-            {
               id: 'apningstid',
-              label: 'Åpningstidene.',
+              label: 'Vise åpningstidene.',
               feedback: 'Åpningstider har ikke noe med påmeldinger å gjøre.',
             },
           ],
           correctId: 'ledige',
-          hint: 'Hvilket tall endrer seg når noen melder seg på?',
+          hint: 'Hvilken handling krever at systemet teller påmeldingene?',
           explanation:
-            'Ledige plasser = antall plasser minus antall påmeldte. Derfor er den funksjonen avhengig av påmeldingene.',
+            'For å vise ledige plasser må systemet regne ut kapasiteten minus antall registrerte påmeldinger. Påmeldingene er informasjon; å beregne og vise ledige plasser er en funksjon.',
         },
         {
           kind: 'select',
           id: 'tsu-a3-konsert',
-          title: 'Ny situasjon: Hvilket av disse er en funksjon?',
+          title: 'Ny situasjon: konsertbilletten',
+          question: 'Hva mangler appen?',
           role: 'application',
           source: a3,
-          context: 'En app for konsertbilletter.',
+          context:
+            'En kunde har betalt for en konsertbillett, men appen mangler informasjon om setet.',
           options: [
             {
               id: 'konsert',
-              label: 'Konsert',
+              label: 'En kvittering for betalingen.',
               feedback:
-                'Artist, sted og dato er opplysninger systemet må kjenne.',
+                'Kvitteringen viser betaling, men ikke hvilket sete kunden har fått.',
             },
             {
               id: 'sete',
-              label: 'Sitteplass',
+              label: 'Bekreftelse på et ledig sete.',
               feedback:
-                'Rad, sete og om plassen er solgt, er informasjon systemet holder rede på.',
+                'At et sete er ledig, betyr ikke at kunden har fått akkurat det setet.',
             },
-            { id: 'kjope', label: 'Kjøpe billett' },
+            { id: 'kjope', label: 'Hvilket sete kunden har fått.' },
           ],
           correctId: 'kjope',
-          hint: 'Se etter en handling, ikke en ting.',
+          hint: 'Hva må appen vite for å vise riktig billett?',
           explanation:
-            'Å kjøpe billett er en funksjon. Den bruker informasjon om konserten og sitteplassene, og endrer om en plass er solgt.',
+            'Betaling alene er ikke nok. Appen må vite hvilket sete kunden har fått, før den kan vise riktig billett.',
         },
       ],
     },
@@ -521,23 +581,25 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary: 'Undersøk hvilke funksjoner som påvirkes.',
       minutes: 4,
       takeaway:
-        'Når noe mangler, ikke anta at alt eller ingenting virker. Gå gjennom funksjonene: Hvilken informasjon trenger den? Virker den, eller gir den feil svar? Hva bør brukeren få vite?\nEt feil tall som ser riktig ut, er ofte farligere enn en tydelig melding.',
+        'Når data mangler: Hva kan hver funksjon fortsatt vise?\nHvilke funksjoner trenger flere opplysninger?\nHva bør brukeren få vite?\nVis heller en tydelig beskjed enn et tall dere ikke kan stole på.',
       cards: [
         {
           kind: 'learn',
           id: 'tsu-a4-situasjon',
-          title: 'En morgen mangler noe',
+          title: 'Treningsappen mangler påmeldinger',
           role: 'explain',
           source: a4,
-          idea: 'Treningsappen henter to ting:\nTimeplanen: navn, tid, sal og antall plasser.\nPåmeldingene: hvem som er meldt på hvilken time.\nEn morgen får appen hentet timeplanen, men ikke påmeldingene.',
+          idea: 'Et treningssenter bruker en app som viser gruppetimer og lar medlemmer melde seg på.\nAppen henter timeplanen med navn, tid, sal og antall plasser. Påmeldingene, som viser hvem som deltar på hver time, hentes separat.\nEn morgen får appen hentet timeplanen, men ikke påmeldingene.',
           bridge: 'Neste: Hva tror du skjer?',
         },
         {
           kind: 'select',
           id: 'tsu-a4-hva-skjer',
-          title: 'Hva tror du skjer med appen?',
+          title: 'Hva kan fortsatt fungere i appen?',
           role: 'scaffold',
           source: a4,
+          context:
+            'Treningsappen har timeplanen med tid, sal og antall plasser, men får ikke hentet påmeldingene.',
           options: [
             {
               id: 'alt-stopper',
@@ -546,28 +608,30 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
                 'Timeplanen er hentet. Det som bare trenger timeplanen, kan fortsatt vises.',
             },
             {
+              id: 'delvis',
+              label: 'Deler av appen virker.',
+            },
+            {
               id: 'som-vanlig',
               label: 'Alt virker som vanlig.',
               feedback:
-                'Noen funksjoner trenger påmeldingene. De kan ikke regne riktig nå.',
-            },
-            {
-              id: 'delvis',
-              label: 'Noe virker, noe gir feil svar.',
+                'Appen trenger påmeldingene for å finne ledige plasser. Timeplanen alene er ikke nok.',
             },
           ],
           correctId: 'delvis',
           hint: 'Hvilke funksjoner må vite hvem som er påmeldt?',
           explanation:
-            'Systemer svikter sjelden «alt eller ingenting». Undersøk hver funksjon: Hvilken informasjon trenger den, og har vi den nå?',
+            'Tid og sal kan fortsatt vises. Ledige plasser krever kapasitet og påmeldinger, så det antallet er ukjent nå.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a4-pavirkes',
           title: 'Koble funksjonen til hvordan den påvirkes',
           role: 'representation',
           source: a4,
-          context: 'Påmeldingene mangler.',
+          context:
+            'Treningsappen har timeplanen med tid, sal og antall plasser, men får ikke hentet påmeldingene.',
           leftLabel: 'Funksjon',
           rightLabel: 'Hva skjer',
           pairs: [
@@ -584,44 +648,45 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             {
               id: 'melde',
               left: 'Melde seg på',
-              right: 'Bør vente til data er tilbake',
+              right: 'Må vente til ledige plasser kan sjekkes',
             },
           ],
           rightOrder: ['ledige', 'melde', 'tid'],
           hint: 'Hvilken informasjon trenger hver funksjon?',
           explanation:
-            'Tid og sal står i timeplanen. Ledige plasser trenger påmeldingene. En påmelding nå kan gi for mange deltakere.',
+            'Tid og sal finnes i timeplanen. Uten påmeldingene er ledige plasser ukjent. Her må nye påmeldinger vente til appen kan sjekke at det er plass.',
         },
         {
           kind: 'select',
           id: 'tsu-a4-feil-tall',
-          title: 'Hva har mest sannsynlig skjedd?',
+          title: 'Et tall som ikke stemmer',
+          question: 'Hvilken mulig regnefeil kan forklare tallet?',
           role: 'retrieval',
           source: a4,
           context:
-            'Appen viser «20 ledige plasser» på en time som egentlig er full.',
+            'Timeplanen viser 20 plasser. Timen er full. Appen får ikke hentet påmeldingene, men viser «20 ledige».',
           options: [
             {
-              id: 'null',
-              label: 'Null påmeldte ble antatt.',
-            },
-            {
               id: 'flere',
-              label: 'Timen fikk flere plasser.',
+              label: 'Appen la de 20 påmeldte til kapasiteten.',
               feedback:
-                'Antall plasser står i timeplanen, og den er uendret. Se på det som mangler.',
+                'Med 20 plasser og 20 påmeldte ville summen blitt 40, ikke 20.',
             },
             {
               id: 'avmeldt',
-              label: 'Alle meldte seg av.',
+              label: 'Appen trakk kapasiteten fra de 20 påmeldte.',
               feedback:
-                'Mulig, men lite sannsynlig. Vi vet allerede at påmeldingene ikke ble hentet.',
+                '20 påmeldte minus 20 plasser blir 0, ikke 20. Appen har dessuten ikke fått hentet antall påmeldte.',
+            },
+            {
+              id: 'null',
+              label: 'Appen satte ukjent antall påmeldte til 0.',
             },
           ],
           correctId: 'null',
-          hint: 'Hva blir «plasser minus påmeldte» hvis appen tror at ingen er påmeldt?',
+          hint: 'Tenk på forskjellen mellom en verdi på null og en opplysning appen ikke har.',
           explanation:
-            'Manglende data ble behandlet som null påmeldte. Tallet ser riktig ut, men er feil. Det kan være verre enn ingen tall.',
+            'Hvis manglende påmeldinger regnes som null, blir 20 − 0 = 20. Det kan forklare tallet, men må undersøkes: ukjent betyr ikke ingen.',
         },
         {
           kind: 'select',
@@ -629,7 +694,14 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Hvordan bør appen oppføre seg nå?',
           role: 'application',
           source: a4,
+          context:
+            'Treningsappen har riktig timeplan, men får ikke hentet påmeldingene. Derfor vet den ikke hvor mange plasser som er ledige.',
           options: [
+            {
+              id: 'aerlig',
+              label:
+                'Vise timeplanen og si at antall ledige plasser er ukjent.',
+            },
             {
               id: 'skjul',
               label: 'Skjule hele timeplanen.',
@@ -637,25 +709,22 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
                 'Da mister medlemmene også det som virker. Timeplanen er jo riktig.',
             },
             {
-              id: 'aerlig',
-              label: 'Vise timeplanen, si fra.',
-            },
-            {
               id: 'null',
               label: 'Vise 0 ledige plasser.',
               feedback:
-                '0 er også et feil tall. Da tror alle at timene er fulle.',
+                '0 betyr at timen er full. Uten påmeldingene vet appen ikke om det stemmer. Den bør si at antallet er ukjent.',
             },
           ],
           correctId: 'aerlig',
           hint: 'Hvilket svar gir riktig informasjon og ingen falske tall?',
           explanation:
-            'Vis det som er riktig, si fra om det som mangler, og stopp handlinger som kan gi feil resultat.',
+            'Vis timeplanen, og si at ledige plasser er ukjent. Bekreft påmeldinger først når plassen kan kontrolleres. Appen skal ikke gjette.',
         },
         {
           kind: 'select',
           id: 'tsu-a4-reiseapp',
-          title: 'Ny situasjon: Hva stemmer?',
+          title: 'Ny situasjon: reiseappen',
+          question: 'Hva kan appen fortsatt vise uten sanntidsdata?',
           role: 'application',
           source: a4,
           context:
@@ -669,7 +738,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             },
             {
               id: 'planlagt',
-              label: 'Planlagt tid, ikke forsinkelser.',
+              label: 'Planlagte avganger.',
             },
             {
               id: 'noyaktig',
@@ -680,7 +749,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           correctId: 'planlagt',
           hint: 'Hvilken informasjon trenger hver av funksjonene?',
           explanation:
-            'Planlagte tider bygger på ruteplanen, forsinkelser på sanntidsdata. En god app sier fra at tidene er planlagte.',
+            'Ruteplanen gir planlagte avganger. Oppdaterte forsinkelser krever sanntidsdata. Appen må merke tidene som planlagte.',
         },
       ],
     },
@@ -690,7 +759,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary: 'Skill det brukeren gjør fra det systemet gjør.',
       minutes: 4,
       takeaway:
-        'Bak hver knapp ligger spørsmål: Hva må systemet sjekke? Hva skal lagres? Hva skal brukeren få vite – både når det går bra og når det ikke gjør det?\nEt tydelig avslag kan være helt riktig oppførsel.',
+        'Bak hver knapp: Hva må systemet sjekke?\nHva skal lagres?\nHva skal brukeren få vite – både når det går bra og når det ikke gjør det?\nEt tydelig avslag kan være helt riktig oppførsel.',
       cards: [
         {
           kind: 'learn',
@@ -698,11 +767,12 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Ett trykk – mange steg',
           role: 'explain',
           source: a5,
-          idea: 'Biblioteket har et gratis kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Det systemet gjør etterpå, er systematferd: det sjekker, lagrer og gir beskjed. Det meste ser Ali aldri.',
+          idea: 'Biblioteket har et gratis kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Her sjekker appen plass og registrerer påmeldingen før den svarer. Dette er systematferd. Ali ser handlingen sin og svaret på skjermen, men ikke sjekken og registreringen bak.',
           bridge: 'Neste: koble Alis handlinger til systemets svar.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a5-svar',
           title: 'Koble handlingen til systemets svar',
           role: 'scaffold',
@@ -717,8 +787,8 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             },
             {
               id: 'feil-epost',
-              left: 'Skriver feil e-post',
-              right: 'Ber om gyldig e-post',
+              left: 'Skriver e-postadresse uten @',
+              right: 'Ber om gyldig e-postformat',
             },
             {
               id: 'meld-av',
@@ -729,7 +799,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           rightOrder: ['meld-av', 'meld-pa', 'feil-epost'],
           hint: 'Hva må systemet gjøre for at Alis handling skal få riktig resultat?',
           explanation:
-            'Hver brukerhandling utløser systematferd: kontroll, lagring eller sletting, og en beskjed tilbake.',
+            'Systemet sjekker plass før en påmelding lagres, ber om gyldig e-postformat når @ mangler, og frigjør plassen ved avmelding. Formatkontroll viser ikke om adressen tilhører riktig person.',
         },
         {
           kind: 'order',
@@ -737,26 +807,28 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Sett systemets steg i riktig rekkefølge',
           role: 'representation',
           source: a5,
-          context: 'Ali har trykket «Meld meg på».',
+          context:
+            'Ali har trykket «Meld meg på» for et foredrag. Opplysningene er gyldige, og det er ledig plass.',
           items: [
             { id: 'lagre', label: 'Lagre påmeldingen' },
-            { id: 'motta', label: 'Ta imot påmeldingen' },
+            { id: 'motta', label: 'Motta forespørselen' },
             { id: 'bekrefte', label: 'Vise «Du er påmeldt»' },
             { id: 'sjekke', label: 'Sjekke at det er ledig plass' },
           ],
           correctOrder: ['motta', 'sjekke', 'lagre', 'bekrefte'],
-          hint: 'Hva må være sikkert før systemet sier «Du er påmeldt»?',
+          hint: 'Hva trenger systemet å motta før det kan sjekke noe? Hva må være avklart før påmeldingen lagres?',
           explanation:
-            'Først kontroll, så lagring, så bekreftelse. Lagres det før kontrollen, kan foredraget bli overbooket.',
+            'Motta forespørselen, sjekk plass, lagre påmeldingen og vis bekreftelsen. Rekkefølgen alene hindrer ikke dobbeltbooking ved samtidige forsøk.',
         },
         {
           kind: 'select',
           id: 'tsu-a5-samtidig',
-          title: 'Hva bør systemet gjøre?',
+          title: 'Én plass igjen',
+          question: 'Hva bør systemet gjøre?',
           role: 'retrieval',
           source: a5,
           context:
-            'Det er én plass igjen. Ali og Sara trykker «Meld meg på» nesten samtidig.',
+            'Et foredrag har 40 plasser, og bare én er ledig. Ali og Sara trykker «Meld meg på» nesten samtidig.',
           options: [
             {
               id: 'begge',
@@ -765,77 +837,82 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
                 'Da brytes regelen om 40 plasser, og én får et løfte som ikke holder.',
             },
             {
-              id: 'forst',
-              label: 'Én får plassen, én får et nei.',
-            },
-            {
               id: 'ingen',
               label: 'Avvise begge.',
               feedback: 'Det er en plass ledig. Én av dem bør få den.',
+            },
+            {
+              id: 'forst',
+              label: 'Én får plassen, én får et nei.',
             },
           ],
           correctId: 'forst',
           hint: 'Hva sier regelen om antall plasser?',
           explanation:
-            'Bare én skal få den siste plassen. Den andre skal få et tydelig avslag. Også et avslag er riktig systematferd.',
+            'Bare én påmelding kan godtas for den siste plassen. Systemet må håndtere avgjørelsen pålitelig også når forsøkene skjer samtidig. Den andre må få beskjed om at plassen er tatt.',
         },
         {
           kind: 'select',
           id: 'tsu-a5-avslag',
-          title: 'Er dette en feil i systemet?',
+          title: 'Appen gir to ulike svar',
           role: 'application',
           source: a5,
-          context: 'Sara får beskjeden «Foredraget er fullt».',
+          question: 'Hva bør utviklingsteamet undersøke først?',
+          context:
+            'Sara får beskjeden «Foredraget er fullt». Samtidig viser appen «1 plass ledig».',
           options: [
             {
-              id: 'alltid-ja',
-              label: 'Ja, systemet skal si ja.',
-              feedback:
-                'Systemet skal følge regelen om 40 plasser. Et ja ville vært feil.',
+              id: 'riktig',
+              label: 'Sjekke kapasitet og påmeldinger.',
             },
             {
-              id: 'riktig',
-              label: 'Nei, avslaget er riktig.',
+              id: 'alltid-ja',
+              label: 'Endre appen så den alltid bekrefter påmelding.',
+              feedback:
+                'En bekreftelse lover en plass. Hvis det er fullt, er løftet feil. Undersøk først hvorfor appen gir ulike svar.',
             },
             {
               id: 'sara',
-              label: 'Ja, Sara gjorde noe galt.',
+              label: 'Be Sara prøve igjen til hun får en bekreftelse.',
               feedback:
-                'Sara gjorde ingenting galt. Plassene var bare brukt opp.',
+                'Flere forsøk forklarer ikke hvorfor appen viser to ulike svar. Teamet må finne ut om det faktisk er plass.',
             },
           ],
           correctId: 'riktig',
-          hint: 'Hva forventer du skal skje når alle plassene er tatt?',
+          hint: 'Hvilke opplysninger kan vise om det faktisk er plass?',
           explanation:
-            'Forventet oppførsel gjelder også når noe ikke går. Når du tester, sjekk at systemet sier nei når det skal.',
+            'Avslaget kan være riktig og tallet utdatert. Påmeldingslogikken kan også være feil. Sjekk kapasitet, påmeldinger og oppførsel før dere retter.',
         },
         {
           kind: 'select',
           id: 'tsu-a5-kantine',
-          title: 'Ny situasjon: Hvilken liste er bare systematferd?',
+          title: 'Betalingen avvises',
           role: 'application',
           source: a5,
-          context: 'Sara trykker «Betal» i kantine-appen.',
+          context: 'Sara trykker «Betal», men banken avviser kortet.',
+          question: 'Hva bør kantine-appen gjøre?',
           options: [
             {
               id: 'bruker',
-              label: 'Velge mat, betale, vente.',
-              feedback: 'Alt dette gjør Sara selv. Det er brukerhandlinger.',
+              label: 'Si at den er betalt.',
+              feedback:
+                'Betalingen ble avvist. Appen må ikke si at bestillingen er betalt.',
             },
             {
               id: 'system',
-              label: 'Sjekke, registrere, gi beskjed.',
+              label: 'Vise «Betaling avvist».',
             },
             {
               id: 'blandet',
-              label: 'Betale, sjekke, gi beskjed.',
-              feedback: 'Å betale gjør Sara. Resten gjør systemet.',
+              label: 'Trekke beløpet på nytt.',
+              feedback:
+                'Et nytt forsøk bør ikke skje uten at brukeren forstår hva som skjer. Ellers kan betaling bli forsøkt flere ganger.',
             },
           ],
           correctId: 'system',
-          hint: 'Hvem gjør handlingen – Sara eller appen?',
+          hint: 'Hva bør appen vise når betalingen ikke gikk gjennom?',
           explanation:
-            'Systemet sjekker, registrerer og gir beskjed. Avvises betalingen, skal Sara få vite det, og ingen bestilling registreres.',
+            'Appen skal vise at betalingen ikke gikk gjennom og ikke markere bestillingen som betalt. Sara kan velge hva hun vil gjøre videre.',
         },
       ],
     },
@@ -845,19 +922,29 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary: 'Se hvordan utviklingsarbeid organiseres.',
       minutes: 5,
       takeaway:
-        'Rolle = hvem har ansvar. Fase = hvor i prosjektet. Oppgave = hva som skal gjøres. Status = hvor langt det har kommet.\nAnsvar betyr ikke å jobbe alene. Når delene henger sammen, må de som har ansvar for dem, snakke sammen.',
+        'Rolle = hvem har ansvar. Fase = hvor i prosjektet.\nOppgave = hva som skal gjøres. Status = hvor langt det har kommet.\nAnsvar betyr ikke å jobbe alene. Når delene henger sammen, må de som har ansvar for dem, snakke sammen.',
       cards: [
         {
           kind: 'learn',
           id: 'tsu-a6-begreper',
-          title: 'Fire ord om hvordan arbeid organiseres',
+          title: 'Fire stikkord om hvordan arbeid organiseres',
           role: 'explain',
           source: a6,
-          idea: 'Rolle: hvem som har ansvar for noe.\nFase: et trinn i prosjektet, for eksempel kravarbeid.\nOppgave: et konkret arbeid som kan bli ferdig.\nStatus: hvor langt en oppgave har kommet.',
+          idea: 'Disse fire stikkordene hjelper deg å holde arbeidet i et team fra hverandre.',
+          definitions: [
+            { term: 'Rolle', text: 'hvem som har ansvar for noe.' },
+            {
+              term: 'Fase',
+              text: 'en større del av et prosjekt, for eksempel planlegging eller testing.',
+            },
+            { term: 'Oppgave', text: 'et konkret arbeid som kan bli ferdig.' },
+            { term: 'Status', text: 'hvor langt en oppgave har kommet.' },
+          ],
           bridge: 'Neste: et team lager en bestillingsapp.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a6-ord',
           title: 'Koble hvert ord til riktig type',
           role: 'scaffold',
@@ -868,12 +955,12 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             { id: 'rolle', left: 'Teknisk ansvarlig', right: 'Rolle' },
             {
               id: 'fase',
-              left: 'Kravarbeid (trinn 1 i planen)',
+              left: 'Planlegging',
               right: 'Fase',
             },
             {
               id: 'oppgave',
-              left: 'Beskrive bestillingsflyten',
+              left: 'Beskrive bestillingen',
               right: 'Oppgave',
             },
             { id: 'status', left: 'Under arbeid', right: 'Status' },
@@ -881,7 +968,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           rightOrder: ['status', 'oppgave', 'rolle', 'fase'],
           hint: 'Hvilket ord sier hvor langt noe har kommet?',
           explanation:
-            'Teknisk ansvarlig er et ansvar. Kravarbeid er et trinn. Å beskrive flyten er et konkret arbeid. Under arbeid er en status.',
+            'Teknisk ansvarlig har en rolle. Planlegging er en fase. Å beskrive bestillingen er en oppgave. «Under arbeid» viser status.',
         },
         {
           kind: 'select',
@@ -909,57 +996,59 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           correctId: 'sammenheng',
           hint: 'Tenk på team som planlegger, utvikler og tester i korte runder.',
           explanation:
-            'Samme ord kan bety ulike ting. På en oppgavetavle kan «Testing» til og med være en kolonne – en status.',
+            'Testing kan være en fase eller en aktivitet. På et Kanban-brett kan «Testing» være en kolonne som viser hvor oppgaven er i arbeidet.',
         },
         {
           kind: 'select',
           id: 'tsu-a6-samarbeid',
-          title: 'Hva bør Jonas gjøre?',
+          title: 'Jonas og Mia',
+          question: 'Hva må Jonas avklare med Mia?',
           role: 'application',
           source: a6,
           context:
-            'Mia er teknisk ansvarlig. Jonas har ansvar for brukeropplevelsen. Han vil at bestillingsknappen skal vise ledige plasser.',
+            'Jonas lager skjermen for bestilling. Mia lager funksjonen som finner ledige plasser. Jonas vet ikke når tallet oppdateres.',
           options: [
             {
               id: 'alene',
-              label: 'Bestemme det alene.',
+              label: 'Vise et fast tall på skjermen.',
               feedback:
-                'Ledige plasser krever data og logikk som Mia har ansvaret for. Ideen påvirker begge.',
-            },
-            {
-              id: 'sammen',
-              label: 'Ta det opp med Mia.',
+                'Et fast tall kan villede brukeren. Tallet må komme fra informasjon om plasser og bestillinger.',
             },
             {
               id: 'vente',
-              label: 'Vente til Mia er ferdig.',
+              label: 'Hvilken farge knappen skal ha.',
               feedback:
-                'Da kan det bli dyrt å endre senere. Snakk sammen tidlig.',
+                'Fargen kan diskuteres senere. Først må de vite hva som faktisk skal vises.',
+            },
+            {
+              id: 'sammen',
+              label: 'Hvor tallet kommer fra og når det oppdateres.',
             },
           ],
           correctId: 'sammen',
-          hint: 'Hvilken informasjon trenger knappen? Hvem har ansvar for den?',
+          hint: 'Hvilken informasjon mangler Jonas for å lage skjermen riktig?',
           explanation:
-            'Ansvar sier hvem som sørger for at noe blir gjort. Samarbeid er hvordan dere jobber sammen når delene påvirker hverandre.',
+            'De må avklare hvor tallet kommer fra, når det endres og hvordan det vises, før de bygger hver sin del.',
         },
         {
           kind: 'select',
           id: 'tsu-a6-kanban',
-          title: 'Hva tyder dette på?',
+          title: 'Kanban-brettet',
+          question: 'Hva tyder dette på?',
           role: 'application',
           source: a6,
           context:
             'Teamet har oppgavene som kort på en tavle, et Kanban-brett. Mange kort står i «Under arbeid», men nesten ingenting blir ferdig.',
           options: [
             {
+              id: 'for-mye',
+              label: 'De har startet for mye.',
+            },
+            {
               id: 'kolonner',
               label: 'De trenger flere kolonner.',
               feedback:
                 'Flere kolonner gjør ikke at noe blir ferdig. Problemet er hvor mye som er påbegynt.',
-            },
-            {
-              id: 'for-mye',
-              label: 'De har startet for mye.',
             },
             {
               id: 'i-orden',
@@ -971,19 +1060,20 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           correctId: 'for-mye',
           hint: 'Hva skjer når alle starter noe nytt i stedet for å gjøre ferdig?',
           explanation:
-            'Kanban er mer enn kolonner. Teamet følger med på flyten og begrenser hvor mye som er påbegynt. Da blir mer ferdig.',
+            'Kanban handler om flyt, ikke bare kolonner. Færre samtidige oppgaver kan gjøre det lettere å finne stopp og gjøre arbeid ferdig.',
         },
         {
           kind: 'learn',
           id: 'tsu-a6-scrum',
-          title: 'Egne roller er ikke Scrum-roller',
+          title: 'Når en oppgave venter på et svar',
           role: 'explain',
           source: a6,
-          idea: 'Scrum er en kjent måte å organisere utviklingsarbeid på. Den har tre faste ansvarsområder: Product Owner, Scrum Master og Developers. Scrum Master er ikke prosjektleder, men hjelper teamet å jobbe godt.\n«Teknisk ansvarlig» er en rolle dere velger selv. Den er nyttig, men ikke en Scrum-rolle.',
-          bridge: 'Neste: en ny situasjon.',
+          idea: 'Et team lager en app for en nabolagsforening. Nora skal teste aldersgrensen for turpåmelding. Oppgaven står som «Venter på avklaring»: Gjelder grensen ved påmelding eller på turdagen?\nNora kan ikke vurdere testresultatet før regelen er tydelig. Teamet må avtale hvem som avklarer regelen med foreningen og gir svaret videre til Nora. Statusen viser at arbeidet venter, men sier ikke alene hvem som skal svare.',
+          bridge: 'Neste: bruk stikkordene i et prosjekt for en festival.',
         },
         {
           kind: 'match',
+          leftPresentation: 'text',
           id: 'tsu-a6-festival',
           title: 'Festivalnettside: koble ordene',
           role: 'application',
@@ -1002,7 +1092,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           rightOrder: ['oppgave', 'status', 'rolle'],
           hint: 'Ett av dem sier hvor langt en oppgave har kommet.',
           explanation:
-            'Designansvarlig er en rolle, skjemaet en oppgave og «Klar til testing» en status.',
+            'Designansvarlig er en rolle. Å lage skjemaet for frivillige er en oppgave. «Klar til testing» viser status.',
         },
       ],
     },

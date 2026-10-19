@@ -100,7 +100,10 @@ export function MatchCard({
       onNext={onNext}
       practice={{ ...practice, retry }}
     >
-      <div className="micro-match">
+      <div
+        className="micro-match"
+        data-left-presentation={card.leftPresentation ?? 'code'}
+      >
         <div
           aria-label={card.leftLabel}
           className="micro-match__column"
@@ -119,7 +122,11 @@ export function MatchCard({
                 onClick={() => tapLeft(pair.id)}
                 type="button"
               >
-                <code>{pair.left}</code>
+                {card.leftPresentation === 'text' ? (
+                  <span>{pair.left}</span>
+                ) : (
+                  <code>{pair.left}</code>
+                )}
                 {state.badge}
                 {state.spoken}
               </button>

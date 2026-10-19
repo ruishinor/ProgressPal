@@ -4,11 +4,8 @@ import { useActionGuard } from './actionGuard';
 import { CardFrame } from './CardFrame';
 
 /**
- * The end of a session. It says plainly that the session is over and that
- * nothing was kept, and it names the way back to the Campaign. A session that
- * names a takeaway ends on it: "Hva tar jeg med meg?". Both buttons are
- * guarded: the last card's "Fullfør" sits where "Tilbake til kampanjen"
- * appears, and a double tap must not skip this screen.
+ * The end of a session, with an optional short learning reminder. The
+ * buttons are guarded so a double tap does not skip the completion screen.
  */
 export function DoneCard({
   closeTo,
@@ -22,8 +19,6 @@ export function DoneCard({
   takeaway?: string;
 }) {
   const guard = useActionGuard();
-  const nothingKept =
-    'Ingenting ble lagret. Svarene dine, XP og framdriften i kampanjen er uendret.';
 
   return (
     <CardFrame
@@ -47,11 +42,10 @@ export function DoneCard({
               }
             }}
           >
-            Tilbake til kampanjen
+            Til startsiden
           </RpgButton>
         </div>
       }
-      context={takeaway === undefined ? nothingKept : undefined}
       kindLabel="Ferdig"
       prompt={
         takeaway === undefined ? undefined : (
@@ -61,15 +55,10 @@ export function DoneCard({
                 {paragraph}
               </p>
             ))}
-            <p className="micro-card__text">
-              <small>{nothingKept}</small>
-            </p>
           </>
         )
       }
-      title={
-        takeaway === undefined ? 'Økten er ferdig' : 'Hva tar jeg med meg?'
-      }
+      title={takeaway === undefined ? 'Økten er ferdig' : 'Husk dette'}
     />
   );
 }

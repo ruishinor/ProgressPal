@@ -2,13 +2,24 @@ import type { MicroSession } from '@/lib/domain';
 
 /**
  * Økt 2: M02 «Typer» og «Spør brukeren» (lessons S1-M02-L04 and L05). The
- * type idea first, then the input idea, each followed by practice.
+ * type idea first, then the input idea, each followed by practice. Two
+ * topics («Navn og typer», «Spør brukeren»), so each opens on its own.
  */
 export const typerOgInputSession: MicroSession = {
   id: 'typer-og-input',
   title: 'Tall eller tekst?',
   summary: 'Hva en verdi er, og hva input() gir deg.',
   minutes: 5,
+  parts: [
+    {
+      cardIds: ['typer-forskjell', 'typer-type-av', 'typer-koble'],
+      summary: 'Hva slags verdi er det: tall eller tekst?',
+    },
+    {
+      cardIds: ['input-gir-tekst', 'input-uten-int', 'input-bygg'],
+      summary: 'Hva input() gir deg, og hvordan du får et tall.',
+    },
+  ],
   cards: [
     {
       kind: 'learn',

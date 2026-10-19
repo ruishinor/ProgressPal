@@ -185,6 +185,173 @@ describe('listReinforcementSessions («Repeter»)', () => {
   });
 });
 
+describe('listReinforcementSessions, one topic at a time', () => {
+  // Two topics: i-2 (a Learn card and its practice) and i-3 (practice only).
+  const topics: MicroSession = {
+    ...session('topics', [
+      learn('t-l2', 'U-2'),
+      check('t-c2', 'U-2'),
+      check('t-c3a', 'U-3a'),
+      check('t-c3b', 'U-3b'),
+    ]),
+    minutes: 4,
+    parts: [
+      { cardIds: ['t-l2', 't-c2'], summary: 'Topic two.' },
+      { cardIds: ['t-c3a', 't-c3b'], summary: 'Topic three.' },
+    ],
+    takeaway: 'Both topics.',
+  };
+  const opened = (reach: Parameters<typeof campaignPosition>[1]) =>
+    listReinforcementSessions({ sessions: [topics] }, index, at(reach))[0];
+
+  it('opens a reached topic without waiting for the other, and shows only it', () => {
+    const two = opened({ complete: ['i-2'] })!;
+
+    expect(two.cards.map((card) => card.id)).toEqual(['t-l2', 't-c2']);
+    expect(two.summary).toBe('Topic two.');
+    expect(two.minutes).toBe(2);
+    expect(two.takeaway).toBeUndefined();
+    expect(two.id).toBe('topics');
+
+    const three = opened({ started: ['i-3'] })!;
+
+    expect(three.cards.map((card) => card.id)).toEqual(['t-c3a', 't-c3b']);
+    expect(three.summary).toBe('Topic three.');
+  });
+
+  it('gives the authored session itself once every topic is reached', () => {
+    expect(opened({ complete: ['i-2', 'i-3'] })).toBe(topics);
+    expect(opened({ complete: ['i-2', 'i-3'] })!.takeaway).toBe('Both topics.');
+  });
+
+  it('opens nothing before any topic is reached', () => {
+    expect(opened({})).toBeUndefined();
+    expect(opened({ complete: ['i-1', 'i-4', 'i-5'] })).toBeUndefined();
+  });
+
+  it('keeps a topic shut until every item its cards cite is reached', () => {
+    // m-c cites i-1 and i-3: its topic needs both.
+    const mixed: MicroSession = {
+      ...topics,
+      cards: [
+        learn('m-l', 'U-1'),
+        check('m-c', 'U-1', 'U-3a'),
+        check('m-x', 'U-2'),
+      ],
+      parts: [
+        { cardIds: ['m-l', 'm-c'], summary: 'One.' },
+        { cardIds: ['m-x'], summary: 'Two.' },
+      ],
+    };
+    const open = (reach: Parameters<typeof campaignPosition>[1]) =>
+      listReinforcementSessions(
+        { sessions: [mixed] },
+        index,
+        at(reach),
+      )[0]?.cards.map((card) => card.id);
+
+    expect(open({ complete: ['i-1'] })).toBeUndefined();
+    expect(open({ complete: ['i-1', 'i-2'] })).toEqual(['m-x']);
+    expect(open({ complete: ['i-1', 'i-3'] })).toEqual(['m-l', 'm-c']);
+  });
+
+  it('shuts the whole session when any card cites something the programme has no item for', () => {
+    const odd: MicroSession = {
+      ...topics,
+      cards: [...topics.cards.slice(0, 3), check('t-c3b', 'U-unknown')],
+    };
+
+    expect(
+      listReinforcementSessions(
+        { sessions: [odd] },
+        index,
+        at({ complete: items }),
+      ),
+    ).toEqual([]);
+  });
+});
+
+describe('reinforcement parts in the bank validator', () => {
+  const units = new Set(['m']);
+  const cards = [
+    learn('a', 'U-1'),
+    check('b', 'U-1'),
+    learn('c', 'U-2'),
+    check('d', 'U-2'),
+  ];
+  const issues = (parts: MicroSession['parts']) =>
+    findMicrolearningBankIssues(
+      { sessions: [{ ...session('s', cards), parts }] },
+      units,
+    );
+
+  it('accepts topics that hold each card once and keep a Learn card with its practice', () => {
+    expect(
+      issues([
+        { cardIds: ['a', 'b'], summary: 'Én.' },
+        { cardIds: ['c', 'd'], summary: 'To.' },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('refuses a Learn card split from its practice', () => {
+    expect(
+      issues([
+        { cardIds: ['a'], summary: 'Én.' },
+        { cardIds: ['b', 'c', 'd'], summary: 'To.' },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/separates Learn card "a" from its practice/),
+      ]),
+    );
+  });
+
+  it('refuses a missing, repeated or unknown card, an empty part and a single part', () => {
+    expect(
+      issues([
+        { cardIds: ['a', 'b'], summary: 'Én.' },
+        { cardIds: ['c'], summary: 'To.' },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([expect.stringMatching(/each of its cards once/)]),
+    );
+    expect(
+      issues([
+        { cardIds: ['a', 'b'], summary: 'Én.' },
+        { cardIds: ['b', 'c', 'd'], summary: 'To.' },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/card "b" in more than one part/),
+      ]),
+    );
+    expect(
+      issues([
+        { cardIds: ['a', 'b', 'x'], summary: 'Én.' },
+        { cardIds: ['c', 'd'], summary: 'To.' },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([expect.stringMatching(/each of its cards once/)]),
+    );
+    expect(
+      issues([
+        { cardIds: ['a', 'b', 'c', 'd'], summary: 'Alt.' },
+        { cardIds: [], summary: ' ' },
+      ]),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/part 2 needs cards and a summary/),
+      ]),
+    );
+    expect(
+      issues([{ cardIds: ['a', 'b', 'c', 'd'], summary: 'Alt.' }]),
+    ).toEqual(
+      expect.arrayContaining([expect.stringMatching(/two or more parts/)]),
+    );
+  });
+});
+
 describe('selectPrimer («Forbered deg»)', () => {
   const chosen = (reach: Parameters<typeof campaignPosition>[1]) =>
     selectPrimer(bank, at(reach))?.id;

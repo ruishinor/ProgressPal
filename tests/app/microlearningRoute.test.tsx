@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { router } from '@/app/router/router';
 import { loadRpgCampaignPosition, loadRpgHubSummary } from '@/features/rpg';
 import {
   defaultLearnerProfileValues,
@@ -49,9 +50,25 @@ const [variabler] = bank.sessions;
 const programmeId = 'programvareutvikling';
 const order = firstRequired(p2Index, 99);
 
-// The one Campaign read the route makes can be made to fail; everything else
-// is the real module.
-const injected = vi.hoisted(() => ({ failRead: false }));
+// The one Campaign read the route makes can be made to fail, and the answer
+// can be made empty (no primer, no Repeter: no real Programme 2 position is
+// that, since reached topics always repeat); everything else is the real
+// module.
+const injected = vi.hoisted(() => ({ failRead: false, nothingOpen: false }));
+
+vi.mock('@/lib/domain', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/domain')>();
+
+  return {
+    ...actual,
+    listReinforcementSessions: (
+      ...args: Parameters<typeof actual.listReinforcementSessions>
+    ) =>
+      injected.nothingOpen ? [] : actual.listReinforcementSessions(...args),
+    selectPrimer: (...args: Parameters<typeof actual.selectPrimer>) =>
+      injected.nothingOpen ? undefined : actual.selectPrimer(...args),
+  };
+});
 
 vi.mock('@/lib/db', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/db')>();
@@ -83,6 +100,7 @@ function servePackagedContent() {
 
 beforeEach(() => {
   injected.failRead = false;
+  injected.nothingOpen = false;
   servePackagedContent();
   closeSharedDatabase();
   getSharedDatabase({
@@ -151,7 +169,7 @@ async function snapshotDatabase(): Promise<string> {
 
 const picker = () => screen.findByRole('heading', { name: 'Velg en mikroøkt' });
 const rows = () => screen.getAllByRole('listitem');
-const repeatNote = 'Repeter åpnes etter hvert som du jobber i kampanjen.';
+const repeatNote = 'Flere øvelser kommer når du går videre i programmet.';
 
 describe('/rpg/micro and the active programme', () => {
   it('shows a notice, and none of Programme 2’s cards, while CS50x is active', async () => {
@@ -257,7 +275,7 @@ describe('what the picker offers, through the real route', () => {
       screen.getByRole('button', { name: /^Python, editor og terminal/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Repeter' }),
+      screen.getByRole('heading', { name: 'Øv igjen' }),
     ).toBeInTheDocument();
     expect(screen.getByText(repeatNote)).toBeInTheDocument();
     expect(rows()).toHaveLength(1);
@@ -310,7 +328,7 @@ describe('what the picker offers, through the real route', () => {
     expect(screen.queryByText(/En variabel husker en verdi/)).toBeNull();
   });
 
-  it('opens Repeter for Module 2 material once it has been worked, beside the next primer', async () => {
+  it('opens Repeter for each reached topic, beside the next primer', async () => {
     await onboard();
     await activateProgramme2();
     await completeRequired(13);
@@ -323,10 +341,48 @@ describe('what the picker offers, through the real route', () => {
     expect(
       screen.getByRole('button', { name: /^Følg variablene/ }),
     ).toBeInTheDocument();
-    expect(rows()).toHaveLength(2);
-    expect(screen.queryByText(/Tall eller tekst\?/)).toBeNull();
+    // Module 1's reached topics repeat too, with only those topics.
     expect(
-      screen.getByText(/Flere åpnes når du kommer lenger i kampanjen\./),
+      screen.getByRole('button', {
+        name: /^Les feilmeldingen\s?4 kort · ca\. 4 min\. Les feilen nedenfra og finn linjen\.$/,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^Tenk først, så kode\s?3 kort/ }),
+    ).toBeInTheDocument();
+    expect(rows()).toHaveLength(4);
+    // Unreached: neither the types-and-input session nor any later summary.
+    expect(screen.queryByText(/Tall eller tekst\?/)).toBeNull();
+    expect(screen.queryByText(/Forventet svar/)).toBeNull();
+    expect(screen.queryByText(/tekst og tall blandes/)).toBeNull();
+    expect(
+      screen.getByText(/Flere åpnes når du kommer lenger\./),
+    ).toBeInTheDocument();
+  });
+
+  it('opens a reached Module 1 topic in the Build phase, which the old rule held shut', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(8);
+    await renderAppAtRoute('/rpg/micro');
+
+    await picker();
+    expect(screen.queryByRole('heading', { name: 'Forbered deg' })).toBeNull();
+    expect(rows()).toHaveLength(2);
+    await user.click(
+      screen.getByRole('button', { name: /^Les feilmeldingen/ }),
+    );
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuetext',
+      'Kort 1 av 4',
+    );
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Les feilmeldingen nedenfra',
+      }),
     ).toBeInTheDocument();
   });
 
@@ -355,7 +411,7 @@ describe('what the picker offers, through the real route', () => {
     await completeRequired(13);
     await renderAppAtRoute('/rpg/micro');
     await picker();
-    expect(rows()).toHaveLength(2);
+    expect(rows()).toHaveLength(4);
   });
 
   it('reads without writing: no store changes by opening the picker', async () => {
@@ -379,7 +435,7 @@ describe('the way in from Home', () => {
     await activateProgramme2();
     await renderAppAtRoute('/rpg');
 
-    const entry = await screen.findByRole('link', { name: 'Åpne mikroøkt' });
+    const entry = await screen.findByRole('link', { name: 'Mikroøkt' });
     const links = screen.getAllByRole('link');
 
     expect(entry).toHaveAttribute('href', '/rpg/micro');
@@ -409,7 +465,7 @@ describe('the way in from Home', () => {
         screen.getAllByRole('link', { name: 'Campaign' }).length,
       ).toBeGreaterThan(0);
     });
-    expect(screen.queryByRole('link', { name: 'Åpne mikroøkt' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Mikroøkt' })).toBeNull();
     expect(screen.queryByText(/Mikroøkt/)).toBeNull();
     expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
   });
@@ -428,13 +484,13 @@ describe('the way in from Home', () => {
         screen.getAllByRole('link', { name: 'Campaign' }).length,
       ).toBeGreaterThan(0);
     });
-    expect(screen.queryByRole('link', { name: 'Åpne mikroøkt' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Mikroøkt' })).toBeNull();
     expect(screen.queryByText(/Mikroøkt|Ingen mikroøkt/)).toBeNull();
   });
 });
 
 describe('Home only advertises a session that exists', () => {
-  const homeEntry = () => screen.queryByRole('link', { name: 'Åpne mikroøkt' });
+  const homeEntry = () => screen.queryByRole('link', { name: 'Mikroøkt' });
   const campaignAction = () =>
     screen
       .getAllByRole('link')
@@ -449,18 +505,22 @@ describe('Home only advertises a session that exists', () => {
   }
 
   it.each([
-    [0, 'Mikroøkt: forbered deg på neste oppgave på noen få minutter.'],
-    [3, 'Mikroøkt: forbered deg på neste oppgave på noen få minutter.'],
-    [13, 'Mikroøkt: forbered deg eller repeter på noen få minutter.'],
+    [0, 'Nå kan du forberede deg på neste oppgave.'],
+    [3, 'Nå kan du forberede deg på neste oppgave.'],
+    [13, 'Nå kan du både forberede deg og øve igjen.'],
   ])(
     'offers an active entry, with copy that matches, when %i required tasks are complete',
     async (complete, copy) => {
       await homeAt(complete);
 
-      const entry = await screen.findByRole('link', { name: 'Åpne mikroøkt' });
+      const entry = await screen.findByRole('link', { name: 'Mikroøkt' });
 
       expect(entry).toHaveAttribute('href', '/rpg/micro');
-      expect(screen.getByText(copy)).toBeInTheDocument();
+      // What it offers now sits behind its own (i), next to the link.
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Om Mikroøkt' }),
+      );
+      expect(screen.getByText(new RegExp(copy))).toBeInTheDocument();
       expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
       // The Campaign's own action stays first and stays the primary one.
       expect(campaignAction()).toBeDefined();
@@ -473,10 +533,11 @@ describe('Home only advertises a session that exists', () => {
   it('offers repetition alone, with copy that says so, once the whole Campaign is reached', async () => {
     await homeAt(24);
 
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Om Mikroøkt' }),
+    );
     expect(
-      await screen.findByText(
-        'Mikroøkt: repeter det du har jobbet med på noen få minutter.',
-      ),
+      screen.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
     ).toBeInTheDocument();
     expect(homeEntry()).toHaveAttribute('href', '/rpg/micro');
     expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
@@ -484,38 +545,67 @@ describe('Home only advertises a session that exists', () => {
 
   it.each([
     [7, 's1-m01-o08'],
-    [8, 's1-m01-lab'],
-    [9, 's1-m01-q01'],
     [10, 's1-m01-ret'],
   ])(
-    'promises no session, and links nowhere, in the intentional Build phase after %i complete (%s)',
+    'offers repetition of reached topics, and no primer, in the Build phase after %i complete (%s)',
     async (complete, current) => {
       await homeAt(complete);
 
+      const entry = await screen.findByRole('link', { name: 'Mikroøkt' });
+
+      expect(entry).toHaveAttribute('href', '/rpg/micro');
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Om Mikroøkt' }),
+      );
       expect(
-        await screen.findByText(
-          'Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.',
-        ),
+        screen.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
       ).toBeInTheDocument();
-      expect(homeEntry()).toBeNull();
-      expect(screen.queryByText(/Mikroøkt:/)).toBeNull();
-      expect(
-        screen
-          .getAllByRole('link')
-          .filter((link) => link.getAttribute('href')?.includes('/rpg/micro')),
-      ).toHaveLength(0);
-      // The Campaign is still the one thing to do.
+      // The Campaign is still the one thing to do, and comes first.
       expect(campaignAction()).toHaveAttribute(
         'href',
         expect.stringContaining(current),
       );
+      expect(
+        screen.getAllByRole('link').indexOf(campaignAction() as HTMLElement),
+      ).toBeLessThan(screen.getAllByRole('link').indexOf(entry));
     },
   );
 
-  it('agrees with the picker at every one of these positions', async () => {
-    const seen: Record<number, [boolean, number]> = {};
+  it('promises no session, and links nowhere, when nothing is open', async () => {
+    injected.nothingOpen = true;
+    await homeAt(7);
 
-    for (const complete of [0, 3, 7, 8, 9, 10, 13, 24]) {
+    expect(
+      await screen.findByText(
+        'Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.',
+      ),
+    ).toBeInTheDocument();
+    expect(homeEntry()).toBeNull();
+    expect(
+      screen
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('href')?.includes('/rpg/micro')),
+    ).toHaveLength(0);
+    expect(campaignAction()).toHaveAttribute(
+      'href',
+      expect.stringContaining('s1-m01-o08'),
+    );
+  });
+
+  it('agrees with the picker at every one of these positions', async () => {
+    const seen: Record<string, [boolean, number]> = {};
+
+    for (const [complete, nothingOpen] of [
+      [0, false],
+      [3, false],
+      [4, false],
+      [7, false],
+      [10, false],
+      [13, false],
+      [24, false],
+      [7, true],
+    ] as const) {
+      injected.nothingOpen = nothingOpen;
       await getSharedDatabase().progressEntries.clear();
       if (complete === 0) {
         await onboard();
@@ -541,7 +631,10 @@ describe('Home only advertises a session that exists', () => {
       const listed = screen.queryAllByRole('listitem').length;
 
       route.unmount();
-      seen[complete] = [advertised, listed];
+      seen[`${complete}${nothingOpen ? ' (nothing open)' : ''}`] = [
+        advertised,
+        listed,
+      ];
       expect(advertised, `${complete} complete`).toBe(listed > 0);
     }
 
@@ -572,7 +665,7 @@ describe('Home only advertises a session that exists', () => {
     const before = await snapshotDatabase();
 
     await renderAppAtRoute('/rpg');
-    await screen.findByText(/Ingen mikroøkt akkurat nå/);
+    await screen.findByRole('link', { name: 'Mikroøkt' });
 
     expect(await snapshotDatabase()).toBe(before);
   });
@@ -707,6 +800,150 @@ describe('a whole session against the real database', () => {
     await completeRequired(4);
 
     expect(await snapshotDatabase()).not.toBe(before);
+  });
+});
+
+describe('the browser’s Back and Forward in Mikroøkt', () => {
+  const back = () => act(async () => void (await router.navigate(-1)));
+  const forward = () => act(async () => void (await router.navigate(1)));
+  const heading = () => screen.getByRole('heading', { level: 1 });
+  const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
+  const [learnCard, firstCheck, thirdCard] = variabler!.cards;
+
+  it('move between cards and the picker, and Lukk goes Home', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(13);
+    await renderAppAtRoute('/rpg/micro');
+    await picker();
+    await user.click(screen.getByRole('button', { name: /^Følg variablene/ }));
+    expect(heading()).toHaveTextContent(learnCard!.title);
+    expect(router.state.location.search).toBe('?okt=variabler&kort=1');
+    await pause();
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(firstCheck!.title);
+
+    await back();
+    expect(heading()).toHaveTextContent(learnCard!.title);
+    await back();
+    expect(heading()).toHaveTextContent('Velg en mikroøkt');
+    await forward();
+    expect(heading()).toHaveTextContent(learnCard!.title);
+    await forward();
+    expect(heading()).toHaveTextContent(firstCheck!.title);
+    // A card reached again starts unanswered: nothing was kept.
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Trykk på svaret du tror stemmer.',
+    );
+
+    await user.click(screen.getByRole('link', { name: 'Lukk mikroøkten' }));
+    expect(router.state.location.pathname).toBe('/rpg');
+  });
+
+  it('starts a typed later card at the first card, and keeps a card reached here on reload', async () => {
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(13);
+    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=3');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: learnCard!.title }),
+    ).toBeInTheDocument();
+    expect(router.state.location.search).toBe('?okt=variabler&kort=1');
+
+    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=3', {
+      microSession: true,
+    });
+    expect(
+      await screen.findByRole('heading', { level: 1, name: thirdCard!.title }),
+    ).toBeInTheDocument();
+  });
+
+  it('never opens what the picker would not list: an unreached session, an unknown one, or unreached topics', async () => {
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(13);
+
+    for (const search of ['?okt=typer-og-input&kort=1', '?okt=finnes-ikke']) {
+      await renderAppAtRoute(`/rpg/micro${search}`);
+      await picker();
+      expect(router.state.location.search).toBe('');
+      expect(screen.queryByText(/Tall eller tekst\?/)).toBeNull();
+    }
+
+    // A session with only some topics reached opens with those topics only.
+    await renderAppAtRoute('/rpg/micro?okt=tenk-forst&kort=1');
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Sett stegene fra problem til løsning i rekkefølge',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuetext',
+      'Kort 1 av 3',
+    );
+    expect(screen.queryByText(/forventet svar/i)).toBeNull();
+  });
+
+  it('gives a full «Øv igjen» its own screen in the history, and only while it needs one', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(17);
+    const first = await renderAppAtRoute('/rpg/micro');
+    await picker();
+    // The next primer and one row for the four «Øv igjen» sessions.
+    expect(rows()).toHaveLength(2);
+    await user.click(
+      screen.getByRole('button', { name: /^Velg blant 4 økter/ }),
+    );
+    expect(heading()).toHaveTextContent('Øv igjen');
+    expect(router.state.location.search).toBe('?liste=ov-igjen');
+    expect(rows()).toHaveLength(4);
+    await pause();
+    await user.click(screen.getByRole('button', { name: /^Følg variablene/ }));
+    expect(heading()).toHaveTextContent(learnCard!.title);
+
+    await back();
+    expect(heading()).toHaveTextContent('Øv igjen');
+    await back();
+    expect(heading()).toHaveTextContent('Velg en mikroøkt');
+
+    // With four rows enough, the list has no screen of its own.
+    first.unmount();
+    await getSharedDatabase().progressEntries.clear();
+    await completeRequired(13);
+    await renderAppAtRoute('/rpg/micro?liste=ov-igjen');
+    await picker();
+    expect(router.state.location.search).toBe('');
+    expect(rows()).toHaveLength(4);
+  });
+
+  it('fails closed on an address when the progress cannot be read, or under another programme', async () => {
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(24);
+    injected.failRead = true;
+    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=1');
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Mikroøkter er ikke tilgjengelige',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(learnCard!.title)).toBeNull();
+
+    injected.failRead = false;
+    await enrolAndSwitchActiveProgramme('cs50x', {
+      seed: registry.getByProgrammeId('cs50x').catalogue,
+    });
+    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=1');
+    expect(
+      await screen.findByRole('heading', { name: 'Nothing to practise here' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(learnCard!.title)).toBeNull();
   });
 });
 

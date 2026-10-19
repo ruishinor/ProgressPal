@@ -10,6 +10,10 @@ import { usePractice } from './usePractice';
  * Large options, one answer, immediate feedback. A wrong option stays marked
  * and cannot be tapped again, so the retry is a real second look rather than a
  * repeat of the same tap; after a second miss the right option is shown.
+ * Choosing another option while the first miss is shown is the one retry, as
+ * if "Prøv igjen" had been pressed first; the button still works. A double
+ * tap on the missed option is ignored, so one physical press can never use
+ * both tries.
  */
 export function SelectCard({
   card,
@@ -24,9 +28,11 @@ export function SelectCard({
   const { phase } = practice.state;
   const [lastId, setLastId] = useState<string | null>(null);
   const [missedIds, setMissedIds] = useState<readonly string[]>([]);
+  const retryByChoice = phase === 'wrong';
+  const choosable = isOpen(practice.state) || retryByChoice;
 
   function choose(id: string) {
-    if (!isOpen(practice.state) || missedIds.includes(id)) {
+    if (!choosable || missedIds.includes(id)) {
       return;
     }
     const correct = id === card.correctId;
@@ -35,7 +41,11 @@ export function SelectCard({
     if (!correct) {
       setMissedIds((current) => [...current, id]);
     }
-    practice.submit(correct);
+    if (retryByChoice) {
+      practice.retryWith(correct);
+    } else {
+      practice.submit(correct);
+    }
   }
 
   return (
@@ -76,9 +86,7 @@ export function SelectCard({
 
           return (
             <button
-              aria-disabled={
-                !isOpen(practice.state) || missed ? true : undefined
-              }
+              aria-disabled={!choosable || missed ? true : undefined}
               className="rpg-button rpg-button--secondary micro-tap"
               data-result={
                 showRight ? 'correct' : missed ? 'incorrect' : undefined

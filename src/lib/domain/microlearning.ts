@@ -67,8 +67,17 @@ type MicroCardBase = {
 
 /** Practice cards: a hint for the first miss, an explanation for the end. */
 type MicroPracticeBase = MicroCardBase & {
-  /** One line of situation under the title, when the task needs it. */
+  /**
+   * The situation under the title, when the task needs it. A line break starts
+   * a new paragraph, so two statements can be read apart.
+   */
   readonly context?: string;
+  /**
+   * The question itself, shown directly above the choices. Optional: without
+   * it the title is the question. With it the title is a short heading and the
+   * question sits next to what the learner acts on, after the situation.
+   */
+  readonly question?: string;
   /** Points at the idea after a first miss without giving the answer away. */
   readonly hint: string;
   /** Why the answer is the answer; shown when the card ends. */
@@ -80,6 +89,15 @@ export type MicroLearnCard = MicroCardBase & {
   readonly role: 'explain';
   /** Plain text; a line break starts a new paragraph. */
   readonly idea: string;
+  /**
+   * Key words, each with a short plain explanation, shown after the idea with
+   * the word in bold. Structured data rather than markup, so nothing in the
+   * text itself is ever interpreted. Optional.
+   */
+  readonly definitions?: readonly {
+    readonly term: string;
+    readonly text: string;
+  }[];
   /**
    * A tiny worked example. Required in «Forbered deg» and «Repeter»; a
    * voluntary track (`MicroTrack`) may teach in text alone, never in
@@ -112,6 +130,8 @@ export type MicroMatchPair = {
 
 export type MicroMatchCard = MicroPracticeBase & {
   readonly kind: 'match';
+  /** Ordinary prose on the left when requested; otherwise preserve code. */
+  readonly leftPresentation?: 'text';
   readonly leftLabel: string;
   readonly rightLabel: string;
   readonly pairs: readonly MicroMatchPair[];
@@ -154,6 +174,24 @@ export type MicroSession = {
   readonly cards: readonly MicroCard[];
   /** What to take away, shown on the finished screen. Optional. */
   readonly takeaway?: string;
+  /**
+   * Reinforcement only: the session's topics, when it repeats more than one
+   * (see `listReinforcementSessions`). Every card belongs to exactly one part.
+   * Optional; without parts the session is one topic.
+   */
+  readonly parts?: readonly MicroSessionPart[];
+};
+
+/**
+ * One topic of a reinforcement session: the cards that teach and practise
+ * one thing and still make sense without the session's other topics (a Learn
+ * card and the practice it hands into always share a part).
+ */
+export type MicroSessionPart = {
+  /** The cards, by ID; they keep the session's order. */
+  readonly cardIds: readonly string[];
+  /** What the part practises: the session's summary while only some parts are open. */
+  readonly summary: string;
 };
 
 /**
@@ -167,6 +205,8 @@ export type MicroTrack = {
   readonly id: string;
   readonly title: string;
   readonly summary: string;
+  /** What the track is for, behind the (i) of its Home entry. Optional. */
+  readonly about?: string;
   readonly sessions: readonly MicroSession[];
 };
 
@@ -267,12 +307,18 @@ export function listSessionCampaignItems(
 }
 
 /**
- * Reinforcement ("Repeter"): a session opens only when every Campaign item
- * its own cards come from has been reached (started or completed) in the
- * Campaign. The requirement is derived from the cards' own citations, so it
- * cannot drift from what they teach, and the answer comes from the same
- * position the Campaign UI shows. Nothing reached is not offered; an unknown
- * citation or an unreadable Campaign opens nothing.
+ * Reinforcement ("Repeter"), one topic at a time. A part of a session (the
+ * whole session when it has no parts) opens when every Campaign item its own
+ * cards come from has been reached (started or completed) in the Campaign. A
+ * session is offered with its open parts only, in authored order: a topic the
+ * learner has reached is not held back by another one they have not, and a
+ * topic they have not reached is never shown, not in a card, a summary or a
+ * takeaway. With every part open the session is the authored one; with some,
+ * it is a copy holding those parts' cards and summaries, its minutes scaled
+ * to its cards, and no takeaway. The requirement is derived from the cards'
+ * own citations, so it cannot drift from what they teach, and the answer
+ * comes from the same position the Campaign UI shows. An unknown citation
+ * anywhere in a session, or an unreadable Campaign, opens nothing.
  */
 export function listReinforcementSessions(
   bank: MicrolearningBank,
@@ -287,13 +333,56 @@ export function listReinforcementSessions(
     position.quests.filter((quest) => quest.reached).map((quest) => quest.id),
   );
 
-  return bank.sessions.filter((session) => {
-    const items = listSessionCampaignItems(session, itemOfUnit);
+  return bank.sessions.flatMap((session) => {
+    const open = openReachedParts(session, itemOfUnit, reached);
 
-    return (
-      items !== null && items.length > 0 && items.every((id) => reached.has(id))
-    );
+    return open === null ? [] : [open];
   });
+}
+
+function openReachedParts(
+  session: MicroSession,
+  itemOfUnit: ReadonlyMap<string, string>,
+  reached: ReadonlySet<string>,
+): MicroSession | null {
+  const items = listSessionCampaignItems(session, itemOfUnit);
+
+  if (items === null || items.length === 0) {
+    return null;
+  }
+  const parts = session.parts ?? [
+    { cardIds: session.cards.map((card) => card.id), summary: session.summary },
+  ];
+  const isReached = (cardId: string) =>
+    session.cards
+      .find((card) => card.id === cardId)
+      ?.source.lessonUnitIds.every((unitId) =>
+        reached.has(itemOfUnit.get(unitId) ?? ''),
+      ) === true;
+  const openParts = parts.filter(
+    (part) => part.cardIds.length > 0 && part.cardIds.every(isReached),
+  );
+
+  if (openParts.length === 0) {
+    return null;
+  }
+  if (openParts.length === parts.length) {
+    return session;
+  }
+  const openIds = new Set(openParts.flatMap((part) => part.cardIds));
+  const cards = session.cards.filter((card) => openIds.has(card.id));
+
+  return {
+    cards,
+    id: session.id,
+    minutes: Math.max(
+      1,
+      Math.round((session.minutes * cards.length) / session.cards.length),
+    ),
+    parts: openParts,
+    summary: openParts.map((part) => part.summary).join(' '),
+    title: session.title,
+  };
 }
 
 /**
@@ -379,6 +468,13 @@ function findCardShapeIssues(
       }
       if (card.idea.trim() === '') {
         issues.push(`${label} has no idea`);
+      }
+      if (
+        card.definitions?.some(
+          (entry) => entry.term.trim() === '' || entry.text.trim() === '',
+        )
+      ) {
+        issues.push(`${label} has an empty definition`);
       }
       if (card.bridge.trim() === '') {
         issues.push(`${label} has no bridge into the practice that follows`);
@@ -466,6 +562,9 @@ function findCardShapeIssues(
     } else if (card.hint.trim() === card.explanation.trim()) {
       issues.push(`${label} hint repeats the explanation`);
     }
+    if (card.question !== undefined && card.question.trim() === '') {
+      issues.push(`${label} has an empty question`);
+    }
   }
 
   return issues;
@@ -522,6 +621,7 @@ export function findMicrolearningBankIssues(
         }
       }
     });
+    issues.push(...findPartIssues(session));
   }
 
   const reinforcementCards = new Set(listMicroCards(bank));
@@ -584,6 +684,56 @@ export function findMicrolearningBankIssues(
 }
 
 /**
+ * A reinforcement session's parts are its topics, so each must stand alone:
+ * at least two, each with cards and a summary, every card in exactly one,
+ * and a Learn card in the same part as the practice it hands into (opening
+ * some parts then never leaves an explanation without its practice).
+ */
+function findPartIssues(session: MicroSession): string[] {
+  if (session.parts === undefined) {
+    return [];
+  }
+  const label = `session "${session.id}"`;
+  const issues: string[] = [];
+  const partOf = new Map<string, number>();
+
+  if (session.parts.length < 2) {
+    issues.push(`${label} needs two or more parts, or none`);
+  }
+  session.parts.forEach((part, place) => {
+    if (part.cardIds.length === 0 || part.summary.trim() === '') {
+      issues.push(`${label} part ${place + 1} needs cards and a summary`);
+    }
+    for (const id of part.cardIds) {
+      if (partOf.has(id)) {
+        issues.push(`${label} puts card "${id}" in more than one part`);
+      }
+      partOf.set(id, place);
+    }
+  });
+  const ids = session.cards.map((card) => card.id);
+
+  if (!isPermutation([...partOf.keys()], ids)) {
+    issues.push(`${label} parts must hold each of its cards once`);
+  }
+  session.cards.forEach((card, index) => {
+    const next = session.cards[index + 1];
+
+    if (
+      card.kind === 'learn' &&
+      next !== undefined &&
+      partOf.get(card.id) !== partOf.get(next.id)
+    ) {
+      issues.push(
+        `${label} separates Learn card "${card.id}" from its practice`,
+      );
+    }
+  });
+
+  return issues;
+}
+
+/**
  * Voluntary tracks: the same card rules as the rest of the bank (one Learn
  * card at a time, each followed by practice; two or three options; three or
  * four pairs; nothing shown already solved), with three differences that
@@ -611,6 +761,9 @@ function findTrackIssues(
     trackIds.add(track.id);
     if (track.title.trim() === '' || track.summary.trim() === '') {
       issues.push(`track "${track.id}" needs a title and a summary`);
+    }
+    if (track.about !== undefined && track.about.trim() === '') {
+      issues.push(`track "${track.id}" has an empty description`);
     }
     if (track.sessions.length === 0 || track.sessions.length > 6) {
       issues.push(`track "${track.id}" needs one to six sessions`);

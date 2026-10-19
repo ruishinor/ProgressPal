@@ -15,10 +15,14 @@ export const releaseBundleBudget = Object.freeze({
   // microlearning surface. It measured 12,704 B after two consolidation
   // passes (rpg-button, the RPG tokens and shared flex rules reused; no rule
   // dropped that a physical device test had validated), and 13,250 B keeps
-  // about the same 4 % headroom over that new baseline. This is a guardrail
-  // moved once for one accepted surface, not room to grow into, and it changes
-  // nothing about what ships.
-  maxCssGzipBytes: 13_250,
+  // about the same 4 % headroom over that new baseline.
+  // Owner policy of 2026-10-18 supersedes that tight ceiling. Both CSS levels
+  // are the total gzip bytes of every built .css file (the same measurement
+  // as before; decimal kB): above the warning level the report says so and
+  // the check still passes; above the provisional hard ceiling it fails, and
+  // only an owner decision may move it. It measured 13,250 B at the change.
+  cssGzipWarningBytes: 25_000,
+  maxCssGzipBytes: 40_000,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
@@ -76,6 +80,8 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
   const curriculumGzipBytes = sum('curriculum');
   const runtimeAssetGzipBytes = sum('runtime');
   const violations = [];
+  // Reported, never a failure.
+  const warnings = [];
 
   if (largestJavaScriptRawBytes > budget.maxJavaScriptRawBytes) {
     violations.push(
@@ -92,6 +98,10 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
   if (cssGzipBytes > budget.maxCssGzipBytes) {
     violations.push(
       `Total CSS gzip is ${cssGzipBytes} bytes; limit is ${budget.maxCssGzipBytes}.`,
+    );
+  } else if (cssGzipBytes > budget.cssGzipWarningBytes) {
+    warnings.push(
+      `Total CSS gzip is ${cssGzipBytes} bytes, above the ${budget.cssGzipWarningBytes}-byte warning level (hard limit ${budget.maxCssGzipBytes}).`,
     );
   }
 
@@ -120,5 +130,6 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
     largestJavaScriptRawBytes,
     runtimeAssetGzipBytes,
     violations,
+    warnings,
   };
 }

@@ -91,18 +91,30 @@ function useMicroOffer(scope: ProgrammeScope, summary: RpgHubSummary | null) {
   return availability.status === 'ready'
     ? {
         primer: availability.primerId !== null,
-        repeat: availability.repeatSessionIds.size > 0,
+        repeat: availability.repeatSessions.length > 0,
       }
     : null;
 }
 
-function getMicroCopy(offer: { primer: boolean; repeat: boolean }) {
+/**
+ * Shown only on request, behind the (i) of an entry. True to the app: these
+ * surfaces write nothing, and XP comes from Campaign work (tasks, focus
+ * sessions and content within them).
+ */
+const campaignRewards =
+  'XP, nivåer og Achievements får du gjennom arbeidet i kampanjen.';
+
+/** What Mikroøkt offers right now, from the same answer as its link. */
+function getMicroNow(offer: { primer: boolean; repeat: boolean }) {
   if (offer.primer && offer.repeat) {
-    return 'Mikroøkt: forbered deg eller repeter på noen få minutter.';
+    return 'Nå kan du både forberede deg og øve igjen.';
   }
-  return offer.primer
-    ? 'Mikroøkt: forbered deg på neste oppgave på noen få minutter.'
-    : 'Mikroøkt: repeter det du har jobbet med på noen få minutter.';
+  if (offer.primer) {
+    return 'Nå kan du forberede deg på neste oppgave.';
+  }
+  return offer.repeat
+    ? 'Nå kan du øve igjen på det du har jobbet med.'
+    : 'Akkurat nå er det ingen mikroøkt.';
 }
 
 export function RpgHomePage() {
@@ -111,6 +123,7 @@ export function RpgHomePage() {
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
   const microOffer = useMicroOffer(scope, state.summary);
+  const tracks = scope.content.microlearning?.tracks ?? [];
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -262,42 +275,55 @@ export function RpgHomePage() {
             </div>
           )}
 
-          {/* A secondary, contextual way in: only a programme that ships
-              microlearning has it, it never replaces the quest above, and the
-              button exists only while the picker would list a session. Some
-              Campaign phases (Lab, Oppdrag) honestly have none; Home then
-              says so and links nowhere. */}
-          {microOffer === null ? null : (
-            <div className="rpg-hub__module-context">
-              {microOffer.primer || microOffer.repeat ? (
-                <>
-                  <p className="rpg-hub__note">{getMicroCopy(microOffer)}</p>
-                  <RpgButton href={rpgMicroPath} variant="secondary">
-                    Åpne mikroøkt
-                  </RpgButton>
-                </>
-              ) : (
-                <p className="rpg-hub__note">
-                  Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.
-                </p>
+          {/* Secondary, contextual ways in, after the quest above and never
+              instead of it. Mikroøkt: only a programme that ships
+              microlearning has it, and the link exists only while the picker
+              would list a session; some Campaign phases (Lab, Oppdrag)
+              honestly have none, and Home then says so and links nowhere.
+              Tracks are open whatever the Campaign position, so their
+              entries need no progress read. Each entry is a link with its own
+              (i) beside it, never inside it; side by side where there is
+              room, stacked where not. */}
+          {microOffer === null && tracks.length === 0 ? null : (
+            <div
+              className="rpg-hub__module-context rpg-hub__entries"
+              // An open (i) makes its own entry taller, never moves the other.
+              style={{ alignItems: 'start' }}
+            >
+              {microOffer === null ? null : (
+                <div className="rpg-hub__entry">
+                  {microOffer.primer || microOffer.repeat ? (
+                    <RpgButton href={rpgMicroPath} variant="secondary">
+                      Mikroøkt
+                    </RpgButton>
+                  ) : (
+                    <p className="rpg-hub__note">
+                      Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes
+                      flere.
+                    </p>
+                  )}
+                  <RpgInfoNote label="Om Mikroøkt" size="md">
+                    I Mikroøkt kan du forberede deg på kommende oppgaver og øve
+                    på det du allerede har jobbet med, gjennom korte oppgaver.{' '}
+                    {getMicroNow(microOffer)} {campaignRewards}
+                  </RpgInfoNote>
+                </div>
               )}
+              {tracks.map((track) => (
+                <div className="rpg-hub__entry" key={track.id}>
+                  <RpgButton
+                    href={getRpgTrackPath(track.id)}
+                    variant="secondary"
+                  >
+                    {track.title}
+                  </RpgButton>
+                  <RpgInfoNote label={`Om ${track.title}`} size="md">
+                    {track.about ?? track.summary} {campaignRewards}
+                  </RpgInfoNote>
+                </div>
+              ))}
             </div>
           )}
-
-          {/* Voluntary tracks: open whatever the Campaign position, so the
-              line needs no progress read and is never held up by one. Only a
-              programme that ships a track shows it. */}
-          {(scope.content.microlearning?.tracks ?? []).map((track) => (
-            <div className="rpg-hub__module-context" key={track.id}>
-              <p className="rpg-hub__note">
-                {track.title}: {track.sessions.length} korte, frivillige
-                aktiviteter.
-              </p>
-              <RpgButton href={getRpgTrackPath(track.id)} variant="secondary">
-                Åpne {track.title}
-              </RpgButton>
-            </div>
-          ))}
         </RpgPanel>
 
         <RpgPanel

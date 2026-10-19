@@ -139,6 +139,25 @@ const FIT_SCRIPT = `(() => {
   return problems;
 })()`;
 
+// Concept labels must not break within words on an ordinary small phone.
+const PROSE_WORDS_SCRIPT = `(() => {
+  const problems = [];
+  const labels = document.querySelectorAll('.micro-match[data-left-presentation="text"] .micro-tap > span:first-child');
+  for (const label of labels) {
+    const node = label.firstChild;
+    if (!node || node.nodeType !== 3) continue;
+    for (const word of node.textContent.matchAll(/[^\\s-]+/g)) {
+      const range = document.createRange();
+      range.setStart(node, word.index);
+      range.setEnd(node, word.index + word[0].length);
+      if ([...range.getClientRects()].filter((rect) => rect.width > 0).length > 1) {
+        problems.push('word split: ' + word[0]);
+      }
+    }
+  }
+  return problems;
+})()`;
+
 // The enlarged-text contract. The route may grow past the viewport, and then
 // the route scrolls: one scroll context, nothing clipped, nothing nested, no
 // sideways scroll, every control reachable by scrolling and still on top, and
@@ -198,16 +217,22 @@ const ENLARGED_SCRIPT = `(() => {
   if (feedback && act && feedback.getBoundingClientRect().bottom > act.getBoundingClientRect().top + slack) problems.push('the action overlaps the feedback');
   if (feedback && feedback.textContent.trim() === '') problems.push('feedback strip is empty');
   if (foot && !act) problems.push('the footer has no action');
-  return { problems, scrolls: micro.scrollHeight > micro.clientHeight + 1 };
+  return {
+    overflow: micro.scrollHeight - micro.clientHeight,
+    problems,
+    scrolls: micro.scrollHeight > micro.clientHeight + 1,
+  };
 })()`;
 
-// How far the interaction sits above the footer. On a tall phone it must be
-// anchored next to it (the thumb zone), not floating high with a gap below.
-const GAP_SCRIPT = `(() => {
+// Vertical distance from the end of what a card says (its question, code or
+// context) to the top of its interaction, in CSS px; null when either is
+// missing. Mikroøkt and a track share the contract: the question is read
+// together with its choices, never a screen's height away.
+const QUESTION_GAP_SCRIPT = `(() => {
+  const prompt = document.querySelector('.micro-card__prompt');
   const play = document.querySelector('.micro-card__play');
-  const foot = document.querySelector('.micro-card__foot');
-  if (!play || !foot) return null;
-  return Math.round(foot.getBoundingClientRect().top - play.getBoundingClientRect().bottom);
+  if (!prompt || !play || !prompt.lastElementChild) return null;
+  return Math.round(play.getBoundingClientRect().top - prompt.lastElementChild.getBoundingClientRect().bottom);
 })()`;
 
 // Free vertical space in the card body: the gap between what the card says
@@ -227,17 +252,31 @@ const SLACK_SCRIPT = `(() => {
   return Math.round(limit - playHeight - gap - promptBottom);
 })()`;
 
-// Where the footer and the interaction sit. Within one card they must not move
-// between states: a mark, a badge or a longer message may not reflow the row
-// the learner is about to tap, and the action stays where the thumb left it.
+// The feedback strip can grow when an explanation takes another line. The
+// interaction stays under its question and must not move (a mark must not
+// reflow a row under the learner's finger), and the next action must stay
+// where it is. assertFits independently rejects scrolling, clipping,
+// off-screen controls and undersized tap targets for each state at normal
+// text size.
 const GEOMETRY_SCRIPT = `(() => {
-  const box = (selector) => {
-    const el = document.querySelector(selector);
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
+  const foot = document.querySelector('.micro-card__foot');
+  const play = document.querySelector('.micro-card__play');
+  const action = foot?.querySelector('button, a');
+  const box = (element) => {
+    if (!element) return null;
+    const rect = element.getBoundingClientRect();
     return [Math.round(rect.top), Math.round(rect.height)];
   };
-  return JSON.stringify({ foot: box('.micro-card__foot'), play: box('.micro-card__play') });
+  const f = foot?.getBoundingClientRect();
+  const match = play?.querySelector('.micro-match');
+  return JSON.stringify({
+    action: box(action),
+    footerBottom: f ? Math.round(f.bottom) : null,
+    // Match cards keep their tap targets stable even when feedback changes.
+    // Other card kinds retain the interaction-container geometry check.
+    play: match ? [Math.round(play.getBoundingClientRect().top)] : box(play),
+    matchButtons: match ? [...match.querySelectorAll('.micro-tap')].map(box) : null,
+  });
 })()`;
 
 // Soft: a run reports every state that fails, not only the first, so a card
@@ -271,15 +310,19 @@ function scaleCss({ mechanism, percent }: Scale): string {
 }
 
 let routeScrolled = 0;
+/** The states where the route scrolled, named, for a no-scroll contract. */
+let scrolledStates: string[] = [];
 
 async function assertEnlarged(page: Page, label: string) {
   const result = (await page.evaluate(ENLARGED_SCRIPT)) as {
+    overflow: number;
     problems: string[];
     scrolls: boolean;
   };
 
   if (result.scrolls) {
     routeScrolled += 1;
+    scrolledStates.push(`${label} (+${result.overflow}px)`);
   }
   expect.soft(result.problems, label).toEqual([]);
 }
@@ -397,6 +440,8 @@ interface Checks {
   axe: boolean;
   /** Set for the enlarged-text walks: the route may scroll, geometry shifts. */
   enlarged?: boolean;
+  /** Check question-to-choices distance (default: unless enlarged). */
+  proximity?: boolean;
   slack: boolean;
 }
 
@@ -406,6 +451,12 @@ async function assertState(page: Page, label: string, checks: Checks) {
     await assertEnlarged(page, label);
   } else {
     await assertFits(page, label);
+  }
+  if ([320, 390].includes(page.viewportSize()?.width ?? 0)) {
+    const splitWords = (await page.evaluate(PROSE_WORDS_SCRIPT)) as string[];
+    expect
+      .soft(splitWords, `${label}: concept words must remain intact`)
+      .toEqual([]);
   }
 }
 
@@ -430,7 +481,7 @@ async function playCard(
         steady = geometry;
       } else {
         expect
-          .soft(geometry, `${at(state)}: the footer or interaction moved`)
+          .soft(geometry, `${at(state)}: the action or the interaction moved`)
           .toBe(steady);
       }
     }
@@ -447,6 +498,14 @@ async function playCard(
   const heading = page.getByRole('heading', { level: 1 });
   await expect(heading).toHaveText(card.title);
   await expect(heading).toBeFocused();
+  if (card.kind !== 'learn' && (checks.proximity ?? checks.enlarged !== true)) {
+    // The question (the last thing the card says) sits directly above what
+    // the learner acts on, in Mikroøkt as in a track.
+    const gap = (await page.evaluate(QUESTION_GAP_SCRIPT)) as number | null;
+
+    expect.soft(gap, at('question-to-choices')).not.toBeNull();
+    expect.soft(gap!, at('question-to-choices')).toBeLessThanOrEqual(32);
+  }
   await fit('prompt', true);
 
   if (card.kind === 'learn') {
@@ -632,6 +691,10 @@ test.describe('microlearning lab at 360 x 560', () => {
   }) => {
     await openPicker(page, 'dark');
     await page.getByRole('button', { name: /^Følg variablene/ }).click();
+    // The move to the card is a navigation: wait for the card itself.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      bank.sessions[0]!.cards[0]!.title,
+    );
     await assertFits(page, 'control: unmodified card fits');
 
     await page.evaluate(`(() => {
@@ -674,36 +737,100 @@ test.describe('microlearning lab at 360 x 560', () => {
 test.describe('microlearning lab on a Galaxy S22+ class phone', () => {
   test.use({ viewport: PHONE });
 
-  test('every card state fits and the interaction sits next to the footer', async ({
+  test('every card state fits and the question sits next to its choices', async ({
     page,
   }) => {
     test.setTimeout(240_000);
     await openPicker(page, 'dark');
+    await shoot(page, 'mikrookt-picker-384x800');
 
     for (const index of sessionIndexes) {
-      const session = bank.sessions[index]!;
-
+      // playCard checks question-to-choices proximity on every practice card.
       await runSession(page, index, 'miss-twice', { axe: false, slack: true });
-      // The anchoring is checked on the cards of one more, quick, right pass.
-      await activate(page, sessionButton(page, session.title));
-      for (const [cardIndex, card] of session.cards.entries()) {
-        const gap = (await page.evaluate(GAP_SCRIPT)) as number | null;
-
-        if (gap !== null) {
-          expect(
-            gap,
-            `${card.id}: interaction is ${gap}px above the footer`,
-          ).toBeLessThanOrEqual(24);
-        }
-        await playCard(page, card, cardIndex, session.cards.length, 'right', {
-          axe: false,
-          slack: false,
-        });
-      }
-      await press(page, 'Velg en annen økt');
     }
   });
 });
+
+// The shared presentation on the screens beside the 360 x 560 contract: a
+// short and a tall narrow phone and two desktops. At normal text size nothing
+// scrolls on any of them, not even at 320 x 568: every card state is checked
+// for clipping, nesting, sideways overflow and reachable controls, and the
+// route itself must not scroll once (`no-scroll`). The desktops run the
+// strict per-element check. On a wide screen a card keeps a readable width.
+const MIKRO_MATRIX = [
+  { contract: 'no-scroll', height: 568, width: 320 },
+  { contract: 'no-scroll', height: 844, width: 390 },
+  { contract: 'strict', height: 800, width: 1280 },
+] as const;
+
+for (const viewport of MIKRO_MATRIX) {
+  test.describe(`Mikroøkt at ${viewport.width} x ${viewport.height}`, () => {
+    test.use({ viewport: { height: viewport.height, width: viewport.width } });
+
+    test('every card state fits, with the question next to its choices', async ({
+      page,
+    }) => {
+      test.setTimeout(420_000);
+      routeScrolled = 0;
+      scrolledStates = [];
+      const checks = {
+        axe: false,
+        enlarged: viewport.contract !== 'strict',
+        proximity: true,
+        slack: false,
+      };
+
+      // Progress only grows (seeded rows are added), so this walks the
+      // Campaign in order: every primer where it is offered, the fullest
+      // picker (the next primer and four sessions), then every session.
+      await completeOnboarding(page, {
+        programme: 'Programvareutvikling',
+        theme: 'dark',
+      });
+      for (const primer of bank.primers) {
+        const at = requiredOrder.indexOf(primer.prepares![0]!);
+
+        if (at > 17) {
+          await seedCampaign(page, 17);
+          await gotoPicker(page);
+          await expect(page.getByRole('listitem')).toHaveCount(2);
+          await assertState(page, 'picker: primer and «Øv igjen»', checks);
+          await shoot(
+            page,
+            `mikrookt-picker-full-${viewport.width}x${viewport.height}`,
+          );
+          await activate(
+            page,
+            page.getByRole('button', { name: /^Velg blant 4 økter/ }),
+          );
+          await expect(page.getByRole('listitem')).toHaveCount(4);
+          await assertState(page, 'the «Øv igjen» list', checks);
+          await shoot(
+            page,
+            `mikrookt-ov-igjen-${viewport.width}x${viewport.height}`,
+          );
+        }
+        await seedCampaign(page, at);
+        await gotoPicker(page);
+        await runSessionOf(page, primer, 'retry-right', checks);
+      }
+      await seedCampaign(page, 24);
+      await gotoPicker(page);
+      await shoot(page, `mikrookt-picker-${viewport.width}x${viewport.height}`);
+      for (const index of sessionIndexes) {
+        await runSession(page, index, 'miss-twice', checks);
+      }
+      if (viewport.contract === 'no-scroll') {
+        expect(scrolledStates, 'states where the route scrolled').toEqual([]);
+      }
+      const width = (await page.evaluate(
+        `document.querySelector('.micro-card').getBoundingClientRect().width`,
+      )) as number;
+
+      expect(width).toBeLessThanOrEqual(Math.min(viewport.width, 640) + 0.5);
+    });
+  });
+}
 
 // Larger text, on the hard 360 x 560 phone. Every card, picker and finished
 // screen is walked through the retry loop with real clicks (Playwright scrolls
@@ -910,13 +1037,13 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
   }) => {
     await openPicker(page, 'dark', 0);
 
-    expect(await groups(page)).toEqual(['Forbered deg', 'Repeter']);
+    expect(await groups(page)).toEqual(['Forbered deg', 'Øv igjen']);
     await expect(page.getByRole('listitem')).toHaveCount(1);
     await expect(
       sessionButton(page, 'Python, editor og terminal'),
     ).toBeVisible();
     await expect(
-      page.getByText('Repeter åpnes etter hvert som du jobber i kampanjen.'),
+      page.getByText('Flere øvelser kommer når du går videre i programmet.'),
     ).toBeVisible();
     await expect(page.getByText('Følg variablene')).toHaveCount(0);
     await assertFits(page, 'fresh learner');
@@ -931,18 +1058,30 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
     await expect(sessionButton(page, 'Koden er bare ett steg')).toBeVisible();
     await expect(page.getByRole('listitem')).toHaveCount(1);
     await expect(
-      page.getByText('Repeter åpnes etter hvert som du jobber i kampanjen.'),
+      page.getByText('Flere øvelser kommer når du går videre i programmet.'),
     ).toBeVisible();
     await expect(page.getByText(/Slik leser du en feilmelding/)).toHaveCount(0);
     await assertFits(page, '3 of 24 complete');
     await assertAccessible(page, '3 of 24 complete');
   });
 
-  test('later learners get Repeter beside the next primer, up to four rows with both groups', async ({
+  test('reached topics repeat beside the next primer, and a full «Øv igjen» gets its own screen', async ({
     page,
   }) => {
-    await openPicker(page, 'dark', 13);
+    // Module 1 is done: its reached topics repeat, the Build phase has no
+    // primer, and nothing from Module 2 is named.
+    await openPicker(page, 'dark', 8);
+    expect(await groups(page)).toEqual(['Øv igjen']);
     await expect(page.getByRole('listitem')).toHaveCount(2);
+    await expect(sessionButton(page, 'Les feilmeldingen')).toContainText(
+      '4 kort',
+    );
+    await expect(page.getByText(/tekst og tall blandes/)).toHaveCount(0);
+    await assertFits(page, '8 complete');
+
+    await seedCampaign(page, 13);
+    await gotoPicker(page);
+    await expect(page.getByRole('listitem')).toHaveCount(4);
     await expect(sessionButton(page, 'Følg variablene')).toBeVisible();
     await expect(
       sessionButton(page, 'Tall og tekst er ulike typer'),
@@ -950,14 +1089,25 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
     await expect(page.getByText(/Flere åpnes/)).toBeVisible();
     await assertFits(page, '13 complete');
 
-    // The most the picker ever shows: the next primer and three sessions.
-    for (const complete of [17, 18]) {
+    // The next primer and four sessions would be five rows: «Øv igjen» is
+    // one row naming its sessions, and opens them on a screen of their own.
+    for (const complete of [15, 17, 18]) {
       await seedCampaign(page, complete);
       await gotoPicker(page);
-      await expect(page.getByRole('listitem')).toHaveCount(4);
-      expect(await groups(page)).toEqual(['Forbered deg', 'Repeter']);
-      await assertFits(page, `${complete} complete: primer and three sessions`);
+      await expect(page.getByRole('listitem')).toHaveCount(2);
+      expect(await groups(page)).toEqual(['Forbered deg', 'Øv igjen']);
+      await assertFits(page, `${complete} complete: primer and «Øv igjen»`);
       await assertAccessible(page, `${complete} complete`);
+      await activate(
+        page,
+        page.getByRole('button', { name: /^Velg blant 4 økter/ }),
+      );
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+        'Øv igjen',
+      );
+      await expect(page.getByRole('listitem')).toHaveCount(4);
+      await assertFits(page, `${complete} complete: the «Øv igjen» list`);
+      await assertAccessible(page, `${complete} complete: list`);
     }
   });
 
@@ -967,7 +1117,7 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
     await openPicker(page, 'dark');
 
     await expect(page.getByRole('listitem')).toHaveCount(4);
-    expect(await groups(page)).toEqual(['Repeter']);
+    expect(await groups(page)).toEqual(['Øv igjen']);
     await expect(page.getByText(/Flere åpnes/)).toHaveCount(0);
     await assertFits(page, 'four sessions open');
   });
@@ -1015,7 +1165,7 @@ test.describe('the way into microlearning from Home', () => {
       theme: 'dark',
     });
     await page.goto('/rpg');
-    const entry = page.getByRole('link', { name: 'Åpne mikroøkt' });
+    const entry = page.getByRole('link', { name: 'Mikroøkt', exact: true });
 
     await expect(entry).toBeVisible();
     await entry.scrollIntoViewIfNeeded();
@@ -1057,7 +1207,7 @@ test.describe('the way into microlearning from Home', () => {
       theme: 'dark',
     });
     await page.goto('/rpg');
-    const entry = page.getByRole('link', { name: 'Åpne mikroøkt' });
+    const entry = page.getByRole('link', { name: 'Mikroøkt', exact: true });
 
     await expect(entry).toBeVisible();
     for (const scale of [
@@ -1083,13 +1233,12 @@ test.describe('the way into microlearning from Home', () => {
     });
     await seedCampaign(page, 3);
     await page.goto('/rpg');
-    const entry = page.getByRole('link', { name: 'Åpne mikroøkt' });
+    const entry = page.getByRole('link', { name: 'Mikroøkt', exact: true });
 
     await expect(entry).toBeVisible();
+    await page.getByRole('button', { name: 'Om Mikroøkt' }).click();
     await expect(
-      page.getByText(
-        'Mikroøkt: forbered deg på neste oppgave på noen få minutter.',
-      ),
+      page.getByText(/Nå kan du forberede deg på neste oppgave\./),
     ).toBeVisible();
     expect(await overflow(page)).toBeLessThanOrEqual(0);
     await entry.click();
@@ -1097,11 +1246,11 @@ test.describe('the way into microlearning from Home', () => {
     await expect(sessionButton(page, 'Koden er bare ett steg')).toBeVisible();
   });
 
-  // The four Build-phase positions have neither a primer nor a repeat session
-  // on purpose. Home must not promise one, and must not link to the picker's
-  // empty notice either; the Campaign stays the one thing to do.
-  for (const complete of [7, 8, 9, 10]) {
-    test(`promises no session after ${complete} complete (an intentional Build phase), and fits`, async ({
+  // The Build phase of Module 1 has no primer on purpose, but the topics the
+  // learner has reached repeat: Home offers them, says only that, and the
+  // Campaign stays the first and primary thing to do.
+  for (const complete of [7, 10]) {
+    test(`offers repetition of reached topics after ${complete} complete (the Build phase), and fits`, async ({
       page,
     }) => {
       await completeOnboarding(page, {
@@ -1110,15 +1259,13 @@ test.describe('the way into microlearning from Home', () => {
       });
       await seedCampaign(page, complete);
       await page.goto('/rpg');
-      const line = page.getByText(
-        'Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.',
-      );
+      const line = page.getByRole('link', { name: 'Mikroøkt', exact: true });
 
       await expect(line).toBeVisible();
+      await page.getByRole('button', { name: 'Om Mikroøkt' }).click();
       await expect(
-        page.getByRole('link', { name: 'Åpne mikroøkt' }),
-      ).toHaveCount(0);
-      await expect(page.locator('a[href$="/rpg/micro"]')).toHaveCount(0);
+        page.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
+      ).toBeVisible();
       await expect(
         page.locator('.rpg-hub__quest-panel a[href*="/rpg/resource/"]'),
       ).toHaveClass(/rpg-button--primary/);
@@ -1149,11 +1296,8 @@ test.describe('the way into microlearning from Home', () => {
   test.describe('on a tall S22+ class phone', () => {
     test.use({ viewport: PHONE });
 
-    for (const [complete, active] of [
-      [0, true],
-      [8, false],
-    ] as const) {
-      test(`Home after ${complete} complete: ${active ? 'active entry' : 'passive line'}, no sideways scroll`, async ({
+    for (const complete of [0, 8]) {
+      test(`Home after ${complete} complete: active entry, no sideways scroll`, async ({
         page,
       }) => {
         await completeOnboarding(page, {
@@ -1167,14 +1311,7 @@ test.describe('the way into microlearning from Home', () => {
           page.locator('.rpg-hub__quest-panel a[href*="/rpg/resource/"]'),
         ).toBeVisible();
         await expect(
-          page.getByRole('link', { name: 'Åpne mikroøkt' }),
-        ).toHaveCount(active ? 1 : 0);
-        await expect(
-          page.getByText(
-            active
-              ? /^Mikroøkt: forbered deg/
-              : 'Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.',
-          ),
+          page.getByRole('link', { name: 'Mikroøkt', exact: true }),
         ).toBeVisible();
         expect(await overflow(page)).toBeLessThanOrEqual(0);
       });
@@ -1188,9 +1325,9 @@ test.describe('the way into microlearning from Home', () => {
     await expect(
       page.getByRole('link', { name: 'Campaign' }).first(),
     ).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Åpne mikroøkt' })).toHaveCount(
-      0,
-    );
+    await expect(
+      page.getByRole('link', { name: 'Mikroøkt', exact: true }),
+    ).toHaveCount(0);
     await expect(page.getByText(/Mikroøkt|Ingen mikroøkt/)).toHaveCount(0);
   });
 });
@@ -1270,10 +1407,10 @@ test.describe('one physical activation, one progression, in a real browser', () 
     await doubleTap(page, action(page, 'Fullfør'));
 
     await expect(heading(page)).toHaveText('Økten er ferdig');
-    await expect(page).toHaveURL(/\/rpg\/micro$/);
+    await expect(page).toHaveURL(/\/rpg\/micro\?okt=tenk-forst&kort=ferdig$/);
 
     await waitOutGuard(page);
-    await page.getByRole('link', { name: 'Tilbake til kampanjen' }).click();
+    await page.getByRole('link', { name: 'Til startsiden' }).click();
     await expect(page).toHaveURL(/\/rpg$/);
   });
 });
@@ -1307,7 +1444,7 @@ async function snapshotDatabase(page: Page) {
   `)) as string;
 }
 
-// «Tenk som en utvikler», the voluntary track: the same card contract (one
+// «Utviklerblikk», the voluntary track: the same card contract (one
 // card is one viewport at 360 x 560, every state of every card; enlarged text
 // scrolls the route and clips nothing), its own six-row list, and a Home entry
 // that needs no Campaign progress. Screenshots are written only when
@@ -1333,6 +1470,93 @@ async function openTrack(page: Page, theme: 'dark' | 'light', scale?: Scale) {
   }
 }
 
+/** Utviklerblikk-only Stage-4 driver. Shared Mikroøkt playCard/oracles stay unchanged.
+ * The historical no-scroll walk is replaced by explicit single-scroll reachability:
+ * readable content wins, while every control and feedback state is still exercised.
+ */
+async function playTrackCard(
+  page: Page,
+  card: PlanCard,
+  index: number,
+  total: number,
+  mode: Mode,
+  checks: Checks,
+) {
+  const fit = async (state: string) => {
+    await assertState(page, card.id + ': ' + state, {
+      ...checks,
+      enlarged: true,
+    });
+    if (checks.axe) await assertAccessible(page, card.id + ': ' + state);
+  };
+  const taps = async (list: Tap[]) => {
+    for (const tap of list) {
+      if (
+        tap.group &&
+        (await page.locator('.utviklerblikk-mobile-match').count()) &&
+        !(await page
+          .getByRole('group', { name: tap.group, exact: true })
+          .isVisible())
+      )
+        await page
+          .getByRole('group', { name: 'Startside for koblingen' })
+          .getByRole('button', { name: tap.group, exact: true })
+          .click();
+      const scope = tap.group
+        ? page.getByRole('group', { name: tap.group, exact: true })
+        : page;
+      await scope.getByRole('button', { name: tap.name }).click();
+    }
+  };
+  const check = async () => {
+    if (needsCheck(card)) {
+      await fit('ready to check');
+      await press(page, 'Sjekk');
+    }
+  };
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(card.title);
+  await fit('prompt');
+  if (card.kind !== 'learn') {
+    const gap = (await page.evaluate(QUESTION_GAP_SCRIPT)) as number | null;
+    expect(gap, card.id + ': question next to interaction').not.toBeNull();
+    expect(gap!).toBeLessThanOrEqual(32);
+    if (mode === 'right') {
+      const right = rightTaps(card);
+      await taps(right.slice(0, 1));
+      await fit('answering');
+      await taps(right.slice(1));
+      await check();
+      await expect(status(page)).toContainText('Riktig.');
+      await fit('correct');
+    } else {
+      await taps(wrongTaps(card));
+      await check();
+      await expect(status(page)).toHaveAttribute('data-state', 'incorrect');
+      await fit('wrong');
+      await press(page, 'Prøv igjen');
+      await expect(status(page)).toHaveAttribute('data-state', 'hint');
+      await fit('retry');
+      if (mode === 'retry-right') {
+        await taps(rightTaps(card));
+        await check();
+        await expect(status(page)).toContainText('Riktig nå.');
+        await fit('retry correct');
+      } else {
+        await taps(wrongTaps(card, 1));
+        await check();
+        if (card.kind === 'order') {
+          await expect(status(page)).toHaveAttribute('data-state', 'incorrect');
+          await press(page, 'Vis løsning');
+        }
+        await expect(status(page)).toHaveAttribute('data-state', 'revealed');
+        await expect(status(page)).not.toContainText('Riktig.');
+        await fit('revealed');
+      }
+    }
+  }
+  await press(page, index === total - 1 ? 'Fullfør' : 'Neste');
+}
+
 async function runTrackSession(
   page: Page,
   index: number,
@@ -1340,6 +1564,7 @@ async function runTrackSession(
   checks: Checks,
   shots = false,
 ) {
+  checks = { ...checks, enlarged: true };
   const session = thinkingTrack!.sessions[index]!;
   const heading = page.getByRole('heading', { level: 1 });
 
@@ -1354,14 +1579,21 @@ async function runTrackSession(
   );
 
   for (const [cardIndex, card] of session.cards.entries()) {
+    await expect(heading).toHaveText(card.title);
     if (shots && cardIndex < 3) {
-      await expect(heading).toHaveText(card.title);
       await shoot(page, `${session.id}-${cardIndex + 1}-prompt`);
     }
-    await playCard(page, card, cardIndex, session.cards.length, mode, checks);
+    await playTrackCard(
+      page,
+      card,
+      cardIndex,
+      session.cards.length,
+      mode,
+      checks,
+    );
   }
 
-  await expect(heading).toHaveText('Hva tar jeg med meg?');
+  await expect(heading).toHaveText('Husk dette');
   await assertState(page, `${session.id}: takeaway`, checks);
   if (checks.axe) {
     await assertAccessible(page, `${session.id}: takeaway`);
@@ -1374,7 +1606,7 @@ async function runTrackSession(
 
 const trackIndexes = thinkingTrack!.sessions.map((_, index) => index);
 
-test.describe('«Tenk som en utvikler» at 360 x 560', () => {
+test.describe('«Utviklerblikk» at 360 x 560', () => {
   test.use({ viewport: HARD });
 
   test('every card state fits when missed twice, dark theme, with axe', async ({
@@ -1436,7 +1668,8 @@ test.describe('«Tenk som en utvikler» at 360 x 560', () => {
     });
     await page.goto('/rpg');
     const entry = page.getByRole('link', {
-      name: `Åpne ${thinkingTrack!.title}`,
+      name: thinkingTrack!.title,
+      exact: true,
     });
 
     await expect(entry).toBeVisible();
@@ -1468,6 +1701,13 @@ test.describe('«Tenk som en utvikler» at 360 x 560', () => {
     );
     await expect(heading).toBeFocused();
     await page.keyboard.press('Tab');
+    await expect(
+      page.getByRole('button', {
+        name: 'Tilbake til aktiviteter',
+        exact: true,
+      }),
+    ).toBeFocused();
+    await page.keyboard.press('Tab');
     await expect(action(page, 'Neste')).toBeFocused();
     // A keyboard press is not recorded by activate(): wait the guard out.
     await page.waitForTimeout(GUARD_WAIT_MS);
@@ -1486,7 +1726,9 @@ test.describe('«Tenk som en utvikler» at 360 x 560', () => {
 
     await activate(page, page.getByRole('button', { name: /^2\. / }));
     await press(page, 'Neste');
-    await page.getByRole('link', { name: 'Lukk mikroøkten' }).click();
+    await page
+      .getByRole('link', { name: `Lukk ${thinkingTrack!.title}` })
+      .click();
     await expect(page).toHaveURL(/\/rpg$/);
     await page.goto(trackPath);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
@@ -1500,17 +1742,17 @@ test.describe('«Tenk som en utvikler» at 360 x 560', () => {
     await page.goto('/rpg');
     await expect(page.getByRole('navigation').first()).toBeVisible();
     await expect(
-      page.getByRole('link', { name: `Åpne ${thinkingTrack!.title}` }),
+      page.getByRole('link', { name: thinkingTrack!.title, exact: true }),
     ).toHaveCount(0);
     await page.goto(trackPath);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'Ingenting å øve på her',
+      'Denne aktiviteten er ikke tilgjengelig her',
     );
     await assertFits(page, 'CS50x track notice');
   });
 });
 
-test.describe('«Tenk som en utvikler» on a Galaxy S22+ class phone', () => {
+test.describe('«Utviklerblikk» on a Galaxy S22+ class phone', () => {
   test.use({ viewport: PHONE });
 
   test('every card state fits when solved on the retry', async ({ page }) => {
@@ -1529,7 +1771,7 @@ test.describe('«Tenk som en utvikler» on a Galaxy S22+ class phone', () => {
   });
 });
 
-test.describe('«Tenk som en utvikler» at enlarged text', () => {
+test.describe('«Utviklerblikk» at enlarged text', () => {
   test.use({ viewport: HARD });
 
   for (const scale of [
@@ -1554,4 +1796,253 @@ test.describe('«Tenk som en utvikler» at enlarged text', () => {
       );
     });
   }
+});
+
+// Stage 4: this track alone permits natural vertical scrolling when needed.
+// The prior strict no-scroll failure is retained in the external Stage-3 evidence.
+const MATRIX = [
+  { height: 568, width: 320 },
+  { height: 844, width: 390 },
+  { height: 800, width: 1280 },
+  { height: 1000, width: 1800 },
+] as const;
+
+for (const viewport of MATRIX) {
+  test.describe(`«Utviklerblikk» at ${viewport.width} x ${viewport.height}`, () => {
+    test.use({ viewport: { height: viewport.height, width: viewport.width } });
+
+    test('every card stays reachable, with the question next to its choices', async ({
+      page,
+    }) => {
+      test.setTimeout(420_000);
+      routeScrolled = 0;
+      scrolledStates = [];
+      await openTrack(page, 'dark');
+      await shoot(page, `track-list-${viewport.width}x${viewport.height}`);
+      for (const index of trackIndexes) {
+        // Phones walk every state (a miss with its reason, the hint, the
+        // answer shown); desktops the first-time path.
+        await runTrackSession(
+          page,
+          index,
+          viewport.width >= 1280 ? 'right' : 'miss-twice',
+          {
+            axe: false,
+            enlarged: viewport.width < 1280,
+            proximity: true,
+            slack: false,
+          },
+          index === 1 && (viewport.width >= 1280 || viewport.width === 320),
+        );
+      }
+      // Report scroll without clipping prose or changing Mikroøkt's no-scroll contract.
+      console.log('UTVIKLERBLIKK_SCROLL ' + JSON.stringify(scrolledStates));
+      const width = (await page.evaluate(
+        `document.querySelector('.micro-card').getBoundingClientRect().width`,
+      )) as number;
+
+      expect(width).toBeLessThanOrEqual(Math.min(viewport.width, 640) + 0.5);
+    });
+  });
+}
+
+test.describe('«Utviklerblikk» and the browser’s own Back and Forward', () => {
+  test.use({ viewport: HARD });
+
+  test('Back returns to the previous card and the list, Forward goes again, Lukk goes Home', async ({
+    page,
+  }) => {
+    const [first] = thinkingTrack!.sessions;
+    const heading = page.getByRole('heading', { level: 1 });
+
+    await openTrack(page, 'dark');
+    await activate(page, page.getByRole('button', { name: /^1\. / }));
+    await expect(heading).toHaveText(first!.cards[0]!.title);
+    await press(page, 'Neste');
+    await expect(heading).toHaveText(first!.cards[1]!.title);
+
+    await page.goBack();
+    await expect(heading).toHaveText(first!.cards[0]!.title);
+    await expect(heading).toBeFocused();
+    await page.goBack();
+    await expect(heading).toHaveText(thinkingTrack!.title);
+    await page.goForward();
+    await expect(heading).toHaveText(first!.cards[0]!.title);
+    await page.goForward();
+    await expect(heading).toHaveText(first!.cards[1]!.title);
+
+    // A reload keeps the card the learner reached.
+    await page.reload();
+    await expect(heading).toHaveText(first!.cards[1]!.title);
+
+    await page
+      .getByRole('link', { name: `Lukk ${thinkingTrack!.title}` })
+      .click();
+    await expect(page).toHaveURL(/\/rpg$/);
+  });
+
+  test('a typed address to a later card starts the activity at its first card', async ({
+    page,
+  }) => {
+    const kravtyper = thinkingTrack!.sessions[1]!;
+
+    await openTrack(page, 'dark');
+    await page.goto(`${trackPath}?aktivitet=${kravtyper.id}&kort=4`);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      kravtyper.cards[0]!.title,
+    );
+    await expect(page).toHaveURL(/kort=1$/);
+  });
+});
+
+test.describe('Mikroøkt and the browser’s own Back and Forward', () => {
+  test.use({ viewport: HARD });
+
+  test('Back returns to the previous card and the picker, Forward goes again, reload keeps the card, Lukk goes Home', async ({
+    page,
+  }) => {
+    const session = bank.sessions[0]!;
+    const heading = page.getByRole('heading', { level: 1 });
+
+    await openPicker(page, 'dark', 13);
+    await activate(page, sessionButton(page, session.title));
+    await expect(heading).toHaveText(session.cards[0]!.title);
+    await expect(page).toHaveURL(/\/rpg\/micro\?okt=variabler&kort=1$/);
+    await press(page, 'Neste');
+    await expect(heading).toHaveText(session.cards[1]!.title);
+
+    await page.goBack();
+    await expect(heading).toHaveText(session.cards[0]!.title);
+    await expect(heading).toBeFocused();
+    await page.goBack();
+    await expect(heading).toHaveText('Velg en mikroøkt');
+    await page.goForward();
+    await expect(heading).toHaveText(session.cards[0]!.title);
+    await page.goForward();
+    await expect(heading).toHaveText(session.cards[1]!.title);
+    // A card returned to starts unanswered.
+    await expect(status(page)).toContainText(
+      'Trykk på svaret du tror stemmer.',
+    );
+
+    await page.reload();
+    await expect(heading).toHaveText(session.cards[1]!.title);
+    await assertFits(page, 'reloaded card');
+
+    await page.getByRole('link', { name: 'Lukk mikroøkten' }).click();
+    await expect(page).toHaveURL(/\/rpg$/);
+  });
+
+  test('a typed address never opens what the picker would not list', async ({
+    page,
+  }) => {
+    const heading = page.getByRole('heading', { level: 1 });
+
+    await openPicker(page, 'dark', 13);
+    // A later card starts the session at its first card.
+    await page.goto('/rpg/micro?okt=variabler&kort=4');
+    await expect(heading).toHaveText(bank.sessions[0]!.cards[0]!.title);
+    await expect(page).toHaveURL(/kort=1$/);
+    // A session whose topics are not reached opens the picker instead.
+    await page.goto('/rpg/micro?okt=typer-og-input&kort=1');
+    await expect(heading).toHaveText('Velg en mikroøkt');
+    await expect(page).toHaveURL(/\/rpg\/micro$/);
+    await expect(page.getByText(/Tall eller tekst\?/)).toHaveCount(0);
+    // A session with some topics reached holds only those.
+    await page.goto('/rpg/micro?okt=tenk-forst&kort=1');
+    await expect(heading).toHaveText(
+      'Sett stegene fra problem til løsning i rekkefølge',
+    );
+    await expect(
+      page.getByRole('progressbar', { name: 'Framdrift i økten' }),
+    ).toHaveAttribute('aria-valuetext', 'Kort 1 av 3');
+  });
+});
+
+test.describe('the two ways in on Home', () => {
+  const entries = (page: Page) => ({
+    info: page.getByRole('button', { name: 'Om Mikroøkt' }),
+    infoTrack: page.getByRole('button', {
+      name: `Om ${thinkingTrack!.title}`,
+    }),
+    micro: page.getByRole('link', { name: 'Mikroøkt', exact: true }),
+    track: page.getByRole('link', {
+      name: thinkingTrack!.title,
+      exact: true,
+    }),
+  });
+
+  test.describe('on a desktop', () => {
+    test.use({ viewport: { height: 900, width: 1280 } });
+
+    test('sit side by side, each with its own (i), after the quest', async ({
+      page,
+    }) => {
+      await completeOnboarding(page, {
+        programme: 'Programvareutvikling',
+        theme: 'dark',
+      });
+      await page.goto('/rpg');
+      const { info, infoTrack, micro, track } = entries(page);
+
+      await expect(micro).toBeVisible();
+      await expect(track).toBeVisible();
+      const microBox = (await micro.boundingBox())!;
+      const trackBox = (await track.boundingBox())!;
+
+      expect(Math.abs(microBox.y - trackBox.y)).toBeLessThanOrEqual(2);
+      expect(trackBox.x).toBeGreaterThan(microBox.x + microBox.width);
+      // Separate controls: neither (i) is inside a link.
+      expect(await micro.locator('button').count()).toBe(0);
+      expect(await track.locator('button').count()).toBe(0);
+      await expect(info).toHaveAttribute('aria-expanded', 'false');
+      await info.click();
+      await expect(info).toHaveAttribute('aria-expanded', 'true');
+      await expect(
+        page.getByText(/I Mikroøkt kan du forberede deg/),
+      ).toBeVisible();
+      // One open note makes its own entry taller; the other link stays put.
+      expect(
+        Math.abs((await track.boundingBox())!.y - trackBox.y),
+      ).toBeLessThanOrEqual(1);
+      await infoTrack.focus();
+      await page.keyboard.press('Enter');
+      await expect(infoTrack).toHaveAttribute('aria-expanded', 'true');
+      await expect(
+        page.locator('.rpg-hub__quest-panel a[href*="/rpg/resource/"]'),
+      ).toHaveClass(/rpg-button--primary/);
+      await shoot(page, 'home-entries-1280x900');
+    });
+  });
+
+  test.describe('on a narrow phone', () => {
+    test.use({ viewport: { height: 640, width: 320 } });
+
+    test('stack without sideways scrolling, and keep 44 px targets', async ({
+      page,
+    }) => {
+      await completeOnboarding(page, {
+        programme: 'Programvareutvikling',
+        theme: 'dark',
+      });
+      await page.goto('/rpg');
+      const { info, micro, track } = entries(page);
+
+      await track.scrollIntoViewIfNeeded();
+      const microBox = (await micro.boundingBox())!;
+      const trackBox = (await track.boundingBox())!;
+
+      expect(trackBox.y).toBeGreaterThan(microBox.y + microBox.height - 1);
+      for (const box of [microBox, trackBox, (await info.boundingBox())!]) {
+        expect(box.height).toBeGreaterThanOrEqual(43.5);
+        expect(box.x + box.width).toBeLessThanOrEqual(320.5);
+      }
+      expect(
+        (await page.evaluate(
+          `document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth`,
+        )) as number,
+      ).toBeLessThanOrEqual(0);
+      await shoot(page, 'home-entries-320x640');
+    });
+  });
 });

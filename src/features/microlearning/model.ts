@@ -55,6 +55,18 @@ export function retryAttempt(state: PracticeState): PracticeState {
   return state.phase === 'wrong' ? { ...state, phase: 'retry' } : state;
 }
 
+/**
+ * Choosing a different answer while a first miss is shown: the same as
+ * "Prøv igjen" followed by that answer, so it is the one permitted retry and
+ * never a third try. In any other phase it is an ordinary submit.
+ */
+export function retryAndSubmit(
+  state: PracticeState,
+  correct: boolean,
+): PracticeState {
+  return submitAttempt(retryAttempt(state), correct);
+}
+
 export function isSameSequence(
   actual: readonly string[],
   expected: readonly string[],

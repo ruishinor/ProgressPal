@@ -1,5 +1,6 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState, type ComponentProps } from 'react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
@@ -7,7 +8,8 @@ import {
   ActionGuardContext,
   createActionGuard,
 } from '@/features/microlearning/components/actionGuard';
-import { MicrolearningPage } from '@/features/microlearning';
+import { SessionRunner } from '@/features/microlearning/components/SessionRunner';
+import { MicrolearningPage, type MicroStep } from '@/features/microlearning';
 import type { MicroCard, MicroSession } from '@/lib/domain';
 import { programvareutviklingMicrolearning as bank } from '@/programmes/programvareutvikling/microlearning';
 
@@ -32,6 +34,22 @@ const [variabler, typer, feil, tenk] = bank.sessions as [
 function LocationProbe() {
   return <p data-testid="location">{useLocation().pathname}</p>;
 }
+
+/**
+ * The page with its step held in memory, as the app's route holds it in the
+ * address (the route itself, history included, is tested in the app tests).
+ */
+function Page(
+  props: Omit<ComponentProps<typeof MicrolearningPage>, 'onStep' | 'step'>,
+) {
+  const [step, setStep] = useState<MicroStep>(null);
+
+  return <MicrolearningPage {...props} onStep={setStep} step={step} />;
+}
+
+/** The bank's sessions by ID, as the availability answer carries them. */
+const sessionsById = (ids: readonly string[]) =>
+  bank.sessions.filter((session) => ids.includes(session.id));
 
 /**
  * The action guard reads this clock. While `auto` is on, every read moves it a
@@ -59,10 +77,10 @@ function renderPage(
     <MemoryRouter initialEntries={['/rpg/micro']}>
       <LocationProbe />
       <ActionGuardContext.Provider value={guard}>
-        <MicrolearningPage
+        <Page
           availability={{
             primerId: options.primer ?? null,
-            repeatSessionIds: new Set(eligible),
+            repeatSessions: sessionsById(eligible),
             status: 'ready',
           }}
           bank={bank}
@@ -201,7 +219,7 @@ describe('one-retry loop', () => {
     expect(isDisabled('Neste')).toBe(false);
   });
 
-  it('shows a hint, not the answer, after a first miss, and offers only a retry', async () => {
+  it('shows a hint, not the answer, after a first miss, and offers the retry', async () => {
     const user = renderPage();
     await reach(user, variabler, select.id);
 
@@ -214,9 +232,35 @@ describe('one-retry loop', () => {
     expect(button(/^7/)).not.toHaveTextContent('✓');
     expect(screen.queryByRole('button', { name: 'Neste' })).toBeNull();
     expect(isDisabled('Prøv igjen')).toBe(false);
-    // The card is frozen while the hint is read.
-    await user.click(button(/^7/));
+    // Tapping the missed option again (a double tap) changes nothing.
+    await user.click(button(/^4/));
     expect(status()).toHaveTextContent('Ikke helt.');
+    expect(button(/^4/)).toHaveTextContent('✗ Ditt svar');
+  });
+
+  it('takes a different option after a miss as the one retry, as Mikroøkt and a track both do', async () => {
+    const user = renderPage();
+    await reach(user, variabler, select.id);
+
+    // The right answer chosen directly: the same as "Prøv igjen" and then it.
+    await miss(user, select, 0);
+    await user.click(button(/^7/));
+    expect(status()).toHaveTextContent('Riktig nå.');
+    expect(button(/^7/)).toHaveTextContent('✓ Ditt svar');
+    expect(isDisabled('Neste')).toBe(false);
+
+    // A second wrong option chosen directly is the second try: the answer
+    // is shown, and no third try is possible.
+    cleanup();
+    const again = renderPage();
+    await reach(again, variabler, select.id);
+    await miss(again, select, 0);
+    await again.click(button(/^3/));
+    expect(status()).toHaveTextContent('Her er svaret.');
+    expect(button(/^7/)).toHaveTextContent('✓ Riktig svar');
+    expect(screen.queryByRole('button', { name: 'Prøv igjen' })).toBeNull();
+    await again.click(button(/^7/));
+    expect(status()).toHaveTextContent('Her er svaret.');
   });
 
   it('retries once with the miss eliminated, and credits a correct retry', async () => {
@@ -474,7 +518,7 @@ describe('every session, card by card', () => {
 });
 
 describe('the end of a session', () => {
-  it('says nothing was kept, links back to the Campaign, and returns to the picker', async () => {
+  it('ends without a storage note, links Home, and returns to the picker', async () => {
     const user = renderPage();
     await start(user, tenk);
     for (const card of tenk.cards) {
@@ -483,9 +527,9 @@ describe('the end of a session', () => {
     }
 
     expect(title()).toHaveTextContent('Økten er ferdig');
-    expect(screen.getByText(/Ingenting ble lagret/)).toBeInTheDocument();
+    expect(screen.queryByText(/Ingenting ble lagret/)).toBeNull();
     expect(
-      screen.getByRole('link', { name: 'Tilbake til kampanjen' }),
+      screen.getByRole('link', { name: 'Til startsiden' }),
     ).toHaveAttribute('href', '/rpg');
 
     await user.click(button('Velg en annen økt'));
@@ -555,14 +599,137 @@ describe('accessibility contract', () => {
   });
 });
 
+describe('format integrity: words in bold, explanations and code untouched', () => {
+  it('preserves code in Mikroøkt matches and renders Utviklerblikk labels as prose', () => {
+    const original = variabler.cards.find((card) => card.kind === 'match');
+    const conceptual = bank.tracks?.[0]?.sessions[5]?.cards.find(
+      (card) => card.id === 'tsu-a6-festival',
+    );
+    expect(original?.kind).toBe('match');
+    expect(conceptual?.kind).toBe('match');
+    if (original?.kind !== 'match' || conceptual?.kind !== 'match') {
+      throw new Error('Expected existing code and conceptual matching cards');
+    }
+
+    const show = (card: Extract<MicroCard, { kind: 'match' }>) =>
+      render(
+        <MemoryRouter>
+          <SessionRunner
+            onExit={() => {}}
+            session={{
+              cards: [card],
+              id: 'format-match',
+              minutes: 1,
+              summary: 's',
+              title: 't',
+            }}
+          />
+        </MemoryRouter>,
+      );
+
+    show(original);
+    expect(
+      within(screen.getByRole('group', { name: original.leftLabel }))
+        .getAllByRole('button')[0]
+        ?.querySelector('code')?.textContent,
+    ).toBe(original.pairs[0]!.left);
+
+    cleanup();
+    show(conceptual);
+    const conceptualLabel = within(
+      screen.getByRole('group', { name: conceptual.leftLabel }),
+    ).getAllByRole('button')[0]!;
+    expect(conceptualLabel.querySelector('code')).toBeNull();
+    expect(conceptualLabel.querySelector('span')?.textContent).toBe(
+      conceptual.pairs[0]!.left,
+    );
+    expect(
+      document
+        .querySelector('.micro-match')
+        ?.getAttribute('data-left-presentation'),
+    ).toBe('text');
+  });
+
+  it('keeps a Mikroøkt Learn card’s prose plain and its code example exact', async () => {
+    const user = renderPage({ eligible: [], primer: 'forb-oppsett' });
+
+    await user.click(
+      screen.getByRole('button', { name: /^Python, editor og terminal/ }),
+    );
+    // No word of ordinary prose is emphasised without being authored so.
+    expect(document.querySelector('.micro-card__prompt strong')).toBeNull();
+    expect(
+      screen.getByText(/^Python leser og kjører koden din\./).tagName,
+    ).toBe('P');
+    expect(document.querySelector('.micro-code code')?.textContent).toBe(
+      'py --version\nPython 3.14.4',
+    );
+  });
+
+  it('keeps the code of a Mikroøkt question exact, indentation and symbols included', async () => {
+    const user = renderPage({ eligible: ['variabler'] });
+
+    await user.click(screen.getByRole('button', { name: /^Følg variablene/ }));
+    await next(user);
+    const code = variabler.cards[1]!;
+
+    expect(code.kind).toBe('select');
+    expect(document.querySelector('.micro-code code')?.textContent).toBe(
+      (code as Extract<MicroCard, { kind: 'select' }>).code,
+    );
+    expect(document.querySelector('.micro-card__prompt strong')).toBeNull();
+  });
+
+  it('never reads markup in a definition and keeps code characters literal', () => {
+    const card: MicroCard = {
+      bridge: 'Neste: prøv selv.',
+      definitions: [
+        { term: '*Ord*', text: '<b>ikke HTML</b> og **ikke fet**.' },
+      ],
+      example: { code: 'tall = 2 * 3\n    tekst = "**"', note: 'Note.' },
+      id: 'format',
+      idea: 'Idé med `kode` og «sitat».',
+      kind: 'learn',
+      role: 'explain',
+      source: { lessonUnitIds: ['U'], moduleId: 'm', skillIds: ['SK-VAR-01'] },
+      title: 'Format',
+    };
+
+    render(
+      <MemoryRouter>
+        <SessionRunner
+          onExit={() => {}}
+          session={{
+            cards: [card],
+            id: 'format',
+            minutes: 1,
+            summary: 's',
+            title: 't',
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('*Ord*:').tagName).toBe('STRONG');
+    expect(
+      screen.getByText('<b>ikke HTML</b> og **ikke fet**.', { exact: false }),
+    ).toBeInTheDocument();
+    expect(document.querySelector('.micro b, .micro em')).toBeNull();
+    expect(screen.getByText('Idé med `kode` og «sitat».').tagName).toBe('P');
+    expect(document.querySelector('.micro-code code')?.textContent).toBe(
+      'tall = 2 * 3\n    tekst = "**"',
+    );
+  });
+});
+
 describe('a programme without a bank', () => {
   it('shows a notice and a way back, and none of another programme’s cards', () => {
     render(
       <MemoryRouter initialEntries={['/rpg/micro']}>
-        <MicrolearningPage
+        <Page
           availability={{
             primerId: null,
-            repeatSessionIds: new Set(bank.sessions.map((s) => s.id)),
+            repeatSessions: bank.sessions,
             status: 'ready',
           }}
           bank={undefined}
@@ -670,18 +837,14 @@ describe('one physical activation, one progression', () => {
     freezeAfterAWhile(clock);
     await user.click(button('Fullfør'));
     expect(title()).toHaveTextContent('Økten er ferdig');
-    // The second tap lands where "Tilbake til kampanjen" now is.
-    await user.click(
-      screen.getByRole('link', { name: 'Tilbake til kampanjen' }),
-    );
+    // The second tap lands where "Til startsiden" now is.
+    await user.click(screen.getByRole('link', { name: 'Til startsiden' }));
 
     expect(title()).toHaveTextContent('Økten er ferdig');
     expect(screen.getByTestId('location')).toHaveTextContent('/rpg/micro');
 
     clock.t += 500;
-    await user.click(
-      screen.getByRole('link', { name: 'Tilbake til kampanjen' }),
-    );
+    await user.click(screen.getByRole('link', { name: 'Til startsiden' }));
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/rpg$/);
   });
 
@@ -756,7 +919,7 @@ describe('the picker: «Forbered deg» and «Repeter»', () => {
       .getAllByRole('heading', { level: 2 })
       .map((heading) => heading.textContent);
 
-    expect(headings).toEqual(['Forbered deg', 'Repeter']);
+    expect(headings).toEqual(['Forbered deg', 'Øv igjen']);
     expect(button(/^Python, editor og terminal/)).toBeInTheDocument();
     expect(button(/^Følg variablene/)).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
@@ -773,7 +936,7 @@ describe('the picker: «Forbered deg» and «Repeter»', () => {
     expect(title()).toHaveTextContent('Velg en mikroøkt');
     expect(button(/^Python, editor og terminal/)).toBeInTheDocument();
     expect(
-      screen.getByText('Repeter åpnes etter hvert som du jobber i kampanjen.'),
+      screen.getByText('Flere øvelser kommer når du går videre i programmet.'),
     ).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(screen.queryByText(/Ingen mikroøkter/)).toBeNull();
@@ -785,7 +948,7 @@ describe('the picker: «Forbered deg» and «Repeter»', () => {
     renderPage();
 
     expect(screen.queryByRole('heading', { name: 'Forbered deg' })).toBeNull();
-    expect(screen.getByRole('heading', { name: 'Repeter' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Øv igjen' })).toBeVisible();
   });
 
   it('does not offer a primer the availability did not name', () => {
@@ -810,7 +973,7 @@ describe('the picker: «Forbered deg» and «Repeter»', () => {
     expect(status()).toHaveTextContent('Riktig.');
     await user.click(button('Fullfør'));
     expect(title()).toHaveTextContent('Økten er ferdig');
-    expect(screen.getByText(/Ingenting ble lagret/)).toBeInTheDocument();
+    expect(screen.queryByText(/Ingenting ble lagret/)).toBeNull();
   });
 });
 
@@ -826,7 +989,7 @@ describe('reinforcement eligibility in the picker', () => {
     expect(screen.queryByText(/hva input\(\) gir deg/)).toBeNull();
     expect(screen.queryByText(/Forventet svar, riktig rekkefølge/)).toBeNull();
     expect(
-      screen.getByText(/Flere åpnes når du kommer lenger i kampanjen\./),
+      screen.getByText(/Flere åpnes når du kommer lenger\./),
     ).toBeInTheDocument();
   });
 
@@ -835,6 +998,40 @@ describe('reinforcement eligibility in the picker', () => {
 
     expect(screen.getAllByRole('listitem')).toHaveLength(4);
     expect(screen.queryByText(/Flere åpnes/)).toBeNull();
+  });
+
+  it('gives «Øv igjen» its own screen when the picker would need more than four rows, and loses nothing', async () => {
+    const user = renderPage({ primer: 'forb-test' });
+
+    // The primer and one row that names all four sessions.
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    const more = button(/^Velg blant 4 økter/);
+
+    for (const session of bank.sessions) {
+      expect(more).toHaveTextContent(session.title);
+    }
+    await user.click(more);
+    expect(title()).toHaveTextContent('Øv igjen');
+    expect(screen.getAllByRole('listitem')).toHaveLength(4);
+    for (const session of bank.sessions) {
+      const startsWith = new RegExp(
+        `^${session.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+      );
+
+      expect(button(startsWith)).toHaveTextContent(session.summary);
+    }
+    await user.click(button(/^Følg variablene/));
+    expect(title()).toHaveTextContent(variabler.cards[0]!.title);
+  });
+
+  it('keeps every row on the picker while four rows are enough', () => {
+    renderPage({
+      eligible: ['variabler', 'typer-og-input', 'feilmeldinger'],
+      primer: 'forb-test',
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(4);
+    expect(screen.queryByText(/Velg blant/)).toBeNull();
   });
 
   it('opens an eligible session and cannot reach a locked one', async () => {
@@ -853,7 +1050,7 @@ describe('reinforcement eligibility in the picker', () => {
 
     expect(title()).toHaveTextContent('Ingen mikroøkter akkurat nå');
     expect(
-      screen.getByRole('link', { name: 'Tilbake til kampanjen' }),
+      screen.getByRole('link', { name: 'Til startsiden' }),
     ).toHaveAttribute('href', '/rpg');
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(screen.queryByText(/Følg variablene/)).toBeNull();
@@ -867,7 +1064,7 @@ describe('reinforcement eligibility in the picker', () => {
       cleanup();
       render(
         <MemoryRouter initialEntries={['/rpg/micro']}>
-          <MicrolearningPage availability={availability} bank={bank} />
+          <Page availability={availability} bank={bank} />
         </MemoryRouter>,
       );
 

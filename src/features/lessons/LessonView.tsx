@@ -558,7 +558,7 @@ function LessonSurface({
           </p>
           <h1 id={titleId}>{mission.title}</h1>
           <p className={surfaces.lede}>
-            <em>{copy.text.goalLabel}</em> {mission.goal}
+            <strong>{copy.text.goalLabel}</strong> {mission.goal}
           </p>
         </header>
         {/* Only when another tab owns writing, as the shell decides; during

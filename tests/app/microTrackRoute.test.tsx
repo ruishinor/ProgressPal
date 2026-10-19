@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { router } from '@/app/router/router';
 import {
   defaultLearnerProfileValues,
   enrolAndSwitchActiveProgramme,
@@ -25,11 +26,12 @@ import {
 } from '../support/microlearningPlans';
 
 /**
- * «Tenk som en utvikler», the voluntary track, inside the real app. It opens
- * with no Campaign progress at all, lists all six activities, plays each one
- * to "Hva tar jeg med meg?" with right and wrong answers, and leaves every
- * learner store exactly as it was (a database snapshot, as in the
- * `/rpg/micro` tests). CS50x has neither the entry nor the track.
+ * «Utviklerblikk», the track, inside the real app. It opens with no Campaign
+ * progress at all, lists all six activities, plays each one to "Husk dette"
+ * with right and wrong answers, and leaves every learner store exactly as it
+ * was (a database snapshot, as in the `/rpg/micro` tests). CS50x has neither
+ * the entry nor the track. A new choice after a miss is the one retry; the
+ * browser's Back and Forward move between cards through the real router.
  */
 
 const registry = getProgrammeRegistry();
@@ -94,10 +96,12 @@ async function snapshotDatabase(): Promise<string> {
   return JSON.stringify(out);
 }
 
-const entryName = `Åpne ${track.title}`;
+const entryName = track.title;
 
 describe('the way in', () => {
   it('Home offers the track to a Programme 2 learner with no Campaign progress', async () => {
+    const user = userEvent.setup();
+
     await onboard();
     await activateProgramme2();
     await renderAppAtRoute('/rpg');
@@ -105,6 +109,17 @@ describe('the way in', () => {
     const entry = await screen.findByRole('link', { name: entryName });
 
     expect(entry).toHaveAttribute('href', trackPath);
+    // Its own (i), beside the link and not inside it, opens on request.
+    const info = screen.getByRole('button', { name: `Om ${track.title}` });
+
+    expect(entry.contains(info)).toBe(false);
+    expect(info).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(track.about!, { exact: false })).toBeNull();
+    await user.click(info);
+    expect(info).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByText(new RegExp(track.about!.replace('.', '\\.'))),
+    ).toHaveTextContent(/XP, nivåer og Achievements/);
   });
 
   it('gives CS50x no entry and no track', async () => {
@@ -119,7 +134,9 @@ describe('the way in', () => {
 
     await renderAppAtRoute(trackPath);
     expect(
-      await screen.findByRole('heading', { name: 'Ingenting å øve på her' }),
+      await screen.findByRole('heading', {
+        name: 'Denne aktiviteten er ikke tilgjengelig her',
+      }),
     ).toBeInTheDocument();
     expect(screen.queryByText(track.sessions[0]!.title)).toBeNull();
   });
@@ -132,6 +149,8 @@ describe('the way in', () => {
     expect(
       await screen.findByRole('heading', { name: track.title }),
     ).toBeInTheDocument();
+    expect(screen.getByText(track.summary)).toBeInTheDocument();
+    expect(screen.queryByText('Frivillig spor')).toBeNull();
     expect(screen.getAllByRole('listitem')).toHaveLength(6);
     for (const [index, session] of track.sessions.entries()) {
       expect(
@@ -151,7 +170,9 @@ describe('the way in', () => {
     await renderAppAtRoute('/rpg/track/finnes-ikke');
 
     expect(
-      await screen.findByRole('heading', { name: 'Ingenting å øve på her' }),
+      await screen.findByRole('heading', {
+        name: 'Denne aktiviteten er ikke tilgjengelig her',
+      }),
     ).toBeInTheDocument();
   });
 });
@@ -220,7 +241,7 @@ describe('each activity end to end against the real database', () => {
       }
 
       expect(
-        screen.getByRole('heading', { name: 'Hva tar jeg med meg?' }),
+        screen.getByRole('heading', { name: 'Husk dette' }),
       ).toBeInTheDocument();
       expect(
         screen.getByText(session.takeaway!.split('\n')[0]!),
@@ -247,4 +268,181 @@ describe('each activity end to end against the real database', () => {
     },
     90_000,
   );
+});
+
+const guardPause = () => new Promise((resolve) => setTimeout(resolve, 450));
+const heading = () => screen.getByRole('heading', { level: 1 });
+const option = (label: string) =>
+  screen.getByRole('button', {
+    name: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
+  });
+
+describe('the activity list and the first card', () => {
+  it('cues the choice next to the six activities and bolds the four key words', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(trackPath);
+
+    const cue = await screen.findByRole('heading', {
+      name: 'Velg en aktivitet',
+    });
+    const list = screen.getByRole('list', { name: 'Velg en aktivitet' });
+
+    // Nothing stands between the cue and the choices: the cue ends what the
+    // card says, and the list starts what the learner acts on.
+    expect(cue.parentElement!.lastElementChild).toBe(cue);
+    expect(cue.parentElement!.nextElementSibling!.firstElementChild).toBe(list);
+    expect(within(list).getAllByRole('listitem')).toHaveLength(6);
+    expect(screen.queryByText(/frivillig/i)).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /^1\. / }));
+    for (const term of ['Problem', 'Behov', 'Løsningsforslag', 'Antakelse']) {
+      expect(screen.getByText(`${term}:`).tagName).toBe('STRONG');
+    }
+    expect(screen.queryByText(/\*\*/)).toBeNull();
+  });
+});
+
+describe('a new choice after a miss is the one retry', () => {
+  // Activity 1, card 2: the first choice card.
+  const card = track.sessions[0]!.cards[1]!;
+
+  async function toFirstChoice() {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(trackPath);
+    await user.click(await screen.findByRole('button', { name: /^1\. / }));
+    await guardPause();
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(card.title);
+    if (card.kind !== 'select') {
+      throw new Error('expected a choice card');
+    }
+
+    return { card, user };
+  }
+
+  it('takes a different answer directly, and a second miss reveals the answer', async () => {
+    const { card, user } = await toFirstChoice();
+    const [first, second] = card.options.filter(
+      (entry) => entry.id !== card.correctId,
+    );
+    const right = card.options.find((entry) => entry.id === card.correctId)!;
+
+    await user.click(option(first!.label));
+    expect(screen.getByRole('status')).toHaveTextContent(first!.feedback!);
+    // The other answers stay available while the miss is shown.
+    expect(option(second!.label)).not.toHaveAttribute('aria-disabled');
+    expect(option(first!.label)).toHaveAttribute('aria-disabled', 'true');
+
+    await user.click(option(second!.label));
+    expect(screen.getByRole('status')).toHaveTextContent('Her er svaret.');
+    // Two tries at most: a third choice changes nothing.
+    await user.click(option(right.label));
+    expect(screen.getByRole('status')).toHaveTextContent('Her er svaret.');
+    expect(screen.getByRole('button', { name: 'Neste' })).toBeInTheDocument();
+  });
+
+  it('takes the right answer directly as the retry', async () => {
+    const { card, user } = await toFirstChoice();
+    const wrong = card.options.find((entry) => entry.id !== card.correctId)!;
+    const right = card.options.find((entry) => entry.id === card.correctId)!;
+
+    await user.click(option(wrong.label));
+    await user.click(option(right.label));
+    expect(screen.getByRole('status')).toHaveTextContent('Riktig nå.');
+  });
+
+  it('spends one try on a double tap of the same answer', async () => {
+    const { card, user } = await toFirstChoice();
+    const wrong = card.options.find((entry) => entry.id !== card.correctId)!;
+
+    await user.dblClick(option(wrong.label));
+    expect(screen.getByRole('status')).toHaveTextContent('Ikke helt.');
+    expect(
+      screen.getByRole('button', { name: 'Prøv igjen' }),
+    ).toBeInTheDocument();
+  });
+
+  it('still offers Prøv igjen, with its hint', async () => {
+    const { card, user } = await toFirstChoice();
+    const wrong = card.options.find((entry) => entry.id !== card.correctId)!;
+    const right = card.options.find((entry) => entry.id === card.correctId)!;
+
+    await user.click(option(wrong.label));
+    await guardPause();
+    await user.click(screen.getByRole('button', { name: 'Prøv igjen' }));
+    expect(screen.getByRole('status')).toHaveTextContent(card.hint);
+    await user.click(option(right.label));
+    expect(screen.getByRole('status')).toHaveTextContent('Riktig nå.');
+  });
+});
+
+describe('the browser’s Back and Forward', () => {
+  const [first] = track.sessions;
+  const back = () => act(async () => void (await router.navigate(-1)));
+  const forward = () => act(async () => void (await router.navigate(1)));
+
+  it('move between cards and the list, and Lukk goes Home', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(trackPath);
+    await user.click(await screen.findByRole('button', { name: /^1\. / }));
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+    await guardPause();
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(first!.cards[1]!.title);
+
+    await back();
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+    await back();
+    expect(heading()).toHaveTextContent(track.title);
+    await forward();
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+    await forward();
+    expect(heading()).toHaveTextContent(first!.cards[1]!.title);
+    // A card reached again starts unanswered: Back is "the previous screen".
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Trykk på svaret du tror stemmer.',
+    );
+
+    await user.click(screen.getByRole('link', { name: `Lukk ${track.title}` }));
+    expect(router.state.location.pathname).toBe('/rpg');
+  });
+
+  it('starts a typed later card at the first card, and an unknown activity at the list', async () => {
+    const kravtyper = track.sessions[1]!;
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(`${trackPath}?aktivitet=${kravtyper.id}&kort=3`);
+    expect(
+      await screen.findByRole('heading', { name: kravtyper.cards[0]!.title }),
+    ).toBeInTheDocument();
+    expect(router.state.location.search).toContain('kort=1');
+
+    await renderAppAtRoute(`${trackPath}?aktivitet=finnes-ikke&kort=2`);
+    expect(
+      await screen.findByRole('heading', { name: 'Velg en aktivitet' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps a card the learner reached here on reload', async () => {
+    const kravtyper = track.sessions[1]!;
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(`${trackPath}?aktivitet=${kravtyper.id}&kort=3`, {
+      microTrack: true,
+    });
+    expect(
+      await screen.findByRole('heading', { name: kravtyper.cards[2]!.title }),
+    ).toBeInTheDocument();
+  });
 });

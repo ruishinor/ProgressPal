@@ -1,31 +1,24 @@
-import { useState } from 'react';
-
 import {
   ActionGuardContext,
   useActionGuard,
 } from '@/features/microlearning/components/actionGuard';
 import { CardFrame } from '@/features/microlearning/components/CardFrame';
 import { MicroShell } from '@/features/microlearning/components/MicroShell';
-import { SessionPicker } from '@/features/microlearning/components/SessionPicker';
+import {
+  RepeatList,
+  SessionPicker,
+} from '@/features/microlearning/components/SessionPicker';
 import { SessionRunner } from '@/features/microlearning/components/SessionRunner';
 import { RpgButton } from '@/features/rpg/components/RpgButton';
 import type { MicrolearningBank } from '@/lib/domain';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
-/**
- * What the learner may open, worked out by the app layer from the Campaign's
- * own position (`selectPrimer`, `listReinforcementSessions`): at most one
- * primer, and the reinforcement sessions whose material they have reached.
- * This page only receives the answer: it never reads app state or storage.
- */
-export type MicroAvailability =
-  | { readonly status: 'loading' }
-  | { readonly status: 'failed' }
-  | {
-      readonly status: 'ready';
-      readonly primerId: string | null;
-      readonly repeatSessionIds: ReadonlySet<string>;
-    };
+import {
+  listOpenMicroSessions,
+  listsRepeatApart,
+  type MicroAvailability,
+  type MicroStep,
+} from '../availability';
 
 function Notice({
   context,
@@ -60,33 +53,27 @@ function Notice({
  * Microlearning: an additive surface for spare minutes (no scrolling at normal
  * text size); the Campaign is untouched. Two intents: «Forbered deg», one
  * short primer for what comes next in the Campaign, and «Repeter», retrieval
- * of what the learner has already worked on. The programme owns its sessions
- * and the app layer decides which are open from the Campaign's own position;
- * this page only receives the answer. A programme that ships no bank gets a
- * short notice and a way back, never another programme's cards, and a failed
- * read of the learner's progress fails closed.
+ * of the topics the learner has already worked on. The programme owns its
+ * sessions and the app layer decides which are open from the Campaign's own
+ * position; this page only receives the answer. A programme that ships no
+ * bank gets a short notice and a way back, never another programme's cards,
+ * and a failed read of the learner's progress fails closed. The page does not
+ * hold its place itself: the app layer keeps `step` in the address, so the
+ * browser's Back and Forward move between screens; a step for a session that
+ * is not open shows the picker.
  */
 export function MicrolearningPage({
   availability,
   bank,
+  onStep,
+  step,
 }: {
   availability: MicroAvailability;
   bank: MicrolearningBank | undefined;
+  onStep: (step: MicroStep) => void;
+  step: MicroStep;
 }) {
   const outer = useActionGuard();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const ready = bank !== undefined && availability.status === 'ready';
-  const primer = ready
-    ? bank.primers?.find((entry) => entry.id === availability.primerId)
-    : undefined;
-  const repeat = ready
-    ? bank.sessions.filter((entry) =>
-        availability.repeatSessionIds.has(entry.id),
-      )
-    : [];
-  const session = [...(primer === undefined ? [] : [primer]), ...repeat].find(
-    (entry) => entry.id === sessionId,
-  );
 
   if (bank === undefined) {
     return (
@@ -103,7 +90,7 @@ export function MicrolearningPage({
   if (availability.status === 'loading') {
     return (
       <Notice
-        backLabel="Tilbake til kampanjen"
+        backLabel="Til startsiden"
         context="Et øyeblikk."
         kindLabel="Mikroøkter"
         title="Henter mikroøkter"
@@ -115,7 +102,7 @@ export function MicrolearningPage({
   if (availability.status === 'failed') {
     return (
       <Notice
-        backLabel="Tilbake til kampanjen"
+        backLabel="Til startsiden"
         context="Vi kunne ikke lese framdriften din akkurat nå. Prøv igjen senere."
         kindLabel="Mikroøkter"
         title="Mikroøkter er ikke tilgjengelige"
@@ -124,11 +111,24 @@ export function MicrolearningPage({
     );
   }
 
+  const primer = bank.primers?.find(
+    (entry) => entry.id === availability.primerId,
+  );
+  const repeat = availability.repeatSessions;
+  const apart = listsRepeatApart(bank, availability);
+  const session =
+    step === null || !('sessionId' in step)
+      ? undefined
+      : listOpenMicroSessions(bank, availability).find(
+          (entry) => entry.id === step.sessionId,
+        );
+  const pick = (sessionId: string) => onStep({ sessionId, index: 0 });
+
   if (primer === undefined && repeat.length === 0) {
     return (
       <Notice
-        backLabel="Tilbake til kampanjen"
-        context="Her forbereder du deg på det som kommer, og repeterer det du har jobbet med. Fortsett i kampanjen, så dukker det snart opp en økt her."
+        backLabel="Til startsiden"
+        context="Her kan du øve på det du har lært og se hva som kommer. Flere øvelser blir tilgjengelige etter hvert som du går videre i programmet."
         kindLabel="Mikroøkter"
         title="Ingen mikroøkter akkurat nå"
         withBack
@@ -136,23 +136,47 @@ export function MicrolearningPage({
     );
   }
 
+  // Something is still to come: a session not open yet, or one open with
+  // only some of its topics.
+  const someRepeatLocked =
+    repeat.length < bank.sessions.length ||
+    repeat.some(
+      (entry) =>
+        entry.cards.length <
+        (bank.sessions.find((authored) => authored.id === entry.id)?.cards
+          .length ?? 0),
+    );
+
   return (
     <ActionGuardContext.Provider value={outer}>
-      {session === undefined ? (
+      {session !== undefined && step !== null && 'sessionId' in step ? (
+        <SessionRunner
+          key={session.id}
+          onExit={() => onStep(null)}
+          position={{
+            index: step.index,
+            onAdvance: (index) => onStep({ sessionId: session.id, index }),
+          }}
+          session={session}
+        />
+      ) : apart && step !== null && 'list' in step ? (
         <MicroShell closeTo={rpgRoutePath}>
-          <SessionPicker
-            onPick={setSessionId}
-            primer={primer}
+          <RepeatList
+            onPick={pick}
             repeat={repeat}
-            someRepeatLocked={repeat.length < bank.sessions.length}
+            someRepeatLocked={someRepeatLocked}
           />
         </MicroShell>
       ) : (
-        <SessionRunner
-          key={session.id}
-          onExit={() => setSessionId(null)}
-          session={session}
-        />
+        <MicroShell closeTo={rpgRoutePath}>
+          <SessionPicker
+            onPick={pick}
+            onShowRepeat={apart ? () => onStep({ list: 'repeat' }) : undefined}
+            primer={primer}
+            repeat={repeat}
+            someRepeatLocked={someRepeatLocked}
+          />
+        </MicroShell>
       )}
     </ActionGuardContext.Provider>
   );

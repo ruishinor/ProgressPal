@@ -111,18 +111,45 @@ for (const viewport of flowViewports) {
 
       const navBox = await box(nav, `${label} navigation`);
       const mainBox = await box(main, `${label} main`);
-      const utilityBox = await box(utility, `${label} utility`);
-      // The Hero route intentionally has no persistent HUD.
+      // The Hero route intentionally has no persistent HUD; there the one
+      // Settings launch is the utility bar, elsewhere the HUD's gear.
       const contentTop =
         route === rpgRoutes.hero
           ? mainBox.y
           : (await box(hud, `${label} HUD`)).y;
 
-      // Visual order matches DOM order: utility, navigation, HUD, main.
-      expect(
-        utilityBox.y + utilityBox.height,
-        `${label} utility`,
-      ).toBeLessThanOrEqual(navBox.y + 1);
+      if (route === rpgRoutes.hero) {
+        const utilityBox = await box(utility, `${label} utility`);
+
+        // Visual order matches DOM order: utility, navigation, main.
+        expect(
+          utilityBox.y + utilityBox.height,
+          `${label} utility`,
+        ).toBeLessThanOrEqual(navBox.y + 1);
+      } else {
+        await expect(utility, `${label} utility`).toHaveCount(0);
+        const gear = hud.getByRole('link', { name: 'Open Settings' });
+        const gearBox = await box(gear, `${label} Settings gear`);
+        const hudBox = await box(hud, `${label} HUD`);
+
+        // Inside the HUD, at its top-right, and a full touch target.
+        expect(gearBox.x + gearBox.width).toBeLessThanOrEqual(
+          hudBox.x + hudBox.width + 1,
+        );
+        expect(gearBox.x).toBeGreaterThan(hudBox.x + hudBox.width / 2);
+        expect(gearBox.y).toBeGreaterThanOrEqual(hudBox.y - 1);
+        expect(gearBox.y).toBeLessThan(hudBox.y + 24);
+        expect(gearBox.width).toBeGreaterThanOrEqual(44);
+        expect(gearBox.height).toBeGreaterThanOrEqual(44);
+      }
+      await expect(
+        page.getByRole('link', { name: 'Open Settings' }),
+        `${label} one Settings launch`,
+      ).toHaveCount(1);
+      await expect(
+        page.getByRole('link', { name: 'Open Settings' }),
+      ).toBeVisible();
+      // Visual order matches DOM order: navigation, HUD, main.
       expect(
         navBox.y + navBox.height,
         `${label} navigation overlap`,
@@ -346,7 +373,7 @@ for (const theme of ['dark', 'light'] as const) {
   }
 }
 
-test('the skip link, utility link and primary navigation form a logical keyboard path', async ({
+test('the skip link, primary navigation and the HUD form a logical keyboard path', async ({
   page,
 }) => {
   await page.setViewportSize({ height: 900, width: 1280 });
@@ -355,7 +382,6 @@ test('the skip link, utility link and primary navigation form a logical keyboard
 
   const stops = [
     'Skip to RPG content',
-    'Open Settings',
     'Home',
     'Campaign',
     'Focus',
@@ -381,15 +407,19 @@ test('the skip link, utility link and primary navigation form a logical keyboard
   }
 
   // The persistent HUD follows the navigation, before the page content: the
-  // avatar opens the Hero Profile, then the current-quest action.
-  await page.keyboard.press('Tab');
-  await expect(page.locator(':focus')).toHaveAccessibleName(
+  // avatar opens the Hero Profile, then its top-right Settings gear, then the
+  // current-quest action. Each shows a visible focus indicator.
+  for (const name of [
     'Open Hero Profile',
-  );
-  await page.keyboard.press('Tab');
-  await expect(page.locator(':focus')).toHaveAccessibleName(
+    'Open Settings',
     /^(Start|Continue) quest$/,
-  );
+  ]) {
+    await page.keyboard.press('Tab');
+    await expect(page.locator(':focus')).toHaveAccessibleName(name);
+    const outline = await readStyles(page.locator(':focus'), ['outlineStyle']);
+
+    expect(outline.outlineStyle, `${String(name)} outline`).not.toBe('none');
+  }
 });
 
 test('the skip link moves focus to the RPG main content', async ({ page }) => {

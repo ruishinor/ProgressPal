@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   initialPractice,
+  retryAndSubmit,
   retryAttempt,
   submitAttempt,
   type PracticeState,
@@ -16,6 +17,9 @@ export function usePractice() {
 
   return {
     retry: () => setState(retryAttempt),
+    /** A new answer chosen while a first miss is shown (see the model). */
+    retryWith: (correct: boolean) =>
+      setState((current) => retryAndSubmit(current, correct)),
     state,
     submit: (correct: boolean) =>
       setState((current) => submitAttempt(current, correct)),

@@ -1,4 +1,21 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useContext, useEffect, useRef, type ReactNode } from 'react';
+import { RpgButton } from '@/features/rpg/components/RpgButton';
+import { useActionGuard } from './actionGuard';
+import { UtviklerblikkContext } from './UtviklerblikkContext';
+
+function ActivitiesAction({ onExit }: { onExit: () => void }) {
+  const guard = useActionGuard();
+  return (
+    <RpgButton
+      variant="secondary"
+      onClick={() => {
+        if (guard.accept()) onExit();
+      }}
+    >
+      Tilbake til aktiviteter
+    </RpgButton>
+  );
+}
 
 export type MicroFeedbackState =
   | 'idle'
@@ -51,6 +68,23 @@ export function CardFrame({
   title: string;
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const track = useContext(UtviklerblikkContext);
+  const feedbackState = feedback?.state;
+  const keyboardInput = useRef(true);
+  const isUtviklerblikk = track !== null;
+  useEffect(() => {
+    if (
+      isUtviklerblikk &&
+      keyboardInput.current &&
+      (feedbackState === 'correct' ||
+        feedbackState === 'incorrect' ||
+        feedbackState === 'revealed')
+    ) {
+      feedbackRef.current?.focus();
+      feedbackRef.current?.scrollIntoView?.({ block: 'nearest' });
+    }
+  }, [feedbackState, isUtviklerblikk]);
   const icon = feedback === undefined ? undefined : icons[feedback.state];
 
   useEffect(() => {
@@ -66,7 +100,24 @@ export function CardFrame({
   }, []);
 
   return (
-    <section aria-labelledby="micro-card-title" className="micro-card">
+    <section
+      aria-labelledby="micro-card-title"
+      className="micro-card"
+      onPointerDownCapture={
+        isUtviklerblikk
+          ? () => {
+              keyboardInput.current = false;
+            }
+          : undefined
+      }
+      onKeyDownCapture={
+        isUtviklerblikk
+          ? () => {
+              keyboardInput.current = true;
+            }
+          : undefined
+      }
+    >
       <div className="micro-card__body">
         <div className="micro-card__prompt">
           <p className="micro-card__kind">{kindLabel}</p>
@@ -78,9 +129,11 @@ export function CardFrame({
           >
             {title}
           </h1>
-          {context === undefined ? null : (
-            <p className="micro-card__text">{context}</p>
-          )}
+          {context?.split('\n').map((paragraph, index) => (
+            <p className="micro-card__text" key={index}>
+              {paragraph}
+            </p>
+          ))}
           {prompt}
         </div>
         {children === undefined ? null : (
@@ -92,6 +145,9 @@ export function CardFrame({
           {feedback === undefined ? null : (
             <div
               aria-live="polite"
+              aria-atomic={track === null ? undefined : true}
+              ref={feedbackRef}
+              tabIndex={track === null ? undefined : -1}
               className="micro-feedback"
               data-state={feedback.state}
               role="status"
@@ -105,7 +161,14 @@ export function CardFrame({
               </p>
             </div>
           )}
-          {action}
+          {track === null ? (
+            action
+          ) : (
+            <div className="utviklerblikk-actions">
+              <ActivitiesAction onExit={track.onActivities} />
+              {action}
+            </div>
+          )}
         </div>
       )}
     </section>

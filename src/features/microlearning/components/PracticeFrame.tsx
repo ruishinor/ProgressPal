@@ -87,7 +87,19 @@ export function PracticeFrame({
       context={card.context}
       feedback={feedback}
       kindLabel={kindLabels[card.kind]}
-      prompt={prompt}
+      prompt={
+        card.question === undefined ? (
+          prompt
+        ) : (
+          <>
+            {prompt}
+            {/* The question itself, directly above what the learner acts on. */}
+            <p className="micro-card__text">
+              <strong>{card.question}</strong>
+            </p>
+          </>
+        )
+      }
       title={card.title}
     >
       {children}

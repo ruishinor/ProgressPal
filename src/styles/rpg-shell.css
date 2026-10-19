@@ -159,6 +159,23 @@ html:has(body.rpg-route-active) {
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
+/* The Settings gear sits in the HUD's top-right corner at every width; the
+   HUD keeps that strip free, so the gear never covers its content. */
+.rpg-shell .rpg-hero-hud {
+  padding-inline-end: calc(var(--control-height) + var(--space-4));
+  position: relative;
+}
+
+.rpg-hero-hud > .rpg-shell__settings-link {
+  border-color: var(--rpg-border);
+  inset-inline-end: var(--space-2);
+  justify-content: center;
+  min-width: var(--control-height);
+  padding: 0.5rem;
+  position: absolute;
+  top: var(--space-2);
+}
+
 .rpg-hero-hud--overview {
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.9fr);
 }

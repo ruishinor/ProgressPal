@@ -12,12 +12,15 @@ export function RpgInfoNote({
   className,
   inline = false,
   label,
+  size = 'sm',
 }: {
   children: ReactNode;
   className?: string;
   /** Show the text as it was, for a programme whose copy stays visible. */
   inline?: boolean;
   label: string;
+  /** `md` where the (i) is a touch target next to a full-size control. */
+  size?: 'sm' | 'md';
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -33,7 +36,7 @@ export function RpgInfoNote({
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((current) => !current)}
-        size="sm"
+        size={size}
         variant="quiet"
       >
         (i)

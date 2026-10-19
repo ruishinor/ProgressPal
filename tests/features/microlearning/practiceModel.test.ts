@@ -6,6 +6,7 @@ import {
   isSameSequence,
   isSettled,
   matchOutcome,
+  retryAndSubmit,
   retryAttempt,
   submitAttempt,
   toggleInSequence,
@@ -96,5 +97,37 @@ describe('sequence helpers', () => {
   it('pairs a left tap with the right tap that carries the same id', () => {
     expect(matchOutcome('a', 'a')).toBe('match');
     expect(matchOutcome('a', 'b')).toBe('miss');
+  });
+});
+
+describe('a new choice while a first miss is shown', () => {
+  const wrong = submitAttempt(initialPractice, false);
+
+  it('is the one retry: right ends it, wrong reveals it', () => {
+    expect(retryAndSubmit(wrong, true)).toEqual({ phase: 'correct', tries: 2 });
+    expect(retryAndSubmit(wrong, false)).toEqual({
+      phase: 'revealed',
+      tries: 2,
+    });
+  });
+
+  it('is the same as Prøv igjen followed by that choice', () => {
+    for (const correct of [true, false]) {
+      expect(retryAndSubmit(wrong, correct)).toEqual(
+        submitAttempt(retryAttempt(wrong), correct),
+      );
+    }
+  });
+
+  it('never gives a third try or reopens an ended card', () => {
+    const revealed = retryAndSubmit(wrong, false);
+    const correct = submitAttempt(initialPractice, true);
+
+    expect(retryAndSubmit(revealed, true)).toBe(revealed);
+    expect(retryAndSubmit(correct, false)).toBe(correct);
+  });
+
+  it('is an ordinary first answer when nothing was missed yet', () => {
+    expect(retryAndSubmit(initialPractice, false)).toEqual(wrong);
   });
 });

@@ -4,13 +4,31 @@ import type { MicroSession } from '@/lib/domain';
  * Økt 4: developer reasoning across M01 and M02. Expected behaviour before the
  * run (S1-M02-L09), the chain from problem to tested solution (S1-M01-L05), a
  * bug that raises no error (S1-M02-L07), and the first small, safe commit
- * (S1-M01-L08).
+ * (S1-M01-L08). Four topics, each opening once its own mission is reached.
  */
 export const tenkForstSession: MicroSession = {
   id: 'tenk-forst',
   title: 'Tenk først, så kode',
   summary: 'Forventet svar, riktig rekkefølge og små commits.',
   minutes: 5,
+  parts: [
+    {
+      cardIds: ['test-forventet-forst', 'test-rad'],
+      summary: 'Regn ut forventet svar før du kjører.',
+    },
+    {
+      cardIds: ['tenk-kjede'],
+      summary: 'Fra problem til løsning, i riktig rekkefølge.',
+    },
+    {
+      cardIds: ['test-stille-feil'],
+      summary: 'Forskjellen på = og ==.',
+    },
+    {
+      cardIds: ['git-koble', 'git-commit-bygg'],
+      summary: 'Lagre en versjon med en tydelig commit.',
+    },
+  ],
   cards: [
     {
       kind: 'learn',
@@ -22,7 +40,7 @@ export const tenkForstSession: MicroSession = {
         lessonUnitIds: ['S1-M02-L09'],
         skillIds: ['SK-TST-01'],
       },
-      idea: 'Regn ut svaret selv først. Kjører du først og skriver av, ser du aldri en feil. Velg også varierte eksempler.',
+      idea: 'Regn ut svaret selv først. Kjører du først og skriver av, er det lett å overse en feil. Velg også varierte eksempler.',
       example: {
         code: 'antall  pris  forventet\n3       45    135\n0       45    0',
         note: 'Du fyller ut «forventet» selv, før programmet kjører.',

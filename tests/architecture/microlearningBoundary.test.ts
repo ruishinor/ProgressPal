@@ -154,12 +154,15 @@ describe('the app-layer route seam', () => {
   ) as [{ file: string; text: string }];
 
   it('reads the active programme scope and the Campaign’s own position, and hands the answer to the feature', () => {
+    // The router holds the learner's place in the address (Back/Forward),
+    // as in a track; it is not a data source.
     expect(importsOf(route.text).sort()).toEqual([
       '@/features/microlearning',
       '@/features/rpg',
       '@/lib/appState',
       '@/lib/domain',
       'react',
+      'react-router-dom',
     ]);
   });
 

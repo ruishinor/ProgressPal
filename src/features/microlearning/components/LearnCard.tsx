@@ -30,6 +30,11 @@ export function LearnCard({
               {paragraph}
             </p>
           ))}
+          {card.definitions?.map((entry) => (
+            <p className="micro-card__text" key={entry.term}>
+              <strong>{entry.term}:</strong> {entry.text}
+            </p>
+          ))}
           {card.example === undefined ? null : (
             <figure className="micro-code">
               <pre>

@@ -4138,7 +4138,7 @@ describe('RPG routes', () => {
     expect(hubLink.className).toBe('rpg-primary-nav__link');
   });
 
-  it('orders RPG shell landmarks as skip link, utility, primary navigation, HUD, then main', async () => {
+  it('orders RPG shell landmarks as skip link, primary navigation, HUD with its Settings gear, then main', async () => {
     await seedOnboardedLearner();
 
     const precedes = (first: Element, second: Element) =>
@@ -4150,9 +4150,6 @@ describe('RPG routes', () => {
     await screen.findByTestId('rpg-shell');
 
     const skipLink = screen.getByRole('link', { name: 'Skip to RPG content' });
-    const utility = screen.getByRole('navigation', {
-      name: 'RPG utility navigation',
-    });
     const primaryNav = screen.getByRole('navigation', {
       name: 'RPG primary navigation',
     });
@@ -4161,19 +4158,45 @@ describe('RPG routes', () => {
     });
     const main = screen.getByRole('main');
 
-    expect(precedes(skipLink, utility)).toBe(true);
-    expect(precedes(utility, primaryNav)).toBe(true);
+    expect(precedes(skipLink, primaryNav)).toBe(true);
     expect(precedes(primaryNav, hud)).toBe(true);
     expect(precedes(hud, main)).toBe(true);
+    // Where there is a HUD, the one Settings launch is inside it: no utility
+    // bar, no second link, and nothing interactive around it.
+    expect(
+      screen.queryByRole('navigation', { name: 'RPG utility navigation' }),
+    ).not.toBeInTheDocument();
+    const settings = screen.getAllByRole('link', { name: 'Open Settings' });
+
+    expect(settings).toHaveLength(1);
+    expect(hud).toContainElement(settings[0]!);
+    expect(settings[0]!.parentElement).toBe(hud);
 
     cleanup();
     await renderAppAtRoute('/rpg/hero');
     await screen.findByTestId('rpg-shell');
 
-    // The Hero route keeps its persistent-HUD exclusion.
+    // The Hero route keeps its persistent-HUD exclusion, so its one Settings
+    // launch is the shell's utility bar, before the primary navigation.
     expect(
       screen.queryByRole('region', { name: 'Persistent hero HUD' }),
     ).not.toBeInTheDocument();
+    const utility = screen.getByRole('navigation', {
+      name: 'RPG utility navigation',
+    });
+
+    expect(screen.getAllByRole('link', { name: 'Open Settings' })).toHaveLength(
+      1,
+    );
+    expect(within(utility).getByRole('link', { name: 'Open Settings' })).toBe(
+      screen.getByRole('link', { name: 'Open Settings' }),
+    );
+    expect(
+      precedes(
+        utility,
+        screen.getByRole('navigation', { name: 'RPG primary navigation' }),
+      ),
+    ).toBe(true);
     expect(
       precedes(
         screen.getByRole('navigation', { name: 'RPG primary navigation' }),

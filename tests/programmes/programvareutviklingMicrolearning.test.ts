@@ -9,6 +9,7 @@ import {
   selectPrimer,
   type MicroCard,
   type MicroCardKind,
+  type MicroSession,
 } from '@/lib/domain';
 import { cs50x2026Definition } from '@/programmes/cs50x-2026';
 import { validateProgrammeDefinition } from '@/programmes/definition';
@@ -119,7 +120,13 @@ describe('learning arcs', () => {
 
   it('gives Learn cards no answer, check or hint', () => {
     for (const card of cards.filter((entry) => entry.kind === 'learn')) {
-      expect(Object.keys(card).sort()).toEqual(
+      // Key words with their explanations (`definitions`) are teaching text,
+      // never an answer; they may be there or not.
+      expect(
+        Object.keys(card)
+          .filter((key) => key !== 'definitions')
+          .sort(),
+      ).toEqual(
         [
           'bridge',
           'example',
@@ -457,23 +464,96 @@ describe('availability against the real Campaign order', () => {
     }
   });
 
-  it('opens Repeter only for material the learner has reached, as Module 2 is worked', () => {
-    expect(repeatIds(12)).toEqual([]);
-    expect(repeatIds(13)).toEqual(['variabler']);
-    expect(repeatIds(15)).toEqual(['variabler']);
-    expect(repeatIds(16)).toEqual(['variabler', 'typer-og-input']);
-    expect(repeatIds(17)).toEqual([
-      'variabler',
-      'typer-og-input',
-      'feilmeldinger',
-    ]);
-    expect(repeatIds(18)).toEqual([
-      'variabler',
-      'typer-og-input',
-      'feilmeldinger',
-    ]);
-    expect(repeatIds(19)).toEqual(bank.sessions.map((session) => session.id));
+  it('opens Repeter one reached topic at a time, as the Campaign is worked', () => {
+    expect(repeatIds(3)).toEqual([]);
+    // «Tenk før du koder» (s1-m01-o04) is reached: its own topic opens.
+    expect(repeatIds(4)).toEqual(['tenk-forst']);
+    // «Feilmeldinger» (s1-m01-o06): the reading routine opens.
+    expect(repeatIds(6)).toEqual(['feilmeldinger', 'tenk-forst']);
+    expect(repeatIds(12)).toEqual(['feilmeldinger', 'tenk-forst']);
+    expect(repeatIds(13)).toEqual(['variabler', 'feilmeldinger', 'tenk-forst']);
+    expect(repeatIds(15)).toEqual(bank.sessions.map((session) => session.id));
     expect(repeatIds(24)).toEqual(bank.sessions.map((session) => session.id));
+  });
+
+  it('holds only the reached topics of a session, and the whole session once all are reached', () => {
+    const cardsOf = (count: number, id: string) =>
+      listReinforcementSessions(bank, p2Index, afterCompleting(count))
+        .find((session) => session.id === id)
+        ?.cards.map((card) => card.id);
+
+    expect(cardsOf(4, 'tenk-forst')).toEqual(['tenk-kjede']);
+    expect(cardsOf(7, 'tenk-forst')).toEqual([
+      'tenk-kjede',
+      'git-koble',
+      'git-commit-bygg',
+    ]);
+    expect(cardsOf(6, 'feilmeldinger')).toEqual([
+      'feil-les-nedenfra',
+      'feil-rutine',
+      'feil-skrivefeil',
+      'feil-anforselstegn',
+    ]);
+    expect(cardsOf(15, 'typer-og-input')).toEqual([
+      'typer-forskjell',
+      'typer-type-av',
+      'typer-koble',
+    ]);
+    // Complete once every topic is reached: the authored session itself.
+    for (const [count, session] of [
+      [13, variabler],
+      [16, typer],
+      [17, feil],
+      [19, tenk],
+    ] as const) {
+      expect(
+        listReinforcementSessions(bank, p2Index, afterCompleting(count)),
+      ).toContain(session);
+    }
+  });
+
+  it('opens a reached topic that the old all-or-nothing rule held back', () => {
+    const position = afterCompleting(6);
+    const reached = new Set(
+      position.quests.filter((q) => q.reached).map((q) => q.id),
+    );
+    const oldRuleOpens = (session: MicroSession) =>
+      listSessionCampaignItems(session, itemOfUnit)!.every((id) =>
+        reached.has(id),
+      );
+
+    // Under the old rule nothing repeats yet: each session also cites later
+    // material. Under the topic rule the reached topics open.
+    expect(bank.sessions.filter(oldRuleOpens)).toEqual([]);
+    expect(
+      listReinforcementSessions(bank, p2Index, position).map((s) => s.id),
+    ).toEqual(['feilmeldinger', 'tenk-forst']);
+  });
+
+  it('never shows an unreached topic: not a card, its summary, its minutes or a takeaway', () => {
+    const [feilNow, tenkNow] = listReinforcementSessions(
+      bank,
+      p2Index,
+      afterCompleting(6),
+    );
+
+    expect(feilNow!.cards.map((card) => card.id)).not.toContain('feil-arsak');
+    expect(feilNow!.summary).toBe('Les feilen nedenfra og finn linjen.');
+    expect(feilNow!.minutes).toBe(4);
+    expect(feilNow!.takeaway).toBeUndefined();
+    expect(tenkNow!.cards.map((card) => card.id)).toEqual(['tenk-kjede']);
+    expect(tenkNow!.summary).toBe(
+      'Fra problem til løsning, i riktig rekkefølge.',
+    );
+    expect(tenkNow!.minutes).toBe(1);
+    // Each open card comes from a mission already reached.
+    for (const session of [feilNow!, tenkNow!]) {
+      for (const card of session.cards) {
+        for (const unitId of card.source.lessonUnitIds) {
+          expect(order.indexOf(itemOfUnit.get(unitId)!)).toBeLessThan(6);
+        }
+      }
+    }
   });
 
   it('counts a mission the learner has started, not only completed ones', () => {
@@ -484,7 +564,7 @@ describe('availability against the real Campaign order', () => {
 
     expect(
       listReinforcementSessions(bank, p2Index, position).map((s) => s.id),
-    ).toEqual(['variabler']);
+    ).toEqual(['variabler', 'feilmeldinger', 'tenk-forst']);
   });
 
   it('never shows anything from further ahead than the next step, and never repeats what is unreached', () => {
@@ -526,7 +606,7 @@ describe('availability against the real Campaign order', () => {
     }
   });
 
-  it('is honest about its gaps: the only states with neither a primer nor Repeter', () => {
+  it('is honest about its gaps: no state is left with neither a primer nor Repeter', () => {
     const empty = order
       .slice(0, -1)
       .map((id, count) => ({ count, id }))
@@ -536,14 +616,18 @@ describe('availability against the real Campaign order', () => {
       )
       .map(({ id }) => id);
 
-    // The Campaign's Build phase of Module 1: an AI-use mission, the lab, the
-    // quest and the repetition. Authentic Build work stays in the Campaign.
-    expect(empty).toEqual([
-      's1-m01-o08',
-      's1-m01-lab',
-      's1-m01-q01',
-      's1-m01-ret',
-    ]);
+    // The Build phase of Module 1 (AI use, lab, quest, repetition) gets no
+    // primer, because authentic Build work stays in the Campaign. Under the
+    // topic rule it still offers Repeter of the Module 1 topics already
+    // reached, so no state is empty.
+    expect(empty).toEqual([]);
+    for (const count of [7, 8, 9, 10]) {
+      expect(primerId(count), `${count}`).toBeUndefined();
+      expect(repeatIds(count), `${count}`).toEqual([
+        'feilmeldinger',
+        'tenk-forst',
+      ]);
+    }
   });
 
   it('offers nothing once every required task is complete except Repeter', () => {

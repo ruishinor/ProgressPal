@@ -47,6 +47,7 @@ import {
   type CourseItem,
   type CourseUnit,
   type LevelCurve,
+  type MicroSession,
   type ProgrammeScope,
   type ProgressEntry,
 } from '@/lib/domain';
@@ -1168,14 +1169,18 @@ export type RpgMicroAvailability =
   | {
       status: 'ready';
       primerId: string | null;
-      repeatSessionIds: ReadonlySet<string>;
+      /**
+       * The «Repeter» sessions as they may be opened now: each holds only the
+       * topics the learner has reached (`listReinforcementSessions`).
+       */
+      repeatSessions: readonly MicroSession[];
     };
 
 /**
  * What Microlearning has open right now: one primer at most and the sessions
- * that repeat worked-on material. The single answer behind both the
- * `/rpg/micro` picker and the Home entry, so Home can never advertise a session
- * the picker would not list. A read; it writes nothing. A programme without a
+ * that repeat worked-on topics, each narrowed to those topics. The single
+ * answer behind both the `/rpg/micro` picker and the Home entry, so Home can
+ * never advertise a session the picker would not list. A read; it writes nothing. A programme without a
  * bank, an unreadable content index or an unreadable Campaign is `failed`,
  * never a guess, and never throws.
  */
@@ -1203,11 +1208,7 @@ export async function loadRpgMicroAvailability(
     return {
       status: 'ready',
       primerId: selectPrimer(bank, position)?.id ?? null,
-      repeatSessionIds: new Set(
-        listReinforcementSessions(bank, index.value, position).map(
-          (session) => session.id,
-        ),
-      ),
+      repeatSessions: listReinforcementSessions(bank, index.value, position),
     };
   } catch {
     return { status: 'failed' };

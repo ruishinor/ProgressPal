@@ -4,13 +4,29 @@ import type { MicroSession } from '@/lib/domain';
  * Økt 3: M01 «Feilmeldinger» (S1-M01-L07) and M02 «Når typene ikke stemmer»
  * (S1-M02-L06). The reading routine first, then the same routine on a typo, a
  * syntax error, an error whose cause sits on an earlier line, and a value the
- * type cannot take. Every error text is one the lessons already show.
+ * type cannot take. Every error text is one the lessons already show. Two
+ * topics, so the M01 routine opens without waiting for M02.
  */
 export const feilmeldingerSession: MicroSession = {
   id: 'feilmeldinger',
   title: 'Les feilmeldingen',
   summary: 'Les feilen nedenfra, finn linjen og finn årsaken.',
   minutes: 6,
+  parts: [
+    {
+      cardIds: [
+        'feil-les-nedenfra',
+        'feil-rutine',
+        'feil-skrivefeil',
+        'feil-anforselstegn',
+      ],
+      summary: 'Les feilen nedenfra og finn linjen.',
+    },
+    {
+      cardIds: ['feil-arsak', 'feil-verdi'],
+      summary: 'Finn årsaken når tekst og tall blandes.',
+    },
+  ],
   cards: [
     {
       kind: 'learn',

@@ -68,6 +68,37 @@ const initialHubState: RpgShellHubState = {
   summary: null,
 };
 
+/**
+ * The one Settings launch of the shell. Inside the HUD it is the HUD's
+ * top-right gear (`inHud`: icon only, the name stays spoken); on a route
+ * without a HUD it sits in the shell's utility bar.
+ */
+function SettingsLink({ inHud = false }: { inHud?: boolean }) {
+  const location = useLocation();
+
+  return (
+    <Link
+      aria-current={location.pathname === rpgSettingsPath ? 'page' : undefined}
+      aria-label="Open Settings"
+      className="rpg-shell__settings-link"
+      to={rpgSettingsPath}
+    >
+      <svg
+        aria-hidden="true"
+        className="rpg-shell__settings-icon"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path d="M9.8 3.8h4.4l.6 2.1 1.6.9 2.1-.6 2.2 3.8-1.5 1.5v1.9l1.5 1.5-2.2 3.8-2.1-.6-1.6.9-.6 2.1H9.8L9.2 19l-1.6-.9-2.1.6-2.2-3.8 1.5-1.5v-1.9L3.3 10l2.2-3.8 2.1.6 1.6-.9.6-2.1Z" />
+        <circle cx="12" cy="12.4" r="2.8" />
+      </svg>
+      <span className={inHud ? 'sr-only' : 'rpg-shell__settings-text'}>
+        Settings
+      </span>
+    </Link>
+  );
+}
+
 function RpgHeroHud({
   onRetry,
   state,
@@ -94,6 +125,7 @@ function RpgHeroHud({
                 'Local RPG summary could not be loaded from this browser.'}
             </p>
           </div>
+          <SettingsLink inHud />
           <button
             className="rpg-hero-hud__quest-link"
             onClick={onRetry}
@@ -118,6 +150,7 @@ function RpgHeroHud({
             Loading your Hero
           </p>
         </div>
+        <SettingsLink inHud />
       </section>
     );
   }
@@ -144,6 +177,7 @@ function RpgHeroHud({
         name={summary.learnerName}
         profileHref={rpgHeroPath}
       />
+      <SettingsLink inHud />
       <RpgLevelProgress xp={summary.xpSummary} />
 
       {showQuest ? (
@@ -325,30 +359,16 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        <nav
-          aria-label="RPG utility navigation"
-          className="rpg-shell__utility-bar"
-        >
-          <Link
-            aria-current={
-              location.pathname === rpgSettingsPath ? 'page' : undefined
-            }
-            aria-label="Open Settings"
-            className="rpg-shell__settings-link"
-            to={rpgSettingsPath}
+        {/* Exactly one Settings launch: the HUD's gear where there is a
+            HUD, this utility bar on the one route without it. */}
+        {location.pathname === rpgHeroPath ? (
+          <nav
+            aria-label="RPG utility navigation"
+            className="rpg-shell__utility-bar"
           >
-            <svg
-              aria-hidden="true"
-              className="rpg-shell__settings-icon"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path d="M9.8 3.8h4.4l.6 2.1 1.6.9 2.1-.6 2.2 3.8-1.5 1.5v1.9l1.5 1.5-2.2 3.8-2.1-.6-1.6.9-.6 2.1H9.8L9.2 19l-1.6-.9-2.1.6-2.2-3.8 1.5-1.5v-1.9L3.3 10l2.2-3.8 2.1.6 1.6-.9.6-2.1Z" />
-              <circle cx="12" cy="12.4" r="2.8" />
-            </svg>
-            <span className="rpg-shell__settings-text">Settings</span>
-          </Link>
-        </nav>
+            <SettingsLink />
+          </nav>
+        ) : null}
         <RpgPrimaryNav />
         {location.pathname !== rpgHeroPath ? (
           <RpgHeroHud

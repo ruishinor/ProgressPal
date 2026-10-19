@@ -83,6 +83,23 @@ describe('the real Programvareutvikling bank', () => {
     expect(realBank.tracks![0]!.sessions).toHaveLength(6);
   });
 
+  it('uses prose labels only on the eight conceptual matching cards', () => {
+    const trackMatches = realBank.tracks![0]!.sessions.flatMap((session) =>
+      session.cards.filter((card) => card.kind === 'match'),
+    );
+    expect(trackMatches).toHaveLength(8);
+    for (const card of trackMatches) {
+      expect(card.kind === 'match' && card.leftPresentation).toBe('text');
+    }
+    for (const session of realBank.sessions) {
+      for (const card of session.cards) {
+        if (card.kind === 'match') {
+          expect(card.leftPresentation).toBeUndefined();
+        }
+      }
+    }
+  });
+
   it('keeps «Repeter» at four sessions and leaves its cards untouched', () => {
     expect(realBank.sessions).toHaveLength(4);
     const trackCards = new Set(
@@ -99,6 +116,41 @@ describe('the real Programvareutvikling bank', () => {
 describe('track rules', () => {
   it('accepts a minimal valid track whose Learn card has no code', () => {
     expect(findMicrolearningBankIssues(withTrack(track()), units)).toEqual([]);
+  });
+
+  it('accepts a question by the choices and bold key words, and refuses empty ones', () => {
+    const withExtras = (question: string, term: string): MicrolearningBank =>
+      withTrack(
+        track({
+          sessions: [
+            session('a', {
+              cards: [
+                {
+                  ...learn,
+                  id: 'q-l',
+                  definitions: [{ term, text: 'en forklaring.' }],
+                },
+                { ...select, id: 'q-1', question },
+                { ...select, id: 'q-2' },
+                { ...select, id: 'q-3' },
+              ],
+            }),
+          ],
+        }),
+      );
+
+    expect(
+      findMicrolearningBankIssues(
+        withExtras('Hva er behovet?', 'Behov'),
+        units,
+      ),
+    ).toEqual([]);
+    expect(
+      findMicrolearningBankIssues(withExtras(' ', 'Behov'), units),
+    ).toContain('card "q-1" has an empty question');
+    expect(
+      findMicrolearningBankIssues(withExtras('Hva er behovet?', ''), units),
+    ).toContain('card "q-l" has an empty definition');
   });
 
   it('still refuses a code-less Learn card in «Repeter»', () => {
