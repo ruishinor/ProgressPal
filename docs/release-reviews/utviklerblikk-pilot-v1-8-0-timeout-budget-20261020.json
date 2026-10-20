@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-pilot-v1-8-0-timeout-budget-20261020",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent diff/source review of the five-file release timeout-budget repair on 2026-10-20; separate from the implementing session",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "dc11d057af55321af6df229e2ec657e7cb70b700",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of owner-supplied complete five-file Git diff for locally committed tooling-only repair 2ba56e84bddb827ea81058ebd358067104282870, parent 59d43b48b5f30eef5cef01f17d7a7db9332eba52, owner-reported Git tree 2bf65c3bfab4a3d40f633ccfb99e912e254a8dd8, and repository-native payload tree dc11d057af55321af6df229e2ec657e7cb70b700. Compared the run-release-gate.mjs delta against source of the previously supplied baseline runner, reviewed timing hierarchy, command-level override forwarding, and added existing releaseWorkflow.test.ts guard coverage. Verdict PASS/GO to bind independent tooling-only review evidence and attempt native immutable release certification. No application or existing product/test behavior was changed. Previous accepted product/pilot review and test-repair review findings carry forward unchanged; no new product acceptance or deployment permission is claimed. Source review was based on owner-supplied diff and earlier package: reviewer did not retrieve local Git objects or execute the committed tests. The 257-case E2E suite and hosted runtime under new limits are NOT VERIFIED.",
+    "evidence": [
+      "Owner-reported clean committed candidate: HEAD 2ba56e84bddb827ea81058ebd358067104282870; parent 59d43b48b5f30eef5cef01f17d7a7db9332eba52; Git tree 2bf65c3bfab4a3d40f633ccfb99e912e254a8dd8; payload tree dc11d057af55321af6df229e2ec657e7cb70b700; branch pilot/tenk-som-en-utvikler; clean checkout. Git identities were not independently fetched.",
+      "Owner supplied full five-file diff: .github/workflows/test.yml (job 60->130 minutes), playwright.config.ts (suite 30->75 minutes), scripts/run-e2e.mjs (managed Playwright child 31->76 minutes), scripts/run-release-gate.mjs (E2E descriptor 83 minutes and fifth argument forwarding), tests/architecture/releaseWorkflow.test.ts (existing guard tests extended). No other paths shown in supplied diff.",
+      "Independent inspection of earlier 02_Baseline_Source.zip scripts/run-release-gate.mjs confirms run(executable, commandArgs, label, validate, timeoutMs = COMMAND_TIMEOUT_MS) and runContainedCommand({timeoutMs}); the new fifth argument forwards command.timeoutMs, preserving 32-minute default for other commands. The baseline runner used 32-minute default and had no E2E timeout override.",
+      "Nested deadlines in owner-supplied final diff: Playwright 4,500,000 ms; managed child 4,560,000 ms; E2E command 4,980,000 ms; GitHub Actions job 130 minutes; other command timeout remains 1,920,000 ms. One Playwright worker and zero retries remain unchanged. The original E2E child is still contained by the existing runner.",
+      "Previous native release manifest for commit 59d43b48b5f30eef5cef01f17d7a7db9332eba52, payload bf8e9797649ebeb9a3fa71631116bd662709d76e: clean unit/integration 3,363/3,363 with zero diagnostics, Playwright 234/257 passed before 1,800s global timeout; full E2E certification and subsequent circular/audit steps incomplete. This failed run remains failed and is not superseded by a configuration change.",
+      "Owner diagnostic established no individual E2E assertion failure before timeout, 53 microlearning cases totaling about 928.3 s, and no established application performance regression; suite budget was exceeded. Remaining 23 E2E cases were not completed.",
+      "Owner-reported focused post-edit validation: 9/9 releaseWorkflow guards; 30/30 release containment/review-binding tests; formatting of five files, repository lint/typecheck, git diff --check; no diagnostics. Reviewer did not run these commands.",
+      "Added releaseWorkflow.test.ts test uses runInNewContext to execute excerpts of real release-runner source with stubbed process containment, validates timeout forwarding, E2E specificity, warnings/skips/retries, and review-binding call order; this provides meaningful wiring coverage but couples tests to source-text boundaries. P3 maintainability risk, no demonstrated failure.",
+      "Owner-reported frozen annotated tag unchanged: object d4022ed43d4c5520369b69aa7eb0152f60c7e989; target 1a27b9e13753d9cce4c0effdf5e5d6596f5b7483. Reviewer did not independently fetch tag.",
+      "Previous review in docs/release-reviews/utviklerblikk-pilot-v1-8-0-test-repair-20261020.json remains bound to earlier payload bf8e9797649ebeb9a3fa71631116bd662709d76e; it is not retroactively amended. Prior ten findings are retained below without rewriting their historical resolution.",
+      "NOT performed by independent reviewer: source checkout of exact new Git commit, repository-native evidence consumer check on the new JSON, full native release gate, remote GitHub Actions run, Git merge/push, Vercel deployment, or production smoke."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-REL-01",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Existing Ali fixed-row number rendering (correct order displayed as 3–1–4–2) and long 320px matching states may increase cognitive burden; some matching hints are generic. Step 5 identified observed states but no reproduced serious correctness failure. Its P1 labels were acceptance priorities, not confirmed P1 release defects.",
+      "resolution": "Owner accepted the six-activity pilot pedagogically and visually on 2026-10-20; keep the observations visible. Do not change the frozen lesson content as a speculative release repair. Reopen only if a concrete failure is demonstrated."
+    },
+    {
+      "id": "UV-REL-02",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Actual physical phones, genuine browser zoom, independent screen-reader speech output and measured comprehension/transfer were not verified. Passing scoped accessibility/browser automation is not equivalent.",
+      "resolution": "Restrict claims to tested desktop/emulated browser states and owner pilot acceptance. Test affected production learner flows where feasible; retain unresolved evidence gaps without representing them as completed tests."
+    },
+    {
+      "id": "UV-REL-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The proposed production delta includes visible non-pilot surfaces and support tooling: RPG Settings gear/position, RPG Home and map styles, global profile-card layout, LessonView goal emphasis and CSS bundle-budget thresholds. This is larger than a six-activity content-only change.",
+      "resolution": "Treat all 77 paths as intentional scope of the proposed immutable candidate rather than claiming an isolated Utviklerblikk-only diff. Require the existing complete CI/release suite and explicit release-owner review of affected general RPG visuals before production publication. Do not split/rewrite the frozen tag or silently discard prior user work."
+    },
+    {
+      "id": "UV-REL-04",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Step 5 reran 262 scoped tests and 21 selected Chromium tests, but not the complete repository test, dependency audit, release gate or production-hosted smoke. A green scoped run cannot prove full integration quality.",
+      "resolution": "Run the repository-native immutable verify:release on the review-bound candidate through the documented GitHub workflow. Preserve failure artifacts and stop publication on failure; verify exact Git/Vercel identity and the actual hosted application afterward."
+    },
+    {
+      "id": "UV-REL-05",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "check-build-budget.mjs writes informational CSS threshold messages to stderr above 25000 gzip bytes while the native release runner intentionally rejects stderr/warnings. The scoped step-5 build reported 14087 CSS gzip bytes, below that threshold.",
+      "resolution": "No current release effect evidenced. Document the future policy/gate incompatibility for a separate maintenance change if the CSS budget warning is reached; do not weaken the release gate in this release."
+    },
+    {
+      "id": "UV-REL-06",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "MicroTrack allows at most six sessions per track and Generelt already fills six. This prevents naive next-category expansion, but does not invalidate the accepted six-activity pilot.",
+      "resolution": "Defer category architecture and new Scrum/Kanban content to a separate post-release development phase; do not mix future feature work into this frozen candidate."
+    },
+    {
+      "id": "UV-REL-07",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Historical risk of exposing Programme 2 microlearning in another programme, or writing learner results or XP, is addressed by programme-scoped routing and stateless microlearning models; specific tests target these boundaries.",
+      "resolution": "Source adds explicit scope lookups, no new persistence model and relevant App/domain/e2e tests for CS50 isolation and non-writing flows; the full release gate must rerun them on the final candidate."
+    },
+    {
+      "id": "UV-REL-08",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Initial lesson test instrumentation observed and handled mutation rejections across tests without matching rejection assertions, risking loss of ordinary unhandled-rejection visibility.",
+      "resolution": "Final reviewed file uses disabled-by-default stageMutations.enabled; only the three stage-navigation/progression tests opt in after setup and explicitly check rejected mutations. The original promise is returned and unrelated tests do not attach rejection observers. Independently inspected source and owner-reported probe, not an independently run Vitest test."
+    },
+    {
+      "id": "UV-REL-09",
+      "severity": "P3",
+      "status": "resolved",
+      "description": "Initial lesson test mutation wrapper changed callback identity with unrelated context state due to useMemo(...,[state]).",
+      "resolution": "The final reviewed wrapper uses useCallback(...,[runLocalMutation]), following the production mutation function dependency instead. The wrapper invokes and returns the original provider function/promise; no application source changed."
+    },
+    {
+      "id": "UV-REL-10",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The lesson observer awaits provider runLocalMutation settlement and verifies LF-029 bookmark progression but does not independently prove every downstream LessonView reloadEvidence call settled; complete release-suite diagnostic silence also remains unverified.",
+      "resolution": "Provider settlement and persistence assertions are improved and no residual race was reproduced in the supplied evidence. Do not broaden instrumentation speculatively; retain native release gate as final check. Stop and classify any concrete diagnostic if reproduced."
+    },
+    {
+      "id": "UV-REL-11",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "The original Playwright global suite budget of 1,800s and nested 1,860/1,920s execution limits were insufficient for the expanded sequential 257-case E2E suite. The previously recorded native gate failed on suite time despite 234 passing cases and no individual test assertion failure.",
+      "resolution": "The reviewed test-independent tooling diff raises suite/child/E2E-command/CI job budgets to 75/76/83/130 minutes, respectively; only E2E receives the 83-minute command override while other release commands keep their 32-minute default, with one worker and zero retries unchanged. Effective hierarchy verified from supplied diff and baseline run() source. Execution success with the revised limits remains NOT VERIFIED and must be established by a native exact-candidate gate."
+    },
+    {
+      "id": "UV-REL-12",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The 75-minute Playwright budget and 130-minute hosted job allowance are engineering forecasts based on incomplete historical CI timing, not observed complete performance on this 257-case suite; slower hardware or new failures can still cause timeouts.",
+      "resolution": "Retain strict per-test timeouts, zero retries and all assertions. Run exact immutable native release certification and GitHub hosted validation; do not call the run PASS until every case and downstream check completes."
+    },
+    {
+      "id": "UV-REL-13",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "New releaseWorkflow.test.ts additions evaluate source slices in a VM using textual boundaries, creating coupling to the runner file layout and adding considerable code for a narrow timeout change.",
+      "resolution": "The source-based test does exercise actual run() forwarding under mocked containment and retains diagnostic/skips/retries behavior checks, so no current material correctness defect was demonstrated. Defer any test simplification/refactor to ordinary maintenance rather than expanding this release repair."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent PASS on the exact owner-supplied five-file timeout-budget delta at 2ba56e84bddb827ea81058ebd358067104282870, payload dc11d057af55321af6df229e2ec657e7cb70b700; GO to add this correctly named, independently authored review record as evidence only, validate it through the repository-native review consumer, and run one immutable candidate-bound native verify:release. Preserve the earlier full failed gate and prior independently accepted product/test review. Do not add further tooling changes without a demonstrated defect. Maintain 75/76/83/130-minute nested limits and 32-minute defaults for other commands; 9/9 workflow and 30/30 binding/containment guards are owner-reported, not independently run. This record authorizes neither Git push/merge nor deployment and does not claim a successful full or hosted E2E run."
+  }
+}

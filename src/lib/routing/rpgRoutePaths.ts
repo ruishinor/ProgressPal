@@ -7,6 +7,8 @@ export const rpgHeroPath = '/rpg/hero' as const;
 export const rpgBadgesPath = '/rpg/badges' as const;
 export const rpgLogPath = '/rpg/log' as const;
 export const rpgSettingsPath = '/rpg/settings' as const;
+export const rpgMicroPath = '/rpg/micro' as const;
+export const rpgTrackPathPattern = '/rpg/track/:trackId' as const;
 
 export const rpgRouteSegments = {
   badges: 'badges',
@@ -14,9 +16,11 @@ export const rpgRouteSegments = {
   hero: 'hero',
   log: 'log',
   map: 'map',
+  micro: 'micro',
   resource: 'resource/:itemId',
   root: 'rpg',
   settings: 'settings',
+  track: 'track/:trackId',
   week: 'week/:unitId',
 } as const;
 
@@ -32,6 +36,11 @@ export function getRpgWeekPath(unitId: string, questId?: string | null) {
 
 export function getRpgResourcePath(itemId: string) {
   return rpgResourcePathPattern.replace(':itemId', itemId);
+}
+
+/** A voluntary microlearning track, open regardless of the Campaign. */
+export function getRpgTrackPath(trackId: string) {
+  return rpgTrackPathPattern.replace(':trackId', trackId);
 }
 
 export function getRpgFocusPath(itemId: string) {

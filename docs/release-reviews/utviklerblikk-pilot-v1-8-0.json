@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-pilot-v1-8-0",
+  "reviewer": "OpenAI GPT-6 — independent review of owner-supplied frozen pilot delta and step-5 technical reports, 2026-10-20 (not the implementing session)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "5473ec45358f23c0cd791155647dd34211c34475",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source-delta and reported-evidence review of the frozen 1a27b9e pilot proposed for integration onto production base 81321fd1. The Git-native patch covers 77 files, including shared Microlearning/Mikroøkt, Utviklerblikk, routing, lesson and RPG shell/style adjustments and bundle-budget tooling. Assessed changed routing, domain contracts, state/feedback, persistence boundaries, Home offers, CSS, release scripts and related test assertions; used the step-5 owner-supplied report for the all-card review and targeted browser run. Owner explicitly accepted existing pilot pedagogical and visual experience on 2026-10-20. The review supports proceeding to native candidate-bound certification and controlled integration, not a claim of full-suite, manual-device or production-smoke verification. Commit, remote tree, and Git payload binding were reported by the owner and must be reverified on application of this record.",
+    "evidence": [
+      "Production baseline (owner local and Vercel inspection): 81321fd157f58ff5864d4655eace19838a9cfe45; frozen pilot HEAD 1a27b9e13753d9cce4c0effdf5e5d6596f5b7483; root tree b8e916dd35209b78d5dbf68d49bed83517498ebe.",
+      "Owner-local calculated payload tree 5473ec45358f23c0cd791155647dd34211c34475; original repo payload recomputation required before commit/release.",
+      "Utviklerblikk_Release_Exact_Delta_20261020.patch: 586381 bytes, SHA-256 B978A0031E728160F7F9EC24BC1A0A119A34E04871F5401C0D04E335881AABB5; 77 files, +15392/-78 lines; reviewer inspected the supplied patch, but did not run the repository source/test suite.",
+      "Utviklerblikk-trinn-5(2).zip: 01_KILDE_OG_TESTSTATUS.md, 02_AKSEPTREVISJON_6_AKTIVITETER.md, 03_FUNNREGISTER_OG_PRIORITERT_TILTAKSPLAN.md and 06_SLUTTSTATUS.md, supported by screenshots; reported 262/262 scoped tests and 21/21 selected browser tests, plus build/format/lint/type/bundle/circular checks.",
+      "Stage-5 reviewers recorded zero confirmed serious functional failures, noted unresolved learner-observation/accessibility limits, isolated six sessions/37 cards, and found the candidate read-only. Source work logs linked outside the step-5 ZIP are not present in the package.",
+      "Utviklerblikk_Release_Preflight_20261020.zip: inspected package v1.8.0, service worker cache refresh contract, scripts/run-release-gate.mjs and scripts/release-review-binding.mjs; release gate requires an applicable committed review and exact clean candidate.",
+      "Owner October-20 freeze: annotated remote tag utviklerblikk-pilot-accepted-20261020 at 1a27b9e, tag object d4022ed43d4c5520369b69aa7eb0152f60c7e989. No source alteration in that freeze.",
+      "Not performed independently in this review: full repository tests, native immutable release gate, production-hosted smoke, actual phone/browser zoom, screen-reader announcements, human learning-effect study, or full visual comparison of changed non-pilot RPG surfaces."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-REL-01",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Existing Ali fixed-row number rendering (correct order displayed as 3–1–4–2) and long 320px matching states may increase cognitive burden; some matching hints are generic. Step 5 identified observed states but no reproduced serious correctness failure. Its P1 labels were acceptance priorities, not confirmed P1 release defects.",
+      "resolution": "Owner accepted the six-activity pilot pedagogically and visually on 2026-10-20; keep the observations visible. Do not change the frozen lesson content as a speculative release repair. Reopen only if a concrete failure is demonstrated."
+    },
+    {
+      "id": "UV-REL-02",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Actual physical phones, genuine browser zoom, independent screen-reader speech output and measured comprehension/transfer were not verified. Passing scoped accessibility/browser automation is not equivalent.",
+      "resolution": "Restrict claims to tested desktop/emulated browser states and owner pilot acceptance. Test affected production learner flows where feasible; retain unresolved evidence gaps without representing them as completed tests."
+    },
+    {
+      "id": "UV-REL-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The proposed production delta includes visible non-pilot surfaces and support tooling: RPG Settings gear/position, RPG Home and map styles, global profile-card layout, LessonView goal emphasis and CSS bundle-budget thresholds. This is larger than a six-activity content-only change.",
+      "resolution": "Treat all 77 paths as intentional scope of the proposed immutable candidate rather than claiming an isolated Utviklerblikk-only diff. Require the existing complete CI/release suite and explicit release-owner review of affected general RPG visuals before production publication. Do not split/rewrite the frozen tag or silently discard prior user work."
+    },
+    {
+      "id": "UV-REL-04",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Step 5 reran 262 scoped tests and 21 selected Chromium tests, but not the complete repository test, dependency audit, release gate or production-hosted smoke. A green scoped run cannot prove full integration quality.",
+      "resolution": "Run the repository-native immutable verify:release on the review-bound candidate through the documented GitHub workflow. Preserve failure artifacts and stop publication on failure; verify exact Git/Vercel identity and the actual hosted application afterward."
+    },
+    {
+      "id": "UV-REL-05",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "check-build-budget.mjs writes informational CSS threshold messages to stderr above 25000 gzip bytes while the native release runner intentionally rejects stderr/warnings. The scoped step-5 build reported 14087 CSS gzip bytes, below that threshold.",
+      "resolution": "No current release effect evidenced. Document the future policy/gate incompatibility for a separate maintenance change if the CSS budget warning is reached; do not weaken the release gate in this release."
+    },
+    {
+      "id": "UV-REL-06",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "MicroTrack allows at most six sessions per track and Generelt already fills six. This prevents naive next-category expansion, but does not invalidate the accepted six-activity pilot.",
+      "resolution": "Defer category architecture and new Scrum/Kanban content to a separate post-release development phase; do not mix future feature work into this frozen candidate."
+    },
+    {
+      "id": "UV-REL-07",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Historical risk of exposing Programme 2 microlearning in another programme, or writing learner results or XP, is addressed by programme-scoped routing and stateless microlearning models; specific tests target these boundaries.",
+      "resolution": "Source adds explicit scope lookups, no new persistence model and relevant App/domain/e2e tests for CS50 isolation and non-writing flows; the full release gate must rerun them on the final candidate."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Conditional GO for release certification of this exact frozen payload, with no new product/code changes requested. The evidence supports no independently established unresolved P0/P1 release defect. Owner pedagogical/visual acceptance is recorded, but unverified device/learning properties and non-pilot shared UI changes remain explicitly identified. Proceed is not production acceptance: use review-only successor commit, existing strict native release gate, normal protected-branch integration and verified Vercel publication; stop on a reproduced product issue, failed gate, changed payload or unresolved owner scope conflict. No direct deploy or automatic version bump is authorized by this review."
+  }
+}

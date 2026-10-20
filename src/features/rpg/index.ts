@@ -7,11 +7,14 @@ export {
   buildRpgModuleSummary,
   buildRpgStudyResourceSummary,
   loadRpgBadgeGallerySummary,
+  loadRpgCampaignPosition,
   loadRpgCourseMapSummary,
   loadRpgHeroProfileSummary,
   loadRpgHubSummary,
+  loadRpgMicroAvailability,
   loadRpgModuleSummary,
   loadRpgStudyResourceSummary,
+  type RpgMicroAvailability,
   type RpgReadModelOptions,
 } from './model/readModels';
 export {

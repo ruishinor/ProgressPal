@@ -274,6 +274,102 @@ test('imports a backup from settings when onboarding is complete', async ({
   expect(await readLedgerCounts(page)).toEqual(before);
 });
 
+// On a desktop the two profile cards sit side by side and the shorter one is
+// stretched to the taller one's height; its heading, explanation and fields
+// must stay together at the top (they once spread over that height). On a
+// phone the cards stack and the spacing is as before. Screenshots go to
+// TRACK_SCREENSHOT_DIR when it is set, outside the repository.
+for (const viewport of [
+  { height: 900, width: 1280 },
+  { height: 900, width: 1600 },
+  { height: 844, width: 390 },
+] as const) {
+  test(`keeps the profile editor together on /rpg/settings at ${viewport.width}px, with one Settings gear in the HUD`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await completeOnboarding(page);
+    await page.goto('/rpg/settings');
+    const card = page
+      .locator('.card')
+      .filter({ has: page.getByRole('heading', { name: 'Edit profile' }) });
+    const title = card.getByRole('heading', { name: 'Edit profile' });
+    const description = card.locator('.card__description').first();
+    const nameLabel = card.getByText('Display name', { exact: true });
+
+    await expect(title).toBeVisible();
+    // Measured top to top: a stretched grid row also stretches the heading's
+    // own box, so a bottom-to-top gap would hide the drift.
+    const gap = async () =>
+      (await description.boundingBox())!.y - (await title.boundingBox())!.y;
+    const fieldGap = async () =>
+      (await nameLabel.boundingBox())!.y - (await description.boundingBox())!.y;
+
+    expect(await gap()).toBeLessThan(48);
+    expect(await fieldGap()).toBeLessThan(96);
+    if (viewport.width >= 1280) {
+      // With the default profile both cards are about as tall. The owner's
+      // screenshot had a taller neighbour (more avatar choices): make it so,
+      // and the editor still keeps together.
+      await page.addStyleTag({
+        content: '.profile-page-grid > .card:last-child { min-height: 1600px }',
+      });
+      expect(await gap(), 'beside a taller card').toBeLessThan(48);
+      expect(await fieldGap(), 'beside a taller card').toBeLessThan(96);
+      const dir = process.env.TRACK_SCREENSHOT_DIR;
+
+      if (dir !== undefined) {
+        await card.screenshot({
+          path: `${dir}/settings-profile-taller-neighbour-after-${viewport.width}.png`,
+        });
+      }
+      // The check can fail: with the cards' content stretched again (the old
+      // behaviour), the heading and its explanation drift apart, as in the
+      // owner's screenshot.
+      await page.addStyleTag({
+        content: '.profile-page-grid > .card { align-content: normal }',
+      });
+      expect(await gap(), 'the old stretched layout').toBeGreaterThan(100);
+      if (dir !== undefined) {
+        await card.screenshot({
+          path: `${dir}/settings-profile-taller-neighbour-before-${viewport.width}.png`,
+        });
+      }
+      await page.reload();
+      await expect(title).toBeVisible();
+    }
+    // The real controls are all still there.
+    await expect(
+      page.getByRole('button', { name: 'Save local settings' }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole('button', { name: 'Export local backup' }),
+    ).toBeEnabled();
+    // One Settings launch, in the HUD, marked as the current page.
+    const gear = page.getByRole('link', { name: 'Open Settings' });
+
+    await expect(gear).toHaveCount(1);
+    await expect(gear).toHaveAttribute('aria-current', 'page');
+    expect(
+      await page
+        .getByRole('region', { name: 'Persistent hero HUD' })
+        .getByRole('link', { name: 'Open Settings' })
+        .count(),
+    ).toBe(1);
+    if (process.env.TRACK_SCREENSHOT_DIR !== undefined) {
+      await card.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `${process.env.TRACK_SCREENSHOT_DIR}/settings-profile-${viewport.width}.png`,
+      });
+      await page.goto('/rpg');
+      await page.getByRole('region', { name: 'Persistent hero HUD' }).waitFor();
+      await page.screenshot({
+        path: `${process.env.TRACK_SCREENSHOT_DIR}/home-hud-settings-${viewport.width}.png`,
+      });
+    }
+  });
+}
+
 test('rejects an invalid backup file without mutating data', async ({
   page,
 }) => {

@@ -13,6 +13,7 @@ import {
 import { programvareutviklingAchievements } from './achievements';
 import catalogueJson from './content/catalogue.json';
 import { programvareutviklingLessonCopy } from './lessonCopy';
+import { programvareutviklingMicrolearning } from './microlearning';
 import {
   programvareutviklingDisplayName,
   programvareutviklingTerminology,
@@ -164,5 +165,6 @@ export const programvareutviklingDefinition: ProgrammeDefinition =
       studyGuides: { unitGuides: {}, itemGuides: {} },
       terminology: programvareutviklingTerminology,
       lessons,
+      microlearning: programvareutviklingMicrolearning,
     },
   });

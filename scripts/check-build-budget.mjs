@@ -62,6 +62,10 @@ const report = { budget: releaseBundleBudget, entries, ...result };
 
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 
+for (const warning of result.warnings) {
+  process.stderr.write(`WARNING (does not fail the check): ${warning}\n`);
+}
+
 if (result.violations.length > 0) {
   throw new Error(result.violations.join('\n'));
 }

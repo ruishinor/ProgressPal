@@ -83,6 +83,16 @@ describe('lesson rendering (DC-01 to DC-07, DC-43)', () => {
     expect(lesson).toHaveTextContent(
       'Python og VS Code er på plass, og du har kjørt ditt første program fra terminalen.',
     );
+    // The goal's label is bold, not italic, and only the label: the goal
+    // itself stays ordinary text, and the label is not repeated.
+    const label = within(lesson).getByText('Mål:');
+
+    expect(label.tagName).toBe('STRONG');
+    expect(label.closest('em')).toBeNull();
+    expect(label.parentElement).toHaveTextContent(
+      /^Mål: Python og VS Code er på plass/,
+    );
+    expect(label.parentElement?.textContent).not.toMatch(/Mål:.*Mål/);
   });
 
   it('marks code and terminal text as preformatted English technical text', async () => {

@@ -38,14 +38,18 @@ import {
   type DatabaseSnapshot,
   type ProgressPalDatabase,
 } from '@/lib/db';
-import type {
-  AchievementDefinition,
-  AchievementUnlock,
-  CourseItem,
-  CourseUnit,
-  LevelCurve,
-  ProgrammeScope,
-  ProgressEntry,
+import {
+  listReinforcementSessions,
+  selectPrimer,
+  type AchievementDefinition,
+  type AchievementUnlock,
+  type CampaignPosition,
+  type CourseItem,
+  type CourseUnit,
+  type LevelCurve,
+  type MicroSession,
+  type ProgrammeScope,
+  type ProgressEntry,
 } from '@/lib/domain';
 import { formatLocalDate, getLocalWeekStart } from '@/lib/time';
 import { calculateXpSummary } from '@/lib/xp/engine';
@@ -1124,6 +1128,91 @@ export async function loadRpgCourseMapSummary(
     await getCourseMapReadData(withScope(scope, options)),
     scope,
   );
+}
+
+/**
+ * Where the learner is in the Campaign, for surfaces that need only that
+ * (Microlearning). It is the Campaign's own answer, not a second model: the
+ * same course map and the same `selectQuestRecommendation` that drive Home,
+ * the Map and the "N of M required tasks complete" counts, reduced to the
+ * quests in authored order, whether each is complete or reached (started or
+ * complete), and the current quest. A read; it writes nothing, and a Campaign
+ * that cannot be summarized is `unavailable`, never a guess.
+ */
+export async function loadRpgCampaignPosition(
+  scope: ProgrammeScope,
+  options: RpgReadModelOptions = {},
+): Promise<CampaignPosition> {
+  const data = await getCourseMapReadData(withScope(scope, options));
+  const { courseMap } = buildCourseMapContextFromReadData(data, scope);
+  const modules = courseMap.units.map((unit) =>
+    buildModuleSummary(unit, data, scope),
+  );
+  const recommendation = selectQuestRecommendation(modules, data);
+
+  return {
+    state: recommendation.state === 'unavailable' ? 'unavailable' : 'ready',
+    quests: modules
+      .flatMap((module) => module.quests)
+      .map((quest) => ({
+        complete: isItemComplete(quest.status),
+        id: quest.id,
+        reached: isItemComplete(quest.status) || quest.status === 'started',
+        required: quest.required,
+      })),
+    currentQuestId: recommendation.quest?.id ?? null,
+  };
+}
+
+export type RpgMicroAvailability =
+  | { status: 'failed' }
+  | {
+      status: 'ready';
+      primerId: string | null;
+      /**
+       * The «Repeter» sessions as they may be opened now: each holds only the
+       * topics the learner has reached (`listReinforcementSessions`).
+       */
+      repeatSessions: readonly MicroSession[];
+    };
+
+/**
+ * What Microlearning has open right now: one primer at most and the sessions
+ * that repeat worked-on topics, each narrowed to those topics. The single
+ * answer behind both the `/rpg/micro` picker and the Home entry, so Home can
+ * never advertise a session the picker would not list. A read; it writes nothing. A programme without a
+ * bank, an unreadable content index or an unreadable Campaign is `failed`,
+ * never a guess, and never throws.
+ */
+export async function loadRpgMicroAvailability(
+  scope: ProgrammeScope,
+  options: RpgReadModelOptions = {},
+): Promise<RpgMicroAvailability> {
+  const bank = scope.content.microlearning;
+  const provider = scope.content.lessons;
+
+  if (bank === undefined || provider === undefined) {
+    return { status: 'failed' };
+  }
+
+  try {
+    const [index, position] = await Promise.all([
+      provider.loadIndex(),
+      loadRpgCampaignPosition(scope, options),
+    ]);
+
+    if (index.status !== 'ready') {
+      return { status: 'failed' };
+    }
+
+    return {
+      status: 'ready',
+      primerId: selectPrimer(bank, position)?.id ?? null,
+      repeatSessions: listReinforcementSessions(bank, index.value, position),
+    };
+  } catch {
+    return { status: 'failed' };
+  }
 }
 
 export async function loadRpgModuleSummary(

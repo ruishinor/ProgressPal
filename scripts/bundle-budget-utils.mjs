@@ -9,9 +9,20 @@
 export const releaseBundleBudget = Object.freeze({
   // Owner-authorized raise (2026-10-03: at most 14,000 B after one measured
   // dedupe pass). The pass took 12,004 B to 11,969 B; the bounded lesson
-  // hierarchy rules then measured 12,008 B, so the bound is 12,500 B (about
+  // hierarchy rules then measured 12,008 B, so the bound was 12,500 B (about
   // 4 % headroom).
-  maxCssGzipBytes: 12_500,
+  // Recalibrated to 13,250 B (owner decision, 2026-10-05) for the accepted
+  // microlearning surface. It measured 12,704 B after two consolidation
+  // passes (rpg-button, the RPG tokens and shared flex rules reused; no rule
+  // dropped that a physical device test had validated), and 13,250 B keeps
+  // about the same 4 % headroom over that new baseline.
+  // Owner policy of 2026-10-18 supersedes that tight ceiling. Both CSS levels
+  // are the total gzip bytes of every built .css file (the same measurement
+  // as before; decimal kB): above the warning level the report says so and
+  // the check still passes; above the provisional hard ceiling it fails, and
+  // only an owner decision may move it. It measured 13,250 B at the change.
+  cssGzipWarningBytes: 25_000,
+  maxCssGzipBytes: 40_000,
   maxJavaScriptGzipBytes: 400_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
@@ -69,6 +80,8 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
   const curriculumGzipBytes = sum('curriculum');
   const runtimeAssetGzipBytes = sum('runtime');
   const violations = [];
+  // Reported, never a failure.
+  const warnings = [];
 
   if (largestJavaScriptRawBytes > budget.maxJavaScriptRawBytes) {
     violations.push(
@@ -85,6 +98,10 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
   if (cssGzipBytes > budget.maxCssGzipBytes) {
     violations.push(
       `Total CSS gzip is ${cssGzipBytes} bytes; limit is ${budget.maxCssGzipBytes}.`,
+    );
+  } else if (cssGzipBytes > budget.cssGzipWarningBytes) {
+    warnings.push(
+      `Total CSS gzip is ${cssGzipBytes} bytes, above the ${budget.cssGzipWarningBytes}-byte warning level (hard limit ${budget.maxCssGzipBytes}).`,
     );
   }
 
@@ -113,5 +130,6 @@ export function evaluateBundleBudget(entries, budget = releaseBundleBudget) {
     largestJavaScriptRawBytes,
     runtimeAssetGzipBytes,
     violations,
+    warnings,
   };
 }

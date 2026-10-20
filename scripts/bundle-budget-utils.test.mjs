@@ -26,6 +26,59 @@ test('accepts a bundle exactly at every release limit', () => {
   assert.deepEqual(result.violations, []);
 });
 
+test('CSS: a soft warning above 25,000 B that never fails, a hard limit above 40,000 B', () => {
+  const css = (gzipBytes) =>
+    evaluateBundleBudget([
+      { gzipBytes, kind: 'css', path: 'index.css', rawBytes: 1 },
+    ]);
+
+  assert.equal(releaseBundleBudget.cssGzipWarningBytes, 25_000);
+  assert.equal(releaseBundleBudget.maxCssGzipBytes, 40_000);
+  assert.deepEqual(css(25_000).violations, []);
+  assert.deepEqual(css(25_000).warnings, []);
+
+  const warned = css(25_001);
+
+  assert.deepEqual(warned.violations, []);
+  assert.equal(warned.warnings.length, 1);
+  assert.match(warned.warnings[0], /25001 bytes, above the 25000-byte warning/);
+
+  const atLimit = css(40_000);
+
+  assert.deepEqual(atLimit.violations, []);
+  assert.equal(atLimit.warnings.length, 1);
+
+  const over = css(40_001);
+
+  assert.equal(over.violations.length, 1);
+  assert.match(
+    over.violations[0],
+    /Total CSS gzip is 40001 bytes; limit is 40000/,
+  );
+  // Over the hard limit is a failure, not also a warning.
+  assert.deepEqual(over.warnings, []);
+});
+
+test('a CSS warning leaves every other budget as it was', () => {
+  const result = evaluateBundleBudget([
+    {
+      gzipBytes: releaseBundleBudget.maxJavaScriptGzipBytes + 1,
+      kind: 'js',
+      path: 'a.js',
+      rawBytes: 1,
+    },
+    { gzipBytes: 30_000, kind: 'css', path: 'a.css', rawBytes: 1 },
+  ]);
+
+  assert.equal(result.violations.length, 1);
+  assert.match(result.violations[0], /Total JavaScript gzip/);
+  assert.equal(result.warnings.length, 1);
+  assert.equal(releaseBundleBudget.maxJavaScriptGzipBytes, 400_000);
+  assert.equal(releaseBundleBudget.maxJavaScriptRawBytes, 500_000);
+  assert.equal(releaseBundleBudget.maxCurriculumGzipBytes, 150_000);
+  assert.equal(releaseBundleBudget.maxRuntimeAssetGzipBytes, 7_000_000);
+});
+
 test('reports raw JavaScript, total JavaScript gzip, and CSS gzip independently', () => {
   const result = evaluateBundleBudget([
     { gzipBytes: 250_000, kind: 'js', path: 'a.js', rawBytes: 500_001 },

@@ -1,0 +1,579 @@
+/* Microlearning (/rpg/micro): an immersive surface that fills the viewport.
+   At normal text size one card is one screen and nothing scrolls (the
+   viewport tests fail if one ever does). Nothing is clipped or fixed in
+   height, so when the learner's text is larger the route simply grows past
+   the viewport and the route itself scrolls: one scroll context, no nested
+   ones, and every line and control stays reachable in reading order. Answer,
+   feedback and the action only change the footer. It reads the RPG palette
+   and reuses rpg-button, so it follows the learner's theme. Every control is
+   at least 44 x 44 CSS px and no state depends on colour alone. The
+   interaction follows what the card says, so the question and its answers
+   are read together. Kept small: the stylesheet shares the build's CSS
+   budget. */
+
+html:has(.micro),
+body:has(.micro) {
+  overflow: hidden;
+}
+
+.micro {
+  /* Tap targets: 44px on a short phone, growing to 56px on a tall one. */
+  --micro-tap: clamp(2.75rem, 6.5dvh, 3.5rem);
+
+  background: var(--rpg-bg);
+  color: var(--rpg-text);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  inset: 0;
+  /* Long words break rather than push the route sideways at larger text. */
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  position: fixed;
+  scroll-padding-block: var(--space-4);
+  z-index: 20;
+}
+
+.micro-card__body,
+.micro-card__prompt,
+.micro-card__foot,
+.micro-options,
+.micro-order,
+.micro-lines,
+.micro-sessions,
+.micro-actions,
+.micro-match__column {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(var(--space-2), 1.4dvh, var(--space-3));
+}
+
+.micro__top {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--space-3);
+  min-height: 3.25rem;
+  padding: 0 var(--space-4) 0 var(--space-2);
+}
+
+.micro__progress {
+  display: flex;
+  flex: 1;
+  gap: var(--space-1);
+}
+
+.micro__segment {
+  background: var(--rpg-track);
+  border-radius: var(--radius-pill);
+  flex: 1;
+  height: 0.5rem;
+}
+
+.micro__segment[data-state='done'] {
+  background: var(--rpg-progress);
+}
+
+.micro__segment[data-state='current'] {
+  background: var(--rpg-accent);
+  height: 0.875rem;
+}
+
+/* A card reads top-down in one column of comfortable width: the question
+   sits directly above what the learner acts on. On a phone the footer stays
+   at the bottom edge; on a wide screen it follows the content. */
+.micro-card {
+  align-self: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: min(100%, 40rem);
+}
+
+.micro-card__body {
+  flex: 1;
+  padding: var(--space-1) var(--space-4) var(--space-2);
+}
+
+@media (min-width: 48rem) {
+  .micro-card {
+    flex: none;
+  }
+}
+
+.micro-card__kind {
+  color: var(--rpg-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.micro-card__title {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+
+.micro-card__text,
+.micro-feedback {
+  line-height: 1.4;
+}
+
+.micro-card__foot {
+  background: var(--rpg-surface);
+  border-top: 1px solid var(--rpg-border);
+  flex: none;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+.micro-card__foot .rpg-button {
+  width: 100%;
+}
+
+.micro-feedback {
+  align-items: center;
+  border: 2px solid var(--rpg-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  font-size: var(--text-sm);
+  min-height: 4.5rem;
+  padding: var(--space-1) var(--space-3);
+}
+
+.micro-feedback[data-state='correct'] {
+  border-color: var(--rpg-success);
+}
+
+.micro-feedback[data-state='incorrect'] {
+  border: 2px dashed var(--rpg-danger);
+}
+
+.micro-code,
+.micro-error {
+  background: var(--rpg-surface-raised);
+  border: 1px solid var(--rpg-border);
+  border-radius: var(--radius-sm);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+}
+
+.micro-error {
+  border-left: 4px solid var(--rpg-danger);
+}
+
+.micro pre,
+.micro code,
+.micro-token {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+.micro pre,
+.micro-error code {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.micro-tap {
+  font-weight: 400;
+  justify-content: flex-start;
+  min-height: var(--micro-tap);
+  min-width: 2.75rem;
+  padding: 0 var(--space-3);
+  text-align: left;
+}
+
+.micro .micro-tap[aria-disabled='true'] {
+  cursor: default;
+  opacity: 1;
+}
+
+.micro-tap[aria-pressed='true'] {
+  border-color: var(--rpg-accent);
+}
+
+/* A result changes colour and style, never size: a mark must not reflow the
+   row it sits in, or the next tap target moves under the learner's finger. */
+.micro-tap[data-result='correct'] {
+  border-color: var(--rpg-success);
+  box-shadow: inset 0 0 0 1px var(--rpg-success);
+}
+
+.micro-tap[data-result='incorrect'] {
+  border-color: var(--rpg-danger);
+  border-style: dashed;
+  box-shadow: inset 0 0 0 1px var(--rpg-danger);
+}
+
+.micro-options .micro-tap,
+.micro-match .micro-tap {
+  justify-content: space-between;
+}
+
+.micro-slot {
+  align-items: center;
+  border: 2px dashed var(--rpg-border-strong);
+  border-radius: 50%;
+  display: inline-flex;
+  flex: none;
+  font-weight: 700;
+  height: 1.75rem;
+  justify-content: center;
+  width: 1.75rem;
+}
+
+.micro-tap[aria-pressed='true'] .micro-slot {
+  background: var(--rpg-accent);
+  border-style: solid;
+  color: var(--rpg-on-accent);
+}
+
+/* Concept labels are prose; make room for complete words without changing
+   the existing code-match layout or the auto-fit large-text fallback. */
+.micro-match[data-left-presentation='text'] .micro-tap {
+  padding-inline: var(--space-1);
+}
+
+.micro-match[data-left-presentation='text']
+  .micro-match__column:first-child
+  .micro-tap
+  > span:first-child {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Reserve the same badge width before and after a match so number changes
+   do not rewrap prose answers or move their tap targets. Code cards unchanged. */
+.micro-match[data-left-presentation='text'] .micro-tap > small {
+  flex: 0 0 1.5rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.micro-match {
+  display: grid;
+  gap: var(--space-3);
+  /* Two columns while each keeps a readable width (a 320 px phone included),
+     one when text is larger. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+}
+
+.micro-sessions {
+  list-style: none;
+  padding: 0;
+}
+
+.micro-session {
+  align-items: flex-start;
+  flex-direction: column;
+  width: 100%;
+}
+
+.micro-line,
+.micro-built,
+.micro-pool {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Code parts: snug sides so a line of code wraps less (still 44 px wide). */
+.micro-token {
+  justify-content: center;
+  padding-inline: 0.375rem;
+}
+
+/* A narrow phone: the frame (top bar, side and footer edges) gives the card
+   a little more room. Text, targets and gaps keep their size. */
+@media (max-width: 22.5rem) {
+  .micro-line {
+    gap: var(--space-1);
+  }
+
+  .micro__top {
+    min-height: var(--control-height);
+  }
+
+  .micro-card__body,
+  .micro-card__foot {
+    padding-inline: var(--space-3);
+  }
+
+  .micro-card__foot {
+    padding-bottom: var(--space-1);
+  }
+}
+
+.micro-built {
+  align-content: flex-start;
+  background: var(--rpg-surface-raised);
+  border: 2px dashed var(--rpg-border-strong);
+  border-radius: var(--radius-sm);
+  /* Room for two rows of parts, so the line never grows as parts land. */
+  min-height: calc(var(--micro-tap) * 2 + 1.75rem);
+  padding: var(--space-2);
+}
+
+.micro [inert] {
+  visibility: hidden;
+}
+
+/* Owner-authorized Utviklerblikk presentation. Every rule requires this opt-in. */
+.micro--utviklerblikk .micro-card {
+  flex: none;
+  margin-block: var(--space-2) var(--space-4);
+}
+.micro--utviklerblikk .micro-card__body {
+  flex: none;
+  padding-bottom: var(--space-3);
+}
+.micro--utviklerblikk .micro-card__prompt {
+  gap: var(--space-3);
+}
+.micro--utviklerblikk .micro-card__text,
+.micro--utviklerblikk .micro-feedback {
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+.micro--utviklerblikk .micro-card__foot {
+  background: transparent;
+  padding-block: var(--space-3);
+}
+.micro--utviklerblikk .micro-feedback {
+  padding: var(--space-3);
+}
+.micro--utviklerblikk .micro-card__kind {
+  text-transform: none;
+}
+.micro--utviklerblikk .micro-tap {
+  padding-block: var(--space-2);
+  gap: var(--space-2);
+}
+.micro--utviklerblikk .micro-tap:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.micro--utviklerblikk .utviklerblikk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-actions > .rpg-button {
+  flex: 1;
+  min-width: 5rem;
+  width: auto;
+}
+.micro--utviklerblikk .utviklerblikk-actions > .rpg-button:last-child {
+  flex: 2;
+}
+.micro--utviklerblikk .utviklerblikk-match {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+}
+.micro--utviklerblikk h2 {
+  font-size: var(--text-base);
+}
+.micro--utviklerblikk .utviklerblikk-match .micro-tap {
+  padding-inline: var(--space-3);
+}
+.micro--utviklerblikk .utviklerblikk-match .micro-tap > small {
+  flex-basis: 3.5rem;
+}
+.micro--utviklerblikk .utviklerblikk-match .micro-tap[aria-pressed='true'] {
+  outline: 2px solid var(--rpg-accent);
+  outline-offset: 2px;
+}
+.micro--utviklerblikk .micro-order .micro-tap {
+  justify-content: space-between;
+}
+.micro--utviklerblikk .utviklerblikk-pairs ol,
+.micro--utviklerblikk .utviklerblikk-sequence ol {
+  padding-left: var(--space-6);
+  display: grid;
+  gap: var(--space-3);
+}
+.micro--utviklerblikk .utviklerblikk-pairs li > *,
+.micro--utviklerblikk .utviklerblikk-sequence small {
+  display: block;
+}
+.micro--utviklerblikk .utviklerblikk-sequence small {
+  color: var(--rpg-text-muted);
+}
+.micro--utviklerblikk .utviklerblikk-previous summary {
+  min-height: 2.75rem;
+  cursor: pointer;
+  padding-block: var(--space-2);
+}
+
+/* Keep the full-width label and reserved pair marker inside the button at large text. */
+.micro--utviklerblikk .utviklerblikk-match .micro-tap > span:first-child {
+  min-width: 0;
+}
+
+/* Stage 4: one stable source list, adjacent counterparts and four numbered rows. */
+.micro--utviklerblikk .utviklerblikk-slots,
+.micro--utviklerblikk .utviklerblikk-match-sources {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-slots .micro-tap {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+}
+.micro--utviklerblikk .utviklerblikk-slots .micro-tap > span:last-child {
+  min-width: 0;
+}
+.micro--utviklerblikk .utviklerblikk-slots small {
+  display: block;
+}
+.micro--utviklerblikk .utviklerblikk-slots [aria-pressed='true'] .micro-slot {
+  border-style: solid;
+  background: var(--rpg-accent);
+  color: var(--rpg-on-accent);
+}
+.micro--utviklerblikk .utviklerblikk-slots [data-result='correct'] .micro-slot {
+  background: var(--rpg-success);
+  color: var(--rpg-bg);
+}
+.micro--utviklerblikk
+  .utviklerblikk-slots
+  [data-result='incorrect']
+  .micro-slot {
+  background: transparent;
+  border-color: var(--rpg-danger);
+  color: var(--rpg-text);
+}
+.micro--utviklerblikk .utviklerblikk-mobile-match {
+  display: grid;
+  gap: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-match-sides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-match-sides .rpg-button {
+  flex: 1;
+  min-width: 5rem;
+  min-height: 2.75rem;
+}
+.micro--utviklerblikk .utviklerblikk-match-sides [aria-pressed='true'] {
+  border-color: var(--rpg-accent);
+  box-shadow: inset 0 -3px var(--rpg-accent);
+}
+.micro--utviklerblikk .utviklerblikk-mobile-match .micro-tap {
+  padding-inline: var(--space-3);
+  width: 100%;
+}
+.micro--utviklerblikk
+  .utviklerblikk-mobile-match
+  .micro-tap
+  > span:first-child {
+  min-width: 0;
+}
+.micro--utviklerblikk
+  .utviklerblikk-mobile-match
+  .micro-tap
+  > small[aria-hidden='true'] {
+  display: none;
+}
+.micro--utviklerblikk
+  .utviklerblikk-mobile-match
+  .micro-tap[aria-pressed='true'] {
+  border-color: var(--rpg-accent);
+  box-shadow: inset 0 0 0 1px var(--rpg-accent);
+}
+.micro--utviklerblikk .utviklerblikk-candidates {
+  display: grid;
+  gap: var(--space-2);
+  border-left: 2px solid var(--rpg-accent);
+  padding-left: var(--space-2);
+  margin-block: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-found {
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--rpg-success);
+}
+.micro--utviklerblikk .utviklerblikk-found > * {
+  display: block;
+}
+.micro--utviklerblikk .utviklerblikk-order-primary {
+  display: flex;
+  flex: 1;
+  min-width: 5rem;
+}
+.micro--utviklerblikk .utviklerblikk-order-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.micro--utviklerblikk .utviklerblikk-order-tools .rpg-button {
+  background: transparent;
+  border-color: transparent;
+  color: var(--rpg-text);
+  text-decoration: underline;
+  min-height: 2.75rem;
+}
+.micro--utviklerblikk .micro-card__foot {
+  border-top: 0;
+  padding-block: var(--space-2);
+}
+.micro--utviklerblikk .micro-feedback {
+  border: 0;
+  border-radius: 0;
+  min-height: auto;
+  padding: var(--space-2) 0;
+}
+.micro--utviklerblikk .micro-feedback[data-state='incorrect'] {
+  border: 0;
+  border-left: 3px dashed var(--rpg-danger);
+  padding-left: var(--space-3);
+}
+.micro--utviklerblikk .micro-feedback[data-state='correct'],
+.micro--utviklerblikk .micro-feedback[data-state='revealed'] {
+  border-left: 3px solid var(--rpg-border-strong);
+  padding-left: var(--space-3);
+}
+.micro--utviklerblikk .utviklerblikk-actions {
+  align-items: stretch;
+}
+.micro--utviklerblikk .utviklerblikk-actions > .rpg-button:last-child {
+  flex: 1;
+}
+.micro--utviklerblikk .micro-card__foot .rpg-button[aria-disabled='true'] {
+  background: var(--rpg-surface-raised);
+  border-color: var(--rpg-border);
+  color: var(--rpg-text-muted);
+}
+.micro--utviklerblikk .micro-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.micro--utviklerblikk .micro-actions > .rpg-button {
+  flex: 1;
+  min-width: 8rem;
+  width: auto;
+}
+
+/* Activity navigation is a quiet destination; progression remains the salient action. */
+.micro--utviklerblikk .utviklerblikk-actions > .rpg-button:first-child {
+  background: transparent;
+  border-color: transparent;
+  color: var(--rpg-text);
+  font-weight: 400;
+  padding-block: 0;
+  text-decoration: underline;
+  min-height: 2.75rem;
+}
+.micro--utviklerblikk .utviklerblikk-actions > .rpg-button:last-child,
+.micro--utviklerblikk .utviklerblikk-order-primary > .rpg-button {
+  padding-block: var(--space-2);
+  min-height: 2.75rem;
+}

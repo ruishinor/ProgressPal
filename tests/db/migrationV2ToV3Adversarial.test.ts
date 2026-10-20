@@ -510,7 +510,26 @@ describe('multi-tab old-shell upgrade (MR-13/14: existing Dexie defaults, no new
       name,
     );
 
-    await upgradingDatabase.open();
+    // Assert and consume only Dexie's known versionchange warning from this
+    // deliberately live old tab. Forward every unexpected warning unchanged.
+    const expectedWarning =
+      `Another connection wants to upgrade database '${name}'. ` +
+      'Closing db now to resume the upgrade.';
+    const originalWarn = console.warn;
+    const observedWarnings: unknown[][] = [];
+    const warn = vi.spyOn(console, 'warn').mockImplementation((...args) => {
+      observedWarnings.push(args);
+      if (args.length !== 1 || args[0] !== expectedWarning) {
+        originalWarn(...args);
+      }
+    });
+
+    try {
+      await upgradingDatabase.open();
+      expect(observedWarnings).toEqual([[expectedWarning]]);
+    } finally {
+      warn.mockRestore();
+    }
 
     // Dexie's own default versionchange handler closed the old tab's
     // connection so this upgrade was never blocked.

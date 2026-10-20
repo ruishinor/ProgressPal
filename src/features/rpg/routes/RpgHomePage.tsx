@@ -1,5 +1,10 @@
 import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
+import {
+  loadRpgMicroAvailability,
+  type RpgMicroAvailability,
+} from '@/features/rpg/model/readModels';
+import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -16,10 +21,15 @@ import type {
   RpgHubSummary,
   RpgQuestSummary,
 } from '@/features/rpg/model/types';
-import { getRpgResourcePath, rpgMapPath } from '@/lib/routing/rpgRoutePaths';
+import {
+  getRpgResourcePath,
+  getRpgTrackPath,
+  rpgMapPath,
+  rpgMicroPath,
+} from '@/lib/routing/rpgRoutePaths';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
-import { requireProgrammeScope } from '@/lib/domain';
+import { requireProgrammeScope, type ProgrammeScope } from '@/lib/domain';
 
 function getStatusTone(statusVariant: RpgQuestSummary['statusVariant']) {
   const tones: Record<RpgQuestSummary['statusVariant'], RpgStatusTone> = {
@@ -42,12 +52,78 @@ function hasLocalActivity(summary: RpgHubSummary) {
   );
 }
 
+/**
+ * What the Microlearning line on Home may promise, from the very function that
+ * fills the `/rpg/micro` picker (a read, nothing written). `null` until it has
+ * answered for the current summary, when the programme ships no bank, and when
+ * the answer failed: Home then says nothing rather than advertise a session
+ * that may not exist, and the quest above is never held up waiting for it.
+ */
+function useMicroOffer(scope: ProgrammeScope, summary: RpgHubSummary | null) {
+  const hasBank = scope.content.microlearning !== undefined;
+  const [read, setRead] = useState<{
+    availability: RpgMicroAvailability;
+    summary: RpgHubSummary;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!hasBank || summary === null) {
+      return undefined;
+    }
+    let active = true;
+
+    void loadRpgMicroAvailability(scope).then((availability) => {
+      if (active) {
+        setRead({ availability, summary });
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [hasBank, scope, summary]);
+
+  if (read === null || read.summary !== summary) {
+    return null;
+  }
+  const { availability } = read;
+
+  return availability.status === 'ready'
+    ? {
+        primer: availability.primerId !== null,
+        repeat: availability.repeatSessions.length > 0,
+      }
+    : null;
+}
+
+/**
+ * Shown only on request, behind the (i) of an entry. True to the app: these
+ * surfaces write nothing, and XP comes from Campaign work (tasks, focus
+ * sessions and content within them).
+ */
+const campaignRewards =
+  'XP, nivåer og Achievements får du gjennom arbeidet i kampanjen.';
+
+/** What Mikroøkt offers right now, from the same answer as its link. */
+function getMicroNow(offer: { primer: boolean; repeat: boolean }) {
+  if (offer.primer && offer.repeat) {
+    return 'Nå kan du både forberede deg og øve igjen.';
+  }
+  if (offer.primer) {
+    return 'Nå kan du forberede deg på neste oppgave.';
+  }
+  return offer.repeat
+    ? 'Nå kan du øve igjen på det du har jobbet med.'
+    : 'Akkurat nå er det ingen mikroøkt.';
+}
+
 export function RpgHomePage() {
-  const { copy, notesOnDemand } = requireProgrammeScope(
-    useAppState().programmeScope,
-  ).content.terminology;
+  const scope = requireProgrammeScope(useAppState().programmeScope);
+  const { copy, notesOnDemand } = scope.content.terminology;
   const { hubState: state, refreshHub } =
     useOutletContext<RpgShellOutletContext>();
+  const microOffer = useMicroOffer(scope, state.summary);
+  const tracks = scope.content.microlearning?.tracks ?? [];
 
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
@@ -196,6 +272,56 @@ export function RpgHomePage() {
                 showValue={summary.currentModule.requiredItemCount > 0}
                 value={summary.currentModule.completionPercent}
               />
+            </div>
+          )}
+
+          {/* Secondary, contextual ways in, after the quest above and never
+              instead of it. Mikroøkt: only a programme that ships
+              microlearning has it, and the link exists only while the picker
+              would list a session; some Campaign phases (Lab, Oppdrag)
+              honestly have none, and Home then says so and links nowhere.
+              Tracks are open whatever the Campaign position, so their
+              entries need no progress read. Each entry is a link with its own
+              (i) beside it, never inside it; side by side where there is
+              room, stacked where not. */}
+          {microOffer === null && tracks.length === 0 ? null : (
+            <div
+              className="rpg-hub__module-context rpg-hub__entries"
+              // An open (i) makes its own entry taller, never moves the other.
+              style={{ alignItems: 'start' }}
+            >
+              {microOffer === null ? null : (
+                <div className="rpg-hub__entry">
+                  {microOffer.primer || microOffer.repeat ? (
+                    <RpgButton href={rpgMicroPath} variant="secondary">
+                      Mikroøkt
+                    </RpgButton>
+                  ) : (
+                    <p className="rpg-hub__note">
+                      Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes
+                      flere.
+                    </p>
+                  )}
+                  <RpgInfoNote label="Om Mikroøkt" size="md">
+                    I Mikroøkt kan du forberede deg på kommende oppgaver og øve
+                    på det du allerede har jobbet med, gjennom korte oppgaver.{' '}
+                    {getMicroNow(microOffer)} {campaignRewards}
+                  </RpgInfoNote>
+                </div>
+              )}
+              {tracks.map((track) => (
+                <div className="rpg-hub__entry" key={track.id}>
+                  <RpgButton
+                    href={getRpgTrackPath(track.id)}
+                    variant="secondary"
+                  >
+                    {track.title}
+                  </RpgButton>
+                  <RpgInfoNote label={`Om ${track.title}`} size="md">
+                    {track.about ?? track.summary} {campaignRewards}
+                  </RpgInfoNote>
+                </div>
+              ))}
             </div>
           )}
         </RpgPanel>

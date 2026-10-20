@@ -585,6 +585,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Side by side, a card is as tall as its taller neighbour; its own content
+   stays together at the top instead of spreading over that height. */
+.profile-page-grid > .card {
+  align-content: start;
+}
+
 .placeholder-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
