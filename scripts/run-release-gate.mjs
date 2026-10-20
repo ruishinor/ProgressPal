@@ -364,6 +364,11 @@ try {
     },
     {
       executable: process.execPath,
+      args: npmArgs(['run', 'audit']),
+      label: 'dependency audit',
+    },
+    {
+      executable: process.execPath,
       args: ['./node_modules/@playwright/test/cli.js', '--version'],
       label: 'Playwright version',
       validate: (record) => {
@@ -441,11 +446,6 @@ try {
       executable: process.execPath,
       args: npmArgs(['run', 'check:circular']),
       label: 'circular dependency analysis',
-    },
-    {
-      executable: process.execPath,
-      args: npmArgs(['run', 'audit']),
-      label: 'dependency audit',
     },
     {
       executable: 'git',
