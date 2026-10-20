@@ -287,6 +287,10 @@ body:has(.micro) {
 /* A narrow phone: the frame (top bar, side and footer edges) gives the card
    a little more room. Text, targets and gaps keep their size. */
 @media (max-width: 22.5rem) {
+  .micro-line {
+    gap: var(--space-1);
+  }
+
   .micro__top {
     min-height: var(--control-height);
   }
