@@ -5,6 +5,7 @@ import { resolveDatabaseMigrationContext } from '@/app/providers/programmeCompos
 import {
   defaultLearnerProfileValues,
   enrolAndSwitchActiveProgramme,
+  getLessonPosition,
   initializeDatabase,
   saveLearnerProfile,
 } from '@/lib/db';
@@ -24,12 +25,78 @@ import { p2Modules } from '../../programmes/p2Content';
 
 const p2 = programvareutviklingDefinition;
 
+// Observe real provider mutation promises only in the stage-navigation tests
+// that explicitly await publication and assert that no mutation rejected.
+const stageMutations = vi.hoisted(() => ({
+  enabled: false,
+  promises: [] as Promise<unknown>[],
+  settled: new Set<Promise<unknown>>(),
+  rejected: [] as unknown[],
+}));
+
+vi.mock('@/lib/appState/useAppState', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/lib/appState/useAppState')>();
+  const { useCallback } = await import('react');
+
+  return {
+    ...actual,
+    useAppState: () => {
+      const state = actual.useAppState();
+      const { runLocalMutation } = state;
+      const observedRunLocalMutation = useCallback(
+        <Result,>(
+          mutation: () => Promise<Result>,
+          options?: { invalidateRoute?: boolean },
+        ): Promise<Result> => {
+          const promise = runLocalMutation(mutation, options);
+          if (stageMutations.enabled) {
+            stageMutations.promises.push(promise);
+            void promise.then(
+              () => {
+                stageMutations.settled.add(promise);
+              },
+              (error: unknown) => {
+                stageMutations.rejected.push(error);
+                stageMutations.settled.add(promise);
+              },
+            );
+          }
+          return promise;
+        },
+        [runLocalMutation],
+      );
+      return { ...state, runLocalMutation: observedRunLocalMutation };
+    },
+  };
+});
+
+async function awaitStageMutation(fromIndex: number) {
+  const started = stageMutations.promises.slice(fromIndex);
+  expect(started.length).toBeGreaterThan(0);
+  // runLocalMutation resolves only after the provider's refresh has settled.
+  // waitFor keeps the React scheduler active while that publication completes.
+  await waitFor(
+    () =>
+      expect(started.every((work) => stageMutations.settled.has(work))).toBe(
+        true,
+      ),
+    { timeout: 10_000 },
+  );
+  expect(stageMutations.rejected).toHaveLength(0);
+}
+
 beforeEach(() => {
+  stageMutations.enabled = false;
+  stageMutations.promises.length = 0;
+  stageMutations.settled.clear();
+  stageMutations.rejected.length = 0;
   closeSharedDatabase();
   getSharedDatabase(resolveDatabaseMigrationContext());
 });
 
 afterEach(() => {
+  stageMutations.enabled = false;
   vi.restoreAllMocks();
   localStorage.removeItem(localCoordinationStorageKeys.message);
   localStorage.removeItem(localCoordinationStorageKeys.revision);
@@ -79,6 +146,8 @@ describe('LF-014: a stage change moves the learner to the new stage', () => {
   it('focuses and scrolls to the heading of the stage that opens', async () => {
     const scroll = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
     const lesson = await openLesson('s1-m01-o03');
+    stageMutations.enabled = true;
+    const beforeNext = stageMutations.promises.length;
 
     fireEvent.click(
       within(lesson).getByRole('button', { name: 'Neste etappe' }),
@@ -90,11 +159,14 @@ describe('LF-014: a stage change moves the learner to the new stage', () => {
     expect(document.activeElement).toHaveAttribute('tabindex', '-1');
     expect(lesson).toContainElement(document.activeElement as HTMLElement);
     expect(scroll.mock.contexts).toContain(document.activeElement);
+    await awaitStageMutation(beforeNext);
   });
 
   it('does the same when going back to the previous stage', async () => {
     const scroll = vi.spyOn(HTMLElement.prototype, 'scrollIntoView');
     const lesson = await openLesson('s1-m01-o03');
+    stageMutations.enabled = true;
+    const beforeNext = stageMutations.promises.length;
 
     fireEvent.click(
       within(lesson).getByRole('button', { name: 'Neste etappe' }),
@@ -102,7 +174,9 @@ describe('LF-014: a stage change moves the learner to the new stage', () => {
     await waitFor(() =>
       expect(document.activeElement).toHaveTextContent(/^Etappe 2 av 2/),
     );
+    await awaitStageMutation(beforeNext);
     scroll.mockClear();
+    const beforePrevious = stageMutations.promises.length;
     fireEvent.click(
       within(lesson).getByRole('button', { name: 'Forrige etappe' }),
     );
@@ -111,6 +185,7 @@ describe('LF-014: a stage change moves the learner to the new stage', () => {
       expect(document.activeElement).toHaveTextContent(/^Etappe 1 av 2/),
     );
     expect(scroll.mock.contexts).toContain(document.activeElement);
+    await awaitStageMutation(beforePrevious);
   });
 });
 
@@ -142,16 +217,29 @@ describe('LF-029: the end of a lesson says where the learner is and what is next
 
   it('at the last available lesson, says plainly that nothing more exists yet', async () => {
     const lesson = await openLesson('s1-m02-chk');
+    stageMutations.enabled = true;
 
     // The module check has three stages; the guidance belongs to the last.
     expect(
       within(lesson).queryByRole('region', { name: 'Slik går du videre' }),
     ).toBeNull();
+    let previousSavedStep = -1;
     for (const stage of [2, 3]) {
+      const beforeStage = stageMutations.promises.length;
       fireEvent.click(
         within(lesson).getByRole('button', { name: 'Neste etappe' }),
       );
       await within(lesson).findByText(new RegExp(`^Etappe ${stage} av 3`));
+
+      // Stage visibility alone does not prove the async bookmark write finished.
+      const saved = await waitFor(async () => {
+        const position = await getLessonPosition('s1-m02-chk');
+        expect(position).not.toBeNull();
+        expect(position!.stepIndex).toBeGreaterThan(previousSavedStep);
+        return position!;
+      });
+      previousSavedStep = saved.stepIndex;
+      await awaitStageMutation(beforeStage);
     }
 
     const next = within(lesson).getByRole('region', {

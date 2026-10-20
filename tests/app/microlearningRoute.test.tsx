@@ -846,11 +846,12 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await onboard();
     await activateProgramme2();
     await completeRequired(13);
-    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=3');
+    const first = await renderAppAtRoute('/rpg/micro?okt=variabler&kort=3');
     expect(
       await screen.findByRole('heading', { level: 1, name: learnCard!.title }),
     ).toBeInTheDocument();
     expect(router.state.location.search).toBe('?okt=variabler&kort=1');
+    first.unmount();
 
     await renderAppAtRoute('/rpg/micro?okt=variabler&kort=3', {
       microSession: true,
@@ -866,10 +867,11 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await completeRequired(13);
 
     for (const search of ['?okt=typer-og-input&kort=1', '?okt=finnes-ikke']) {
-      await renderAppAtRoute(`/rpg/micro${search}`);
+      const mounted = await renderAppAtRoute(`/rpg/micro${search}`);
       await picker();
       expect(router.state.location.search).toBe('');
       expect(screen.queryByText(/Tall eller tekst\?/)).toBeNull();
+      mounted.unmount();
     }
 
     // A session with only some topics reached opens with those topics only.
@@ -927,13 +929,16 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await activateProgramme2();
     await completeRequired(24);
     injected.failRead = true;
-    await renderAppAtRoute('/rpg/micro?okt=variabler&kort=1');
+    const failingRoute = await renderAppAtRoute(
+      '/rpg/micro?okt=variabler&kort=1',
+    );
     expect(
       await screen.findByRole('heading', {
         name: 'Mikroøkter er ikke tilgjengelige',
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(learnCard!.title)).toBeNull();
+    failingRoute.unmount();
 
     injected.failRead = false;
     await enrolAndSwitchActiveProgramme('cs50x', {
