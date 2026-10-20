@@ -748,8 +748,8 @@ function findPartIssues(session: MicroSession): string[] {
  * four pairs; nothing shown already solved), with three differences that
  * follow from what a track is. Cards cite the track, not a catalogue unit. A
  * Learn card may teach in text alone. A session starts by teaching and ends
- * on what to take away. The track's own list is one screen, so it holds at
- * most six sessions.
+ * on what to take away. Tracks without categories allow one to six sessions;
+ * categorized tracks can contain more with each session in one category.
  */
 function findTrackIssues(
   bank: MicrolearningBank,

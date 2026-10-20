@@ -87,12 +87,11 @@ function readStep(
  * progress read and nothing is written. A programme without the track gets
  * the feature's short notice, never another programme's cards.
  *
- * The learner's place (list, or activity and card) lives in the address, and
- * every move on is a new history entry. So the browser's Back returns to the
- * previous card or to the list, Forward goes again where the learner has
- * already been, Back from the list leaves the track as normal, and «Lukk»
- * still goes Home. Nothing is trapped: this route never pushes an entry of
- * its own accord and never listens to `popstate`.
+ * The learner's place (category overview, category activity list, or
+ * activity/card) lives in the address. Learner navigation adds history
+ * entries, so Back and Forward revisit prior entries. The «Lukk» link
+ * returns Home, and this route does not push during render or listen
+ * to `popstate`.
  */
 export function MicroTrackRoute() {
   const { trackId } = useParams();
