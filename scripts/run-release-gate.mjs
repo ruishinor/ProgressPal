@@ -435,6 +435,7 @@ try {
       executable: process.execPath,
       args: npmArgs(['run', 'test:e2e']),
       label: 'end-to-end tests',
+      timeoutMs: 83 * 60 * 1000,
     },
     {
       executable: process.execPath,
@@ -469,6 +470,7 @@ try {
       command.args,
       command.label,
       command.validate,
+      command.timeoutMs,
     );
   }
 
