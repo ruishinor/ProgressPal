@@ -319,6 +319,22 @@ body:has(.micro) {
   visibility: hidden;
 }
 
+.micro .micro-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-3);
+}
+.micro .micro-categories > li {
+  display: flex;
+}
+.micro .micro-category {
+  align-items: flex-start;
+  flex-direction: column;
+  padding: var(--space-4);
+  text-align: left;
+  width: 100%;
+}
+
 /* Owner-authorized Utviklerblikk presentation. Every rule requires this opt-in. */
 .micro--utviklerblikk .micro-card {
   flex: none;
