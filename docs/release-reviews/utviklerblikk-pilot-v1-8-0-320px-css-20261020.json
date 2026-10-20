@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-pilot-v1-8-0-320px-css-20261020",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent, bounded review of owner-supplied exact four-line CSS diff and pre-existing CI failure evidence, 2026-10-20; separate from implementing operator",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f4359f557d647ca2c3429a7f80b5b8496a9779ff",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Delta-only independent review of the four-line, CSS-only narrow-screen adjustment at local commit d6d2d530c03a70b93ec001ca1af24bfc57f26d58 (parent ed2c659d643e4c500f067200f345deb2f83f327d, reported Git tree 29b7f87d173f8dec7a496eaa734577d0451f8df8), native payload f4359f557d647ca2c3429a7f80b5b8496a9779ff. Change to src/styles/microlearning.css adds .micro-line { gap: var(--space-1); } within the existing @media (max-width: 22.5rem) breakpoint. The rule targets code-token spacing on narrow viewports; no product text, data model, component logic, tests, test assertions, CI deadlines or dependency files change in the owner-supplied diff. Original exact pre-repair commit ed2c659d643e4c500f067200f345deb2f83f327d completed local native release certification with 3,367 passing unit/integration tests and 257 passing browser tests, zero diagnostics; its GitHub PR #44 Ubuntu job failed one 320x568 Mikroøkt E2E assertion on four states of feil-skrivefeil, each +6px vertical overflow; 256 other browser cases passed and no global timeout. Owner ran the exact single failing Playwright test on Windows after the CSS change: 1 passed (58.5 seconds body, 1.1 minutes overall), prettier check passed, git diff --check passed, and committed only four inserted CSS lines; no full or Linux test has been run on the new payload. Decision PROCEED to attach this independently authored, payload-bound review evidence and submit the unchanged repair to GitHub for full required hosted validation. This is not Linux PASS, release certification or permission to merge/deploy. Previous independently accepted product, test-lifecycle and timeout-tooling review findings carry forward unchanged.",
+    "evidence": [
+      "Pre-repair local exact-commit native release manifest: status passed; commit ed2c659d643e4c500f067200f345deb2f83f327d; Git tree 87ded0651e3299893fa9eb6b803baa4fd68b8921; payload dc11d057af55321af6df229e2ec657e7cb70b700. All 21 commands exit 0, including 3,367 unit/integration tests in 197 files, 257 Playwright tests, circular analysis, dependency audit, and final clean checkout. It is valid historical evidence for the original payload, not a certification of this CSS patch.",
+      "Preserved GitHub PR #44 failed run 39429172907 (job 118649390470), uploaded release-evidence-final-candidate ZIP: synthetic PR merge commit 125b96722d51ca27c2ea9230a42f77ccda4b43d6 had exact prior reviewed Git tree 87ded0651e3299893fa9eb6b803baa4fd68b8921 and payload dc11d057af55321af6df229e2ec657e7cb70b700. 3,367 unit/integration cases passed; 256 Playwright passed, one failed, zero skips/retries; E2E completed without timing out after 45.9m. CI warnings reflect failing test/runner and do not establish a separate deprecation or OS-migration cause.",
+      "GitHub single failure: e2e/microlearning.spec.ts:770:5, Mikroøkt at 320 x 568, every card state fits with question next to its choices; assertion at line 824 (scrolledStates should be empty). Four feil-skrivefeil states (prompt, first miss, retry, answer revealed) each measured +6px scrollHeight-clientHeight. All other 256 Playwright cases passed. The saved trace and screenshot show final parenthesis token wrapping onto separate rows in each of two code lines; a platform-specific layout difference is plausible but precise CSS box attribution is not independently proved.",
+      "Owner-provided unchanged source excerpt in Pasted text(20261020-175053).txt shows narrow-screen breakpoint @media (max-width: 22.5rem), .micro flex layout with overflow-y: auto, .micro-card body/footer rules, and Playwright scrolledStates no-scroll assertion. Specific card feil-skrivefeil is a tap interaction with two short tokenized code lines and a NameError prompt; source inspection produced no product/data change requirement.",
+      "Exact owner-supplied Git diff from d3661d9 to af57e6a in src/styles/microlearning.css contains only four inserted lines immediately inside @media (max-width: 22.5rem): .micro-line { gap: var(--space-1); }. No deletion or assertion weakening; at that breakpoint existing gap var(--space-2) is reduced to var(--space-1) only for .micro-line. On previously uploaded CSS/source excerpt this is a bounded structural fit adjustment; not independently tested on Linux.",
+      "Owner-reported precommit verification: correct branch and HEAD, single modified file, no staged extras, git diff --check PASS and prettier CSS formatting PASS. Committed one-file four-line insertion locally: commit d6d2d530c03a70b93ec001ca1af24bfc57f26d58, parent ed2c659d643e4c500f067200f345deb2f83f327d, Git tree 29b7f87d173f8dec7a496eaa734577d0451f8df8, clean worktree; repository-native payload SHA f4359f557d647ca2c3429a7f80b5b8496a9779ff. Independent reviewer did not access local Git object database and treats these identities as operator reported.",
+      "Owner-reported directly affected Windows focused test inventory: exactly one e2e/microlearning.spec.ts test at 320 x 568 selected by grep, one worker, zero retries, 1/1 passed in 58.5 seconds (1.1m command). This does not establish Ubuntu success; no 3,367-unit-suite or 257-E2E-suite rerun occurred after this CSS change.",
+      "Original 13 findings retained verbatim from certified timeout-budget review as embedded in manifest /mnt/data/2026-10-20T12-02-09-268Z-utviklerblikk-pilot-v1-8-0-timeout-budget-20261020-pass-0.json (selected review SHA256 a3176c22b95b37b6a47594cceee20469b08294ae3cec6c7545badfb9d23cb810). Their historical statuses are preserved; acceptance and scope of previous reviewed product and tooling are not retroactively rewritten.",
+      "Not verified: GitHub Actions on the new payload, whether Linux 320 x 568 scroll overflow is eliminated in every relevant state, potential shared narrow-screen effects in other .micro-line cards, final changed-candidate native full certification, post-merge Vercel production smoke. Stop and inspect specific CI finding if GitHub E2E remains red; do not claim deployed readiness."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-REL-01",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Existing Ali fixed-row number rendering (correct order displayed as 3–1–4–2) and long 320px matching states may increase cognitive burden; some matching hints are generic. Step 5 identified observed states but no reproduced serious correctness failure. Its P1 labels were acceptance priorities, not confirmed P1 release defects.",
+      "resolution": "Owner accepted the six-activity pilot pedagogically and visually on 2026-10-20; keep the observations visible. Do not change the frozen lesson content as a speculative release repair. Reopen only if a concrete failure is demonstrated."
+    },
+    {
+      "id": "UV-REL-02",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Actual physical phones, genuine browser zoom, independent screen-reader speech output and measured comprehension/transfer were not verified. Passing scoped accessibility/browser automation is not equivalent.",
+      "resolution": "Restrict claims to tested desktop/emulated browser states and owner pilot acceptance. Test affected production learner flows where feasible; retain unresolved evidence gaps without representing them as completed tests."
+    },
+    {
+      "id": "UV-REL-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The proposed production delta includes visible non-pilot surfaces and support tooling: RPG Settings gear/position, RPG Home and map styles, global profile-card layout, LessonView goal emphasis and CSS bundle-budget thresholds. This is larger than a six-activity content-only change.",
+      "resolution": "Treat all 77 paths as intentional scope of the proposed immutable candidate rather than claiming an isolated Utviklerblikk-only diff. Require the existing complete CI/release suite and explicit release-owner review of affected general RPG visuals before production publication. Do not split/rewrite the frozen tag or silently discard prior user work."
+    },
+    {
+      "id": "UV-REL-04",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Step 5 reran 262 scoped tests and 21 selected Chromium tests, but not the complete repository test, dependency audit, release gate or production-hosted smoke. A green scoped run cannot prove full integration quality.",
+      "resolution": "Run the repository-native immutable verify:release on the review-bound candidate through the documented GitHub workflow. Preserve failure artifacts and stop publication on failure; verify exact Git/Vercel identity and the actual hosted application afterward."
+    },
+    {
+      "id": "UV-REL-05",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "check-build-budget.mjs writes informational CSS threshold messages to stderr above 25000 gzip bytes while the native release runner intentionally rejects stderr/warnings. The scoped step-5 build reported 14087 CSS gzip bytes, below that threshold.",
+      "resolution": "No current release effect evidenced. Document the future policy/gate incompatibility for a separate maintenance change if the CSS budget warning is reached; do not weaken the release gate in this release."
+    },
+    {
+      "id": "UV-REL-06",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "MicroTrack allows at most six sessions per track and Generelt already fills six. This prevents naive next-category expansion, but does not invalidate the accepted six-activity pilot.",
+      "resolution": "Defer category architecture and new Scrum/Kanban content to a separate post-release development phase; do not mix future feature work into this frozen candidate."
+    },
+    {
+      "id": "UV-REL-07",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Historical risk of exposing Programme 2 microlearning in another programme, or writing learner results or XP, is addressed by programme-scoped routing and stateless microlearning models; specific tests target these boundaries.",
+      "resolution": "Source adds explicit scope lookups, no new persistence model and relevant App/domain/e2e tests for CS50 isolation and non-writing flows; the full release gate must rerun them on the final candidate."
+    },
+    {
+      "id": "UV-REL-08",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Initial lesson test instrumentation observed and handled mutation rejections across tests without matching rejection assertions, risking loss of ordinary unhandled-rejection visibility.",
+      "resolution": "Final reviewed file uses disabled-by-default stageMutations.enabled; only the three stage-navigation/progression tests opt in after setup and explicitly check rejected mutations. The original promise is returned and unrelated tests do not attach rejection observers. Independently inspected source and owner-reported probe, not an independently run Vitest test."
+    },
+    {
+      "id": "UV-REL-09",
+      "severity": "P3",
+      "status": "resolved",
+      "description": "Initial lesson test mutation wrapper changed callback identity with unrelated context state due to useMemo(...,[state]).",
+      "resolution": "The final reviewed wrapper uses useCallback(...,[runLocalMutation]), following the production mutation function dependency instead. The wrapper invokes and returns the original provider function/promise; no application source changed."
+    },
+    {
+      "id": "UV-REL-10",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The lesson observer awaits provider runLocalMutation settlement and verifies LF-029 bookmark progression but does not independently prove every downstream LessonView reloadEvidence call settled; complete release-suite diagnostic silence also remains unverified.",
+      "resolution": "Provider settlement and persistence assertions are improved and no residual race was reproduced in the supplied evidence. Do not broaden instrumentation speculatively; retain native release gate as final check. Stop and classify any concrete diagnostic if reproduced."
+    },
+    {
+      "id": "UV-REL-11",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "The original Playwright global suite budget of 1,800s and nested 1,860/1,920s execution limits were insufficient for the expanded sequential 257-case E2E suite. The previously recorded native gate failed on suite time despite 234 passing cases and no individual test assertion failure.",
+      "resolution": "The reviewed test-independent tooling diff raises suite/child/E2E-command/CI job budgets to 75/76/83/130 minutes, respectively; only E2E receives the 83-minute command override while other release commands keep their 32-minute default, with one worker and zero retries unchanged. Effective hierarchy verified from supplied diff and baseline run() source. Execution success with the revised limits remains NOT VERIFIED and must be established by a native exact-candidate gate."
+    },
+    {
+      "id": "UV-REL-12",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The 75-minute Playwright budget and 130-minute hosted job allowance are engineering forecasts based on incomplete historical CI timing, not observed complete performance on this 257-case suite; slower hardware or new failures can still cause timeouts.",
+      "resolution": "Retain strict per-test timeouts, zero retries and all assertions. Run exact immutable native release certification and GitHub hosted validation; do not call the run PASS until every case and downstream check completes."
+    },
+    {
+      "id": "UV-REL-13",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "New releaseWorkflow.test.ts additions evaluate source slices in a VM using textual boundaries, creating coupling to the runner file layout and adding considerable code for a narrow timeout change.",
+      "resolution": "The source-based test does exercise actual run() forwarding under mocked containment and retains diagnostic/skips/retries behavior checks, so no current material correctness defect was demonstrated. Defer any test simplification/refactor to ordinary maintenance rather than expanding this release repair."
+    },
+    {
+      "id": "UV-REL-14",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The previously certified Windows payload failed GitHub Ubuntu Playwright at 320x568: four feil-skrivefeil states each introduced +6px of vertical overflow in a no-scroll card. The new four-line CSS spacing correction has passed one exact focused Windows Playwright test but has not yet passed the Ubuntu scenario that originally failed. Reducing a shared .micro-line gap may also affect other narrow-screen cards, though no further defect is demonstrated.",
+      "resolution": "Accept this as an explicitly unverified, bounded correction solely for the purpose of collecting decisive GitHub/Linux release-gate evidence; do NOT accept the six-pixel overflow as a production release exception. Preserve 320x568 no-scroll assertion, interaction/text sizes, original touch targets, and all other tests. PR #44 merge and production deployment must remain blocked until the new payload passes the required hosted gate, including the failed Linux scenario, with no skipped tests/retries/warnings. If Linux remains red, diagnose only the observed overflow rather than reopening the whole product or repeating the local full suite."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS for the narrow source-level CSS-only diff at local commit d6d2d530c03a70b93ec001ca1af24bfc57f26d58, payload f4359f557d647ca2c3429a7f80b5b8496a9779ff, not PASS for the Ubuntu E2E failure or full release certification. Proceed to add only this correctly named independent review record, validate its exact bytes and selected payload using the repository-native review consumer, locally commit as evidence-only and verify unchanged payload SHA, then perform a guarded normal push to update PR #44. Let one required GitHub CI run determine Linux behavior; do not rerun the full native local suite, alter tests, loosen fit criteria, open a new product review, or deploy/merge on this review alone. If CI reports PASS on exact candidate and required checks, proceed with controlled merge preflight. If red, preserve failed evidence and address only that specific issue. Existing accepted product and previous 13 findings are carried forward unchanged."
+  }
+}
