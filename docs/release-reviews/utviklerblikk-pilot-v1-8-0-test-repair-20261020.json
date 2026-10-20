@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-pilot-v1-8-0-test-repair-20261020",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent source review of the three-file test-only repair, 2026-10-20; separate from implementing session",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "bf8e9797649ebeb9a3fa71631116bd662709d76e",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent delta-focused review of the three test-file repair committed by the owner at 3636e13d7899514d6be8fbc96f46e0a9e56d6133 (reported Git tree b22187eb617974a02b1479625dde749de66b3fd8; parent d5f3eeb91ce6fe8137861bef275af9bddbb50df7). Source review compared the exact owner-supplied final three test files to baseline source from the 2026-10-20 review bundle and evaluated the revised React mutation observer, route teardown, Dexie warning interception and retained assertions. The three final files match reviewed SHA-256 identities; diff totals +116/-4. The two previously blocking observer concerns were resolved; one existing P3 lifecycle-observation limitation remains non-blocking. The earlier independent product review for payload tree 5473ec45358f23c0cd791155647dd34211c34475 and owner acceptance apply to unchanged pilot product bytes only, and its accepted risks are carried below. Conditional GO to one candidate-bound native release certification, NOT certification itself or permission to push, merge or deploy. Git HEAD/tree/payload binding and clean checkout were reported from the owner local repository; the reviewer did not execute the full repository tests or independently read the local Git object database.",
+    "evidence": [
+      "Owner-reported exact local candidate: branch pilot/tenk-som-en-utvikler; HEAD 3636e13d7899514d6be8fbc96f46e0a9e56d6133; parent d5f3eeb91ce6fe8137861bef275af9bddbb50df7; Git tree b22187eb617974a02b1479625dde749de66b3fd8; repo-native payload tree bf8e9797649ebeb9a3fa71631116bd662709d76e; clean Git status; origin/master 81321fd157f58ff5864d4655eace19838a9cfe45. These Git identities were not independently fetched by the reviewer.",
+      "Independent SHA-256 check of attached tests/app/microlearningRoute.test.tsx: 392677bafa7dd9a5caf2dacaff1292d6ccaeaa80ff04c580ce50db1a5944d216; reconstructed source from previous repair package matches exactly; baseline delta +8/-3.",
+      "Independent SHA-256 check of attached tests/db/migrationV2ToV3Adversarial.test.ts: 77f19bb272c6c289f31db91e2ef131984b3fd77dd67c2237c121c17541b04a12; reconstructed source from previous repair package matches exactly; baseline delta +20/-1.",
+      "Independent SHA-256 check of attached tests/features/lessons/learnerFeedbackRemediation.test.tsx: 207f9da8b0195c1906036c3f5ff2f61e7688285aa6747984cf6a993fe4b17f3a; new changes from prior repair confine promise observation to opted-in stage tests and memoize the wrapper against runLocalMutation; baseline delta +88/-0.",
+      "Previous bounded package ProgressPal_Release_Repair_Independent_Review_20261020(1).zip: 00_READ_ME_FIRST.md, 01_Exact_Repair_Diff.patch, 02_Baseline_Source.zip (AppStateProvider, LessonView, test baselines and release runner), 04_Previous_Accepted_Review.json and test configuration were inspected. Initial patch SHA-256 e9ba43b73f6b3edaba8f6757f680a4d290e12a7e093bdae5fe9fe01e5b1311ee applies to the earlier +109/-4 variant, NOT the complete final +116/-4 repair.",
+      "Owner-reported final focused validation: 59/59 combined tests passed under normal console interception; repository lint, typecheck, Prettier and git diff --check passed; disposable otherwise-unhandled rejection probe reportedly passed and was removed. Not independently re-executed in this review.",
+      "Earlier owner-reported native verify:release failed in GitHub Actions run 39380998289: 3,363 tests passed but the strict gate detected stderr diagnostics. This failure remains open until a clean candidate-bound native gate passes; successful focused tests do not supersede it.",
+      "Prior approved product review from 04_Previous_Accepted_Review.json bound to payload tree 5473ec45358f23c0cd791155647dd34211c34475. Its seven existing accepted/resolved risk findings remain applicable to the unchanged product scope and are carried forward; not revalidated as a fresh full product review.",
+      "Owner-reported frozen annotated tag utviklerblikk-pilot-accepted-20261020: tag object d4022ed43d4c5520369b69aa7eb0152f60c7e989; target 1a27b9e13753d9cce4c0effdf5e5d6596f5b7483. The reviewer did not mutate or independently fetch this tag.",
+      "Not performed: independent retrieval of local commit/tree, full native release run, remote integration, physical phone/screen-reader observations, or Vercel production smoke. Those are separate downstream steps."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-REL-01",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Existing Ali fixed-row number rendering (correct order displayed as 3–1–4–2) and long 320px matching states may increase cognitive burden; some matching hints are generic. Step 5 identified observed states but no reproduced serious correctness failure. Its P1 labels were acceptance priorities, not confirmed P1 release defects.",
+      "resolution": "Owner accepted the six-activity pilot pedagogically and visually on 2026-10-20; keep the observations visible. Do not change the frozen lesson content as a speculative release repair. Reopen only if a concrete failure is demonstrated."
+    },
+    {
+      "id": "UV-REL-02",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Actual physical phones, genuine browser zoom, independent screen-reader speech output and measured comprehension/transfer were not verified. Passing scoped accessibility/browser automation is not equivalent.",
+      "resolution": "Restrict claims to tested desktop/emulated browser states and owner pilot acceptance. Test affected production learner flows where feasible; retain unresolved evidence gaps without representing them as completed tests."
+    },
+    {
+      "id": "UV-REL-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The proposed production delta includes visible non-pilot surfaces and support tooling: RPG Settings gear/position, RPG Home and map styles, global profile-card layout, LessonView goal emphasis and CSS bundle-budget thresholds. This is larger than a six-activity content-only change.",
+      "resolution": "Treat all 77 paths as intentional scope of the proposed immutable candidate rather than claiming an isolated Utviklerblikk-only diff. Require the existing complete CI/release suite and explicit release-owner review of affected general RPG visuals before production publication. Do not split/rewrite the frozen tag or silently discard prior user work."
+    },
+    {
+      "id": "UV-REL-04",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Step 5 reran 262 scoped tests and 21 selected Chromium tests, but not the complete repository test, dependency audit, release gate or production-hosted smoke. A green scoped run cannot prove full integration quality.",
+      "resolution": "Run the repository-native immutable verify:release on the review-bound candidate through the documented GitHub workflow. Preserve failure artifacts and stop publication on failure; verify exact Git/Vercel identity and the actual hosted application afterward."
+    },
+    {
+      "id": "UV-REL-05",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "check-build-budget.mjs writes informational CSS threshold messages to stderr above 25000 gzip bytes while the native release runner intentionally rejects stderr/warnings. The scoped step-5 build reported 14087 CSS gzip bytes, below that threshold.",
+      "resolution": "No current release effect evidenced. Document the future policy/gate incompatibility for a separate maintenance change if the CSS budget warning is reached; do not weaken the release gate in this release."
+    },
+    {
+      "id": "UV-REL-06",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "MicroTrack allows at most six sessions per track and Generelt already fills six. This prevents naive next-category expansion, but does not invalidate the accepted six-activity pilot.",
+      "resolution": "Defer category architecture and new Scrum/Kanban content to a separate post-release development phase; do not mix future feature work into this frozen candidate."
+    },
+    {
+      "id": "UV-REL-07",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Historical risk of exposing Programme 2 microlearning in another programme, or writing learner results or XP, is addressed by programme-scoped routing and stateless microlearning models; specific tests target these boundaries.",
+      "resolution": "Source adds explicit scope lookups, no new persistence model and relevant App/domain/e2e tests for CS50 isolation and non-writing flows; the full release gate must rerun them on the final candidate."
+    },
+    {
+      "id": "UV-REL-08",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Initial lesson test instrumentation observed and handled mutation rejections across tests without matching rejection assertions, risking loss of ordinary unhandled-rejection visibility.",
+      "resolution": "Final reviewed file uses disabled-by-default stageMutations.enabled; only the three stage-navigation/progression tests opt in after setup and explicitly check rejected mutations. The original promise is returned and unrelated tests do not attach rejection observers. Independently inspected source and owner-reported probe, not an independently run Vitest test."
+    },
+    {
+      "id": "UV-REL-09",
+      "severity": "P3",
+      "status": "resolved",
+      "description": "Initial lesson test mutation wrapper changed callback identity with unrelated context state due to useMemo(...,[state]).",
+      "resolution": "The final reviewed wrapper uses useCallback(...,[runLocalMutation]), following the production mutation function dependency instead. The wrapper invokes and returns the original provider function/promise; no application source changed."
+    },
+    {
+      "id": "UV-REL-10",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The lesson observer awaits provider runLocalMutation settlement and verifies LF-029 bookmark progression but does not independently prove every downstream LessonView reloadEvidence call settled; complete release-suite diagnostic silence also remains unverified.",
+      "resolution": "Provider settlement and persistence assertions are improved and no residual race was reproduced in the supplied evidence. Do not broaden instrumentation speculatively; retain native release gate as final check. Stop and classify any concrete diagnostic if reproduced."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Independent PASS for the three exact attached test files (+116/-4); previous F-01 and F-02 are resolved without changing production source. Preserve previously accepted product review and seven risk findings; do not expand scope to UI, pedagogy, migration implementation or additional support framework. Conditional GO to add this review record as evidence only, verify native review consumer accepts its exact bytes and payload binding, and run one full immutable candidate-bound npm run verify:release. The selected candidate payload must remain bf8e9797649ebeb9a3fa71631116bd662709d76e after the evidence-only commit. Stop if native binding or release checks fail. This record does NOT approve deployment, Git push, merge, tag mutation, or claim that production was tested."
+  }
+}
