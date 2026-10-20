@@ -165,6 +165,7 @@ for (const viewport of [
                 'rem}',
         });
       }
+      await page.getByRole('button', { name: /Generelt/ }).click();
       const prefix =
         viewport.width +
         'x' +
@@ -619,3 +620,54 @@ test('navigation DOM and geometry keep activities left and advance right across 
     }
   }
 });
+
+for (const width of [320, 1280]) {
+  test('Utviklerblikk category navigation at ' + width, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await completeOnboarding(page, { programme: 'Programvareutvikling' });
+    await page.goto(base);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Utviklerblikk',
+    );
+    for (const name of ['Scrum', 'Smidig samarbeid', 'Kanban']) {
+      await expect(
+        page.getByRole('button', { name: new RegExp(name) }),
+      ).toBeDisabled();
+    }
+    await inspect(page, 'categories ' + width);
+    expect(
+      (await new AxeBuilder({ page }).include('.micro').analyze()).violations,
+    ).toEqual([]);
+    await capture(page, 'categories-' + width);
+    await tabTo(page, /Generelt/);
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(base + '?kategori=generelt');
+    await expect(
+      page.getByRole('list', { name: 'Velg en aktivitet' }).getByRole('button'),
+    ).toHaveCount(6);
+    await page.reload();
+    await expect(page.getByText('Generelt · 6 aktiviteter')).toBeVisible();
+    await inspect(page, 'category activities ' + width);
+    await action(page, '1. ' + track.sessions[0]!.title);
+    await expect(page).toHaveURL(
+      base + '?aktivitet=' + track.sessions[0]!.id + '&kort=1',
+    );
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      track.sessions[0]!.cards[0]!.title,
+    );
+    await action(page, 'Tilbake til aktiviteter');
+    await expect(page).toHaveURL(base + '?kategori=generelt');
+    await action(page, 'Tilbake til temaer');
+    await expect(page).toHaveURL(base);
+    await page.goBack();
+    await expect(
+      page.getByRole('heading', { name: 'Velg en aktivitet' }),
+    ).toBeVisible();
+    await page.goForward();
+    await expect(page.getByRole('button', { name: /Generelt/ })).toBeVisible();
+    await page.goto(base + '?kategori=scrum');
+    await expect(page).toHaveURL(base);
+    await expect(page.getByRole('button', { name: /Generelt/ })).toBeVisible();
+  });
+}

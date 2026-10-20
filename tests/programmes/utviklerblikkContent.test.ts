@@ -104,6 +104,25 @@ describe('Utviklerblikk content contract', () => {
     ).toEqual(identities);
   });
 
+  it('places every accepted activity in Generelt and leaves the other categories empty', () => {
+    expect(
+      track.categories?.map(({ id, title, summary }) => [id, title, summary]),
+    ).toEqual([
+      ['generelt', 'Generelt', 'Bred utviklerforståelse'],
+      ['scrum', 'Scrum', 'Rammeverk og ansvar'],
+      ['smidig-samarbeid', 'Smidig samarbeid', 'Team og koordinering'],
+      ['kanban', 'Kanban', 'Arbeidsflyt og oversikt'],
+    ]);
+    expect(track.categories?.[0]?.sessionIds).toEqual(
+      track.sessions.map((session) => session.id),
+    );
+    expect(
+      track.categories
+        ?.slice(1)
+        .every((category) => category.sessionIds.length === 0),
+    ).toBe(true);
+  });
+
   it('validates through the existing bank and programme contracts', () => {
     const bank = programvareutviklingDefinition.content.microlearning!;
     expect(bank.tracks).toContain(track);
@@ -234,10 +253,11 @@ describe('Utviklerblikk content contract', () => {
     expect(answer).toMatch(/kapasitet.*påmeldinger/);
   });
 
-  it('introduces no forbidden learner wording or new feature contract', () => {
+  it('introduces no forbidden learner wording or unapproved track fields', () => {
     expect(JSON.stringify(track)).not.toMatch(/\b(?:frivillig|kurs|kurset)\b/i);
     expect(Object.keys(track).sort()).toEqual([
       'about',
+      'categories',
       'id',
       'sessions',
       'summary',

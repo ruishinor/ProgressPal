@@ -27,7 +27,8 @@ import {
 
 /**
  * «Utviklerblikk», the track, inside the real app. It opens with no Campaign
- * progress at all, lists all six activities, plays each one to "Husk dette"
+ * progress at all, groups all six activities under Generelt, plays each one
+ * to "Husk dette"
  * with right and wrong answers, and leaves every learner store exactly as it
  * was (a database snapshot, as in the `/rpg/micro` tests). CS50x has neither
  * the entry nor the track. A new choice after a miss is the one retry; the
@@ -144,7 +145,7 @@ describe('the way in', () => {
   it('lists all six activities with no Campaign progress, outside the RPG shell', async () => {
     await onboard();
     await activateProgramme2();
-    await renderAppAtRoute(trackPath);
+    await renderAppAtRoute(`${trackPath}?kategori=generelt`);
 
     expect(
       await screen.findByRole('heading', { name: track.title }),
@@ -190,7 +191,7 @@ describe('each activity end to end against the real database', () => {
       await activateProgramme2();
       const before = await snapshotDatabase();
 
-      await renderAppAtRoute(trackPath);
+      await renderAppAtRoute(`${trackPath}?kategori=generelt`);
       await user.click(
         await screen.findByRole('button', {
           name: new RegExp(`^${(index as number) + 1}\\. `),
@@ -283,7 +284,7 @@ describe('the activity list and the first card', () => {
 
     await onboard();
     await activateProgramme2();
-    await renderAppAtRoute(trackPath);
+    await renderAppAtRoute(`${trackPath}?kategori=generelt`);
 
     const cue = await screen.findByRole('heading', {
       name: 'Velg en aktivitet',
@@ -314,7 +315,7 @@ describe('a new choice after a miss is the one retry', () => {
 
     await onboard();
     await activateProgramme2();
-    await renderAppAtRoute(trackPath);
+    await renderAppAtRoute(`${trackPath}?kategori=generelt`);
     await user.click(await screen.findByRole('button', { name: /^1\. / }));
     await guardPause();
     await user.click(screen.getByRole('button', { name: 'Neste' }));
@@ -392,7 +393,7 @@ describe('the browser’s Back and Forward', () => {
 
     await onboard();
     await activateProgramme2();
-    await renderAppAtRoute(trackPath);
+    await renderAppAtRoute(`${trackPath}?kategori=generelt`);
     await user.click(await screen.findByRole('button', { name: /^1\. / }));
     expect(heading()).toHaveTextContent(first!.cards[0]!.title);
     await guardPause();
@@ -416,7 +417,7 @@ describe('the browser’s Back and Forward', () => {
     expect(router.state.location.pathname).toBe('/rpg');
   });
 
-  it('starts a typed later card at the first card, and an unknown activity at the list', async () => {
+  it('starts a typed later card at the first card, and an unknown activity at the overview', async () => {
     const kravtyper = track.sessions[1]!;
 
     await onboard();
@@ -429,7 +430,9 @@ describe('the browser’s Back and Forward', () => {
 
     await renderAppAtRoute(`${trackPath}?aktivitet=finnes-ikke&kort=2`);
     expect(
-      await screen.findByRole('heading', { name: 'Velg en aktivitet' }),
+      await screen.findByRole('heading', {
+        name: 'Velg et tema du vil øve på.',
+      }),
     ).toBeInTheDocument();
   });
 
@@ -445,4 +448,75 @@ describe('the browser’s Back and Forward', () => {
       await screen.findByRole('heading', { name: kravtyper.cards[2]!.title }),
     ).toBeInTheDocument();
   });
+});
+
+describe('category navigation through the existing track route', () => {
+  it('selects Generelt by keyboard, reloads the list, and follows browser history', async () => {
+    const user = userEvent.setup();
+    await onboard();
+    await activateProgramme2();
+    const view = await renderAppAtRoute(trackPath);
+    const general = await screen.findByRole('button', { name: /Generelt/ });
+    expect(screen.getByText(track.summary)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Velg en aktivitet' }),
+    ).toBeNull();
+    for (const title of ['Scrum', 'Smidig samarbeid', 'Kanban']) {
+      expect(
+        screen.getByRole('button', { name: new RegExp(title) }),
+      ).toBeDisabled();
+    }
+    await user.tab();
+    expect(general).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(router.state.location.search).toBe('?kategori=generelt');
+    expect(
+      screen.getByRole('list', { name: 'Velg en aktivitet' }),
+    ).toBeInTheDocument();
+    view.unmount();
+    await renderAppAtRoute(
+      router.state.location.pathname + router.state.location.search,
+    );
+    expect(
+      await screen.findByText('Generelt · 6 aktiviteter'),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^1\. / }));
+    expect(router.state.location.search).toBe(
+      '?aktivitet=' + track.sessions[0]!.id + '&kort=1',
+    );
+    await guardPause();
+    await user.click(
+      screen.getByRole('button', { name: 'Tilbake til aktiviteter' }),
+    );
+    expect(router.state.location.search).toBe('?kategori=generelt');
+    await guardPause();
+    await user.click(
+      screen.getByRole('button', { name: 'Tilbake til temaer' }),
+    );
+    expect(router.state.location.search).toBe('');
+    await act(async () => void (await router.navigate(-1)));
+    expect(
+      screen.getByRole('heading', { name: 'Velg en aktivitet' }),
+    ).toBeInTheDocument();
+    await act(async () => void (await router.navigate(1)));
+    expect(
+      screen.getByRole('heading', { name: 'Velg et tema du vil øve på.' }),
+    ).toBeInTheDocument();
+  });
+
+  it.each(['scrum', 'finnes-ikke'])(
+    'redirects unavailable category %s to the overview',
+    async (id) => {
+      await onboard();
+      await activateProgramme2();
+      await renderAppAtRoute(trackPath + '?kategori=' + id);
+      expect(
+        await screen.findByRole('button', { name: /Generelt/ }),
+      ).toBeInTheDocument();
+      expect(router.state.location.search).toBe('');
+      expect(
+        screen.queryByRole('heading', { name: 'Velg en aktivitet' }),
+      ).toBeNull();
+    },
+  );
 });

@@ -9,7 +9,7 @@ import {
 import { SessionRunner } from '@/features/microlearning/components/SessionRunner';
 import { MicroTrackPage } from '@/features/microlearning/routes/MicroTrackPage';
 import { tenkSomEnUtviklerTrack as track } from '@/programmes/programvareutvikling/microlearning/tenkSomEnUtvikler';
-import type { MicroMatchCard, MicroOrderCard } from '@/lib/domain';
+import type { MicroMatchCard, MicroOrderCard, MicroTrack } from '@/lib/domain';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -536,5 +536,86 @@ describe('preserved default and rerender contracts', () => {
     expect(button('Prøv igjen')).toHaveFocus();
     rerender(view());
     expect(button('Prøv igjen')).toHaveFocus();
+  });
+});
+
+describe('the existing picker with categories', () => {
+  it('filters the flat registry in authored order for each selected category', async () => {
+    const sessions = track.sessions;
+    const categorized: MicroTrack = {
+      ...track,
+      categories: [
+        {
+          id: 'one',
+          title: 'One',
+          summary: 'First',
+          sessionIds: [sessions[2]!.id, sessions[0]!.id],
+        },
+        {
+          id: 'two',
+          title: 'Two',
+          summary: 'Second',
+          sessionIds: [sessions[1]!.id],
+        },
+      ],
+    };
+    const onStep = vi.fn();
+    const view = render(
+      <MemoryRouter>
+        <MicroTrackPage
+          track={categorized}
+          step={{ categoryId: 'one' }}
+          onStep={onStep}
+        />
+      </MemoryRouter>,
+    );
+    const choices = within(
+      screen.getByRole('list', { name: 'Velg en aktivitet' }),
+    ).getAllByRole('button');
+    expect(choices.map((button) => button.textContent)).toEqual([
+      '1. ' + sessions[0]!.title,
+      '2. ' + sessions[2]!.title,
+    ]);
+    await userEvent.setup().click(choices[1]!);
+    expect(onStep).toHaveBeenCalledWith({
+      sessionId: sessions[2]!.id,
+      index: 0,
+    });
+    view.rerender(
+      <MemoryRouter>
+        <MicroTrackPage
+          track={categorized}
+          step={{ categoryId: 'two' }}
+          onStep={onStep}
+        />
+      </MemoryRouter>,
+    );
+    expect(
+      within(
+        screen.getByRole('list', { name: 'Velg en aktivitet' }),
+      ).getAllByRole('button'),
+    ).toHaveLength(1);
+    expect(
+      screen.getByRole('button', { name: '1. ' + sessions[1]!.title }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps an uncategorized track on its existing flat chooser', () => {
+    render(
+      <MemoryRouter>
+        <MicroTrackPage
+          track={{ ...track, categories: undefined }}
+          step={null}
+          onStep={() => {}}
+        />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole('list', { name: 'Velg en aktivitet' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(6);
+    expect(
+      screen.queryByRole('button', { name: 'Tilbake til temaer' }),
+    ).toBeNull();
   });
 });

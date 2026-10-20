@@ -35,6 +35,39 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     'Øv på å stille gode spørsmål, forstå krav og se hvordan valgene dine påvirker systemet og andre.',
   about:
     'I Utviklerblikk øver du på å stille gode spørsmål og se sammenhenger gjennom korte oppgaver uten å skrive kode.',
+  categories: [
+    {
+      id: 'generelt',
+      title: 'Generelt',
+      summary: 'Bred utviklerforståelse',
+      sessionIds: [
+        'tsu-behov-eller-losning',
+        'tsu-kravtyper',
+        'tsu-informasjon-funksjon',
+        'tsu-data-mangler',
+        'tsu-handling-atferd',
+        'tsu-rolle-fase',
+      ],
+    },
+    {
+      id: 'scrum',
+      title: 'Scrum',
+      summary: 'Rammeverk og ansvar',
+      sessionIds: [],
+    },
+    {
+      id: 'smidig-samarbeid',
+      title: 'Smidig samarbeid',
+      summary: 'Team og koordinering',
+      sessionIds: [],
+    },
+    {
+      id: 'kanban',
+      title: 'Kanban',
+      summary: 'Arbeidsflyt og oversikt',
+      sessionIds: [],
+    },
+  ],
   sessions: [
     {
       id: 'tsu-behov-eller-losning',

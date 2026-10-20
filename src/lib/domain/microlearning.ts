@@ -194,6 +194,14 @@ export type MicroSessionPart = {
   readonly summary: string;
 };
 
+/** Category membership references the flat track registry; it owns no cards. */
+export type MicroTrackCategory = {
+  readonly id: string;
+  readonly title: string;
+  readonly summary: string;
+  readonly sessionIds: readonly string[];
+};
+
 /**
  * A voluntary track: a small, named set of sessions the learner may open at
  * any time, in any order. It is not tied to the Campaign: nothing about it is
@@ -208,6 +216,7 @@ export type MicroTrack = {
   /** What the track is for, behind the (i) of its Home entry. Optional. */
   readonly about?: string;
   readonly sessions: readonly MicroSession[];
+  readonly categories?: readonly MicroTrackCategory[];
 };
 
 /**
@@ -739,8 +748,8 @@ function findPartIssues(session: MicroSession): string[] {
  * four pairs; nothing shown already solved), with three differences that
  * follow from what a track is. Cards cite the track, not a catalogue unit. A
  * Learn card may teach in text alone. A session starts by teaching and ends
- * on what to take away. The track's own list is one screen, so it holds at
- * most six sessions.
+ * on what to take away. Tracks without categories allow one to six sessions;
+ * categorized tracks can contain more with each session in one category.
  */
 function findTrackIssues(
   bank: MicrolearningBank,
@@ -765,8 +774,46 @@ function findTrackIssues(
     if (track.about !== undefined && track.about.trim() === '') {
       issues.push(`track "${track.id}" has an empty description`);
     }
-    if (track.sessions.length === 0 || track.sessions.length > 6) {
-      issues.push(`track "${track.id}" needs one to six sessions`);
+    if (track.categories === undefined) {
+      if (track.sessions.length === 0 || track.sessions.length > 6) {
+        issues.push(`track "${track.id}" needs one to six sessions`);
+      }
+    } else {
+      if (track.sessions.length === 0 || track.categories.length === 0) {
+        issues.push(`track "${track.id}" needs sessions and categories`);
+      }
+      const categoryIds = new Set<string>();
+      const members = new Set<string>();
+      const sessionIds = new Set(track.sessions.map((session) => session.id));
+      for (const category of track.categories) {
+        if (!idPattern.test(category.id) || categoryIds.has(category.id)) {
+          issues.push(
+            `track "${track.id}" category needs a unique lowercase ID`,
+          );
+        }
+        categoryIds.add(category.id);
+        if (category.title.trim() === '' || category.summary.trim() === '') {
+          issues.push(`category "${category.id}" needs a title and a summary`);
+        }
+        for (const id of category.sessionIds) {
+          if (!sessionIds.has(id)) {
+            issues.push(
+              `category "${category.id}" references unknown session "${id}"`,
+            );
+          }
+          if (members.has(id)) {
+            issues.push(
+              `session "${id}" belongs to more than one category entry`,
+            );
+          }
+          members.add(id);
+        }
+      }
+      for (const id of sessionIds) {
+        if (!members.has(id)) {
+          issues.push(`session "${id}" needs a category`);
+        }
+      }
     }
 
     for (const session of track.sessions) {

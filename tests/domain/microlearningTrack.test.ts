@@ -251,3 +251,65 @@ describe('track rules', () => {
     expect(issues.some((issue) => issue.includes(expected))).toBe(true);
   });
 });
+
+describe('track category membership', () => {
+  const category = {
+    id: 'general',
+    title: 'Generelt',
+    summary: 'Bred forståelse',
+    sessionIds: ['a'],
+  };
+  it('accepts more than six independent activities in one category', () => {
+    const sessions = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) =>
+      session(id),
+    );
+    expect(
+      findMicrolearningBankIssues(
+        withTrack(
+          track({
+            sessions,
+            categories: [
+              { ...category, sessionIds: sessions.map((entry) => entry.id) },
+              { ...category, id: 'empty', sessionIds: [] },
+            ],
+          }),
+        ),
+        units,
+      ),
+    ).toEqual([]);
+  });
+
+  it.each([
+    [[{ ...category, id: 'Bad ID' }], 'unique lowercase ID'],
+    [[category, { ...category, sessionIds: [] }], 'unique lowercase ID'],
+    [[{ ...category, title: ' ' }], 'title and a summary'],
+    [[{ ...category, summary: ' ' }], 'title and a summary'],
+    [[{ ...category, sessionIds: ['missing'] }], 'unknown session'],
+    [[{ ...category, sessionIds: ['a', 'a'] }], 'more than one category entry'],
+    [[category, { ...category, id: 'other' }], 'more than one category entry'],
+    [[{ ...category, sessionIds: [] }], 'needs a category'],
+    [[], 'needs sessions and categories'],
+  ])('rejects invalid category membership %#', (categories, expected) => {
+    expect(
+      findMicrolearningBankIssues(withTrack(track({ categories })), units).some(
+        (issue) => issue.includes(expected),
+      ),
+    ).toBe(true);
+  });
+
+  it('still validates the cards and identities of categorized activities', () => {
+    const invalid = track({
+      categories: [category],
+      sessions: [session('a', { takeaway: ' ' })],
+    });
+    expect(findMicrolearningBankIssues(withTrack(invalid), units)).toContain(
+      'session "a" needs a takeaway',
+    );
+    expect(
+      findMicrolearningBankIssues(
+        withTrack(track({ categories: [category], sessions: [] })),
+        units,
+      ),
+    ).toContain('track "t" needs sessions and categories');
+  });
+});
