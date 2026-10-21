@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-pr45-category-e2e-repair-20261021",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent delta-only review of owner-supplied one-file test diff, preserved PR #45 CI manifest, and focused Playwright results on 2026-10-21; not the implementing operator",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "2a4f9c5b616f4d77fa74f92a8021eba83a66a30d",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent delta-only review of the one-file Playwright test correction committed by the owner at 3e2fd8b1c5babdd7a740e5fd57230a16af3dc918 (parent 17e993959153c42813c0800386a73b405ab2bf0c). The owner-reported native reviewed payload is 2a4f9c5b616f4d77fa74f92a8021eba83a66a30d. This correction updates e2e/microlearning.spec.ts only, adding the Generelt category-selection step before existing six-activity checks and replacing a stale Home-entry six-list-item assumption with four category buttons followed by six Generelt activities. Application source, dependency versions, CI timeouts, assertions governing card behavior and release tooling are unchanged by the correction. The previous independent review of payload 613ba72e6da72d0232faf0d5736ef8fc1a7f6567 remains historical context, not a substitute binding. Decision PROCEED to required CI validation on the corrected payload, not full certification, authorization to merge, or production smoke verification.",
+    "evidence": [
+      "Reviewed the exact 1,499-byte owner-supplied Git patch ProgressPal_PR45_E2E_Picker_Fix.patch and matching owner-provided applied diff: one file e2e/microlearning.spec.ts; helper openTrack selects Generelt and checks six activities, Home-entry assertion checks four category buttons then six activity buttons and category-specific URL. No assertions were deleted other than the obsolete six-list-item expectation.",
+      "Owner-reported original PR #45 native CI evidence: Vitest 3,384/3,384 passes; saved run manifest in release-evidence-final-candidate (4).zip shows payload 613ba72e6da72d0232faf0d5736ef8fc1a7f6567, review resolution and dependency audit passed, then E2E exited 1. The failure is specific to Playwright; previous green stages are historical evidence for the prior payload.",
+      "Owner-reported focused Chromium smoke in a clean detached Vite 8.1.6 checkout: exactly three selected cases (wrong-answer retry, Home entry, keyboard navigation) passed in 12.2 seconds; one worker, zero retries.",
+      "Owner-reported full Utviklerblikk test group using the identical patched test-file bytes in the clean checkout: 16 of 16 Chromium tests passed in 6.6 minutes, one worker, zero retries and 15-minute overall cap; the one-file change was committed on the PR branch as 3e2fd8b1c5babdd7a740e5fd57230a16af3dc918, with no remaining tracked changes reported.",
+      "The passing browser run emitted UTVIKLERBLIKK_SCROLL diagnostics for multiple 320×568 states (up to +299px), some 390×844 states (up to +88px), and no reported overflow at 1280×800 or 1800×1000. The test outcome establishes reachability under its current contract; it does not establish zero-scroll or a satisfactory physical-device experience. There was no product CSS change in this correction.",
+      "The new payload identity 2a4f9c5b616f4d77fa74f92a8021eba83a66a30d is from owner-reported npm run --silent review:payload-tree -- HEAD. The reviewer has not independently read the owner local object database or executed the full Linux release gate on the new payload."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-PR45-01",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "The category picker introduced a new step into the Utviklerblikk route, while existing Playwright tests still searched for numbered activity buttons immediately after entry; the Home-entry test also expected six list items instead of four categories. This caused long CI locator waits and a failed E2E stage.",
+      "resolution": "The one-file test repair updates only those entry assumptions, preserves learning-card assertions, and passed all 16 selected Utviklerblikk Chromium cases locally without retries."
+    },
+    {
+      "id": "UV-PR45-02",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "The passing Utviklerblikk group logs substantial scrolling at the shortest viewport and smaller scrolling in some 390×844 cases. Passing reachability tests are not proof that all content fits or that the UX is ideal.",
+      "resolution": "Record the observed overflow transparently as a bounded UX concern; do not misstate the test as a no-scroll certification, nor introduce unreviewed CSS changes during this test-oracle repair. This reviewer accepts the observation for submission to CI only; production UX acceptance remains a separate owner judgment."
+    },
+    {
+      "id": "UV-PR45-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Sixteen passing Windows Chromium cases do not prove that the complete Playwright suite or required Linux exact-payload CI gate passes. The previous PR CI was red and downstream circular analysis was not reached.",
+      "resolution": "Bind this record to the new exact payload, verify selection in the repository-native resolver, and allow the existing GitHub PR #45 gate to run. Do not merge on focused local results or rerun the historical failed job against old bytes."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed with this one-file test-only correction and one review-evidence-only commit bound to its exact payload; then validate using the existing review resolver and update the same PR #45. The existing Vite 8.1.6 security repair, category source, test expectations, CI timeouts and PWA cache remain unchanged. No further local suite or generic diagnostics are justified unless the next CI result identifies a new concrete failure. Hosted gate PASS and post-merge Vercel smoke are prerequisites for a production-success claim."
+  }
+}
