@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
 type Tap = { group?: string; name: RegExp };
 type Card = { kind: string; id: string; title: string };
@@ -46,7 +46,18 @@ async function capture(page: Page, name: string) {
     await page.screenshot({ path: join(output, name + '.png') });
   }
 }
-async function inspect(page: Page, label: string) {
+/**
+ * Every visible control must fit the viewport once scrolled to. The only
+ * exception is opt-in (`tallGroupedAnswers`, A05 at 320 x 568 with 200 %
+ * root text): there a grouped answer of three criteria is taller than the
+ * screen, so it must instead be reachable at its top and bottom, unclipped
+ * and operable at both ends.
+ */
+async function inspect(
+  page: Page,
+  label: string,
+  { tallGroupedAnswers = false }: { tallGroupedAnswers?: boolean } = {},
+) {
   const result = await page.evaluate<{ problems: string[]; scroll: number }>(
     "(() => {\n    const shell = document.querySelector('.micro'), problems = [];\n    const visible = (el) => el.getClientRects().length > 0 &&\n        !el.closest('.sr-only,[hidden],[inert]') &&\n        getComputedStyle(el).display !== 'none';\n    if (document.scrollingElement.scrollHeight >\n        document.scrollingElement.clientHeight + 1)\n        problems.push('document scroll');\n    if (shell.scrollWidth > shell.clientWidth + 1)\n        problems.push('horizontal overflow');\n    for (const el of shell.querySelectorAll('*')) {\n        if (!visible(el))\n            continue;\n        const s = getComputedStyle(el), r = el.getBoundingClientRect();\n        if (['auto', 'scroll'].includes(s.overflowY))\n            problems.push('nested scroll ' + el.className);\n        if (['hidden', 'clip'].includes(s.overflowY) &&\n            el.scrollHeight > el.clientHeight + 2)\n            problems.push('vertical clipping ' + el.className);\n        if (['hidden', 'clip'].includes(s.overflowX) &&\n            el.scrollWidth > el.clientWidth + 2)\n            problems.push('horizontal clipping ' + el.className);\n        if (r.left < -1 || r.right > innerWidth + 1)\n            problems.push('outside width ' + el.className);\n    }\n    for (const el of shell.querySelectorAll('button,a,summary')) {\n        if (!visible(el))\n            continue;\n        const r = el.getBoundingClientRect();\n        if (r.width < 43.9 || r.height < 43.9)\n            problems.push('small target ' + el.textContent);\n    }\n    return {\n        problems,\n        scroll: shell.scrollHeight - shell.clientHeight,\n        feedback: shell\n            .querySelector('[role=status]')\n            ?.getAttribute('data-state'),\n    };\n})()",
   );
@@ -71,16 +82,70 @@ async function inspect(page: Page, label: string) {
       };
     });
     const viewportHeight = page.viewportSize()!.height;
-    if (hit.bottom - hit.top > viewportHeight) {
-      // Only at enlarged text: a long answer (a set of criteria) can be taller
-      // than the screen. Scrolled to, it must fill the screen, not clip.
-      expect(hit.top, label).toBeLessThanOrEqual(1);
-      expect(hit.bottom, label).toBeGreaterThanOrEqual(viewportHeight - 1);
-    } else {
-      expect(hit.top, label).toBeGreaterThanOrEqual(-1);
-      expect(hit.bottom, label).toBeLessThanOrEqual(viewportHeight + 1);
+    if (
+      tallGroupedAnswers &&
+      hit.bottom - hit.top > viewportHeight &&
+      (await control.locator('.micro-option-set').count()) === 1
+    ) {
+      await expectTallAnswerReachable(control, label);
+      continue;
     }
+    expect(hit.top, label).toBeGreaterThanOrEqual(-1);
+    expect(hit.bottom, label).toBeLessThanOrEqual(viewportHeight + 1);
     expect(hit.reachable, label + ' hit test').toBe(true);
+  }
+}
+/** A grouped answer taller than the screen: both ends reachable and usable. */
+async function expectTallAnswerReachable(control: Locator, label: string) {
+  for (const block of ['start', 'end'] as const) {
+    if (output) {
+      await control.evaluate(
+        (el, at) => el.scrollIntoView({ block: at }),
+        block,
+      );
+      await control.page().screenshot({
+        path: join(output, label + '-tall-answer-' + block + '.png'),
+      });
+    }
+    const end = await control.evaluate((el, at) => {
+      el.scrollIntoView({ block: at });
+      const r = el.getBoundingClientRect(),
+        height = el.ownerDocument.defaultView!.innerHeight,
+        lines = [...el.querySelectorAll('.micro-option-set > span')].map(
+          (line) => line.getBoundingClientRect(),
+        ),
+        line = at === 'start' ? lines[0]! : lines[lines.length - 1]!,
+        y = at === 'start' ? r.top + 4 : r.bottom - 4,
+        target = el.ownerDocument.elementFromPoint(r.left + r.width / 2, y),
+        // The route's own scroll padding leaves room at each end, by design.
+        shell = el.ownerDocument.defaultView!.getComputedStyle(
+          el.closest('.micro')!,
+        ),
+        padding = parseFloat(
+          at === 'start' ? shell.scrollPaddingTop : shell.scrollPaddingBottom,
+        );
+      return {
+        // How far the end sits inside the viewport, beyond the padding.
+        edge: at === 'start' ? r.top - padding : height - padding - r.bottom,
+        lineInView: line.top >= -1 && line.bottom <= height + 1,
+        // Every criterion sits wholly inside its button: nothing is cut off.
+        unclipped: lines.every(
+          (box) =>
+            box.left >= r.left - 1 &&
+            box.right <= r.right + 1 &&
+            box.top >= r.top - 1 &&
+            box.bottom <= r.bottom + 1,
+        ),
+        operable: !!target && (target === el || el.contains(target)),
+      };
+    }, block);
+    // Scrolled to, the end lands exactly at the padded viewport edge.
+    expect(Math.abs(end.edge), label + ' tall answer ' + block).toBeLessThan(2);
+    expect(end.lineInView, label + ' tall answer ' + block + ' line').toBe(
+      true,
+    );
+    expect(end.unclipped, label + ' tall answer lines').toBe(true);
+    expect(end.operable, label + ' tall answer ' + block + ' hit').toBe(true);
   }
 }
 async function action(page: Page, name: string) {
@@ -750,8 +815,18 @@ for (const [id, title] of [
   );
 }
 
+// The question sits directly above what the learner acts on (as in Mikroøkt).
+async function expectQuestionNextToAnswers(page: Page, label: string) {
+  const gap = await page.evaluate<number | null>(
+    "(() => { const prompt = document.querySelector('.micro-card__prompt'), play = document.querySelector('.micro-card__play'); return prompt && play && prompt.lastElementChild ? Math.round(play.getBoundingClientRect().top - prompt.lastElementChild.getBoundingClientRect().bottom) : null; })()",
+  );
+  expect(gap, label + ' question next to answers').not.toBeNull();
+  expect(gap!, label + ' question next to answers').toBeLessThanOrEqual(32);
+}
+
 for (const viewport of [
   { width: 1280, height: 800 },
+  { width: 360, height: 560 },
   { width: 320, height: 568, scale: 200 },
 ]) {
   const label =
@@ -773,6 +848,7 @@ for (const viewport of [
       ] as const) {
         const card = (await openCard(page, id)) as MatchData;
         await enlarge();
+        await expectQuestionNextToAnswers(page, label + ' ' + id);
         await inspect(page, label + ' ' + id + ' idle');
         await capture(page, label + '-' + id + '-idle');
         const [first] = card.pairs;
@@ -829,11 +905,24 @@ for (const viewport of [
         expect(tops[0]!).toBeLessThan(tops[1]!);
         expect(tops[1]!).toBeLessThan(tops[2]!);
       }
-      await inspect(page, label + ' a05 idle');
+      await expectQuestionNextToAnswers(page, label + ' a05');
+      const tall = { tallGroupedAnswers: viewport.scale === 200 };
+      await inspect(page, label + ' a05 idle', tall);
       await capture(page, label + '-a05-idle');
       await taps(page, rightTaps(sets));
       await expect(page.getByRole('status')).toContainText('Riktig.');
-      await inspect(page, label + ' a05 correct');
+      // The result marker of a long answer stays one readable line.
+      const marker = page
+        .getByRole('group', { name: 'Svaralternativer' })
+        .locator('small', { hasText: 'Ditt svar' });
+      const lines = await marker.evaluate((el) => {
+        const lineHeight = parseFloat(
+          el.ownerDocument.defaultView!.getComputedStyle(el).lineHeight,
+        );
+        return el.getBoundingClientRect().height / lineHeight;
+      });
+      expect(lines, label + ' a05 marker on one line').toBeLessThan(1.5);
+      await inspect(page, label + ' a05 correct', tall);
       await capture(page, label + '-a05-correct');
     },
   );

@@ -403,6 +403,14 @@ body:has(.micro) {
 .micro--utviklerblikk .micro-order .micro-tap {
   justify-content: space-between;
 }
+/* A long answer keeps its result marker whole: below the text, not squeezed
+   beside it. A short answer still has it on the same line. */
+.micro--utviklerblikk .micro-options .micro-tap {
+  flex-wrap: wrap;
+}
+.micro--utviklerblikk .micro-options .micro-tap > small {
+  white-space: nowrap;
+}
 /* One answer made of several lines (a set of criteria): each on its own line. */
 .micro--utviklerblikk .micro-option-set {
   display: grid;
