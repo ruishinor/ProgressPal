@@ -10,6 +10,9 @@ import { programvareutviklingDefinition } from '@/programmes/programvareutviklin
 import { tenkSomEnUtviklerTrack as track } from '@/programmes/programvareutvikling/microlearning/tenkSomEnUtvikler';
 
 const cards = track.sessions.flatMap((session) => session.cards);
+const generelt = track.sessions.filter((session) =>
+  track.categories![0]!.sessionIds.includes(session.id),
+);
 function card<K extends MicroCardKind>(
   id: string,
   kind: K,
@@ -97,14 +100,16 @@ describe('Utviklerblikk content contract', () => {
       'Øv på å stille gode spørsmål, forstå krav og se hvordan valgene dine påvirker systemet og andre.',
     );
     expect(
-      track.sessions.map((session) => [
+      generelt.map((session) => [
         session.id,
         session.cards.map((entry) => entry.id),
       ]),
     ).toEqual(identities);
+    // Generelt comes first in the track, before the ACT 18 activities.
+    expect(track.sessions.slice(0, 6)).toEqual(generelt);
   });
 
-  it('places every accepted activity in Generelt and leaves the other categories empty', () => {
+  it('keeps Generelt as accepted and registers six ACT 18 activities in each other category', () => {
     expect(
       track.categories?.map(({ id, title, summary }) => [id, title, summary]),
     ).toEqual([
@@ -114,13 +119,22 @@ describe('Utviklerblikk content contract', () => {
       ['kanban', 'Kanban', 'Arbeidsflyt og oversikt'],
     ]);
     expect(track.categories?.[0]?.sessionIds).toEqual(
-      track.sessions.map((session) => session.id),
+      identities.map(([id]) => id),
     );
-    expect(
-      track.categories
-        ?.slice(1)
-        .every((category) => category.sessionIds.length === 0),
-    ).toBe(true);
+    expect(track.categories?.slice(1).map((entry) => entry.sessionIds)).toEqual(
+      [
+        ['s01', 's02', 's03', 's04', 's05', 's06'].map(
+          (id) => `tsu-scrum-${id}`,
+        ),
+        ['a01', 'a02', 'a03', 'a04', 'a05', 'a06'].map(
+          (id) => `tsu-smidig-${id}`,
+        ),
+        ['k01', 'k02', 'k03', 'k04', 'k05', 'k06'].map(
+          (id) => `tsu-kanban-${id}`,
+        ),
+      ],
+    );
+    expect(track.sessions).toHaveLength(24);
   });
 
   it('validates through the existing bank and programme contracts', () => {
@@ -283,9 +297,9 @@ describe('Utviklerblikk content contract', () => {
     }
   });
   it('applies responsibility, task and status to an unresolved rule before a fresh festival case', () => {
-    const a6 = track.sessions[5]!;
-    expect(track.sessions).toHaveLength(6);
-    expect(cards).toHaveLength(37);
+    const a6 = generelt[5]!;
+    expect(generelt).toHaveLength(6);
+    expect(generelt.flatMap((session) => session.cards)).toHaveLength(37);
     expect(a6.cards).toHaveLength(7);
     const applied = card('tsu-a6-scrum', 'learn');
     expect(a6.cards[4]!.id).toBe('tsu-a6-kanban');
@@ -301,5 +315,122 @@ describe('Utviklerblikk content contract', () => {
     }
     expect(applied.source).toEqual(a6.cards[0]!.source);
     expect(applied.bridge).toMatch(/festival/);
+  });
+});
+
+/**
+ * The 18 ACT 18 activities (final package of 2026-10-21) as the runtime ships
+ * them. Each choice keeps its authored option order, so the authored answer
+ * letters («Riktig svar») are the oracle: one letter per choice card, in card
+ * order, and `match` where the package has a matching task.
+ */
+const act18Keys: Record<string, string[]> = {
+  'tsu-scrum-s01': ['C', 'A'],
+  'tsu-scrum-s02': ['A', 'C'],
+  'tsu-scrum-s03': ['D', 'B', 'A'],
+  'tsu-scrum-s04': ['B', 'C'],
+  'tsu-scrum-s05': ['D', 'A'],
+  'tsu-scrum-s06': ['A', 'B'],
+  'tsu-smidig-a01': ['A', 'B'],
+  'tsu-smidig-a02': ['B', 'A'],
+  'tsu-smidig-a03': ['C', 'A'],
+  'tsu-smidig-a04': ['D', 'match'],
+  'tsu-smidig-a05': ['C', 'B'],
+  'tsu-smidig-a06': ['A', 'C'],
+  'tsu-kanban-k01': ['B', 'C'],
+  'tsu-kanban-k02': ['C', 'A'],
+  'tsu-kanban-k03': ['C', 'D', 'C'],
+  'tsu-kanban-k04': ['C', 'match'],
+  'tsu-kanban-k05': ['B', 'D', 'A'],
+  'tsu-kanban-k06': ['C', 'B', 'A'],
+};
+const act18 = track.sessions.filter((session) => session.id in act18Keys);
+
+describe('ACT 18: Scrum, Kanban and Smidig samarbeid', () => {
+  it.each(act18.map((session) => [session.id, session] as const))(
+    '%s: concept, situation, decision, transfer and takeaway with its authored answers',
+    (id, session) => {
+      const [concept, situation, ...practice] = session.cards;
+
+      expect(concept!.kind).toBe('learn');
+      expect(situation!.kind).toBe('learn');
+      expect(practice.length).toBeGreaterThanOrEqual(2);
+      expect(session.cards.length).toBeGreaterThanOrEqual(4);
+      expect(session.takeaway!.trim()).not.toBe('');
+      expect(
+        practice.map((entry) =>
+          entry.kind === 'select'
+            ? 'ABCD'[entry.options.findIndex((o) => o.id === entry.correctId)]
+            : entry.kind,
+        ),
+      ).toEqual(act18Keys[id]);
+      for (const entry of practice) {
+        if (entry.kind === 'learn')
+          throw new Error(`${entry.id} is not practice`);
+        expect(entry.question?.trim(), entry.id).toBeTruthy();
+        expect(entry.context?.trim(), entry.id).toBeTruthy();
+      }
+    },
+  );
+
+  it('maps K04 and A04 with one unused choice that no pair needs', () => {
+    const k04 = card('tsu-kanban-k04-ny', 'match');
+    expect(k04.pairs.map((pair) => pair.right)).toEqual([
+      'Gjennomstrømning',
+      'Alder',
+      'Syklustid',
+    ]);
+    expect(k04.pairs[0]!.left).toMatch(/Hvor mange.*ferdige.*uke/);
+    expect(k04.pairs[1]!.left).toMatch(/startet på oppgaven min.*holdt på nå/);
+    expect(k04.pairs[2]!.left).toMatch(
+      /Hvor lang tid.*starter til den er ferdig/,
+    );
+    expect(k04.unusedRight).toEqual([{ id: 'wip', label: 'WIP' }]);
+
+    const a04 = card('tsu-smidig-a04-ny', 'match');
+    expect(a04.pairs.map((pair) => pair.right)).toEqual([
+      'Skriftlig beskjed til hele teamet i den felles kanalen',
+      'Kort møte med de berørte, med mål om å ta en beslutning',
+      'Spørsmål direkte til én person som vet svaret',
+    ]);
+    expect(a04.pairs[0]!.left).toMatch(/Alle seks.*ingenting å diskutere/i);
+    expect(a04.pairs[1]!.left).toMatch(/uenige.*bli enige i dag/);
+    expect(a04.pairs[2]!.left).toMatch(/angår bare Emilie/);
+    expect(a04.unusedRight?.map((option) => option.label)).toEqual([
+      'Langt møte med hele teamet',
+    ]);
+    for (const entry of [k04, a04]) {
+      expect(entry.context).toMatch(/blir ikke brukt/);
+      expect(entry.rightOrder).toContain(entry.unusedRight![0]!.id);
+    }
+  });
+
+  it('keeps each A05 set of three criteria as one answer', () => {
+    const a05 = card('tsu-smidig-a05-sporsmal', 'select');
+    expect(
+      a05.options.map((option) => option.label.split('\n').length),
+    ).toEqual([3, 3, 3, 3]);
+    const right = a05.options.find((option) => option.id === a05.correctId)!;
+    expect(right.label).toMatch(
+      /under ett minutt.*\n.*alle registrerte foreldre/,
+    );
+  });
+
+  it('ships learner text only: no authoring notes, markup or answer letters', () => {
+    const text = JSON.stringify(act18);
+    for (const authoring of [
+      /Vises (før|etter) svar/,
+      /Faglig grunnlag/,
+      /Riktig svar/,
+      /Tilbakemelding på/,
+      /i korte trekk/,
+      /ikke det beste valget/,
+      /Kort \d/,
+      /\*\*|\|---/,
+      /\b(?:alternativ|svar) [A-D]\b|\benn [A-D]\b|\bat [A-D] /,
+      /\b(?:frivillig|kurs|kurset)\b/i,
+    ]) {
+      expect(text).not.toMatch(authoring);
+    }
   });
 });

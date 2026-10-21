@@ -539,6 +539,51 @@ describe('preserved default and rerender contracts', () => {
   });
 });
 
+describe('a match with a choice that belongs to no pair (K04)', () => {
+  const k04 = track.sessions
+    .flatMap((session) => session.cards)
+    .find((card) => card.id === 'tsu-kanban-k04-ny') as MicroMatchCard;
+  const side = (name: string) => within(screen.getByRole('group', { name }));
+  const pick = (group: string, text: string) =>
+    side(group).getByRole('button', {
+      name: (name) => name.startsWith(text),
+    });
+
+  it.each([false, true])(
+    'offers WIP, refuses it as a pair, completes without it (mobile %s)',
+    async (onPhone) => {
+      if (onPhone) mobile();
+      const { user } = show(k04.id);
+      const [first, ...rest] = k04.pairs;
+
+      // The unused choice is shown and reachable by keyboard like the others.
+      if (onPhone) {
+        await user.click(button('Kundens spørsmål'));
+        await user.click(pick('Kundens spørsmål', first!.left));
+        pick('Flytmål', 'WIP').focus();
+      } else {
+        pick('Kundens spørsmål', first!.left).focus();
+        await user.keyboard('{Enter}');
+        expect(pick('Flytmål', 'WIP')).toHaveFocus();
+      }
+      await user.keyboard('{Enter}');
+      expect(screen.getByRole('status')).toHaveTextContent(
+        `«${first!.left}» og «WIP» er ikke et par. ${k04.hint}`,
+      );
+      await user.click(button('Prøv igjen'));
+      for (const pair of [first!, ...rest]) {
+        if (onPhone) await user.click(button('Kundens spørsmål'));
+        await user.click(pick('Kundens spørsmål', pair.left));
+        await user.click(pick('Flytmål', pair.right));
+      }
+      expect(screen.getByRole('status')).toHaveTextContent('Riktig nå.');
+      const result = screen.getByRole('region', { name: 'Dine koblinger' });
+      expect(within(result).getAllByRole('listitem')).toHaveLength(3);
+      expect(result).toHaveTextContent('Ikke brukt: WIP');
+    },
+  );
+});
+
 describe('the existing picker with categories', () => {
   it('filters the flat registry in authored order for each selected category', async () => {
     const sessions = track.sessions;
@@ -613,7 +658,7 @@ describe('the existing picker with categories', () => {
     expect(
       screen.getByRole('list', { name: 'Velg en aktivitet' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(6);
+    expect(screen.getAllByRole('listitem')).toHaveLength(track.sessions.length);
     expect(
       screen.queryByRole('button', { name: 'Tilbake til temaer' }),
     ).toBeNull();

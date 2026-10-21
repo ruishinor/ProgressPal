@@ -38,6 +38,21 @@ import {
 const registry = getProgrammeRegistry();
 const track = programvareutviklingDefinition.content.microlearning!.tracks![0]!;
 const trackPath = `/rpg/track/${track.id}`;
+// Every activity with the category that lists it and its row number there.
+const placed = track.sessions.map((session) => {
+  const category = track.categories!.find((entry) =>
+    entry.sessionIds.includes(session.id),
+  )!;
+
+  return {
+    category,
+    row: category.sessionIds.indexOf(session.id) + 1,
+    session,
+  };
+});
+const generelt = placed
+  .filter((entry) => entry.category.id === 'generelt')
+  .map((entry) => entry.session);
 
 function servePackagedContent() {
   vi.stubGlobal('fetch', async (input: string | URL | Request) => {
@@ -153,7 +168,7 @@ describe('the way in', () => {
     expect(screen.getByText(track.summary)).toBeInTheDocument();
     expect(screen.queryByText('Frivillig spor')).toBeNull();
     expect(screen.getAllByRole('listitem')).toHaveLength(6);
-    for (const [index, session] of track.sessions.entries()) {
+    for (const [index, session] of generelt.entries()) {
       expect(
         screen.getByRole('button', {
           name: new RegExp(
@@ -181,20 +196,19 @@ describe('the way in', () => {
 describe('each activity end to end against the real database', () => {
   const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
 
-  it.each(track.sessions.map((session, index) => [session.title, index]))(
-    '%s: plays to the takeaway, wrong then right, and changes no store',
-    async (_title, index) => {
-      const session = track.sessions[index as number]!;
+  it.each(placed)(
+    '$category.title $row: $session.title plays to the takeaway, wrong then right, and changes no store',
+    async ({ category, row, session }) => {
       const user = userEvent.setup();
 
       await onboard();
       await activateProgramme2();
       const before = await snapshotDatabase();
 
-      await renderAppAtRoute(`${trackPath}?kategori=generelt`);
+      await renderAppAtRoute(`${trackPath}?kategori=${category.id}`);
       await user.click(
         await screen.findByRole('button', {
-          name: new RegExp(`^${(index as number) + 1}\\. `),
+          name: new RegExp(`^${row}\\. `),
         }),
       );
 
@@ -258,7 +272,7 @@ describe('each activity end to end against the real database', () => {
       await pause();
       await user.click(
         screen.getByRole('button', {
-          name: new RegExp(`^${(index as number) + 1}\\. `),
+          name: new RegExp(`^${row}\\. `),
         }),
       );
       expect(
@@ -464,8 +478,9 @@ describe('category navigation through the existing track route', () => {
     for (const title of ['Scrum', 'Smidig samarbeid', 'Kanban']) {
       expect(
         screen.getByRole('button', { name: new RegExp(title) }),
-      ).toBeDisabled();
+      ).toBeEnabled();
     }
+    expect(screen.queryByText('Ingen aktiviteter ennå')).toBeNull();
     await user.tab();
     expect(general).toHaveFocus();
     await user.keyboard('{Enter}');
@@ -504,19 +519,62 @@ describe('category navigation through the existing track route', () => {
     ).toBeInTheDocument();
   });
 
-  it.each(['scrum', 'finnes-ikke'])(
-    'redirects unavailable category %s to the overview',
-    async (id) => {
+  it('redirects an unknown category to the overview', async () => {
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(trackPath + '?kategori=finnes-ikke');
+    expect(
+      await screen.findByRole('button', { name: /Generelt/ }),
+    ).toBeInTheDocument();
+    expect(router.state.location.search).toBe('');
+    expect(
+      screen.queryByRole('heading', { name: 'Velg en aktivitet' }),
+    ).toBeNull();
+  });
+
+  it.each(track.categories!.slice(1).map((entry) => [entry.title, entry]))(
+    '%s lists exactly its own six activities in authored order',
+    async (_title, category) => {
       await onboard();
       await activateProgramme2();
-      await renderAppAtRoute(trackPath + '?kategori=' + id);
+      await renderAppAtRoute(`${trackPath}?kategori=${category.id}`);
+      const list = await screen.findByRole('list', {
+        name: 'Velg en aktivitet',
+      });
+
       expect(
-        await screen.findByRole('button', { name: /Generelt/ }),
+        screen.getByText(`${category.title} · 6 aktiviteter`),
       ).toBeInTheDocument();
-      expect(router.state.location.search).toBe('');
       expect(
-        screen.queryByRole('heading', { name: 'Velg en aktivitet' }),
-      ).toBeNull();
+        within(list)
+          .getAllByRole('button')
+          .map((button) => button.textContent),
+      ).toEqual(
+        category.sessionIds.map(
+          (id, index) =>
+            `${index + 1}. ${track.sessions.find((s) => s.id === id)!.title}`,
+        ),
+      );
     },
   );
+
+  it('opens a typed activity link in its own category and returns there', async () => {
+    const user = userEvent.setup();
+    const k04 = track.sessions.find((s) => s.id === 'tsu-kanban-k04')!;
+
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(`${trackPath}?aktivitet=${k04.id}&kort=3`);
+    // A typed later card starts the activity over, as for Generelt.
+    expect(
+      await screen.findByRole('heading', { name: k04.cards[0]!.title }),
+    ).toBeInTheDocument();
+    expect(router.state.location.search).toBe(`?aktivitet=${k04.id}&kort=1`);
+    await guardPause();
+    await user.click(
+      screen.getByRole('button', { name: 'Tilbake til aktiviteter' }),
+    );
+    expect(router.state.location.search).toBe('?kategori=kanban');
+    expect(screen.getByText('Kanban · 6 aktiviteter')).toBeInTheDocument();
+  });
 });

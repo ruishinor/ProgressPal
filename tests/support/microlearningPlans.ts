@@ -35,6 +35,7 @@ export type PlanCard =
       }[];
       readonly leftLabel: string;
       readonly rightLabel: string;
+      readonly unusedRight?: readonly Option[];
     }
   | {
       readonly kind: 'tap';
@@ -55,7 +56,9 @@ export type Tap = { group?: string; name: RegExp };
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // A button's name is its own text, then optionally a spoken or marker suffix.
-const named = (text: string) => new RegExp(`^${escape(text)}(?:,| |$)`);
+// The lines of a grouped answer are read as one name, a space apart.
+const named = (text: string) =>
+  new RegExp(`^${escape(text.replace(/\n/g, ' '))}(?:,| |$)`);
 
 /** Cards that end with a deliberate "Sjekk" rather than on the last tap. */
 export function needsCheck(card: PlanCard): boolean {
@@ -125,7 +128,8 @@ export function rightTaps(card: PlanCard): Tap[] {
 /**
  * The taps of the nth (0-based) distinct wrong answer. Select and Tap offer a
  * different wrong choice each time; Order and Assemble offer the reversed
- * sequence; Match offers a first left item paired with a different right one.
+ * sequence; Match offers a first left item paired with a different right one,
+ * first with a choice that belongs to no pair when the card has one.
  */
 export function wrongTaps(card: PlanCard, n = 0): Tap[] {
   switch (card.kind) {
@@ -145,11 +149,14 @@ export function wrongTaps(card: PlanCard, n = 0): Tap[] {
       }));
     case 'match': {
       const [first, ...others] = card.pairs;
-      const other = others[n]!;
+      const rights = [
+        ...(card.unusedRight ?? []).map((option) => option.label),
+        ...others.map((pair) => pair.right),
+      ];
 
       return [
         { group: card.leftLabel, name: named(first!.left) },
-        { group: card.rightLabel, name: named(other.right) },
+        { group: card.rightLabel, name: named(rights[n]!) },
       ];
     }
     case 'tap': {

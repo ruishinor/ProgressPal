@@ -403,6 +403,15 @@ body:has(.micro) {
 .micro--utviklerblikk .micro-order .micro-tap {
   justify-content: space-between;
 }
+/* One answer made of several lines (a set of criteria): each on its own line. */
+.micro--utviklerblikk .micro-option-set {
+  display: grid;
+  gap: var(--space-1);
+}
+/* Decorative only: the empty alternative text keeps it out of the name. */
+.micro--utviklerblikk .micro-option-set > span::before {
+  content: '• ' / '';
+}
 .micro--utviklerblikk .utviklerblikk-pairs ol,
 .micro--utviklerblikk .utviklerblikk-sequence ol {
   padding-left: var(--space-6);

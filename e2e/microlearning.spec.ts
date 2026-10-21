@@ -56,7 +56,12 @@ const { programvareutviklingMicrolearning: bank } = (await import(
   programvareutviklingMicrolearning: {
     primers: BankSession[];
     sessions: BankSession[];
-    tracks: { id: string; sessions: BankSession[]; title: string }[];
+    tracks: {
+      categories: { id: string; sessionIds: string[] }[];
+      id: string;
+      sessions: BankSession[];
+      title: string;
+    }[];
   };
 };
 const { needsCheck, rightTaps, wrongTaps } = (await import(plansPath)) as Plans;
@@ -1451,6 +1456,11 @@ async function snapshotDatabase(page: Page) {
 // TRACK_SCREENSHOT_DIR is set, outside the repository.
 const [thinkingTrack] = bank.tracks;
 const trackPath = `/rpg/track/${thinkingTrack!.id}`;
+// The walks below open Generelt; its six activities keep this contract. The
+// Scrum, Kanban and Smidig samarbeid activities: e2e/utviklerblikk-ux.spec.ts.
+const generalSessions = thinkingTrack!.sessions.filter((session) =>
+  thinkingTrack!.categories[0]!.sessionIds.includes(session.id),
+);
 const screenshotDir = process.env.TRACK_SCREENSHOT_DIR;
 
 async function shoot(page: Page, name: string) {
@@ -1469,7 +1479,7 @@ async function openTrack(page: Page, theme: 'dark' | 'light', scale?: Scale) {
   await activate(page, page.getByRole('button', { name: /^Generelt\b/ }));
   await expect(
     page.getByRole('list', { name: 'Velg en aktivitet' }).getByRole('button'),
-  ).toHaveCount(thinkingTrack!.sessions.length);
+  ).toHaveCount(generalSessions.length);
   if (scale !== undefined) {
     await page.addStyleTag({ content: scaleCss(scale) });
   }
@@ -1570,7 +1580,7 @@ async function runTrackSession(
   shots = false,
 ) {
   checks = { ...checks, enlarged: true };
-  const session = thinkingTrack!.sessions[index]!;
+  const session = generalSessions[index]!;
   const heading = page.getByRole('heading', { level: 1 });
 
   await expect(heading).toHaveText(thinkingTrack!.title);
@@ -1609,7 +1619,7 @@ async function runTrackSession(
   await press(page, 'Velg en annen aktivitet');
 }
 
-const trackIndexes = thinkingTrack!.sessions.map((_, index) => index);
+const trackIndexes = generalSessions.map((_, index) => index);
 
 test.describe('«Utviklerblikk» at 360 x 560', () => {
   test.use({ viewport: HARD });
@@ -1650,7 +1660,7 @@ test.describe('«Utviklerblikk» at 360 x 560', () => {
     await openTrack(page, 'dark');
     await activate(page, page.getByRole('button', { name: /^1\. / }));
     await press(page, 'Neste');
-    const card = thinkingTrack!.sessions[0]!.cards[1] as unknown as {
+    const card = generalSessions[0]!.cards[1] as unknown as {
       correctId: string;
       hint: string;
       options: { feedback?: string; id: string; label: string }[];
@@ -1710,9 +1720,7 @@ test.describe('«Utviklerblikk» at 360 x 560', () => {
     await page.keyboard.press('Enter');
     const heading = page.getByRole('heading', { level: 1 });
 
-    await expect(heading).toHaveText(
-      thinkingTrack!.sessions[0]!.cards[0]!.title,
-    );
+    await expect(heading).toHaveText(generalSessions[0]!.cards[0]!.title);
     await expect(heading).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(
@@ -1726,9 +1734,7 @@ test.describe('«Utviklerblikk» at 360 x 560', () => {
     // A keyboard press is not recorded by activate(): wait the guard out.
     await page.waitForTimeout(GUARD_WAIT_MS);
     await page.keyboard.press('Enter');
-    await expect(heading).toHaveText(
-      thinkingTrack!.sessions[0]!.cards[1]!.title,
-    );
+    await expect(heading).toHaveText(generalSessions[0]!.cards[1]!.title);
     await expect(heading).toBeFocused();
   });
 
@@ -1866,7 +1872,7 @@ test.describe('«Utviklerblikk» and the browser’s own Back and Forward', () =
   test('Back returns to the previous card and the list, Forward goes again, Lukk goes Home', async ({
     page,
   }) => {
-    const [first] = thinkingTrack!.sessions;
+    const [first] = generalSessions;
     const heading = page.getByRole('heading', { level: 1 });
 
     await openTrack(page, 'dark');
@@ -1898,7 +1904,7 @@ test.describe('«Utviklerblikk» and the browser’s own Back and Forward', () =
   test('a typed address to a later card starts the activity at its first card', async ({
     page,
   }) => {
-    const kravtyper = thinkingTrack!.sessions[1]!;
+    const kravtyper = generalSessions[1]!;
 
     await openTrack(page, 'dark');
     await page.goto(`${trackPath}?aktivitet=${kravtyper.id}&kort=4`);
