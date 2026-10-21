@@ -1465,6 +1465,11 @@ async function openTrack(page: Page, theme: 'dark' | 'light', scale?: Scale) {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     thinkingTrack!.title,
   );
+  // Select the category before the existing six-activity picker.
+  await activate(page, page.getByRole('button', { name: /^Generelt\b/ }));
+  await expect(
+    page.getByRole('list', { name: 'Velg en aktivitet' }).getByRole('button'),
+  ).toHaveCount(thinkingTrack!.sessions.length);
   if (scale !== undefined) {
     await page.addStyleTag({ content: scaleCss(scale) });
   }
@@ -1681,7 +1686,16 @@ test.describe('«Utviklerblikk» at 360 x 560', () => {
     await shoot(page, 'home-entry-360x560');
     await entry.click();
     await expect(page).toHaveURL(new RegExp(`${trackPath}$`));
-    await expect(page.getByRole('listitem')).toHaveCount(6);
+    await expect(
+      page
+        .getByRole('list', { name: 'Velg et tema du vil øve på.' })
+        .getByRole('button'),
+    ).toHaveCount(4);
+    await activate(page, page.getByRole('button', { name: /^Generelt\b/ }));
+    await expect(page).toHaveURL(`${trackPath}?kategori=generelt`);
+    await expect(
+      page.getByRole('list', { name: 'Velg en aktivitet' }).getByRole('button'),
+    ).toHaveCount(6);
   });
 
   test('the keyboard reaches an activity, and focus lands on each new card', async ({

@@ -6,26 +6,86 @@ import { CardFrame } from '@/features/microlearning/components/CardFrame';
 import { MicroShell } from '@/features/microlearning/components/MicroShell';
 import { SessionRunner } from '@/features/microlearning/components/SessionRunner';
 import { RpgButton } from '@/features/rpg/components/RpgButton';
-import type { MicroSession, MicroTrack } from '@/lib/domain';
+import type {
+  MicroSession,
+  MicroTrack,
+  MicroTrackCategory,
+} from '@/lib/domain';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 /**
- * Where the learner is in a track: the list of activities (`null`), or one
- * activity at a card index, where `cards.length` is its finished screen.
+ * Where the learner is in a track: its entry (`null`), a category's list,
+ * or an activity at a card index (`cards.length` is its finished screen).
  */
-export type MicroTrackStep = {
-  readonly sessionId: string;
-  readonly index: number;
-} | null;
+export type MicroTrackStep =
+  | { readonly categoryId: string }
+  | { readonly sessionId: string; readonly index: number }
+  | null;
 
-function TrackPicker({
+function CategoryPicker({
   onPick,
   track,
 }: {
+  onPick: (categoryId: string) => void;
+  track: MicroTrack;
+}) {
+  const guard = useActionGuard();
+  return (
+    <CardFrame
+      context={track.summary}
+      kindLabel="Temaer"
+      prompt={
+        <h2 className="micro-card__kind" id="micro-track-category">
+          Velg et tema du vil øve på.
+        </h2>
+      }
+      title={track.title}
+    >
+      <ul
+        aria-labelledby="micro-track-category"
+        className="micro-sessions micro-categories"
+      >
+        {track.categories?.map((category) => (
+          <li key={category.id}>
+            <button
+              className="rpg-button rpg-button--secondary micro-tap micro-category"
+              disabled={category.sessionIds.length === 0}
+              onClick={() => {
+                if (guard.accept()) onPick(category.id);
+              }}
+              type="button"
+            >
+              <strong>{category.title}</strong>
+              <span>{category.summary}</span>
+              {category.sessionIds.length === 0 ? (
+                <small>Ingen aktiviteter ennå</small>
+              ) : null}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </CardFrame>
+  );
+}
+
+function TrackPicker({
+  category,
+  onCategories,
+  onPick,
+  track,
+}: {
+  category?: MicroTrackCategory;
+  onCategories: () => void;
   onPick: (sessionId: string) => void;
   track: MicroTrack;
 }) {
   const guard = useActionGuard();
+  const sessions =
+    category === undefined
+      ? track.sessions
+      : track.sessions.filter((session) =>
+          category.sessionIds.includes(session.id),
+        );
   const row = (session: MicroSession, index: number) => (
     <li key={session.id}>
       {/* A one-line row: the label is centred in the tall target. */}
@@ -48,8 +108,20 @@ function TrackPicker({
 
   return (
     <CardFrame
+      action={
+        category === undefined ? undefined : (
+          <RpgButton
+            variant="secondary"
+            onClick={() => {
+              if (guard.accept()) onCategories();
+            }}
+          >
+            Tilbake til temaer
+          </RpgButton>
+        )
+      }
       context={track.summary}
-      kindLabel={`${track.sessions.length} aktiviteter`}
+      kindLabel={`${category === undefined ? '' : category.title + ' · '}${sessions.length} aktiviteter`}
       prompt={
         // The cue sits last in what the card says, directly above the list.
         <h2 className="micro-card__kind" id="micro-track-choose">
@@ -59,7 +131,7 @@ function TrackPicker({
       title={track.title}
     >
       <ul aria-labelledby="micro-track-choose" className="micro-sessions">
-        {track.sessions.map(row)}
+        {sessions.map(row)}
       </ul>
     </CardFrame>
   );
@@ -86,9 +158,14 @@ export function MicroTrackPage({
   const presentation =
     track?.id === 'tenk-som-en-utvikler' ? 'utviklerblikk' : undefined;
   const session =
-    step === null
-      ? undefined
-      : track?.sessions.find((entry) => entry.id === step.sessionId);
+    step !== null && 'sessionId' in step
+      ? track?.sessions.find((entry) => entry.id === step.sessionId)
+      : undefined;
+  const category = track?.categories?.find((entry) =>
+    session !== undefined
+      ? entry.sessionIds.includes(session.id)
+      : step !== null && 'categoryId' in step && entry.id === step.categoryId,
+  );
 
   if (track === undefined) {
     return (
@@ -105,23 +182,35 @@ export function MicroTrackPage({
 
   return (
     <ActionGuardContext.Provider value={outer}>
-      {session === undefined || step === null ? (
+      {session === undefined || step === null || !('sessionId' in step) ? (
         <MicroShell
           closeTo={rpgRoutePath}
           name={track.title}
           presentation={presentation}
         >
-          <TrackPicker
-            onPick={(sessionId) => onStep({ sessionId, index: 0 })}
-            track={track}
-          />
+          {track.categories !== undefined && category === undefined ? (
+            <CategoryPicker
+              onPick={(categoryId) => onStep({ categoryId })}
+              track={track}
+            />
+          ) : (
+            <TrackPicker
+              key={category?.id ?? track.id}
+              category={category}
+              onCategories={() => onStep(null)}
+              onPick={(sessionId) => onStep({ sessionId, index: 0 })}
+              track={track}
+            />
+          )}
         </MicroShell>
       ) : (
         <SessionRunner
           key={session.id}
           presentation={presentation}
           name={track.title}
-          onExit={() => onStep(null)}
+          onExit={() =>
+            onStep(category === undefined ? null : { categoryId: category.id })
+          }
           pickAnotherLabel="Velg en annen aktivitet"
           position={{
             index: step.index,

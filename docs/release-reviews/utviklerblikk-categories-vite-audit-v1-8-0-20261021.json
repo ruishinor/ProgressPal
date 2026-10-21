@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-categories-vite-audit-v1-8-0-20261021",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent, bounded source-diff review of user-supplied combined 48e5708 patch and command outputs, 2026-10-21; not the implementing operator",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "613ba72e6da72d0232faf0d5736ef8fc1a7f6567",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Delta-only review of the exact owner-exported patch from master d4c7210306a8c85b48abf2008d745ea4ba27bfc7 to combined candidate 48e57083b7213aa4b7a97fcfa9b58b2c628bb535 (owner-reported Git tree 43733b93db1c18bb2839cff3d016c0f661aaa989; repository-native review payload 613ba72e6da72d0232faf0d5736ef8fc1a7f6567). The 13 changed files comprise Vite and its resolved build-tool dependencies, relocation of the existing npm audit release-gate stage immediately after clean dependency installation, category navigation for the existing Utviklerblikk track, and narrow related tests/styles. Generelt contains the six existing learning activities; Scrum, Smidig samarbeid and Kanban are deliberately disabled and empty. No card text, XP, progression persistence or database schema change appears in the supplied patch. The independent decision is PROCEED to required GitHub PR CI validation, not certification or permission to merge or deploy. Existing reviews of the previous payload remain historical and are not represented as covering this candidate.",
+    "evidence": [
+      "Reviewed owner-exported raw Git patch ProgressPal_48e5708_Review.patch: 1,294 lines, 13 changed files; exact Git base and candidate identities reported by owner; patch reviewed for routing, categories, content preservation, domain validation, styles, test updates, npm lockfile and release-gate ordering.",
+      "Owner-reported clean detached candidate worktree at commit 48e57083b7213aa4b7a97fcfa9b58b2c628bb535; git tree 43733b93db1c18bb2839cff3d016c0f661aaa989; native `npm run --silent review:payload-tree -- HEAD` printed 613ba72e6da72d0232faf0d5736ef8fc1a7f6567. Reviewer does not have the owner's local Git object database; identities are reported, not independently recomputed.",
+      "Owner-reported clean npm ci: 333 packages added, 0 vulnerabilities; actual Vite executable `vite/8.1.6 win32-x64 node-v24.19.0`; `npm run format:check`, `npm run typecheck`, `npm run build` (383 modules; production build), and `npm run audit` exited successfully in the combined candidate worktree. No full unit suite, Playwright suite or native verify:release was run on this combined commit.",
+      "Previous GitHub post-merge master release validation run 39495816775 for d4c7210 failed only at dependency audit after earlier test layers passed; the earlier green testing applies to the old package lockfile and does not by itself certify 48e5708.",
+      "Owner-provided beginning of public/sw.js explicitly says `CACHE_VERSION` matches the package version and that hashed boot assets refresh after a successful navigation even when builds change without a package/cache-version bump; combined patch leaves package version 1.8.0 and service worker source unchanged. No cache-version edit recommended absent demonstrated reset need.",
+      "New and updated tests in patch cover disabled future categories, Generelt filtering, route query/history/direct-load, activity return flow, category membership rules, preservation of uncategorized tracks and 320/1280 viewport checks; execution of those tests on this exact combined candidate is still unverified."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UV-CA-01",
+      "severity": "P2",
+      "description": "The prior release pipeline ran a subsecond npm security audit only after the long unit and Playwright suites, causing costly late rejection of master commit d4c7210.",
+      "resolution": "Candidate diff moves the unchanged npm audit command to immediately after clean npm ci, preserving its threshold and failure semantics; source review and node --check were reported successful.",
+      "status": "resolved"
+    },
+    {
+      "id": "UV-CA-02",
+      "severity": "P2",
+      "description": "Earlier lockfile pinned Vite 8.0.16, which the failed master release run reported under a high-severity advisory. The long-lived local node_modules remained stale despite npm install attempts.",
+      "resolution": "Candidate changes only the Vite declaration and related lockfile dependency chain; a fresh detached checkout installed actual Vite 8.1.6, built successfully and reported zero audit vulnerabilities. Stale original-checkout node_modules was not reused.",
+      "status": "resolved"
+    },
+    {
+      "id": "UV-CA-03",
+      "severity": "P2",
+      "description": "A four-category Utviklerblikk picker changes route history, display geometry and learner entry flow; the new tests have not yet been run on Linux against the exact combined candidate.",
+      "resolution": "The patch contains focused app, domain, component and E2E assertions. Require the repository-native, payload-bound hosted release checks before merge; no claim of CI PASS or production approval is made by this review.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UV-CA-04",
+      "severity": "P3",
+      "description": "Scrum, Smidig samarbeid and Kanban categories have no learning activities, and categorized tracks are not capped at six sessions per category. Additional content or long lists could require a later UX check.",
+      "resolution": "Intentional present scope: empty categories are disabled with visible explanation, Generelt contains six accepted activities, and no future content is authored or implied to exist. Defer further content and list-scale design until actually requested.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UV-CA-05",
+      "severity": "P3",
+      "description": "The service worker and package version remain v1.8.0 while generated assets change. Users starting fully offline before a successful online navigation may retain the existing boot set.",
+      "resolution": "The owner-supplied service-worker contract explicitly allows unchanged package/cache versions and refreshes hashed boot assets on successful navigation. Do not create a version/cache bump only for this patch; verify the live online and returning-user flows after deployment.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UV-CA-06",
+      "severity": "P2",
+      "description": "The reviewed patch and passing focused install/build/audit do not constitute the full native release gate, an accepted review binding in the actual consumer, or a deployed user-path smoke test.",
+      "resolution": "Validate this record against repository-native review resolution and formatting before PR; run the required hosted gate once on finalized bytes; verify merged SHA, Vercel production alias and learner-facing navigation separately before claiming publication.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to attach this candidate-bound independent delta review and prepare a single final PR for the combined Vite security, audit-fast-fail, and Utviklerblikk category change. No product-code changes or cache bump are justified by the supplied patch. Do not launch another local all-up suite, duplicate review, new evidence framework or speculative refactor; use the existing native consumer for review validation, then the required hosted CI as release authority. A later failed stage should invalidate only affected evidence and be repaired narrowly. Production remains on HOLD until required validation, integration and hosted smoke all succeed."
+  }
+}
