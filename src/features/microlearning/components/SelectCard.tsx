@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import type { MicroSelectCard } from '@/lib/domain';
 
@@ -95,7 +95,20 @@ export function SelectCard({
               onClick={() => choose(option.id)}
               type="button"
             >
-              <span>{option.label}</span>{' '}
+              {/* A line break groups several lines as one answer; the space
+                  between them keeps its name readable as separate lines. */}
+              {option.label.includes('\n') ? (
+                <span className="micro-option-set">
+                  {option.label.split('\n').map((line, index) => (
+                    <Fragment key={index}>
+                      {index === 0 ? null : ' '}
+                      <span>{line}</span>
+                    </Fragment>
+                  ))}
+                </span>
+              ) : (
+                <span>{option.label}</span>
+              )}{' '}
               {marker === null ? null : <small>{marker}</small>}
             </button>
           );

@@ -23,7 +23,13 @@ export const releaseBundleBudget = Object.freeze({
   // only an owner decision may move it. It measured 13,250 B at the change.
   cssGzipWarningBytes: 25_000,
   maxCssGzipBytes: 40_000,
-  maxJavaScriptGzipBytes: 400_000,
+  // Owner-authorized raise (2026-10-21, ACT 18 integration): the 18 Scrum,
+  // Kanban and Smidig samarbeid activities ship as static content in their
+  // own chunk (`content-utviklerblikk`, 115,929 B raw, 33,399 B gzip,
+  // measured), plus 285 B for the two renderer adaptations. Total JavaScript
+  // went from 395,514 B to 429,198 B; the limit moves by that addition and
+  // keeps the earlier headroom of about 5 kB.
+  maxJavaScriptGzipBytes: 435_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five

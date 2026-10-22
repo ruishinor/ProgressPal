@@ -77,17 +77,21 @@ const withTrack = (value: MicroTrack): MicrolearningBank => ({
 });
 
 describe('the real Programvareutvikling bank', () => {
-  it('validates, with one track of six activities', () => {
+  it('validates, with one track of 24 activities in four categories', () => {
     expect(findMicrolearningBankIssues(realBank, units)).toEqual([]);
     expect(realBank.tracks).toHaveLength(1);
-    expect(realBank.tracks![0]!.sessions).toHaveLength(6);
+    expect(realBank.tracks![0]!.sessions).toHaveLength(24);
+    expect(
+      realBank.tracks![0]!.categories!.map((entry) => entry.sessionIds.length),
+    ).toEqual([6, 6, 6, 6]);
   });
 
-  it('uses prose labels only on the eight conceptual matching cards', () => {
+  it('uses prose labels only on the ten conceptual matching cards', () => {
     const trackMatches = realBank.tracks![0]!.sessions.flatMap((session) =>
       session.cards.filter((card) => card.kind === 'match'),
     );
-    expect(trackMatches).toHaveLength(8);
+    // Generelt's eight, and the K04 and A04 transfer cards.
+    expect(trackMatches).toHaveLength(10);
     for (const card of trackMatches) {
       expect(card.kind === 'match' && card.leftPresentation).toBe('text');
     }
@@ -249,6 +253,148 @@ describe('track rules', () => {
     const issues = findMicrolearningBankIssues(withTrack(value), units);
 
     expect(issues.some((issue) => issue.includes(expected))).toBe(true);
+  });
+});
+
+describe('the narrow ACT 18 card formats, in a track only', () => {
+  const four = {
+    ...select,
+    options: [
+      { id: 'a', label: 'A', feedback: 'Ikke A.' },
+      { id: 'b', label: 'B' },
+      { id: 'c', label: 'C', feedback: 'Ikke C.' },
+      { id: 'd', label: 'D', feedback: 'Ikke D.' },
+    ],
+  };
+  const match = {
+    kind: 'match' as const,
+    leftPresentation: 'text' as const,
+    id: 'm',
+    title: 'Koble',
+    role: 'application' as const,
+    source: trackSource,
+    leftLabel: 'Spørsmål',
+    rightLabel: 'Mål',
+    pairs: [
+      { id: 'p1', left: 'En', right: 'Én' },
+      { id: 'p2', left: 'To', right: 'Två' },
+      { id: 'p3', left: 'Tre', right: 'Trè' },
+    ],
+    unusedRight: [{ id: 'x', label: 'Ubrukt' }],
+    rightOrder: ['x', 'p3', 'p1', 'p2'],
+    hint: 'Tenk.',
+    explanation: 'Slik.',
+  };
+  const situation = { ...learn, id: 'k-l2', title: 'Situasjonen' };
+  const cards = (...rest: MicroSession['cards']) =>
+    withTrack(track({ sessions: [session('k', { cards: rest })] }));
+  const issues = (bank: MicrolearningBank) =>
+    findMicrolearningBankIssues(bank, units);
+
+  it('accepts four options, a concept then a situation, and one unused match choice', () => {
+    expect(
+      issues(
+        cards(
+          { ...learn, id: 'k-l1' },
+          situation,
+          { ...four, id: 'k-1' },
+          { ...match, id: 'k-2' },
+        ),
+      ),
+    ).toEqual([]);
+  });
+
+  it.each([
+    [
+      'three Learn cards in a row',
+      cards(
+        { ...learn, id: 'k-l1' },
+        situation,
+        { ...learn, id: 'k-l3' },
+        { ...select, id: 'k-1' },
+      ),
+      'must be followed by a practice card',
+    ],
+    [
+      'a situation with no practice after it',
+      cards({ ...select, id: 'k-0' }, { ...learn, id: 'k-l1' }, situation),
+      'must be followed by a practice card',
+    ],
+    [
+      'five options',
+      cards(
+        { ...learn, id: 'k-l1' },
+        {
+          ...four,
+          id: 'k-1',
+          options: [...four.options, { id: 'e', label: 'E', feedback: 'Nei.' }],
+        },
+        { ...select, id: 'k-2' },
+        { ...select, id: 'k-3' },
+      ),
+      'needs two or up to four options',
+    ],
+    [
+      'an unused choice missing from the right column',
+      cards(
+        { ...learn, id: 'k-l1' },
+        { ...match, id: 'k-1', rightOrder: ['p3', 'p1', 'p2'] },
+        { ...select, id: 'k-2' },
+        { ...select, id: 'k-3' },
+      ),
+      'right column must list every pair once',
+    ],
+    [
+      'an unused choice on a code match',
+      cards(
+        { ...learn, id: 'k-l1' },
+        { ...match, id: 'k-1', leftPresentation: undefined },
+        { ...select, id: 'k-2' },
+        { ...select, id: 'k-3' },
+      ),
+      "may only add unused choices to a track's text",
+    ],
+    [
+      'a Learn card followed by Learn outside a track',
+      {
+        ...realBank,
+        sessions: [
+          {
+            ...realBank.sessions[0]!,
+            cards: [
+              realBank.sessions[0]!.cards[0]!,
+              ...realBank.sessions[0]!.cards,
+            ],
+          },
+        ],
+      },
+      'must be followed by a practice card',
+    ],
+    [
+      'four options outside a track',
+      {
+        ...realBank,
+        sessions: [
+          {
+            ...realBank.sessions[0]!,
+            cards: realBank.sessions[0]!.cards.map((card) =>
+              card.kind === 'select'
+                ? {
+                    ...card,
+                    options: [
+                      ...card.options,
+                      { id: 'ekstra', label: 'Ekstra', feedback: 'Nei.' },
+                    ],
+                  }
+                : card,
+            ),
+          },
+        ],
+      },
+      'needs two or three options',
+    ],
+  ])('refuses %s', (_label, bank, expected) => {
+    expect(issues(bank).some((issue) => issue.includes(expected))).toBe(true);
   });
 });
 

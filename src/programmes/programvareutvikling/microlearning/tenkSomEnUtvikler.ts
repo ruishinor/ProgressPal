@@ -1,7 +1,18 @@
-import type { MicroSource, MicroTrack } from '@/lib/domain';
+import type { MicroSession, MicroSource, MicroTrack } from '@/lib/domain';
+
+import { kanbanSessions } from './utviklerblikk/kanban';
+import { scrumSessions } from './utviklerblikk/scrum';
+import { smidigSamarbeidSessions } from './utviklerblikk/smidigSamarbeid';
+
+const ids = (sessions: readonly MicroSession[]) =>
+  sessions.map((session) => session.id);
 
 /**
- * «Utviklerblikk»: a voluntary track of six short activities about how
+ * «Utviklerblikk»: a voluntary track in four categories. Generelt holds the
+ * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
+ * the finalized ACT 18 package (see `utviklerblikk/`).
+ *
+ * Generelt: six short activities about how
  * developers think before and around the code: need versus solution,
  * requirement types, information versus function, partial failure when data
  * is missing, user action versus system behaviour, and how work is organised.
@@ -53,19 +64,19 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       id: 'scrum',
       title: 'Scrum',
       summary: 'Rammeverk og ansvar',
-      sessionIds: [],
+      sessionIds: ids(scrumSessions),
     },
     {
       id: 'smidig-samarbeid',
       title: 'Smidig samarbeid',
       summary: 'Team og koordinering',
-      sessionIds: [],
+      sessionIds: ids(smidigSamarbeidSessions),
     },
     {
       id: 'kanban',
       title: 'Kanban',
       summary: 'Arbeidsflyt og oversikt',
-      sessionIds: [],
+      sessionIds: ids(kanbanSessions),
     },
   ],
   sessions: [
@@ -1129,5 +1140,8 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
         },
       ],
     },
+    ...scrumSessions,
+    ...smidigSamarbeidSessions,
+    ...kanbanSessions,
   ],
 };

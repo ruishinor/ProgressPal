@@ -7,7 +7,11 @@ import { usePractice } from './usePractice';
 type Side = 'left' | 'right';
 type Pick = { id: string; side: Side };
 
-/** Text matching for the opted-in track only. Either side can initiate a pair. */
+/**
+ * Text matching for the opted-in track only. Either side can initiate a pair.
+ * A right-hand choice may belong to no pair (`unusedRight`): it can be picked
+ * like any other, is never a pair, and is named as unused once settled.
+ */
 export function UtviklerblikkMatchCard({
   card,
   nextLabel,
@@ -35,6 +39,10 @@ export function UtviklerblikkMatchCard({
   const open = isOpen(practice.state);
   const settled = isSettled(practice.state);
   const { phase } = practice.state;
+  const text = (id: string, side: Side) =>
+    card.pairs.find((p) => p.id === id)?.[side] ??
+    card.unusedRight?.find((option) => option.id === id)?.label ??
+    '';
   useEffect(() => {
     const pick = target.current;
     if (pick && open) {
@@ -99,9 +107,10 @@ export function UtviklerblikkMatchCard({
       setStartSide(side);
       setSelected({ id, side });
       focusFirst(side === 'left' ? 'right' : 'left', found);
-      const pair = card.pairs.find((p) => p.id === id)!;
       setAnnouncement(
-        'Valgt: ' + pair[side] + '. Velg det som passer på den andre siden.',
+        'Valgt: ' +
+          text(id, side) +
+          '. Velg det som passer på den andre siden.',
       );
       return;
     }
@@ -135,7 +144,6 @@ export function UtviklerblikkMatchCard({
   }
 
   function choice(id: string, side: Side) {
-    const pair = card.pairs.find((p) => p.id === id)!;
     const solved = found.includes(id),
       wrong = phase === 'wrong' && miss?.[side] === id;
     const number = card.pairs.findIndex((p) => p.id === id) + 1;
@@ -154,7 +162,7 @@ export function UtviklerblikkMatchCard({
         key={id}
       >
         <span>
-          {pair[side]}
+          {text(id, side)}
           {wrong ? (
             mobile ? (
               <small>✗ Ikke et par</small>
@@ -179,9 +187,9 @@ export function UtviklerblikkMatchCard({
     miss === null
       ? undefined
       : '«' +
-        card.pairs.find((p) => p.id === miss.left)!.left +
+        text(miss.left, 'left') +
         '» og «' +
-        card.pairs.find((p) => p.id === miss.right)!.right +
+        text(miss.right, 'right') +
         '» er ikke et par. ' +
         card.hint;
   return (
@@ -236,6 +244,11 @@ export function UtviklerblikkMatchCard({
               </li>
             ))}
           </ol>
+          {card.unusedRight?.map((option) => (
+            <p key={option.id}>
+              <strong>Ikke brukt:</strong> {option.label}
+            </p>
+          ))}
         </section>
       ) : (
         <div ref={interaction}>

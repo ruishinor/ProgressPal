@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-act18-integration-20261021",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent source, test-oracle and screenshot review of owner-supplied ACT 18 integration patch and bounded QA-01 successor files on 2026-10-21; not the implementing operator",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "b3ae5c213c175bf2f2527f5b85e62a2a03543390",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source-level review of the ACT 18 integration originally committed at a6cb2b8e12cfbd656b49a6fbb1de0b5123bf4469 from production baseline 0bf1c9d68d8a830f00ca76ddc4e19cc4367f7c22, followed by the owner-reported two-file QA and CSS correction at 53869d1092228cf59379e7b80690cd6b43c44913. The latter commit and payload identity b3ae5c213c175bf2f2527f5b85e62a2a03543390 are owner-reported, not independently read from the local Git object database. The 18 new exercises extend the existing four-category Utviklerblikk track; six previous Generelt activities are preserved. The code review identifies no outstanding release-blocking source issue after the narrow correction. Decision PROCEED to native review-evidence consumer validation and the required hosted release gate, not a claim of full release certification, approval to merge, or production smoke verification.",
+    "evidence": [
+      "Reviewed owner-supplied ACT18-a6cb2b8.patch (21 files, +3103/-147) plus complete successor e2e/utviklerblikk-ux.spec.ts and src/styles/microlearning.css source copies; two supplied successor CSS copies are byte-identical (SHA-256 93341399c2b8e5b780ce60ff959371ea8b3d813c0f075f70f54a9ffe140cf2c1). Exact successor two-file Git patch was not supplied; the owner reported +109/-12 and the latest local commit/payload identities.",
+      "Original integration uses static typed Scrum, Kanban and Smidig samarbeid modules in an existing static Vite content chunk with narrow schema support for four-option track selections, unused text-match choices and multiline grouped answers. Prior review independently compared all 18 authored answer-key sequences with supplied committed test expectations; no mismatch was found. No new backend/learner persistence was established by source diff.",
+      "The shared inspect() helper in the supplied successor E2E source defaults to strict on-screen control top/bottom and hit testing. Its tallGroupedAnswers exception is explicit and used only in the 320x568, 200%-root-text A05 test when a grouped answer exceeds the viewport height; that helper tests scroll-to-both-ends, line bounds and elementFromPoint, not two real pointer activations.",
+      "The successor CSS adds two scoped rules, flex-wrap:wrap for .micro--utviklerblikk .micro-options .micro-tap and white-space:nowrap for its small result marker. Inspection of screenshots-qa01, qa01b, qa01c shows the earlier long marker wrap in the 320px 200%-text correct-answer capture and one-line rendering in the final capture; no CSS rule is applied to other track surfaces.",
+      "Owner-reported focused results: 3/3 K04/A04/A05 Chromium scenarios at 1280x800, 360x560 and 320x568 with 200%-root-text; a previous CSS variant reproduced two failing scenarios; unchanged Generelt six-activity reachability passed; formatting, lint, typecheck and git diff --check passed; production build and budget check passed (CSS 14,182 B gzip, JS 429,198 B gzip). These commands were not independently executed in this review.",
+      "Reviewed the screenshots ZIP with QA01, QA01b and QA01c sets (61 PNGs and three measurements JSON files). Normal 360x560 examples recorded 263–799px route scroll depending on state, and 320x568 root-font 200% examples 2,646–4,860px. The captured Lukk wrapping is an existing visual issue not demonstrated to block operation. These are usability observations, not proof of physical-device or real browser-zoom acceptance.",
+      "The ACT 18 candidate still lacks a complete candidate-bound hosted GitHub native gate outcome and production smoke. Prior accepted results and current focused checks are not substitutes for the remaining release authority."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "ACT18-01",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "The original ACT 18 E2E inspect() helper had broadened oversized-control visibility exceptions beyond the intended 200%-text A05 case.",
+      "resolution": "The successor source restores strict default control visibility and limits the tall grouped-answer exception to an explicit opt-in for the enlarged A05 case. Screenshots and a focused reporter pass support the correction."
+    },
+    {
+      "id": "ACT18-02",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Long A05 answer text squeezed the correct-answer marker into narrow columns at phone sizes, making it wrap letter by letter.",
+      "resolution": "A two-rule Utviklerblikk-scoped CSS correction lets long answers wrap their marker below as one line; the final 200%-text captures show the corrected appearance. Unchanged Generelt path was reportedly checked."
+    },
+    {
+      "id": "ACT18-03",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Correct-answer reading paths of roughly 634–790 words have not been timed with learners and may exceed the intended two-to-five-minute experience, particularly for learners reading Bokmål as an additional language.",
+      "resolution": "Do not represent nominal durations as measured. Retain editorial fidelity and address demonstrated pacing problems with subsequent learner observation, not an unbounded pre-release rewrite."
+    },
+    {
+      "id": "ACT18-04",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Large scrolling ranges under simulated 200% root text and known Lukk wrapping are visible. Passing geometry/hit tests demonstrate bounded reachability, not smooth reading or physical-device/browser-zoom certification.",
+      "resolution": "Preserve accurate limitations and do not claim comprehensive visual acceptance. No source-proven new navigation blocker justifies another ACT 18 change cycle at this time."
+    },
+    {
+      "id": "ACT18-05",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "Total JS gzip 429,198 B approaches the explicitly expanded 435,000 B ceiling. Build figures and static chunk/offline behavior were reported by the implementing agent, not re-executed here.",
+      "resolution": "A measured 18-activity addition justifies the bounded ceiling increase; retain budget checks and avoid further architecture changes merely to recover speculative headroom."
+    },
+    {
+      "id": "ACT18-06",
+      "severity": "P2",
+      "status": "accepted-risk",
+      "description": "Exact successor Git commit/payload were supplied as owner-reported identities; a full hosted candidate-bound release gate, current remote branch outcome and production deployment/smoke remain unverified.",
+      "resolution": "Validate this record using the repository-native review consumer against the exact current commit and payload; run the existing required hosted release workflow once on final reviewed bytes. Do not claim release or deploy from local focused checks."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The bounded QA-01 and marker repair closes the sole identified immediate source blocker. Preserve the 18-activity content and prior product-review work; no further source mutation, broad pedagogical rewrite or local full-suite rerun is justified by the supplied evidence. Validate this independently authored, payload-bound record with the native consumer, commit it as evidence-only after checking its exact on-disk bytes and then proceed to the existing GitHub PR hosted checks with appropriate authorization. Do not push, merge or deploy absent owner authorization and actual release results."
+  }
+}

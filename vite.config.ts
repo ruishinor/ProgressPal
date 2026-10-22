@@ -144,6 +144,14 @@ export default defineConfig({
               test: /[\\/]src[\\/]programmes[\\/][a-z0-9-]+[\\/]content[\\/][a-z0-9-]+\.json$/,
               priority: 80,
             },
+            // Utviklerblikk's Scrum, Kanban and Smidig samarbeid activities:
+            // static content in its own chunk, outside the entry chunk's raw
+            // budget. Type-only imports, so it captures no other module.
+            {
+              name: 'content-utviklerblikk',
+              test: /[\\/]src[\\/]programmes[\\/]programvareutvikling[\\/]microlearning[\\/]utviklerblikk[\\/]/,
+              priority: 75,
+            },
             {
               name: 'react',
               test: /[\\/]node_modules[\\/](?:react-dom|react|scheduler)[\\/]/,

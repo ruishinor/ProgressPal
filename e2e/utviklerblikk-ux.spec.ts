@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
 type Tap = { group?: string; name: RegExp };
 type Card = { kind: string; id: string; title: string };
@@ -13,11 +13,20 @@ const { needsCheck, rightTaps, wrongTaps } = (await import(plansPath)) as {
 };
 const modulePath =
   '../src/programmes/programvareutvikling/microlearning/tenkSomEnUtvikler';
+type Session = { id: string; title: string; cards: Card[] };
 const { tenkSomEnUtviklerTrack: track } = (await import(modulePath)) as {
   tenkSomEnUtviklerTrack: {
-    sessions: { id: string; title: string; cards: Card[] }[];
+    categories: { id: string; title: string; sessionIds: string[] }[];
+    sessions: Session[];
   };
 };
+const inCategory = (id: string) =>
+  track.categories
+    .find((category) => category.id === id)!
+    .sessionIds.map(
+      (sessionId) => track.sessions.find((s) => s.id === sessionId)!,
+    );
+const generelt = inCategory('generelt');
 type MatchData = Card & {
   leftLabel: string;
   rightLabel: string;
@@ -37,7 +46,18 @@ async function capture(page: Page, name: string) {
     await page.screenshot({ path: join(output, name + '.png') });
   }
 }
-async function inspect(page: Page, label: string) {
+/**
+ * Every visible control must fit the viewport once scrolled to. The only
+ * exception is opt-in (`tallGroupedAnswers`, A05 at 320 x 568 with 200 %
+ * root text): there a grouped answer of three criteria is taller than the
+ * screen, so it must instead be reachable at its top and bottom, unclipped
+ * and operable at both ends.
+ */
+async function inspect(
+  page: Page,
+  label: string,
+  { tallGroupedAnswers = false }: { tallGroupedAnswers?: boolean } = {},
+) {
   const result = await page.evaluate<{ problems: string[]; scroll: number }>(
     "(() => {\n    const shell = document.querySelector('.micro'), problems = [];\n    const visible = (el) => el.getClientRects().length > 0 &&\n        !el.closest('.sr-only,[hidden],[inert]') &&\n        getComputedStyle(el).display !== 'none';\n    if (document.scrollingElement.scrollHeight >\n        document.scrollingElement.clientHeight + 1)\n        problems.push('document scroll');\n    if (shell.scrollWidth > shell.clientWidth + 1)\n        problems.push('horizontal overflow');\n    for (const el of shell.querySelectorAll('*')) {\n        if (!visible(el))\n            continue;\n        const s = getComputedStyle(el), r = el.getBoundingClientRect();\n        if (['auto', 'scroll'].includes(s.overflowY))\n            problems.push('nested scroll ' + el.className);\n        if (['hidden', 'clip'].includes(s.overflowY) &&\n            el.scrollHeight > el.clientHeight + 2)\n            problems.push('vertical clipping ' + el.className);\n        if (['hidden', 'clip'].includes(s.overflowX) &&\n            el.scrollWidth > el.clientWidth + 2)\n            problems.push('horizontal clipping ' + el.className);\n        if (r.left < -1 || r.right > innerWidth + 1)\n            problems.push('outside width ' + el.className);\n    }\n    for (const el of shell.querySelectorAll('button,a,summary')) {\n        if (!visible(el))\n            continue;\n        const r = el.getBoundingClientRect();\n        if (r.width < 43.9 || r.height < 43.9)\n            problems.push('small target ' + el.textContent);\n    }\n    return {\n        problems,\n        scroll: shell.scrollHeight - shell.clientHeight,\n        feedback: shell\n            .querySelector('[role=status]')\n            ?.getAttribute('data-state'),\n    };\n})()",
   );
@@ -61,11 +81,71 @@ async function inspect(page: Page, label: string) {
         reachable: !!target && (target === el || el.contains(target)),
       };
     });
+    const viewportHeight = page.viewportSize()!.height;
+    if (
+      tallGroupedAnswers &&
+      hit.bottom - hit.top > viewportHeight &&
+      (await control.locator('.micro-option-set').count()) === 1
+    ) {
+      await expectTallAnswerReachable(control, label);
+      continue;
+    }
     expect(hit.top, label).toBeGreaterThanOrEqual(-1);
-    expect(hit.bottom, label).toBeLessThanOrEqual(
-      page.viewportSize()!.height + 1,
-    );
+    expect(hit.bottom, label).toBeLessThanOrEqual(viewportHeight + 1);
     expect(hit.reachable, label + ' hit test').toBe(true);
+  }
+}
+/** A grouped answer taller than the screen: both ends reachable and usable. */
+async function expectTallAnswerReachable(control: Locator, label: string) {
+  for (const block of ['start', 'end'] as const) {
+    if (output) {
+      await control.evaluate(
+        (el, at) => el.scrollIntoView({ block: at }),
+        block,
+      );
+      await control.page().screenshot({
+        path: join(output, label + '-tall-answer-' + block + '.png'),
+      });
+    }
+    const end = await control.evaluate((el, at) => {
+      el.scrollIntoView({ block: at });
+      const r = el.getBoundingClientRect(),
+        height = el.ownerDocument.defaultView!.innerHeight,
+        lines = [...el.querySelectorAll('.micro-option-set > span')].map(
+          (line) => line.getBoundingClientRect(),
+        ),
+        line = at === 'start' ? lines[0]! : lines[lines.length - 1]!,
+        y = at === 'start' ? r.top + 4 : r.bottom - 4,
+        target = el.ownerDocument.elementFromPoint(r.left + r.width / 2, y),
+        // The route's own scroll padding leaves room at each end, by design.
+        shell = el.ownerDocument.defaultView!.getComputedStyle(
+          el.closest('.micro')!,
+        ),
+        padding = parseFloat(
+          at === 'start' ? shell.scrollPaddingTop : shell.scrollPaddingBottom,
+        );
+      return {
+        // How far the end sits inside the viewport, beyond the padding.
+        edge: at === 'start' ? r.top - padding : height - padding - r.bottom,
+        lineInView: line.top >= -1 && line.bottom <= height + 1,
+        // Every criterion sits wholly inside its button: nothing is cut off.
+        unclipped: lines.every(
+          (box) =>
+            box.left >= r.left - 1 &&
+            box.right <= r.right + 1 &&
+            box.top >= r.top - 1 &&
+            box.bottom <= r.bottom + 1,
+        ),
+        operable: !!target && (target === el || el.contains(target)),
+      };
+    }, block);
+    // Scrolled to, the end lands exactly at the padded viewport edge.
+    expect(Math.abs(end.edge), label + ' tall answer ' + block).toBeLessThan(2);
+    expect(end.lineInView, label + ' tall answer ' + block + ' line').toBe(
+      true,
+    );
+    expect(end.unclipped, label + ' tall answer lines').toBe(true);
+    expect(end.operable, label + ' tall answer ' + block + ' hit').toBe(true);
   }
 }
 async function action(page: Page, name: string) {
@@ -120,6 +200,84 @@ async function tabTo(page: Page, name: RegExp) {
   }
   throw Error('Tab did not reach ' + name);
 }
+/**
+ * Plays one activity from its category's list: every card, checked in every
+ * state it reaches. `reveal` misses twice (the miss with its reason, the
+ * hint, the answer shown); `right` answers first time.
+ */
+async function walkActivity(
+  page: Page,
+  session: Session,
+  row: number,
+  prefix: string,
+  mode: 'reveal' | 'right' = 'reveal',
+) {
+  await action(page, row + '. ' + session.title);
+  for (const card of session.cards) {
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      card.title,
+    );
+    await inspect(page, prefix + ' ' + card.id + ' idle');
+    const shoot = [
+      'tsu-a3-koble',
+      'tsu-a5-rekkefolge',
+      'tsu-a4-best',
+      'tsu-kanban-k04-ny',
+      'tsu-smidig-a04-ny',
+      'tsu-smidig-a05-sporsmal',
+    ].includes(card.id);
+    if (shoot) await capture(page, prefix + '-' + card.id + '-idle');
+    if (card.kind !== 'learn' && mode === 'right') {
+      await taps(page, rightTaps(card));
+      if (needsCheck(card)) await action(page, 'Sjekk');
+      await expect(page.getByRole('status')).toHaveAttribute(
+        'data-state',
+        'correct',
+      );
+      await inspect(page, prefix + ' ' + card.id + ' correct');
+      if (shoot) await capture(page, prefix + '-' + card.id + '-correct');
+    } else if (card.kind !== 'learn') {
+      await taps(page, wrongTaps(card));
+      if (needsCheck(card)) await action(page, 'Sjekk');
+      await expect(page.getByRole('status')).toHaveAttribute(
+        'data-state',
+        'incorrect',
+      );
+      await inspect(page, prefix + ' ' + card.id + ' wrong');
+      if (shoot) await capture(page, prefix + '-' + card.id + '-wrong');
+      await action(page, 'Prøv igjen');
+      await inspect(page, prefix + ' ' + card.id + ' retry');
+      if (shoot) await capture(page, prefix + '-' + card.id + '-retry');
+      await taps(page, wrongTaps(card, 1));
+      if (needsCheck(card)) await action(page, 'Sjekk');
+      if (card.kind === 'order') {
+        await expect(page.getByRole('status')).toHaveAttribute(
+          'data-state',
+          'incorrect',
+        );
+        await action(page, 'Vis løsning');
+      }
+      await expect(page.getByRole('status')).toHaveAttribute(
+        'data-state',
+        'revealed',
+      );
+      await inspect(page, prefix + ' ' + card.id + ' revealed');
+      if (shoot) await capture(page, prefix + '-' + card.id + '-revealed');
+    }
+    if (['tsu-a1-ord', 'tsu-a2-typer', 'tsu-a6-scrum'].includes(card.id))
+      await capture(page, prefix + '-' + card.id + '-learn');
+    await action(
+      page,
+      card === session.cards[session.cards.length - 1] ? 'Fullfør' : 'Neste',
+    );
+  }
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Husk dette',
+  );
+  await inspect(page, prefix + ' ' + session.id + ' done');
+  if (session.id === 'tsu-kravtyper') await capture(page, prefix + '-a2-done');
+  await action(page, 'Velg en annen aktivitet');
+}
 test.afterAll(() => {
   if (output) mkdirSync(output, { recursive: true });
   if (output)
@@ -171,63 +329,8 @@ for (const viewport of [
         'x' +
         viewport.height +
         (viewport.scale ? '-' + viewport.scale : '');
-      for (const [s, session] of track.sessions.entries()) {
-        await action(page, s + 1 + '. ' + session.title);
-        for (const card of session.cards) {
-          await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-            card.title,
-          );
-          await inspect(page, prefix + ' ' + card.id + ' idle');
-          const shoot = [
-            'tsu-a3-koble',
-            'tsu-a5-rekkefolge',
-            'tsu-a4-best',
-          ].includes(card.id);
-          if (shoot) await capture(page, prefix + '-' + card.id + '-idle');
-          if (card.kind !== 'learn') {
-            await taps(page, wrongTaps(card));
-            if (needsCheck(card)) await action(page, 'Sjekk');
-            await expect(page.getByRole('status')).toHaveAttribute(
-              'data-state',
-              'incorrect',
-            );
-            await inspect(page, prefix + ' ' + card.id + ' wrong');
-            if (shoot) await capture(page, prefix + '-' + card.id + '-wrong');
-            await action(page, 'Prøv igjen');
-            await inspect(page, prefix + ' ' + card.id + ' retry');
-            if (shoot) await capture(page, prefix + '-' + card.id + '-retry');
-            await taps(page, wrongTaps(card, 1));
-            if (needsCheck(card)) await action(page, 'Sjekk');
-            if (card.kind === 'order') {
-              await expect(page.getByRole('status')).toHaveAttribute(
-                'data-state',
-                'incorrect',
-              );
-              await action(page, 'Vis løsning');
-            }
-            await expect(page.getByRole('status')).toHaveAttribute(
-              'data-state',
-              'revealed',
-            );
-            await inspect(page, prefix + ' ' + card.id + ' revealed');
-            if (shoot)
-              await capture(page, prefix + '-' + card.id + '-revealed');
-          }
-          if (['tsu-a1-ord', 'tsu-a2-typer', 'tsu-a6-scrum'].includes(card.id))
-            await capture(page, prefix + '-' + card.id + '-learn');
-          await action(
-            page,
-            card === session.cards[session.cards.length - 1]
-              ? 'Fullfør'
-              : 'Neste',
-          );
-        }
-        await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-          'Husk dette',
-        );
-        await inspect(page, prefix + ' ' + session.id + ' done');
-        if (s === 1) await capture(page, prefix + '-a2-done');
-        await action(page, 'Velg en annen aktivitet');
+      for (const [s, session] of generelt.entries()) {
+        await walkActivity(page, session, s + 1, prefix);
       }
     },
   );
@@ -629,11 +732,12 @@ for (const width of [320, 1280]) {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Utviklerblikk',
     );
-    for (const name of ['Scrum', 'Smidig samarbeid', 'Kanban']) {
+    for (const name of ['Generelt', 'Scrum', 'Smidig samarbeid', 'Kanban']) {
       await expect(
         page.getByRole('button', { name: new RegExp(name) }),
-      ).toBeDisabled();
+      ).toBeEnabled();
     }
+    await expect(page.getByText('Ingen aktiviteter ennå')).toHaveCount(0);
     await inspect(page, 'categories ' + width);
     expect(
       (await new AxeBuilder({ page }).include('.micro').analyze()).violations,
@@ -667,7 +771,159 @@ for (const width of [320, 1280]) {
     await page.goForward();
     await expect(page.getByRole('button', { name: /Generelt/ })).toBeVisible();
     await page.goto(base + '?kategori=scrum');
+    await expect(page.getByText('Scrum · 6 aktiviteter')).toBeVisible();
+    await page.goto(base + '?kategori=finnes-ikke');
     await expect(page).toHaveURL(base);
     await expect(page.getByRole('button', { name: /Generelt/ })).toBeVisible();
   });
+}
+
+// ACT 18: Scrum, Kanban and Smidig samarbeid. Content and answer keys for all
+// 18 are checked without a browser (tests/programmes/utviklerblikkContent and
+// the jsdom walk in tests/app/microTrackRoute); here each category is played
+// once on a phone through every state, and the unusual formats (K04 and A04
+// with an unused choice, A05's sets of criteria) on a desktop, at enlarged
+// text and by keyboard.
+for (const [id, title] of [
+  ['scrum', 'Scrum'],
+  ['kanban', 'Kanban'],
+  ['smidig-samarbeid', 'Smidig samarbeid'],
+] as const) {
+  test(
+    'ACT 18 ' + title + ': each activity in its category at 360x560',
+    async ({ page }) => {
+      test.setTimeout(420000);
+      await page.setViewportSize({ width: 360, height: 560 });
+      await completeOnboarding(page, { programme: 'Programvareutvikling' });
+      await page.goto(base);
+      await page.getByRole('button', { name: new RegExp('^' + title) }).click();
+      await expect(page).toHaveURL(base + '?kategori=' + id);
+      const sessions = inCategory(id);
+      await expect(
+        page
+          .getByRole('list', { name: 'Velg en aktivitet' })
+          .getByRole('button'),
+      ).toHaveText(sessions.map((s, n) => n + 1 + '. ' + s.title));
+      expect(
+        (await new AxeBuilder({ page }).include('.micro').analyze()).violations,
+      ).toEqual([]);
+      for (const [n, session] of sessions.entries()) {
+        await walkActivity(page, session, n + 1, '360x560 ' + id);
+        await expect(page).toHaveURL(base + '?kategori=' + id);
+      }
+    },
+  );
+}
+
+// The question sits directly above what the learner acts on (as in Mikroøkt).
+async function expectQuestionNextToAnswers(page: Page, label: string) {
+  const gap = await page.evaluate<number | null>(
+    "(() => { const prompt = document.querySelector('.micro-card__prompt'), play = document.querySelector('.micro-card__play'); return prompt && play && prompt.lastElementChild ? Math.round(play.getBoundingClientRect().top - prompt.lastElementChild.getBoundingClientRect().bottom) : null; })()",
+  );
+  expect(gap, label + ' question next to answers').not.toBeNull();
+  expect(gap!, label + ' question next to answers').toBeLessThanOrEqual(32);
+}
+
+for (const viewport of [
+  { width: 1280, height: 800 },
+  { width: 360, height: 560 },
+  { width: 320, height: 568, scale: 200 },
+]) {
+  const label =
+    viewport.width + 'x' + viewport.height + (viewport.scale ? ' 200%' : '');
+  test(
+    'ACT 18 unused match choices and grouped criteria at ' + label,
+    async ({ page }) => {
+      test.setTimeout(240000);
+      await page.setViewportSize(viewport);
+      await completeOnboarding(page, { programme: 'Programvareutvikling' });
+      const enlarge = () =>
+        viewport.scale
+          ? page.addStyleTag({ content: 'html{font-size:200% !important}' })
+          : undefined;
+
+      for (const [id, unused] of [
+        ['tsu-kanban-k04-ny', 'WIP'],
+        ['tsu-smidig-a04-ny', 'Langt møte med hele teamet'],
+      ] as const) {
+        const card = (await openCard(page, id)) as MatchData;
+        await enlarge();
+        await expectQuestionNextToAnswers(page, label + ' ' + id);
+        await inspect(page, label + ' ' + id + ' idle');
+        await capture(page, label + '-' + id + '-idle');
+        const [first] = card.pairs;
+        // The unused choice is chosen by keyboard and refused as a pair.
+        if (await page.locator('.utviklerblikk-mobile-match').count()) {
+          await page
+            .getByRole('group', { name: card.leftLabel })
+            .getByRole('button', {
+              name: new RegExp('^' + first!.left.slice(0, 20)),
+            })
+            .click();
+          await page
+            .getByRole('group', { name: card.rightLabel })
+            .getByRole('button', { name: new RegExp('^' + unused) })
+            .click();
+        } else {
+          await tabTo(page, new RegExp('^' + first!.left.slice(0, 20)));
+          await page.keyboard.press('Enter');
+          await tabTo(page, new RegExp('^' + unused));
+          await page.keyboard.press('Enter');
+        }
+        await expect(page.getByRole('status')).toHaveAttribute(
+          'data-state',
+          'incorrect',
+        );
+        await expect(page.getByRole('status')).toContainText(
+          '«' + unused + '» er ikke et par.',
+        );
+        await inspect(page, label + ' ' + id + ' wrong');
+        await action(page, 'Prøv igjen');
+        await taps(page, rightTaps(card));
+        await expect(page.getByRole('status')).toContainText('Riktig nå.');
+        await expect(
+          page.getByRole('region', { name: 'Dine koblinger' }),
+        ).toContainText('Ikke brukt: ' + unused);
+        await inspect(page, label + ' ' + id + ' correct');
+        await capture(page, label + '-' + id + '-correct');
+      }
+
+      const sets = await openCard(page, 'tsu-smidig-a05-sporsmal');
+      await enlarge();
+      const options = page
+        .getByRole('group', { name: 'Svaralternativer' })
+        .getByRole('button');
+      await expect(options).toHaveCount(4);
+      for (const option of await options.all()) {
+        // Three criteria, each on its own line, inside one choice.
+        const tops = await option
+          .locator('.micro-option-set > span')
+          .evaluateAll((lines) =>
+            lines.map((line) => line.getBoundingClientRect().top),
+          );
+        expect(tops).toHaveLength(3);
+        expect(tops[0]!).toBeLessThan(tops[1]!);
+        expect(tops[1]!).toBeLessThan(tops[2]!);
+      }
+      await expectQuestionNextToAnswers(page, label + ' a05');
+      const tall = { tallGroupedAnswers: viewport.scale === 200 };
+      await inspect(page, label + ' a05 idle', tall);
+      await capture(page, label + '-a05-idle');
+      await taps(page, rightTaps(sets));
+      await expect(page.getByRole('status')).toContainText('Riktig.');
+      // The result marker of a long answer stays one readable line.
+      const marker = page
+        .getByRole('group', { name: 'Svaralternativer' })
+        .locator('small', { hasText: 'Ditt svar' });
+      const lines = await marker.evaluate((el) => {
+        const lineHeight = parseFloat(
+          el.ownerDocument.defaultView!.getComputedStyle(el).lineHeight,
+        );
+        return el.getBoundingClientRect().height / lineHeight;
+      });
+      expect(lines, label + ' a05 marker on one line').toBeLessThan(1.5);
+      await inspect(page, label + ' a05 correct', tall);
+      await capture(page, label + '-a05-correct');
+    },
+  );
 }

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-act18-nav-readiness-20261022",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent bounded E2E test-readiness delta review on 2026-10-22 of the owner-supplied five-line change and focused results, cross-checked against original failed GitHub Playwright trace/source; not the implementing operator",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f6049eec9a1c29e288b1541bb4783a952b60d13e",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent test-only review of the one-file readiness correction at reported local commit 33d1a0eb6ba7f8e533ec20f45b507637c6907b65 (parent d0cedf4ca0093e87ca75c43a9a539e61a35c9ffd), targeting the previously failed navigation scrolling Playwright case in PR #46. Owner-reported exact tree 217b7ba4a4c55b59fb6e685003172cd01e149c6a; repository-native payload f6049eec9a1c29e288b1541bb4783a952b60d13e. The patch adds a map-list visibility readiness wait before scroll geometry is measured. It preserves all scrolling and navigation assertions and changes no application behavior. Decision PROCEED to native evidence binding and existing hosted Final candidate validation, not approval to merge or deploy.",
+    "evidence": [
+      "Independently examined the attached failed GitHub release artifact for pull request #46, workflow run 39690118571 and failing original Playwright trace (including the original rpg-primary-nav-layout.spec.ts source saved in trace resources). The test called openRoute(page, rpgRoutes.map), which returned after a Campaign heading appeared, then immediately measured document.documentElement.scrollHeight. The trace includes a loading-state snapshot with Loading campaign map and Loading your Hero. The failure reported documentHeight 800 for viewportHeight 800; the eventual failure screenshot and error-context snapshot show a later, loaded long map. This supports the asynchronous readiness diagnosis rather than proving a faulty page scroll behavior.",
+      "The owner supplied the complete claimed inserted test-only code: await expect(page.getByRole('list', { name: 'Campaign map nodes' })).toBeVisible() immediately following openRoute(page, rpgRoutes.map), before navigation bounding and document-height measurement. The original trace/source shows the location and surrounding checks. The earlier loaded error-context snapshot confirms Campaign map nodes is an actual named list, so it is a meaningful readiness marker rather than a fixed delay.",
+      "The exact original assertions remain present according to the owner-supplied patch and source: documentHeight > viewportHeight + 1000, actual wheel scrolling, scrollY > 1000, navigation document-coordinate invariance and scrolled navigation leaving the visible viewport. There is no skipped test, relaxed threshold, CSS change or shared openRoute helper change in the reported delta.",
+      "Owner-reported focused outcomes: 23/23 Chromium navigation-layout tests pass with one worker and zero retries; the corrected case separately passes 5/5 in one --repeat-each=5 stability run; Prettier, ESLint, typecheck and git diff --check pass. These commands were not independently executed by this reviewer. The locally reproduced failure was not observed; the trace supplied the root-cause evidence.",
+      "The owner-reported local HEAD, parent, tree and payload identities are not independently read from the owner's Git object database. The finalization preflight must verify these exact identities and that HEAD changes only e2e/rpg-primary-nav-layout.spec.ts with five added lines before authorizing an evidence-only commit or branch push.",
+      "The previous hosted release attempt passed its earlier pipeline layers and 264 other Playwright tests, failing only this navigation-readiness case after about 53 minutes of browser execution. The prior Vitest security patch and its independent review are unaffected in substance by the test-only correction. The existing full hosted release gate remains the authority for the new exact PR merge result."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "ACT18-NAV-01",
+      "severity": "P2",
+      "status": "resolved",
+      "description": "The original E2E readiness criterion was ambiguous: a Campaign heading was visible both while the Campaign map was loading and after its module list was ready, allowing a transient documentHeight of only 800 to be sampled.",
+      "resolution": "Wait for the distinct, accessible Campaign map nodes list before measuring the document. Retain original scroll and navigation assertions. Reported 23/23 affected-spec and 5/5 repeated single-case passes support the narrow correction."
+    },
+    {
+      "id": "ACT18-NAV-02",
+      "severity": "P3",
+      "status": "accepted-risk",
+      "description": "The implementing agent did not reproduce the slow loading interval locally; the precise timing race was inferred from the authentic CI trace and failure context, and the independent reviewer lacks direct access to the owner's local new Git object.",
+      "resolution": "Verify immutable commit/parent/tree/new payload and one-file five-line delta locally before consuming this record. The hosted Final candidate on the updated PR must re-exercise the complete release contract. Do not start another local full suite or claim CI PASS from focused local tests."
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PROCEED for the bounded owner-reported five-line, one-test readiness change only. GitHub trace evidence supports the loading-state race; the new visible list is directly related to successful map rendering. This preserves coverage instead of weakening an assertion. Validate record against the repository-native review resolver for exact payload f6049eec9a1c29e288b1541bb4783a952b60d13e; make one evidence-only commit, confirm payload unchanged, and push the finalized branch normally to existing PR #46. Required hosted Final candidate remains pending; no merge or deployment authorization is granted."
+  }
+}

@@ -135,7 +135,12 @@ export type MicroMatchCard = MicroPracticeBase & {
   readonly leftLabel: string;
   readonly rightLabel: string;
   readonly pairs: readonly MicroMatchPair[];
-  /** Pair IDs in the order the right-hand column shows them. */
+  /**
+   * Right-hand choices that belong to no pair (a track's text matching only),
+   * so the last pair is not found by elimination. Optional.
+   */
+  readonly unusedRight?: readonly MicroOption[];
+  /** Pair and unused IDs in the order the right-hand column shows them. */
   readonly rightOrder: readonly string[];
 };
 
@@ -458,9 +463,13 @@ function sameSequence(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
+/**
+ * A track card (`track`) may teach in text alone, offer a fourth option, and
+ * give a text Match right-hand choices that belong to no pair.
+ */
 function findCardShapeIssues(
   card: MicroCard,
-  { textOnlyLearn = false }: { textOnlyLearn?: boolean } = {},
+  { track = false }: { track?: boolean } = {},
 ): string[] {
   const label = `card "${card.id}"`;
   const issues: string[] = [];
@@ -469,7 +478,7 @@ function findCardShapeIssues(
   switch (card.kind) {
     case 'learn':
       if (card.example === undefined) {
-        if (!textOnlyLearn) {
+        if (!track) {
           issues.push(`${label} has no example code`);
         }
       } else if (card.example.code.trim() === '') {
@@ -491,8 +500,10 @@ function findCardShapeIssues(
       break;
     case 'select': {
       const ids = card.options.map((option) => option.id);
-      if (card.options.length < 2 || card.options.length > 3) {
-        issues.push(`${label} needs two or three options`);
+      if (card.options.length < 2 || card.options.length > (track ? 4 : 3)) {
+        issues.push(
+          `${label} needs two or ${track ? 'up to four' : 'three'} options`,
+        );
       }
       if (!unique(ids) || !ids.includes(card.correctId)) {
         issues.push(`${label} options must be unique and include the answer`);
@@ -523,13 +534,21 @@ function findCardShapeIssues(
     }
     case 'match': {
       const ids = card.pairs.map((pair) => pair.id);
+      const unused = (card.unusedRight ?? []).map((option) => option.id);
+      const rightIds = [...ids, ...unused];
       if (card.pairs.length < 3 || card.pairs.length > 4) {
         issues.push(`${label} needs three or four pairs`);
       }
-      if (!unique(ids)) {
+      if (!unique(rightIds)) {
         issues.push(`${label} pair IDs must be unique`);
       }
-      if (!isPermutation(card.rightOrder, ids)) {
+      if (
+        unused.length > 0 &&
+        (!track || card.leftPresentation !== 'text' || rightIds.length > 4)
+      ) {
+        issues.push(`${label} may only add unused choices to a track's text`);
+      }
+      if (!isPermutation(card.rightOrder, rightIds)) {
         issues.push(`${label} right column must list every pair once`);
       } else if (sameSequence(card.rightOrder, ids)) {
         issues.push(`${label} right column is already in pair order`);
@@ -744,12 +763,16 @@ function findPartIssues(session: MicroSession): string[] {
 
 /**
  * Voluntary tracks: the same card rules as the rest of the bank (one Learn
- * card at a time, each followed by practice; two or three options; three or
- * four pairs; nothing shown already solved), with three differences that
- * follow from what a track is. Cards cite the track, not a catalogue unit. A
- * Learn card may teach in text alone. A session starts by teaching and ends
- * on what to take away. Tracks without categories allow one to six sessions;
- * categorized tracks can contain more with each session in one category.
+ * card at a time, each followed by practice; three or four pairs; nothing
+ * shown already solved), with differences that follow from what a track is.
+ * Cards cite the track, not a catalogue unit. A Learn card may teach in text
+ * alone. A choice may have four options, and a text Match may add a choice
+ * that belongs to no pair (the track scrolls when its content needs it). A
+ * concept Learn card may hand over to one situation Learn card before the
+ * practice, never to more. A session starts by teaching and ends on what to
+ * take away. Tracks
+ * without categories allow one to six sessions; categorized tracks can
+ * contain more with each session in one category.
  */
 function findTrackIssues(
   bank: MicrolearningBank,
@@ -845,7 +868,13 @@ function findTrackIssues(
         issues.push(...findCardIssues(card, new Set(), track));
         if (card.kind === 'learn') {
           const next = session.cards[index + 1];
-          if (next === undefined || next.kind === 'learn') {
+          // A concept may hand over to one situation card, then to practice.
+          const situation =
+            next?.kind === 'learn' &&
+            session.cards[index - 1]?.kind !== 'learn' &&
+            session.cards[index + 2] !== undefined &&
+            session.cards[index + 2]!.kind !== 'learn';
+          if (next === undefined || (next.kind === 'learn' && !situation)) {
             issues.push(
               `Learn card "${card.id}" must be followed by a practice card`,
             );
@@ -892,6 +921,6 @@ function findCardIssues(
 
   return [
     ...issues,
-    ...findCardShapeIssues(card, { textOnlyLearn: track !== undefined }),
+    ...findCardShapeIssues(card, { track: track !== undefined }),
   ];
 }

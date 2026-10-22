@@ -182,6 +182,11 @@ test('primary navigation scrolls away with the page instead of floating over con
   await page.setViewportSize(viewport);
   await completeOnboarding(page);
   await openRoute(page, rpgRoutes.map);
+  // The Campaign heading also shows while the map is still loading. Measure
+  // the loaded map: its module list is what makes this page long.
+  await expect(
+    page.getByRole('list', { name: 'Campaign map nodes' }),
+  ).toBeVisible();
 
   const nav = primaryNav(page);
   const initial = await box(nav, 'initial navigation');
