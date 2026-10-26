@@ -151,7 +151,8 @@ export const uxUuSessions: readonly MicroSession[] = [
         options: [
           {
             id: 'noytral',
-            label: '«Du skal reise én tur i morgen. Finn en passende billett.»',
+            label:
+              '«Én voksen skal fra Oslo S til Lillestrøm i morgen kl. 09. Finn billett.»',
           },
           {
             id: 'ledende',
@@ -544,31 +545,33 @@ export const uxUuSessions: readonly MicroSession[] = [
       {
         kind: 'select',
         id: 'tsu-ux-uu-u06-prioriter',
-        title: 'Bare én dag igjen',
+        title: 'Tre timer til fristen',
         role: 'scaffold',
         source: u6,
         context:
-          'Tastaturbrukere får ikke sendt påmeldingen. Retting med kontroll tar én dag. Knappestil tar én time. Teamet har én dag før fristen.',
+          'Påmelding stenger om tre timer. Tastaturbrukere får ikke sendt (tre timer å rette og teste). Bekreftelsen kan ikke leses med skjermleser (to timer). Arrangøren kan sende e-post.',
         question: 'Hva bør prioriteres?',
         options: [
           {
-            id: 'stil',
-            label: 'Knappestilen: den hjelper flere og er raskere.',
-            feedback:
-              'Raskere endring av utseendet hjelper ikke dem som stenges ute.',
+            id: 'rask',
+            label: 'Rett bekreftelsen først; det går fortest.',
+            feedback: 'Da rekker ikke tastaturbrukere fristen.',
           },
-          { id: 'stopp', label: 'Rett og kontroller innsending med tastatur.' },
           {
-            id: 'klager',
-            label: 'Vent på flere klager før dere endrer planen.',
-            feedback:
-              'Få klager gjør ikke en kjent blokkering mindre alvorlig.',
+            id: 'stopp',
+            label:
+              'Rett og test innsending; bruk e-postbekreftelse midlertidig.',
+          },
+          {
+            id: 'dele',
+            label: 'Del timene mellom feilene og test senere.',
+            feedback: 'Da kan begge feilene bestå ved fristen.',
           },
         ],
         correctId: 'stopp',
-        hint: 'Hva avgjør om folk kan delta?',
+        hint: 'Hvem blir utestengt før fristen?',
         explanation:
-          'Konsekvensen veier tyngre enn antall klager. Lykkes ikke rettingen, må ansvarlig varsles og sikre en tilgjengelig vei videre.',
+          'Begge feilene må rettes. Sikre og test innsending før fristen. Bruk e-postbekreftelse mens den andre feilen rettes.',
       },
       {
         kind: 'select',
