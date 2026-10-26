@@ -67,7 +67,7 @@ export const uxUuSessions: readonly MicroSession[] = [
         role: 'retrieval',
         source: u1,
         context:
-          'En kollega sier: «De gikk tilbake fordi alle vil ha den billigste timen.»',
+          'Tre deltakere gikk tilbake da de så prisen. En kollega sier: «De gikk tilbake fordi alle vil ha den billigste timen.»',
         question: 'Hvordan bruker dere utsagnet?',
         options: [
           {
@@ -387,7 +387,7 @@ export const uxUuSessions: readonly MicroSession[] = [
         role: 'application',
         source: u4,
         context:
-          'Forstørring krever rulling bortover og nedover for å lese felt og instruksjoner. Send-knappen havner utenfor skjermen.',
+          'Ved forstørring må brukeren rulle sidelengs for å lese felt og instruksjoner. Skjemaet flyter ikke om.',
         question: 'Hva bør prøves?',
         options: [
           {
@@ -545,17 +545,18 @@ export const uxUuSessions: readonly MicroSession[] = [
       {
         kind: 'select',
         id: 'tsu-ux-uu-u06-prioriter',
-        title: 'Tre timer til fristen',
+        title: 'Fire timer til retting',
         role: 'scaffold',
         source: u6,
         context:
-          'Påmelding stenger om tre timer. Tastaturbrukere får ikke sendt (tre timer å rette og teste). Bekreftelsen kan ikke leses med skjermleser (to timer). Arrangøren kan sende e-post.',
+          'Påmelding stenger om seks timer. Teamet har fire timer. Tastaturbrukere får ikke sendt (tre timer å rette og teste). Bekreftelsen kan ikke leses med skjermleser (to timer). Arrangøren tilbyr tilgjengelig e-postbekreftelse.',
         question: 'Hva bør prioriteres?',
         options: [
           {
             id: 'rask',
             label: 'Rett bekreftelsen først; det går fortest.',
-            feedback: 'Da rekker ikke tastaturbrukere fristen.',
+            feedback:
+              'Da har teamet bare to timer igjen, for lite til å rette innsendingen.',
           },
           {
             id: 'stopp',
