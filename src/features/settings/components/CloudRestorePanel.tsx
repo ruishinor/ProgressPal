@@ -242,6 +242,10 @@ export function CloudRestorePanel({
               prepared.summary.counts.progressEntries,
             )}
             {slotRow('Study sessions', prepared.summary.counts.studySessions)}
+            {slotRow(
+              'Activity entries',
+              prepared.summary.counts.activityEntries,
+            )}
             {slotRow('XP transactions', prepared.summary.counts.xpTransactions)}
             {slotRow(
               'Achievements',

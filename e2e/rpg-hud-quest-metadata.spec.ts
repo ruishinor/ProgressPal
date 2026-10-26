@@ -149,8 +149,12 @@ async function measureQuestMetadata(page: Page) {
     const hud = scope.document.querySelector(
       '[aria-label="Persistent hero HUD"]',
     )!;
-    const copy = hud.querySelector('.rpg-hero-hud__quest-copy')!;
-    const context = hud.querySelector('.rpg-hero-hud__quest-context')!;
+    const copy = hud.querySelector(
+      scope.innerWidth <= 672
+        ? '.rpg-hero-hud__detail-content'
+        : '.rpg-hero-hud__quest-copy',
+    )!;
+    const context = copy.querySelector('.rpg-hero-hud__quest-context')!;
     const link = hud.querySelector('.rpg-hero-hud__quest-link')!;
     const lines: { text: string; top: number }[] = [];
 
@@ -228,17 +232,23 @@ for (const quest of stressQuests) {
       ).toBeVisible();
 
       const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
+      if (width <= 672) await hud.getByLabel('Character details').click();
+      const metadata = hud.locator(
+        width <= 672
+          ? '.rpg-hero-hud__detail-content'
+          : '.rpg-hero-hud__quest-copy',
+      );
 
       // Required HUD text stays visible.
       await expect(
         hud.getByText('Current quest', { exact: true }),
       ).toBeVisible();
       await expect(hud.getByText(quest.title, { exact: true })).toBeVisible();
-      await expect(hud.getByText(/^Up to \+\d+ XP$/)).toBeVisible();
+      await expect(metadata.getByText(/^Up to \+\d+ XP$/)).toBeVisible();
       await expect(
         hud.getByRole('link', { exact: true, name: 'Start quest' }),
       ).toBeVisible();
-      await expect(hud.locator('.rpg-hero-hud__quest-context')).toHaveText(
+      await expect(metadata.locator('.rpg-hero-hud__quest-context')).toHaveText(
         `${quest.unit} / ${quest.duration}`,
       );
 

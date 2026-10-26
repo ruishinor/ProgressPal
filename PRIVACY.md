@@ -1,108 +1,80 @@
 # Privacy
 
-ProgressPal CS50 Edition is a single-user, local-first, offline-capable learning
-companion. This document describes how it handles your data. It states the
-current privacy boundary honestly; it is not a marketing page and not a legal or
-compliance guarantee.
+ProgressPal is a single-user, local-first study companion. IndexedDB in your
+browser is the authoritative working copy of learner data. No account is needed
+for local study. Optional remote recovery backups are manual, not synchronization.
 
-## In one sentence
+## Released version and prepared candidate
 
-Everything you enter stays in your own browser on your own device, and the app
-does not send it anywhere.
+The released v1.8.0 baseline includes the optional **Remote backup — Alpha**
+account and recovery-backup controls, off by default. The locally prepared
+v1.9.0/schema-5 candidate adds Activity data and has not been released.
+Schema-5 remote backups require a separately approved provider rollout; they
+must not be treated as operational before that rollout and live validation.
+See [current state](docs/CURRENT_STATE.md) for the verified release identity.
 
-The app is not offline-only. Your browser downloads the app itself (its HTML,
-JavaScript and CSS) from the host that serves it, and links to official course
-resources open those external sites. After the first successful load the app
-starts without a network connection. None of this transmits what you enter.
+## What is stored
 
-## What data exists
+The browser database holds your profile and preferences, programme enrolments,
+course progress, notes, study sessions, watched ranges and resume points,
+lesson answers, attempts, evidence and positions, XP, achievements and a local
+backup-event log. The candidate also holds manually recorded Activity entries,
+daily goals and their historical context, custom activities and movement-reminder
+preferences. Activity does not automatically detect exercise or collect sensor data.
 
-ProgressPal stores only the data you create by using it:
+Packaged course content and the Python runtime are app files, not personal data.
+Exercise Python runs in an isolated browser worker without network or storage
+access; the app does not send it for remote execution.
 
-- Your local profile (display name, avatar choices, study targets, theme and
-  reduced-motion preferences).
-- Your course progress (item status, confidence, notes, evidence text).
-- Long-form watched ranges, resume points, and study-session notes and blockers.
-- Derived gamification records (XP transactions, levels, achievement unlocks).
-- Your lesson answers, the hints you open and where you stopped in a lesson
-  (for programmes that deliver lessons).
-- A local audit log of backup export/import events.
+## Local storage and optional accounts
 
-It also bundles a fixed CS50 course catalog (the "seed") and ships the lesson
-content of its other programme as packaged files from the same site. These
-ship with the app; they are not personal data.
+Learner records live in IndexedDB, tied to this browser profile and device.
+Cross-tab coordination and optional cloud preferences use `localStorage`.
+If you enable remote backup and sign in, authentication communicates with Nhost
+using your email and credentials. The session normally uses `sessionStorage`
+(or memory when unavailable); choosing to stay signed in stores session
+credentials in `localStorage`. Email-link recovery uses a short-lived, single-use
+PKCE verifier in `localStorage`. These account settings and credentials are not
+part of learner backups. The app does not use tracking cookies.
 
-Python programs you write for exercises run inside your browser, in an
-isolated worker that has no network or storage access, and are never sent
-anywhere; your answer is stored locally like the rest of your data.
+With remote backup off, ordinary local use makes no Nhost requests. Enabling it
+allows account and backup-list requests; opening Settings or signing in does
+not upload the learner database. Only an explicit backup action sends a complete
+snapshot to the configured Nhost project in Stockholm, Sweden. Remote copies
+can be read by the cloud provider and service operator; do not assume end-to-end
+encryption. Up to five manual snapshots are retained; a later manual backup can
+replace the oldest occupied slot. Signing out or disabling remote backup does
+not delete existing remote snapshots.
 
-## Where the data lives
+## Backup, restore and reset
 
-- All of your data is stored locally in your browser using IndexedDB (via
-  Dexie). It is tied to the browser profile on the device where you use the app.
-- The app does not use cookies for anything. `localStorage` is used only for
-  cross-tab coordination metadata (tab IDs, timestamps, and write-revision
-  counters); none of your learner data is stored in
-  `localStorage`/`sessionStorage`.
-- There is no account, no login, and no server-side copy of anything.
-- Installing ProgressPal as an app (Install, or Add to Home Screen) does not
-  move, back up or sync your data. On desktop and Android browsers the installed
-  app shares the browser's storage for this site. On iPhone and iPad a Home
-  Screen app keeps its own storage, separate from Safari, so progress made in
-  Safari does not appear there; use backup export and import to move it.
-  Uninstalling the app or clearing site data can delete your data.
+- **Export:** a complete JSON file contains the learner records. Schema-5 exports
+  include all Activity stores. Protect exported and remote copies as personal data.
+- **Restore:** validation precedes confirmation and replacement of the local
+  database. The candidate accepts schema-5 backups and refuses historical schema-4
+  exports; existing live schema-4 databases upgrade in place. Retain older files
+  and recovery copies rather than assuming the candidate can restore them.
+- **Reset:** clears and reinitializes this browser's learner database, including
+  Activity in the candidate. It does not delete the Nhost account, remote
+  snapshots, exported files or copies retained by browsers, devices or others.
 
-## What the app does not do
+Clearing site data or uninstalling can lose local progress. Installing the PWA
+neither creates a recovery copy nor synchronizes data. Storage may differ
+between a browser and its installed app, particularly on iPhone/iPad; use file
+export/import to move learner data when necessary.
 
-- No backend or server stores your data.
-- No cloud sync and no online accounts.
-- No external APIs, third-party scripts, web fonts, or remote assets are loaded
-  at runtime. (The host that serves the app necessarily sees the request for the
-  app files, as any web host does; the app adds no request carrying your data.)
-- No analytics, telemetry, tracking, or usage reporting.
-- No AI tutor, coaching, or recommendation service.
-- No social, sharing, leaderboard, or comparison features.
+## Network and privacy limits
 
-The offline service worker only caches the app's own static files (its HTML,
-JavaScript and CSS, its icons and install manifest, the packaged lesson content
-and, once it has been used, the packaged Python runtime) from the same origin so
-the app can work without a network connection. It never reads, caches, or transmits your stored data.
+The host receives requests for the app and packaged content. External course
+links open their own sites, whose privacy practices apply there. ProgressPal
+loads its executable assets from the same origin. Its service worker caches
+static app/content/runtime files and does not read or transmit IndexedDB data.
+The optional Nhost account/backup requests described above are separate.
 
-## Data you control
+There is no analytics, telemetry, automatic exercise tracking, cloud sync, social
+leaderboard or remote AI service. Local browser records and JSON backups are
+not encrypted by ProgressPal. Someone with access to your device, browser
+profile or backup files may read or change them. This document is a description
+of the app, not a security certification or a provider retention guarantee.
 
-- **Export / backup.** You can export a full local backup as an ordinary JSON
-  file. That file is created and saved by you, on your device. Once exported, it
-  is a normal personal file: if you move, copy, sync, or share it, you are
-  responsible for it. Treat a backup file as personal data.
-- **Import / restore.** Importing a backup validates the file and then replaces
-  all current app data with the backup's contents. Import never runs code from
-  the file.
-- **Reset.** Reset clears the app's local database in the current browser and
-  re-creates a fresh default profile and seeded catalog.
-
-Reset removes data from the app's local browser database only. It does not, and
-cannot, control copies that already exist elsewhere - for example backup files
-you exported, browser or device backups, synced browser profiles, or
-operating-system-level recovery snapshots. Removing those is up to you.
-
-## What "local-only" does and does not mean
-
-Local-only means your data is not transmitted off the device by the app. It does
-**not** mean the data is:
-
-- encrypted at rest (IndexedDB data is stored unencrypted),
-- protected against someone who has access to your device or browser profile,
-- tamper-proof, or
-- certified against any particular security or privacy standard.
-
-If your device, user account, or browser profile is shared or compromised, your
-ProgressPal data can be read or changed by whoever has that access. Protect the
-device and the browser profile the way you would protect any other personal
-files on it.
-
-## Scope of this document
-
-This describes the application's behavior as originally reviewed in Module 19 and
-reconciled on 2026-10-04 for installation (`docs/CURRENT_STATE.md`,
-`docs/pwa.md`). See `SECURITY.md` for the
-technical security baseline and known risks.
+Reconciled 2026-10-26 against the released baseline and unreleased candidate.

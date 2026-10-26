@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { classNames } from '@/components/ui/utils';
@@ -14,6 +15,8 @@ type RpgHeroIdentityProps = {
   name: string;
   /** When set, the avatar becomes the entry point to the Hero Profile. */
   profileHref?: string;
+  secondaryStatistic?: ReactNode;
+  showDetails?: boolean;
   variant?: 'hud' | 'profile';
 };
 
@@ -23,6 +26,8 @@ export function RpgHeroIdentity({
   identity,
   name,
   profileHref,
+  secondaryStatistic,
+  showDetails = true,
   variant = 'hud',
 }: RpgHeroIdentityProps) {
   const initials =
@@ -69,34 +74,56 @@ export function RpgHeroIdentity({
         >
           {name}
         </p>
-        {variant === 'profile' ? (
-          <div className="action-row">
+        {showDetails &&
+          (variant === 'profile' ? (
+            <div className="action-row">
+              <RpgRankBadge rank={identity.rankLabel} />
+              <RpgInfoNote label="About rank">
+                Rank follows how much of the required course you have completed.
+              </RpgInfoNote>
+            </div>
+          ) : (
             <RpgRankBadge rank={identity.rankLabel} />
-            <RpgInfoNote label="About rank">
-              Rank follows how much of the required course you have completed.
-            </RpgInfoNote>
-          </div>
-        ) : (
-          <RpgRankBadge rank={identity.rankLabel} />
-        )}
-        <dl className="rpg-identity__traits">
-          <div className="rpg-identity__guild">
-            <dt>
-              <img alt="" src={guildEmblem} width="32" height="32" />
-              Guild
-            </dt>
-            <dd>{identity.guildLabel}</dd>
-          </div>
-          <div className="rpg-identity__class">
-            <dt>Class</dt>
-            <dd>{identity.classLabel}</dd>
-          </div>
-          <div className="rpg-identity__path">
-            <dt>Path</dt>
-            <dd>{identity.pathLabel}</dd>
-          </div>
-        </dl>
+          ))}
+        {secondaryStatistic}
+        {showDetails && <IdentityTraits identity={identity} />}
       </div>
     </div>
+  );
+}
+
+/** The same read-model facts, wherever the shell places its secondary details. */
+export function RpgHeroIdentityDetails({
+  identity,
+}: {
+  identity: RpgHubIdentity;
+}) {
+  return (
+    <>
+      <RpgRankBadge rank={identity.rankLabel} />
+      <IdentityTraits identity={identity} />
+    </>
+  );
+}
+
+function IdentityTraits({ identity }: { identity: RpgHubIdentity }) {
+  return (
+    <dl className="rpg-identity__traits">
+      <div className="rpg-identity__guild">
+        <dt>
+          <img alt="" src={guildEmblem} width="32" height="32" />
+          Guild
+        </dt>
+        <dd>{identity.guildLabel}</dd>
+      </div>
+      <div className="rpg-identity__class">
+        <dt>Class</dt>
+        <dd>{identity.classLabel}</dd>
+      </div>
+      <div className="rpg-identity__path">
+        <dt>Path</dt>
+        <dd>{identity.pathLabel}</dd>
+      </div>
+    </dl>
   );
 }

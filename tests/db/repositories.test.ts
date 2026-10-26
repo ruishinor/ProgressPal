@@ -1618,6 +1618,35 @@ describe('backup, restore, and reset', () => {
   }
 
   async function seedRealActivity(context: TestDatabaseContext) {
+    await context.db.open();
+    await context.db.activityDefinitions.add({
+      id: 'representative-movement',
+      name: 'Movement',
+      units: ['reps'],
+      archived: false,
+    });
+    await context.db.activityEntries.add({
+      id: 'representative-activity',
+      activityId: 'representative-movement',
+      date: '2026-06-12',
+      unit: 'reps',
+      amount: 5,
+      createdAt: '2026-06-12T09:00:00.000Z',
+      updatedAt: '2026-06-12T09:00:00.000Z',
+    });
+    const goal = {
+      id: 'representative-goal',
+      activityId: 'representative-movement',
+      unit: 'reps' as const,
+      target: 5,
+      enabled: true,
+    };
+    await context.db.activitySettings.add({
+      id: 'activity-settings',
+      goals: [goal],
+      reminderMinutes: 0,
+    });
+    await context.db.activityDays.add({ id: '2026-06-12', goals: [goal] });
     await initializeDatabase({
       db: context.db,
       now: createClock('2026-06-12T09:00:00.000Z'),

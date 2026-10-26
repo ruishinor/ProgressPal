@@ -1,3 +1,10 @@
+import {
+  saveActivityDefinition,
+  saveActivityEntry,
+  saveActivitySettings,
+  deleteActivityEntry,
+} from '@/lib/db/activity';
+import { defaultActivitySettings } from '@/lib/domain/activity';
 import Dexie from 'dexie';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -389,6 +396,30 @@ describe('repository local-write coordination', () => {
     const session = startLocalDataCoordination(() => undefined);
     stopCoordination = session.stop;
     await session.ready;
+    for (const action of [
+      () =>
+        saveActivityEntry(
+          {
+            activityId: 'pushups',
+            unit: 'reps',
+            amount: 8,
+            date: '2026-10-25',
+          },
+          { db: testDatabase!.db },
+        ),
+      () =>
+        saveActivityDefinition(
+          { name: 'Stretching', unit: 'seconds' },
+          { db: testDatabase!.db },
+        ),
+      () =>
+        saveActivitySettings(defaultActivitySettings, { db: testDatabase!.db }),
+      () => deleteActivityEntry('missing-entry', { db: testDatabase!.db }),
+    ])
+      await expect(action()).rejects.toMatchObject({
+        name: 'LocalWriteBlockedError',
+        reason: 'peer-active',
+      });
 
     await expect(
       upsertProgress(
@@ -471,7 +502,7 @@ describe('repository local-write coordination', () => {
         seed: sampleCourseSeed,
       }),
     ).resolves.toMatchObject({
-      appMeta: { schemaVersion: 4 },
+      appMeta: { schemaVersion: 5 },
       createdAppMeta: true,
       createdLearnerProfile: true,
       seedSync: {
@@ -480,7 +511,7 @@ describe('repository local-write coordination', () => {
         unitsAdded: 2,
       },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(50);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -564,9 +595,9 @@ describe('repository local-write coordination', () => {
         db: testDatabase.db,
       }),
     ).resolves.toMatchObject({
-      appMeta: { appVersion: '1.3.0', schemaVersion: 4 },
+      appMeta: { appVersion: '1.3.0', schemaVersion: 5 },
     });
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(50);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);
@@ -608,7 +639,7 @@ describe('repository local-write coordination', () => {
       }),
     ).rejects.toThrow('Injected seed initialization failure.');
 
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(50);
     expect(await testDatabase.db.appMeta.count()).toBe(1);
     expect(await testDatabase.db.learnerProfile.count()).toBe(1);
     expect(await testDatabase.db.courseUnits.count()).toBe(0);
@@ -1273,7 +1304,7 @@ describe('repository local-write coordination', () => {
     ]);
 
     expect(firstSnapshot).toEqual(secondSnapshot);
-    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(40);
+    expect(await getNativeDatabaseVersion(testDatabase.name)).toBe(50);
     expect(
       Number(localStorage.getItem(localCoordinationStorageKeys.revision)),
     ).toBe(1);

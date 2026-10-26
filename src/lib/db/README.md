@@ -25,3 +25,12 @@ Cross-tab write safety lives in `src/lib/storage`. Repository mutations check
 that coordinator at the outer transaction boundary; nested writes announce one
 revision only after the enclosing transaction commits. The protocol adds no
 IndexedDB table or schema migration. See `docs/storage-safety.md`.
+
+Activity candidate (2026-10-25, local only): schema 5 adds `activity_entries`,
+`activity_definitions`, `activity_settings` and `activity_days`. The live v4
+upgrade creates these empty and changes only the app metadata's schema number;
+all existing educational data is preserved. `activity.ts` uses the existing
+coordinated-write boundary. All four stores participate in complete snapshots,
+atomic restore, rollback and reset. The revised owner decision requires native
+schema-5 exports; older exports are refused before writes. No stored Activity
+totals, level counter, educational XP or additional browser database is added.

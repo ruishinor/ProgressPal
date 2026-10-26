@@ -29,7 +29,12 @@ export const releaseBundleBudget = Object.freeze({
   // measured), plus 285 B for the two renderer adaptations. Total JavaScript
   // went from 395,514 B to 429,198 B; the limit moves by that addition and
   // keeps the earlier headroom of about 5 kB.
-  maxJavaScriptGzipBytes: 435_000,
+  // Owner-authorized Activity ceiling (2026-10-25), after one focused pass.
+  // Initial Activity build: 438,135 B; final measurement: docs/ACTIVITY_HANDOFF.md.
+  // Owner-authorized security preparation (2026-10-26): Zod 4.6.6 plus
+  // fail-fast backup validation measured 447,162 B after one overhead check.
+  // Previous consolidated UI build: 439,727 B. Other limits are unchanged.
+  maxJavaScriptGzipBytes: 448_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five

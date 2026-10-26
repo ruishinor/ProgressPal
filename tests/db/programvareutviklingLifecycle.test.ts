@@ -307,12 +307,12 @@ describe('reset and restore with Programvareutvikling active', () => {
     const text = serializeBackupEnvelope(
       buildBackupEnvelope(snapshot, {
         appVersion: currentApplicationVersion,
-        schemaVersion: 4,
+        schemaVersion: 5,
         exportedAt: t2,
       }),
     ).contents;
     const parsed = parseBackupFile(text, {
-      expectedSchemaVersion: 4,
+      expectedSchemaVersion: 5,
       migrationContext: resolveDatabaseMigrationContext(),
     });
 

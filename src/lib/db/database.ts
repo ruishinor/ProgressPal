@@ -1,3 +1,10 @@
+import type {
+  ActivityDay,
+  ActivityDefinition,
+  ActivityEntry,
+  ActivitySettings,
+} from '@/lib/domain/activity';
+
 import Dexie, { type Table, type Transaction } from 'dexie';
 import type { ZodType } from 'zod';
 
@@ -309,6 +316,10 @@ async function migrateVersionTwoToVersionThree(
 }
 
 export class ProgressPalDatabase extends Dexie {
+  activityEntries!: Table<ActivityEntry, string>;
+  activityDefinitions!: Table<ActivityDefinition, string>;
+  activitySettings!: Table<ActivitySettings, string>;
+  activityDays!: Table<ActivityDay, string>;
   appMeta!: Table<AppMeta, string>;
   learnerProfile!: Table<LearnerProfile, string>;
   courseUnits!: Table<CourseUnit, string>;
@@ -353,6 +364,27 @@ export class ProgressPalDatabase extends Dexie {
         migrateVersionThreeToVersionFour(transaction, this.migrationContext),
       );
 
+    this.version(5)
+      .stores({
+        ...versionFourStoreDefinitions,
+        activity_entries: '&id, date, activityId, [activityId+unit]',
+        activity_definitions: '&id',
+        activity_settings: '&id',
+        activity_days: '&id',
+      })
+      .upgrade((transaction) =>
+        transaction
+          .table('app_meta')
+          .toCollection()
+          .modify((meta: Record<string, unknown>) => {
+            meta.schemaVersion = 5;
+          }),
+      );
+
+    this.activityEntries = this.table('activity_entries');
+    this.activityDefinitions = this.table('activity_definitions');
+    this.activitySettings = this.table('activity_settings');
+    this.activityDays = this.table('activity_days');
     this.appMeta = this.table('app_meta');
     this.learnerProfile = this.table('learner_profile');
     this.courseUnits = this.table('course_units');

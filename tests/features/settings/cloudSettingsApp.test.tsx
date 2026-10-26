@@ -61,7 +61,7 @@ afterAll(() => {
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
-  sim = createSimulatedNhost();
+  sim = createSimulatedNhost({ schemaVersion: 5 });
   network.mockClear();
 });
 

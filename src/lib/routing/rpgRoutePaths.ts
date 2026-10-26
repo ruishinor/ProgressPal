@@ -3,6 +3,7 @@ export const rpgMapPath = '/rpg/map' as const;
 export const rpgWeekPathPattern = '/rpg/week/:unitId' as const;
 export const rpgResourcePathPattern = '/rpg/resource/:itemId' as const;
 export const rpgFocusPath = '/rpg/focus' as const;
+export const rpgActivityPath = '/rpg/movement' as const;
 export const rpgHeroPath = '/rpg/hero' as const;
 export const rpgBadgesPath = '/rpg/badges' as const;
 export const rpgLogPath = '/rpg/log' as const;
@@ -11,6 +12,7 @@ export const rpgMicroPath = '/rpg/micro' as const;
 export const rpgTrackPathPattern = '/rpg/track/:trackId' as const;
 
 export const rpgRouteSegments = {
+  activity: 'movement',
   badges: 'badges',
   focus: 'focus',
   hero: 'hero',

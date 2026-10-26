@@ -37,6 +37,7 @@ describe('routeDefinitions', () => {
       '/rpg/week/:unitId',
       '/rpg/resource/:itemId',
       '/rpg/focus',
+      '/rpg/movement',
       '/rpg/hero',
       '/rpg/badges',
       '/rpg/log',

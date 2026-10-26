@@ -369,7 +369,28 @@ describe('A6 Badges actual-route read boundary', () => {
 
     expect(childTransactions).toHaveLength(1);
     expect(childTransactions[0]?.stores).toEqual(childStores);
-    expect(access.transactions).toHaveLength(2);
+    const educationalTransactions = access.transactions.filter(
+      (transaction) =>
+        !transaction.stores.every((store) => store.startsWith('activity_')),
+    );
+    expect(educationalTransactions).toHaveLength(2);
+    const activityTransactions = access.transactions.filter((transaction) =>
+      transaction.stores.every((store) => store.startsWith('activity_')),
+    );
+    expect(
+      activityTransactions.every(
+        (transaction) =>
+          transaction.mode === 'readonly' &&
+          transaction.stores.every((store) =>
+            ['activity_entries', 'activity_settings'].includes(store),
+          ),
+      ),
+    ).toBe(true);
+    expect(
+      access.operations
+        .filter((operation) => operation.store === 'activity_entries')
+        .every((operation) => operation.materializedRows === 0),
+    ).toBe(true);
     expect(
       childTransactions.every((transaction) => transaction.mode === 'readonly'),
     ).toBe(true);

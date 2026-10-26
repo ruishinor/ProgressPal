@@ -9,6 +9,10 @@ import schemaTwoBackup from '../fixtures/backups/v1.3.0-envelope1-schema2.json';
 
 function emptyBackupData(): BackupData {
   return {
+    activityEntries: [],
+    activityDefinitions: [],
+    activitySettings: [],
+    activityDays: [],
     appMeta: null,
     learnerProfile: null,
     courseUnits: [],

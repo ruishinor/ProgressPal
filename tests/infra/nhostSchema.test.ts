@@ -137,9 +137,9 @@ describe('remote payload ceiling', () => {
 });
 
 describe('current-generation gate', () => {
-  it('is a named CHECK on exactly the pair the parser accepts (format 1, schema 4)', () => {
+  it('retains the historical schema-4 creation migration unchanged', () => {
     expect(code).toContain(
-      `constraint ${backupConstraintNames.generationGate} check (format_version = ${acceptedBackupGeneration.formatVersion} and schema_version = ${acceptedBackupGeneration.schemaVersion})`,
+      `constraint ${backupConstraintNames.generationGate} check (format_version = 1 and schema_version = 4)`,
     );
   });
 

@@ -87,7 +87,7 @@ export async function installSimulatedProvider(
   page: Page,
   options: SimulatedProviderOptions = {},
 ) {
-  const sim = createSimulatedNhost();
+  const sim = createSimulatedNhost({ schemaVersion: 5 });
   const calls: ProviderCall[] = [];
   const passwords = new Map<string, string>(
     Object.entries(options.accounts ?? {}),

@@ -1,5 +1,7 @@
 # Backup compatibility matrix
 
+> **Local Activity candidate (2026-10-25; not released).** The owner authorizes an additive live IndexedDB v4 → v5 upgrade with four empty Activity stores and unchanged educational records. New complete payloads are format 1/schema 5, with Activity entries, custom definitions, settings/goals and daily goal context included in atomic restore/reset. The revised owner decision excludes historical backup conversion: schema 4 and earlier exports are refused before writes. Existing backup rows/files are not migrated, deleted or relabelled. Provider generation-5 SQL is prepared only, not applied; older remote rows are incompatible with this candidate. The notes below describe historical baselines. See [Activity handoff](../ACTIVITY_HANDOFF.md).
+
 Status: v1.3.0 remediation evidence, with a current-state note.
 
 > **Current-state note (2026-10-03, Epic E candidate).** The IndexedDB schema is

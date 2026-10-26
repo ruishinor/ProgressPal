@@ -100,7 +100,10 @@ const schema = {
 //  - signin-fails         Auth refuses both sign-ins;
 //  - preseeded            each user already owns rows from an earlier run;
 //  - outage-before-cleanup  every check passes, then the provider goes away.
-export function createSimulatedNhost({ mode = 'healthy' } = {}) {
+export function createSimulatedNhost({
+  mode = 'healthy',
+  schemaVersion = 4,
+} = {}) {
   const tokens = new Map(); // access token -> { id }
   const userByEmail = new Map(); // email -> { id }
   const rowsByUser = new Map(); // id -> Map(slot -> row)
@@ -140,7 +143,7 @@ export function createSimulatedNhost({ mode = 'healthy' } = {}) {
       return check('backup_slots_exact_bytes_gate');
     if (
       mode !== 'no-generation-gate' &&
-      !(input.format_version === 1 && input.schema_version === 4)
+      !(input.format_version === 1 && input.schema_version === schemaVersion)
     )
       return check('backup_slots_generation_gate');
     if (bytes > 10 * 1024 * 1024) return check('backup_slots_payload_ceiling');

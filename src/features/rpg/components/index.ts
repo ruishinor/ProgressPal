@@ -9,7 +9,7 @@ export { RpgPanel, type RpgPanelProps } from './RpgPanel';
 export { RpgProgressBar, type RpgProgressBarProps } from './RpgProgressBar';
 export { RpgQuestRow, type RpgQuestRowProps } from './RpgQuestRow';
 export { RpgRankBadge, type RpgRankBadgeProps } from './RpgRankBadge';
-export { RpgHeroIdentity } from './RpgHeroIdentity';
+export { RpgHeroIdentity, RpgHeroIdentityDetails } from './RpgHeroIdentity';
 export { RpgLevelProgress } from './RpgLevelProgress';
 export { RpgResourceCard, type RpgResourceCardProps } from './RpgResourceCard';
 export {

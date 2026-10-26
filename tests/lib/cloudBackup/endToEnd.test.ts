@@ -45,7 +45,7 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   window.history.replaceState(null, '', '/');
-  sim = createSimulatedNhost();
+  sim = createSimulatedNhost({ schemaVersion });
   fetchCalls = vi.fn(sim.fetch);
   vi.stubGlobal('fetch', fetchCalls);
   cloud = createCloud();

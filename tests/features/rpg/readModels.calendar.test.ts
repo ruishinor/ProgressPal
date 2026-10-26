@@ -20,6 +20,10 @@ function createSnapshot(instants: readonly string[]): DatabaseSnapshot {
   const requiredItems = courseItems.filter((item) => item.required);
 
   return {
+    activityEntries: [],
+    activityDefinitions: [],
+    activitySettings: [],
+    activityDays: [],
     achievementDefinitions: [],
     achievementUnlocks: [],
     appMeta: null,

@@ -90,7 +90,7 @@ describe('listBackups: metadata only, and unavailable is never "empty"', () => {
     const h = createHarness({ data });
 
     h.store.seed(0);
-    h.store.seed(1, { schemaVersion: 5 });
+    h.store.seed(1, { schemaVersion: 4 });
 
     const result = await h.service.listBackups();
 

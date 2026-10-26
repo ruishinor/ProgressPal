@@ -60,7 +60,7 @@ export class FakeBackupStore implements CloudBackupStore {
   /** Every request the store received, in order. */
   readonly requests: Array<{ method: StoreMethod; argument: unknown }> = [];
   /** The accepted generation pair (the table's named gate). */
-  generation = { formatVersion: 1, schemaVersion: 4 };
+  generation = { formatVersion: 1, schemaVersion: 5 };
   /** Makes the server derive a different hash than the real one (provider drift). */
   hashDrift = false;
 
@@ -98,7 +98,7 @@ export class FakeBackupStore implements CloudBackupStore {
       slot,
       backupId: `00000000-0000-4000-8000-00000000000${slot}`,
       formatVersion: 1,
-      schemaVersion: 4,
+      schemaVersion: 5,
       appVersion: '1.7.1',
       exportedAt: '2026-10-01T00:00:00.000Z',
       storedAt: this.nextStoredAt(),

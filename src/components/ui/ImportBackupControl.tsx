@@ -195,6 +195,10 @@ export function ImportBackupControl({
               <dt>Achievements</dt>
               <dd>{preview.summary.counts.achievementUnlocks}</dd>
             </div>
+            <div className="backup-preview__row">
+              <dt>Activity entries</dt>
+              <dd>{preview.summary.counts.activityEntries}</dd>
+            </div>
           </dl>
           <div className="backup-verify">
             <p className="backup-verify__title">
@@ -204,7 +208,10 @@ export function ImportBackupControl({
               <li>Confirm the dashboard progress looks right.</li>
               <li>Confirm task statuses and notes are present.</li>
               <li>Confirm XP and achievements look expected.</li>
-              <li>Confirm recent sessions and media progress are present.</li>
+              <li>
+                Confirm recent sessions, Activity records and goals, and media
+                progress are present.
+              </li>
               <li>Reload once and confirm the restored state remains.</li>
             </ul>
           </div>

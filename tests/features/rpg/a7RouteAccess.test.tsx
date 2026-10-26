@@ -171,9 +171,8 @@ describe('A7 actual route and shell access matrix', () => {
         { catalogueId: cs50CatalogueId, policy: cs50Policy, db: writer },
       );
       const before = await getDatabaseSnapshot({ db: writer });
-      // Schema 4 (Epic E): the 16 earlier stores plus learner_evidence and
-      // lesson_positions, so nonmutation also covers both new stores.
-      expect(Object.keys(before)).toHaveLength(18);
+      // Schema 5: all 18 educational stores plus the four Activity stores.
+      expect(Object.keys(before)).toHaveLength(22);
       writer.close();
 
       const appState: AppStateContextValue = {
@@ -257,7 +256,29 @@ describe('A7 actual route and shell access matrix', () => {
           );
         }
         const access = probe.snapshot();
-        expect(access.transactions).toHaveLength(route.hud ? 2 : 1);
+        const educationalTransactions = access.transactions.filter(
+          (transaction) =>
+            !transaction.stores.every((store) => store.startsWith('activity_')),
+        );
+        expect(educationalTransactions).toHaveLength(route.hud ? 2 : 1);
+        expect(
+          access.transactions
+            .filter((transaction) =>
+              transaction.stores.some((store) => store.startsWith('activity_')),
+            )
+            .every(
+              (transaction) =>
+                transaction.mode === 'readonly' &&
+                transaction.stores.every((store) =>
+                  ['activity_entries', 'activity_settings'].includes(store),
+                ),
+            ),
+        ).toBe(true);
+        expect(
+          access.operations
+            .filter((operation) => operation.store === 'activity_entries')
+            .every((operation) => operation.materializedRows === 0),
+        ).toBe(true);
         assertLogicalRead(
           access,
           route.stores,

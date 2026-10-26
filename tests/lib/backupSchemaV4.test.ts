@@ -36,8 +36,8 @@ import {
 import type { TestDatabaseContext } from '../db/testDatabase';
 
 /**
- * Epic E / E-SCHEMA-1 §7: schema 4 is the new forward backup baseline. Native
- * v4 export, import, restore and reset are required; older and newer
+ * Epic E educational backup invariants retained on the owner-authorized
+ * Activity schema-5 baseline. Native v5 export, import, restore and reset are required; older and newer
  * exports are refused clearly before any write; the backup's claims about
  * the two new stores are never trusted.
  */
@@ -98,7 +98,7 @@ async function deviceWithEvidence(label: string) {
   return context;
 }
 
-function envelopeText(data: BackupData, schemaVersion = 4) {
+function envelopeText(data: BackupData, schemaVersion = 5) {
   return serializeBackupEnvelope(
     buildBackupEnvelope(data, {
       appVersion: currentApplicationVersion,
@@ -121,7 +121,7 @@ function expectRejected(data: BackupData, issue: RegExp) {
 
   try {
     assertBackupDataInvariants(data, {
-      expectedSchemaVersion: 4,
+      expectedSchemaVersion: 5,
       migrationContext: p2MigrationContext,
     });
   } catch (error) {
@@ -137,7 +137,7 @@ function expectRejected(data: BackupData, issue: RegExp) {
   ).toMatch(issue);
 }
 
-describe('native schema-4 export, import and restore', () => {
+describe('native schema-5 export, import and restore (educational preservation)', () => {
   it('round-trips attempts, results, support events and positions exactly', async () => {
     const source = await deviceWithEvidence('backup-v4-source');
     const snapshot = await getDatabaseSnapshot({ db: source.db });
@@ -147,7 +147,7 @@ describe('native schema-4 export, import and restore', () => {
       expectedSchemaVersion: currentDatabaseSchemaVersion,
       migrationContext: p2MigrationContext,
     });
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
     expect(parsed.data.learnerEvidence).toEqual(snapshot.learnerEvidence);
     expect(parsed.data.lessonPositions).toEqual(snapshot.lessonPositions);
 
@@ -159,7 +159,7 @@ describe('native schema-4 export, import and restore', () => {
 
     expect(restored.learnerEvidence).toEqual(snapshot.learnerEvidence);
     expect(restored.lessonPositions).toEqual(snapshot.lessonPositions);
-    expect(restored.appMeta?.schemaVersion).toBe(4);
+    expect(restored.appMeta?.schemaVersion).toBe(5);
   });
 
   it('replaces both stores on restore, so a backup without evidence empties them', async () => {
@@ -181,7 +181,7 @@ describe('native schema-4 export, import and restore', () => {
     const snapshot = await getDatabaseSnapshot({ db: source.db });
     const summary = summarizeBackup(
       parseBackupFile(envelopeText(snapshot), {
-        expectedSchemaVersion: 4,
+        expectedSchemaVersion: 5,
         migrationContext: p2MigrationContext,
       }),
     );
@@ -192,7 +192,7 @@ describe('native schema-4 export, import and restore', () => {
 });
 
 describe('older and newer exports are refused clearly before any write', () => {
-  for (const schemaVersion of [2, 3, 5]) {
+  for (const schemaVersion of [2, 3, 4, 6]) {
     it(`refuses a schema-${schemaVersion} backup with the data-version message and leaves the database byte-identical`, async () => {
       const target = await deviceWithEvidence(`backup-refuse-${schemaVersion}`);
       const before = await getDatabaseSnapshot({ db: target.db });
@@ -213,7 +213,7 @@ describe('older and newer exports are refused clearly before any write', () => {
           migrationContext: p2MigrationContext,
         }),
       ).toThrow(
-        'This backup was created with a different data version. Expected data version 4.',
+        'This backup was created with a different data version. Expected data version 5.',
       );
       await expect(
         restoreDatabaseFromBackup(withSchemaVersion(before, schemaVersion), {
@@ -249,7 +249,7 @@ describe('backup invariants for the new stores (a backup claim is never trusted)
 
     expect(() =>
       assertBackupDataInvariants(data, {
-        expectedSchemaVersion: 4,
+        expectedSchemaVersion: 5,
         migrationContext: p2MigrationContext,
       }),
     ).not.toThrow();
@@ -395,7 +395,7 @@ describe('backup invariants for the new stores (a backup claim is never trusted)
       parseBackupFile(
         envelopeText({ ...data, learnerEvidence: evidence } as BackupData),
         {
-          expectedSchemaVersion: 4,
+          expectedSchemaVersion: 5,
           migrationContext: p2MigrationContext,
         },
       ),
@@ -492,7 +492,7 @@ describe('a maximal realistic evidence dataset stays within the backup cap', () 
     const { byteLength } = serializeBackupEnvelope(
       buildBackupEnvelope(data, {
         appVersion: currentApplicationVersion,
-        schemaVersion: 4,
+        schemaVersion: 5,
         exportedAt,
       }),
     );
@@ -502,7 +502,7 @@ describe('a maximal realistic evidence dataset stays within the backup cap', () 
       serializeBackupEnvelope(
         buildBackupEnvelope(data, {
           appVersion: currentApplicationVersion,
-          schemaVersion: 4,
+          schemaVersion: 5,
           exportedAt,
         }),
         { maxBytes: byteLength - 1 },
@@ -576,7 +576,7 @@ describe('E-SCHEMA-1A: XP ownership in schema-4 backups', () => {
     expect(() =>
       assertBackupDataInvariants(
         { ...data, xpTransactions } as unknown as BackupData,
-        { expectedSchemaVersion: 4, migrationContext: p2MigrationContext },
+        { expectedSchemaVersion: 5, migrationContext: p2MigrationContext },
       ),
     ).toThrow();
   });
@@ -615,7 +615,7 @@ describe('E-SCHEMA-1A: XP ownership in schema-4 backups', () => {
 
     expect(() =>
       assertBackupDataInvariants(data, {
-        expectedSchemaVersion: 4,
+        expectedSchemaVersion: 5,
         migrationContext: p2MigrationContext,
       }),
     ).not.toThrow();

@@ -436,8 +436,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           Download a full local backup as a JSON file. It contains your learning
           history and progress, notes and saved blockers, XP transactions and
           achievement unlocks, media progress and resume points, and your
-          settings, profile, and app metadata. Keep exported files somewhere
-          private; they are created and stored only by you.
+          Activity records and goals, settings, profile, and app metadata. Keep
+          exported files somewhere private; they are created and stored only by
+          you.
         </p>
         <div className="action-row">
           <Button loading={exporting} onClick={handleExport} variant="primary">

@@ -169,11 +169,11 @@ async function rawTables(db: Dexie) {
 }
 
 describe('E-SCHEMA-1 §2: the accepted schema-4 store contract', () => {
-  it('is schema 4 with exactly four declared Dexie versions', () => {
+  it('is schema 5 while retaining the accepted educational store contract', () => {
     const db = createProgressPalDatabase(defaultTestMigrationContext);
 
-    expect(currentDatabaseSchemaVersion).toBe(4);
-    expect(db.verno).toBe(4);
+    expect(currentDatabaseSchemaVersion).toBe(5);
+    expect(db.verno).toBe(5);
     expect(db.name).toBe('progresspal-cs50-edition');
   });
 
@@ -224,7 +224,15 @@ describe('E-SCHEMA-1 §2: the accepted schema-4 store contract', () => {
     const names = db.tables.map((table) => table.name).sort();
 
     expect(names).toEqual(
-      [...Object.keys(v3Stores), 'learner_evidence', 'lesson_positions'].sort(),
+      [
+        ...Object.keys(v3Stores),
+        'learner_evidence',
+        'lesson_positions',
+        'activity_entries',
+        'activity_definitions',
+        'activity_settings',
+        'activity_days',
+      ].sort(),
     );
   });
 });
@@ -288,14 +296,14 @@ describe('E-SCHEMA-1 §6 and E-SCHEMA-1A: the live schema 3 → 4 upgrade', () =
     await context.db.open();
     const after = await rawTables(context.db);
 
-    expect(await nativeVersion(context.name)).toBe(40);
+    expect(await nativeVersion(context.name)).toBe(50);
     expect(after.learner_evidence).toEqual([]);
     expect(after.lesson_positions).toEqual([]);
 
     for (const [name, rows] of Object.entries(before)) {
       if (name === 'app_meta') {
         expect(after.app_meta).toEqual([
-          { ...(rows[0] as object), schemaVersion: 4 },
+          { ...(rows[0] as object), schemaVersion: 5 },
         ]);
       } else if (name === 'xp_transactions') {
         // E-SCHEMA-1A: historical XP belongs to the accepted CS50 identity;
@@ -321,7 +329,7 @@ describe('E-SCHEMA-1 §6 and E-SCHEMA-1A: the live schema 3 → 4 upgrade', () =
     const snapshot = await getDatabaseSnapshot({ db: context.db });
 
     expect(snapshot.appMeta).toMatchObject({
-      schemaVersion: 4,
+      schemaVersion: 5,
       activeProgrammeId: 'cs50x',
     });
     expect(snapshot.xpTransactions).toEqual([
@@ -382,7 +390,7 @@ describe('E-SCHEMA-1 §6 and E-SCHEMA-1A: the live schema 3 → 4 upgrade', () =
     expect(await nativeVersion(context.name)).toBe(30);
   });
 
-  it('upgrades a fresh CS50 seed initialization straight to schema 4', async () => {
+  it('initializes fresh CS50 data at schema 5', async () => {
     const context = createTestDatabase('v4-fresh');
     databases.push(context);
 
@@ -392,8 +400,8 @@ describe('E-SCHEMA-1 §6 and E-SCHEMA-1A: the live schema 3 → 4 upgrade', () =
       now: () => t0,
     });
 
-    expect(result.appMeta.schemaVersion).toBe(4);
+    expect(result.appMeta.schemaVersion).toBe(5);
     expect(result.appMeta.activeProgrammeId).toBe('cs50x');
-    expect(await nativeVersion(context.name)).toBe(40);
+    expect(await nativeVersion(context.name)).toBe(50);
   });
 });

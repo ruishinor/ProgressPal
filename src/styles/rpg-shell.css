@@ -472,13 +472,119 @@ html:has(body.rpg-route-active) {
     padding: var(--space-3);
   }
 
+  /* Only the identity row reserves room for the Settings gear. The rest of
+     the HUD uses the phone's full width. Flexible rows also reflow at large
+     text sizes, rather than squeezing XP beside the disclosure. */
+  .rpg-shell .rpg-hero-hud {
+    padding-inline-end: var(--space-3);
+  }
+
+  .rpg-hero-hud:not(.rpg-hero-hud--compact) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .rpg-hero-hud > .rpg-identity,
+  .rpg-hero-hud > .rpg-hero-hud__identity {
+    flex-basis: 100%;
+    padding-inline-end: 52px;
+  }
+
+  .rpg-hero-hud .rpg-identity {
+    gap: 8px;
+  }
+
+  .rpg-hero-hud .rpg-identity .rpg-identity__portrait {
+    width: 48px;
+    height: 48px;
+  }
+
+  .rpg-hero-hud .rpg-identity__copy {
+    display: grid;
+    gap: 0;
+  }
+
+  .rpg-hero-hud .activity-indicator {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 0;
+    width: fit-content;
+  }
+
+  .rpg-hero-hud > .rpg-shell__settings-link {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+  }
+
+  .rpg-hero-hud .rpg-shell__settings-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rpg-hero-hud > .rpg-level-progress {
+    flex: 1 1 11rem;
+    gap: var(--space-2);
+  }
+
+  .rpg-hero-hud__details {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .rpg-hero-hud__details[open] {
+    flex-basis: 100%;
+  }
+
+  .rpg-hero-hud__details > summary {
+    border: 1px solid var(--rpg-border);
+    border-radius: var(--radius-sm);
+    color: var(--rpg-text-muted);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    min-height: 44px;
+    padding: 0.5rem;
+  }
+
+  .rpg-hero-hud__details > summary:focus-visible {
+    outline: 2px solid var(--rpg-accent);
+    outline-offset: 2px;
+  }
+
+  .rpg-hero-hud__detail-content {
+    display: grid;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+  }
+
+  .rpg-hero-hud__detail-content > p {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .rpg-hero-hud__detail-content .rpg-identity__traits > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .rpg-hero-hud--compact {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
   .rpg-hero-hud__quest {
+    display: flex;
+    flex-wrap: wrap;
+    flex-basis: 100%;
     gap: var(--space-2) var(--space-3);
     padding-top: var(--space-2);
+  }
+
+  .rpg-hero-hud__quest-copy {
+    flex: 1 1 9rem;
   }
 
   .rpg-hero-hud__quest strong {
@@ -510,6 +616,7 @@ html:has(body.rpg-route-active) {
     );
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     bottom: 0;
+    container: rpg-primary-navigation / inline-size;
     box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.24);
     inset-inline: 0;
     padding: 0.65rem max(0.35rem, env(safe-area-inset-right, 0px))
@@ -547,5 +654,29 @@ html:has(body.rpg-route-active) {
 
   .rpg-primary-nav__link[aria-current='page'] {
     box-shadow: inset 0 0.2rem 0 var(--rpg-accent);
+  }
+
+  /* em follows the navigation's text size: retain labels on ordinary phones,
+     but use the same five named icons when enlarged text cannot fit them.
+     Keep labels in the accessibility tree, as with the shared sr-only rule. */
+  @container rpg-primary-navigation (max-width: 18em) {
+    .rpg-primary-nav__link {
+      gap: 0;
+      justify-content: center;
+      min-height: 2.75rem;
+    }
+
+    .rpg-primary-nav__label {
+      border: 0;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      width: 1px;
+      white-space: nowrap;
+    }
   }
 }

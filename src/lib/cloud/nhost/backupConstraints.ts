@@ -18,8 +18,8 @@ export const backupConstraintNames = {
 /** Remote payload ceiling (UTF-8 bytes). The local 25 MiB file limit is unrelated. */
 export const remoteBackupPayloadCeilingBytes = 10 * 1024 * 1024;
 
-/** The server-accepted generation pair at this release (deployment-controlled). */
+/** Candidate generation; provider migration is prepared locally, not applied. */
 export const acceptedBackupGeneration = {
   formatVersion: 1,
-  schemaVersion: 4,
+  schemaVersion: 5,
 } as const;

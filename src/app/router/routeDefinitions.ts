@@ -2,6 +2,7 @@ import { cloudCallbackPath } from '@/lib/cloud';
 import {
   getRpgResourcePath as buildRpgResourcePath,
   getRpgWeekPath as buildRpgWeekPath,
+  rpgActivityPath,
   rpgBadgesPath,
   rpgFocusPath,
   rpgHeroPath,
@@ -28,6 +29,7 @@ export type AppRouteId =
   | 'rpgWeek'
   | 'rpgResource'
   | 'rpgFocus'
+  | 'rpgActivity'
   | 'rpgHero'
   | 'rpgBadges'
   | 'rpgLog'
@@ -126,6 +128,12 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'rpgFocus',
     segment: rpgRouteSegments.focus,
     to: rpgFocusPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgActivity',
+    segment: rpgRouteSegments.activity,
+    to: rpgActivityPath,
     includeInPrimaryNavigation: false,
   },
   {

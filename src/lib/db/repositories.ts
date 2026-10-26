@@ -1,6 +1,14 @@
 import Dexie from 'dexie';
 
 import {
+  ActivityDaySchema,
+  ActivityDefinitionSchema,
+  ActivityEntrySchema,
+  ActivitySettingsSchema,
+  type ActivityData,
+} from '@/lib/domain/activity';
+
+import {
   AchievementDefinitionSchema,
   AchievementUnlockSchema,
   AppMetaSchema,
@@ -251,7 +259,8 @@ export function settleLogicalWriteScope(scope: LogicalWriteScope) {
   }
 }
 
-async function runCoordinatedWrite<T>(
+/** @internal Reused by the Activity repository; not exported by the db entrypoint. */
+export async function runCoordinatedWrite<T>(
   database: ProgressPalDatabase,
   action: () => Promise<T>,
 ) {
@@ -355,7 +364,7 @@ export type LogMediaProgressResult = {
   slices: ContentSlice[];
 };
 
-export type DatabaseSnapshot = {
+export type DatabaseSnapshot = ActivityData & {
   achievementDefinitions: AchievementDefinition[];
   achievementUnlocks: AchievementUnlock[];
   appMeta: AppMeta | null;
@@ -1596,6 +1605,10 @@ export async function saveLearnerProfile(
  */
 function learnerActivityTables(database: ProgressPalDatabase) {
   return [
+    database.activityEntries,
+    database.activityDefinitions,
+    database.activitySettings,
+    database.activityDays,
     database.progressEntries,
     database.mediaProgressEvents,
     database.resumePoints,
@@ -5056,6 +5069,10 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
 
   return database.transaction('r', tables, async () => {
     const [
+      activityEntries,
+      activityDefinitions,
+      activitySettings,
+      activityDays,
       storedAppMeta,
       storedLearnerProfile,
       courseUnits,
@@ -5075,6 +5092,10 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
       learnerEvidence,
       lessonPositions,
     ] = await Promise.all([
+      database.activityEntries.toArray(),
+      database.activityDefinitions.toArray(),
+      database.activitySettings.toArray(),
+      database.activityDays.toArray(),
       database.appMeta.get(singletonIds.appMeta),
       database.learnerProfile.get(singletonIds.learnerProfile),
       database.courseUnits.toArray(),
@@ -5108,6 +5129,26 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
           );
 
     return {
+      activityEntries: parseStoredArray(
+        activityEntries,
+        'Stored activity entry',
+        ActivityEntrySchema,
+      ).sort((a, b) => a.id.localeCompare(b.id)),
+      activityDefinitions: parseStoredArray(
+        activityDefinitions,
+        'Stored activity definition',
+        ActivityDefinitionSchema,
+      ).sort((a, b) => a.id.localeCompare(b.id)),
+      activitySettings: parseStoredArray(
+        activitySettings,
+        'Stored activity settings',
+        ActivitySettingsSchema,
+      ),
+      activityDays: parseStoredArray(
+        activityDays,
+        'Stored activity day',
+        ActivityDaySchema,
+      ).sort((a, b) => a.id.localeCompare(b.id)),
       appMeta,
       learnerProfile,
       courseUnits: sortCourseUnits(
@@ -5210,6 +5251,10 @@ export async function getDatabaseSnapshot(options: BaseDatabaseOptions = {}) {
 
 function allDataTables(database: ProgressPalDatabase) {
   return [
+    database.activityEntries,
+    database.activityDefinitions,
+    database.activitySettings,
+    database.activityDays,
     database.appMeta,
     database.learnerProfile,
     database.courseUnits,
@@ -5256,6 +5301,26 @@ function parseSnapshotForRestore(
   }
 
   const restored = {
+    activityEntries: parseStoredArray(
+      snapshot.activityEntries,
+      'Backup activity entry',
+      ActivityEntrySchema,
+    ),
+    activityDefinitions: parseStoredArray(
+      snapshot.activityDefinitions,
+      'Backup activity definition',
+      ActivityDefinitionSchema,
+    ),
+    activitySettings: parseStoredArray(
+      snapshot.activitySettings,
+      'Backup activity settings',
+      ActivitySettingsSchema,
+    ),
+    activityDays: parseStoredArray(
+      snapshot.activityDays,
+      'Backup activity day',
+      ActivityDaySchema,
+    ),
     appMeta:
       snapshot.appMeta === null
         ? null
@@ -5469,6 +5534,10 @@ export async function restoreDatabaseFromBackup(
         database.programmeEnrolments.bulkAdd(restored.programmeEnrolments),
         database.learnerEvidence.bulkAdd(restored.learnerEvidence),
         database.lessonPositions.bulkAdd(restored.lessonPositions),
+        database.activityEntries.bulkAdd(restored.activityEntries),
+        database.activityDefinitions.bulkAdd(restored.activityDefinitions),
+        database.activitySettings.bulkAdd(restored.activitySettings),
+        database.activityDays.bulkAdd(restored.activityDays),
       ]);
 
       await initializeDatabase({ ...options, db: database });

@@ -17,6 +17,10 @@ const scriptNote = '<script>alert(1)</script>';
 
 function makeValidData(): BackupData {
   return {
+    activityEntries: [],
+    activityDefinitions: [],
+    activitySettings: [],
+    activityDays: [],
     appMeta: {
       id: 'app-meta',
       createdAt: '2026-06-16T10:00:00.000Z',
@@ -336,6 +340,68 @@ describe('summarizeBackup', () => {
 });
 
 describe('parseBackupFile rejections', () => {
+  it.each(['activityEntries', 'studySessions'] as const)(
+    'bounds diagnostics for a compact malformed %s collection',
+    (store) => {
+      const envelope = makeEnvelope();
+      const input = {
+        ...envelope,
+        data: { ...envelope.data, [store]: Array(20_000).fill(0) },
+      };
+      try {
+        parse(input);
+        expect.fail('Malformed history must be refused');
+      } catch (error) {
+        expect(error).toBeInstanceOf(BackupValidationError);
+        expect((error as BackupValidationError).issues).toHaveLength(1);
+        expect((error as BackupValidationError).issues[0]).toContain(
+          `data.${store}.0`,
+        );
+      }
+    },
+  );
+
+  it('bounds nested goal diagnostics and keeps refinement failures fail-fast', () => {
+    const envelope = makeEnvelope();
+    const badGoal = {
+      id: 'goal-1',
+      activityId: 'pushups',
+      unit: 'reps',
+      target: -1,
+      enabled: true,
+    };
+    try {
+      parse({
+        ...envelope,
+        data: {
+          ...envelope.data,
+          activityDays: [
+            { id: '2026-10-26', goals: Array(20_000).fill(badGoal) },
+          ],
+        },
+      });
+      expect.fail('Invalid goals must be refused');
+    } catch (error) {
+      expect(error).toBeInstanceOf(BackupValidationError);
+      expect((error as BackupValidationError).issues).toHaveLength(1);
+      expect((error as BackupValidationError).issues[0]).toContain(
+        'data.activityDays.0.goals.0.target',
+      );
+    }
+  });
+
+  it('accepts a large valid history without an arbitrary record ceiling', () => {
+    const data = makeValidData();
+    const row = data.studySessions[0]!;
+    data.studySessions = Array.from({ length: 20_000 }, (_, index) => ({
+      ...row,
+      id: `study-session-${index + 1}`,
+    }));
+    expect(parse(makeEnvelope(data)).data.studySessions).toEqual(
+      data.studySessions,
+    );
+  });
+
   it('rejects malformed JSON', () => {
     expect(() =>
       parseBackupFile('{ not json', { expectedSchemaVersion }),

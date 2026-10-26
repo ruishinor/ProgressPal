@@ -10,7 +10,7 @@ import { completeOnboarding } from './support/onboarding';
  * only. Covers enrolment and switching from Settings, the lesson surface in
  * Classic and RPG, keyboard answering, durable results across reload, hints
  * as recorded support, the runtime-unavailable state, the read-only second
- * tab, schema-4 backup round trip with evidence, refusal of an older backup,
+ * tab, schema-5 backup round trip with evidence, refusal of an older backup,
  * accessibility and the mobile width.
  */
 
@@ -298,7 +298,7 @@ test('switches CS50 → Programvareutvikling → CS50 → Programvareutvikling w
   expect((await readEvidenceCount(page)).evidence).toBe(2);
 });
 
-test('exports a schema-4 backup with the evidence and restores it exactly', async ({
+test('exports a schema-5 backup with the evidence and restores it exactly', async ({
   page,
 }) => {
   await completeOnboarding(page);
@@ -316,7 +316,7 @@ test('exports a schema-4 backup with the evidence and restores it exactly', asyn
     schemaVersion: number;
     data: { learnerEvidence: unknown[]; lessonPositions: unknown[] };
   };
-  expect(backup.schemaVersion).toBe(4);
+  expect(backup.schemaVersion).toBe(5);
   expect(backup.data.learnerEvidence).toHaveLength(before.evidence);
   expect(backup.data.lessonPositions).toHaveLength(before.positions);
 

@@ -13,6 +13,7 @@ import { DashboardPage } from '@/features/dashboard';
 import { InsightsPage } from '@/features/insights';
 import { OnboardingPage } from '@/features/profile';
 import {
+  ActivityPage,
   RpgBadgesPage,
   RpgFocusPage,
   RpgHeroPage,
@@ -36,6 +37,7 @@ const rpgMapRoute = getRouteDefinition('rpgMap');
 const rpgWeekRoute = getRouteDefinition('rpgWeek');
 const rpgResourceRoute = getRouteDefinition('rpgResource');
 const rpgFocusRoute = getRouteDefinition('rpgFocus');
+const rpgActivityRoute = getRouteDefinition('rpgActivity');
 const rpgHeroRoute = getRouteDefinition('rpgHero');
 const rpgBadgesRoute = getRouteDefinition('rpgBadges');
 const rpgLogRoute = getRouteDefinition('rpgLog');
@@ -134,6 +136,10 @@ export const router = createBrowserRouter([
           {
             path: rpgFocusRoute.segment,
             element: <RpgFocusPage />,
+          },
+          {
+            path: rpgActivityRoute.segment,
+            element: <ActivityPage />,
           },
           {
             path: rpgHeroRoute.segment,

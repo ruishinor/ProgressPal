@@ -32,4 +32,5 @@ export interface SimulatedNhost {
 
 export function createSimulatedNhost(options?: {
   mode?: string;
+  schemaVersion?: number;
 }): SimulatedNhost;

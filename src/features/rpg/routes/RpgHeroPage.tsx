@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useState } from 'react';
+import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -171,6 +172,7 @@ export function RpgHeroPage() {
               identity={summary.identity}
               name={summary.learnerName}
               variant="profile"
+              secondaryStatistic={<ActivityIndicator />}
             />
             <RpgLevelProgress xp={summary.xpSummary} />
           </div>

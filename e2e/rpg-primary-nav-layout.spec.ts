@@ -306,6 +306,138 @@ const navStyleProperties = [
   'color',
 ] as const;
 
+for (const width of [320, 390, 1280]) {
+  test(`primary navigation remains distinct with normal and enlarged text at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 844, width });
+    await completeOnboarding(page);
+    await openRoute(page, rpgRoutes.map);
+    const nav = primaryNav(page);
+    const destinations = [
+      ['Home', '/rpg'],
+      ['Campaign', '/rpg/map'],
+      ['Focus', '/rpg/focus'],
+      ['Awards', '/rpg/badges'],
+      ['Insights', '/rpg/log'],
+    ] as const;
+
+    for (const scale of [100, 200]) {
+      await page.evaluate((value) => {
+        const scope = globalThis as unknown as {
+          document: { documentElement: { style: { fontSize: string } } };
+        };
+        scope.document.documentElement.style.fontSize = `${value}%`;
+      }, scale);
+      const iconsOnly = width < 672 && scale === 200;
+      const navBox = await box(nav, 'navigation');
+      let previousRight = 0;
+      await expect(nav.getByRole('link')).toHaveCount(5);
+      for (const [name, path] of destinations) {
+        const link = nav.getByRole('link', { name, exact: true });
+        await expect(link).toHaveAccessibleName(name);
+        await expect(link).toHaveAttribute('href', path);
+        const target = await box(link, name);
+        expect(target.width).toBeGreaterThanOrEqual(44);
+        expect(target.height).toBeGreaterThanOrEqual(44);
+        expect(target.x).toBeGreaterThanOrEqual(previousRight - 1);
+        previousRight = target.x + target.width;
+        const icon = await box(link.locator('svg'), `${name} icon`);
+        expect(icon.x).toBeGreaterThanOrEqual(target.x);
+        expect(icon.x + icon.width).toBeLessThanOrEqual(previousRight);
+        const label = link.locator('.rpg-primary-nav__label');
+        const labelBox = await box(label, `${name} label`);
+        if (iconsOnly) {
+          expect(labelBox.width).toBe(1);
+          expect((await readStyles(label, ['clipPath'])).clipPath).toBe(
+            'inset(50%)',
+          );
+        } else {
+          // Check each label's own target, not merely page overflow.
+          expect(labelBox.x).toBeGreaterThanOrEqual(target.x);
+          expect(labelBox.x + labelBox.width).toBeLessThanOrEqual(
+            previousRight,
+          );
+          expect((await readStyles(label, ['clipPath'])).clipPath).toBe('none');
+        }
+        const hit = await link.evaluate((element) => {
+          const scope = globalThis as unknown as {
+            document: {
+              elementFromPoint(x: number, y: number): typeof element | null;
+            };
+          };
+          const rect = element.getBoundingClientRect();
+          return element.contains(
+            scope.document.elementFromPoint(
+              rect.x + rect.width / 2,
+              rect.y + rect.height / 2,
+            ),
+          );
+        });
+        expect(hit, `${name} independent pointer target`).toBe(true);
+      }
+      if (width < 672) {
+        expect((await readStyles(nav, ['position'])).position).toBe('fixed');
+        expect(navBox.y + navBox.height).toBeCloseTo(844, 0);
+        expect(
+          await readPx(page.locator('#rpg-main-content'), 'paddingBottom'),
+        ).toBeGreaterThanOrEqual(navBox.height);
+        expect(
+          await readPx(page.locator('html'), 'scrollPaddingBottom'),
+        ).toBeGreaterThanOrEqual(navBox.height);
+      }
+      expect((await readScroll(page)).overflow).toBeLessThanOrEqual(1);
+
+      await nav.getByRole('link', { name: 'Home', exact: true }).focus();
+      // Enter keyboard modality before testing :focus-visible (onboarding
+      // and the previous scale end with pointer interaction).
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab');
+      for (const [index, [name]] of destinations.entries()) {
+        if (index > 0) await page.keyboard.press('Tab');
+        const link = nav.getByRole('link', { name, exact: true });
+        await expect(link).toBeFocused();
+        expect(await readPx(link, 'outlineWidth')).toBeGreaterThan(0);
+        expect(
+          (await readStyles(link, ['outlineStyle'])).outlineStyle,
+        ).not.toBe('none');
+      }
+      // Route changes deliberately move focus into main content. Check
+      // activation separately from the uninterrupted tab sequence above.
+      for (const [name, path] of destinations) {
+        const link = nav.getByRole('link', { name, exact: true });
+        await link.focus();
+        await page.keyboard.press('Enter');
+        await expect(page).toHaveURL(new RegExp(`${path}$`));
+        await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+        await expect(link).toHaveAttribute('aria-current', 'page');
+        expect((await readStyles(link, ['boxShadow'])).boxShadow).not.toBe(
+          'none',
+        );
+      }
+      await nav.getByRole('link', { name: 'Campaign', exact: true }).click();
+      await expect(page).toHaveURL(/\/rpg\/map$/);
+      for (const theme of ['dark', 'light']) {
+        await page.evaluate((value) => {
+          const scope = globalThis as unknown as {
+            document: {
+              documentElement: { setAttribute(k: string, v: string): void };
+            };
+          };
+          scope.document.documentElement.setAttribute('data-theme', value);
+        }, theme);
+        expect(
+          (await new AxeBuilder({ page }).include('.rpg-primary-nav').analyze())
+            .violations,
+        ).toEqual([]);
+        await nav.screenshot({
+          path: `artifacts/nav-final-${width}-${scale}-${theme}.png`,
+        });
+      }
+    }
+  });
+}
+
 for (const theme of ['dark', 'light'] as const) {
   for (const viewport of [
     { height: 844, width: 390 },
@@ -412,10 +544,11 @@ test('the skip link, primary navigation and the HUD form a logical keyboard path
   }
 
   // The persistent HUD follows the navigation, before the page content: the
-  // avatar opens the Hero Profile, then its top-right Settings gear, then the
+  // avatar opens the Hero Profile, then Activity, its Settings gear, then the
   // current-quest action. Each shows a visible focus indicator.
   for (const name of [
     'Open Hero Profile',
+    'Activity Level 1',
     'Open Settings',
     /^(Start|Continue) quest$/,
   ]) {
@@ -491,6 +624,10 @@ for (const viewport of [
     // Quest routes: identity, level, XP and the Current quest with its action.
     await openRoute(page, rpgRoutes.map);
     await expect(hud.getByText('Alex', { exact: true })).toBeVisible();
+
+    // Phone secondary facts remain available through the native disclosure.
+    if (viewport.width <= 672)
+      await hud.getByLabel('Character details').click();
 
     for (const text of hudIdentityText) {
       await expect(hud.getByText(text, { exact: true }).first()).toBeVisible();

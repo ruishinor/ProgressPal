@@ -62,3 +62,5 @@ export type {
   RpgQuestSummary,
   RpgStudyResourceSummary,
 } from './model/types';
+
+export { ActivityPage } from './activity/ActivityPage';

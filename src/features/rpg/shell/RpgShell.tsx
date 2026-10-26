@@ -1,3 +1,6 @@
+import { MovementReminder } from '@/features/rpg/activity/MovementReminder';
+import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
+
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import {
   startTransition,
@@ -14,6 +17,7 @@ import {
   RpgButton,
   RpgPanel,
   RpgHeroIdentity,
+  RpgHeroIdentityDetails,
   RpgLevelProgress,
 } from '@/features/rpg/components';
 import {
@@ -103,11 +107,22 @@ function RpgHeroHud({
   onRetry,
   state,
   showQuest,
+  programmeTitle,
 }: {
   onRetry: () => void;
   state: RpgShellHudState;
   showQuest: boolean;
+  programmeTitle?: string;
 }) {
+  const [mobile, setMobile] = useState(
+    () => window.matchMedia('(max-width: 42rem)').matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 42rem)');
+    const update = () => setMobile(media.matches);
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
   if (state.status === 'loading' || state.summary === null) {
     if (state.status === 'error') {
       return (
@@ -165,6 +180,25 @@ function RpgHeroHud({
     (recommendation.state === 'required_complete'
       ? 'Required tasks complete in ProgressPal'
       : 'Course data unavailable');
+  const questMetadata = (
+    <>
+      {currentQuest ? (
+        <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
+      ) : null}
+      {recommendation.state === 'required_complete' &&
+      recommendation.optionalRemainingCount > 0 ? (
+        <p className="rpg-hero-hud__quest-context">{`${recommendation.optionalRemainingCount} optional tasks remain on the map.`}</p>
+      ) : null}
+      {currentQuest ? (
+        <p className="rpg-hero-hud__quest-context">
+          {currentQuest.unitTitle} /{' '}
+          <span className="rpg-hero-hud__nowrap">
+            {formatMinutes(currentQuest.estimatedMinutes)}
+          </span>
+        </p>
+      ) : null}
+    </>
+  );
 
   return (
     <section
@@ -176,9 +210,25 @@ function RpgHeroHud({
         identity={summary.identity}
         name={summary.learnerName}
         profileHref={rpgHeroPath}
+        secondaryStatistic={<ActivityIndicator />}
+        showDetails={!mobile}
       />
       <SettingsLink inHud />
       <RpgLevelProgress xp={summary.xpSummary} />
+      {mobile && (
+        <details className="rpg-hero-hud__details">
+          <summary aria-label="Character details">Details</summary>
+          <div className="rpg-hero-hud__detail-content">
+            {programmeTitle && (
+              <p>
+                Programme: <strong>{programmeTitle}</strong>
+              </p>
+            )}
+            <RpgHeroIdentityDetails identity={summary.identity} />
+            {showQuest && questMetadata}
+          </div>
+        </details>
+      )}
 
       {showQuest ? (
         <div className="rpg-hero-hud__quest">
@@ -189,21 +239,7 @@ function RpgHeroHud({
                 : 'Current quest'}
             </p>
             <strong>{currentQuestLabel}</strong>
-            {currentQuest ? (
-              <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
-            ) : null}
-            {recommendation.state === 'required_complete' &&
-            recommendation.optionalRemainingCount > 0 ? (
-              <p className="rpg-hero-hud__quest-context">{`${recommendation.optionalRemainingCount} optional tasks remain on the map.`}</p>
-            ) : null}
-            {currentQuest ? (
-              <p className="rpg-hero-hud__quest-context">
-                {currentQuest.unitTitle} /{' '}
-                <span className="rpg-hero-hud__nowrap">
-                  {formatMinutes(currentQuest.estimatedMinutes)}
-                </span>
-              </p>
-            ) : null}
+            {!mobile && questMetadata}
           </div>
           <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
             {currentQuest === null
@@ -372,6 +408,7 @@ export function RpgShell() {
         <RpgPrimaryNav />
         {location.pathname !== rpgHeroPath ? (
           <RpgHeroHud
+            programmeTitle={programmeScope?.title}
             showQuest={
               location.pathname !== rpgRoutePath &&
               location.pathname !== rpgFocusPath &&
@@ -458,6 +495,7 @@ export function RpgShell() {
               }}
             />
           ) : null}
+          <MovementReminder />
           <Outlet
             context={
               {

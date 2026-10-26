@@ -33,6 +33,7 @@ describe('Module 05 boundaries', () => {
       .sort();
 
     expect(databaseFiles).toEqual([
+      'activity.ts',
       'constants.ts',
       'database.ts',
       'index.ts',

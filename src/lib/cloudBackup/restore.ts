@@ -55,6 +55,10 @@ const activityStores = [
   'resumePoints',
   'learnerEvidence',
   'lessonPositions',
+  'activityEntries',
+  'activityDefinitions',
+  'activitySettings',
+  'activityDays',
 ] as const satisfies ReadonlyArray<keyof BackupData>;
 
 /** True when onboarding was completed or any learner-activity store has a row. */

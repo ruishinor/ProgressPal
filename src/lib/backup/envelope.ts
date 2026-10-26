@@ -1,3 +1,12 @@
+import {
+  ActivityDaySchema,
+  ActivityDefinitionSchema,
+  ActivityEntrySchema,
+  ActivityGoalSchema,
+  ActivitySettingsSchema,
+  assertActivityInvariants,
+} from '@/lib/domain/activity';
+
 import { z } from 'zod';
 
 import {
@@ -56,6 +65,37 @@ const backupTimestampSchema = z.string().regex(isoDateTimePattern, {
   message: 'Expected an ISO 8601 datetime string.',
 });
 
+/** Untrusted history may be large: retain row validation without accumulating
+ * an issue for every bad row. The file byte ceiling remains the only general
+ * history-size limit. Keep indexed paths for the first invalid row. */
+function backupRows<T>(schema: z.ZodType<T>) {
+  return z.custom<unknown[]>(Array.isArray).transform((rows, context) => {
+    const parsed: T[] = [];
+    for (let index = 0; index < rows.length; index += 1) {
+      const result = schema.safeParse(rows[index]);
+      if (!result.success) {
+        for (const issue of result.error.issues) {
+          context.addIssue({ ...issue, path: [index, ...issue.path] });
+        }
+        return z.NEVER;
+      }
+      parsed.push(result.data);
+    }
+    return parsed;
+  });
+}
+
+// Preserve the domain's duplicate-goal refinement after the fail-fast walk.
+const backupGoalsSchema = backupRows(ActivityGoalSchema).pipe(
+  ActivitySettingsSchema.shape.goals,
+);
+const backupActivitySettingsSchema = ActivitySettingsSchema.extend({
+  goals: backupGoalsSchema,
+});
+const backupActivityDaySchema = ActivityDaySchema.extend({
+  goals: backupGoalsSchema,
+});
+
 /**
  * Strict shape of the restorable data payload. Mirrors `DatabaseSnapshot` so a
  * snapshot is directly assignable here. `appMeta` / `learnerProfile` may be
@@ -63,24 +103,28 @@ const backupTimestampSchema = z.string().regex(isoDateTimePattern, {
  */
 export const BackupDataSchema = z
   .object({
+    activityEntries: backupRows(ActivityEntrySchema),
+    activityDefinitions: backupRows(ActivityDefinitionSchema),
+    activitySettings: z.array(backupActivitySettingsSchema).max(1),
+    activityDays: backupRows(backupActivityDaySchema),
     appMeta: AppMetaSchema.nullable(),
     learnerProfile: LearnerProfileSchema.nullable(),
-    courseUnits: z.array(CourseUnitSchema),
-    courseItems: z.array(CourseItemSchema),
-    progressEntries: z.array(ProgressEntrySchema),
-    contentAssets: z.array(ContentAssetSchema),
-    contentSlices: z.array(ContentSliceSchema),
-    mediaProgressEvents: z.array(MediaProgressEventSchema),
-    resumePoints: z.array(ResumePointSchema),
-    studySessions: z.array(StudySessionSchema),
-    xpTransactions: z.array(XpTransactionSchema),
-    achievementDefinitions: z.array(AchievementDefinitionSchema),
-    achievementUnlocks: z.array(AchievementUnlockSchema),
-    backups: z.array(BackupRecordSchema),
-    catalogueVersions: z.array(CatalogueVersionSchema),
-    programmeEnrolments: z.array(ProgrammeEnrolmentSchema),
-    learnerEvidence: z.array(LearnerEvidenceSchema),
-    lessonPositions: z.array(LessonPositionSchema),
+    courseUnits: backupRows(CourseUnitSchema),
+    courseItems: backupRows(CourseItemSchema),
+    progressEntries: backupRows(ProgressEntrySchema),
+    contentAssets: backupRows(ContentAssetSchema),
+    contentSlices: backupRows(ContentSliceSchema),
+    mediaProgressEvents: backupRows(MediaProgressEventSchema),
+    resumePoints: backupRows(ResumePointSchema),
+    studySessions: backupRows(StudySessionSchema),
+    xpTransactions: backupRows(XpTransactionSchema),
+    achievementDefinitions: backupRows(AchievementDefinitionSchema),
+    achievementUnlocks: backupRows(AchievementUnlockSchema),
+    backups: backupRows(BackupRecordSchema),
+    catalogueVersions: backupRows(CatalogueVersionSchema),
+    programmeEnrolments: backupRows(ProgrammeEnrolmentSchema),
+    learnerEvidence: backupRows(LearnerEvidenceSchema),
+    lessonPositions: backupRows(LessonPositionSchema),
   })
   .strict();
 
@@ -93,18 +137,18 @@ const legacyBackupDataV2Schema = z
   .object({
     appMeta: legacyAppMetaV2Schema.nullable(),
     learnerProfile: LearnerProfileSchema.nullable(),
-    courseUnits: z.array(CourseUnitSchema),
-    courseItems: z.array(CourseItemSchema),
-    progressEntries: z.array(ProgressEntrySchema),
-    contentAssets: z.array(ContentAssetSchema),
-    contentSlices: z.array(ContentSliceSchema),
-    mediaProgressEvents: z.array(MediaProgressEventSchema),
-    resumePoints: z.array(ResumePointSchema),
-    studySessions: z.array(StudySessionSchema),
-    xpTransactions: z.array(LegacyXpTransactionSchema),
-    achievementDefinitions: z.array(AchievementDefinitionSchema),
-    achievementUnlocks: z.array(AchievementUnlockSchema),
-    backups: z.array(BackupRecordSchema),
+    courseUnits: backupRows(CourseUnitSchema),
+    courseItems: backupRows(CourseItemSchema),
+    progressEntries: backupRows(ProgressEntrySchema),
+    contentAssets: backupRows(ContentAssetSchema),
+    contentSlices: backupRows(ContentSliceSchema),
+    mediaProgressEvents: backupRows(MediaProgressEventSchema),
+    resumePoints: backupRows(ResumePointSchema),
+    studySessions: backupRows(StudySessionSchema),
+    xpTransactions: backupRows(LegacyXpTransactionSchema),
+    achievementDefinitions: backupRows(AchievementDefinitionSchema),
+    achievementUnlocks: backupRows(AchievementUnlockSchema),
+    backups: backupRows(BackupRecordSchema),
   })
   .strict();
 
@@ -116,7 +160,13 @@ type LegacyBackupDataV2 = z.infer<typeof legacyBackupDataV2Schema>;
  */
 type SchemaThreeBackupData = Omit<
   BackupData,
-  'learnerEvidence' | 'lessonPositions' | 'xpTransactions'
+  | 'learnerEvidence'
+  | 'lessonPositions'
+  | 'xpTransactions'
+  | 'activityEntries'
+  | 'activityDefinitions'
+  | 'activitySettings'
+  | 'activityDays'
 > & { xpTransactions: BackupLegacyXpTransaction[] };
 
 type BackupLegacyXpTransaction = z.infer<typeof LegacyXpTransactionSchema>;
@@ -228,6 +278,10 @@ const idBearingStoreKeys = [
   'backups',
   'learnerEvidence',
   'lessonPositions',
+  'activityEntries',
+  'activityDefinitions',
+  'activitySettings',
+  'activityDays',
 ] as const satisfies ReadonlyArray<keyof BackupData>;
 
 export type BackupCountKey = (typeof idBearingStoreKeys)[number];
@@ -376,6 +430,14 @@ export function assertBackupDataInvariants(
   data: BackupData,
   options: ValidateBackupDataOptions,
 ) {
+  try {
+    assertActivityInvariants(data);
+  } catch (error) {
+    throw new BackupValidationError(
+      'This backup has invalid Activity records.',
+      [error instanceof Error ? error.message : 'Invalid Activity data.'],
+    );
+  }
   assertNoDuplicateIds(data);
 
   if (data.appMeta !== null) {
@@ -902,7 +964,15 @@ export function parseBackupFile(
     const convertedEnvelope = {
       ...legacyResult.data,
       schemaVersion: options.expectedSchemaVersion,
-      data: { ...convertedData, learnerEvidence: [], lessonPositions: [] },
+      data: {
+        ...convertedData,
+        learnerEvidence: [],
+        lessonPositions: [],
+        activityEntries: [],
+        activityDefinitions: [],
+        activitySettings: [],
+        activityDays: [],
+      },
     } as unknown as BackupEnvelope;
 
     assertBackupDataInvariants(convertedEnvelope.data, {
@@ -957,6 +1027,10 @@ export function summarizeBackup(envelope: BackupEnvelope): BackupSummary {
       backups: data.backups.length,
       learnerEvidence: data.learnerEvidence.length,
       lessonPositions: data.lessonPositions.length,
+      activityEntries: data.activityEntries.length,
+      activityDefinitions: data.activityDefinitions.length,
+      activitySettings: data.activitySettings.length,
+      activityDays: data.activityDays.length,
     },
   };
 }

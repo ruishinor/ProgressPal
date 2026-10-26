@@ -1,7 +1,7 @@
 {
   "name": "progresspal-cs50-edition",
   "private": true,
-  "version": "1.8.0",
+  "version": "1.9.0",
   "type": "module",
   "packageManager": "npm@11.10.1",
   "engines": {
@@ -33,7 +33,7 @@
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.17.0",
     "recharts": "^3.8.1",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
