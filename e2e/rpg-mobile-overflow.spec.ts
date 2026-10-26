@@ -269,6 +269,9 @@ for (const viewport of mobileViewports) {
             ? 'Learner identity and progression'
             : 'Persistent hero HUD',
       });
+      if (route.path !== '/rpg/hero') {
+        await hud.getByLabel('Character details').click();
+      }
       for (const identity of [
         'New Learner',
         'Guild',
@@ -280,6 +283,9 @@ for (const viewport of mobileViewports) {
         '0 / 100 XP to Level 2',
       ]) {
         await expect(hud.getByText(identity, { exact: true })).toBeVisible();
+      }
+      if (route.path !== '/rpg/hero') {
+        await hud.getByLabel('Character details').click();
       }
       if (viewport.width === 390 && route.path !== '/rpg/hero') {
         expect((await hud.boundingBox())!.height).toBeLessThan(310);
