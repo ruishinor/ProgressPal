@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -109,7 +110,7 @@ describe('Utviklerblikk content contract', () => {
     expect(track.sessions.slice(0, 6)).toEqual(generelt);
   });
 
-  it('keeps Generelt as accepted and registers six ACT 18 activities in each other category', () => {
+  it('keeps Generelt as accepted and adds UX/UU after the four preserved categories', () => {
     expect(
       track.categories?.map(({ id, title, summary }) => [id, title, summary]),
     ).toEqual([
@@ -117,24 +118,37 @@ describe('Utviklerblikk content contract', () => {
       ['scrum', 'Scrum', 'Rammeverk og ansvar'],
       ['smidig-samarbeid', 'Smidig samarbeid', 'Team og koordinering'],
       ['kanban', 'Kanban', 'Arbeidsflyt og oversikt'],
+      [
+        'ux-og-universell-utforming',
+        'UX og universell utforming',
+        'Brukerreiser, barrierer og forbedring',
+      ],
     ]);
     expect(track.categories?.[0]?.sessionIds).toEqual(
       identities.map(([id]) => id),
     );
-    expect(track.categories?.slice(1).map((entry) => entry.sessionIds)).toEqual(
-      [
-        ['s01', 's02', 's03', 's04', 's05', 's06'].map(
-          (id) => `tsu-scrum-${id}`,
-        ),
-        ['a01', 'a02', 'a03', 'a04', 'a05', 'a06'].map(
-          (id) => `tsu-smidig-${id}`,
-        ),
-        ['k01', 'k02', 'k03', 'k04', 'k05', 'k06'].map(
-          (id) => `tsu-kanban-${id}`,
-        ),
-      ],
+    expect(
+      track.categories?.slice(1, 4).map((entry) => entry.sessionIds),
+    ).toEqual([
+      ['s01', 's02', 's03', 's04', 's05', 's06'].map((id) => `tsu-scrum-${id}`),
+      ['a01', 'a02', 'a03', 'a04', 'a05', 'a06'].map(
+        (id) => `tsu-smidig-${id}`,
+      ),
+      ['k01', 'k02', 'k03', 'k04', 'k05', 'k06'].map(
+        (id) => `tsu-kanban-${id}`,
+      ),
+    ]);
+    expect(track.sessions).toHaveLength(30);
+    expect(track.categories?.[4]?.sessionIds).toEqual(
+      ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
-    expect(track.sessions).toHaveLength(24);
+    // Whole-data fingerprint at c7f04b8: every original title, card, answer,
+    // source, feedback and ordering remains identical, beyond identity checks.
+    expect(
+      createHash('sha256')
+        .update(JSON.stringify(track.sessions.slice(0, 24)))
+        .digest('hex'),
+    ).toBe('a821664d3910121bf9376984393596de7a99265240f408668cfccabf36f30ead');
   });
 
   it('validates through the existing bank and programme contracts', () => {
@@ -433,4 +447,42 @@ describe('ACT 18: Scrum, Kanban and Smidig samarbeid', () => {
       expect(text).not.toMatch(authoring);
     }
   });
+});
+
+describe('UX og universell utforming: original UXUU activities', () => {
+  const expected = [
+    ['u01', ['pris', 'antakelse', 'reise']],
+    ['u02', ['noytral', 'tekst', 'kode']],
+    ['u03', ['barriere', 'tekst']],
+    ['u04', ['fokus', 'flyt']],
+    ['u05', ['tekst', 'forklar', 'navn']],
+    ['u06', ['stopp', 'oppgave', 'avgrens']],
+  ] as const;
+
+  it.each(expected)(
+    '%s teaches before assessing, with explicit decision and transfer keys',
+    (id, keys) => {
+      const session = track.sessions.find((s) => s.id === `tsu-ux-uu-${id}`)!;
+      expect(session).toBeDefined();
+      expect(session.cards[0]!.kind).toBe('learn');
+      const practice = session.cards.filter((c) => c.kind === 'select');
+      expect(practice.map((c) => c.correctId)).toEqual(keys);
+      expect(
+        session.cards.every((c) => c.kind === 'learn' || c.kind === 'select'),
+      ).toBe(true);
+      expect(session.cards.at(-1)!.role).toBe('application');
+      expect(session.cards.at(-1)!.title).toMatch(/^Ny situasjon:/);
+      for (const entry of session.cards) {
+        expect(entry.source).toEqual({
+          moduleId: track.id,
+          lessonUnitIds: [`UXUU-${id.toUpperCase()}`],
+          skillIds: ['SK-METH-01'],
+        });
+        if (entry.kind === 'select') {
+          expect(entry.context?.trim(), entry.id).toBeTruthy();
+          expect(entry.question?.trim(), entry.id).toBeTruthy();
+        }
+      }
+    },
+  );
 });
