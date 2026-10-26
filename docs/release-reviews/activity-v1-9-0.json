@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "module": "activity-v1-9-0",
+  "reviewer": "OpenAI ChatGPT GPT-6 — independent exact-source review, 2026-10-26",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "dce914f0dc712e3b7a99879d2c5ecdfd51783c7a",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source-aware review of ProgressPal v1.9.0 Activity, schema-5 persistence and recovery, compact mobile RPG HUD, enlarged-text navigation and release-preparation/security delta. The reviewed filesystem candidate was exported from baseline c7f04b816cfa8b155df0b4a6986ddac86668ba77. Codex subsequently reported freezing the identical 874-file manifest in a clean local candidate commit d1d36783fab67be32121a168f89781a391724c89, tree 2b203c1112b8e4690c74f32c08a15feeedfceb70 and payload tree dce914f0dc712e3b7a99879d2c5ecdfd51783c7a. The independent reviewer inspected the exported changed source and pertinent baseline contracts, not the inaccessible unpublished Git object, and did not independently execute the full release gate. Proceed means proceed to repository-native certification for this exact bound payload; it is not authorization to merge, deploy or apply Nhost migration.",
+    "evidence": [
+      "Owner-exported ProgressPal-v1.9.0-Exact-Review-20261026-160754-23460.zip, SHA-256 77bce74342c8825af5f337a36eef70cac0ea41386defe1ee7dd632b6a68a2c9d: 83 changed/new paths, 83/83 export hashes and corresponding manifest entries validated; security-sensitive parser, backup schema, migrations, UI and test deltas examined against identified baseline contracts.",
+      "Exported artifacts/release-candidate-manifest.json SHA-256 0e614d118f0ee4073918bcafcaab18a3715b7a89e53fd978d79fb6d49472c27d. Implementer's post-freeze verification reports all 874 source-file bytes and exactly 83 committed file changes match this manifest, clean worktree and one candidate commit. That commit verification is implementer-reported; the native release gate must independently resolve this review against the exact payload tree.",
+      "Reported local candidate commit d1d36783fab67be32121a168f89781a391724c89, root tree 2b203c1112b8e4690c74f32c08a15feeedfceb70; release-review binding payload tree dce914f0dc712e3b7a99879d2c5ecdfd51783c7a. Binding identity is distinct from filesystem manifest SHA-256.",
+      "Reviewed src/lib/backup/envelope.ts: fail-fast backupRows validates each row with the domain schema, retains indexed diagnostic paths, rejects invalid records without partial success, and retains envelope and cross-record invariants. Submitted targeted tests cover malformed large collections and nested goals plus valid 20,000-row history; tests were inspected, not independently executed by the reviewer.",
+      "Reviewed package.json and lockfile changes: production Zod 4.6.6 and development-only Undici 7.30.1; no unrelated package upgrades reported. Submitted readiness-audit-final.json has zero vulnerabilities (SHA-256 3c17b11a10b3fd399222ce30461f1dd566f5c4eeb4a96c04161c09eeceb324f1). Audit result is temporal, not a security certification.",
+      "Reviewed schema-5 Activity storage and backup integration: additive v4-to-v5 Dexie upgrade, four Activity stores, independence of programming XP/mastery, schema-5 import/export and rejection of historical schema-4 exported backups before restore writes. Nhost schema-5 generation SQL retains old rows and its down migration protects existing schema-5 rows; SQL is prepared but not applied.",
+      "Earlier Activity/HUD/navigation visual reviews examined desktop and mobile screenshots and targeted UI flows, including responsive History, quick entry, compact HUD and enlarged-text navigation. Those earlier results are retained evidence, not tests repeated after the dependency patch; Activity/HUD product source was reportedly unchanged by final release preparation.",
+      "Implementer handoff reports 292 targeted unit/integration tests, eight browser journeys (no skips/retries), passing typecheck, lint, format, build, circular, bundle and npm audit checks. These are supplied development results, not independent execution or native verify:release certification.",
+      "Version and package lockfile prepared at 1.9.0; service-worker cache progresspal-cache-v1.9.0; IndexedDB schema 5 and backup format 1 preserved as separate identities. JS gzip 447,162 / owner-authorized 448,000 B; largest raw JS 494,636 / 500,000 B. No further budget increase authorized.",
+      "Release process checked against docs/ci.md and scripts/release-review-binding.mjs: candidate-bound review evidence must be committed in an evidence-only successor, preserve payload tree, and pass a clean exact-candidate gate. Provider migration, synthetic live validation, Git integration, hosted checks and production promotion remain future separately authorized stages."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "ACT190-01",
+      "severity": "P1",
+      "description": "Earlier Zod backup validation could accumulate many diagnostics from malicious malformed unbounded history/Activity arrays, despite file-byte limits.",
+      "resolution": "The reviewed candidate locks patched Zod 4.6.6 and uses per-row fail-fast validation with indexed error locations, strict envelope checks and cross-record invariants. Reported reproductions and focused regressions distinguish malformed large arrays from valid 20,000-row history. No evidence of partial restore acceptance was found in the reviewed source.",
+      "status": "resolved"
+    },
+    {
+      "id": "ACT190-02",
+      "severity": "P1",
+      "description": "The initial Activity interface and shared mobile HUD/navigation presented usability defects: unreadable 320px totals, slow goal logging, excessive HUD height and overlapping bottom navigation labels under text enlargement.",
+      "resolution": "Reviewed successor screenshots, source and focused UI tests show stacked mobile History totals, inline goal Save/Cancel, compact shared mobile HUD, and collision-free enlarged-text navigation while preserving desktop styling and accessible route labels. Real-device/screen-reader speech remains untested.",
+      "status": "resolved"
+    },
+    {
+      "id": "ACT190-03",
+      "severity": "P1",
+      "description": "A new Activity database generation could corrupt educational progress or accept malformed and partly restored backups if schema migration or restore boundaries were unsafe.",
+      "resolution": "Reviewed additive Dexie schema-5 upgrade and coordinated snapshot/restore/reset coverage; educational XP/mastery remains separate. Schema-4 exported backup refusal occurs before destructive restore. Implementer reports populated migration, atomic rollback and recovery tests passing. Live learner database testing remains an explicitly separate gate.",
+      "status": "resolved"
+    },
+    {
+      "id": "ACT190-04",
+      "severity": "P2",
+      "description": "Nhost production still accepts schema 4 and has not run the schema-5 provider migration or real account/slot/permission/hash/restore tests. A new client cannot safely rely on schema-5 remote backup yet.",
+      "resolution": "Accepted as a deliberately excluded live rollout step, not claimed operational. No provider change or deployment is authorized by this review. Separately authorize migration, synthetic live validation, old-generation refusal and coordinated promotion; stop if live validation fails.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "ACT190-05",
+      "severity": "P2",
+      "description": "An existing browser upgraded to IndexedDB schema 5 cannot safely return to the older v1.8.0/schema-4 client; legacy schema-4 external backups are intentionally rejected by the new client.",
+      "resolution": "Accepted under the explicit owner schema policy. Preserve older backup rows and any needed schema-4 recovery copy; validate schema-5 local export/recovery and plan forward recovery instead of clearing browser data or assuming a simple downgrade. Treat production promotion as separately gated.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "ACT190-06",
+      "severity": "P2",
+      "description": "Bundle budget has little remaining headroom after necessary Zod security patch, and a later source change could invalidate the review or exceed raw/total size limits.",
+      "resolution": "Owner authorized 448,000 B only for JS gzip; reviewed build report records 447,162 B and largest raw chunk 494,636/500,000 B. All other limits retained. Any payload source change invalidates this evidence binding and requires reassessment of affected tests/budget.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "ACT190-07",
+      "severity": "P3",
+      "description": "The independent reviewer did not fetch the unpublished local Git object, execute the native full release gate, test physical devices/screen-reader speech, or exercise Nhost with a real account.",
+      "resolution": "Scope limitation explicitly disclosed. Reviewed exported 83-file delta and manifest, plus baseline contracts; candidate Git-byte matching is reported by Codex. Bind the review to the exact supplied payload tree and require the native release gate, deployment-check verification and separately authorized hosted/live checks before claiming release readiness.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "ACT190-08",
+      "severity": "P3",
+      "description": "Movement breaks cannot detect VS Code use outside the ProgressPal tab, and the shared RPG shell retains some English vocabulary in Norwegian programmes.",
+      "resolution": "Accepted as previously scoped product limitations. No desktop monitoring or general shell-localization redesign is authorized within v1.9.0; the feature retains accurate user-visible disclosure of its reminder limitation.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The independently reviewed v1.9.0 Activity/HUD/navigation/security source delta contains no confirmed open P0/P1 defect. The source-level corrections are defensible and reported targeted checks are proportionate. Proceed ONLY to the native exact-candidate release gate after an evidence-only review commit whose payload remains dce914f0dc712e3b7a99879d2c5ecdfd51783c7a. This is neither a certificate of passing the gate nor permission to push, merge, tag, apply Nhost SQL, promote a deployment, or use real learner data. Provider-generation rollout, browser-forward recovery and live testing remain separately controlled."
+  }
+}
