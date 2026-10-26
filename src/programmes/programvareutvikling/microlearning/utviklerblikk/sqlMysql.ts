@@ -28,7 +28,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         title: 'Én rad, flere egenskaper',
         role: 'explain',
         source: source('01'),
-        idea: 'Tabeller (tables) lagrer rader (rows), én per deltaker. Kolonner (columns) beskriver egenskapene.\nCREATE TABLE lager strukturen. INT er heltall; VARCHAR(40) er tekst på inntil 40 tegn. PRIMARY KEY krever unik ID uten NULL. Navn kan deles. Her brukes MySQL 8.4.',
+        idea: 'Tabeller (tables) lagrer rader (rows), én per deltaker. Kolonner (columns) beskriver egenskapene.\nCREATE TABLE lager strukturen. INT er heltall; VARCHAR(40) er tekst på inntil 40 tegn. PRIMARY KEY krever unik ID uten NULL. Navn kan deles. MySQL 8.4 er et databasesystem som bruker SQL.\nEn fremmednøkkel viser til en nøkkel i en annen tabell.',
         example: {
           code: 'CREATE TABLE deltakere (\n  id INT PRIMARY KEY,\n  navn VARCHAR(40) NOT NULL,\n  alder INT NOT NULL,\n  epost VARCHAR(80)\n);',
           note: 'NULL er manglende verdi; NOT NULL krever en verdi.',
@@ -420,7 +420,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         role: 'application',
         source: source('04'),
         context:
-          'deltakere (id, navn, alder):\nID 1: Ada, 17 år. ID 2: Bo, 20 år.\nID 3: Ada, 22 år. ID 4: Dina, 30 år.\npameldinger (id, deltaker_id, aktivitet, status):\n101: deltaker 1, SQL, ja.\n102: deltaker 1, Web, nei.\n103: deltaker 2, SQL, ja.\ndeltakere: id er primærnøkkel.\npameldinger: id er primærnøkkel; deltaker_id er fremmednøkkel til deltakere.id.',
+          'deltakere (id): 1, 2, 3, 4.\npameldinger (id, deltaker_id):\n(101, 1), (102, 1), (103, 2).',
         code: 'SELECT d.id, p.id\nFROM deltakere AS d\nINNER JOIN pameldinger AS p\n  ON d.id = p.deltaker_id\nORDER BY d.id, p.id;',
         question: 'Hvilke ID-par kommer ut, i rekkefølge?',
         options: [
@@ -564,7 +564,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         correctOrder: ['velg', 'fra', 'gruppe', 'sorter'],
         hint: 'Hva bestemmer hver gruppe?',
         explanation:
-          'SQL får 2, Web 1. Gruppering på status lar ikke aktivitet velges fritt.',
+          'GROUP BY aktivitet gir SQL 2 og Web 1. GROUP BY status deler i ja/nei-grupper; da kan ikke aktivitet velges fritt.',
       },
       {
         kind: 'select',
@@ -643,7 +643,8 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         ],
         correctId: 'rett',
         hint: 'Sjekk kolonnenavn og testen for manglende verdi.',
-        explanation: 'IS NULL finner ID 2. = NULL gir ukjent, ikke sant.',
+        explanation:
+          'Kolonnen heter epost, ikke email. IS NULL finner ID 2; = NULL blir ikke sant.',
       },
       {
         kind: 'select',
