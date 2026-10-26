@@ -111,7 +111,9 @@ describe('Utviklerblikk content contract', () => {
 
   it('keeps Generelt as accepted and registers six ACT 18 activities in each other category', () => {
     expect(
-      track.categories?.map(({ id, title, summary }) => [id, title, summary]),
+      track.categories
+        ?.slice(0, 4)
+        .map(({ id, title, summary }) => [id, title, summary]),
     ).toEqual([
       ['generelt', 'Generelt', 'Bred utviklerforståelse'],
       ['scrum', 'Scrum', 'Rammeverk og ansvar'],
@@ -121,20 +123,18 @@ describe('Utviklerblikk content contract', () => {
     expect(track.categories?.[0]?.sessionIds).toEqual(
       identities.map(([id]) => id),
     );
-    expect(track.categories?.slice(1).map((entry) => entry.sessionIds)).toEqual(
-      [
-        ['s01', 's02', 's03', 's04', 's05', 's06'].map(
-          (id) => `tsu-scrum-${id}`,
-        ),
-        ['a01', 'a02', 'a03', 'a04', 'a05', 'a06'].map(
-          (id) => `tsu-smidig-${id}`,
-        ),
-        ['k01', 'k02', 'k03', 'k04', 'k05', 'k06'].map(
-          (id) => `tsu-kanban-${id}`,
-        ),
-      ],
-    );
-    expect(track.sessions).toHaveLength(24);
+    expect(
+      track.categories?.slice(1, 4).map((entry) => entry.sessionIds),
+    ).toEqual([
+      ['s01', 's02', 's03', 's04', 's05', 's06'].map((id) => `tsu-scrum-${id}`),
+      ['a01', 'a02', 'a03', 'a04', 'a05', 'a06'].map(
+        (id) => `tsu-smidig-${id}`,
+      ),
+      ['k01', 'k02', 'k03', 'k04', 'k05', 'k06'].map(
+        (id) => `tsu-kanban-${id}`,
+      ),
+    ]);
+    expect(track.sessions).toHaveLength(30);
   });
 
   it('validates through the existing bank and programme contracts', () => {

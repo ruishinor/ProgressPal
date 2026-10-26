@@ -4,6 +4,17 @@ This is the single live execution-authority file for ProgressPal. Other status p
 
 **Live identity is Git, not this file.** A file cannot name the commit that contains it. Read `git rev-parse HEAD`, `git rev-parse HEAD^{tree}` and the release manifest for the exact candidate. This file records the last released baseline, what has been added since and what is pending.
 
+**SQL/MySQL learning addition (owner instruction, 2026-10-26):** local branch
+`feat/utviklerblikk-sql-mysql`, isolated from refreshed upstream
+`c7f04b816cfa8b155df0b4a6986ddac86668ba77` (v1.8.0). Six activities add the
+Databaser – SQL/MySQL category to Utviklerblikk, preserving its accepted 24
+activities. Fictional datasets and existing deterministic cards only: no SQL
+execution, installation, server, dependency, persistence or release-policy change.
+Source decisions and verification limits: [SQL learning notes](utviklerblikk-sql-mysql.md).
+This branch is not merged or deployed and must receive independent review before
+controlled integration and normal release certification. The older state below
+has not been globally reconciled by this bounded content task.
+
 Last reconciled: 2026-10-08 (Epic G first implementation tranche, its review correction, the G3 live validation, the G5/G6 domain-logic tranche, and the callback route and Settings UI tranche). `master` is `a9ad3b9a563941cf9ca9d03d7f88b9b8839cd87b` (tree `5746063c0fd249033c5100db06ebfa0e3982f43a`), application **v1.7.1**: the learner-feedback successor with its independent review approvals recorded under `docs/release-reviews/`. The last tag is `v1.7.0` (`3241c741b7a29131e3433dcf9e743d93f3f8ff38`); no `v1.7.1` tag exists, and this file records no deployment identifier for v1.7.1. Production promotion follows the release model below (every `master` push is built as a Production deployment and held by the `Final candidate` check); read the platform for the live deployment.
 
 **Epic G (optional cloud backup) is in progress on a feature branch and is not released.** See "Epic G" under Active work. Nothing in this file authorizes merging, deploying or enabling it.

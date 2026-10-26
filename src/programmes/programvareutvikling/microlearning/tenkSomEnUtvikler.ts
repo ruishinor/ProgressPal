@@ -2,13 +2,14 @@ import type { MicroSession, MicroSource, MicroTrack } from '@/lib/domain';
 
 import { kanbanSessions } from './utviklerblikk/kanban';
 import { scrumSessions } from './utviklerblikk/scrum';
+import { sqlMysqlSessions } from './utviklerblikk/sqlMysql';
 import { smidigSamarbeidSessions } from './utviklerblikk/smidigSamarbeid';
 
 const ids = (sessions: readonly MicroSession[]) =>
   sessions.map((session) => session.id);
 
 /**
- * «Utviklerblikk»: a voluntary track in four categories. Generelt holds the
+ * «Utviklerblikk»: a voluntary track with additive categories. Generelt holds the
  * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
  * the finalized ACT 18 package (see `utviklerblikk/`).
  *
@@ -77,6 +78,13 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       title: 'Kanban',
       summary: 'Arbeidsflyt og oversikt',
       sessionIds: ids(kanbanSessions),
+    },
+    {
+      id: 'sql-mysql',
+      title: 'Databaser – SQL/MySQL',
+      summary:
+        'Øv på SQL: hent, endre og koble data. Forutsi resultater og finn feil.',
+      sessionIds: ids(sqlMysqlSessions),
     },
   ],
   sessions: [
@@ -1143,5 +1151,6 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     ...scrumSessions,
     ...smidigSamarbeidSessions,
     ...kanbanSessions,
+    ...sqlMysqlSessions,
   ],
 };
