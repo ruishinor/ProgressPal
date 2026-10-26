@@ -22,7 +22,7 @@ const title = 'Remote backup — Alpha';
 const manual =
   'Remote backup is experimental. It is a manual backup, not automatic synchronization: nothing is uploaded when you open Settings or sign in, only when you press Back up now.';
 const stays =
-  "Your working data stays on this device, in this browser's storage. A backup is a full copy that you choose to send.";
+  "Your working data stays on this device, in this browser's storage. A backup is a full copy that you choose to send, including any Activity records and goals.";
 const readable =
   'The cloud provider and the service operator can read the backups you upload. Exporting a backup file to your device remains a separate way to keep and restore a copy.';
 
