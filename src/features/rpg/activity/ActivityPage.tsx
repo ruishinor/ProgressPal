@@ -29,6 +29,7 @@ import {
 } from '@/lib/domain/activity';
 import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
 
+import { ActivityIcon } from './ActivityIcon';
 import { useActivityLanguage, useActivityRead } from './useActivity';
 
 const names: Record<string, string> = {
@@ -411,26 +412,63 @@ export function ActivityPage() {
     >
       <header className="activity-header">
         <div>
-          <h1 id="activity-title">{t('Aktivitet', 'Activity')}</h1>
+          <h1 id="activity-title">
+            <ActivityIcon />
+            {t('Aktivitet', 'Activity')}
+          </h1>
         </div>
-        <div className="activity-level">
-          <span>
-            {t('Aktivitetsnivå', 'Activity Level')}{' '}
-            <strong>{participation.level}</strong>
-          </span>
-          <details className="activity-info">
-            <summary
-              aria-label={t('Om aktivitetsnivå', 'About Activity Level')}
-            >
-              (i)
-            </summary>
-            <p>
-              {t(
-                'Aktivitetsnivå øker for hver sjuende dag du har registrert aktivitet. Mengden du trener påvirker ikke nivået. Studienivå og XP påvirkes ikke.',
-                'Activity Level increases for every seven days with recorded activity. The amount you do does not affect it. Study levels and XP stay unchanged.',
-              )}
+        <div
+          className="activity-overview"
+          role="group"
+          aria-label={t('Aktivitet i dag', 'Activity today')}
+        >
+          <div
+            className="activity-overview__goals"
+            data-complete={
+              enabledGoals.length > 0 && completed === enabledGoals.length
+            }
+          >
+            <p>{t('Dagens mål', "Today's goals")}</p>
+            <p className="activity-overview__count">
+              {enabledGoals.length
+                ? t(
+                    `${completed} av ${enabledGoals.length} mål fullført`,
+                    `${completed} of ${enabledGoals.length} goals complete`,
+                  )
+                : t(
+                    'Ingen mål satt. Du kan registrere aktivitet likevel.',
+                    'No goals configured. You can still record activity.',
+                  )}
             </p>
-          </details>
+          </div>
+          <dl className="activity-overview__stats">
+            <div>
+              <dt>Streak</dt>
+              <dd>{daysLabel(participation.currentStreak)}</dd>
+            </div>
+            <div className="activity-overview__level">
+              <dt>
+                <ActivityIcon />
+                {t('Aktivitetsnivå', 'Activity Level')}
+              </dt>
+              <dd>
+                <span>{participation.level}</span>
+                <details className="activity-info">
+                  <summary
+                    aria-label={t('Om aktivitetsnivå', 'About Activity Level')}
+                  >
+                    (i)
+                  </summary>
+                  <p>
+                    {t(
+                      'Sju dager med registrert aktivitet gir ett nytt aktivitetsnivå, uavhengig av mengde. Studienivå og XP påvirkes ikke.',
+                      'Seven recorded activity days give one new Activity Level, regardless of amount. Study levels and XP stay unchanged.',
+                    )}
+                  </p>
+                </details>
+              </dd>
+            </div>
+          </dl>
         </div>
       </header>
       <div
@@ -497,52 +535,57 @@ export function ActivityPage() {
         className="activity-section"
       >
         <div className="activity-columns">
-          <RpgPanel title={t('Aktivitet i dag', 'Activity today')} titleAs="h2">
-            <p>
-              {enabledGoals.length
-                ? t(
-                    `${completed} av ${enabledGoals.length} mål fullført`,
-                    `${completed} of ${enabledGoals.length} goals complete`,
-                  )
-                : t(
-                    'Ingen mål satt. Du kan registrere aktivitet likevel.',
-                    'No goals configured. You can still record activity.',
-                  )}
-            </p>
-            <ul className="activity-list">
+          <RpgPanel title={t('Dagens mål', 'Daily goals')} titleAs="h2">
+            <ul className="activity-list activity-goals">
               {enabledGoals.map((item) => {
                 const progress = goalProgress(item, daily);
                 return (
-                  <li key={item.id}>
+                  <li
+                    key={item.id}
+                    className="activity-goal"
+                    aria-label={activityName(item.activityId)}
+                  >
+                    <ActivityIcon activityId={item.activityId} />
                     <RpgProgressBar
-                      label={`${activityName(item.activityId)} — ${showAmount(progress.amount, item.unit)} / ${showAmount(item.target, item.unit)}`}
+                      id={`activity-progress-${item.id}`}
+                      label={activityName(item.activityId)}
+                      helperText={`${showAmount(progress.amount, item.unit)} / ${showAmount(item.target, item.unit)}`}
                       value={Math.min(
                         100,
                         (progress.amount / item.target) * 100,
                       )}
                       tone={progress.complete ? 'success' : 'progress'}
                     />
-                    {quickDraft?.goal.id === item.id ? (
-                      quickEntry()
-                    ) : (
-                      <RpgButton
-                        id={`activity-log-${item.id}`}
-                        variant="quiet"
-                        size="sm"
-                        disabled={
-                          disabled ||
-                          !!draft.id ||
-                          !!quickDraft ||
-                          definitionFor(item.activityId).archived
-                        }
-                        onClick={() => {
-                          setQuickDraft({ goal: item, amount: '' });
-                          setFocusRequest({ target: 'quick' });
-                        }}
-                      >
-                        {t('Registrer', 'Log')}
-                      </RpgButton>
-                    )}
+                    <div className="activity-goal__actions">
+                      {progress.complete && (
+                        <span className="activity-goal__complete">
+                          <ActivityIcon complete />
+                          {t('Fullført', 'Complete')}
+                        </span>
+                      )}
+                      {quickDraft?.goal.id === item.id ? (
+                        quickEntry()
+                      ) : (
+                        <RpgButton
+                          id={`activity-log-${item.id}`}
+                          aria-describedby={`activity-progress-${item.id}`}
+                          variant="secondary"
+                          size="sm"
+                          disabled={
+                            disabled ||
+                            !!draft.id ||
+                            !!quickDraft ||
+                            definitionFor(item.activityId).archived
+                          }
+                          onClick={() => {
+                            setQuickDraft({ goal: item, amount: '' });
+                            setFocusRequest({ target: 'quick' });
+                          }}
+                        >
+                          {t('Registrer', 'Log')}
+                        </RpgButton>
+                      )}
+                    </div>
                   </li>
                 );
               })}

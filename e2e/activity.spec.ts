@@ -343,6 +343,35 @@ test('read-only tabs cannot save Activity; authoritative records survive reload 
   await expect(
     page.getByRole('cell', { name: '8 repetitions', exact: true }),
   ).toHaveCount(2);
+
+  const iconResponses = await page.evaluate(async () =>
+    Promise.all(
+      [
+        'general',
+        'running',
+        'walking',
+        'pushups',
+        'squats',
+        'cycling',
+        'complete',
+      ].map(async (icon) => {
+        const response = await fetch(
+          '/assets/activity/activity-' + icon + '.png',
+        );
+        return {
+          icon,
+          ok: response.ok,
+          type: response.headers.get('content-type'),
+          bytes: (await response.arrayBuffer()).byteLength,
+        };
+      }),
+    ),
+  );
+  for (const response of iconResponses) {
+    expect(response.ok, response.icon).toBe(true);
+    expect(response.type, response.icon).toBe('image/png');
+    expect(response.bytes, response.icon).toBeGreaterThan(0);
+  }
   await context.setOffline(false);
 });
 
@@ -590,6 +619,227 @@ test('History totals stay readable and correctly associated on a 320px phone and
   await quick.getByRole('button', { name: 'Lagre', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('Aktiviteten er lagret.');
   await expect(
-    page.getByRole('progressbar', { name: /Armhevinger —/ }),
+    page.getByRole('progressbar', { name: 'Armhevinger', exact: true }),
   ).toHaveAttribute('aria-valuenow', '80');
+});
+
+test('daily overview, shared level and goal controls remain readable together', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await page.clock.setFixedTime(new Date('2026-10-26T12:00:00Z'));
+  await openActivity(page);
+  await section(page, 'Settings');
+  await page.getByLabel('Repetitions per day').fill('20');
+  await page.getByRole('button', { name: 'Add goal', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await page
+    .getByLabel('Goal activity', { exact: true })
+    .selectOption('walking');
+  await page.getByLabel('Minutes per day').fill('30');
+  await page.getByRole('button', { name: 'Add goal', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  const customName =
+    'Rolige bevegelser og balanseøvelser for skuldre, rygg og hofter';
+  await page.getByLabel('Activity name', { exact: true }).fill(customName);
+  await page.getByRole('button', { name: 'Add activity', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Custom activity saved.');
+  await page
+    .getByLabel('Goal activity', { exact: true })
+    .selectOption({ label: customName });
+  await page.getByLabel('Repetitions per day').fill('10');
+  await page.getByRole('button', { name: 'Add goal', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await section(page, 'Today');
+  for (const date of [
+    '2026-10-25',
+    '2026-10-24',
+    '2026-10-20',
+    '2026-10-18',
+    '2026-10-16',
+    '2026-10-14',
+  ]) {
+    await page.getByLabel('Date', { exact: true }).fill(date);
+    await log(page, '1');
+  }
+  const overview = page.getByRole('group', {
+    name: 'Activity today',
+    exact: true,
+  });
+  await expect(overview).toContainText('0 of 3 goals complete');
+  await expect(overview).toContainText('2 days');
+  const pushups = page.getByRole('listitem', { name: 'Push-ups', exact: true });
+  await pushups.getByRole('button', { name: 'Log', exact: true }).click();
+  const quick = page.getByRole('form', { name: 'Log Push-ups', exact: true });
+  await quick.getByRole('spinbutton').fill('19');
+  await quick.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Activity saved.');
+  await expect(
+    pushups.getByRole('progressbar', { name: 'Push-ups' }),
+  ).toHaveAttribute('aria-valuenow', '95');
+  await expect(overview).toContainText('0 of 3 goals complete');
+  await expect(overview).toContainText('3 days');
+  await expect(overview).toContainText('Activity Level2');
+  const level = page.getByRole('link', {
+    name: 'Activity Level 2',
+    exact: true,
+  });
+  await expect(level).toBeVisible();
+  await expect(
+    page.getByRole('group', { name: 'Hero progression' }),
+  ).toContainText('0 / 100 XP');
+
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(
+        (selected) =>
+          (
+            globalThis as unknown as ActivityBrowserScope
+          ).document.documentElement.setAttribute('data-theme', selected),
+        theme,
+      );
+      expect(
+        await page.evaluate(
+          () =>
+            (globalThis as unknown as ActivityBrowserScope).document
+              .documentElement.scrollWidth <=
+            (globalThis as unknown as ActivityBrowserScope).innerWidth,
+        ),
+      ).toBe(true);
+      const clipped = await page
+        .locator(
+          '.activity-goals .rpg-progress-bar__label, .activity-goals .rpg-progress-bar__helper, .activity-overview, .activity-indicator',
+        )
+        .evaluateAll((elements) =>
+          elements
+            .filter((element) => element.scrollWidth > element.clientWidth + 1)
+            .map((element) => element.textContent),
+        );
+      expect(clipped).toEqual([]);
+      await expect(
+        page.getByRole('listitem', { name: customName }),
+      ).toBeVisible();
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+      await level.focus();
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Shift+Tab');
+      await expect(level).toBeFocused();
+      expect(
+        await level.evaluate(
+          (element) =>
+            element.ownerDocument.defaultView!.getComputedStyle(element)
+              .outlineStyle,
+        ),
+      ).toBe('solid');
+      await page.screenshot({
+        path: `artifacts/activity-visual/reflow-${width}-${theme}.png`,
+        fullPage: true,
+      });
+    }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.evaluate(
+    () =>
+      ((
+        globalThis as unknown as ActivityBrowserScope
+      ).document.documentElement.style.fontSize = '200%'),
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        (globalThis as unknown as ActivityBrowserScope).document.documentElement
+          .scrollWidth <=
+        (globalThis as unknown as ActivityBrowserScope).innerWidth,
+    ),
+  ).toBe(true);
+  await pushups.getByRole('button', { name: 'Log', exact: true }).click();
+  await expect(quick.getByRole('spinbutton')).toBeFocused();
+  await quick.getByRole('spinbutton').fill('1');
+  await page.keyboard.press('Tab');
+  await expect(
+    quick.getByRole('button', { name: 'Save', exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(pushups).toContainText('Complete');
+  await expect(overview).toContainText('1 of 3 goals complete');
+  await expect(
+    pushups.getByRole('button', { name: 'Log', exact: true }),
+  ).toBeFocused();
+
+  const tabLayout = await page.getByRole('tab').evaluateAll((tabs) =>
+    tabs.map((tab) => {
+      const range = tab.ownerDocument.createRange();
+      range.selectNodeContents(tab);
+      return {
+        label: tab.textContent,
+        lines: new Set(
+          Array.from(
+            range.getClientRects() as ArrayLike<{ top: number }>,
+            (rect) => rect.top,
+          ),
+        ).size,
+        clipped: tab.scrollWidth > tab.clientWidth + 1,
+      };
+    }),
+  );
+  expect(tabLayout.every((tab) => tab.lines === 1 && !tab.clipped)).toBe(true);
+  const wordLines = await page
+    .getByRole('listitem', { name: customName })
+    .locator('.rpg-progress-bar__label')
+    .evaluate((label) => {
+      const word = 'bevegelser';
+      const start = label.textContent!.indexOf(word);
+      const range = label.ownerDocument.createRange();
+      range.setStart(label.firstChild!, start);
+      range.setEnd(label.firstChild!, start + word.length);
+      return new Set(
+        Array.from(
+          range.getClientRects() as ArrayLike<{ top: number }>,
+          (rect) => rect.top,
+        ),
+      ).size;
+    });
+  expect(wordLines).toBe(1);
+
+  const nameSize = await pushups
+    .locator('.rpg-progress-bar__label')
+    .evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(
+        element.ownerDocument.defaultView!.getComputedStyle(element).lineHeight,
+      ),
+    }));
+  expect(nameSize.height).toBeLessThanOrEqual(nameSize.lineHeight * 2);
+  const amountSize = await pushups
+    .locator('.rpg-progress-bar__helper')
+    .evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(
+        element.ownerDocument.defaultView!.getComputedStyle(element).lineHeight,
+      ),
+    }));
+  expect(amountSize.height).toBeLessThanOrEqual(amountSize.lineHeight * 4);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(
+      (selected) =>
+        (
+          globalThis as unknown as ActivityBrowserScope
+        ).document.documentElement.setAttribute('data-theme', selected),
+      theme,
+    );
+    await pushups.screenshot({
+      path: `artifacts/activity-visual/goal-320-enlarged-${theme}.png`,
+    });
+    await page.screenshot({
+      path: `artifacts/activity-visual/320-enlarged-${theme}.png`,
+      fullPage: true,
+    });
+  }
+  await expect(
+    page
+      .getByRole('navigation', { name: 'RPG primary navigation' })
+      .getByRole('link'),
+  ).toHaveCount(5);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

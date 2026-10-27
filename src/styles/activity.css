@@ -21,17 +21,6 @@
   grid-template-columns: 1fr;
   gap: var(--space-1);
 }
-.activity-level {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--rpg-text-muted);
-}
-.activity-level strong {
-  color: var(--rpg-text);
-  font-size: 1.1rem;
-}
 .activity-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -81,15 +70,6 @@
   min-height: 2.75rem;
   padding-block: var(--space-2);
   color: var(--rpg-text-muted);
-}
-.activity-level .activity-info {
-  flex-basis: 100%;
-}
-.activity-level .activity-info:not([open]) {
-  flex-basis: auto;
-}
-.activity-level summary {
-  min-width: 2.75rem;
 }
 .activity-info p {
   max-width: 65ch;
@@ -207,4 +187,242 @@
   color: var(--rpg-text-muted);
   text-underline-offset: 0.2em;
   padding-block: 0.25rem;
+}
+
+/* Owner-supplied artwork uses the existing theme gold and fixed icon boxes. */
+.activity-icon {
+  display: inline-block;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--rpg-accent);
+  background: currentColor;
+  mask: url('/assets/activity/activity-general.png') center / contain no-repeat;
+}
+.activity-icon[data-activity-icon='running'] {
+  mask-image: url('/assets/activity/activity-running.png');
+}
+.activity-icon[data-activity-icon='walking'] {
+  mask-image: url('/assets/activity/activity-walking.png');
+}
+.activity-icon[data-activity-icon='pushups'] {
+  mask-image: url('/assets/activity/activity-pushups.png');
+}
+.activity-icon[data-activity-icon='squats'] {
+  mask-image: url('/assets/activity/activity-squats.png');
+}
+.activity-icon[data-activity-icon='cycling'] {
+  mask-image: url('/assets/activity/activity-cycling.png');
+}
+.activity-icon[data-activity-icon='complete'] {
+  mask-image: url('/assets/activity/activity-complete.png');
+}
+.activity-header h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.activity-header h1 .activity-icon {
+  width: 2rem;
+  height: 2rem;
+}
+.activity-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+.activity-overview__goals {
+  border-inline-start: 3px solid var(--rpg-accent);
+  padding-inline-start: var(--space-3);
+}
+.activity-overview p,
+.activity-overview dl,
+.activity-overview dd {
+  margin: 0;
+}
+.activity-overview__goals > p:first-child,
+.activity-overview dt {
+  color: var(--rpg-text-muted);
+  font-size: var(--text-sm);
+}
+.activity-overview .activity-overview__count {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.activity-overview__goals[data-complete='true'] {
+  border-color: var(--rpg-success);
+  color: var(--rpg-success);
+}
+.activity-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.activity-overview__stats dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+.activity-overview__level dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.activity-overview__level .activity-icon {
+  width: 1rem;
+  height: 1rem;
+}
+.activity-overview .activity-info summary {
+  min-height: 0;
+  padding-block: 0;
+}
+.activity-overview .activity-info[open] {
+  flex-basis: 100%;
+}
+.activity-overview .activity-info p {
+  font-size: var(--text-base);
+  font-weight: 400;
+}
+.activity-goals {
+  margin: 0;
+}
+.activity-list > .activity-goal {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+}
+.activity-goal > .activity-icon {
+  margin-top: 0.125rem;
+}
+.activity-goal .rpg-progress-bar__helper {
+  font-size: var(--text-base);
+}
+.activity-goal__actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.activity-goal__actions > button {
+  margin-inline-start: auto;
+  min-height: 2.75rem;
+}
+.activity-goal__complete {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--rpg-success);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.activity-goal__complete .activity-icon {
+  width: 1rem;
+  height: 1rem;
+}
+.activity-goal .activity-quick-entry {
+  flex-basis: 100%;
+  margin: 0;
+}
+.activity-quick-entry fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.activity-quick-entry label {
+  flex: 1 1 7rem;
+}
+.activity-quick-entry .action-row {
+  flex-wrap: wrap;
+}
+.activity-indicator {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  text-decoration: none;
+}
+.activity-indicator .activity-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+.activity-indicator__level {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5em;
+  padding-inline: var(--space-1);
+  border: 1px solid var(--rpg-border-strong);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  color: var(--rpg-text);
+}
+.activity-indicator:hover {
+  text-decoration: underline;
+}
+.activity-indicator:focus-visible {
+  outline: 2px solid var(--rpg-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+@media (max-width: 42rem) {
+  .activity-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Reflow against text size, so enlarged text gets full-width goal quantities. */
+.activity-page {
+  container-type: inline-size;
+}
+@container (max-width: 18rem) {
+  .activity-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .activity-tabs button {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .activity-overview__stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .activity-columns > .rpg-panel {
+    padding: var(--space-3);
+  }
+  .activity-list > .activity-goal {
+    min-width: 0;
+    display: block;
+    position: relative;
+  }
+  .activity-goal > .activity-icon {
+    position: absolute;
+    inset-inline-start: 0;
+    top: var(--space-2);
+  }
+  .activity-goal .rpg-progress-bar__header > div {
+    min-width: 0;
+  }
+  .activity-goal .rpg-progress-bar__label {
+    padding-inline-start: 0;
+    text-indent: 2rem;
+    overflow-wrap: break-word;
+    hyphens: manual;
+  }
+  .activity-goal .rpg-progress-bar__header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+  .activity-goal .rpg-progress-bar__value {
+    justify-self: end;
+  }
+  .activity-goal__actions {
+    margin-top: var(--space-2);
+  }
 }

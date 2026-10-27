@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { readActivityParticipation } from '@/lib/db/activity';
 import { rpgActivityPath } from '@/lib/routing/rpgRoutePaths';
 
+import { ActivityIcon } from './ActivityIcon';
 import { useActivityLanguage, useActivityRead } from './useActivity';
 
 export function ActivityIndicator() {
@@ -11,12 +12,15 @@ export function ActivityIndicator() {
   const label = norwegian ? 'Aktivitetsnivå' : 'Activity Level';
   return (
     <Link className="activity-indicator" to={rpgActivityPath}>
-      {label}{' '}
-      {error
-        ? norwegian
-          ? 'utilgjengelig'
-          : 'unavailable'
-        : (data?.level ?? '…')}
+      <ActivityIcon />
+      <span>{label}</span>{' '}
+      <span className="activity-indicator__level">
+        {error
+          ? norwegian
+            ? 'utilgjengelig'
+            : 'unavailable'
+          : (data?.level ?? '…')}
+      </span>
     </Link>
   );
 }

@@ -304,9 +304,9 @@ describe('Activity local sections', () => {
     expect(
       within(history).getAllByRole('cell', { name: '8 repetisjoner' }),
     ).toHaveLength(2);
-    expect(screen.getByText(/Mengden du trener/)).not.toBeVisible();
+    expect(screen.getByText(/uavhengig av mengde/)).not.toBeVisible();
     fireEvent.click(screen.getByLabelText('Om aktivitetsnivå'));
-    expect(screen.getByText(/Mengden du trener/)).toBeVisible();
+    expect(screen.getByText(/uavhengig av mengde/)).toBeVisible();
   });
   it('updates the goal amount label with its unit and clears success on section changes', async () => {
     save.mockResolvedValue(undefined);
@@ -482,6 +482,135 @@ describe('Goal quick entry', () => {
         unit,
         amount: expected,
       });
+    },
+  );
+});
+
+describe('Activity daily overview', () => {
+  it('shows an explicit empty-goals state with participation still available', () => {
+    mount();
+    const overview = screen.getByRole('group', { name: 'Activity today' });
+    expect(overview).toHaveTextContent(
+      'No goals configured. You can still record activity.',
+    );
+    expect(overview).toHaveTextContent('Streak0 days');
+    expect(overview).toHaveTextContent('Activity Level1');
+    expect(overview).not.toHaveTextContent('0%');
+  });
+
+  it('counts completed enabled snapshot goals, separately from quantities and settings', () => {
+    withGoal();
+    const pushups = state.data.activitySettings[0].goals[0];
+    state.data.activityDays = [
+      {
+        id: state.today,
+        goals: [
+          pushups,
+          {
+            id: 'goal-walking',
+            activityId: 'walking',
+            unit: 'seconds',
+            target: 1800,
+            enabled: true,
+          },
+          {
+            id: 'goal-squats',
+            activityId: 'squats',
+            unit: 'reps',
+            target: 10,
+            enabled: false,
+          },
+        ],
+      },
+    ];
+    state.data.activityEntries = [
+      {
+        id: 'entry-pushups',
+        date: state.today,
+        activityId: 'pushups',
+        unit: 'reps',
+        amount: 19,
+        createdAt: '2026-10-25T10:00:00Z',
+        updatedAt: '2026-10-25T10:00:00Z',
+      },
+      {
+        id: 'entry-walking',
+        date: state.today,
+        activityId: 'walking',
+        unit: 'seconds',
+        amount: 1800,
+        createdAt: '2026-10-25T10:00:00Z',
+        updatedAt: '2026-10-25T10:00:00Z',
+      },
+      ...[
+        '2026-10-24',
+        '2026-10-23',
+        '2026-10-20',
+        '2026-10-18',
+        '2026-10-16',
+        '2026-10-14',
+      ].map((date) => ({
+        id: 'entry-' + date,
+        date,
+        activityId: 'pushups',
+        unit: 'reps' as const,
+        amount: 1,
+        createdAt: date + 'T10:00:00Z',
+        updatedAt: date + 'T10:00:00Z',
+      })),
+    ];
+    mount();
+    const overview = screen.getByRole('group', { name: 'Activity today' });
+    expect(overview).toHaveTextContent('1 of 2 goals complete');
+    expect(overview).toHaveTextContent('Streak3 days');
+    expect(overview).toHaveTextContent('Activity Level2');
+    const walking = screen.getByRole('listitem', { name: 'Walking' });
+    expect(walking).toHaveTextContent('30 minutes / 30 minutes');
+    expect(walking).toHaveTextContent('Complete');
+    expect(
+      walking.querySelector('[data-activity-icon="walking"]'),
+    ).not.toBeNull();
+    expect(
+      walking.querySelector('[data-activity-icon="complete"]'),
+    ).toHaveAttribute('aria-hidden', 'true');
+    expect(
+      within(walking).getByRole('progressbar', { name: 'Walking' }),
+    ).toHaveAttribute('aria-valuenow', '100');
+    const pushupRow = screen.getByRole('listitem', { name: 'Push-ups' });
+    expect(pushupRow).not.toHaveTextContent('Complete');
+    expect(
+      pushupRow.querySelector('[data-activity-icon="pushups"]'),
+    ).not.toBeNull();
+    expect(
+      pushupRow.querySelector('[data-activity-icon="complete"]'),
+    ).toBeNull();
+    expect(
+      within(pushupRow).getByRole('button', { name: 'Log' }),
+    ).toHaveAccessibleDescription(
+      'Push-ups 19 repetitions / 20 repetitions 95%',
+    );
+  });
+
+  it.each([
+    [['2026-10-24', '2026-10-23'], '2 days'],
+    [['2026-10-23'], '0 days'],
+  ])(
+    'preserves the existing streak when today has no entries: %j',
+    (dates, expected) => {
+      state.data.activityEntries = dates.map((date) => ({
+        id: 'entry-' + date,
+        date,
+        activityId: 'pushups',
+        unit: 'reps',
+        amount: 1,
+        createdAt: date + 'T10:00:00Z',
+        updatedAt: date + 'T10:00:00Z',
+      }));
+      mount();
+      const overview = screen.getByRole('group', { name: 'Activity today' });
+      expect(
+        within(overview).getByText('Streak').parentElement,
+      ).toHaveTextContent(expected);
     },
   );
 });

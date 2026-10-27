@@ -4,7 +4,7 @@ This is the single live execution-authority file for ProgressPal. Other status p
 
 **Live identity is Git, not this file.** A file cannot name the commit that contains it. Read `git rev-parse HEAD`, `git rev-parse HEAD^{tree}` and the release manifest for the exact candidate. This file records the last released baseline, what has been added since and what is pending.
 
-Reconciled 2026-10-26: the verified released baseline is **v1.8.0**, commit `c7f04b816cfa8b155df0b4a6986ddac86668ba77` (tree `2608a6fdc3ce6004a140626dc882d876f6f70215`). A read-only Vercel lookup confirms production alias `progress-pal-seven.vercel.app` points to READY deployment `dpl_9iDhyhCJ7sWnWSN2xzXCVrgeDWvD` from that commit. The local `origin/master` ref matches; it was not fetched in this pass. This managed worktree remains detached at that HEAD with intentional uncommitted Activity/HUD/navigation changes and a locally prepared **v1.9.0** package/cache successor. No new commit or release exists. Exact candidate bytes and verification: `docs/RELEASE_CANDIDATE_HANDOFF.md` and its referenced manifest.
+Reconciled 2026-10-27 for the Activity visual refinement: the verified released baseline is **v1.9.0**, GitHub `master` commit `d14ebf6a508b94d362baf6892627da4895a9a947` (tree `ebcd5789832f90417dd7a345a1f06504afa98eff`). Read-only GitHub and Vercel lookups confirmed that `progress-pal-seven.vercel.app` serves READY Production deployment `dpl_5op3okTNemh1BgzWkSbDbLxkoD3a` from that commit. Package/cache identity is 1.9.0, IndexedDB schema is 5/native 50 and backup envelope format remains 1. Earlier v1.8.0 → v1.9.0 preparation records below are historical. Schema-5 Nhost rollout remains a separate owner action; no provider change was inspected or applied by this task.
 
 **Optional manual cloud backup is present in the released baseline, off by default; schema-5 support is prepared only.** IndexedDB remains authoritative, with no synchronization. The dated Epic G notes below describe historical checkpoints, not today's deployment. No live Nhost inspection or generation-5 application was performed in this preparation pass.
 
@@ -28,7 +28,9 @@ Closed work, preserved and not to be reopened without a reproduced defect or a n
 - C8 (reusable presentation abstraction) is **conditional and not activated**.
 - **Epic F** (data-lifecycle and cloud architecture) was accepted by the owner on 2026-10-07 as the Nhost contract `EpicF_Nhost_CorrectedFrozen_20261007-215535.zip` (SHA-256 `3ed5795bedad4a2deceab5084fa29dd7d09e343c96b351fa2576d66ee57c6521`; kept outside the repository). It is an architecture acceptance, not a release. The earlier Firebase/Firestore direction, synchronization, an outbox and inbound reconciliation are superseded and historical only.
 
-## Product facts (released v1.8.0 baseline; local v1.9.0 candidate noted separately)
+## Historical v1.9.0 preparation facts
+
+These preparation-stage descriptions are retained as evidence; the verified released identity and schema are recorded above.
 
 - Application version: released `1.8.0`; local candidate `1.9.0` in package/lockfile, with `progresspal-cache-v1.9.0` in the service worker. A minor increment reflects the new optional Activity feature. The application version is independent of database schema and backup format.
 - Database: released IndexedDB `progresspal-cs50-edition`, schema v4/native 40, with programme-owned XP under E-SCHEMA-1A. The candidate uses owner-authorized schema v5/native 50: additive live v4 → v5 upgrade, four initially empty Activity stores, preserved educational records/XP/mastery and unchanged database identity. This preparation changes neither schema number nor backup envelope format 1.
@@ -60,6 +62,10 @@ Status and candidate lineage (owner sequencing, 2026-10-04):
 Open owner decision carried by the tranche: ProgressPal has no logo, so the install icons reuse the shipped character artwork. A dedicated product mark is a branding decision; replacing the icon is a one-input change to `scripts/generate-pwa-icons.mjs`.
 
 ## Active work
+
+**Activity visual identity and daily overview (owner instruction 2026-10-26; final supplied-art integration 2026-10-27; local only).** Existing isolated worktree `C:/Users/alex_/.codex/worktrees/activity-visual-refinement/ProgressPal`, branch `feat/activity-visual-refinement`, remains at released `d14ebf6a`. The owner's supplied ECG heart now identifies Activity in the HUD/profile and page; the five supplied exercise pictograms and completed-goal checkmark replace the rejected vector artwork. One faithful alpha extraction prepares seven static PNGs, presented with existing RPG gold and included in the existing offline asset list. The compact level badge, daily summary and inline logging remain; enlarged-text tab/name corrections are retained and verified. Calculations, writes, schema/persistence/backup contracts, educational progression, cloud and navigation are unchanged. Focused tests and actual-file light/dark/application evidence: `docs/ACTIVITY_VISUAL_REFINEMENT_HANDOFF.md`. Owner review of the integrated result is next. Changes remain unstaged and uncommitted; no release or provider operation is authorized.
+
+The consolidated preparation, original Activity, shared HUD and mobile-navigation entries below describe pre-release work now included in `d14ebf6a`. They remain dated evidence, not the current execution queue.
 
 **Consolidated release preparation (owner instruction 2026-10-26; local only).** Candidate v1.9.0 preserves the completed Activity/HUD/navigation design. Zod 4.6.6 and development-only Undici 7.30.1 replace the affected locked versions; backup collections stop at the first invalid row without arbitrary history limits. The owner authorized a JavaScript gzip ceiling of 448,000 B after the patched build measured 447,162 B; all other budgets are unchanged. Privacy and provider recovery wording are reconciled. `docs/RELEASE_CANDIDATE_HANDOFF.md` is the current consolidated handoff; earlier surface handoffs remain dated evidence. Independent exact-candidate review is next, not release certification or provider rollout.
 
@@ -124,7 +130,7 @@ Validated before production (`docs/ci.md`).
 ## STOP conditions and next actions
 
 - The implementation context must not author its own independent-review verdict. Candidate-bound review evidence must be valid and the authoritative release gate must pass before any release. No force push, forced promotion or weakened gate is authorized.
-- Current candidate: independent exact-candidate review is next. Git integration, release certification, provider generation migration, synthetic live validation and production promotion require separate authorization. Do not apply generation-5 SQL or describe schema-5 cloud backup as operational. A push to `master` is a Production deployment. Historical Epic G branch-stage instructions above do not restart earlier development work.
+- Current local candidate: owner acceptance of the bounded Activity visual refinement is next (`docs/ACTIVITY_VISUAL_REFINEMENT_HANDOFF.md`). Git integration, independent release review/certification, provider generation migration, synthetic live validation and production promotion require separate authorization. Do not apply generation-5 SQL or describe schema-5 cloud backup as operational. A push to `master` is a Production deployment. Historical Epic G branch-stage instructions above do not restart earlier development work.
 - Do not begin C8 or S1-M03+ without a new owner instruction. Installation must not be described as a backup or protection against storage clearing; manual remote backup availability must accurately distinguish the released generation from prepared schema-5 support.
 
 ## Document map
