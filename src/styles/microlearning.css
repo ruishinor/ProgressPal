@@ -610,3 +610,18 @@ body:has(.micro) {
   padding-block: var(--space-2);
   min-height: 2.75rem;
 }
+
+/* Reflow the header at enlarged text without breaking its short labels. */
+.micro--utviklerblikk .micro__top {
+  flex-wrap: wrap;
+}
+
+.micro--utviklerblikk .micro__top > .rpg-button,
+.micro--utviklerblikk .micro__top > small {
+  flex: none;
+  white-space: nowrap;
+}
+
+.micro--utviklerblikk .micro__progress {
+  min-width: 4rem;
+}

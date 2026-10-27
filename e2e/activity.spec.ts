@@ -289,6 +289,18 @@ for (const viewport of [
           (globalThis as unknown as ActivityBrowserScope).innerWidth,
       ),
     ).toBe(true);
+    // An unfocused multi-line skip link must remain wholly above the viewport
+    // at enlarged text, while keyboard focus must reveal the whole control.
+    await page.evaluate('window.scrollTo(0, 0)');
+    const skip = page.getByRole('link', {
+      name: 'Skip to RPG content',
+      exact: true,
+    });
+    const hiddenSkipBox = (await skip.boundingBox())!;
+    expect(hiddenSkipBox.y + hiddenSkipBox.height).toBeLessThanOrEqual(0);
+    await skip.focus();
+    expect((await skip.boundingBox())!.y).toBeGreaterThanOrEqual(0);
+    await page.getByRole('tab', { name: 'Today', exact: true }).focus();
     await page.screenshot({
       path: `artifacts/activity-ux-today-${viewport.width}-enlarged.png`,
       fullPage: true,

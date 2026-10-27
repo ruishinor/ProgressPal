@@ -63,6 +63,21 @@ async function layout(page: Page) {
     return problems;
   })()`),
   ).toEqual([]);
+  const headerLines = await page
+    .locator('.micro__top > .rpg-button > span:last-child, .micro__top > small')
+    .evaluateAll((labels) =>
+      labels.map((label) => {
+        const range = label.ownerDocument.createRange();
+        range.selectNodeContents(label);
+        return new Set(
+          Array.from(
+            range.getClientRects() as ArrayLike<{ top: number }>,
+            (rect) => rect.top,
+          ),
+        ).size;
+      }),
+    );
+  expect(headerLines.every((lines) => lines === 1)).toBe(true);
   for (const control of await page
     .locator('.micro button:visible,.micro a:visible')
     .all()) {
