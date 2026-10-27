@@ -3,14 +3,16 @@ import type { MicroSession, MicroSource, MicroTrack } from '@/lib/domain';
 import { kanbanSessions } from './utviklerblikk/kanban';
 import { scrumSessions } from './utviklerblikk/scrum';
 import { smidigSamarbeidSessions } from './utviklerblikk/smidigSamarbeid';
+import { uxUuSessions } from './utviklerblikk/uxUu';
 
 const ids = (sessions: readonly MicroSession[]) =>
   sessions.map((session) => session.id);
 
 /**
- * «Utviklerblikk»: a voluntary track in four categories. Generelt holds the
+ * «Utviklerblikk»: a voluntary track in five categories. Generelt holds the
  * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
- * the finalized ACT 18 package (see `utviklerblikk/`).
+ * the finalized ACT 18 package (see `utviklerblikk/`). UX og universell
+ * utforming adds six original activities (UXUU-U01–U06).
  *
  * Generelt: six short activities about how
  * developers think before and around the code: need versus solution,
@@ -77,6 +79,12 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       title: 'Kanban',
       summary: 'Arbeidsflyt og oversikt',
       sessionIds: ids(kanbanSessions),
+    },
+    {
+      id: 'ux-og-universell-utforming',
+      title: 'UX og universell utforming',
+      summary: 'Brukerreiser, barrierer og forbedring',
+      sessionIds: ids(uxUuSessions),
     },
   ],
   sessions: [
@@ -1143,5 +1151,6 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     ...scrumSessions,
     ...smidigSamarbeidSessions,
     ...kanbanSessions,
+    ...uxUuSessions,
   ],
 };
