@@ -13,7 +13,8 @@ const ids = (sessions: readonly MicroSession[]) =>
  * «Utviklerblikk»: a voluntary track in six categories. Generelt holds the
  * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
  * the finalized ACT 18 package (see `utviklerblikk/`). UX og universell
- * utforming adds six original activities (UXUU-U01–U06).
+ * utforming adds six original activities (UXUU-U01–U06); SQL/MySQL adds
+ * six database activities (SQL84-01–06).
  *
  * Generelt: six short activities about how
  * developers think before and around the code: need versus solution,

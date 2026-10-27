@@ -4,19 +4,11 @@ This is the single live execution-authority file for ProgressPal. Other status p
 
 **Live identity is Git, not this file.** A file cannot name the commit that contains it. Read `git rev-parse HEAD`, `git rev-parse HEAD^{tree}` and the release manifest for the exact candidate. This file records the last released baseline, what has been added since and what is pending.
 
-Reconciled 2026-10-27 for the Activity visual refinement: the verified released baseline is **v1.9.0**, GitHub `master` commit `d14ebf6a508b94d362baf6892627da4895a9a947` (tree `ebcd5789832f90417dd7a345a1f06504afa98eff`). Read-only GitHub and Vercel lookups confirmed that `progress-pal-seven.vercel.app` serves READY Production deployment `dpl_5op3okTNemh1BgzWkSbDbLxkoD3a` from that commit. Package/cache identity is 1.9.0, IndexedDB schema is 5/native 50 and backup envelope format remains 1. Earlier v1.8.0 → v1.9.0 preparation records below are historical. Schema-5 Nhost rollout remains a separate owner action; no provider change was inspected or applied by this task.
+Reconciled 2026-10-27 for the consolidated local integration. **Released baseline: v1.9.0**, commit `d14ebf6a508b94d362baf6892627da4895a9a947` (tree `ebcd5789832f90417dd7a345a1f06504afa98eff`). A read-only `git ls-remote origin refs/heads/master` in this task confirmed that exact remote SHA; the Activity source record previously confirmed its Vercel deployment. This task did not inspect or change the provider or deployment.
 
-**SQL/MySQL learning addition (owner instruction, 2026-10-26):** local branch
-`feat/utviklerblikk-sql-mysql`, isolated from refreshed upstream
-`c7f04b816cfa8b155df0b4a6986ddac86668ba77` (v1.8.0). Six activities add the
-Databaser – SQL/MySQL category to Utviklerblikk, preserving its accepted 24
-activities. Fictional datasets and existing deterministic cards only: no SQL
-execution, installation, server, dependency, persistence or release-policy change.
-Source decisions and verification limits: [SQL learning notes](utviklerblikk-sql-mysql.md).
-This branch is not merged or deployed and must receive independent review before
-controlled integration and normal release certification. The older state below
-has not been globally reconciled by this bounded content task.
+**Local integrated product checkpoint — HOLD, not frozen or release-certified.** Branch `integration/utviklerblikk-activity-20261027`, isolated worktree `C:/Users/alex_/.codex/worktrees/utviklerblikk-activity-integration/ProgressPal`, starts at the accepted Activity product/version commit `83a7031f9064bf909d890487bed8061d60f880b9` and merges UX/UU `c304b77a4dc734142c1a91c85b391b45d5d96396` and SQL/MySQL `09df6bc3ffc7b8ce3980992a773f2550f015ced6` with original histories retained. Six categories contain six activities each (36 total); both new banks and the original 24 are preserved. Accepted Activity artwork, HUD, styles, persistence, offline mappings and navigation are unchanged. Package, lockfile and service-worker identity remain **v1.9.1**; database schema remains 5/native 50 and backup envelope format 1.
 
+The build succeeds, but the native bundle checker reports **459,055 B JavaScript gzip against 448,000 B: 11,055 B over**. Largest raw JS is 496,204/500,000 B. One import/duplication inspection found each new pure-data bank imported and registered once in the existing static content chunk. No content removal, architecture change or budget increase was applied. Proposed JS gzip ceiling: **465,000 B**, requiring explicit owner authorization. A minor release identity such as **v1.10.0** is recommended for the twelve added educational activities, also requiring an owner decision; v1.9.1 is retained meanwhile. The extensive integrated browser/mobile/enlarged-text/offline matrix is deferred at this early budget HOLD. Independent combined review and exact-candidate certification remain pending. The Activity-only review and payload are not combined approval. Source/evidence and exact next steps: [consolidated integration handoff](CONSOLIDATED_INTEGRATION_HANDOFF.md). No push, master merge, tag, deployment, Nhost change or full certification occurred.
 
 **Optional manual cloud backup is present in the released baseline, off by default; schema-5 support is prepared only.** IndexedDB remains authoritative, with no synchronization. The dated Epic G notes below describe historical checkpoints, not today's deployment. No live Nhost inspection or generation-5 application was performed in this preparation pass.
 
@@ -74,6 +66,12 @@ Status and candidate lineage (owner sequencing, 2026-10-04):
 Open owner decision carried by the tranche: ProgressPal has no logo, so the install icons reuse the shipped character artwork. A dedicated product mark is a branding decision; replacing the icon is a one-input change to `scripts/generate-pwa-icons.mjs`.
 
 ## Active work
+
+The consolidated integration and its bundle HOLD above are the only active work in this worktree. Local commits are integration checkpoints, not a final frozen release candidate. Resume final browser verification after the budget decision; resolve the version decision before freeze, then obtain genuine independent review and separately authorized certification.
+
+### Historical workstream records
+
+The following dated notes retain their original workstream facts and measurements. Their old pending/uncommitted wording does not describe the integrated checkpoint above. Original branch handoffs remain available as provenance.
 
 **Activity visual identity and daily overview (owner instruction 2026-10-26; final supplied-art integration 2026-10-27; local only).** Existing isolated worktree `C:/Users/alex_/.codex/worktrees/activity-visual-refinement/ProgressPal`, branch `feat/activity-visual-refinement`, remains at released `d14ebf6a`. The owner's supplied ECG heart now identifies Activity in the HUD/profile and page; the five supplied exercise pictograms and completed-goal checkmark replace the rejected vector artwork. One faithful alpha extraction prepares seven static PNGs, presented with existing RPG gold and included in the existing offline asset list. The compact level badge, daily summary and inline logging remain; enlarged-text tab/name corrections are retained and verified. Calculations, writes, schema/persistence/backup contracts, educational progression, cloud and navigation are unchanged. Focused tests and actual-file light/dark/application evidence: `docs/ACTIVITY_VISUAL_REFINEMENT_HANDOFF.md`. Owner review of the integrated result is next. Changes remain unstaged and uncommitted; no release or provider operation is authorized.
 
