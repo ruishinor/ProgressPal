@@ -2,6 +2,7 @@ import type { MicroSession, MicroSource, MicroTrack } from '@/lib/domain';
 
 import { kanbanSessions } from './utviklerblikk/kanban';
 import { scrumSessions } from './utviklerblikk/scrum';
+import { sqlMysqlSessions } from './utviklerblikk/sqlMysql';
 import { smidigSamarbeidSessions } from './utviklerblikk/smidigSamarbeid';
 import { uxUuSessions } from './utviklerblikk/uxUu';
 
@@ -9,7 +10,7 @@ const ids = (sessions: readonly MicroSession[]) =>
   sessions.map((session) => session.id);
 
 /**
- * «Utviklerblikk»: a voluntary track in five categories. Generelt holds the
+ * «Utviklerblikk»: a voluntary track in six categories. Generelt holds the
  * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
  * the finalized ACT 18 package (see `utviklerblikk/`). UX og universell
  * utforming adds six original activities (UXUU-U01–U06).
@@ -85,6 +86,13 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       title: 'UX og universell utforming',
       summary: 'Brukerreiser, barrierer og forbedring',
       sessionIds: ids(uxUuSessions),
+    },
+    {
+      id: 'sql-mysql',
+      title: 'Databaser – SQL/MySQL',
+      summary:
+        'Øv på SQL: hent, endre og koble data. Forutsi resultater og finn feil.',
+      sessionIds: ids(sqlMysqlSessions),
     },
   ],
   sessions: [
@@ -1152,5 +1160,6 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     ...smidigSamarbeidSessions,
     ...kanbanSessions,
     ...uxUuSessions,
+    ...sqlMysqlSessions,
   ],
 };

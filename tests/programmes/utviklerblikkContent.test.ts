@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
+import { uxUuSessions } from '@/programmes/programvareutvikling/microlearning/utviklerblikk/uxUu';
+import { sqlMysqlSessions } from '@/programmes/programvareutvikling/microlearning/utviklerblikk/sqlMysql';
+
 import {
   findMicrolearningBankIssues,
   type MicroCard,
@@ -110,7 +113,7 @@ describe('Utviklerblikk content contract', () => {
     expect(track.sessions.slice(0, 6)).toEqual(generelt);
   });
 
-  it('keeps Generelt as accepted and adds UX/UU after the four preserved categories', () => {
+  it('keeps Generelt as accepted and adds UX/UU and SQL/MySQL after the four preserved categories', () => {
     expect(
       track.categories?.map(({ id, title, summary }) => [id, title, summary]),
     ).toEqual([
@@ -122,6 +125,11 @@ describe('Utviklerblikk content contract', () => {
         'ux-og-universell-utforming',
         'UX og universell utforming',
         'Brukerreiser, barrierer og forbedring',
+      ],
+      [
+        'sql-mysql',
+        'Databaser – SQL/MySQL',
+        'Øv på SQL: hent, endre og koble data. Forutsi resultater og finn feil.',
       ],
     ]);
     expect(track.categories?.[0]?.sessionIds).toEqual(
@@ -138,7 +146,7 @@ describe('Utviklerblikk content contract', () => {
         (id) => `tsu-kanban-${id}`,
       ),
     ]);
-    expect(track.sessions).toHaveLength(30);
+    expect(track.sessions).toHaveLength(36);
     expect(track.categories?.[4]?.sessionIds).toEqual(
       ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
@@ -149,6 +157,20 @@ describe('Utviklerblikk content contract', () => {
         .update(JSON.stringify(track.sessions.slice(0, 24)))
         .digest('hex'),
     ).toBe('a821664d3910121bf9376984393596de7a99265240f408668cfccabf36f30ead');
+  });
+
+  it('registers both incoming banks once, in category order, without replacing content', () => {
+    expect(track.sessions.slice(24, 30)).toEqual(uxUuSessions);
+    expect(track.sessions.slice(30)).toEqual(sqlMysqlSessions);
+    const registered = track.categories!.flatMap(
+      (category) => category.sessionIds,
+    );
+    expect(registered).toEqual(track.sessions.map((session) => session.id));
+    expect(new Set(registered).size).toBe(registered.length);
+    const cardIds = track.sessions.flatMap((session) =>
+      session.cards.map((card) => card.id),
+    );
+    expect(new Set(cardIds).size).toBe(cardIds.length);
   });
 
   it('validates through the existing bank and programme contracts', () => {

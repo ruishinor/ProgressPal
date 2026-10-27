@@ -6,6 +6,18 @@ This is the single live execution-authority file for ProgressPal. Other status p
 
 Reconciled 2026-10-27 for the Activity visual refinement: the verified released baseline is **v1.9.0**, GitHub `master` commit `d14ebf6a508b94d362baf6892627da4895a9a947` (tree `ebcd5789832f90417dd7a345a1f06504afa98eff`). Read-only GitHub and Vercel lookups confirmed that `progress-pal-seven.vercel.app` serves READY Production deployment `dpl_5op3okTNemh1BgzWkSbDbLxkoD3a` from that commit. Package/cache identity is 1.9.0, IndexedDB schema is 5/native 50 and backup envelope format remains 1. Earlier v1.8.0 → v1.9.0 preparation records below are historical. Schema-5 Nhost rollout remains a separate owner action; no provider change was inspected or applied by this task.
 
+**SQL/MySQL learning addition (owner instruction, 2026-10-26):** local branch
+`feat/utviklerblikk-sql-mysql`, isolated from refreshed upstream
+`c7f04b816cfa8b155df0b4a6986ddac86668ba77` (v1.8.0). Six activities add the
+Databaser – SQL/MySQL category to Utviklerblikk, preserving its accepted 24
+activities. Fictional datasets and existing deterministic cards only: no SQL
+execution, installation, server, dependency, persistence or release-policy change.
+Source decisions and verification limits: [SQL learning notes](utviklerblikk-sql-mysql.md).
+This branch is not merged or deployed and must receive independent review before
+controlled integration and normal release certification. The older state below
+has not been globally reconciled by this bounded content task.
+
+
 **Optional manual cloud backup is present in the released baseline, off by default; schema-5 support is prepared only.** IndexedDB remains authoritative, with no synchronization. The dated Epic G notes below describe historical checkpoints, not today's deployment. No live Nhost inspection or generation-5 application was performed in this preparation pass.
 
 ## Historical release closure: v1.5.1
