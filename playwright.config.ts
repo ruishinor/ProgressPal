@@ -11,6 +11,7 @@ export default defineConfig({
   globalTimeout: 75 * 60 * 1000,
   reporter: 'list',
   retries: 0,
+  maxFailures: 1,
   workers: 1,
   use: {
     screenshot: 'only-on-failure',
