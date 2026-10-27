@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const origin = 'https://progresspal.test';
 const workerSource = readFileSync(path.resolve('public/sw.js'), 'utf8');
-const cacheVersion = 'progresspal-cache-v1.9.0';
+const cacheVersion = 'progresspal-cache-v1.9.1';
 const avatarAssets = [
   '/assets/character-profile.png',
   '/assets/avatars/avatar-auburn-braid.png',
