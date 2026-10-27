@@ -1,7 +1,7 @@
 {
   "name": "progresspal-cs50-edition",
   "private": true,
-  "version": "1.9.1",
+  "version": "1.10.0",
   "type": "module",
   "packageManager": "npm@11.10.1",
   "engines": {
