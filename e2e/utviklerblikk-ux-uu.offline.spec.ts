@@ -26,13 +26,13 @@ test('new UX/UU category and authored content cold-load offline', async ({
     .getByRole('button', { name: '3. Hvem møter en hindring?' })
     .click();
   await expect(
-    newPage.getByRole('heading', { name: 'Lett for hvem?' }),
+    newPage.getByRole('heading', { name: 'En enkel påmelding — for hvem?' }),
   ).toBeVisible();
   await newPage.waitForTimeout(430);
   await newPage.getByRole('button', { name: 'Neste', exact: true }).click();
   await newPage
     .getByRole('button', {
-      name: 'En tilgjengelighetsbarriere, selv om andre lykkes.',
+      name: 'Erik møter en tastaturbarriere; de raske museforsøkene avkrefter ikke denne hindringen.',
       exact: true,
     })
     .click();

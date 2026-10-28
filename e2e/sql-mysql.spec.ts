@@ -198,8 +198,14 @@ test('unopened SQL activities load and assemble after an offline reload', async 
   await context.setOffline(true);
   await page.goto(base + '?kategori=sql-mysql');
   await press(page, '2. Finn riktig informasjon');
-  await press(page, 'Neste');
-  const card = sessions[1]!.cards[1]!;
+  const activity = sessions[1]!;
+  const assemblyIndex = activity.cards.findIndex(
+    (card) => card.id === 'tsu-sql-02-bygg',
+  );
+  expect(assemblyIndex).toBeGreaterThan(0);
+  for (let index = 0; index < assemblyIndex; index++)
+    await press(page, 'Neste');
+  const card = activity.cards[assemblyIndex]!;
   if (card.kind !== 'assemble') throw new Error('Expected SQL assembly');
   for (const id of card.correctOrder) {
     const token = card.tokens.find((t) => t.id === id)!;
@@ -223,20 +229,24 @@ test('representative SQL assembly: mobile rendering, wrong answer, focus and axe
   await press(page, '2. Finn riktig informasjon');
   await page.locator('.micro-code').scrollIntoViewIfNeeded();
   await page.screenshot({ path: output + '/mobile-normal-sql.png' });
-  await press(page, 'Neste');
+  const activity = sessions[1]!;
+  const assemblyIndex = activity.cards.findIndex(
+    (card) => card.id === 'tsu-sql-02-bygg',
+  );
+  expect(assemblyIndex).toBeGreaterThan(0);
+  for (let index = 0; index < assemblyIndex; index++)
+    await press(page, 'Neste');
+  const card = activity.cards[assemblyIndex]!;
   const pool = page.getByRole('group', { name: 'Deler', exact: true });
   await pool
     .getByRole('button', { name: 'FROM deltakere', exact: true })
     .click();
   await press(page, 'Sjekk');
-  await expect(page.getByRole('status')).toContainText(
-    'Begge aldersgrenser må gjelde.',
-  );
+  await expect(page.getByRole('status')).toContainText(card.hint);
   await press(page, 'Prøv igjen');
   await expect(page.getByRole('group', { name: 'Linjen din' })).toContainText(
     'Linjen din er tom.',
   );
-  const card = sessions[1]!.cards[1]!;
   for (const id of card.correctOrder) {
     await pool
       .getByRole('button', {
@@ -261,6 +271,11 @@ test('representative SQL assembly: mobile rendering, wrong answer, focus and axe
   await page.screenshot({ path: output + '/mobile-200-feedback.png' });
   await page.waitForTimeout(430);
   await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    activity.cards[assemblyIndex + 1]!.title,
+  );
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await press(page, 'Neste');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Hvilke navn kommer ut?',
   );
