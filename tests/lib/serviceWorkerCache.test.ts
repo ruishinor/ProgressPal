@@ -4,6 +4,7 @@ import { setImmediate } from 'node:timers/promises';
 import { runInNewContext } from 'node:vm';
 
 import { describe, expect, it, vi } from 'vitest';
+import approvedActivityAchievements from '../fixtures/activity-achievements-approved.json';
 
 const origin = 'https://progresspal.test';
 const workerSource = readFileSync(path.resolve('public/sw.js'), 'utf8');
@@ -27,6 +28,10 @@ const avatarAssets = [
   '/assets/badges/p2-foundation-checkpoint.webp',
   '/assets/badges/p2-recall-foundations.webp',
   '/assets/badges/p2-values-checkpoint.webp',
+  ...approvedActivityAchievements.achievements.map(
+    (row) => `/assets/badges/${row.id}.webp`,
+  ),
+  '/assets/badges/rpg-badge-first-step.webp',
 ];
 const installIcons = [
   '/icons/icon-192.png',
