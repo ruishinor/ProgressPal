@@ -51,13 +51,42 @@ describe('C1 visual source identity (visual, identity only)', () => {
   });
 
   it('maps every achievement to its committed badge file as rendered, with the fallback glyph', () => {
+    // The frozen C1 identity baseline covers the original sixteen badges.
+    // Activity achievements are validated by their own approved asset tests.
+    const originalDefinitions = achievementDefinitions.filter(
+      (definition) =>
+        definition.ruleType !== 'physical_activity' &&
+        definition.id !== 'first-step',
+    );
     const mapping = Object.fromEntries(
-      achievementDefinitions.map((definition) => [
+      originalDefinitions.map((definition) => [
         definition.id,
         renderedArtFile(definition.id),
       ]),
     );
-    expect(mapping).toEqual(committedIdentity.badgeArt);
+    const { 'first-step': originalFirstStep, ...originalArt } =
+      committedIdentity.badgeArt;
+
+    expect(originalFirstStep).toBe('badges/rpg-badge-first-step.webp');
+    expect(mapping).toEqual(originalArt);
+
+    // First Step now uses a static URL, retaining identical artwork bytes.
+    const { container: firstStepContainer, unmount: unmountFirstStep } = render(
+      <RpgAchievementArt achievementId="first-step" />,
+    );
+
+    expect(firstStepContainer.querySelector('img')?.getAttribute('src')).toBe(
+      '/assets/badges/rpg-badge-first-step.webp',
+    );
+    unmountFirstStep();
+
+    expect(
+      sha256(
+        readFileSync(
+          path.resolve('public/assets/badges/rpg-badge-first-step.webp'),
+        ),
+      ),
+    ).toBe(committedIdentity.assets['badges/rpg-badge-first-step.webp']);
 
     const { container } = render(
       <RpgAchievementArt achievementId="c1-unknown-achievement" />,
