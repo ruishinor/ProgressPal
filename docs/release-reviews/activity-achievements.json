@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 2,
+  "module": "activity-achievements",
+  "reviewer": "Codex independent review agent /root/independent_release_review (separate spawned automated review process; no human reviewer claimed)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "b070cacd0cc8819323a3d8594ff1d9687e8d13be",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of exact product candidate 98746b52d585e64dde7427e2225cdccead81bae9, root tree a1730b69d9786b98f55295b66d062f6241bc092e, against baseline ca16ea6d097a870cb4e296ed4cf05ec7fa66c61a. Covers all twelve approved Guild of Moving Parts achievements, native units and branch-specific date counts, deterministic first date/entry-ID prefix witnesses, historical snapshots, stable custom identities/archive, coordinated atomic and monotonic unlock persistence, restore/reset semantics, zero educational XP, shared catalogue/UI/notification/art/offline integration, focused regressions and unchanged release controls. Decision permits certification and safe PR advancement; it does not certify production protection or authorize bypassing any downstream gate.",
+    "evidence": [
+      "Provenance: the owner explicitly accepts a genuinely separate review agent in the supplied execution brief, section 10.3. /root/independent_release_review was separately spawned after the product candidate was frozen and independently inspected its sources and evidence. It authored only this review file and its evidence-only successor commit; it did not implement or alter product code, tests, assets, or other documentation. Agent identity is the runtime canonical agent_name, also observed through collaboration.list_agents. The author is an automated agent, not a named human; shared model/environment may correlate review blind spots.",
+      "Read AGENTS.md, docs/CURRENT_STATE.md, docs/ci.md, the owner execution brief, the full approved ACTIVITY_ACHIEVEMENTS.md, ACHIEVEMENTS.json, ASSET_MANIFEST.md, the complete changed-file inventory/diff, affected source paths, and the release-binding implementation/tests. No scripts, workflow, dependency, schema, backup-envelope, application/cache version, budget, timeout, CSP, or protection changes appear in this delta.",
+      "Native identity verification: clean starting git status; git rev-parse HEAD = 98746b52d585e64dde7427e2225cdccead81bae9; HEAD tree = a1730b69d9786b98f55295b66d062f6241bc092e; npm run review:payload-tree -- 98746b52d585e64dde7427e2225cdccead81bae9 = b070cacd0cc8819323a3d8594ff1d9687e8d13be; git diff --check baseline candidate exited 0.",
+      "Independently reran npm test -- tests/lib/activityAchievements.test.ts tests/db/activityAchievements.test.ts tests/lib/rewardEvents.test.ts tests/architecture/serviceWorker.test.ts: exit 0, 35 tests / 4 files passed under serial Vitest. This includes rule boundaries, exact approved runtime fields, atomic rollback, duplicate/edit/delete retention, complete backup restore/reset, zero educational effects, reward event copy and static offline mappings.",
+      "Independently ran node --test scripts/release-review-binding.test.mjs: exit 0, 21 tests passed, zero skipped/cancelled/failed. The native parser rejects stale/wrong payloads, malformed evidence, open proceed findings, legacy overrides and a mismatched GitHub event SHA. No full release gate was started by this reviewer.",
+      "Independent reference probe: C:/Users/alex_/.codex/visualizations/2026/10/28/01a182e2-d3b7-7c03-9a39-4f7120c029a3/independent-review-probe.mjs, SHA-256 33906a0c636d04d2c144eb4cb8013513bf8b964b0fcb2b308441247cbcc72d71. A separately written naive calculation rechecks every full prefix against the externally approved predicates rather than reusing implementation accumulators. All twelve rule paths and exact witness IDs match across 160 varied valid histories and their reversed insertion orders, including future exclusion, mixed native branches, multi-goal snapshots and archived custom definitions. Initial probe coverage was insufficient with low-bit random sampling; sampling was corrected and the all-twelve coverage assertion passed without product changes.",
+      "Independently byte-compared external approved ACHIEVEMENTS.json and tests/fixtures/activity-achievements-approved.json: identical SHA-256 2f1d794cc8a225567076e542d05f133e9431fb37a33268a0650dca15f4a830f7. All twelve shipped public/assets/badges/activity-*.webp files byte-equal the exact approved compact exports. public/assets/badges/rpg-badge-first-step.webp byte-equals the retained existing source image; no artwork substitution occurred.",
+      "Inspected implementer-focused logs under ignored artifacts/activity-achievements/: focused.log records 380 tests / 21 files; presentation-architecture.log records 203 tests / 22 files; offline.log records all seven offline browser tests passing, including cold re-entry and never-visited gallery art; targeted browser logs cover both new journeys and the existing nine Activity journeys across bounded runs. These are inspected implementer evidence, not independently rerun browser tests or full certification.",
+      "Inspected actual local application captures unlock-desktop-dark.png, gallery-light-320.png, gallery-dark-320-enlarged.png and the original-resolution gallery-reward-detail.png. Reviewed the Playwright source for 320/390/1440 widths, both themes, 200 percent root text, focus/keyboard disclosure, native art width and axe assertions. Browser evidence covers committed first award, duplicate-free repeat, Merge Quest, RPG/Classic navigation, reload, same-origin/offline artwork and an unaffected course route. The reviewer did not start a second E2E server. Root text scaling is a stress proxy, not physical-device/browser-zoom or manual screen-reader certification.",
+      "Inspected bundle.log: JS gzip 465303 / 470000 bytes, largest raw JS 488653 / 500000, CSS gzip 15831 / 40000, curriculum 126984 / 150000, runtime 6398912 / 7000000; warnings and violations empty. The byte-identical First Step extraction follows the existing static/offline mechanism and avoids a budget increase.",
+      "Evidence distinction: typecheck-force.log retains an earlier failed attempt and is not counted as a clean pass. The implementer separately captured the frozen-candidate successful forced compiler exit in artifacts/activity-achievements/typecheck-frozen.log (TSC_EXIT=0), which this reviewer read. Historical failed/interrupted browser attempts are likewise not reported as passes.",
+      "Limitations: no full native certification, hosted checks, live provider-check configuration, merge, deployment or production smoke was performed by this reviewer. Vercel Final candidate promotion protection remains unverified with currently usable capabilities. This evidence is scoped implementation approval; production-triggering actions must remain blocked until exact-candidate local/hosted certification and supported authenticated protection verification satisfy docs/ci.md and the owner brief. Any payload mutation outside docs/release-reviews requires a new applicable review."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "AA-R1",
+      "severity": "P2",
+      "description": "Wrong native-unit aggregation, borrowed date counts, same-identity pairs, empty plans or an arbitrary final entry could award an approved badge on the wrong history or record the wrong witness.",
+      "resolution": "Source tracing and independent full-prefix reference comparison found the implementation keeps native totals and date sets separate, uses different stable IDs for Merge Quest, counts nonempty enabled historical goals, and emits the earliest qualifying current-valid date/ID prefix. All twelve authored rule paths and exact witness IDs agreed in the varied-history probe and focused tests.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R2",
+      "severity": "P2",
+      "description": "Activity persistence and unlock creation could partially commit, duplicate on replay, revoke earned state after edits/deletion or announce rewards on restore/passive reads.",
+      "resolution": "The entry-save coordinated Dexie transaction includes the four Activity stores and achievementUnlocks, and reuses the unique/idempotent unlock routine. Independently passing persistence tests force unlock failure and verify rollback of the entry/day, actual save-time award timestamps, edit/delete retention, exact backup round-trip, silent restore, later explicit-save recognition and reset. Reward announcement follows only the committed mutation result; source paths for settings/delete/read/restore never invoke the evaluator.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R3",
+      "severity": "P2",
+      "description": "The extension could alter approved copy/art, duplicate shared identities across programmes, admit physical rules into educational evaluation or change existing educational progression and preserved catalogue order.",
+      "resolution": "External input byte checks and focused fidelity/dispatch tests confirm all twelve exact approved runtime records and assets, shared catalogue membership and zero XP. Educational evaluation explicitly ignores physical_activity. Changed historical tests preserve the prior educational oracle while separately pinning the extension. The write path does not write education/XP stores, and snapshot comparison verifies unrelated state preservation.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R4",
+      "severity": "P3",
+      "description": "A stale failed compiler log could be mistaken for a later silent successful run, making the verification narrative inaccurate.",
+      "resolution": "The implementer identified the Tee-Object empty-output behavior and retained the historical failure. A distinct frozen-candidate log explicitly records successful compiler exit 0; the reviewer read that log and classifies the older log as a failed attempt. No product or bound-document correction was required.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R5",
+      "severity": "P3",
+      "description": "Static art packaging could break cold offline use or hide a bundle-budget relaxation; the accepted candidate has limited remaining JavaScript headroom.",
+      "resolution": "All twelve badges and byte-identical First Step have explicit existing-style install-time static mappings. Focused service-worker contracts pass independently and the inspected seven-test offline browser run passes. Native bundle evidence has no warnings/violations with 4697 bytes gzip and 11347 bytes raw headroom. Limits remain unchanged. Future additions must respect these measured limits.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "AA-R6",
+      "severity": "P2",
+      "description": "The available evidence does not establish that Vercel holds production promotion for the exact Final candidate check, and focused test success does not replace native or hosted certification.",
+      "resolution": "This is an explicit downstream operational gate, not a source defect or a waived release condition. Proceed is limited to native certification and safe feature-branch/PR advancement. Do not merge or perform another production-triggering action until supported authenticated configuration inspection/activation proves the required exact-commit promotion protection and all applicable local/hosted checks pass. The review makes no production-ready or deployment-success claim.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No material product defect was found in the exact reviewed payload. Approved package fidelity, rule semantics/witnesses, atomic monotonic storage, restore behavior and educational isolation are supported by direct source/diff review, independently executed focused checks and an independent reference calculation. Actual browser evidence was inspected with its limits stated. This separate automated reviewer personally authors and commits only this schema-v2 evidence; no human review is implied. Proceed to exact-candidate native certification and safe publication. Production remains conditional on mandatory certification, hosted checks and verified Vercel protection; the evidence does not satisfy or bypass those gates. Do not rerun broad suites merely for ceremony or treat historical failures as clean passes. Any product-bearing correction requires a new payload review."
+  }
+}
