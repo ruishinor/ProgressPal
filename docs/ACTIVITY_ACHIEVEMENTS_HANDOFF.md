@@ -136,12 +136,43 @@ Vercel project is `progress-pal` / `prj_npdQBbWuAlQMzraZuhM12yv3XgmZ`, team
 `dpl_CeC5SJyZo5fQmbTZ3rsnEDCrMHfH` serves baseline `ca16ea6d…` at
 `progress-pal-seven.vercel.app`.
 
-The connector confirms deployment identity but does not expose the required
-project Deployment Checks configuration. The local Vercel CLI returns missing
-authentication (403); browser MCP tab inspection is blocked by its approval
-policy and the computer-use entry point failed initialization. Therefore the
-`Final candidate` promotion gate is **unverified**, not assumed active or absent.
-Do not merge until supported authenticated inspection/configuration establishes
-the repository's exact-commit promotion invariant. Safe PR publication, review
-and native certification can proceed independently. No provider migration, tag,
-GitHub Release, direct production deploy or alias operation is part of this patch.
+The connector lacks project-check configuration capability; browser inspection
+was blocked/unavailable. The owner completed CLI sign-in. Authenticated readback
+then verified the exact project/team above, `ruishinor/ProgressPal` Git linkage,
+production branch `master`, `autoAssignCustomDomains: true` and existing check
+`chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7`: name/external GitHub check name
+`Final candidate`, source `git-provider`/`github`, target `production`, blocking
+`deployment-alias`. No platform setting was changed. This verifies the intended
+promotion protection configuration; the actual next production commit/check/
+held deployment/promotion identity must still be followed before release claims.
+No provider migration, tag, GitHub Release, direct production deploy or manual
+alias operation is part of this patch.
+
+## Certification correction record
+
+Product commit `98746b52d585e64dde7427e2225cdccead81bae9` received an independent
+automated `proceed` review, authored and committed by the distinct process
+`/root/independent_release_review` as evidence-only successor
+`f4174b45c9cc84764a296ed2727b5c546e6b3d5e`; payload
+`b070cacd0cc8819323a3d8594ff1d9687e8d13be`. This is agent review, not human
+review. The reviewer additionally passed 35 focused tests and 21 binding tests,
+byte-compared inputs and matched a separately written full-prefix reference
+against 160 varied histories and reversed insertion orders.
+
+Native pass 1 failed honestly after 525 passing unit/integration tests: the
+existing A6 shared-surface assertion expected every achievement to use legacy
+category/title sorting, which contradicts the newly approved collection order.
+Hosted run `40723201075`, attempt 1, job `122939384763` also failed. PR #48 is
+`https://github.com/ruishinor/ProgressPal/pull/48`. The failed local manifest is
+`artifacts/release-evidence/2026-10-28T16-08-01-136Z-activity-achievements-pass-1.json`;
+hosted evidence artifact `12832231318` remains available for that run.
+
+The bounded correction changes only the test oracle: legacy achievements retain
+category/title sorting, followed by Activity IDs in the exact approved fixture
+order. Both RPG and Classic assertions remain strict; filters, dates, read-only
+access and persisted-definition rejection checks remain. All 14 A6 tests pass.
+Application code, artwork, scripts, workflow, budgets and timeouts are unchanged.
+This changed test/documentation payload requires a fresh independently authored
+review binding and a new exact-candidate certification; the earlier review and
+failed gate cannot certify it. Current candidate/result identities are in Git,
+the applicable review artifact and the native/hosted manifests.

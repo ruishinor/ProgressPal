@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import approvedActivityAchievements from '../../fixtures/activity-achievements-approved.json';
 
 import { RpgRouteShell } from '@/app/shell/RpgRouteShell';
 import { AchievementsPage } from '@/features/achievements/routes/AchievementsPage';
@@ -488,11 +489,21 @@ describe('A6 Badges actual-route read boundary', () => {
         createReadyAppState(initialization.appMeta, profile),
       );
       await screen.findByText(`2 of ${achievementDefinitions.length} unlocked`);
-      const ordered = [...achievementDefinitions].sort(
-        (a, b) =>
-          a.category.localeCompare(b.category) ||
-          a.title.localeCompare(b.title),
+      const activityIds = approvedActivityAchievements.achievements.map(
+        (row) => row.id,
       );
+      const ordered = [
+        ...achievementDefinitions
+          .filter((row) => !activityIds.includes(row.id))
+          .sort(
+            (a, b) =>
+              a.category.localeCompare(b.category) ||
+              a.title.localeCompare(b.title),
+          ),
+        ...activityIds.map(
+          (id) => achievementDefinitions.find((row) => row.id === id)!,
+        ),
+      ];
       expect(
         [...container.querySelectorAll('.achievement-card')].map((card) =>
           card.getAttribute('data-testid'),
