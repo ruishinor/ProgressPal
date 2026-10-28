@@ -4,11 +4,11 @@
   "reviewer": "Alekai (owner-approved correction delta; prior independent automated review retained)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8",
+    "payloadTree": "3e75e7b886e42f577eb170a39139a829f06ffde8",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification.",
+    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification. Subsequent focused correction 2c26aca0691fec4ec5a9f074acbd41a682914b66: C1 preservation assertion now includes the already-authoritative Recovery category after Final project. Only the test expectation changed.",
     "evidence": [
       "Delta provenance: the same separately operating automated reviewer /root/independent_release_review performed this bounded second review and personally authors/commits this replacement evidence. It did not implement the test or documentation correction. Original review was personally authored/committed as f4174b45c9cc84764a296ed2727b5c546e6b3d5e with review SHA-256 2f8efe3749d4a96c626f9c5db649f0794052411de4e05772893290f83808929a, for product 98746b52d585e64dde7427e2225cdccead81bae9 / payload b070cacd0cc8819323a3d8594ff1d9687e8d13be. This update retains that product review; no human review is implied.",
       "Delta identity independently verified: clean starting HEAD 73cfb917057f33db0b31d14e30a8160e844a0d71, root 611ce9d68948b94980231fc6da7225339d991469; npm run review:payload-tree -- 73cfb917057f33db0b31d14e30a8160e844a0d71 returns 1dc592b00291f5967f3f99bbbcc75b148720414b. Complete diff against f4174b45 changes only tests/features/rpg/a6BadgesReadBoundary.test.tsx, docs/CURRENT_STATE.md and docs/ACTIVITY_ACHIEVEMENTS_HANDOFF.md. git diff --check exits 0. The src tree stays 279ef9ab9b33f69d4017bd3c1b37a38a841521c5 and public tree stays 681cbd064c6289cf4e9862ceec347fe7955926c3.",
@@ -36,7 +36,13 @@
       "Prettier check passed.",
       "Previous hosted certification failure remains failed; fresh certification is required.",
       "Original independent automated reviewer: Codex independent review agent /root/independent_release_review (separate spawned automated review process; no human reviewer claimed)",
-      "Accepted corrected payload: 7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8"
+      "Accepted corrected payload: 7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8",
+      "C1 exact candidate correction: 2c26aca0691fec4ec5a9f074acbd41a682914b66; root tree c0b7e85d96cc01f38496565de204a7df92245ac6; payload 3e75e7b886e42f577eb170a39139a829f06ffde8.",
+      "First native release attempt for evidence commit a72fd9c91db2e016052303cb1b08820d80dac359 failed in tests/preservation/c1LabelsAndCopy.test.tsx after 1901 passing tests, due to a stale category-filter expectation that omitted Recovery; this failure remains a failure.",
+      "Verified src/features/achievements/model.ts categoryDisplayOrder includes final_project then recovery; the C1 test already pinned the Recovery label but expected only six filter options.",
+      "Only tests/preservation/c1LabelsAndCopy.test.tsx was corrected, adding expected {label: Recovery, value: recovery} after Final project. Production implementation is unchanged.",
+      "The directly affected C1 preservation test file and its Prettier check passed on the corrected commit.",
+      "This recorded follow-up is a source-verified assistant analysis with owner-directed continuation; no new independent review process or human reviewer is claimed."
     ]
   },
   "adversarialFindings": [
@@ -95,10 +101,17 @@
       "description": "The offline service-worker simulation omitted newly approved badge assets.",
       "resolution": "Corrected the single test fixture to include twelve approved Activity WebPs and the relocated First Step WebP. All 30 directly affected tests passed. Owner accepted the correction.",
       "status": "resolved"
+    },
+    {
+      "id": "AA-R9",
+      "severity": "P2",
+      "description": "The frozen C1 Classic achievement filter oracle omitted the newly authorized Recovery category, despite the current production model and its label table including it.",
+      "resolution": "Amended exactly one expected category option in the C1 test, matching the production model order, with the relevant test and formatting check passing. The previous full gate failure is retained.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates."
+    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates. Subsequent C1 legacy test-oracle correction verified; new exact-candidate certification remains required."
   }
 }
