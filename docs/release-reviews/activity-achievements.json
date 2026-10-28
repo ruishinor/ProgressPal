@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 2,
+  "module": "activity-achievements",
+  "reviewer": "Alekai (owner-approved correction delta; prior independent automated review retained)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "40798b3240a998e84a7f8673a583864088d3e767",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification. Subsequent focused correction 2c26aca0691fec4ec5a9f074acbd41a682914b66: C1 preservation assertion now includes the already-authoritative Recovery category after Final project. Only the test expectation changed. Subsequent owner-accepted preservation-test delta at 8c597f289cc839ff51d0d4857d61d35af231496b: historical schema-2 unlock IDs and original badge-art identity are now asserted independently of newly introduced Activity achievements. No production application bytes changed in this delta. Owner-directed follow-up: one test oracle now uses the active programme achievement count; no production code changed (commit fc9ef5b). CI-only test isolation delta 7f7efa8bb45f801ef5d3b9a1080bbd5cea4f33e9: mocked unrelated MovementReminder in shell lifecycle tests to prevent a Dexie teardown race. Production code and release thresholds are unchanged. No new independent review is claimed.",
+    "evidence": [
+      "Delta provenance: the same separately operating automated reviewer /root/independent_release_review performed this bounded second review and personally authors/commits this replacement evidence. It did not implement the test or documentation correction. Original review was personally authored/committed as f4174b45c9cc84764a296ed2727b5c546e6b3d5e with review SHA-256 2f8efe3749d4a96c626f9c5db649f0794052411de4e05772893290f83808929a, for product 98746b52d585e64dde7427e2225cdccead81bae9 / payload b070cacd0cc8819323a3d8594ff1d9687e8d13be. This update retains that product review; no human review is implied.",
+      "Delta identity independently verified: clean starting HEAD 73cfb917057f33db0b31d14e30a8160e844a0d71, root 611ce9d68948b94980231fc6da7225339d991469; npm run review:payload-tree -- 73cfb917057f33db0b31d14e30a8160e844a0d71 returns 1dc592b00291f5967f3f99bbbcc75b148720414b. Complete diff against f4174b45 changes only tests/features/rpg/a6BadgesReadBoundary.test.tsx, docs/CURRENT_STATE.md and docs/ACTIVITY_ACHIEVEMENTS_HANDOFF.md. git diff --check exits 0. The src tree stays 279ef9ab9b33f69d4017bd3c1b37a38a841521c5 and public tree stays 681cbd064c6289cf4e9862ceec347fe7955926c3.",
+      "Independently ran npm test -- tests/features/rpg/a6BadgesReadBoundary.test.tsx on the corrected candidate: exit 0, all 14 tests passed. The amended oracle independently derives the Activity sequence from the approved fixture and retains legacy category/title sorting. Both Classic and RPG still assert exact complete card order, code-defined titles/descriptions, no XP text, unlock dates/status, filters, persisted-definition rejection and read-only database behavior. Missing or duplicated IDs still fail rather than being silently omitted. No runtime change or weakened assertion was needed.",
+      "Inspected preserved local failed manifest artifacts/release-evidence/2026-10-28T16-08-01-136Z-activity-achievements-pass-1.json: status failed, commit f4174b45c9cc84764a296ed2727b5c546e6b3d5e, root c098d663dfe8d2e263c54ffb35eba0779f727c36, old payload b070cacd0cc8819323a3d8594ff1d9687e8d13be, unit/integration exit 1 after 525 passing tests. This incomplete attempt is not certification. Its earlier successful stages and prior focused results do not turn the failed gate into a pass.",
+      "Inspected downloaded hosted failure manifest artifacts/activity-achievements/hosted-run-40723201075/artifacts/release-evidence/2026-10-28T16-10-23-005Z-activity-achievements-pass-1.json: status failed, pull_request synthetic merge 3ddb4a72698d4e030a1f369d64e05d82feebc022, root c098d663dfe8d2e263c54ffb35eba0779f727c36 and old payload b070cacd0cc8819323a3d8594ff1d9687e8d13be. Run 40723201075 attempt 1 / Final candidate job 122939384763 failed unit/integration. This is not a successful PR or production-commit validation.",
+      "Inspected saved authenticated readback artifacts/activity-achievements/vercel-production-checks.json and vercel-release-path.json. They agree on project prj_npdQBbWuAlQMzraZuhM12yv3XgmZ, team team_CYJiKrUr0af87hpnxvXfJxyM, GitHub ruishinor/ProgressPal, productionBranch master, autoAssignCustomDomains true and zero deploy hooks. Existing check chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7 has name/externalCheckName Final candidate, source git-provider/github, blocks deployment-alias and targets production. This supports the changed docs at configuration level; the reviewer inspected recorded API evidence rather than making another live provider call. No setting change is claimed. Actual next production commit/check/held deployment/promotion remains to observe.",
+      "Prior independent product review, retained because product bytes are unchanged: Provenance: the owner explicitly accepts a genuinely separate review agent in the supplied execution brief, section 10.3. /root/independent_release_review was separately spawned after the product candidate was frozen and independently inspected its sources and evidence. It authored only this review file and its evidence-only successor commit; it did not implement or alter product code, tests, assets, or other documentation. Agent identity is the runtime canonical agent_name, also observed through collaboration.list_agents. The author is an automated agent, not a named human; shared model/environment may correlate review blind spots.",
+      "Prior independent product review, retained because product bytes are unchanged: Read AGENTS.md, docs/CURRENT_STATE.md, docs/ci.md, the owner execution brief, the full approved ACTIVITY_ACHIEVEMENTS.md, ACHIEVEMENTS.json, ASSET_MANIFEST.md, the complete changed-file inventory/diff, affected source paths, and the release-binding implementation/tests. No scripts, workflow, dependency, schema, backup-envelope, application/cache version, budget, timeout, CSP, or protection changes appear in this delta.",
+      "Prior independent product review, retained because product bytes are unchanged: Native identity verification: clean starting git status; git rev-parse HEAD = 98746b52d585e64dde7427e2225cdccead81bae9; HEAD tree = a1730b69d9786b98f55295b66d062f6241bc092e; npm run review:payload-tree -- 98746b52d585e64dde7427e2225cdccead81bae9 = b070cacd0cc8819323a3d8594ff1d9687e8d13be; git diff --check baseline candidate exited 0.",
+      "Prior independent product review, retained because product bytes are unchanged: Independently reran npm test -- tests/lib/activityAchievements.test.ts tests/db/activityAchievements.test.ts tests/lib/rewardEvents.test.ts tests/architecture/serviceWorker.test.ts: exit 0, 35 tests / 4 files passed under serial Vitest. This includes rule boundaries, exact approved runtime fields, atomic rollback, duplicate/edit/delete retention, complete backup restore/reset, zero educational effects, reward event copy and static offline mappings.",
+      "Prior independent product review, retained because product bytes are unchanged: Independently ran node --test scripts/release-review-binding.test.mjs: exit 0, 21 tests passed, zero skipped/cancelled/failed. The native parser rejects stale/wrong payloads, malformed evidence, open proceed findings, legacy overrides and a mismatched GitHub event SHA. No full release gate was started by this reviewer.",
+      "Prior independent product review, retained because product bytes are unchanged: Independent reference probe: C:/Users/alex_/.codex/visualizations/2026/10/28/01a182e2-d3b7-7c03-9a39-4f7120c029a3/independent-review-probe.mjs, SHA-256 33906a0c636d04d2c144eb4cb8013513bf8b964b0fcb2b308441247cbcc72d71. A separately written naive calculation rechecks every full prefix against the externally approved predicates rather than reusing implementation accumulators. All twelve rule paths and exact witness IDs match across 160 varied valid histories and their reversed insertion orders, including future exclusion, mixed native branches, multi-goal snapshots and archived custom definitions. Initial probe coverage was insufficient with low-bit random sampling; sampling was corrected and the all-twelve coverage assertion passed without product changes.",
+      "Prior independent product review, retained because product bytes are unchanged: Independently byte-compared external approved ACHIEVEMENTS.json and tests/fixtures/activity-achievements-approved.json: identical SHA-256 2f1d794cc8a225567076e542d05f133e9431fb37a33268a0650dca15f4a830f7. All twelve shipped public/assets/badges/activity-*.webp files byte-equal the exact approved compact exports. public/assets/badges/rpg-badge-first-step.webp byte-equals the retained existing source image; no artwork substitution occurred.",
+      "Prior independent product review, retained because product bytes are unchanged: Inspected implementer-focused logs under ignored artifacts/activity-achievements/: focused.log records 380 tests / 21 files; presentation-architecture.log records 203 tests / 22 files; offline.log records all seven offline browser tests passing, including cold re-entry and never-visited gallery art; targeted browser logs cover both new journeys and the existing nine Activity journeys across bounded runs. These are inspected implementer evidence, not independently rerun browser tests or full certification.",
+      "Prior independent product review, retained because product bytes are unchanged: Inspected actual local application captures unlock-desktop-dark.png, gallery-light-320.png, gallery-dark-320-enlarged.png and the original-resolution gallery-reward-detail.png. Reviewed the Playwright source for 320/390/1440 widths, both themes, 200 percent root text, focus/keyboard disclosure, native art width and axe assertions. Browser evidence covers committed first award, duplicate-free repeat, Merge Quest, RPG/Classic navigation, reload, same-origin/offline artwork and an unaffected course route. The reviewer did not start a second E2E server. Root text scaling is a stress proxy, not physical-device/browser-zoom or manual screen-reader certification.",
+      "Prior independent product review, retained because product bytes are unchanged: Inspected bundle.log: JS gzip 465303 / 470000 bytes, largest raw JS 488653 / 500000, CSS gzip 15831 / 40000, curriculum 126984 / 150000, runtime 6398912 / 7000000; warnings and violations empty. The byte-identical First Step extraction follows the existing static/offline mechanism and avoids a budget increase.",
+      "Prior independent product review, retained because product bytes are unchanged: Evidence distinction: typecheck-force.log retains an earlier failed attempt and is not counted as a clean pass. The implementer separately captured the frozen-candidate successful forced compiler exit in artifacts/activity-achievements/typecheck-frozen.log (TSC_EXIT=0), which this reviewer read. Historical failed/interrupted browser attempts are likewise not reported as passes.",
+      "Current limitations: this delta reviewer did not start full native certification, another E2E server, a push, merge, deployment or provider mutation. The old gate attempts failed and cannot certify the corrected payload. New exact-candidate native/hosted certification remains mandatory. Saved authenticated readback establishes the intended production protection configuration, while actual check/held-deployment/promotion identity and bounded production smoke remain downstream evidence. Any further payload mutation outside docs/release-reviews requires a new applicable review.",
+      "Owner explicitly accepted the correction and directed release progression on 2026-10-28.",
+      "Corrected commit: 7e72ecd76361873b3e60f02d17bb7e85c286d37f.",
+      "Correction root tree: 562290bdde16f926607d91509e819b6d666b6be9.",
+      "Exactly one product-tree file changed: tests/lib/serviceWorkerCache.test.ts.",
+      "Focused tests passed twice: 24 service-worker cache tests and 6 architecture tests, 30/30 total per run.",
+      "Prettier check passed.",
+      "Previous hosted certification failure remains failed; fresh certification is required.",
+      "Original independent automated reviewer: Codex independent review agent /root/independent_release_review (separate spawned automated review process; no human reviewer claimed)",
+      "Accepted corrected payload: 7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8",
+      "C1 exact candidate correction: 2c26aca0691fec4ec5a9f074acbd41a682914b66; root tree c0b7e85d96cc01f38496565de204a7df92245ac6; payload 3e75e7b886e42f577eb170a39139a829f06ffde8.",
+      "First native release attempt for evidence commit a72fd9c91db2e016052303cb1b08820d80dac359 failed in tests/preservation/c1LabelsAndCopy.test.tsx after 1901 passing tests, due to a stale category-filter expectation that omitted Recovery; this failure remains a failure.",
+      "Verified src/features/achievements/model.ts categoryDisplayOrder includes final_project then recovery; the C1 test already pinned the Recovery label but expected only six filter options.",
+      "Only tests/preservation/c1LabelsAndCopy.test.tsx was corrected, adding expected {label: Recovery, value: recovery} after Final project. Production implementation is unchanged.",
+      "The directly affected C1 preservation test file and its Prettier check passed on the corrected commit.",
+      "This recorded follow-up is a source-verified assistant analysis with owner-directed continuation; no new independent review process or human reviewer is claimed.",
+      "Preservation correction commit: 8c597f289cc839ff51d0d4857d61d35af231496b",
+      "Corrected payload tree: 93d119c8393c2994bb5dd94b29daf437de6dc0d5",
+      "C1 historical backup and visual identity: 11/11 focused tests passed.",
+      "TypeScript and formatting checks passed.",
+      "Previous independent product review retained; no new independent reviewer claimed.",
+      "Test-only Hero Profile oracle fix: fc9ef5bdd71ce2af8e9444f0644e16270a59f43b.",
+      "Seven focused Hero Profile tests, 7/7 PASS; literal 13-count search had no remaining matches.",
+      "Previously unexecuted Vitest test files passed in one separate diagnostic run; no prior successful files were repeated in this diagnostic.",
+      "Prior independent review attribution retained, not renewed or re-claimed for this delta.",
+      "GitHub run 40752467896: 205/205 Vitest files and 3533/3533 tests passed with process exit 0; release gate failed solely on one Dexie stderr diagnostic during RPG shell teardown.",
+      "Test-only isolation commit: 7f7efa8bb45f801ef5d3b9a1080bbd5cea4f33e9",
+      "New bound payload tree: 40798b3240a998e84a7f8673a583864088d3e767",
+      "No local full Vitest or Playwright suite was rerun; GitHub Final candidate is the authoritative full-suite gate.",
+      "This follow-up is a scoped source diagnosis, not a new independent human or automated review."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "AA-R1",
+      "severity": "P2",
+      "description": "Wrong native-unit aggregation, borrowed date counts, same-identity pairs, empty plans or an arbitrary final entry could award an approved badge on the wrong history or record the wrong witness.",
+      "resolution": "Source tracing and independent full-prefix reference comparison found the implementation keeps native totals and date sets separate, uses different stable IDs for Merge Quest, counts nonempty enabled historical goals, and emits the earliest qualifying current-valid date/ID prefix. All twelve authored rule paths and exact witness IDs agreed in the varied-history probe and focused tests.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R2",
+      "severity": "P2",
+      "description": "Activity persistence and unlock creation could partially commit, duplicate on replay, revoke earned state after edits/deletion or announce rewards on restore/passive reads.",
+      "resolution": "The entry-save coordinated Dexie transaction includes the four Activity stores and achievementUnlocks, and reuses the unique/idempotent unlock routine. Independently passing persistence tests force unlock failure and verify rollback of the entry/day, actual save-time award timestamps, edit/delete retention, exact backup round-trip, silent restore, later explicit-save recognition and reset. Reward announcement follows only the committed mutation result; source paths for settings/delete/read/restore never invoke the evaluator.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R3",
+      "severity": "P2",
+      "description": "The extension could alter approved copy/art, duplicate shared identities across programmes, admit physical rules into educational evaluation or change existing educational progression and preserved catalogue order.",
+      "resolution": "External input byte checks and focused fidelity/dispatch tests confirm all twelve exact approved runtime records and assets, shared catalogue membership and zero XP. Educational evaluation explicitly ignores physical_activity. Changed historical tests preserve the prior educational oracle while separately pinning the extension. The write path does not write education/XP stores, and snapshot comparison verifies unrelated state preservation.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R4",
+      "severity": "P3",
+      "description": "A stale failed compiler log could be mistaken for a later silent successful run, making the verification narrative inaccurate.",
+      "resolution": "The implementer identified the Tee-Object empty-output behavior and retained the historical failure. A distinct frozen-candidate log explicitly records successful compiler exit 0; the reviewer read that log and classifies the older log as a failed attempt. No product or bound-document correction was required.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R5",
+      "severity": "P3",
+      "description": "Static art packaging could break cold offline use or hide a bundle-budget relaxation; the accepted candidate has limited remaining JavaScript headroom.",
+      "resolution": "All twelve badges and byte-identical First Step have explicit existing-style install-time static mappings. Focused service-worker contracts pass independently and the inspected seven-test offline browser run passes. Native bundle evidence has no warnings/violations with 4697 bytes gzip and 11347 bytes raw headroom. Limits remain unchanged. Future additions must respect these measured limits.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "AA-R6",
+      "severity": "P2",
+      "description": "The available evidence does not establish that Vercel holds production promotion for the exact Final candidate check, and focused test success does not replace native or hosted certification.",
+      "resolution": "The previously missing configuration evidence is now present in saved authenticated readback and was inspected by this reviewer: the exact project/team/GitHub production branch and existing Final candidate production deployment-alias blocking check match docs/ci.md. This resolves configuration-level uncertainty only. Neither prior failed certification nor this proceed review establishes a successful candidate/production check or observed held/promotion behavior. New exact-candidate certification and later actual production identity/smoke verification remain mandatory, without bypass.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R7",
+      "severity": "P2",
+      "description": "The existing A6 preservation oracle sorted the full collection by category/title, contradicting the explicitly approved Activity sequence and causing both native and hosted certification to fail.",
+      "resolution": "The delta changes only the oracle: original achievements retain their category/title sort, and Activity IDs follow the approved fixture order. Independent rerun passes all 14 A6 tests while complete ordering and the remaining route/read-boundary assertions remain strict. Both controlling docs preserve the failed attempt and require fresh binding/certification. No product, asset, script, threshold or timeout change occurred.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R8",
+      "severity": "P2",
+      "description": "The offline service-worker simulation omitted newly approved badge assets.",
+      "resolution": "Corrected the single test fixture to include twelve approved Activity WebPs and the relocated First Step WebP. All 30 directly affected tests passed. Owner accepted the correction.",
+      "status": "resolved"
+    },
+    {
+      "id": "AA-R9",
+      "severity": "P2",
+      "description": "The frozen C1 Classic achievement filter oracle omitted the newly authorized Recovery category, despite the current production model and its label table including it.",
+      "resolution": "Amended exactly one expected category option in the C1 test, matching the production model order, with the relevant test and formatting check passing. The previous full gate failure is retained.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates. Subsequent C1 legacy test-oracle correction verified; new exact-candidate certification remains required. The owner accepted the subsequent two-file historical test correction. Exact-candidate native and hosted certification remain mandatory. Owner directed the final one-line test-only oracle correction. Exact-candidate local and hosted gates remain required. Hosted PR gate showed 3533 passing unit tests but rejected an incidental Dexie teardown stderr line. Test-only child isolation is proposed as remediation; exact new candidate requires fresh hosted certification."
+  }
+}

@@ -389,6 +389,7 @@ function evaluateDefinition(
       };
     }
 
+    case 'physical_activity':
     case 'evidence_subjects_solved':
     case 'checkpoint_cleared':
       // Evaluated only against trusted programme learner evidence. Generic

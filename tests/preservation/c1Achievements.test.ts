@@ -18,10 +18,16 @@ import type { ProgressStatus, StudySessionMode } from '@/lib/domain';
 import type { TestDatabaseContext } from '../db/testDatabase';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
 import {
-  cs50AchievementDefinitions as achievementDefinitions,
+  cs50AchievementDefinitions as allAchievementDefinitions,
   cs50CatalogueId,
   cs50Policy,
 } from '../programmes/cs50Policy';
+
+// Keep the historical semantic oracle intact; the approved Activity extension
+// is pinned independently in tests/lib/activityAchievements.test.ts.
+const achievementDefinitions = allAchievementDefinitions.filter(
+  (row) => row.ruleType !== 'physical_activity',
+);
 
 /**
  * Epic C / C1 evidence area 6 — achievements.
@@ -263,22 +269,26 @@ describe('C1 achievement definitions (semantic)', () => {
     try {
       const gallery = await loadRpgBadgeGallerySummary({ db: context.db });
       expect(
-        gallery.badges.map((badge) => [badge.order, badge.id, badge.title]),
+        gallery.badges
+          .filter((badge) => !badge.id.startsWith('activity-'))
+          .map((badge) => [badge.order, badge.id, badge.title]),
       ).toEqual(
         expectedDefinitions.map((row, index) => [index, row[0], row[1]]),
       );
-      expect(gallery.totalBadgeCount).toBe(16);
+      expect(gallery.totalBadgeCount).toBe(allAchievementDefinitions.length);
       expect(gallery.earnedBadgeCount).toBe(0);
-      expect(gallery.lockedBadgeCount).toBe(16);
+      expect(gallery.lockedBadgeCount).toBe(allAchievementDefinitions.length);
 
       const classic = await getAchievementsView({
         policy: cs50Policy,
         db: context.db,
       });
-      expect(classic.achievements.map((achievement) => achievement.id)).toEqual(
-        expectedDefinitions.map((row) => row[0]),
-      );
-      expect(classic.totalCount).toBe(16);
+      expect(
+        classic.achievements
+          .filter((row) => !row.id.startsWith('activity-'))
+          .map((achievement) => achievement.id),
+      ).toEqual(expectedDefinitions.map((row) => row[0]));
+      expect(classic.totalCount).toBe(allAchievementDefinitions.length);
       expect(classic.unlockedCount).toBe(0);
     } finally {
       await context.cleanup();

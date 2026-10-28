@@ -3,6 +3,7 @@ import {
   type AchievementDefinition,
 } from '@/lib/domain';
 import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
+import { activityAchievementData } from '@/lib/activity/achievementData';
 
 /**
  * Deterministic rule types evaluated by the pure achievement engine. Each maps
@@ -10,6 +11,7 @@ import { SchemaValidationError, parseWithSchema } from '@/lib/validation';
  * documented inline and validated at evaluation time.
  */
 export const achievementRuleTypes = [
+  'physical_activity', // dedicated Activity evaluator; never educational evidence
   'first_item_completed', // any progress entry is complete; ruleConfig: {}
   'unit_required_completed', // ruleConfig: { unitId } — all required items of a unit complete
   'course_required_completed', // ruleConfig: {} — all required items of all required units complete
@@ -82,60 +84,75 @@ export function defineAchievement(
  * curriculum unit, item or topic and stay shared; programme definitions own
  * every other achievement and the display order.
  */
-export const sharedAchievementDefinitions: readonly AchievementDefinition[] = [
-  {
-    id: 'first-step',
-    title: 'First Step',
-    description: 'Complete your first task of any kind.',
-    category: 'course_progress',
-    ruleType: 'first_item_completed',
-    ruleConfig: {},
-  },
-  {
-    id: 'first-slice',
-    title: 'First Slice',
-    description: 'Complete your first long-form content slice.',
-    category: 'course_progress',
-    ruleType: 'content_slice_completed_count',
-    ruleConfig: { minCount: 1 },
-  },
-  {
-    id: 'course-complete',
-    title: 'Course Complete',
-    description:
-      'Complete every required item of every required unit in the course.',
-    category: 'course_progress',
-    ruleType: 'course_required_completed',
-    ruleConfig: {},
-  },
-  {
-    id: 'clean-stop',
-    title: 'Clean Stop',
-    description:
-      'Log a focused long-form session of 15+ watched minutes that ends at a planned limit.',
-    category: 'consistency',
-    ruleType: 'media_clean_stop',
-    ruleConfig: { minWatchedSeconds: 900, stopReasons: ['reached_limit'] },
-  },
-  {
-    id: 'three-deep-sessions',
-    title: 'Three Deep Sessions',
-    description: 'Log three study sessions of at least 45 minutes each.',
-    category: 'consistency',
-    ruleType: 'study_session_duration_count',
-    ruleConfig: { minMinutes: 45, minCount: 3 },
-  },
-  {
-    id: 'bug-hunter',
-    title: 'Bug Hunter',
-    description: 'Log at least one study session in debugging mode.',
-    category: 'debugging',
-    ruleType: 'study_session_mode_count',
-    ruleConfig: { mode: 'debugging', minCount: 1 },
-  },
-].map((definition) =>
-  defineAchievement(definition as AchievementDefinitionInput),
+export const activityAchievementDefinitions = activityAchievementData.map(
+  (row) =>
+    defineAchievement({
+      id: row.id,
+      title: row.name,
+      description: row.description,
+      category: row.category,
+      ruleType: 'physical_activity',
+      ruleConfig: { kind: row.rule, ...row.config },
+    }),
 );
+
+export const sharedAchievementDefinitions: readonly AchievementDefinition[] = [
+  ...[
+    {
+      id: 'first-step',
+      title: 'First Step',
+      description: 'Complete your first task of any kind.',
+      category: 'course_progress',
+      ruleType: 'first_item_completed',
+      ruleConfig: {},
+    },
+    {
+      id: 'first-slice',
+      title: 'First Slice',
+      description: 'Complete your first long-form content slice.',
+      category: 'course_progress',
+      ruleType: 'content_slice_completed_count',
+      ruleConfig: { minCount: 1 },
+    },
+    {
+      id: 'course-complete',
+      title: 'Course Complete',
+      description:
+        'Complete every required item of every required unit in the course.',
+      category: 'course_progress',
+      ruleType: 'course_required_completed',
+      ruleConfig: {},
+    },
+    {
+      id: 'clean-stop',
+      title: 'Clean Stop',
+      description:
+        'Log a focused long-form session of 15+ watched minutes that ends at a planned limit.',
+      category: 'consistency',
+      ruleType: 'media_clean_stop',
+      ruleConfig: { minWatchedSeconds: 900, stopReasons: ['reached_limit'] },
+    },
+    {
+      id: 'three-deep-sessions',
+      title: 'Three Deep Sessions',
+      description: 'Log three study sessions of at least 45 minutes each.',
+      category: 'consistency',
+      ruleType: 'study_session_duration_count',
+      ruleConfig: { minMinutes: 45, minCount: 3 },
+    },
+    {
+      id: 'bug-hunter',
+      title: 'Bug Hunter',
+      description: 'Log at least one study session in debugging mode.',
+      category: 'debugging',
+      ruleType: 'study_session_mode_count',
+      ruleConfig: { mode: 'debugging', minCount: 1 },
+    },
+  ].map((definition) =>
+    defineAchievement(definition as AchievementDefinitionInput),
+  ),
+  ...activityAchievementDefinitions,
+];
 
 function findDuplicates(values: readonly string[]): string[] {
   const seen = new Set<string>();

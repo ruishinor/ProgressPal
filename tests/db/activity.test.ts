@@ -108,8 +108,11 @@ describe('Activity records and recovery', () => {
     ).toBe(11);
     const after = await getDatabaseSnapshot(options);
     for (const key of Object.keys(before) as Array<keyof typeof before>)
-      if (!key.startsWith('activity'))
+      if (!key.startsWith('activity') && key !== 'achievementUnlocks')
         expect(after[key], key).toEqual(before[key]);
+    expect(after.achievementUnlocks.map((row) => row.achievementId)).toEqual([
+      'activity-hello-overworld',
+    ]);
   });
   it('logs without goals, accepts large volumes, and uses an index-only HUD projection', async () => {
     const { db, options } = await device();

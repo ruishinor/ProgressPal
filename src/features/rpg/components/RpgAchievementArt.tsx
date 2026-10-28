@@ -9,7 +9,6 @@ import extraArt7 from '@/features/rpg/assets/badges/rpg-badge-pset-chain.svg?inl
 import extraArt8 from '@/features/rpg/assets/badges/rpg-badge-clean-stop.svg?inline';
 import extraArt9 from '@/features/rpg/assets/badges/rpg-badge-three-deep-sessions.svg?inline';
 import { useState } from 'react';
-import firstStep from '@/features/rpg/assets/badges/rpg-badge-first-step.webp?inline';
 import dataStructureBuilder from '@/features/rpg/assets/badges/rpg-badge-data-structure-builder.webp?inline';
 import queryBuilder from '@/features/rpg/assets/badges/rpg-badge-query-builder.webp?inline';
 import bugHunter from '@/features/rpg/assets/badges/rpg-badge-bug-hunter.webp?inline';
@@ -23,6 +22,20 @@ const programmeBadge = (name: string) => `/assets/badges/${name}.webp`;
 
 // Artwork is presentation only. Definitions and unlocks stay in the achievement engine.
 const artwork: Readonly<Record<string, string>> = {
+  'activity-hello-overworld': programmeBadge('activity-hello-overworld'),
+  'activity-push-to-main': programmeBadge('activity-push-to-main'),
+  'activity-leg-day-compiler': programmeBadge('activity-leg-day-compiler'),
+  'activity-cache-me-outside': programmeBadge('activity-cache-me-outside'),
+  'activity-runtime-ranger': programmeBadge('activity-runtime-ranger'),
+  'activity-cycle-of-power': programmeBadge('activity-cycle-of-power'),
+  'activity-full-stack-adventurer': programmeBadge(
+    'activity-full-stack-adventurer',
+  ),
+  'activity-merge-quest': programmeBadge('activity-merge-quest'),
+  'activity-build-passed': programmeBadge('activity-build-passed'),
+  'activity-fork-your-path': programmeBadge('activity-fork-your-path'),
+  'activity-warm-reboot': programmeBadge('activity-warm-reboot'),
+  'activity-long-term-support': programmeBadge('activity-long-term-support'),
   'first-slice': extraArt0,
   'scratch-initiate': extraArt1,
   'pointer-survivor': extraArt2,
@@ -34,7 +47,7 @@ const artwork: Readonly<Record<string, string>> = {
   'clean-stop': extraArt8,
   'three-deep-sessions': extraArt9,
 
-  'first-step': firstStep,
+  'first-step': programmeBadge('rpg-badge-first-step'),
   'data-structure-builder': dataStructureBuilder,
   'query-builder': queryBuilder,
   'bug-hunter': bugHunter,

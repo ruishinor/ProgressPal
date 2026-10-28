@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
+import approvedActivityAchievements from '../fixtures/activity-achievements-approved.json';
 
 /**
  * Module 5 service worker source-contract guards.
@@ -152,6 +153,10 @@ describe('service worker source contract', () => {
       '/assets/badges/p2-foundation-checkpoint.webp',
       '/assets/badges/p2-recall-foundations.webp',
       '/assets/badges/p2-values-checkpoint.webp',
+      ...approvedActivityAchievements.achievements.map(
+        (row) => `/assets/badges/${row.id}.webp`,
+      ),
+      '/assets/badges/rpg-badge-first-step.webp',
       '/manifest.webmanifest',
       '/icons/icon-192.png',
       '/icons/icon-512.png',

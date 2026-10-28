@@ -1,0 +1,50 @@
+[
+  {
+    "id": "activity-hello-overworld",
+    "compact": "2922e6066b5a5ef06efd92a16402903fb0ba6883e090b25d9cea1d7097cac28f"
+  },
+  {
+    "id": "activity-push-to-main",
+    "compact": "48d4d583259563c5d3925aa47d89fbf93a7c7d398477c6fa3629dae1dc56855d"
+  },
+  {
+    "id": "activity-leg-day-compiler",
+    "compact": "aa8864f5554aa934194c26b7d96edaf458d00e229e935d60e2ebf6c287b44b85"
+  },
+  {
+    "id": "activity-cache-me-outside",
+    "compact": "68fd7e339a4c02850c70d10d2dfc5d63ae54023006077572faebabe42ef1fdd8"
+  },
+  {
+    "id": "activity-runtime-ranger",
+    "compact": "bdb22c097e8c7ae7effdfafc97648cf2e5dd3d350b12d874231f1d3ebf041931"
+  },
+  {
+    "id": "activity-cycle-of-power",
+    "compact": "3d0bf9cd1a81185166f9281efd7d7f8cd83fd0ea8789244584b1fba7a1feb0fc"
+  },
+  {
+    "id": "activity-full-stack-adventurer",
+    "compact": "476d55092ea472f8ce4322f3e9bff1847e1ba2d1e4b0cdd2d6706954c75e3b20"
+  },
+  {
+    "id": "activity-merge-quest",
+    "compact": "4f9db4826c3c338144c502dbfc00b23b9c8b8e8536e916b9f8577e7996069089"
+  },
+  {
+    "id": "activity-build-passed",
+    "compact": "4dea482639dea9cd42e5ba6e298d2ea32968ae03fb975ddf59ded39360107ffb"
+  },
+  {
+    "id": "activity-fork-your-path",
+    "compact": "3b6eba1222413c7b96278d5cfb2f6cf7dad5013c22dd848ee1b547b102a8f6a5"
+  },
+  {
+    "id": "activity-warm-reboot",
+    "compact": "8b83425defa3ac9bfd00401c2599d5eea0129a2b57e156e14afe4196243d86cc"
+  },
+  {
+    "id": "activity-long-term-support",
+    "compact": "dd8843b7cf829b1eb01cc9f2335425629d4546b60091eed541459acc2245a917"
+  }
+]

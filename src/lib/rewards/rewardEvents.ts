@@ -4,6 +4,8 @@ import type {
   LevelCurve,
 } from '@/lib/domain';
 import { calculateXpSummary, type XpSummary } from '@/lib/xp/engine';
+import { activityAchievementData } from '@/lib/activity/achievementData';
+import type { ActivitySaveResult } from '@/lib/activity/achievements';
 
 /**
  * The reward part of a committed award mutation's result
@@ -27,6 +29,7 @@ export type RewardEvent =
       readonly kind: 'achievement';
       readonly achievementId: string;
       readonly title: string;
+      readonly message?: string;
     };
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -34,6 +37,15 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 /** Whether a committed mutation result carries award-mutation reward data. */
+export function isActivityRewardMutationResult(
+  value: unknown,
+): value is ActivitySaveResult {
+  return (
+    isObject(value) &&
+    value.rewardKind === 'activity' &&
+    Array.isArray(value.unlockedAchievements)
+  );
+}
 export function isRewardMutationResult(
   value: unknown,
 ): value is RewardMutationResult {
@@ -59,27 +71,37 @@ export function isRewardMutationResult(
  * the mutation's summary was computed with.
  */
 export function deriveRewardEvents(
-  result: RewardMutationResult,
+  result: RewardMutationResult | ActivitySaveResult,
   achievementDefinitions: ReadonlyArray<
     Pick<AchievementDefinition, 'id' | 'title'>
   >,
   levelCurve?: LevelCurve,
 ): RewardEvent[] {
   const events: RewardEvent[] = [];
-  const awardedXp = result.awardedTransactions.reduce(
-    (total, transaction) => total + transaction.xp,
-    0,
-  );
+  const awardedXp =
+    'awardedTransactions' in result
+      ? result.awardedTransactions.reduce(
+          (total, transaction) => total + transaction.xp,
+          0,
+        )
+      : 0;
   const previousLevel = calculateXpSummary(
-    result.xpSummary.totalXp - awardedXp,
+    ('xpSummary' in result ? result.xpSummary.totalXp : 0) - awardedXp,
     levelCurve,
   ).level;
 
-  if (awardedXp > 0 && result.xpSummary.level > previousLevel) {
+  if (
+    'xpSummary' in result &&
+    awardedXp > 0 &&
+    result.xpSummary.level > previousLevel
+  ) {
     events.push({ kind: 'level-up', level: result.xpSummary.level });
   }
 
   for (const unlock of result.unlockedAchievements) {
+    const activity = activityAchievementData.find(
+      (row) => row.id === unlock.achievementId,
+    );
     const definition = achievementDefinitions.find(
       (candidate) => candidate.id === unlock.achievementId,
     );
@@ -89,7 +111,8 @@ export function deriveRewardEvents(
       achievementId: unlock.achievementId,
       // Unlocks come only from the active programme's definitions; the id is
       // a last-resort label so a genuine unlock is never dropped.
-      title: definition?.title ?? unlock.achievementId,
+      title: activity?.name ?? definition?.title ?? unlock.achievementId,
+      ...(activity ? { message: activity.unlock } : {}),
     });
   }
 

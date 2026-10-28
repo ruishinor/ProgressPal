@@ -34,11 +34,17 @@ const p2Ids = [
 
 describe('Programvareutvikling achievements', () => {
   it('preserves the six shared definitions by identity and adds exactly seven P2 definitions', () => {
-    expect(sharedAchievementDefinitions).toHaveLength(6);
+    expect(
+      sharedAchievementDefinitions.filter(
+        (row) => row.ruleType !== 'physical_activity',
+      ),
+    ).toHaveLength(6);
     expect(
       programvareutviklingAchievementDefinitions.map((entry) => entry.id),
     ).toEqual(p2Ids);
-    expect(programvareutviklingAchievements).toHaveLength(13);
+    expect(programvareutviklingAchievements).toHaveLength(
+      sharedAchievementDefinitions.length + p2Ids.length,
+    );
 
     for (const shared of sharedAchievementDefinitions) {
       expect(

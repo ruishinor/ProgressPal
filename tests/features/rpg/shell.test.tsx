@@ -31,6 +31,11 @@ vi.mock('@/lib/appState', () => ({
 vi.mock('@/features/rpg/activity/ActivityIndicator', () => ({
   ActivityIndicator: () => <a href="/rpg/movement">Activity Level 1</a>,
 }));
+// This shell-lifecycle test does not exercise reminder persistence. The real
+// reminder starts an asynchronous IndexedDB read that can race global teardown.
+vi.mock('@/features/rpg/activity/MovementReminder', () => ({
+  MovementReminder: () => null,
+}));
 
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
 import { cs50Scope } from '../../programmes/cs50Policy';

@@ -17,7 +17,7 @@ import {
   createProgressPalDatabase,
   deleteDatabaseByName,
 } from '@/lib/db/database';
-import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
+
 import { bundledCourseSeed } from '@/seed';
 
 import committedFixture from '../fixtures/backups/c1-baseline-envelope1-schema2.json';
@@ -205,7 +205,24 @@ describe('C1 baseline schema-2 fixture (migration)', () => {
     ]);
     expect(
       data.achievementUnlocks.map((unlock) => unlock.achievementId).sort(),
-    ).toEqual(achievementDefinitions.map((definition) => definition.id).sort());
+    ).toEqual([
+      'browser-builder',
+      'bug-hunter',
+      'clean-stop',
+      'course-complete',
+      'data-structure-builder',
+      'final-project-mvp',
+      'final-project-shipped',
+      'first-slice',
+      'first-step',
+      'flask-route-maker',
+      'pointer-survivor',
+      'pset-chain',
+      'python-shift',
+      'query-builder',
+      'scratch-initiate',
+      'three-deep-sessions',
+    ]);
     expect(data.achievementDefinitions).toEqual([]);
     expect(data.backups).toHaveLength(1);
     expect(data.backups[0]).toMatchObject({

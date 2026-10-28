@@ -206,6 +206,7 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
         { label: 'Consistency', value: 'consistency' },
         { label: 'Debugging', value: 'debugging' },
         { label: 'Final project', value: 'final_project' },
+        { label: 'Recovery', value: 'recovery' },
       ]);
     } finally {
       await context.cleanup();

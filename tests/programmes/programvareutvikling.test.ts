@@ -221,11 +221,15 @@ describe('minimum neutral valid policy (§3 item 17)', () => {
   it('carries the six shared achievements followed by the seven p2- evidence achievements', () => {
     const ids = definition.policy.achievements.map((entry) => entry.id);
 
-    expect(ids.slice(0, 6)).toEqual(
+    expect(ids.slice(0, sharedAchievementDefinitions.length)).toEqual(
       sharedAchievementDefinitions.map((entry) => entry.id),
     );
-    expect(ids).toHaveLength(13);
-    expect(ids.slice(6).every((id) => id.startsWith('p2-'))).toBe(true);
+    expect(ids).toHaveLength(sharedAchievementDefinitions.length + 7);
+    expect(
+      ids
+        .slice(sharedAchievementDefinitions.length)
+        .every((id) => id.startsWith('p2-')),
+    ).toBe(true);
   });
 
   it('keeps optional lesson minutes out of module length', () => {
