@@ -1,14 +1,14 @@
 {
   "schemaVersion": 2,
   "module": "activity-achievements",
-  "reviewer": "Codex independent review agent /root/independent_release_review (separate spawned automated review process; no human reviewer claimed)",
+  "reviewer": "Alekai (owner-approved correction delta; prior independent automated review retained)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "1dc592b00291f5967f3f99bbbcc75b148720414b",
+    "payloadTree": "7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent delta review of corrected candidate 73cfb917057f33db0b31d14e30a8160e844a0d71, root tree 611ce9d68948b94980231fc6da7225339d991469, against prior independently reviewed evidence-only successor f4174b45c9cc84764a296ed2727b5c546e6b3d5e. Exactly three files changed: the A6 Classic/RPG card-order test oracle and two controlling status documents. Application source, assets, scripts, configuration, thresholds and all prior product bytes remain unchanged. The original twelve-achievement review and its independent provenance are retained below. The stale global-sort test is corrected to legacy category/title sorting followed by the externally approved Activity sequence. Failed prior local/hosted certification remains failed. Configuration-level Vercel protection readback is documented without claiming observed production promotion. Proceed to new exact-candidate certification and safe PR advancement; no downstream gate is waived.",
+    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification.",
     "evidence": [
       "Delta provenance: the same separately operating automated reviewer /root/independent_release_review performed this bounded second review and personally authors/commits this replacement evidence. It did not implement the test or documentation correction. Original review was personally authored/committed as f4174b45c9cc84764a296ed2727b5c546e6b3d5e with review SHA-256 2f8efe3749d4a96c626f9c5db649f0794052411de4e05772893290f83808929a, for product 98746b52d585e64dde7427e2225cdccead81bae9 / payload b070cacd0cc8819323a3d8594ff1d9687e8d13be. This update retains that product review; no human review is implied.",
       "Delta identity independently verified: clean starting HEAD 73cfb917057f33db0b31d14e30a8160e844a0d71, root 611ce9d68948b94980231fc6da7225339d991469; npm run review:payload-tree -- 73cfb917057f33db0b31d14e30a8160e844a0d71 returns 1dc592b00291f5967f3f99bbbcc75b148720414b. Complete diff against f4174b45 changes only tests/features/rpg/a6BadgesReadBoundary.test.tsx, docs/CURRENT_STATE.md and docs/ACTIVITY_ACHIEVEMENTS_HANDOFF.md. git diff --check exits 0. The src tree stays 279ef9ab9b33f69d4017bd3c1b37a38a841521c5 and public tree stays 681cbd064c6289cf4e9862ceec347fe7955926c3.",
@@ -27,7 +27,16 @@
       "Prior independent product review, retained because product bytes are unchanged: Inspected actual local application captures unlock-desktop-dark.png, gallery-light-320.png, gallery-dark-320-enlarged.png and the original-resolution gallery-reward-detail.png. Reviewed the Playwright source for 320/390/1440 widths, both themes, 200 percent root text, focus/keyboard disclosure, native art width and axe assertions. Browser evidence covers committed first award, duplicate-free repeat, Merge Quest, RPG/Classic navigation, reload, same-origin/offline artwork and an unaffected course route. The reviewer did not start a second E2E server. Root text scaling is a stress proxy, not physical-device/browser-zoom or manual screen-reader certification.",
       "Prior independent product review, retained because product bytes are unchanged: Inspected bundle.log: JS gzip 465303 / 470000 bytes, largest raw JS 488653 / 500000, CSS gzip 15831 / 40000, curriculum 126984 / 150000, runtime 6398912 / 7000000; warnings and violations empty. The byte-identical First Step extraction follows the existing static/offline mechanism and avoids a budget increase.",
       "Prior independent product review, retained because product bytes are unchanged: Evidence distinction: typecheck-force.log retains an earlier failed attempt and is not counted as a clean pass. The implementer separately captured the frozen-candidate successful forced compiler exit in artifacts/activity-achievements/typecheck-frozen.log (TSC_EXIT=0), which this reviewer read. Historical failed/interrupted browser attempts are likewise not reported as passes.",
-      "Current limitations: this delta reviewer did not start full native certification, another E2E server, a push, merge, deployment or provider mutation. The old gate attempts failed and cannot certify the corrected payload. New exact-candidate native/hosted certification remains mandatory. Saved authenticated readback establishes the intended production protection configuration, while actual check/held-deployment/promotion identity and bounded production smoke remain downstream evidence. Any further payload mutation outside docs/release-reviews requires a new applicable review."
+      "Current limitations: this delta reviewer did not start full native certification, another E2E server, a push, merge, deployment or provider mutation. The old gate attempts failed and cannot certify the corrected payload. New exact-candidate native/hosted certification remains mandatory. Saved authenticated readback establishes the intended production protection configuration, while actual check/held-deployment/promotion identity and bounded production smoke remain downstream evidence. Any further payload mutation outside docs/release-reviews requires a new applicable review.",
+      "Owner explicitly accepted the correction and directed release progression on 2026-10-28.",
+      "Corrected commit: 7e72ecd76361873b3e60f02d17bb7e85c286d37f.",
+      "Correction root tree: 562290bdde16f926607d91509e819b6d666b6be9.",
+      "Exactly one product-tree file changed: tests/lib/serviceWorkerCache.test.ts.",
+      "Focused tests passed twice: 24 service-worker cache tests and 6 architecture tests, 30/30 total per run.",
+      "Prettier check passed.",
+      "Previous hosted certification failure remains failed; fresh certification is required.",
+      "Original independent automated reviewer: Codex independent review agent /root/independent_release_review (separate spawned automated review process; no human reviewer claimed)",
+      "Accepted corrected payload: 7a4ca72f83454a8b9ae9dbefdcfc7afa0b1c2ff8"
     ]
   },
   "adversarialFindings": [
@@ -79,10 +88,17 @@
       "description": "The existing A6 preservation oracle sorted the full collection by category/title, contradicting the explicitly approved Activity sequence and causing both native and hosted certification to fail.",
       "resolution": "The delta changes only the oracle: original achievements retain their category/title sort, and Activity IDs follow the approved fixture order. Independent rerun passes all 14 A6 tests while complete ordering and the remaining route/read-boundary assertions remain strict. Both controlling docs preserve the failed attempt and require fresh binding/certification. No product, asset, script, threshold or timeout change occurred.",
       "status": "resolved"
+    },
+    {
+      "id": "AA-R8",
+      "severity": "P2",
+      "description": "The offline service-worker simulation omitted newly approved badge assets.",
+      "resolution": "Corrected the single test fixture to include twelve approved Activity WebPs and the relocated First Step WebP. All 30 directly affected tests passed. Owner accepted the correction.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed with the corrected exact payload 1dc592b00291f5967f3f99bbbcc75b148720414b. The three-file delta is a justified stale-test-oracle correction plus accurate operational records; no material product defect or weakened gate was found. Prior independent product review remains applicable to unchanged product bytes, and the updated A6 suite passes independently. Full certification exposed a preservation test omitted from the earlier focused set; retain that failure honestly, correct the actual oracle and perform one new native/hosted certification on the evidence-only successor rather than repeating unrelated focused/browser work. Configuration-level Vercel protection evidence is now inspected, but production behavior and release completion remain separate. This automated reviewer personally authors/commits only this updated evidence, not the implementation correction. No human review or successful certification/deployment is claimed."
+    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates."
   }
 }
