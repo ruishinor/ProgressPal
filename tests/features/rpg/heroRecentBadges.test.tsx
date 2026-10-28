@@ -150,7 +150,7 @@ describe('Hero Profile recent badges (real route, fresh learner)', () => {
     expect(
       within(panel).getByRole('link', { name: 'View all badges' }),
     ).toHaveAttribute('href', '/rpg/badges');
-    expect(screen.getByText('4 of 13')).toBeInTheDocument();
+    expect(screen.getByText(`4 of ${definitions.length}`)).toBeInTheDocument();
   });
 
   it('shows a single earned badge, and an honest empty state with none', async () => {
