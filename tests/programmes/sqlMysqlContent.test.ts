@@ -50,7 +50,7 @@ describe('SQL/MySQL authored assessment contract', () => {
     ]);
     expect(track.sessions.slice(30)).toEqual(sessions);
     for (const [index, session] of sessions.entries()) {
-      expect(session.cards).toHaveLength(4);
+      expect(session.cards).toHaveLength([6, 6, 5, 6, 6, 6][index]!);
       expect(session.cards[0]!.kind).toBe('learn');
       expect(session.cards.at(-1)!.title).toMatch(/^Ny situasjon:/);
       expect(session.takeaway).toBeTruthy();
@@ -139,14 +139,44 @@ describe('SQL/MySQL authored assessment contract', () => {
       2,
     ]);
     expect(answer('06-overfor')).toMatch(
-      /Parameterbinding: SELECT kunde_id.*separat verdi/,
+      /WHERE navn = \?.*separat parameterverdi/,
     );
-    expect(select('06-overfor').context).toMatch(/API-et.*MySQL-konsollen/);
+    expect(select('06-overfor').context).toMatch(
+      /Databasebiblioteket støtter \?.*separat verdi/,
+    );
     expect(answer('06-transaksjon')).toMatch(
-      /START TRANSACTION.*kontroller.*COMMIT eller ROLLBACK/,
+      /START TRANSACTION.*DELETE.*kontroller.*COMMIT/,
     );
     expect(select('06-transaksjon').context).toMatch(
-      /ALTER\/DROP TABLE.*ikke angres/,
+      /Utenfor en transaksjon er automatisk lagring på/,
     );
+  });
+
+  it('teaches each SQL06 boundary before asking the learner to apply it', () => {
+    const session = sessions[5]!;
+    expect(session.cards.map((card) => card.id)).toEqual([
+      'tsu-sql-06-ide',
+      'tsu-sql-06-rett',
+      'tsu-sql-06-angre',
+      'tsu-sql-06-transaksjon',
+      'tsu-sql-06-parametre',
+      'tsu-sql-06-overfor',
+    ]);
+    const recovery = session.cards[2]!;
+    const parameters = session.cards[4]!;
+    if (recovery.kind !== 'learn' || parameters.kind !== 'learn')
+      throw new Error('SQL06 needs teaching before recovery and binding');
+    expect(recovery.idea).toMatch(/InnoDB/);
+    expect(recovery.idea).toMatch(/DROP TABLE.*ikke angres/);
+    expect(recovery.idea).toMatch(/automatisk lagring.*endelig med en gang/);
+    expect(parameters.idea).toMatch(/SQL-mønster og søkeverdi separat/);
+    expect(parameters.idea).toMatch(/MySQL-konsollen/);
+    const transaction = select('06-transaksjon');
+    expect(
+      transaction.options.find((option) => option.id === 'drop')!.label,
+    ).toBe('DELETE → START TRANSACTION → kontroller → COMMIT.');
+    expect(
+      transaction.options.find((option) => option.id === 'etter')!.label,
+    ).toBe('START TRANSACTION → DELETE → COMMIT → kontroller.');
   });
 });

@@ -160,7 +160,7 @@ test('UX/UU discovery, keyboard retry, transfer, history and explicit exits', as
     true,
   );
   const question = session.cards[1] as ChoiceCard;
-  const wrong = question.options.find((o) => o.id === 'snarvei')!;
+  const wrong = question.options.find((o) => o.id === 'preferanse')!;
   await activate(
     page,
     page.getByRole('button', { name: wrong.label, exact: true }),

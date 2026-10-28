@@ -472,8 +472,26 @@ describe('ACT 18: Scrum, Kanban and Smidig samarbeid', () => {
 });
 
 describe('UX og universell utforming: original UXUU activities', () => {
+  it('bounds U06 prioritization to the available time and tested alternative', () => {
+    const priority = card('tsu-ux-uu-u06-prioriter', 'select');
+    expect(priority.question).toMatch(/påmelding med tastatur/);
+    expect(priority.question).toMatch(/lesbar bekreftelse før fristen/);
+    expect(priority.question).toMatch(/tiden og de alternativene teamet har/);
+    expect(priority.question).not.toMatch(/flest/);
+    expect(priority.correctId).toBe('stopp');
+    expect(
+      priority.options.find((option) => option.id === 'stopp')!.label,
+    ).toBe(
+      'Bruk tre timer på Send-knappen og kontroll; send bekreftelsen på e-post.',
+    );
+    expect(priority.context).toMatch(/Én utvikler har fire arbeidstimer/);
+    expect(priority.context).toMatch(/Retting og kontroll tar tre timer/);
+    expect(priority.context).toMatch(/Retting og kontroll tar to timer/);
+    expect(priority.context).toMatch(/har prøvd en e-postbekreftelse/);
+  });
+
   const expected = [
-    ['u01', ['pris', 'antakelse', 'reise']],
+    ['u01', ['antakelse', 'pris', 'reise']],
     ['u02', ['noytral', 'tekst', 'kode']],
     ['u03', ['barriere', 'tekst']],
     ['u04', ['fokus', 'flyt']],

@@ -36,7 +36,10 @@ export const releaseBundleBudget = Object.freeze({
   // Previous consolidated UI build: 439,727 B. Other limits are unchanged.
   // Owner-authorized combined UX/UU + SQL/MySQL + Activity integration
   // (2026-10-27): measured 459,055 B, ceiling 465,000 B. Other limits unchanged.
-  maxJavaScriptGzipBytes: 465_000,
+  // Owner decision (2026-10-28): approved educational-content expansion after
+  // one bounded investigation; measured candidate 467,691 B gzip. Previous
+  // ceiling 465,000 B; new ceiling 470,000 B. All other thresholds unchanged.
+  maxJavaScriptGzipBytes: 470_000,
   maxJavaScriptRawBytes: 500_000,
   maxCurriculumGzipBytes: 150_000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five
