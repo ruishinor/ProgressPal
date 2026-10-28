@@ -73,7 +73,7 @@ test('a CSS warning leaves every other budget as it was', () => {
   assert.equal(result.violations.length, 1);
   assert.match(result.violations[0], /Total JavaScript gzip/);
   assert.equal(result.warnings.length, 1);
-  assert.equal(releaseBundleBudget.maxJavaScriptGzipBytes, 465_000);
+  assert.equal(releaseBundleBudget.maxJavaScriptGzipBytes, 470_000);
   assert.equal(releaseBundleBudget.maxJavaScriptRawBytes, 500_000);
   assert.equal(releaseBundleBudget.maxCurriculumGzipBytes, 150_000);
   assert.equal(releaseBundleBudget.maxRuntimeAssetGzipBytes, 7_000_000);
