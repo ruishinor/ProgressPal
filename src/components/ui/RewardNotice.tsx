@@ -54,6 +54,12 @@ export function RewardNoticeRegion({
                 ? `Level ${notification.level}`
                 : notification.title}
             </span>
+            {notification.kind === 'achievement' && notification.message ? (
+              <span className="reward-notice__message">
+                {' '}
+                {notification.message}
+              </span>
+            ) : null}
           </span>
         </div>
       )}

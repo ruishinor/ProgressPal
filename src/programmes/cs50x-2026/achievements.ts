@@ -1,6 +1,7 @@
 import {
   composeAchievementCatalogue,
   defineAchievement,
+  sharedAchievementDefinitions,
   type AchievementDefinitionInput,
 } from '@/lib/achievements';
 
@@ -120,6 +121,9 @@ const cs50AchievementOrder = [
   'bug-hunter',
   'final-project-mvp',
   'final-project-shipped',
+  ...sharedAchievementDefinitions
+    .filter((definition) => definition.ruleType === 'physical_activity')
+    .map((definition) => definition.id),
 ];
 
 /** The validated, ordered CS50 achievement catalogue (16 definitions). */

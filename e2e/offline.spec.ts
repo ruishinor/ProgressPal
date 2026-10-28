@@ -250,7 +250,9 @@ test('cold-starts offline after one online production load', async ({
   // Achievement art was never visited online: it must arrive with boot assets.
   await page.goto('/rpg/badges');
   const badgeImages = page.locator('.rpg-achievement-art[src]');
-  await expect(badgeImages).toHaveCount(16);
+  await expect(badgeImages).toHaveCount(
+    16 + approvedActivityAchievements.achievements.length,
+  );
   for (const badgeImage of await badgeImages.all()) {
     await expect
       .poll(() =>
@@ -562,3 +564,4 @@ test('evaluates a program offline after the Python runtime was used once online'
   await page.context().setOffline(false);
   expect(consoleIssues).toEqual([]);
 });
+import approvedActivityAchievements from '../tests/fixtures/activity-achievements-approved.json' with { type: 'json' };

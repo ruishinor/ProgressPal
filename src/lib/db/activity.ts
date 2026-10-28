@@ -13,6 +13,10 @@ import {
   type ActivitySettings,
 } from '@/lib/domain/activity';
 import { activityDate, activityParticipation } from '@/lib/activity/model';
+import {
+  evaluateActivityAchievements,
+  type ActivitySaveResult,
+} from '@/lib/activity/achievements';
 import { parseWithSchema } from '@/lib/validation';
 
 import {
@@ -21,6 +25,7 @@ import {
   parseStoredArray,
   resolveDatabase,
   runCoordinatedWrite,
+  unlockAchievementsOnce,
   type BaseDatabaseOptions,
 } from './repositories';
 import type { ProgressPalDatabase } from './database';
@@ -95,6 +100,7 @@ async function write<Result>(
     data: ActivityData,
     today: string,
   ) => Promise<Result>,
+  award = false,
 ) {
   const db = await ensureOpen(resolveDatabase(options.db));
   await ensureBaseInitialization({ ...options, db });
@@ -102,8 +108,10 @@ async function write<Result>(
     new Date((options.now ?? (() => new Date().toISOString()))()),
   );
   return runCoordinatedWrite(db, () =>
-    db.transaction('rw', tables(db), async () =>
-      action(db, await readData(db), today),
+    db.transaction(
+      'rw',
+      award ? [...tables(db), db.achievementUnlocks] : tables(db),
+      async () => action(db, await readData(db), today),
     ),
   );
 }
@@ -129,50 +137,67 @@ export async function saveActivityEntry(
     id?: string;
   },
   options: BaseDatabaseOptions = {},
-) {
-  return write(options, async (db, data, today) => {
-    if (input.date > today)
-      throw new Error('Future activity cannot be recorded.');
-    const previous =
-      input.id === undefined
-        ? undefined
-        : data.activityEntries.find((entry) => entry.id === input.id);
-    if (input.id !== undefined && previous === undefined)
-      throw new Error('This entry no longer exists.');
-    const definition = [...builtinActivities, ...data.activityDefinitions].find(
-      (row) => row.id === input.activityId,
-    );
-    if (
-      !definition?.units.includes(input.unit) ||
-      (definition.archived && previous?.activityId !== definition.id)
-    )
-      throw new Error('Choose an available activity and measurement.');
-    const timestamp = (options.now ?? (() => new Date().toISOString()))();
-    const record = parseWithSchema(
-      ActivityEntrySchema,
-      {
-        ...input,
-        id: previous?.id ?? makeId('activity'),
-        createdAt: previous?.createdAt ?? timestamp,
-        updatedAt: timestamp,
-      },
-      'Activity entry',
-    );
-    await ensureDay(db, data, record.date, today);
-    assertActivityInvariants({
-      ...data,
-      activityEntries: [
-        ...data.activityEntries.filter((entry) => entry.id !== record.id),
-        record,
-      ],
-      activityDays: data.activityDays.some((day) => day.id === record.date)
-        ? data.activityDays
-        : [...data.activityDays, { id: record.date, goals: [] }],
-    });
-    if (previous) await db.activityEntries.put(record);
-    else await db.activityEntries.add(record);
-    return record;
-  });
+): Promise<ActivitySaveResult> {
+  return write(
+    options,
+    async (db, data, today) => {
+      if (input.date > today)
+        throw new Error('Future activity cannot be recorded.');
+      const previous =
+        input.id === undefined
+          ? undefined
+          : data.activityEntries.find((entry) => entry.id === input.id);
+      if (input.id !== undefined && previous === undefined)
+        throw new Error('This entry no longer exists.');
+      const definition = [
+        ...builtinActivities,
+        ...data.activityDefinitions,
+      ].find((row) => row.id === input.activityId);
+      if (
+        !definition?.units.includes(input.unit) ||
+        (definition.archived && previous?.activityId !== definition.id)
+      )
+        throw new Error('Choose an available activity and measurement.');
+      const timestamp = (options.now ?? (() => new Date().toISOString()))();
+      const record = parseWithSchema(
+        ActivityEntrySchema,
+        {
+          activityId: input.activityId,
+          unit: input.unit,
+          amount: input.amount,
+          date: input.date,
+          id: previous?.id ?? makeId('activity'),
+          createdAt: previous?.createdAt ?? timestamp,
+          updatedAt: timestamp,
+        },
+        'Activity entry',
+      );
+      await ensureDay(db, data, record.date, today);
+      assertActivityInvariants({
+        ...data,
+        activityEntries: [
+          ...data.activityEntries.filter((entry) => entry.id !== record.id),
+          record,
+        ],
+        activityDays: data.activityDays.some((day) => day.id === record.date)
+          ? data.activityDays
+          : [...data.activityDays, { id: record.date, goals: [] }],
+      });
+      if (previous) await db.activityEntries.put(record);
+      else await db.activityEntries.add(record);
+      const unlockedAchievements = await unlockAchievementsOnce(
+        db,
+        () => timestamp,
+        evaluateActivityAchievements(await readData(db), today),
+      );
+      return {
+        ...record,
+        rewardKind: 'activity' as const,
+        unlockedAchievements,
+      };
+    },
+    true,
+  );
 }
 export async function deleteActivityEntry(
   id: string,

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -416,6 +417,9 @@ export function ActivityPage() {
             <ActivityIcon />
             {t('Aktivitet', 'Activity')}
           </h1>
+          <Link to="/rpg/badges">
+            {t('Se aktivitetsutmerkelser', 'Explore Activity achievements')}
+          </Link>
         </div>
         <div
           className="activity-overview"

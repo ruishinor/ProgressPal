@@ -19,6 +19,7 @@ export {
 export {
   deriveRewardEvents,
   isRewardMutationResult,
+  isActivityRewardMutationResult,
   type RewardEvent,
   type RewardMutationResult,
 } from '@/lib/rewards/rewardEvents';

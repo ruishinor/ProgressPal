@@ -1,5 +1,6 @@
 import type { AchievementsView, AchievementView } from '@/lib/db';
 import type { AchievementCategory } from '@/lib/domain';
+import { activityAchievementData } from '@/lib/activity/achievementData';
 
 export type AchievementStatusFilter = 'all' | 'unlocked' | 'locked';
 export type AchievementCategoryFilter = 'all' | AchievementCategory;
@@ -69,11 +70,15 @@ export function filterAchievements(
     .filter((achievement) =>
       categoryFilter === 'all' ? true : achievement.category === categoryFilter,
     )
-    .sort(
-      (left, right) =>
+    .sort((left, right) => {
+      const a = activityAchievementData.findIndex((row) => row.id === left.id);
+      const b = activityAchievementData.findIndex((row) => row.id === right.id);
+      if (a >= 0 || b >= 0) return a < 0 ? -1 : b < 0 ? 1 : a - b;
+      return (
         left.category.localeCompare(right.category) ||
-        left.title.localeCompare(right.title),
-    );
+        left.title.localeCompare(right.title)
+      );
+    });
 }
 
 /**

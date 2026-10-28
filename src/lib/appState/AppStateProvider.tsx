@@ -36,6 +36,7 @@ import { hasCompletedOnboarding } from '@/lib/profile';
 import {
   deriveRewardEvents,
   isRewardMutationResult,
+  isActivityRewardMutationResult,
   useRewardAnnouncer,
 } from '@/lib/rewards';
 import {
@@ -788,7 +789,8 @@ export function AppStateProvider({
         if (
           announceRewards !== null &&
           providerActiveRef.current &&
-          isRewardMutationResult(result)
+          (isRewardMutationResult(result) ||
+            isActivityRewardMutationResult(result))
         ) {
           announceRewards(
             deriveRewardEvents(result, achievementDefinitions, levelCurve),

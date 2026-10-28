@@ -32,7 +32,7 @@ async function log(page: Page, amount: string) {
     .getByRole('button', { name: 'Save activity', exact: true })
     .click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Activity saved.' }),
+    page.locator('.activity-feedback').filter({ hasText: 'Activity saved.' }),
   ).toBeVisible();
 }
 async function quickLog(page: Page, amount: string) {
@@ -41,7 +41,9 @@ async function quickLog(page: Page, amount: string) {
   await expect(form.getByRole('spinbutton')).toBeFocused();
   await form.getByRole('spinbutton').fill(amount);
   await form.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Activity saved.');
+  await expect(
+    page.locator('.activity-feedback').filter({ hasText: 'Activity saved.' }),
+  ).toHaveText('Activity saved.');
   await expect(form).toHaveCount(0);
 }
 async function section(page: Page, name: 'Today' | 'History' | 'Settings') {
@@ -62,7 +64,7 @@ test('individual entries, correction, deletion, goals, navigation and backup pre
   await page.getByLabel('Repetitions per day', { exact: true }).fill('20');
   await page.getByRole('button', { name: 'Add goal', exact: true }).click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Goal saved.' }),
+    page.locator('.activity-feedback').filter({ hasText: 'Goal saved.' }),
   ).toBeVisible();
   await section(page, 'Today');
   await quickLog(page, '8');
@@ -95,7 +97,7 @@ test('individual entries, correction, deletion, goals, navigation and backup pre
     .getByRole('button', { name: 'Confirm deletion', exact: true })
     .click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Entry deleted.' }),
+    page.locator('.activity-feedback').filter({ hasText: 'Entry deleted.' }),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Entries', exact: true }),
@@ -155,7 +157,9 @@ test('custom distance activity retains its identity on rename and removal, witho
   await page.getByLabel('Custom measurement').selectOption('metres');
   await page.getByRole('button', { name: 'Add activity', exact: true }).click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Custom activity saved.' }),
+    page
+      .locator('.activity-feedback')
+      .filter({ hasText: 'Custom activity saved.' }),
   ).toBeVisible();
   const activity = page.getByLabel('Activity type', { exact: true });
   const id = await activity
@@ -175,13 +179,15 @@ test('custom distance activity retains its identity on rename and removal, witho
     .fill('Accessible movement');
   await page.getByRole('button', { name: 'Save name', exact: true }).click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Custom activity saved.' }),
+    page
+      .locator('.activity-feedback')
+      .filter({ hasText: 'Custom activity saved.' }),
   ).toBeVisible();
   await page
     .getByRole('button', { name: 'Remove activity', exact: true })
     .click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Activity updated.' }),
+    page.locator('.activity-feedback').filter({ hasText: 'Activity updated.' }),
   ).toBeVisible();
   await expect(activity.locator(`option[value="${id}"]`)).toHaveCount(0);
   await section(page, 'History');
@@ -202,7 +208,7 @@ for (const viewport of [
     await section(page, 'Settings');
     await page.getByLabel('Repetitions per day').fill('20');
     await page.getByRole('button', { name: 'Add goal', exact: true }).click();
-    await expect(page.getByRole('status')).toHaveText('Goal saved.');
+    await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
     await section(page, 'Today');
     await log(page, '19');
     for (const theme of ['dark', 'light']) {
@@ -395,7 +401,9 @@ test('Activity remains learner-global across programme switches and uses the pro
   await section(page, 'Settings');
   await page.getByLabel('Reminder interval').selectOption('45');
   await expect(
-    page.getByRole('status').filter({ hasText: 'Reminder preference saved.' }),
+    page
+      .locator('.activity-feedback')
+      .filter({ hasText: 'Reminder preference saved.' }),
   ).toBeVisible();
   for (const programme of ['programvareutvikling', 'cs50x']) {
     await page.goto('/rpg/settings');
@@ -469,20 +477,20 @@ test('Activity retains drafts between sections and keeps goal management in Sett
     'Rucking',
   );
   await page.getByRole('button', { name: 'Add goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
   await page.getByRole('button', { name: 'Edit goal', exact: true }).click();
   await page.getByLabel('Repetitions per day').fill('25');
   await page.getByRole('button', { name: 'Save goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
   await page.getByRole('button', { name: 'Disable', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal updated.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal updated.');
   await section(page, 'Today');
   await expect(
     page.getByRole('button', { name: 'Log', exact: true }),
   ).toHaveCount(0);
   await section(page, 'Settings');
   await page.getByRole('button', { name: 'Enable', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal updated.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal updated.');
   await section(page, 'Today');
   await expect(page.getByLabel('Amount', { exact: true })).toHaveValue('9');
   await page.getByRole('button', { name: 'Log', exact: true }).click();
@@ -498,7 +506,7 @@ test('Activity retains drafts between sections and keeps goal management in Sett
   await expect(quick.getByRole('spinbutton')).toHaveValue('5');
   await section(page, 'Settings');
   await page.getByRole('button', { name: 'Remove goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('.activity-feedback')).toHaveText(
     'Goal removed. Earlier days are preserved.',
   );
   await section(page, 'Today');
@@ -522,7 +530,9 @@ test('History totals stay readable and correctly associated on a 320px phone and
     await page
       .getByRole('button', { name: 'Lagre aktivitet', exact: true })
       .click();
-    await expect(page.getByRole('status')).toHaveText('Aktiviteten er lagret.');
+    await expect(page.locator('.activity-feedback')).toHaveText(
+      'Aktiviteten er lagret.',
+    );
   };
   await saveFull('4000');
   await saveFull('3500', '2001-02-03');
@@ -539,12 +549,14 @@ test('History totals stay readable and correctly associated on a 320px phone and
   await page
     .getByRole('button', { name: 'Legg til aktivitet', exact: true })
     .click();
-  await expect(page.getByRole('status')).toHaveText(
+  await expect(page.locator('.activity-feedback')).toHaveText(
     'Egen aktivitet er lagret.',
   );
   await page.getByLabel('Repetisjoner per dag').fill('5000');
   await page.getByRole('button', { name: 'Legg til mål', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Målet er lagret.');
+  await expect(page.locator('.activity-feedback')).toHaveText(
+    'Målet er lagret.',
+  );
   await page.getByRole('tab', { name: 'I dag', exact: true }).click();
   await page
     .getByRole('combobox', { name: 'Aktivitet', exact: true })
@@ -629,7 +641,9 @@ test('History totals stay readable and correctly associated on a 320px phone and
     path: 'artifacts/activity-targeted-quick-goal-320-nb.png',
   });
   await quick.getByRole('button', { name: 'Lagre', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Aktiviteten er lagret.');
+  await expect(page.locator('.activity-feedback')).toHaveText(
+    'Aktiviteten er lagret.',
+  );
   await expect(
     page.getByRole('progressbar', { name: 'Armhevinger', exact: true }),
   ).toHaveAttribute('aria-valuenow', '80');
@@ -644,24 +658,26 @@ test('daily overview, shared level and goal controls remain readable together', 
   await section(page, 'Settings');
   await page.getByLabel('Repetitions per day').fill('20');
   await page.getByRole('button', { name: 'Add goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
   await page
     .getByLabel('Goal activity', { exact: true })
     .selectOption('walking');
   await page.getByLabel('Minutes per day').fill('30');
   await page.getByRole('button', { name: 'Add goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
   const customName =
     'Rolige bevegelser og balanseøvelser for skuldre, rygg og hofter';
   await page.getByLabel('Activity name', { exact: true }).fill(customName);
   await page.getByRole('button', { name: 'Add activity', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Custom activity saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText(
+    'Custom activity saved.',
+  );
   await page
     .getByLabel('Goal activity', { exact: true })
     .selectOption({ label: customName });
   await page.getByLabel('Repetitions per day').fill('10');
   await page.getByRole('button', { name: 'Add goal', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Goal saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
   await section(page, 'Today');
   for (const date of [
     '2026-10-25',
@@ -685,7 +701,9 @@ test('daily overview, shared level and goal controls remain readable together', 
   const quick = page.getByRole('form', { name: 'Log Push-ups', exact: true });
   await quick.getByRole('spinbutton').fill('19');
   await quick.getByRole('button', { name: 'Save', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Activity saved.');
+  await expect(page.locator('.activity-feedback')).toHaveText(
+    'Activity saved.',
+  );
   await expect(
     pushups.getByRole('progressbar', { name: 'Push-ups' }),
   ).toHaveAttribute('aria-valuenow', '95');

@@ -30,8 +30,10 @@ describe('final RPG disclosures and artwork', () => {
       </>,
     );
     const images = Array.from(container.querySelectorAll('img'));
-    expect(images).toHaveLength(16);
-    expect(new Set(images.map((image) => image.src)).size).toBe(16);
+    expect(images).toHaveLength(achievementDefinitions.length);
+    expect(new Set(images.map((image) => image.src)).size).toBe(
+      achievementDefinitions.length,
+    );
     images.forEach((image) => expect(image).toHaveAttribute('alt', ''));
     fireEvent.error(images[0]);
     expect(

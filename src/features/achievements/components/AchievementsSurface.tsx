@@ -26,6 +26,7 @@ import {
 } from '@/features/achievements/model';
 import { readAchievementsSurfaceData, type AchievementsView } from '@/lib/db';
 import { useAppState } from '@/lib/appState';
+import { activityAchievementData } from '@/lib/activity/achievementData';
 import { requireProgrammeScope } from '@/lib/domain';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
@@ -356,6 +357,19 @@ export function AchievementsSurface({
                     </span>
                   ) : null}
                 </div>
+                {activityAchievementData
+                  .filter((row) => row.id === achievement.id)
+                  .map((row) => (
+                    <details
+                      key={row.id}
+                      className="achievement-card__adventure"
+                      lang="en"
+                    >
+                      <summary>Requirements and reward</summary>
+                      <p>{row.condition}</p>
+                      <p>{row.fiction}</p>
+                    </details>
+                  ))}
               </Card>
             </li>
           ))}
