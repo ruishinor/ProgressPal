@@ -4,11 +4,11 @@
   "reviewer": "Alekai (owner-approved correction delta; prior independent automated review retained)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "93d119c8393c2994bb5dd94b29daf437de6dc0d5",
+    "payloadTree": "13484cb3f2df72c5cc67198ad0f8664f6241df88",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification. Subsequent focused correction 2c26aca0691fec4ec5a9f074acbd41a682914b66: C1 preservation assertion now includes the already-authoritative Recovery category after Final project. Only the test expectation changed. Subsequent owner-accepted preservation-test delta at 8c597f289cc839ff51d0d4857d61d35af231496b: historical schema-2 unlock IDs and original badge-art identity are now asserted independently of newly introduced Activity achievements. No production application bytes changed in this delta.",
+    "summary": "Owner-approved final delta for the Activity Achievements service-worker\ncache-test fixture, commit 7e72ecd76361873b3e60f02d17bb7e85c286d37f.\nThe correction changes one test file, adds the approved achievement assets\nand relocated First Step asset to the simulated network, and preserves\nproduction code. Earlier independent automated product review is retained.\nThe owner explicitly accepted this delta and directed release progression.\nThis acceptance does not replace native or hosted certification. Subsequent focused correction 2c26aca0691fec4ec5a9f074acbd41a682914b66: C1 preservation assertion now includes the already-authoritative Recovery category after Final project. Only the test expectation changed. Subsequent owner-accepted preservation-test delta at 8c597f289cc839ff51d0d4857d61d35af231496b: historical schema-2 unlock IDs and original badge-art identity are now asserted independently of newly introduced Activity achievements. No production application bytes changed in this delta. Owner-directed follow-up: one test oracle now uses the active programme achievement count; no production code changed (commit fc9ef5b).",
     "evidence": [
       "Delta provenance: the same separately operating automated reviewer /root/independent_release_review performed this bounded second review and personally authors/commits this replacement evidence. It did not implement the test or documentation correction. Original review was personally authored/committed as f4174b45c9cc84764a296ed2727b5c546e6b3d5e with review SHA-256 2f8efe3749d4a96c626f9c5db649f0794052411de4e05772893290f83808929a, for product 98746b52d585e64dde7427e2225cdccead81bae9 / payload b070cacd0cc8819323a3d8594ff1d9687e8d13be. This update retains that product review; no human review is implied.",
       "Delta identity independently verified: clean starting HEAD 73cfb917057f33db0b31d14e30a8160e844a0d71, root 611ce9d68948b94980231fc6da7225339d991469; npm run review:payload-tree -- 73cfb917057f33db0b31d14e30a8160e844a0d71 returns 1dc592b00291f5967f3f99bbbcc75b148720414b. Complete diff against f4174b45 changes only tests/features/rpg/a6BadgesReadBoundary.test.tsx, docs/CURRENT_STATE.md and docs/ACTIVITY_ACHIEVEMENTS_HANDOFF.md. git diff --check exits 0. The src tree stays 279ef9ab9b33f69d4017bd3c1b37a38a841521c5 and public tree stays 681cbd064c6289cf4e9862ceec347fe7955926c3.",
@@ -47,7 +47,11 @@
       "Corrected payload tree: 93d119c8393c2994bb5dd94b29daf437de6dc0d5",
       "C1 historical backup and visual identity: 11/11 focused tests passed.",
       "TypeScript and formatting checks passed.",
-      "Previous independent product review retained; no new independent reviewer claimed."
+      "Previous independent product review retained; no new independent reviewer claimed.",
+      "Test-only Hero Profile oracle fix: fc9ef5bdd71ce2af8e9444f0644e16270a59f43b.",
+      "Seven focused Hero Profile tests, 7/7 PASS; literal 13-count search had no remaining matches.",
+      "Previously unexecuted Vitest test files passed in one separate diagnostic run; no prior successful files were repeated in this diagnostic.",
+      "Prior independent review attribution retained, not renewed or re-claimed for this delta."
     ]
   },
   "adversarialFindings": [
@@ -117,6 +121,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates. Subsequent C1 legacy test-oracle correction verified; new exact-candidate certification remains required. The owner accepted the subsequent two-file historical test correction. Exact-candidate native and hosted certification remain mandatory."
+    "summary": "Owner accepted the narrow service-worker test-fixture correction. Prior independent product review remains recorded. Proceed through exact-candidate native and hosted release certification without bypassing any gates. Subsequent C1 legacy test-oracle correction verified; new exact-candidate certification remains required. The owner accepted the subsequent two-file historical test correction. Exact-candidate native and hosted certification remain mandatory. Owner directed the final one-line test-only oracle correction. Exact-candidate local and hosted gates remain required."
   }
 }
