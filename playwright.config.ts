@@ -12,7 +12,8 @@ export default defineConfig({
   reporter: 'list',
   retries: 0,
   maxFailures: 1,
-  workers: 1,
+  // CI benchmark: three browser workers on GitHub; keep local runs serial.
+  workers: process.env.CI ? 3 : 1,
   use: {
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
