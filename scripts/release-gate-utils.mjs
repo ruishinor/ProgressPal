@@ -251,3 +251,87 @@ export function sanitizeEnvironment(environment) {
     ),
   );
 }
+
+// This is the command decision consumer used by run(), not a log severity guess.
+export async function enforceCommandPolicy(record, validate) {
+  record.policyViolations = [];
+  record.validation = 'not-run';
+  try {
+    if (record.timedOut) throw new Error('command deadline exceeded');
+    if (record.interrupted) throw new Error('command interrupted');
+    if (record.exitCode !== 0 || record.signal !== null)
+      throw new Error(
+        `command failed with exit ${record.exitCode}, signal ${record.signal}`,
+      );
+    if (validate) await validate(record);
+    record.validation = 'passed';
+  } catch (error) {
+    record.validation = 'failed';
+    record.policyViolations.push(error.message);
+    throw new Error(`${record.label}: ${error.message}`, { cause: error });
+  }
+}
+
+export function validateTestReport(report, invocation, runner) {
+  const fail = () => {
+    throw new Error(
+      'Missing, invalid, incomplete, failed, skipped or retried test evidence',
+    );
+  };
+  if (
+    !report ||
+    report.schemaVersion !== 1 ||
+    report.invocation !== invocation ||
+    report.runner !== runner ||
+    report.status !== 'passed' ||
+    report.errors !== 0 ||
+    !Number.isSafeInteger(report.expected) ||
+    report.expected <= 0 ||
+    !Array.isArray(report.units) ||
+    report.units.length !== report.expected
+  )
+    fail();
+  let testCount = 0;
+  for (const unit of report.units) {
+    if (
+      unit.status !== 'passed' ||
+      !Array.isArray(unit.tests) ||
+      !unit.tests.length
+    )
+      fail();
+    for (const test of unit.tests) {
+      if (
+        typeof test.name !== 'string' ||
+        test.status !== 'passed' ||
+        test.retries !== 0
+      )
+        fail();
+      testCount++;
+    }
+  }
+  return {
+    testCount,
+    skipCount: 0,
+    retryCount: 0,
+    fileCount: runner === 'vitest' ? report.units.length : null,
+  };
+}
+
+export function validateNodeTests(record) {
+  // Node's TAP summary is anchored; test titles and diagnostic comments cannot match.
+  const output = record.stdout;
+  const count = (key) => {
+    const matches = [...output.matchAll(new RegExp(`^# ${key} (\\d+)$`, 'gm'))];
+    if (matches.length !== 1)
+      throw new Error('Missing or ambiguous Node test summary');
+    return Number(matches[0][1]);
+  };
+  const total = count('tests');
+  if (
+    !total ||
+    count('pass') !== total ||
+    ['fail', 'cancelled', 'skipped', 'todo'].some((key) => count(key) !== 0)
+  )
+    throw new Error('Node tests failed or were incomplete/skipped');
+  Object.assign(record, { testCount: total, skipCount: 0, retryCount: 0 });
+}

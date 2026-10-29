@@ -98,7 +98,7 @@ npm run audit
 git status --porcelain=v1
 ```
 
-It rejects the wrong Node/npm major, version drift between package and lockfile, a dirty starting/ending tree, non-zero exits, signals, warnings, skipped tests, retried tests, and missing or non-applicable review evidence. Evidence JSON (manifest schema 2: commit, tree, payload tree, bound review and its checksum, parsed test counts, build checksums) is written under ignored `artifacts/release-evidence/`.
+It rejects the wrong Node/npm major, version drift between package and lockfile, a dirty starting/ending tree, non-zero exits, signals, command-policy violations, skipped tests, retried tests, and missing or non-applicable review evidence. Evidence JSON (manifest schema 3: commit, tree, payload tree, bound review and its checksum, parsed test counts, build checksums) is written under ignored `artifacts/release-evidence/`.
 
 Running the ordinary commands above directly validates a candidate without review evidence. That is useful for an independent reviewer, but it is not certification and must not be presented as such.
 
@@ -178,3 +178,26 @@ The CI job uploads evidence JSON, `playwright-report/` and `test-results/` for 3
 - No changed-file-only release decision.
 - No retries that could hide flakiness.
 - No backend, contract-test or secret-dependent stage because the product has none.
+
+## Diagnostic decision policy (schema 3)
+
+Process timeout, interruption, signal and nonzero exit always block. Successful process output is retained for inspection; words in test names or stderr do not determine release success. No process-containment or Git/review-binding safeguard changes.
+
+| Command                    | Mandatory policy beyond process success                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Git identity, diff, status | Existing event identity, payload binding and clean-tree validators                                                                               |
+| Node/npm/package versions  | Existing major and lockfile identity checks                                                                                                      |
+| npm ci, npm ls             | Exit status; deprecation and informational notices are advisory                                                                                  |
+| npm audit                  | Existing moderate threshold and endpoint failure enforced by npm exit status                                                                     |
+| ESLint                     | Existing --max-warnings 0 makes lint warnings blocking                                                                                           |
+| Prettier, TypeScript, Vite | Native exit status; Vite size limits enforced by subsequent bundle gate                                                                          |
+| Bundle budget              | Existing checker exit status and unchanged budgets                                                                                               |
+| Node harness tests         | Explicit TAP reporter, unique complete positive totals, no failures/cancellations/skips/todos                                                    |
+| Vitest, Playwright         | Release-only structured reporter: complete successful run, all selected units/tests passed, no unhandled errors, skips, pending tests or retries |
+| Circular dependencies      | Existing dpdm circular:1 exit policy                                                                                                             |
+
+Vitest 4.1.12's built-in JSON reporter omits retry counts. The small release reporter uses its documented TestCase diagnostic API instead. Playwright uses its selected suite and per-test attempt results. Normal default/list terminal output is preserved. No application test discovery or worker policy changes. Structured reports use a fresh UUID filename and invocation token under ignored artifacts/release-evidence; exclusive creation rejects overwrites. Missing, malformed, mismatched, incomplete and failed reports block. The token prevents accidental stale reuse, not malicious code running inside the candidate: independent review remains the trust boundary.
+
+Schema 3 retains legacy warnings/warningCount as **keyword-match observations only**, for historical compatibility; neither is a severity count or blocking input. New policyViolations and validation fields describe the actual decision, diagnostics records the advisory stderr source/basis, and rawStdout/rawStderr preserve original text including ANSI. Structured evidence and its SHA-256 are recorded when read. Unknown test counters are null (including failed processes or invalid reports), never asserted zero; aggregate skip/retry totals are null if any contributing count is unknown. Historical manifests are unchanged. No in-repository schema-2 manifest parser was found; external consumers must accept schema 3 and nullable counters. Build and review checksums are unchanged.
+
+Research basis: [Node process close semantics](https://nodejs.org/api/child_process.html#event-close), [Vitest reporter lifecycle](https://vitest.dev/api/advanced/reporters.html), [Playwright reporter lifecycle](https://playwright.dev/docs/api/class-reporter), checked against the installed versions. Focused verification does not constitute full release certification.

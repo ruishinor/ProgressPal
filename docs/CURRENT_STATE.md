@@ -1,5 +1,7 @@
 # ProgressPal current state
 
+**2026-10-29 release diagnostic-policy correction:** dedicated `cx/release-diagnostic-policy` candidate from refreshed master `800e2c9`. Command outcomes and explicit validators govern release decisions; incidental text remains inspectable. Release-only structured test evidence preserves no-skip/no-retry enforcement. Focused verification and independent review are required before PR publication; no full local certification, merge or deployment is authorized by this task. Policy and manifest compatibility: `docs/ci.md`.
+
 This is the single live execution-authority file for ProgressPal. Other status prose in older records is historical and carries a pointer back here. Authority order when sources conflict: latest explicit owner instruction, exact live Git/deployment state, later owner decisions in the repository, candidate-bound evidence, this file, then older records. For Programme #2 content and scope, the protected Programvareutvikling workspace authority (`00_CONTROL`, OD-P2-32, and `05_OUTPUT/21_PRODUCT_SCOPE_RECOVERY_AND_INTEGRATION_READINESS/`) ranks above the derived Pre-E reports in `docs/post-release/pre-e/`, which interpret it and never override it.
 
 **Live identity is Git, not this file.** A file cannot name the commit that contains it. Read `git rev-parse HEAD`, `git rev-parse HEAD^{tree}` and the release manifest for the exact candidate. This file records the last released baseline, what has been added since and what is pending.

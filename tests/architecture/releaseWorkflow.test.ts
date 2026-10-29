@@ -3,6 +3,13 @@ import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
 
 import { describe, expect, it } from 'vitest';
+import {
+  enforceCommandPolicy,
+  validateTestReport,
+  validateNodeTests,
+  // @ts-expect-error Node release utility has no TypeScript declaration.
+} from '../../scripts/release-gate-utils.mjs';
+import { createHash } from 'node:crypto';
 
 const root = resolve(__dirname, '../..');
 const workflow = readFileSync(
@@ -68,7 +75,7 @@ async function executeCommandLoop(
 ): Promise<Array<{ label: string; timeoutMs: number; args: string[] }>> {
   const runStart = gateRunner.indexOf('async function run(');
   const runEnd = gateRunner.indexOf('\nasync function sha256(');
-  const gateStart = gateRunner.indexOf('  const gate = [');
+  const gateStart = gateRunner.indexOf('  const invocation = randomUUID();');
   const gateEnd = gateRunner.indexOf('\n  manifest.artifacts =');
   expect(runStart).toBeGreaterThanOrEqual(0);
   expect(runEnd).toBeGreaterThan(runStart);
@@ -86,6 +93,36 @@ async function executeCommandLoop(
       return commands;
     })()`,
     {
+      randomUUID: () => 'probe',
+      mkdir: async () => {},
+      ARTIFACT_ROOT: '/artifacts',
+      resolve,
+      relative: (_root: string, path: string) => path,
+      createHash,
+      readFile: async (path: string) =>
+        JSON.stringify({
+          schemaVersion: 1,
+          invocation: 'probe',
+          runner: path.includes('vitest') ? 'vitest' : 'playwright',
+          status: 'passed',
+          errors: 0,
+          expected: 1,
+          units: [
+            {
+              status: 'passed',
+              tests: [
+                {
+                  name: 'probe',
+                  status: summary.skipCount ? 'skipped' : 'passed',
+                  retries: summary.retryCount,
+                },
+              ],
+            },
+          ],
+        }),
+      enforceCommandPolicy,
+      validateTestReport,
+      validateNodeTests,
       COMMAND_TIMEOUT_MS: Number(commandTimeout![1]) * 60_000,
       ROOT: root,
       repositoryExclude: resolve(root, '.git/info/exclude'),
@@ -103,12 +140,20 @@ async function executeCommandLoop(
       cleanOutput: (value: string) => value.trim(),
       diagnosticLines: () => warnings,
       executionSummary: () => summary,
-      runContainedCommand: async ({ timeoutMs }: { timeoutMs: number }) => {
+      runContainedCommand: async ({
+        timeoutMs,
+        args,
+      }: {
+        timeoutMs: number;
+        args: string[];
+      }) => {
         containedTimeouts.push(timeoutMs);
         return {
           code: 0,
           signal: null,
-          stdout: '',
+          stdout: args.includes('--test')
+            ? '# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n'
+            : '',
           stderr: '',
           timedOut: false,
           interrupted: false,
@@ -129,7 +174,13 @@ describe('release execution budgets', () => {
       (command) => command.label === 'end-to-end tests',
     );
     expect(e2e).toHaveLength(1);
-    expect(e2e[0]!.args).toEqual(['npm', 'run', 'test:e2e']);
+    expect(e2e[0]!.args).toEqual([
+      'npm',
+      'run',
+      'test:e2e',
+      '--',
+      '--reporter=list,./scripts/release-test-reporter.mjs',
+    ]);
     expect(e2e[0]!.timeoutMs).toBe(4_980_000);
     const others = commands.filter(
       (command) => command.label !== 'end-to-end tests',
@@ -166,16 +217,16 @@ describe('release execution budgets', () => {
     expect(playwrightConfig).toMatch(/retries: 0,/);
   });
 
-  it('still rejects diagnostics, skipped tests and retries in the actual command loop', async () => {
+  it('permits advisory diagnostics but rejects skipped tests and retries in the actual command loop', async () => {
     await expect(
       executeCommandLoop(['Warning: diagnostic probe']),
-    ).rejects.toThrow('emitted warning or stderr output');
+    ).resolves.toBeDefined();
     await expect(
       executeCommandLoop([], { skipCount: 1, retryCount: 0, testCount: null }),
-    ).rejects.toThrow('reported skipped, pending, or todo tests');
+    ).rejects.toThrow('test evidence');
     await expect(
       executeCommandLoop([], { skipCount: 0, retryCount: 1, testCount: null }),
-    ).rejects.toThrow('reported retried tests');
+    ).rejects.toThrow('test evidence');
   });
 
   it('still resolves committed payload-bound review evidence before entering the command loop', () => {
