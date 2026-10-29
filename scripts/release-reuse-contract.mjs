@@ -105,7 +105,9 @@ export function git(cwd, ...args) {
 // Rev-list/show hide parents at shallow boundaries; the commit object does not.
 export function commitParents(cwd, sha) {
   const header = git(cwd, 'cat-file', '-p', sha).split('\n\n')[0];
-  return [...header.matchAll(/^parent ([0-9a-f]{40})$/gm)].map(match => match[1]);
+  return [...header.matchAll(/^parent ([0-9a-f]{40})$/gm)].map(
+    (match) => match[1],
+  );
 }
 
 // Release authority and its immediate execution controls, not application code,

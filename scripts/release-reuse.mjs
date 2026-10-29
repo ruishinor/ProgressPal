@@ -350,7 +350,10 @@ export async function discoverSource(api, current) {
   );
   const newest = runs.sort((a, b) => b.id - a.id)[0];
   requireProof(newest, 'SOURCE_RUN_MISSING');
-  requireProof(newest.status === 'completed' && newest.conclusion === 'success', 'SOURCE_RUN_INVALID');
+  requireProof(
+    newest.status === 'completed' && newest.conclusion === 'success',
+    'SOURCE_RUN_INVALID',
+  );
   const run = await api.get(`actions/runs/${newest.id}`);
   const jobs = await api.list(
     `actions/runs/${run.id}/attempts/${run.run_attempt}/jobs`,
@@ -427,12 +430,30 @@ export async function discoverSource(api, current) {
 }
 
 export async function recheckSource(api, source) {
-  const runs = await api.list(`actions/workflows/${source.workflowId}/runs?event=pull_request&head_sha=${source.head}`, 'workflow_runs');
-  requireProof(runs.length > 0 && Math.max(...runs.map(run => run.id)) === source.run, 'SOURCE_RACE');
+  const runs = await api.list(
+    `actions/workflows/${source.workflowId}/runs?event=pull_request&head_sha=${source.head}`,
+    'workflow_runs',
+  );
+  requireProof(
+    runs.length > 0 && Math.max(...runs.map((run) => run.id)) === source.run,
+    'SOURCE_RACE',
+  );
   const latest = await api.get(`actions/runs/${source.run}`);
-  requireProof(latest.id === source.run && latest.run_attempt === source.attempt && latest.status === 'completed' && latest.conclusion === 'success', 'SOURCE_RACE');
+  requireProof(
+    latest.id === source.run &&
+      latest.run_attempt === source.attempt &&
+      latest.status === 'completed' &&
+      latest.conclusion === 'success',
+    'SOURCE_RACE',
+  );
   const artifact = await api.get(`actions/artifacts/${source.artifact}`);
-  requireProof(artifact.id === source.artifact && artifact.expired === false && artifact.digest === source.artifactDigest && artifact.workflow_run?.id === source.run, 'SOURCE_RACE');
+  requireProof(
+    artifact.id === source.artifact &&
+      artifact.expired === false &&
+      artifact.digest === source.artifactDigest &&
+      artifact.workflow_run?.id === source.run,
+    'SOURCE_RACE',
+  );
 }
 
 export async function decideReuse({ currentCheck, discover, audit, recheck }) {

@@ -307,7 +307,10 @@ function fixture() {
       else if (path === 'actions/workflows/test.yml')
         body = { id: 42, path: WORKFLOW, state: 'active' };
       else if (path.startsWith('actions/workflows/42/runs?'))
-        body = { total_count: (f.runs ?? [run]).length, workflow_runs: f.runs ?? [run] };
+        body = {
+          total_count: (f.runs ?? [run]).length,
+          workflow_runs: f.runs ?? [run],
+        };
       else if (path === 'actions/runs/123') body = run;
       else if (path.startsWith('actions/runs/123/attempts/2/jobs?'))
         body = { total_count: 1, jobs: [job] };
