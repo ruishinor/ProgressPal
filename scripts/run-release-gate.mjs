@@ -398,6 +398,7 @@ try {
         '--test-reporter=tap',
         'scripts/release-gate-utils.test.mjs',
         'scripts/release-review-binding.test.mjs',
+        'scripts/release-reuse.test.mjs',
       ],
       label: 'release gate unit tests',
       validate: validateNodeTests,
@@ -517,6 +518,14 @@ try {
   manifest.failure =
     error instanceof Error ? (error.stack ?? error.message) : String(error);
 } finally {
+  // Reuse metadata is optional; it cannot turn a valid comprehensive gate red.
+  try {
+    const { certificationBinding } =
+      await import('./release-reuse-contract.mjs');
+    manifest.certification = certificationBinding(ROOT);
+  } catch {
+    manifest.certification = null;
+  }
   manifest.endedAt = new Date().toISOString();
   manifest.totals.commandCount = commands.length;
   manifest.totals.warningCount = commands.reduce(

@@ -58,6 +58,10 @@ describe('release validation workflow contract', () => {
     expect(workflow).toMatch(/^permissions:\n {2}contents: read$/m);
     expect(workflow).not.toMatch(/secrets\./);
     expect(workflow).not.toMatch(/VERCEL/i);
+    expect(workflow).toContain('actions: read');
+    expect(workflow).toContain('checks: read');
+    expect(workflow).toContain('pull-requests: read');
+    expect(workflow).not.toMatch(/: write/);
   });
 });
 

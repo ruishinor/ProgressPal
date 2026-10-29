@@ -11,6 +11,9 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  checks: read
+  pull-requests: read
 
 concurrency:
   group: release-validation-${{ github.ref }}
@@ -25,12 +28,25 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.sha }}
+          # Both parents must be available for Git topology/control checks.
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Pin npm 11
         run: npm install --global npm@11.10.1
+      # Shadow is data only. A missing script, import/parser error, API outage or
+      # deadline cannot prevent the original unconditional comprehensive gate.
+      - name: Observe certification reuse (shadow)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if timeout 150s node scripts/run-release-reuse.mjs; then
+            :
+          else
+            echo 'Reuse shadow: FULL / VERIFIER_UNAVAILABLE; comprehensive gate follows.'
+          fi
       - name: Install locked dependencies
         run: npm ci
       - name: Install Chromium
