@@ -4,7 +4,7 @@
   "reviewer": "GPT-6 (ChatGPT AI technical review and scoped-change author; not independent human review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "a7f9d22c64bd2c1caa77c6415c072d7145b16ffe",
+    "payloadTree": "be718d7a31a1ad9858fad4a2e6965cc80a7c165a",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,11 @@
       "Reviewed Playwright default configuration and managed configuration inheritance; GitHub Actions CI=true selects 3 workers, local runs select 1.",
       "Prettier, ESLint, TypeScript and targeted release architecture test executed on the isolated source candidate before evidence commit.",
       "Adversarial assessment: simultaneous Chromium processes share the 4-vCPU/16-GB GitHub runner; browser contexts are isolated but external file/network resources might not be.",
-      "Full 290-test three-worker GitHub result has not occurred at review time; merge is contingent on ordinary authoritative Final candidate success."
+      "Full 290-test three-worker GitHub result has not occurred at review time; merge is contingent on ordinary authoritative Final candidate success.",
+      "PR #51 run 40944340044: three workers verified; 76 passed, one substantive test failure, two interrupted and 211 not run (fail-fast).",
+      "Attached trace identified one net::ERR_ABORTED GET for character-profile.png, followed by successful HTTP 200 for the identical URL. No HTTP error on the asset.",
+      "Changed exactly one E2E probe to require a later successful response before treating a cancelled GET as benign. Non-abort request failures, HTTP errors, console errors and unresolved cancellations remain blocking.",
+      "The corrected full three-worker suite has not yet been executed; a fresh GitHub Final candidate pass is required before merge."
     ]
   },
   "adversarialFindings": [
@@ -45,10 +49,17 @@
       "description": "This release-control configuration change makes the immediate Task A shadow merge ineligible for reuse.",
       "resolution": "Expected full-only transition; do not change or weaken Task A provenance rules.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "PW3-5",
+      "severity": "P2",
+      "description": "The Epic E capture probe reported a navigation-cancelled asset GET as a permanent failure although the same asset later returned HTTP 200.",
+      "resolution": "Track cancelled GETs and require a subsequent HTTP success for the identical URL. Preserve failure for non-abort network errors and unresolved cancellations.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "PASS for a draft-PR empirical evaluation of three workers. Do not claim proven speedup or production readiness until all 290 hosted E2E tests, native Final candidate and actual run-time comparison pass."
+    "summary": "PASS for a draft-PR empirical evaluation of three workers. Do not claim proven speedup or production readiness until all 290 hosted E2E tests, native Final candidate and actual run-time comparison pass. First three-worker CI attempt exposed a false-positive cancellation assertion. Surgical remediation was technically reviewed against the supplied trace; authoritative complete GitHub certification is still required."
   }
 }

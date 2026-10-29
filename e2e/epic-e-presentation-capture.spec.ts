@@ -50,14 +50,36 @@ function collectProblems(page: Page, problems: string[]) {
     }
   });
   page.on('pageerror', (error) => problems.push(`page: ${error.message}`));
-  page.on('requestfailed', (request) =>
-    problems.push(`failed: ${request.url()}`),
-  );
+  // A page transition can abort an in-flight GET even when the exact resource
+  // is successfully fetched on the next route. Do not call that a broken asset.
+  // A cancelled GET without a subsequent success still fails this test.
+  const successes = new Map<string, number>();
+  const aborted: Array<{ url: string; successfulBefore: number }> = [];
+  page.on('requestfailed', (request) => {
+    const failure = request.failure()?.errorText;
+    if (request.method() === 'GET' && failure === 'net::ERR_ABORTED') {
+      aborted.push({
+        url: request.url(),
+        successfulBefore: successes.get(request.url()) ?? 0,
+      });
+      return;
+    }
+    problems.push(`failed: ${request.url()} (${failure ?? 'unknown'})`);
+  });
   page.on('response', (response) => {
     if (response.status() >= 400) {
       problems.push(`${response.status()}: ${response.url()}`);
+    } else if (response.ok()) {
+      successes.set(response.url(), (successes.get(response.url()) ?? 0) + 1);
     }
   });
+  return () => {
+    for (const { url, successfulBefore } of aborted) {
+      if ((successes.get(url) ?? 0) <= successfulBefore) {
+        problems.push(`failed: ${url} (aborted without later success)`);
+      }
+    }
+  };
 }
 
 for (const theme of ['light', 'dark'] as const) {
@@ -66,7 +88,7 @@ for (const theme of ['light', 'dark'] as const) {
   }) => {
     test.setTimeout(120_000);
     const problems: string[] = [];
-    collectProblems(page, problems);
+    const finishRequestChecks = collectProblems(page, problems);
     await mkdir(captureDirectory, { recursive: true });
 
     await completeOnboarding(page, { theme });
@@ -135,6 +157,7 @@ for (const theme of ['light', 'dark'] as const) {
       }
     }
 
+    finishRequestChecks();
     expect(problems).toEqual([]);
   });
 }
