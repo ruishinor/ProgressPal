@@ -18,6 +18,7 @@ import {
   executeDecision,
   githubClient,
   selectPr,
+  recheckSource,
 } from './release-reuse.mjs';
 import { readZip, sha256 } from './release-reuse-zip.mjs';
 
@@ -306,7 +307,7 @@ function fixture() {
       else if (path === 'actions/workflows/test.yml')
         body = { id: 42, path: WORKFLOW, state: 'active' };
       else if (path.startsWith('actions/workflows/42/runs?'))
-        body = { total_count: 1, workflow_runs: [run] };
+        body = { total_count: (f.runs ?? [run]).length, workflow_runs: f.runs ?? [run] };
       else if (path === 'actions/runs/123') body = run;
       else if (path.startsWith('actions/runs/123/attempts/2/jobs?'))
         body = { total_count: 1, jobs: [job] };
@@ -315,6 +316,7 @@ function fixture() {
         body = { total_count: 1, artifacts: [artifact] };
       else if (path === 'actions/artifacts/789/zip')
         return new Response(archive);
+      else if (path === 'actions/artifacts/789') body = artifact;
       else if (path === `git/commits/${S}`) body = synthetic;
       else throw Error(`Unexpected request ${path}`);
       return new Response(
@@ -407,6 +409,25 @@ for (const [name, mutate] of Object.entries(mutations))
     mutate(f);
     await assert.rejects(discoverSource(f.api(), f.current));
   });
+test('a newer failed source run cannot borrow an older successful run', async () => {
+  const f = fixture();
+  f.runs = [{ ...f.run, id: 124, conclusion: 'failure' }, f.run];
+  await assert.rejects(
+    discoverSource(f.api(), f.current),
+    /SOURCE_RUN_INVALID/,
+  );
+});
+test('source recheck rejects a newer run or changed artifact after discovery', async () => {
+  const f = fixture();
+  const api = f.api();
+  const source = await discoverSource(api, f.current);
+  await recheckSource(api, source);
+  f.runs = [{ ...f.run, id: 124, conclusion: 'failure' }, f.run];
+  await assert.rejects(recheckSource(api, source), /SOURCE_RACE/);
+  f.runs = [f.run];
+  f.artifact.digest = `sha256:${'0'.repeat(64)}`;
+  await assert.rejects(recheckSource(api, source), /SOURCE_RACE/);
+});
 test('wrong current merge parents and direct/squash topology cannot reuse', () => {
   const f = fixture();
   f.current.parents.reverse();
@@ -587,6 +608,7 @@ test('shadow shell handles entrypoint failure and retains one unconditional nati
     'utf8',
   );
   assert.equal((workflow.match(/name: Final candidate/g) || []).length, 1);
+  assert.match(workflow, /^\s+fetch-depth: 2$/m);
   assert.equal((workflow.match(/npm run verify:release/g) || []).length, 1);
   assert.match(
     workflow,

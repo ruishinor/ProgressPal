@@ -102,6 +102,12 @@ export function git(cwd, ...args) {
   }).trim();
 }
 
+// Rev-list/show hide parents at shallow boundaries; the commit object does not.
+export function commitParents(cwd, sha) {
+  const header = git(cwd, 'cat-file', '-p', sha).split('\n\n')[0];
+  return [...header.matchAll(/^parent ([0-9a-f]{40})$/gm)].map(match => match[1]);
+}
+
 // Release authority and its immediate execution controls, not application code,
 // curriculum, ordinary tests, or dependency graphs. S/C equality covers those.
 export function controlFingerprint(cwd, ref) {
@@ -168,7 +174,7 @@ export function certificationBinding(cwd, env = process.env) {
     workflowRef: env.GITHUB_WORKFLOW_REF,
     workflowSha: env.GITHUB_WORKFLOW_SHA,
     checkout: sha,
-    parents: git(cwd, 'show', '-s', '--format=%P', sha).split(' '),
+    parents: commitParents(cwd, sha),
     pr: event.pull_request
       ? {
           number: event.number,

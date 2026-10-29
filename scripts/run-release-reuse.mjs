@@ -15,6 +15,7 @@ import {
   discoverSource,
   githubClient,
   requireProof,
+  recheckSource,
 } from './release-reuse.mjs';
 import {
   payloadTree,
@@ -138,7 +139,8 @@ const result = await decideReuse({
       stdout: outcome.stdout,
     };
   },
-  async recheck(current) {
+  async recheck(current, source) {
+    await recheckSource(api, source);
     requireProof(
       git(cwd, 'rev-parse', 'HEAD') === current.sha &&
         git(cwd, 'status', '--porcelain=v1') === '',

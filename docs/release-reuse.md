@@ -80,6 +80,12 @@ source evidence, not byte-identical Vercel output.
 `SOURCE_RUNNER_VERSION_INVALID` also yields FULL when the locked Vitest/Playwright
 versions or the recorded Playwright/Chromium command outputs cannot be reconciled.
 
+The checkout uses a **bounded `fetch-depth: 2`**: the verifier needs both
+merge parents and the first parent's tracked control files. Depth 1 makes
+`git show --format=%P` hide parents and makes the parent tree unavailable,
+forcing every otherwise valid master candidate to FULL. No full-history clone
+is necessary.
+
 The installed workflow has no enforcement branch. Its shell handles absent or
 crashing entrypoints and a 150-second deadline, then proceeds unconditionally to
 the original install/Chromium/full gate sequence. Discovery has a 60-second
