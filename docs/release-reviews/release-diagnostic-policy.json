@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "module": "release-diagnostic-policy",
+  "reviewer": "Codex independent review agent /root/independent_review; separately spawned reviewer, not the implementation agent /root",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "565707a4ceaf4f04b100495f0d30db8891acd262",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source and policy review of frozen candidate 0a22560216ad8e9ebb8bda503260a622af2c7707 (root tree 9be58235eea7aa2c7f917e35968acf2cace1c53b), compared with origin/master 800e2c9. Seven changed payload files only: release utilities, runner, focused tests, release-only reporter, architecture contract tests and controlling release documentation. No application, dependency, workflow or Vercel change. Reviewer did not implement payload changes; implementer resolved review findings before freeze. This accepts the candidate for hosted certification, not a full release certification or deployment.",
+    "evidence": [
+      "Release semantics pass: inspected actual run() consumer and enforceCommandPolicy. Timeout, interruption, signal and nonzero exit retain precedence; lint max-warnings 0, npm audit moderate threshold, bundle budgets and independent review binding remain authoritative. Incidental text no longer blocks.",
+      "QA pass: inspected positive/negative fixtures, actual-run VM integration, Node TAP completeness and reporter lifecycle adapters against installed Vitest 4.1.12/Playwright APIs. Independently executed 11 adversarial probes covering null and malformed nested evidence, wrong types, unsupported status, stale invocation, benign negative title and nonzero audit outcome. All expected decisions passed.",
+      "Security pass: unknown or contradictory mandatory report evidence fails closed. UUID invocation binding and exclusive report creation prevent accidental stale reuse. Candidate-controlled code can still forge evidence; independent source review remains the existing trust boundary, not a new security claim.",
+      "Reliability pass: inspected unchanged process-tree containment, timeout values, stream capture and final manifest writing. Unknown test counts remain null on failure, raw output is retained, and structured report checksums are preserved when read. Reviewed the new overwrite-refusal and manifest-counter regression tests.",
+      "Developer experience pass: one small release-only reporter keeps default/list terminal reporting; no new dependencies or ordinary developer command changes. Schema 3 compatibility and legacy keyword-count meaning are explicitly documented. Independently ran Prettier check over all seven changed payload files successfully.",
+      "Independent Git checks confirmed frozen HEAD, root tree, clean worktree and payload 565707a4ceaf4f04b100495f0d30db8891acd262 using scripts/review-payload-tree.mjs.",
+      "Implementer-reported focused verification, inspected as supporting evidence rather than independent reruns: 58 Node release/binding tests, 9 release-workflow architecture tests, changed-code lint, TypeScript checking, native Vitest reporter smoke and one synthetic no-browser Playwright reporter test passed. A native exit-zero Vitest retry-plus-skip probe was rejected by the report validator. Initial sandbox temporary-file failures were rerun with necessary access and not called successes.",
+      "No complete local Vitest suite, Playwright suite, verify:release run or hosted certification was executed by this reviewer. Hosted Final candidate certification remains mandatory. No merge or deployment approved."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "DIAG-REVIEW-1",
+      "severity": "P2",
+      "description": "Initial implementation defaulted missing Vitest retry diagnostics to zero, allowing unknown mandatory evidence to appear complete.",
+      "resolution": "Frozen reporter emits null for missing retry diagnostics; validator requires exact numeric zero for passing evidence.",
+      "status": "resolved"
+    },
+    {
+      "id": "DIAG-REVIEW-2",
+      "severity": "P2",
+      "description": "Initial failure manifests recorded zero skips/retries even when mandatory test evidence was unavailable or rejected.",
+      "resolution": "Test command counters start null and remain null when the process fails or evidence is invalid. Aggregate unknown counts propagate; actual-run regression covers successful versus nonzero process records.",
+      "status": "resolved"
+    },
+    {
+      "id": "DIAG-REVIEW-3",
+      "severity": "P3",
+      "description": "Retained warningCount and warnings are keyword-match observations and must not be represented as severity counts.",
+      "resolution": "Schema 3 documentation explicitly retains their historical observational semantics, introduces validation/policyViolations and raw output fields, and excludes keyword counts from release decisions.",
+      "status": "resolved"
+    },
+    {
+      "id": "DIAG-REVIEW-4",
+      "severity": "P3",
+      "description": "Structured evidence is produced by candidate-controlled test code and is not cryptographically authenticated against a hostile candidate.",
+      "resolution": "Accepted existing trust boundary: independently review the candidate and require exact payload binding. Invocation UUID and report checksum establish freshness/inspection, not adversarial authenticity. This task does not redesign release architecture.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Five purposeful review passes found and resolved two evidence-truthfulness defects and clarified legacy diagnostic semantics before candidate freeze. Independent malformed-evidence probes and formatting checks passed; exact payload was verified. Proceed to the authorized dedicated PR and one authoritative hosted certification attempt. Focused checks do not establish full release success; merge and deployment remain unauthorized."
+  }
+}
