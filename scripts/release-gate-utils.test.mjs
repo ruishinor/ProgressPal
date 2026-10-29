@@ -203,3 +203,258 @@ test(
     }
   },
 );
+import {
+  enforceCommandPolicy,
+  validateTestReport,
+  validateNodeTests,
+} from './release-gate-utils.mjs';
+import ReleaseReporter from './release-test-reporter.mjs';
+
+const successfulRecord = (text = '') => ({
+  label: 'probe',
+  exitCode: 0,
+  signal: null,
+  timedOut: false,
+  interrupted: false,
+  stdout: text,
+  stderr: text,
+});
+const validReport = () => ({
+  schemaVersion: 1,
+  invocation: 'current',
+  runner: 'vitest',
+  status: 'passed',
+  errors: 0,
+  expected: 1,
+  units: [
+    {
+      status: 'passed',
+      tests: [{ name: 'probe', status: 'passed', retries: 0 }],
+    },
+  ],
+});
+const reportPolicy = (report) => (record) =>
+  Object.assign(record, validateTestReport(report, 'current', 'vitest'));
+
+for (const title of [
+  'ignores a HUD read failure after the shell unmounts',
+  'handles an error correctly',
+  'warning is recorded',
+  'previous request failed and was recovered',
+  '2 skipped and 3 retries are parsed',
+  '',
+]) {
+  test(`decision permits passing description: ${title}`, async () => {
+    const text = `\u001b[33mstderr | file > ${title}\u001b[0m\nDexie: another connection wants to delete database\nWarning: advisory deprecation\n`;
+    const record = successfulRecord(text);
+    const report = validReport();
+    report.units[0].tests[0].name = title;
+    await enforceCommandPolicy(record, reportPolicy(report));
+    assert.equal(record.validation, 'passed');
+    assert.deepEqual(record.policyViolations, []);
+    assert.equal(record.stderr, text);
+  });
+}
+for (const [name, outcome] of Object.entries({
+  nonzero: { exitCode: 1 },
+  timeout: { timedOut: true },
+  interruption: { interrupted: true },
+  signal: { signal: 'SIGTERM' },
+  missingExit: { exitCode: null },
+})) {
+  test(`decision blocks ${name} despite harmless output`, async () => {
+    const record = { ...successfulRecord('All good'), ...outcome };
+    let validated = false;
+    await assert.rejects(
+      enforceCommandPolicy(record, () => {
+        validated = true;
+      }),
+    );
+    assert.equal(validated, false);
+    assert.equal(record.validation, 'failed');
+    assert.equal(record.policyViolations.length, 1);
+  });
+}
+for (const [name, mutate] of Object.entries({
+  stale: (r) => {
+    r.invocation = 'previous';
+  },
+  format: (r) => {
+    r.schemaVersion = 99;
+  },
+  failed: (r) => {
+    r.status = 'failed';
+  },
+  errors: (r) => {
+    r.errors = 1;
+  },
+  empty: (r) => {
+    r.units = [];
+  },
+  contradictory: (r) => {
+    r.expected = 2;
+  },
+  failedAssertion: (r) => {
+    r.units[0].tests[0].status = 'failed';
+  },
+  skipped: (r) => {
+    r.units[0].tests[0].status = 'skipped';
+  },
+  todo: (r) => {
+    r.units[0].tests[0].status = 'todo';
+  },
+  pending: (r) => {
+    r.units[0].tests[0].status = 'pending';
+  },
+  retry: (r) => {
+    r.units[0].tests[0].retries = 1;
+  },
+  missingRetry: (r) => {
+    delete r.units[0].tests[0].retries;
+  },
+})) {
+  test(`decision rejects ${name} report at exit zero`, async () => {
+    const report = validReport();
+    mutate(report);
+    const record = successfulRecord();
+    await assert.rejects(enforceCommandPolicy(record, reportPolicy(report)));
+    assert.equal(record.validation, 'failed');
+  });
+}
+test('missing and malformed mandatory evidence block and retain failure reason', async () => {
+  for (const policy of [
+    reportPolicy(undefined),
+    () => JSON.parse('{'),
+    () => {
+      throw new Error('audit security threshold exceeded');
+    },
+    () => {
+      throw new Error('release-critical lint warning');
+    },
+  ]) {
+    const record = successfulRecord();
+    await assert.rejects(enforceCommandPolicy(record, policy));
+    assert.equal(record.policyViolations.length, 1);
+  }
+});
+test('Node summary requires complete authoritative totals, unaffected by titles', () => {
+  const record = successfulRecord(
+    'ok 1 - 3 skipped failures\n# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n',
+  );
+  validateNodeTests(record);
+  assert.equal(record.testCount, 1);
+  assert.throws(() => validateNodeTests(successfulRecord('')));
+  assert.throws(() =>
+    validateNodeTests(
+      successfulRecord(record.stdout.replace('# skipped 0', '# skipped 1')),
+    ),
+  );
+});
+test('reporter adapters preserve failures, retries and unexecuted tests', () => {
+  const reporter = new ReleaseReporter();
+  let observed;
+  reporter.write = (value) => {
+    observed = value;
+  };
+  reporter.onTestRunStart([{}]);
+  reporter.onTestRunEnd(
+    [
+      {
+        state: () => 'passed',
+        children: {
+          allTests: () => [
+            {
+              fullName: 'warning is recorded',
+              result: () => ({ state: 'passed' }),
+              diagnostic: () => ({ retryCount: 1 }),
+            },
+          ],
+        },
+      },
+    ],
+    [],
+    'passed',
+  );
+  assert.equal(observed.units[0].tests[0].retries, 1);
+  reporter.onBegin(
+    {},
+    {
+      allTests: () => [
+        {
+          titlePath: () => ['unexecuted'],
+          results: [],
+          expectedStatus: 'passed',
+        },
+      ],
+    },
+  );
+  reporter.onEnd({ status: 'passed' });
+  assert.equal(observed.units[0].tests[0].status, 'incomplete');
+});
+import { runInNewContext } from 'node:vm';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+test('actual run records advisory success and authoritative failure truthfully', async () => {
+  const source = await readFile(
+    new URL('./run-release-gate.mjs', import.meta.url),
+    'utf8',
+  );
+  const body = source.slice(
+    source.indexOf('async function run('),
+    source.indexOf('\nasync function sha256('),
+  );
+  for (const code of [0, 1]) {
+    const records = [];
+    const text =
+      '\u001b[33mstderr | warning is recorded\u001b[0m\nDexie connection lifecycle';
+    const run = runInNewContext(`${body}; run`, {
+      COMMAND_TIMEOUT_MS: 5000,
+      ROOT: '.',
+      sanitizeEnvironment,
+      process,
+      interruptController: new AbortController(),
+      diagnosticLines,
+      enforceCommandPolicy,
+      commands: records,
+      cleanOutput: (value) => value.trim(),
+      runContainedCommand: async () => ({
+        code,
+        signal: null,
+        timedOut: false,
+        interrupted: false,
+        stdout: text,
+        stderr: text,
+      }),
+    });
+    const result = run(
+      'node',
+      [],
+      'unit and integration tests',
+      reportPolicy(validReport()),
+    );
+    if (code) await assert.rejects(result);
+    else await result;
+    assert.equal(records[0].rawStderr, text);
+    assert.equal(records[0].validation, code ? 'failed' : 'passed');
+    assert.equal(records[0].retryCount, code ? null : 0);
+    assert.equal(records[0].skipCount, code ? null : 0);
+    assert.equal(records[0].policyViolations.length, code ? 1 : 0);
+  }
+});
+test('report file cannot overwrite evidence from any earlier invocation', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'release-report-'));
+  const previous = process.env.RELEASE_TEST_REPORT;
+  try {
+    const path = join(directory, 'report.json');
+    process.env.RELEASE_TEST_REPORT = path;
+    await writeFile(path, 'previous evidence');
+    assert.throws(() => new ReleaseReporter().write({}), /EEXIST/);
+    assert.equal(await readFile(path, 'utf8'), 'previous evidence');
+  } finally {
+    if (previous === undefined) delete process.env.RELEASE_TEST_REPORT;
+    else process.env.RELEASE_TEST_REPORT = previous;
+    await rm(directory, { recursive: true });
+  }
+});

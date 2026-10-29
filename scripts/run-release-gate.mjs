@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { platform, release } from 'node:os';
 import { basename, join, relative, resolve } from 'node:path';
@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 import {
   diagnosticLines,
-  executionSummary,
+  enforceCommandPolicy,
+  validateTestReport,
+  validateNodeTests,
   runContainedCommand,
   sanitizeEnvironment,
 } from './release-gate-utils.mjs';
@@ -87,6 +89,7 @@ async function run(
   label,
   validate,
   timeoutMs = COMMAND_TIMEOUT_MS,
+  reportEnvironment = {},
 ) {
   const commandStartedAt = new Date();
   const inheritedEnvironment = sanitizeEnvironment(process.env);
@@ -96,6 +99,7 @@ async function run(
     executable,
     env: {
       ...inheritedEnvironment,
+      ...reportEnvironment,
       CI: 'true',
       NPM_CONFIG_UPDATE_NOTIFIER: 'false',
     },
@@ -107,7 +111,7 @@ async function run(
   const { stderr, stdout } = outcome;
 
   const warnings = diagnosticLines(stdout, stderr);
-  const summary = executionSummary(stdout, stderr);
+
   const record = {
     label,
     executable,
@@ -121,39 +125,25 @@ async function run(
     interrupted: outcome.interrupted,
     warningCount: warnings.length,
     warnings,
-    retryCount: summary.retryCount,
-    skipCount: summary.skipCount,
-    testCount: summary.testCount,
+    retryCount: label.includes('tests') ? null : 0,
+    skipCount: label.includes('tests') ? null : 0,
+    testCount: null,
+    diagnostics: [
+      {
+        source: 'stderr',
+        classification: 'advisory',
+        basis: 'process status and command validator determine release outcome',
+        text: stderr,
+      },
+    ],
+    rawStdout: stdout,
+    rawStderr: stderr,
     stdout: cleanOutput(stdout),
     stderr: cleanOutput(stderr),
   };
   commands.push(record);
 
-  if (outcome.timedOut) {
-    throw new Error(
-      label + ' exceeded its ' + String(timeoutMs) + ' ms deadline',
-    );
-  }
-  if (outcome.interrupted) {
-    throw new Error(label + ' was interrupted by ' + receivedSignal);
-  }
-  if (outcome.code !== 0 || outcome.signal !== null) {
-    throw new Error(
-      label + ' failed with exit ' + String(outcome.code ?? outcome.signal),
-    );
-  }
-  if (warnings.length > 0) {
-    throw new Error(label + ' emitted warning or stderr output');
-  }
-  if (summary.skipCount > 0) {
-    throw new Error(label + ' reported skipped, pending, or todo tests');
-  }
-  if (summary.retryCount > 0) {
-    throw new Error(label + ' reported retried tests');
-  }
-  if (validate !== undefined) {
-    validate(record);
-  }
+  await enforceCommandPolicy(record, validate);
 
   return record.stdout;
 }
@@ -203,7 +193,7 @@ const lockJson = JSON.parse(
   await readFile(resolve(ROOT, 'package-lock.json'), 'utf8'),
 );
 const manifest = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   module: moduleName,
   pass: passNumber,
   invocationArgs: args,
@@ -336,6 +326,20 @@ try {
     30_000,
   );
 
+  const invocation = randomUUID();
+  await mkdir(ARTIFACT_ROOT, { recursive: true });
+  const reportValidator = (runner) => async (record) => {
+    const path = resolve(ARTIFACT_ROOT, invocation + '-' + runner + '.json');
+    record.testCount = null;
+    record.skipCount = null;
+    record.retryCount = null;
+    record.testReport = { path: relative(ROOT, path), invocation };
+    const raw = await readFile(path, 'utf8');
+    record.testReport.sha256 = createHash('sha256').update(raw).digest('hex');
+    const report = JSON.parse(raw);
+    record.testReport.result = report;
+    Object.assign(record, validateTestReport(report, invocation, runner));
+  };
   const gate = [
     {
       executable: 'git',
@@ -391,10 +395,12 @@ try {
       executable: process.execPath,
       args: [
         '--test',
+        '--test-reporter=tap',
         'scripts/release-gate-utils.test.mjs',
         'scripts/release-review-binding.test.mjs',
       ],
       label: 'release gate unit tests',
+      validate: validateNodeTests,
     },
     {
       executable: process.execPath,
@@ -423,8 +429,13 @@ try {
     },
     {
       executable: process.execPath,
-      args: ['--test', 'scripts/bundle-budget-utils.test.mjs'],
+      args: [
+        '--test',
+        '--test-reporter=tap',
+        'scripts/bundle-budget-utils.test.mjs',
+      ],
       label: 'bundle budget unit tests',
+      validate: validateNodeTests,
     },
     {
       executable: process.execPath,
@@ -433,13 +444,28 @@ try {
     },
     {
       executable: process.execPath,
-      args: npmArgs(['run', 'test']),
+      args: npmArgs([
+        'run',
+        'test',
+        '--',
+        '--reporter=default',
+        '--reporter=./scripts/release-test-reporter.mjs',
+      ]),
       label: 'unit and integration tests',
+      runner: 'vitest',
+      validate: reportValidator('vitest'),
     },
     {
       executable: process.execPath,
-      args: npmArgs(['run', 'test:e2e']),
+      args: npmArgs([
+        'run',
+        'test:e2e',
+        '--',
+        '--reporter=list,./scripts/release-test-reporter.mjs',
+      ]),
       label: 'end-to-end tests',
+      runner: 'playwright',
+      validate: reportValidator('playwright'),
       timeoutMs: 83 * 60 * 1000,
     },
     {
@@ -471,6 +497,15 @@ try {
       command.label,
       command.validate,
       command.timeoutMs,
+      command.runner
+        ? {
+            RELEASE_TEST_INVOCATION: invocation,
+            RELEASE_TEST_REPORT: resolve(
+              ARTIFACT_ROOT,
+              invocation + '-' + command.runner + '.json',
+            ),
+          }
+        : {},
     );
   }
 
@@ -489,11 +524,17 @@ try {
     0,
   );
   manifest.totals.retryCount = commands.reduce(
-    (total, command) => total + command.retryCount,
+    (total, command) =>
+      total === null || command.retryCount === null
+        ? null
+        : total + command.retryCount,
     0,
   );
   manifest.totals.skipCount = commands.reduce(
-    (total, command) => total + command.skipCount,
+    (total, command) =>
+      total === null || command.skipCount === null
+        ? null
+        : total + command.skipCount,
     0,
   );
   await mkdir(ARTIFACT_ROOT, { recursive: true });
