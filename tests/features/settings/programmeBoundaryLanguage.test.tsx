@@ -54,7 +54,7 @@ describe('the Settings boundary card language', () => {
         name: 'Local-first and course boundary',
       }),
     ).toBeNull();
-    expect(within(card).getByText(/^Rangering, merker/)).toBeInTheDocument();
+    expect(within(card).queryByText(/^Rangering, merker/)).toBeNull();
     expect(words).not.toMatch(
       /\b(the|your|you|and|browser|device|account|analytics|uploaded|backup|storage)\b/i,
     );
@@ -78,5 +78,6 @@ describe('the Settings boundary card language', () => {
     ).closest('.card') as HTMLElement;
 
     expect(card.textContent).toContain('ProgressPal keeps your working data');
+    expect(within(card).getByText(/^RPG ranks, badges/)).toBeInTheDocument();
   }, 30_000);
 });

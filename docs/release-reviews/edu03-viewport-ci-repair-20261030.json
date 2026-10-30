@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "module": "edu03-viewport-ci-repair-20261030",
+  "reviewer": "GPT-6 (ChatGPT; owner-authorized technical/adversarial remediation review, not an independent human review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "95ded538825ae0a682bb176c387eb5236d28ee91",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "PR #55 EDU-03 narrow remediation: the first type() learning explanation was shortened while preserving the actual Python example, distinction between int and str, and existing answer IDs. Binding applies only to the exact corrected payload, and is not release certification.",
+    "evidence": [
+      "GitHub Final candidate run 41044222213 failed the existing 320x568 normal-text no-scroll browser contract after one lesson explanation grew from 104 to 274 characters.",
+      "The first Learn-card idea now has 100 characters (shorter than the original 104); source UX/UU example is unchanged.",
+      "The EDU-03 focused assertion was updated consistently; existing correct answers, cards, sources, XP and data remain untouched.",
+      "This recovery passed focused educational Vitest, TypeScript and Prettier plus the existing 320x568 Playwright full-card-state test using the repository-owned E2E runner. No full local release run."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "E-FIX-01",
+      "severity": "P2",
+      "description": "The instructional example overflowed the narrow viewport even though local educational tests passed.",
+      "resolution": "Shortened the single explanation, kept type() and actual interpreter output, and ran the exact 320x568 viewport browser regression.",
+      "status": "resolved"
+    },
+    {
+      "id": "E-FIX-02",
+      "severity": "P3",
+      "description": "The exact output contains Python class terminology not yet independently taught.",
+      "resolution": "The text labels it as the type; the existing exercise assesses int vs str. Avoided a larger curricular rewrite.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "E-FIX-03",
+      "severity": "P2",
+      "description": "Original same-conversation model review was not independent human review.",
+      "resolution": "Reviewer provenance retained, with owner-approved multidisciplinary review and a mandatory hosted gate.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped regression remediation and affected browser tests pass locally. The native GitHub Final candidate must still pass. Neither merge, deploy nor a waiver is authorized."
+  }
+}
