@@ -208,7 +208,7 @@ export const scrumSessions: readonly MicroSession[] = [
             label:
               'Salgssjefen, fordi salgssjefen har den høyeste stillingen av dem som er involvert i saken.',
             feedback:
-              'En høy stilling gir ikke rett til å bestemme rekkefølgen i produktbackloggen. Scrum Guide, den offisielle beskrivelsen av Scrum, sier at hele organisasjonen må respektere produkteierens beslutninger. Salgssjefen kan påvirke – ved å overbevise produkteieren.',
+              'En høy stilling gir ikke rett til å bestemme rekkefølgen i produktbackloggen. Scrum Guide (2020), den offisielle beskrivelsen av Scrum, sier at hele organisasjonen må respektere produkteierens beslutninger. Salgssjefen kan påvirke – ved å overbevise produkteieren.',
           },
         ],
         correctId: 'produkteier',
@@ -622,7 +622,7 @@ export const scrumSessions: readonly MicroSession[] = [
             label:
               'Funksjonen må vente til Sprint Review, fordi det er der interessentene godkjenner det teamet har laget i sprinten.',
             feedback:
-              'Sprint Review er et arbeidsmøte der teamet og interessentene ser på resultatet og diskuterer hva som bør skje videre. Det er ikke en godkjenning man må vente på. Scrum Guide, den offisielle beskrivelsen av Scrum, sier at Sprint Review aldri skal være en port for å levere verdi.',
+              'Sprint Review er et arbeidsmøte der teamet og interessentene ser på resultatet og diskuterer hva som bør skje videre. Det er ikke en godkjenning man må vente på. Scrum Guide (2020), den offisielle beskrivelsen av Scrum, sier at Sprint Review aldri skal være en port for å levere verdi.',
           },
           {
             id: 'alt',

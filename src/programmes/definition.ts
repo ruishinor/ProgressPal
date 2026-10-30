@@ -114,7 +114,7 @@ const terminologySchema = z
         insightsErrorDescription: nonEmptyString,
         rpgRequiredCompleteNote: nonEmptyString,
         rpgHeroProgressNote: nonEmptyString,
-        rpgCourseBoundary: nonEmptyString,
+        rpgCourseBoundary: nonEmptyString.optional(),
         settingsBoundaryTitle: nonEmptyString,
         settingsBoundaryText: nonEmptyString,
         officialResourceOpenLabel: nonEmptyString,
