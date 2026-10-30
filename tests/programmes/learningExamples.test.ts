@@ -12,7 +12,7 @@ describe('EDU-03 focused examples', () => {
     if (lesson?.kind !== 'learn') throw new Error('Missing type lesson');
     expect(lesson.idea).toContain('print(type(45))');
     expect(lesson.idea).toContain("<class 'int'>");
-    expect(lesson.idea).toContain('sjekke om verdien er tekst');
+    expect(lesson.idea).toContain('type() viser typen');
 
     const practice = typerOgInputSession.cards.find(
       (card) => card.id === 'typer-type-av',
