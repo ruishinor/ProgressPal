@@ -1700,7 +1700,7 @@ test.describe('«Utviklerblikk» at 360 x 560', () => {
       page
         .getByRole('list', { name: 'Velg et tema du vil øve på.' })
         .getByRole('button'),
-    ).toHaveCount(6);
+    ).toHaveCount(7);
     await activate(page, page.getByRole('button', { name: /^Generelt\b/ }));
     await expect(page).toHaveURL(`${trackPath}?kategori=generelt`);
     await expect(
