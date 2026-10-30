@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ActivityNarrativePanel } from '@/components/ui/ActivityNarrativePanel';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
@@ -28,7 +29,13 @@ import {
   type ActivityGoal,
   type ActivityUnit,
 } from '@/lib/domain/activity';
-import { RpgButton, RpgPanel, RpgProgressBar } from '@/features/rpg/components';
+import {
+  RpgAchievementArt,
+  RpgButton,
+  RpgPanel,
+  RpgProgressBar,
+} from '@/features/rpg/components';
+import { useRewardNotificationState } from '@/lib/rewards';
 
 import { ActivityIcon } from './ActivityIcon';
 import { useActivityLanguage, useActivityRead } from './useActivity';
@@ -57,6 +64,7 @@ export function ActivityPage() {
   const t = (no: string, en: string) => (nb ? no : en);
   const { data, error, today, retry } = useActivityRead(readActivityData);
   const { coordination, runLocalMutation } = useAppState();
+  const { narratives, dismissNarratives } = useRewardNotificationState();
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
   const [notice, setNotice] = useState<{ error: boolean; text: string } | null>(
@@ -523,6 +531,13 @@ export function ActivityPage() {
       >
         {notice?.text ?? (pending ? t('Lagrer…', 'Saving…') : '')}
       </p>
+      <ActivityNarrativePanel
+        notifications={narratives}
+        onDismiss={dismissNarratives}
+        renderArtwork={(achievementId) => (
+          <RpgAchievementArt achievementId={achievementId} />
+        )}
+      />
       {!coordination.canWrite && (
         <p role="note">
           {t(

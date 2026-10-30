@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import type { ActivityNarrativeNotification } from '@/lib/rewards';
 
@@ -16,10 +16,23 @@ export function ActivityNarrativePanel({
   onDismiss,
   renderArtwork,
 }: Props) {
+  const regionRef = useRef<HTMLDivElement>(null);
+  const newestId = notifications[notifications.length - 1]?.id ?? null;
+  const previousId = useRef(newestId);
+  useEffect(() => {
+    if (newestId !== null && newestId !== previousId.current) {
+      // In-flow visibility, not a floating surface or a focus-stealing modal.
+      regionRef.current?.scrollIntoView?.({ block: 'nearest' });
+    }
+    previousId.current = newestId;
+  }, [newestId]);
+
   if (notifications.length === 0) return null;
 
   return (
-    <aside
+    <div
+      role="group"
+      ref={regionRef}
       aria-label="New activity achievements"
       className="activity-narrative-region"
       data-testid="activity-narrative-panel"
@@ -65,6 +78,6 @@ export function ActivityNarrativePanel({
           ))}
         </ul>
       </div>
-    </aside>
+    </div>
   );
 }

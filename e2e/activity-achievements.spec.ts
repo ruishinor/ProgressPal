@@ -33,6 +33,16 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
     ),
   ).toBe(true);
   await expect(narrative).toBeVisible();
+  await expect(
+    page.locator('.activity-page').getByTestId('activity-narrative-panel'),
+  ).toBeVisible();
+  await expect(narrative).toHaveCSS('position', 'static');
+  await expect(narrative).toHaveAttribute('role', 'group');
+  const settingsTab = page.getByRole('tab', { name: 'Settings', exact: true });
+  await settingsTab.click();
+  await expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+  await expect(narrative).toContainText(approved.achievements[0].fiction);
+  await page.getByRole('tab', { name: 'Today', exact: true }).click();
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.screenshot({
     path: 'artifacts/activity-achievements/unlock-desktop-dark.png',
