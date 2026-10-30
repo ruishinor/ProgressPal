@@ -28,7 +28,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-01-kobling',
         title: 'To ulike ID-er',
         role: 'explain',
-        idea: 'En primærnøkkel er en verdi som identifiserer én rad, uten duplikater eller manglende verdi. I deltakere er kolonnen id primærnøkkelen.\nPåmeldingene ligger i en egen tabell, pameldinger. Hver påmelding har sin egen id. Kolonnen deltaker_id lagrer ID-en til personen som meldte seg på. Denne referansen kalles en fremmednøkkel. Flere påmeldinger kan vise til samme person.\nNotasjonen deltakere.id betyr «kolonnen id i tabellen deltakere». Påmeldingens id og deltakerens id identifiserer ulike ting.',
+        idea: 'En primærnøkkel er en verdi som identifiserer én rad, uten duplikater eller manglende verdi. I deltakere er kolonnen id primærnøkkelen.\nPåmeldingene ligger i en egen tabell, pameldinger. Hver påmelding har sin egen id. Kolonnen deltaker_id lagrer ID-en til personen som meldte seg på. Dette er en fremmednøkkel (foreign key) som viser til deltakere.id. Flere påmeldinger kan vise til samme person.\nNotasjonen deltakere.id betyr «kolonnen id i tabellen deltakere». Påmeldingens id og deltakerens id identifiserer ulike ting.',
         bridge:
           'Neste: Bruk deltaker_id for å finne personen bak påmelding 102.',
         source: {
