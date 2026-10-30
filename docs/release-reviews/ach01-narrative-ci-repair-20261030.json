@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "module": "ach01-narrative-ci-repair-20261030",
+  "reviewer": "GPT-6 (ChatGPT; owner-authorized technical/adversarial remediation review, not an independent human review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "c611cc3e8f89bec587fb1bd4e241af5f8199329a",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "PR #54 ACH-01 narrow remediation: existing exact-object database reward assertion updated to include the original approved Activity fiction emitted by deriveRewardEvents. No production or unlock change. Binding applies only to the exact corrected payload, and is not release certification.",
+    "evidence": [
+      "GitHub Final candidate run 41044213796 failed in unit/integration tests: tests/db/activityAchievements.test.ts expected a reward event without its newly authorized narrative property. The targeted 37-test set had missed this database consumer.",
+      "The exact toEqual expectation now explicitly includes the original Hello, Overworld! fiction from the approved achievement fixture; does not weaken to toMatchObject.",
+      "This recovery passed the directly affected database/reward Vitest tests, TypeScript and Prettier, plus focused Activity-achievements Playwright browser tests using the repository-owned E2E runner.",
+      "Original ACH-01 narrative implementation, persistence, unlock conditions, XP and review history remain unmodified. Full release suite remains unrun locally."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "C-FIX-01",
+      "severity": "P2",
+      "description": "A published event-shape change invalidated an exact-object assertion in the database integration layer, missed by the original targeted tests.",
+      "resolution": "Updated that exact assertion to include the approved narrative literal and executed the affected integration test.",
+      "status": "resolved"
+    },
+    {
+      "id": "C-FIX-02",
+      "severity": "P2",
+      "description": "The new persistent panel might cover controls on smaller viewports.",
+      "resolution": "Existing Activity achievement browser spec verified narrow layout, dismissal and gallery retrieval. Additional overlap/usability outside those checks remains an accepted risk rather than a fabricated exhaustive certification.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "C-FIX-03",
+      "severity": "P2",
+      "description": "Original same-conversation model review was not independent human review.",
+      "resolution": "Model provenance explicitly retained; owner permits proportionate combined review, with authoritative hosted candidate still required.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped regression remediation and affected browser tests pass locally. The native GitHub Final candidate must still pass. Neither merge, deploy nor a waiver is authorized."
+  }
+}

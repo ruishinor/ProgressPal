@@ -62,6 +62,8 @@ describe('atomic Activity awards on explicit entry saves only', () => {
         achievementId: 'activity-hello-overworld',
         title: 'Hello, Overworld!',
         message: 'Runlight lit. Adventure is now executing.',
+        narrative:
+          'Your character lights the Runlight Lantern and leaves the training hall as an adventurer.',
       },
     ]);
     const edited = await saveActivityEntry({ ...first, amount: 1 }, options);
