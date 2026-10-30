@@ -151,8 +151,9 @@ describe('Utviklerblikk content contract', () => {
       ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
     // A1 permits exactly two Scrum Guide edition clarifications.
-    // A2 changes Kanban content; normalize ONLY those two citation texts
-    // before checking the exact A2 first-24-session fingerprint.
+    // KAN-01 changes only K02's board teaching; its relationships and answers
+    // have dedicated behavioral checks. Retain this broader content freeze,
+    // normalizing only A1's two Scrum Guide edition clarifications.
     const serialized = JSON.stringify(track.sessions.slice(0, 24));
     const editionRef =
       'Scrum Guide (2020), den offisielle beskrivelsen av Scrum';
@@ -166,7 +167,7 @@ describe('Utviklerblikk content contract', () => {
           ),
         )
         .digest('hex'),
-    ).toBe('d536ebea1c58407e44bff95f49fc7882b60f6c1d18aa9270309faf7a16fcb6b5');
+    ).toBe('7bea5699d5e5c8beb9cde87c00e70b1d2d74d76bbea75ca0e996eb723b1297f7');
   });
 
   it('registers both incoming banks once, in category order, without replacing content', () => {

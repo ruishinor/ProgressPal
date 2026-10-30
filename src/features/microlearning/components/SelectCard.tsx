@@ -5,6 +5,7 @@ import type { MicroSelectCard } from '@/lib/domain';
 import { isOpen } from '../model';
 import { PracticeFrame } from './PracticeFrame';
 import { usePractice } from './usePractice';
+import { KanbanBoard } from './KanbanBoard';
 
 /**
  * Large options, one answer, immediate feedback. A wrong option stays marked
@@ -59,7 +60,9 @@ export function SelectCard({
       onNext={onNext}
       practice={practice}
       prompt={
-        card.code === undefined ? undefined : (
+        card.board ? (
+          <KanbanBoard board={card.board} />
+        ) : card.code === undefined ? undefined : (
           <figure className="micro-code">
             <pre>
               <code>{card.code}</code>
