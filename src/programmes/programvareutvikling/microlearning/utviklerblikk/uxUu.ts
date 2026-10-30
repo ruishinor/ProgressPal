@@ -345,7 +345,7 @@ export const uxUuSessions: readonly MicroSession[] = [
         id: 'tsu-ux-uu-u03-flere',
         title: 'Den samme informasjonen på flere måter',
         role: 'explain',
-        idea: 'En døv person får ikke tilgang til tale bare ved at lyden blir høyere. Teksting kan formidle tale og viktige lyder i en video. En skjermleser er et hjelpemiddel som formidler tekst og struktur som tale eller punktskrift, for eksempel til en blind person. Den lager ikke automatisk en forklaring på alt som bare finnes i et bilde.\nBehov varierer også mellom personer med samme funksjonsnedsettelse. Én vellykket test viser derfor ikke at alle får tilgang.',
+        idea: 'En døv person får ikke tilgang til tale bare ved at lyden blir høyere. Teksting kan formidle tale og viktige lyder i en video. En skjermleser er et hjelpemiddel som formidler tekst og struktur som tale eller punktskrift, for eksempel til en blind person. Den lager ikke automatisk en forklaring på alt som bare finnes i et bilde. Hvis en rutetabell bare er et bilde med «Avgang 08.30», må avgangstiden også finnes som lesbar tekst.\nBehov varierer også mellom personer med samme funksjonsnedsettelse. Én vellykket test viser derfor ikke at alle får tilgang.',
         bridge: 'Neste: Finn informasjonen som må være tilgjengelig uten lyd.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
