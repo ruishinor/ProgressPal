@@ -5,11 +5,20 @@ import type { RewardEvent } from '@/lib/rewards/rewardEvents';
 /** One queued reward presentation; `id` is unique per provider instance. */
 export type RewardNotification = RewardEvent & { readonly id: number };
 
+/** A newly earned Activity badge with its original, approved story text. */
+export type ActivityNarrativeNotification = Extract<
+  RewardNotification,
+  { kind: 'achievement' }
+> & { readonly narrative: string };
+
 export type RewardNotificationState = {
   /** The notification on screen, or null when the queue is empty. */
   readonly current: RewardNotification | null;
   /** Whether `current` is in its exit phase. */
   readonly leaving: boolean;
+  /** Readable, non-timed Activity stories; empty after dismissal or reload. */
+  readonly narratives: readonly ActivityNarrativeNotification[];
+  readonly dismissNarratives: () => void;
 };
 
 /**
@@ -31,7 +40,12 @@ export const RewardAnnouncerContext = createContext<AnnounceRewards | null>(
 );
 
 export const RewardNotificationStateContext =
-  createContext<RewardNotificationState>({ current: null, leaving: false });
+  createContext<RewardNotificationState>({
+    current: null,
+    leaving: false,
+    narratives: [],
+    dismissNarratives: () => undefined,
+  });
 
 /** The queue's announcer, or null outside a RewardNotificationProvider. */
 export function useRewardAnnouncer() {

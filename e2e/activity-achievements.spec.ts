@@ -20,15 +20,36 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
     .getByRole('button', { name: 'Save activity', exact: true })
     .click();
   const reward = page.getByTestId('reward-notice-region');
-  await expect(reward).toContainText('Hello, Overworld!');
-  await expect(reward).toContainText(
-    'Runlight lit. Adventure is now executing.',
-  );
+  const narrative = page.getByTestId('activity-narrative-panel');
+  await expect(narrative).toContainText('Hello, Overworld!');
+  await expect(narrative).toContainText(approved.achievements[0].fiction);
+  await expect(reward).toBeEmpty();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(narrative).toHaveCSS('animation-name', 'none');
+  await page.setViewportSize({ width: 320, height: 580 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await expect(narrative).toBeVisible();
+  await expect(
+    page.locator('.activity-page').getByTestId('activity-narrative-panel'),
+  ).toBeVisible();
+  await expect(narrative).toHaveCSS('position', 'static');
+  await expect(narrative).toHaveAttribute('role', 'group');
+  const settingsTab = page.getByRole('tab', { name: 'Settings', exact: true });
+  await settingsTab.click();
+  await expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+  await expect(narrative).toContainText(approved.achievements[0].fiction);
+  await page.getByRole('tab', { name: 'Today', exact: true }).click();
+  await page.setViewportSize({ width: 1280, height: 720 });
   await page.screenshot({
     path: 'artifacts/activity-achievements/unlock-desktop-dark.png',
     fullPage: true,
   });
-  await expect(reward).toBeEmpty();
+  await page.getByRole('button', { name: 'Dismiss stories' }).click();
+  await expect(narrative).toHaveCount(0);
   await page.getByLabel('Amount', { exact: true }).fill('1');
   await page
     .getByRole('button', { name: 'Save activity', exact: true })
@@ -45,7 +66,7 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
   await page
     .getByRole('button', { name: 'Save activity', exact: true })
     .click();
-  await expect(reward).toContainText('Merge Quest');
+  await expect(narrative).toContainText('Merge Quest');
   await page
     .getByRole('link', { name: 'Explore Activity achievements' })
     .click();
@@ -53,6 +74,9 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
     page.getByTestId('achievement-activity-merge-quest'),
   ).toHaveAttribute('data-unlocked', 'true');
   await expect(first).toHaveAttribute('data-unlocked', 'true');
+  await expect(
+    first.getByText(approved.achievements[0].fiction, { exact: true }),
+  ).toBeVisible();
   for (const row of approved.achievements) {
     const card = page.getByTestId(`achievement-${row.id}`);
     await expect(card).toContainText(row.name);
@@ -64,6 +88,7 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
   await page.reload();
   await expect(first).toHaveAttribute('data-unlocked', 'true');
   await expect(reward).toBeEmpty();
+  await expect(narrative).toHaveCount(0);
   await page.goto('/achievements');
   await expect(first).toHaveAttribute('data-unlocked', 'true');
   await expect(first.locator('img')).toHaveCount(0);

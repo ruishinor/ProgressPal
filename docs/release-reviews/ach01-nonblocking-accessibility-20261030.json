@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "ach01-nonblocking-accessibility-20261030",
+  "reviewer": "GPT-6 (ChatGPT; model-based technical and adversarial review; not independent human review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "9b5357498f2fb50428040c52a1512147cc6615bd",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "ACH-01 PR #54 accessibility correction atop master 6e9e830. In-flow Activity narrative remains unchanged in presentation and reward behavior except an aside nested inside the Activity landmark became a labelled group, preserving accessible name. Exact product commit: 491828db563d8629ff4e668f4cab03b02668feef. No A1/A2/E work reopened.",
+    "evidence": [
+      "Owner-provided C worktree log: 28/28 Activity/reward Vitest, format, lint and typecheck passed after merging production baseline locally. The Activity achievement E2E passed with in-flow narrative and clickable Settings. The 320px History totals browser test then failed the axe landmark-complementary-is-top-level rule because the relocated aside appeared inside another landmark.",
+      "The repair changes the nested aside to a labelled div role=group in-flow; a subsequent one-line TypeScript correction changes the ref type to HTMLDivElement to match that DOM node. Original award fiction, grouping, art, dismissal, focus, placement and history remain unchanged.",
+      "The existing failed History totals browser test performs an actual axe scan. The Activity achievements browser test now additionally asserts the named group and clicks Settings while the narrative is open.",
+      "The previous local source passed 24 Activity-related Vitest, formatting and lint. This exact final candidate passed TypeScript, Prettier for the one-line change, both targeted browser journeys including the original axe test, and bundle budget before committing. No full local certification was performed.",
+      "Local branch includes already released master as a merge ancestor, yet no write to master, deploy, or unrelated PR took place.",
+      "Authorship is the same ChatGPT conversation, not an independently performed human review. Hosted Final candidate remains required."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "ACH01-SEM-01",
+      "severity": "P2",
+      "description": "An aside moved inside Activity became an invalid nested complementary landmark and was rejected by axe.",
+      "resolution": "Use the labelled in-flow group; fix its TypeScript ref to HTMLDivElement; verify the previously failing axe browser test without suppressing it.",
+      "status": "resolved"
+    },
+    {
+      "id": "ACH01-SEM-02",
+      "severity": "P2",
+      "description": "Changing markup to satisfy axe could weaken accessibility semantics or break the unlock display.",
+      "resolution": "Keep named group, original accessible name, exact story contents, original interactive dismissal and browser unlock test; do not suppress axe.",
+      "status": "resolved"
+    },
+    {
+      "id": "ACH01-SEM-03",
+      "severity": "P2",
+      "description": "Model-authored review is not independent human review.",
+      "resolution": "Explicit provenance; authoritative GitHub hosted validation remains mandatory.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proportionate remediation and targeted browser/axe checks support one new draft PR candidate only. Full hosted CI is still required; no merging or deployment authorized."
+  }
+}

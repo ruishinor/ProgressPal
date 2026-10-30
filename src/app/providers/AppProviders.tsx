@@ -20,18 +20,20 @@ function renderAchievementArtwork(achievementId: string) {
 /**
  * The one reward notice presentation for Classic and RPG alike. It sits
  * outside the router, so route changes and data-epoch remounts never restart
- * or replay a notice. Badge artwork shows only on RPG routes (CSS), as on the
- * achievements surfaces.
+ * or replay a notice. The timed toast keeps its shell-specific artwork;
+ * Activity fiction is rendered in-flow on the Activity page, not over controls.
  */
 function RewardNotices() {
   const { current, leaving } = useRewardNotificationState();
 
   return (
-    <RewardNoticeRegion
-      leaving={leaving}
-      notification={current}
-      renderArtwork={renderAchievementArtwork}
-    />
+    <>
+      <RewardNoticeRegion
+        leaving={leaving}
+        notification={current}
+        renderArtwork={renderAchievementArtwork}
+      />
+    </>
   );
 }
 
