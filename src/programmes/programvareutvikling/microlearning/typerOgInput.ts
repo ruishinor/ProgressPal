@@ -31,7 +31,7 @@ export const typerOgInputSession: MicroSession = {
         lessonUnitIds: ['S1-M02-L04'],
         skillIds: ['SK-TYP-01'],
       },
-      idea: 'Hver verdi har en type. 45 er et heltall, men «45» i anførselstegn er tekst. Typen bestemmer hva + gjør.',
+      idea: "45 er heltall, «45» er tekst. + virker ulikt. type() viser typen: print(type(45)) gir <class 'int'>.",
       example: {
         code: 'print(3 + 4)\nprint("3" + "4")',
         note: 'Tall legges sammen: 7. Tekster settes sammen: 34.',

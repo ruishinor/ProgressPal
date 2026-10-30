@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "module": "a1-ui-copy-20261030",
+  "reviewer": "GPT-6 (ChatGPT; owner-authorized combined model review, not an independent human review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "94527b8e9b680993105e25f3e0db0dbea1396da4",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Owner-authorized multidisciplinary technical, learner-experience, accessibility and adversarial review of PR #52 A1 (UX-01, UX-02, EDU-06, DEV-02), head db12873c375ebbb5096d7410402460d182c99221. This review is model-authored in the implementation conversation; it does not assert independent human review.",
+    "evidence": [
+      "Reviewed all eight PR #52 file diffs; master baseline 35214e45b0b0ffdf2444e48934f3612b1468b087 and PR head db12873c375ebbb5096d7410402460d182c99221.",
+      "Redundant Programvareutvikling ranking disclosure removed; essential storage warning preserved; CS50x external-course disclaimer preserved and tested.",
+      "Shared Mål label already renders with strong emphasis; no edit needed. Two Scrum Guide (2020) clarifications leave content IDs and decisions unchanged.",
+      "The original 24-session content SHA-256 a821664d3910121bf9376984393596de7a99265240f408668cfccabf36f30ead remains required after normalizing exactly two approved guide annotations.",
+      "Confirmed separate database schema v5, review evidence v2, release manifest v3 and backup envelope format v1 contracts; no persistence/schema implementation modified.",
+      "Owner-provided isolated Windows transcript: 39+109 targeted Vitest tests passed; formatting, lint, typecheck, build and bundle-budget checks passed; JS gzip 465266/470000. Reviewer did not rerun tests.",
+      "GitHub Actions run 40980404377 failed before substantive product tests due solely to missing bound review evidence for payload tree 94527b8e9b680993105e25f3e0db0dbea1396da4.",
+      "Owner expressly approved combined model review instead of further owner/Codex review where no material ambiguity or blocker exists."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "A1-01",
+      "severity": "P2",
+      "description": "Removing a disclosure could inadvertently imply course-certified status or weaken storage warnings.",
+      "resolution": "Only the standalone programme redundant text was removed; CS50x disclaimer and truthful local-storage/backup copy remain; targeted tests passed.",
+      "status": "resolved"
+    },
+    {
+      "id": "A1-02",
+      "severity": "P2",
+      "description": "Optional course-boundary wording could be omitted for future externally affiliated programmes.",
+      "resolution": "The only current externally affiliated programme retains explicit copy and a test; future programme review must supply its own truthful disclosure.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "A1-03",
+      "severity": "P2",
+      "description": "Replacing a whole-content hash could inadvertently approve unrelated educational content drift.",
+      "resolution": "The original hash remains authoritative after precisely two normalized guide annotations; all other original content must hash-identically match.",
+      "status": "resolved"
+    },
+    {
+      "id": "A1-04",
+      "severity": "P2",
+      "description": "Combined model review is not independent human review.",
+      "resolution": "Reviewer provenance explicitly discloses this. The owner authorized this proportional method. Full native exact-payload CI validation remains mandatory and unchanged.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No P0/P1 or unresolved material findings. Accept the exact bound A1 payload for hosted certification under explicit owner-approved model-review policy. Do not merge or deploy until native Final candidate is green. No further owner or Codex review loop is requested."
+  }
+}

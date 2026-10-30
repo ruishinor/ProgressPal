@@ -496,7 +496,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       {isRpgVariant ? (
         <Card title={copy.settingsBoundaryTitle} titleAs="h2">
           <p className="card__description">{copy.settingsBoundaryText}</p>
-          <p className="card__description">{copy.rpgCourseBoundary}</p>
+          {copy.rpgCourseBoundary ? (
+            <p className="card__description">{copy.rpgCourseBoundary}</p>
+          ) : null}
         </Card>
       ) : null}
       {toast ? (

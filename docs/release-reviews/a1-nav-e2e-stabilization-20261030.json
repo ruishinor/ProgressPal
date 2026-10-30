@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "a1-nav-e2e-stabilization-20261030",
+  "reviewer": "GPT-6 (ChatGPT; owner-authorized multidisciplinary/adversarial model review; not an independent human)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "b9ab7f65c40c929f1b031fe25583889574d5cf03",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Test-only follow-up to A1 PR #52: replace a one-shot Playwright boundingBox assertion with bounded auto-retry; product commit 18d01baa6476cd918a0a2525a876b7733e8a600e. No application code, UI assertion geometry or release policy changed.",
+    "evidence": [
+      "Original A1 hosted run 40981457967: 3,533 unit/integration tests and other pre-E2E gates passed; E2E stopped at rpg-primary-nav-layout.spec.ts, 768px bounding box null.",
+      "Failure screenshot and trace show the Open Settings link visibly present immediately before transient missing geometry; 1024px/1280px tests interrupted under fail-fast rather than independent layout failures.",
+      "Changed only the shared box() helper within e2e/rpg-primary-nav-layout.spec.ts. Polls real boundingBox at most five seconds and retains all geometry assertions unchanged.",
+      "Local Prettier, ESLint, TypeScript and three targeted Playwright layout tests at three workers passed before committing this review.",
+      "Pre-existing A1 eight-file implementation and previous review evidence retained. Owner accepts model-based review and no additional Codex/human owner review for small evidence-supported changes.",
+      "Full authoritative hosted Final candidate certification is still required for the exact new synthetic merge before any production change."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "NAV-A1-1",
+      "severity": "P2",
+      "description": "Raw boundingBox may return null for transiently remounted accessible elements despite correct stable layout.",
+      "resolution": "Bounded expect.poll retries the same geometry lookup for at most five seconds; resulting x/y/size assertions remain unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "NAV-A1-2",
+      "severity": "P2",
+      "description": "A retry could mask a persistent missing navigation control.",
+      "resolution": "Absent or persistently nonmeasurable control still fails the test after five seconds, and the ordinary full CI gate remains authoritative.",
+      "status": "resolved"
+    },
+    {
+      "id": "NAV-A1-3",
+      "severity": "P3",
+      "description": "A locally passing three-worker focused test is not equivalent to comprehensive hosted certification.",
+      "resolution": "Explicitly preserve full hosted certification; do not claim complete PASS until GitHub Final candidate passes.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proportionate test reliability correction supported by actual failure screenshot, trace and targeted verification. Avoid suite-wide timeout increases, rerunning prior unit suites or weakening release safeguards."
+  }
+}

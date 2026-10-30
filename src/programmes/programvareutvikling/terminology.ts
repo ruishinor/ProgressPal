@@ -57,8 +57,6 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
       'Alle påkrevde økter er markert som fullført lokalt. Det betyr ikke at du har vist at du mestrer ferdighetene.',
     rpgHeroProgressNote:
       'Lokal framdrift i ProgressPal. Det er ikke en vurdering av hva du kan.',
-    rpgCourseBoundary:
-      'Rangering, merker og profiloppsummeringer er lokale ProgressPal-tolkninger. De er ikke vurdering, karakter eller vitnemål.',
     settingsBoundaryTitle: 'Lagring og framdrift',
     settingsBoundaryText:
       'ProgressPal lagrer arbeidet ditt i denne nettleseren, på denne enheten. Du trenger ikke konto for å lære, ingenting synkroniseres, og appen samler ikke inn bruksstatistikk. Den valgfrie eksterne sikkerhetskopien (Alpha) er manuell: ingen data lastes opp før du selv starter en sikkerhetskopi. Du, nettleseren eller enheten kan tømme lagringen i nettleseren, så lag en sikkerhetskopi før du tømmer data eller bytter enhet.',

@@ -69,9 +69,17 @@ async function openRoute(page: Page, route: { heading: string; path: string }) {
 }
 
 async function box(locator: Locator, label: string) {
-  const result = await locator.boundingBox();
+  let result: Awaited<ReturnType<Locator['boundingBox']>> = null;
 
-  expect(result, `${label} bounding box`).not.toBeNull();
+  await expect
+    .poll(
+      async () => {
+        result = await locator.boundingBox();
+        return result !== null;
+      },
+      { message: `${label} bounding box`, timeout: 5000 },
+    )
+    .toBe(true);
 
   return result!;
 }

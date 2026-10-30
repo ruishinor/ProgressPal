@@ -60,7 +60,8 @@ export type ProgrammeCopy = {
   readonly insightsErrorDescription: string;
   readonly rpgRequiredCompleteNote: string;
   readonly rpgHeroProgressNote: string;
-  readonly rpgCourseBoundary: string;
+  /** Optional external-course status disclosure; omitted for standalone programmes. */
+  readonly rpgCourseBoundary?: string;
   /** Heading and local-storage text of the RPG Settings boundary card. */
   readonly settingsBoundaryTitle: string;
   readonly settingsBoundaryText: string;
