@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "module": "a2-utviklerblikk-20261030",
+  "reviewer": "GPT-6 (ChatGPT; owner-authorized combined technical, pedagogical and adversarial review; not an independent human)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "4ba65efcb336854772b5dbb276802832125d6652",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "A2 bounded SQL/MySQL and Kanban content correction (EDU-02, KAN-02, KAN-05, KAN-06), exact product commit 3e2f2d0ea13d1be2388b5fafc02b832fe16d0ac4. Model review in same workstream, not an independent human review.",
+    "evidence": [
+      "Exact SQL/Kanban baseline blobs verified on master 35214e45b0b0ffdf2444e48934f3612b1468b087 before editing; applied one checked patch affecting only two content files.",
+      "SQL first-taught fremmednøkkel (foreign key) explicitly references deltakere.id; enforcement remains separately explained.",
+      "Kanban Guide (May 2025) Definition of Workflow, WIP control, explicit rules and SLE checked against kanbanguides.org/the-kanban-guide/2025.5/pdf/kanban-guide.v2025.5.en.pdf.",
+      "Corrected an unsupported K02 attribution that WIP must always sit at the limit; no changes to K01, K03 or K04.",
+      "K05 keeps all 20 cycle times (sum 126, mean 6.3), 17/20 at most eight days (85%), correct option ID sytten and card ID; replaces counting with interpretation and explicitly limits forecast certainty.",
+      "K06 uses conversational Bokmal for system-wide WIP and safe testing help, preserving the 11-task queue scenario, all correct answer IDs and risk-aware limitations.",
+      "Full first-24-session SHA-256 fingerprint repinned to d536ebea1c58407e44bff95f49fc7882b60f6c1d18aa9270309faf7a16fcb6b5 after exact-source patch; regression checks IDs, answer positions and K05/SQL semantics.",
+      "Local npm ci, targeted Vitest, Prettier, ESLint, TypeScript, Vite build and bundle-budget checks passed before this review evidence was committed. Full release suite not run locally.",
+      "No learner-state schema, persistence, XP, UI interaction, release gate, dependencies, or deployment logic changed.",
+      "Owner decision permits combined model review without additional owner or Codex review unless substantive risk or ambiguity requires escalation."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "A2-01",
+      "severity": "P2",
+      "description": "SLE exercise could incorrectly equate sample frequency with a guaranteed next-task deadline.",
+      "resolution": "Uses 17/20 empirical proportion, a conditional provisional SLE and explicit no-guarantee language; correct answer B/ID sytten retained.",
+      "status": "resolved"
+    },
+    {
+      "id": "A2-02",
+      "severity": "P2",
+      "description": "The previous K02 feedback attributed an always-at-WIP-limit rule to the Kanban Guide.",
+      "resolution": "Removed unsupported attribution; describes spare capacity and explicit team pull rules without requiring maximum utilization.",
+      "status": "resolved"
+    },
+    {
+      "id": "A2-03",
+      "severity": "P2",
+      "description": "Changing educational content could break progression or silently alter correct answers.",
+      "resolution": "Existing session/card IDs and correctId values retained; ACT18 answer-order tests and full-content hash re-pinned after exact baseline-blob check.",
+      "status": "resolved"
+    },
+    {
+      "id": "A2-04",
+      "severity": "P3",
+      "description": "K06 phrasing may obscure the difference between a column WIP limit and control across the whole workflow.",
+      "resolution": "Clarified total started-but-not-finished work and the distinction between a stage limit and system-wide control, without prescribing an unsupported fixed limit.",
+      "status": "resolved"
+    },
+    {
+      "id": "A2-05",
+      "severity": "P2",
+      "description": "Combined model review is not independent human review.",
+      "resolution": "Reviewer identity and limits explicitly disclosed. Owner approved proportionate combined review; exact-payload hosted certification remains mandatory.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No material blocker found in the bounded content patch. Accept for exact-payload hosted certification; no extra review loop, full local release run, merge or deployment is authorized."
+  }
+}
