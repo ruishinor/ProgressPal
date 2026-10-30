@@ -5,16 +5,18 @@ import { scrumSessions } from './utviklerblikk/scrum';
 import { sqlMysqlSessions } from './utviklerblikk/sqlMysql';
 import { smidigSamarbeidSessions } from './utviklerblikk/smidigSamarbeid';
 import { uxUuSessions } from './utviklerblikk/uxUu';
+import { teknologiSessions } from './utviklerblikk/teknologier';
 
 const ids = (sessions: readonly MicroSession[]) =>
   sessions.map((session) => session.id);
 
 /**
- * «Utviklerblikk»: a voluntary track in six categories. Generelt holds the
+ * «Utviklerblikk»: a voluntary track in seven categories. Generelt holds the
  * six activities below; Scrum, Kanban and Smidig samarbeid hold six each from
  * the finalized ACT 18 package (see `utviklerblikk/`). UX og universell
  * utforming adds six original activities (UXUU-U01–U06); SQL/MySQL adds
- * six database activities (SQL84-01–06).
+ * six database activities (SQL84-01–06). Teknologier og rammeverk adds
+ * five independent technology-choice activities (TEK-01–05).
  *
  * Generelt: six short activities about how
  * developers think before and around the code: need versus solution,
@@ -94,6 +96,12 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
       summary:
         'Øv på SQL: hent, endre og koble data. Forutsi resultater og finn feil.',
       sessionIds: ids(sqlMysqlSessions),
+    },
+    {
+      id: 'teknologier-og-rammeverk',
+      title: 'Teknologier og rammeverk',
+      summary: 'Forstå delene og velg etter behov.',
+      sessionIds: ids(teknologiSessions),
     },
   ],
   sessions: [
@@ -1162,5 +1170,6 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
     ...kanbanSessions,
     ...uxUuSessions,
     ...sqlMysqlSessions,
+    ...teknologiSessions,
   ],
 };

@@ -77,13 +77,13 @@ const withTrack = (value: MicroTrack): MicrolearningBank => ({
 });
 
 describe('the real Programvareutvikling bank', () => {
-  it('validates, with one track of 36 activities in six categories', () => {
+  it('validates, with one track of 41 activities in seven categories', () => {
     expect(findMicrolearningBankIssues(realBank, units)).toEqual([]);
     expect(realBank.tracks).toHaveLength(1);
-    expect(realBank.tracks![0]!.sessions).toHaveLength(36);
+    expect(realBank.tracks![0]!.sessions).toHaveLength(41);
     expect(
       realBank.tracks![0]!.categories!.map((entry) => entry.sessionIds.length),
-    ).toEqual([6, 6, 6, 6, 6, 6]);
+    ).toEqual([6, 6, 6, 6, 6, 6, 5]);
   });
 
   it('uses prose labels only on the ten conceptual matching cards', () => {

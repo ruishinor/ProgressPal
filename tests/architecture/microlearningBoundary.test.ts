@@ -68,8 +68,8 @@ const contract = load('src/lib/domain').filter(({ file }) =>
 describe('microlearning feature boundary', () => {
   it('finds the sources it guards', () => {
     expect(feature.length).toBeGreaterThanOrEqual(15);
-    // Seven bank files, four ACT 18 files, UX/UU and SQL/MySQL.
-    expect(bank.length).toBe(13);
+    // Seven bank files, four ACT 18 files, UX/UU, SQL/MySQL and technologies.
+    expect(bank.length).toBe(14);
     expect(contract).toHaveLength(1);
   });
 
