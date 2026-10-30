@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
+import { ActivityNarrativePanel } from '@/components/ui/ActivityNarrativePanel';
 import { RewardNoticeRegion } from '@/components/ui/RewardNotice';
 import { RpgAchievementArt } from '@/features/rpg';
 import { AppStateProvider } from '@/lib/appState';
@@ -20,18 +21,26 @@ function renderAchievementArtwork(achievementId: string) {
 /**
  * The one reward notice presentation for Classic and RPG alike. It sits
  * outside the router, so route changes and data-epoch remounts never restart
- * or replay a notice. Badge artwork shows only on RPG routes (CSS), as on the
- * achievements surfaces.
+ * or replay a notice. The timed toast keeps its shell-specific artwork;
+ * Activity fiction is presented with its badge in both shells.
  */
 function RewardNotices() {
-  const { current, leaving } = useRewardNotificationState();
+  const { current, leaving, narratives, dismissNarratives } =
+    useRewardNotificationState();
 
   return (
-    <RewardNoticeRegion
-      leaving={leaving}
-      notification={current}
-      renderArtwork={renderAchievementArtwork}
-    />
+    <>
+      <RewardNoticeRegion
+        leaving={leaving}
+        notification={current}
+        renderArtwork={renderAchievementArtwork}
+      />
+      <ActivityNarrativePanel
+        notifications={narratives}
+        onDismiss={dismissNarratives}
+        renderArtwork={renderAchievementArtwork}
+      />
+    </>
   );
 }
 

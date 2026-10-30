@@ -360,15 +360,18 @@ export function AchievementsSurface({
                 {activityAchievementData
                   .filter((row) => row.id === achievement.id)
                   .map((row) => (
-                    <details
-                      key={row.id}
-                      className="achievement-card__adventure"
-                      lang="en"
-                    >
-                      <summary>Requirements and reward</summary>
-                      <p>{row.condition}</p>
-                      <p>{row.fiction}</p>
-                    </details>
+                    <div key={row.id} lang="en">
+                      {achievement.unlocked ? (
+                        <p className="achievement-card__fiction">
+                          {row.fiction}
+                        </p>
+                      ) : null}
+                      <details className="achievement-card__adventure">
+                        <summary>Requirements and reward</summary>
+                        <p>{row.condition}</p>
+                        {!achievement.unlocked ? <p>{row.fiction}</p> : null}
+                      </details>
+                    </div>
                   ))}
               </Card>
             </li>

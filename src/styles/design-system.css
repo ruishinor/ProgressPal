@@ -1444,6 +1444,94 @@
   overflow-wrap: anywhere;
 }
 
+/* A readable, dismissible Activity story panel; only its own surface catches
+   pointer input. It never traps focus or reserves page layout space. */
+.activity-narrative-region {
+  pointer-events: none;
+  position: fixed;
+  right: max(var(--space-4), env(safe-area-inset-right, 0px));
+  top: max(5rem, env(safe-area-inset-top, 0px));
+  width: min(24rem, calc(100vw - 2rem));
+  z-index: 26;
+}
+
+.activity-narrative-panel {
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border);
+  border-top: 0.3rem solid var(--color-success);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+  max-height: min(55vh, 28rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3);
+  pointer-events: auto;
+}
+
+.activity-narrative-panel__header,
+.activity-narrative-panel__badge {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.activity-narrative-panel__header h2 {
+  font-size: var(--text-lg);
+}
+
+.activity-narrative-panel__summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin-block: var(--space-2);
+}
+
+.activity-narrative-panel__list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity-narrative-panel__item {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+}
+
+.activity-narrative-panel__badge {
+  justify-content: flex-start;
+}
+
+.activity-narrative-panel__badge h3 {
+  font-size: var(--text-base);
+}
+
+.activity-narrative-panel__art .rpg-achievement-art {
+  height: 3rem;
+  width: 3rem;
+}
+
+.activity-narrative-panel__item p,
+.achievement-card__fiction {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .activity-narrative-region {
+    left: var(--space-3);
+    right: var(--space-3);
+    width: auto;
+  }
+
+  .activity-narrative-panel {
+    max-height: min(38vh, 17rem);
+  }
+}
+
 @keyframes reward-notice-enter {
   from {
     opacity: 0;

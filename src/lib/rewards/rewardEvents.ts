@@ -30,6 +30,8 @@ export type RewardEvent =
       readonly achievementId: string;
       readonly title: string;
       readonly message?: string;
+      /** Approved story text, only for newly earned Activity achievements. */
+      readonly narrative?: string;
     };
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -112,7 +114,9 @@ export function deriveRewardEvents(
       // Unlocks come only from the active programme's definitions; the id is
       // a last-resort label so a genuine unlock is never dropped.
       title: activity?.name ?? definition?.title ?? unlock.achievementId,
-      ...(activity ? { message: activity.unlock } : {}),
+      ...(activity
+        ? { message: activity.unlock, narrative: activity.fiction }
+        : {}),
     });
   }
 

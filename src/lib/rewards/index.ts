@@ -3,6 +3,7 @@ export {
   useRewardAnnouncer,
   useRewardNotificationState,
   type AnnounceRewards,
+  type ActivityNarrativeNotification,
   type RewardNotification,
   type RewardNotificationState,
 } from '@/lib/rewards/RewardNotificationContext';

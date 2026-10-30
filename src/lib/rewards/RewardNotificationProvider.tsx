@@ -11,6 +11,7 @@ import {
   RewardAnnouncerContext,
   RewardNotificationStateContext,
   rewardNotificationTiming,
+  type ActivityNarrativeNotification,
   type RewardNotification,
 } from '@/lib/rewards/RewardNotificationContext';
 import type { RewardEvent } from '@/lib/rewards/rewardEvents';
@@ -18,13 +19,18 @@ import type { RewardEvent } from '@/lib/rewards/rewardEvents';
 /**
  * In-memory, first-in-first-out reward presentation queue. Events enter only
  * through the announcer (called once per committed award mutation); nothing
- * is persisted, so a reload starts empty and never replays. One notification
- * shows at a time; each leaves after the fixed timeline and the next follows.
+ * is persisted, so a reload starts empty and never replays. Non-Activity
+ * notices retain their original timeline. Activity fiction is grouped into
+ * one non-modal, manually dismissible reading panel instead of timed toasts.
  */
 export function RewardNotificationProvider({ children }: PropsWithChildren) {
   const nextIdRef = useRef(0);
   const [queue, setQueue] = useState<readonly RewardNotification[]>([]);
   const [leavingId, setLeavingId] = useState<number | null>(null);
+  const [narratives, setNarratives] = useState<
+    readonly ActivityNarrativeNotification[]
+  >([]);
+  const dismissNarratives = useCallback(() => setNarratives([]), []);
 
   const announce = useCallback((events: readonly RewardEvent[]) => {
     if (events.length === 0) {
@@ -36,7 +42,28 @@ export function RewardNotificationProvider({ children }: PropsWithChildren) {
       return { ...event, id: nextIdRef.current };
     });
 
-    setQueue((current) => [...current, ...notifications]);
+    const stories = notifications.filter(
+      (event): event is ActivityNarrativeNotification =>
+        event.kind === 'achievement' && typeof event.narrative === 'string',
+    );
+    if (stories.length > 0) {
+      setNarratives((current) => [
+        ...current,
+        ...stories.filter(
+          (story) =>
+            !current.some((item) => item.achievementId === story.achievementId),
+        ),
+      ]);
+    }
+    // A simultaneous Activity unlock is a single readable panel, not a
+    // procession of three-second toasts. Ordinary rewards are unchanged.
+    const transient = notifications.filter(
+      (event) =>
+        !(event.kind === 'achievement' && typeof event.narrative === 'string'),
+    );
+    if (transient.length > 0) {
+      setQueue((current) => [...current, ...transient]);
+    }
   }, []);
 
   const current = queue[0] ?? null;
@@ -67,7 +94,10 @@ export function RewardNotificationProvider({ children }: PropsWithChildren) {
   }, [currentId]);
 
   const leaving = current !== null && leavingId === current.id;
-  const state = useMemo(() => ({ current, leaving }), [current, leaving]);
+  const state = useMemo(
+    () => ({ current, leaving, narratives, dismissNarratives }),
+    [current, leaving, narratives, dismissNarratives],
+  );
 
   return (
     <RewardAnnouncerContext.Provider value={announce}>
