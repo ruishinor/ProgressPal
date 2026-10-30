@@ -235,7 +235,7 @@ export const kanbanSessions: readonly MicroSession[] = [
             label:
               'Teamet bør vente til alt som er i gang, er ferdig, før de starter noe nytt. Da blir det mest mulig ryddig.',
             feedback:
-              'Kanban Guide, den offisielle beskrivelsen av Kanban, sier at systemet helst verken skal ligge over eller under grensen. Når det er ledig plass, er det et signal om at teamet kan hente inn nytt arbeid. Å vente til alt er ferdig, gir unødvendig tomgang.',
+              'Det finnes ingen regel om at antallet oppgaver alltid må ligge på WIP-grensen. Her er det ledig plass og klare oppgaver, så teamet kan hente inn nytt arbeid innenfor grensen. Å vente til alt er ferdig kan gi unødvendig tomgang.',
           },
           {
             id: 'tre',
@@ -552,31 +552,38 @@ export const kanbanSessions: readonly MicroSession[] = [
       {
         kind: 'select',
         id: 'tsu-kanban-k05-sporsmal-1',
-        title: 'Tell oppgavene',
+        title: 'Hva sier tallene?',
         role: 'scaffold',
         source: k05,
         context:
-          'Syklustiden (antall dager) til teamets 20 siste oppgaver, sortert: 2 · 3 · 3 · 4 · 4 · 4 · 5 · 5 · 5 · 6 · 6 · 6 · 7 · 7 · 7 · 8 · 8 · 9 · 12 · 15. Gjennomsnittet er 6,3 dager.',
+          'Syklustiden til teamets 20 siste oppgaver (dager), sortert: 2 · 3 · 3 · 4 · 4 · 4 · 5 · 5 · 5 · 6 · 6 · 6 · 7 · 7 · 7 · 8 · 8 · 9 · 12 · 15. Gjennomsnittet er 6,3 dager. 17 av 20 tok 8 dager eller mindre; tre tok lengre tid.',
         question:
-          'Hvor mange av de 20 oppgavene ble ferdige på 8 dager eller mindre?',
+          'Hvilken tolkning gir en nyttig og ærlig tidsforventning (SLE)?',
         options: [
           {
             id: 'femten',
-            label: '15',
+            label:
+              '«Gjennomsnittet er 6,3 dager, så neste oppgave blir ferdig etter omtrent 6 dager.»',
             feedback:
-              '15 er antall oppgaver som tok mindre enn 8 dager. De to oppgavene som tok nøyaktig 8 dager, skal også telles med.',
+              'Et gjennomsnitt er ikke en frist for neste oppgave. Åtte av de 20 oppgavene tok mer enn 6,3 dager, og noen tok helt opp til 15 dager.',
           },
-          { id: 'sytten', label: '17' },
+          {
+            id: 'sytten',
+            label:
+              '«17 av 20 ble ferdige innen 8 dager fra start. Hvis nye oppgaver ligner, kan vi foreløpig forvente rundt 85 % innen 8 dager.»',
+          },
           {
             id: 'atten',
-            label: '18',
-            feedback: 'Da har du også telt med oppgaven som tok 9 dager.',
+            label:
+              '«Siden 85 % tok høyst 8 dager, kan vi love at neste oppgave blir ferdig innen 8 dager.»',
+            feedback:
+              '85 % beskriver disse 20 oppgavene, ikke en garanti for den neste. Tre av oppgavene tok 9, 12 og 15 dager.',
           },
         ],
         correctId: 'sytten',
-        hint: '«8 dager eller mindre» betyr at oppgavene som tok nøyaktig 8 dager, også skal telles med.',
+        hint: 'Se etter både tid og sannsynlighet. Hva kan teamet si uten å love for mye?',
         explanation:
-          '17 av 20 oppgaver tok 8 dager eller mindre. Det er 85 %. I dette utvalget ble 85 % ferdige på 8 dager eller mindre. Hvis nye oppgaver ligner, kan teamet bruke dette som en foreløpig tidsforventning, ikke en garanti.',
+          'I dette utvalget tok 17 av 20 oppgaver (85 %) høyst 8 dager fra start til ferdig. Det kan gi en foreløpig SLE: rundt 85 % innen 8 dager, hvis nye oppgaver ligner og teamet jobber omtrent som før. Med bare 20 observasjoner er anslaget usikkert, og det er ingen garanti for én bestemt oppgave.',
       },
       {
         kind: 'select',
@@ -663,7 +670,7 @@ export const kanbanSessions: readonly MicroSession[] = [
     summary: 'Finn årsaken før dere endrer reglene.',
     minutes: 6,
     takeaway:
-      'Når arbeid hoper seg opp, undersøk årsaken før dere endrer noe. At alle er travle, betyr ikke at mer blir ferdig.\nKontroller pågående arbeid fra start til ferdig, og sjekk etterpå om endringen hjalp.',
+      'Når arbeid hoper seg opp, undersøk årsaken før dere endrer noe. At alle er travle, betyr ikke at mer blir ferdig.\nHa kontroll på alt som er i gang fra start til ferdig, og sjekk etterpå om tiltaket hjalp.',
     cards: [
       {
         kind: 'learn',
@@ -671,7 +678,7 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Forbedre flyten i fire steg',
         role: 'explain',
         source: k06,
-        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. I Kanban – en måte å styre og forbedre arbeidsflyten på – kan teamet:\n1. Se hvor arbeidet venter.\n2. Undersøke hvorfor.\n3. Prøve en tydelig endring.\n4. Sjekke om den hjalp.\nWIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Kanban krever at teamet kontrollerer WIP fra start til ferdig, ikke bare i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
+        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. I Kanban kan teamet:\n1. Se hvor arbeidet venter.\n2. Undersøke hvorfor.\n3. Prøve en tydelig endring.\n4. Sjekke om den hjalp.\nWIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Teamet må ha kontroll på alt som er startet, men ikke ferdig – ikke bare det som ligger i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
         bridge: 'Neste: en lang kø før test.',
       },
       {
@@ -740,7 +747,7 @@ export const kanbanSessions: readonly MicroSession[] = [
           {
             id: 'hele-flyten',
             label:
-              'Avtale WIP-kontroll fra start til ferdig, og finne forsvarlige måter å avlaste testarbeidet på.',
+              'Bli enige om hvordan de skal ha kontroll på oppgavene fra start til ferdig, og hjelpe til med testing der det er faglig forsvarlig.',
           },
           {
             id: 'nora',
@@ -760,7 +767,7 @@ export const kanbanSessions: readonly MicroSession[] = [
         correctId: 'hele-flyten',
         hint: 'Hva skjer når nye oppgaver stadig startes, men testingen ikke rekker å få dem ferdige?',
         explanation:
-          'Kanban krever kontroll fra start til ferdig. Grensen på 3 gjelder bare Utvikling og kan ikke uten videre gjelde hele flyten. Teamet må velge og prøve en passende kontroll, hjelpe der det er forsvarlig, og undersøke resultatet. En ny grense fjerner ikke de 11 oppgavene som er i gang: Ligger WIP over grensen, må pågående arbeid bli ferdig før mer startes. Se deretter om kø og ventetid faktisk faller. Ingen bestemt grense eller effekt kan fastslås ut fra dette øyeblikksbildet.',
+          'Grensen på 3 gjelder bare Utvikling, ikke de 11 oppgavene som er startet totalt. Teamet kan for eksempel prøve en samlet WIP-grense, men må velge den ut fra egen kapasitet. De kan også avlaste testingen der det er faglig forsvarlig. En ny grense gjør ikke de 11 oppgavene ferdige: Hvis antallet i gang er over den nye grensen, må teamet få oppgaver ferdige før det starter flere. Følg med på om køen og ventetiden faktisk blir kortere. Tallene alene sier ikke hvilken grense som passer, eller om tiltaket vil virke.',
       },
       {
         kind: 'select',

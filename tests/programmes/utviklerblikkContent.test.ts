@@ -151,7 +151,8 @@ describe('Utviklerblikk content contract', () => {
       ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
     // A1 permits exactly two Scrum Guide edition clarifications.
-    // The original fingerprint still protects all other authored content.
+    // A2 changes Kanban content; normalize ONLY those two citation texts
+    // before checking the exact A2 first-24-session fingerprint.
     const serialized = JSON.stringify(track.sessions.slice(0, 24));
     const editionRef =
       'Scrum Guide (2020), den offisielle beskrivelsen av Scrum';
@@ -165,7 +166,7 @@ describe('Utviklerblikk content contract', () => {
           ),
         )
         .digest('hex'),
-    ).toBe('a821664d3910121bf9376984393596de7a99265240f408668cfccabf36f30ead');
+    ).toBe('d536ebea1c58407e44bff95f49fc7882b60f6c1d18aa9270309faf7a16fcb6b5');
   });
 
   it('registers both incoming banks once, in category order, without replacing content', () => {
@@ -418,6 +419,19 @@ describe('ACT 18: Scrum, Kanban and Smidig samarbeid', () => {
     },
   );
 
+  it('teaches SQL foreign keys and interprets the Kanban SLE without a guarantee', () => {
+    const foreignKey = card('tsu-sql-01-kobling', 'learn');
+    expect(foreignKey.idea).toContain('fremmednøkkel (foreign key)');
+    expect(foreignKey.idea).toContain('deltakere.id');
+
+    const sle = card('tsu-kanban-k05-sporsmal-1', 'select');
+    expect(sle.correctId).toBe('sytten');
+    expect(sle.context).toMatch(/17 av 20.*8 dager/);
+    expect(
+      sle.options.find((option) => option.id === sle.correctId)?.label,
+    ).toMatch(/85 % innen 8 dager/);
+    expect(sle.explanation).toMatch(/ingen garanti/);
+  });
   it('maps K04 and A04 with one unused choice that no pair needs', () => {
     const k04 = card('tsu-kanban-k04-ny', 'match');
     expect(k04.pairs.map((pair) => pair.right)).toEqual([
