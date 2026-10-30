@@ -5,14 +5,16 @@ export function ActivityIcon({
   activityId?: string;
   complete?: boolean;
 }) {
-  const icon = complete
-    ? 'complete'
-    : activityId &&
-        ['running', 'walking', 'pushups', 'squats', 'cycling'].includes(
-          activityId,
-        )
+  // Missing artwork uses the adjacent movement name. The Activity heart is
+  // reserved for the title/level, where no movement identity is supplied.
+  const movement =
+    activityId &&
+    ['running', 'walking', 'pushups', 'squats', 'cycling'].includes(activityId)
       ? activityId
-      : 'general';
+      : null;
+  if (!complete && activityId !== undefined && !movement) return null;
+
+  const icon = complete ? 'complete' : (movement ?? 'general');
   return (
     <span
       className="activity-icon"

@@ -4,6 +4,55 @@ import AxeBuilder from '@axe-core/playwright';
 import approved from '../tests/fixtures/activity-achievements-approved.json' with { type: 'json' };
 import { completeOnboarding } from './support/onboarding';
 
+test('legacy achievement cutouts preserve opaque centres and transparent uncropped surrounds offline', async ({
+  page,
+  context,
+}) => {
+  await completeOnboarding(page, { theme: 'light' });
+  await page.goto('/rpg/badges');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  await context.setOffline(true);
+  await page.reload();
+  for (const id of [
+    'first-step',
+    'scratch-initiate',
+    'pointer-survivor',
+    'python-shift',
+    'browser-builder',
+    'flask-route-maker',
+    'course-complete',
+    'data-structure-builder',
+    'query-builder',
+    'bug-hunter',
+    'final-project-mvp',
+    'final-project-shipped',
+  ]) {
+    const image = page.getByTestId(`achievement-${id}`).locator('img');
+    await expect(image).toHaveJSProperty('naturalWidth', 192);
+    await expect(image).toHaveCSS('object-fit', 'contain');
+    await expect(image).toHaveCSS('border-top-left-radius', '0px');
+    const alpha = await image.evaluate((image: HTMLImageElement) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(image, 0, 0);
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const at = (x: number, y: number) => data[(y * canvas.width + x) * 4 + 3];
+      const border = Array.from({ length: canvas.width }, (_, i) => [
+        at(i, 0),
+        at(i, canvas.height - 1),
+        at(0, i),
+        at(canvas.width - 1, i),
+      ]).flat();
+      return { borderClear: border.every((a) => a === 0), centre: at(96, 96) };
+    });
+    expect(alpha, id).toEqual({ borderClear: true, centre: 255 });
+  }
+});
+
 test('approved Activity awards: actual save, repeat, combination, persistence, Classic and offline artwork', async ({
   page,
   context,
@@ -22,6 +71,10 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
   const reward = page.getByTestId('reward-notice-region');
   const narrative = page.getByTestId('activity-narrative-panel');
   await expect(narrative).toContainText('Hello, Overworld!');
+  await expect(narrative.locator('img').first()).toHaveCSS(
+    'border-top-left-radius',
+    '0px',
+  );
   await expect(narrative).toContainText(approved.achievements[0].fiction);
   await expect(reward).toBeEmpty();
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -84,6 +137,7 @@ test('approved Activity awards: actual save, repeat, combination, persistence, C
     const img = card.locator('img');
     await expect(img).toHaveAttribute('alt', '');
     await expect(img).toHaveJSProperty('naturalWidth', 256);
+    await expect(img).toHaveCSS('border-top-left-radius', '0px');
   }
   await page.reload();
   await expect(first).toHaveAttribute('data-unlocked', 'true');

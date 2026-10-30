@@ -16,6 +16,11 @@ import {
   sha256,
 } from './c1VisualIdentity';
 
+// Explicit owner replacement, 2026-10-31: shield (2)'s compass, coloured like
+// shield (1), with alpha. All other original source identities stay pinned.
+const guildEmblemHash =
+  '9d8d10ec6708aa8de947825fd354611181a4f63d2ac494e7d9a5c12102b198ed';
+
 /**
  * Epic C / C1 evidence area 9 — visual SOURCE IDENTITY.
  *
@@ -38,7 +43,12 @@ function renderedArtFile(achievementId: string): string | null {
     <RpgAchievementArt achievementId={achievementId} />,
   );
   const image = container.querySelector('img');
-  const result = image === null ? null : identifyArtFile(image.src);
+  const src = image?.getAttribute('src');
+  const result = src?.startsWith('/assets/badges/')
+    ? src.slice('/assets/'.length)
+    : image === null
+      ? null
+      : identifyArtFile(image.src);
   unmount();
   return result;
 }
@@ -47,16 +57,17 @@ describe('C1 visual source identity (visual, identity only)', () => {
   it('hashes every RPG asset file to the committed baseline', () => {
     const hashes = hashRpgAssets();
     expect(Object.keys(hashes)).toHaveLength(17);
-    expect(hashes).toEqual(committedIdentity.assets);
+    expect(hashes).toEqual({
+      ...committedIdentity.assets,
+      'emblems/rpg-emblem-code-knights-primary.webp': guildEmblemHash,
+    });
   });
 
   it('maps every achievement to its committed badge file as rendered, with the fallback glyph', () => {
     // The frozen C1 identity baseline covers the original sixteen badges.
     // Activity achievements are validated by their own approved asset tests.
     const originalDefinitions = achievementDefinitions.filter(
-      (definition) =>
-        definition.ruleType !== 'physical_activity' &&
-        definition.id !== 'first-step',
+      (definition) => definition.ruleType !== 'physical_activity',
     );
     const mapping = Object.fromEntries(
       originalDefinitions.map((definition) => [
@@ -64,29 +75,24 @@ describe('C1 visual source identity (visual, identity only)', () => {
         renderedArtFile(definition.id),
       ]),
     );
-    const { 'first-step': originalFirstStep, ...originalArt } =
-      committedIdentity.badgeArt;
+    expect(mapping).toEqual(committedIdentity.badgeArt);
 
-    expect(originalFirstStep).toBe('badges/rpg-badge-first-step.webp');
-    expect(mapping).toEqual(originalArt);
-
-    // First Step now uses a static URL, retaining identical artwork bytes.
-    const { container: firstStepContainer, unmount: unmountFirstStep } = render(
-      <RpgAchievementArt achievementId="first-step" />,
-    );
-
-    expect(firstStepContainer.querySelector('img')?.getAttribute('src')).toBe(
-      '/assets/badges/rpg-badge-first-step.webp',
-    );
-    unmountFirstStep();
-
-    expect(
-      sha256(
-        readFileSync(
-          path.resolve('public/assets/badges/rpg-badge-first-step.webp'),
-        ),
-      ),
-    ).toBe(committedIdentity.assets['badges/rpg-badge-first-step.webp']);
+    // ACH-02: originals above stay byte-exact. Raster presentation now uses
+    // faithful alpha cutouts in the same-origin offline static set.
+    for (const [id, file] of Object.entries(committedIdentity.badgeArt)) {
+      if (!file.endsWith('.webp')) continue;
+      const { container, unmount } = render(
+        <RpgAchievementArt achievementId={id} />,
+      );
+      expect(container.querySelector('img')).toHaveAttribute(
+        'src',
+        `/assets/${file}`,
+      );
+      const exported = readFileSync(path.resolve('public/assets', file));
+      expect(exported.toString('ascii', 12, 16)).toBe('VP8X');
+      expect(exported[20]! & 0x10, `${id} must retain alpha`).toBe(0x10);
+      unmount();
+    }
 
     const { container } = render(
       <RpgAchievementArt achievementId="c1-unknown-achievement" />,
@@ -95,7 +101,7 @@ describe('C1 visual source identity (visual, identity only)', () => {
     expect(container.textContent).toBe(committedIdentity.fallbackGlyph);
   });
 
-  it('keeps the emblem file bytes unchanged', () => {
+  it('pins the owner-requested transparent gold compass emblem', () => {
     expect(
       sha256(
         readFileSync(
@@ -105,9 +111,7 @@ describe('C1 visual source identity (visual, identity only)', () => {
           ),
         ),
       ),
-    ).toBe(
-      committedIdentity.assets['emblems/rpg-emblem-code-knights-primary.webp'],
-    );
+    ).toBe(guildEmblemHash);
   });
 
   it('keeps the accepted dark RPG palette exactly under the app-wide dark theme', () => {

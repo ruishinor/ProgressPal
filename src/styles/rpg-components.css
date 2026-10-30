@@ -680,10 +680,10 @@
   width: 5rem;
   height: 5rem;
   grid-row: span 2;
-  border-radius: 50%;
   object-fit: contain;
 }
 .rpg-achievement-art--simple {
+  border-radius: 50%;
   display: grid;
   place-items: center;
   border: 3px double var(--rpg-border-strong);
@@ -1012,7 +1012,7 @@
   width: 1.5rem;
   height: 1.5rem;
   align-self: center;
-  mix-blend-mode: var(--rpg-emblem-blend);
+  object-fit: contain;
 }
 .rpg-identity--profile .rpg-identity__portrait {
   width: 7rem;
