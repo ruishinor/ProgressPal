@@ -1,4 +1,4 @@
-import type { MicroSession } from '@/lib/domain';
+import type { MicroKanbanBoard, MicroSession } from '@/lib/domain';
 
 import { source } from './source';
 
@@ -8,6 +8,47 @@ const k03 = source('K03');
 const k04 = source('K04');
 const k05 = source('K05');
 const k06 = source('K06');
+
+// One fictional board, before and after the same two tasks finish. The assessed
+// cards reuse these exact states rather than asking learners to remember a list.
+const festivalBefore: MicroKanbanBoard = {
+  title: 'Tavla til festivalappen · Før',
+  wipLimit: 4,
+  items: [
+    { id: 'kart', title: 'Kart over festivalområdet', status: 'ready' },
+    { id: 'forside', title: 'Ny forside', status: 'ready' },
+    {
+      id: 'sok',
+      title: 'Søk etter konserter',
+      status: 'active',
+      detail: 'Mira utvikler',
+    },
+    { id: 'billett', title: 'Billettkjøp', status: 'active', detail: 'I test' },
+    {
+      id: 'innlogging',
+      title: 'Innlogging med skolekonto',
+      status: 'active',
+      blocked: 'Venter på tilgangsnøkkel fra et annet team',
+    },
+    {
+      id: 'varsler',
+      title: 'Varsler',
+      status: 'active',
+      detail: 'Venter på kodegjennomgang',
+    },
+  ],
+};
+const festivalAfter: MicroKanbanBoard = {
+  ...festivalBefore,
+  title: 'Tavla til festivalappen · Etter',
+  change:
+    'Billettkjøp og Varsler: Pågår → Ferdig. Begge er nå testet og lagt ut i appen. Resten av tavla er uendret.',
+  items: festivalBefore.items.map((item) =>
+    item.id === 'billett' || item.id === 'varsler'
+      ? { ...item, status: 'done', detail: undefined }
+      : item,
+  ),
+};
 
 /** Utviklerblikk · Kanban: ACT 18 activities K01–K06, in authored order. */
 export const kanbanSessions: readonly MicroSession[] = [
@@ -167,10 +208,11 @@ export const kanbanSessions: readonly MicroSession[] = [
       {
         kind: 'learn',
         id: 'tsu-kanban-k02-situasjon',
-        title: 'Fire oppgaver i gang',
+        title: 'Les tavla til festivalappen',
         role: 'explain',
         source: k02,
-        idea: 'Et team lager en app for en musikkfestival. Teamet har denne avtalen, som står skrevet på tavla: «Maks 4 oppgaver mellom Startet og Ferdig. Blokkerte oppgaver teller med. Ingen unntak uten at hele teamet har blitt enige om det.»\nAkkurat nå er disse fire oppgavene i gang:\n• Søk etter konserter: utvikles av Mira.\n• Billettkjøp: ligger i test.\n• Innlogging med skolekonto: blokkert i tre dager – venter på en tilgangsnøkkel fra et annet team.\n• Varsler: venter på kodegjennomgang.\nUtvikleren Jonas har akkurat levert «Billettkjøp» til test og er ledig. Festivalen spør om Jonas kan begynne på «Kart over festivalområdet» i dag. Kartet er viktig, men det haster ikke.',
+        idea: 'Dette er et tenkt team som lager en festivalapp. Hvert kort er én oppgave. «Å gjøre» viser klare oppgaver som ikke er startet. Følg kortene fra venstre mot høyre, eller ovenfra og ned på mobil.',
+        board: festivalBefore,
         bridge: 'Neste: Hva bør Jonas gjøre?',
       },
       {
@@ -180,32 +222,31 @@ export const kanbanSessions: readonly MicroSession[] = [
         role: 'scaffold',
         source: k02,
         context:
-          'Avtalen på tavla: «Maks 4 oppgaver mellom Startet og Ferdig. Blokkerte oppgaver teller med. Ingen unntak uten at hele teamet har blitt enige om det.»\nFire oppgaver er i gang: Søk etter konserter (Mira utvikler), Billettkjøp (ligger i test), Innlogging (blokkert i tre dager, venter på en tilgangsnøkkel fra et annet team) og Varsler (venter på kodegjennomgang).\nJonas er ledig. Festivalen spør om Jonas kan begynne på kartet i dag. Kartet er viktig, men det haster ikke.',
+          'Jonas har levert Billettkjøp til test og er ledig. Festivalen ber ham starte kartet. Det haster ikke, og teamet har ikke avtalt noe unntak fra grensen.',
+        board: festivalBefore,
         question: 'Hva bør Jonas gjøre?',
         options: [
           {
             id: 'blokkert',
             label:
-              'Begynne på kartet. «Innlogging» er blokkert og blir ikke jobbet med, så i praksis er bare tre oppgaver i gang.',
+              'Starte kartet. Blokkert innlogging teller ikke som arbeid i gang.',
             feedback:
               'En blokkert oppgave er fortsatt startet og ikke ferdig. Avtalen sier dessuten rett ut at blokkerte oppgaver teller med. Ved å starte noe nytt i stedet for å løse blokkeringen, blir det bare enda mer som står halvferdig.',
           },
           {
             id: 'forslag',
-            label:
-              'Begynne på kartet. Festivalen har spurt, og WIP-grensen er uansett bare et forslag.',
+            label: 'Starte kartet. Festivalens ønske overstyrer grensen.',
             feedback:
               'I Kanban er grensen en avtale teamet har gjort sammen, ikke et forslag. Kartet haster ikke, og avtalen åpner bare for unntak hvis hele teamet blir enige om det. Å bryte grensen hver gang noen spør, gjør den meningsløs.',
           },
           {
             id: 'hjelpe',
             label:
-              'Vente med kartet og hjelpe det som allerede er i gang, for eksempel med tilgangsnøkkelen eller kodegjennomgangen.',
+              'Vente med kartet og hjelpe med tilgangsnøkkelen eller kodegjennomgangen.',
           },
           {
             id: 'flytte',
-            label:
-              'Flytte «Innlogging» tilbake til «Å gjøre» til nøkkelen kommer, slik at det blir plass til kartet.',
+            label: 'Flytte innlogging til «Å gjøre» for å få plass til kartet.',
             feedback:
               'Da ser tavla bedre ut, men virkeligheten er den samme: Arbeidet er startet og står fast. Tavla skal vise hvordan arbeidet faktisk går. Hvis blokkeringen blir skjult, er det enda mindre sannsynlig at noen løser den.',
           },
@@ -213,7 +254,7 @@ export const kanbanSessions: readonly MicroSession[] = [
         correctId: 'hjelpe',
         hint: 'Les avtalen på tavla en gang til. Hvor mange oppgaver er startet og ikke ferdige?',
         explanation:
-          'Grensen er nådd: Fire oppgaver er startet og ikke ferdige. Det beste Jonas kan gjøre, er å hjelpe arbeidet som allerede er i gang med å bli ferdig. Å få løst blokkeringen på «Innlogging» eller få «Varsler» gjennom kodegjennomgang gir plass til kartet raskere enn å starte en femte oppgave. WIP-grensen er ikke en regel for regelens skyld: Når den er nådd, er det et signal om at noe i arbeidsflyten trenger hjelp. Slik fungerer et pull-system: Nytt arbeid kommer inn når det er plass, ikke bare fordi noen spør.',
+          'Alle fire teller, også innloggingen som står fast og billettkjøpet som testes. Å starte kartet gir fem i gang. Jonas kan hjelpe med nøkkelen eller kodegjennomgangen. Å fjerne en blokkering frigjør ikke i seg selv en plass: Oppgaven må bli ferdig først.',
       },
       {
         kind: 'select',
@@ -222,25 +263,24 @@ export const kanbanSessions: readonly MicroSession[] = [
         role: 'application',
         source: k02,
         context:
-          'Noen dager senere er «Billettkjøp» og «Varsler» ferdige. Nå er det to oppgaver i gang, og grensen er fortsatt 4. Øverst i listen over klare oppgaver ligger «Kart over festivalområdet» og «Ny forside».',
+          'Noen dager senere har teamet gjort ferdig to oppgaver. Se hva som har flyttet seg på den samme tavla.',
+        board: festivalAfter,
         question: 'Hva betyr dette for teamet?',
         options: [
           {
             id: 'plass',
             label:
-              'Det er plass til mer arbeid. Teamet kan hente inn inntil to nye oppgaver fra toppen av listen over klare oppgaver.',
+              'Teamet kan hente kartet og deretter forsiden: inntil to nye oppgaver.',
           },
           {
             id: 'vente',
-            label:
-              'Teamet bør vente til alt som er i gang, er ferdig, før de starter noe nytt. Da blir det mest mulig ryddig.',
+            label: 'Teamet må vente til alle oppgavene i «Pågår» er ferdige.',
             feedback:
               'Det finnes ingen regel om at antallet oppgaver alltid må ligge på WIP-grensen. Her er det ledig plass og klare oppgaver, så teamet kan hente inn nytt arbeid innenfor grensen. Å vente til alt er ferdig kan gi unødvendig tomgang.',
           },
           {
             id: 'tre',
-            label:
-              'Teamet bør hente inn tre nye oppgaver, så de har litt å gå på hvis noe blir blokkert igjen.',
+            label: 'Teamet kan starte tre nye oppgaver for å ha noe i reserve.',
             feedback:
               'Da blir det fem oppgaver i gang, og grensen på 4 er brutt. Å starte mer arbeid «for sikkerhets skyld» er akkurat det WIP-grensen skal hindre.',
           },
@@ -248,7 +288,7 @@ export const kanbanSessions: readonly MicroSession[] = [
         correctId: 'plass',
         hint: 'WIP-grensen sier noe om både når du ikke skal starte noe, og når du kan starte noe.',
         explanation:
-          'WIP er nå lavere enn grensen. Det er et tydelig signal om at det er kapasitet, og teamet kan hente inn nytt arbeid – men ikke mer enn grensen tillater. Et pull-system virker begge veier: Når grensen er nådd, hjelper teamet arbeidet som allerede er i gang. Når det blir ledig plass, henter teamet inn nytt arbeid i den rekkefølgen de har blitt enige om.',
+          'Billettkjøp og Varsler har flyttet til «Ferdig». Bare Søk og Innlogging er fortsatt i gang: 4 − 2 = 2 ledige plasser. Teamet kan starte kartet og deretter forsiden, men trenger ikke fylle grensen. I en skoleavis kan samme regel hjelpe: Tell også en påbegynt artikkel som venter på intervju, og start en ny når det er plass.',
       },
     ],
   },

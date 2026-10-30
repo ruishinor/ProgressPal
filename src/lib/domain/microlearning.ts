@@ -57,6 +57,21 @@ export type MicroToken = {
   readonly name?: string;
 };
 
+/** A static board illustration, never a learner record or a new exercise kind. */
+export type MicroKanbanBoard = {
+  readonly title: string;
+  readonly wipLimit: number;
+  readonly change?: string;
+  readonly items: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly status: 'ready' | 'active' | 'done';
+    readonly detail?: string;
+    /** A reason, not a colour: blocked work remains active. */
+    readonly blocked?: string;
+  }[];
+};
+
 type MicroCardBase = {
   readonly id: string;
   /** Says what to DO ("Hva skrives ut?"), never just the topic. */
@@ -89,6 +104,7 @@ export type MicroLearnCard = MicroCardBase & {
   readonly role: 'explain';
   /** Plain text; a line break starts a new paragraph. */
   readonly idea: string;
+  readonly board?: MicroKanbanBoard;
   /**
    * Key words, each with a short plain explanation, shown after the idea with
    * the word in bold. Structured data rather than markup, so nothing in the
@@ -110,6 +126,7 @@ export type MicroLearnCard = MicroCardBase & {
 
 export type MicroSelectCard = MicroPracticeBase & {
   readonly kind: 'select';
+  readonly board?: MicroKanbanBoard;
   readonly code?: string;
   readonly options: readonly MicroOption[];
   readonly correctId: string;
@@ -474,6 +491,30 @@ function findCardShapeIssues(
   const label = `card "${card.id}"`;
   const issues: string[] = [];
   const unique = (ids: readonly string[]) => new Set(ids).size === ids.length;
+
+  if ((card.kind === 'learn' || card.kind === 'select') && card.board) {
+    const { title, wipLimit, items, change } = card.board;
+    if (
+      !track ||
+      title.trim() === '' ||
+      !Number.isSafeInteger(wipLimit) ||
+      wipLimit < 1 ||
+      items.length === 0 ||
+      !unique(items.map((item) => item.id)) ||
+      change?.trim() === '' ||
+      items.some(
+        (item) =>
+          item.id.trim() === '' ||
+          item.title.trim() === '' ||
+          !['ready', 'active', 'done'].includes(item.status) ||
+          item.detail?.trim() === '' ||
+          (item.blocked !== undefined &&
+            (item.blocked.trim() === '' || item.status !== 'active')),
+      )
+    ) {
+      issues.push(`${label} has an invalid track board`);
+    }
+  }
 
   switch (card.kind) {
     case 'learn':

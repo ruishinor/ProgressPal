@@ -2,6 +2,7 @@ import type { MicroLearnCard } from '@/lib/domain';
 
 import { ActionButton } from './ActionButton';
 import { CardFrame } from './CardFrame';
+import { KanbanBoard } from './KanbanBoard';
 
 /**
  * One bounded idea and, where the idea is code, a tiny example. A Learn card
@@ -30,6 +31,7 @@ export function LearnCard({
               {paragraph}
             </p>
           ))}
+          {card.board ? <KanbanBoard board={card.board} /> : null}
           {card.definitions?.map((entry) => (
             <p className="micro-card__text" key={entry.term}>
               <strong>{entry.term}:</strong> {entry.text}
