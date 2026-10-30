@@ -150,11 +150,20 @@ describe('Utviklerblikk content contract', () => {
     expect(track.categories?.[4]?.sessionIds).toEqual(
       ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
-    // Whole-data fingerprint at c7f04b8: every original title, card, answer,
-    // source, feedback and ordering remains identical, beyond identity checks.
+    // A1 permits exactly two Scrum Guide edition clarifications.
+    // The original fingerprint still protects all other authored content.
+    const serialized = JSON.stringify(track.sessions.slice(0, 24));
+    const editionRef =
+      'Scrum Guide (2020), den offisielle beskrivelsen av Scrum';
+    expect(serialized.split(editionRef)).toHaveLength(3);
     expect(
       createHash('sha256')
-        .update(JSON.stringify(track.sessions.slice(0, 24)))
+        .update(
+          serialized.replaceAll(
+            editionRef,
+            'Scrum Guide, den offisielle beskrivelsen av Scrum',
+          ),
+        )
         .digest('hex'),
     ).toBe('a821664d3910121bf9376984393596de7a99265240f408668cfccabf36f30ead');
   });

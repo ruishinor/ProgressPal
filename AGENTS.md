@@ -119,6 +119,8 @@ npm run verify:release
 
 Review evidence lives in `docs/release-reviews/<module>.json` (schema version 2) and applies only to the payload tree it names (the candidate's root tree without that directory). The gate discovers it by binding; it fails closed when none applies, so a stale, wrong-tree, malformed or post-review-modified candidate cannot pass. `RELEASE_REVIEW_FILE` and `--review-file` are rejected. Details and the file format are in `docs/ci.md`. Do not fabricate review evidence; the implementation session cannot supply the independent review.
 
+Version terms are independent: **database schema v5** (`src/lib/db/constants.ts`); **review evidence schema v2** (`docs/release-reviews/`); **release manifest schema v3** (`scripts/run-release-gate.mjs`); and **backup envelope format v1** (`src/lib/backup/envelope.ts`). A backup also carries a separate database `schemaVersion`. None of these is the application version.
+
 It runs `npm ci`, lint, format check, typecheck, build, bundle budget, unit tests, E2E, circular check, and `npm audit`, failing on any warning, skipped test, retried test, non-zero exit, or worktree change. Evidence JSON (with build and review-binding identity) is written to gitignored `artifacts/release-evidence/`. Do not run it mid-development; use the targeted commands above instead.
 
 ### CI (`.github/workflows/test.yml`)
@@ -148,7 +150,7 @@ Use concern-scoped commits and record status in `docs/CURRENT_STATE.md`. The old
 
 The security model is "local-only" (see `SECURITY.md`, `PRIVACY.md`, `docs/storage-safety.md`):
 
-- All user data lives in IndexedDB via Dexie (`src/lib/db/database.ts`, schema v4 since Epic E: the `learner_evidence` log and `lesson_positions` bookmark join the earlier stores, and every XP row is owned by one programme, E-SCHEMA-1A). No cookies or web storage for learner data; no server copy of anything.
+- IndexedDB via Dexie (`src/lib/db/database.ts`, schema v5) remains authoritative. Schema v5 adds four Activity stores to Epic E's v4 `learner_evidence` log and `lesson_positions` bookmark; XP rows remain programme-owned (E-SCHEMA-1A). No cookies or web storage for learner data. Optional manual remote backup, when enabled and explicitly invoked, is a copy rather than synchronization.
 - Cross-tab write safety lives in `src/lib/storage/`: a BroadcastChannel/storage-event coordination protocol makes extra tabs read-only; it is same-browser-profile coordination, not distributed locking, and adds no IndexedDB tables.
 - `public/sw.js` is a dependency-free, production-only offline service worker. It caches only same-origin static build assets (the boot set, the listed programme content at install, listed runtime files on first use, each with its exact type) and never touches IndexedDB. Keep it that way; after changing it, run the offline E2E project, because its unit harness cannot see every browser behaviour.
 - The production CSP (`vercel.json`, mirrored by the preview server) allows `'wasm-unsafe-eval'` only, for the packaged runtime's WebAssembly. Never add `'unsafe-eval'`, inline scripts or remote sources. Learner Python runs only in the dedicated worker, which removes its network and storage globals before learner code runs.
