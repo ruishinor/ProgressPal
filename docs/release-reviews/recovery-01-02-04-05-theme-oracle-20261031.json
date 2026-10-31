@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "module": "recovery-01-02-04-05-theme-oracle-20261031",
+  "reviewer": "OpenAI GPT-6 ChatGPT — source/evidence delta assessment and author of repair helper; not a human, a separate independent reviewer or a separate AI agent",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f44ed777a1b8a4adab8e593fa3838d813f6de2dc",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Bounded review of one test-only correction on top of PR #58's previously AI-reviewed source payload. The previous full review remains unchanged and applicable only to its original payload. This fresh decision authorizes HOSTED CERTIFICATION ONLY, not a merge or deployment. Owner explicitly authorized truthful AI review substitution; the assistant also authored this corrective script, so the delta assessment is not independently authored.",
+    "evidence": [
+      "PR #58 initial hosted Final candidate failed in job 124499625952 / run 41188299258 at e2e/rpg-app-theme.spec.ts:203: expected screen, observed normal on approved transparent Guild emblem",
+      "Hosted 3,576 unit/integration passed; 185 E2E passed; one failed; two interrupted; 114 not run. A previous PASS-named evidence manifest has status failed",
+      "Approved 2026-10-31 compass Guild emblem uses normal alpha composition in light and dark; docs/rpg-v2/ASSETS.md and src/styles/rpg-tokens.css document intent; no product file changed",
+      "Only e2e/rpg-app-theme.spec.ts test expectation and explanatory comment changed in delta",
+      "Targeted local production browser test: 10 passed (27.8s)",
+      "Normal CSS under dark theme was independently observed by the failed Chromium browser; entire hosted suite has not passed on revised payload",
+      "No new human learner testing or independent author/reviewer separation is claimed"
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "CI58-ORACLE",
+      "severity": "P2",
+      "description": "Legacy dark Guild Playwright expectation requires screen blending, contradicting the newly accepted transparent compass image's normal alpha composition.",
+      "resolution": "Updated only the dark-theme test to assert normal blending while retaining strict accepted dark palette assertions, plus a focused full-spec production-browser run.",
+      "status": "resolved"
+    },
+    {
+      "id": "CI58-INCOMPLETE",
+      "severity": "P2",
+      "description": "First hosted PR run stopped at one mismatch; two cases were interrupted and 114 were never executed.",
+      "resolution": "No broad PASS claim or test suppression: a new exact-payload hosted Final candidate run must complete and pass all required tests before a merge.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Smallest justified test-oracle correction, preserving application bytes, tests and CI policy. Ready for a new full hosted PR certification run only. Do not merge, deploy, bypass or treat prior failed run as green."
+  }
+}
