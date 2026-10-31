@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { uxUuSessions } from '@/programmes/programvareutvikling/microlearning/utviklerblikk/uxUu';
 import { sqlMysqlSessions } from '@/programmes/programvareutvikling/microlearning/utviklerblikk/sqlMysql';
+import { teknologiSessions } from '@/programmes/programvareutvikling/microlearning/utviklerblikk/teknologier';
 
 import {
   findMicrolearningBankIssues,
@@ -113,7 +114,7 @@ describe('Utviklerblikk content contract', () => {
     expect(track.sessions.slice(0, 6)).toEqual(generelt);
   });
 
-  it('keeps Generelt as accepted and adds UX/UU and SQL/MySQL after the four preserved categories', () => {
+  it('preserves the first six categories and appends technologies', () => {
     expect(
       track.categories?.map(({ id, title, summary }) => [id, title, summary]),
     ).toEqual([
@@ -131,6 +132,11 @@ describe('Utviklerblikk content contract', () => {
         'Databaser – SQL/MySQL',
         'Øv på SQL: hent, endre og koble data. Forutsi resultater og finn feil.',
       ],
+      [
+        'teknologier-og-rammeverk',
+        'Teknologier og rammeverk',
+        'Forstå delene og velg etter behov.',
+      ],
     ]);
     expect(track.categories?.[0]?.sessionIds).toEqual(
       identities.map(([id]) => id),
@@ -146,13 +152,14 @@ describe('Utviklerblikk content contract', () => {
         (id) => `tsu-kanban-${id}`,
       ),
     ]);
-    expect(track.sessions).toHaveLength(36);
+    expect(track.sessions).toHaveLength(41);
     expect(track.categories?.[4]?.sessionIds).toEqual(
       ['u01', 'u02', 'u03', 'u04', 'u05', 'u06'].map((id) => `tsu-ux-uu-${id}`),
     );
     // A1 permits exactly two Scrum Guide edition clarifications.
-    // A2 changes Kanban content; normalize ONLY those two citation texts
-    // before checking the exact A2 first-24-session fingerprint.
+    // KAN-01 changes only K02's board teaching; its relationships and answers
+    // have dedicated behavioral checks. Retain this broader content freeze,
+    // normalizing only A1's two Scrum Guide edition clarifications.
     const serialized = JSON.stringify(track.sessions.slice(0, 24));
     const editionRef =
       'Scrum Guide (2020), den offisielle beskrivelsen av Scrum';
@@ -166,12 +173,13 @@ describe('Utviklerblikk content contract', () => {
           ),
         )
         .digest('hex'),
-    ).toBe('d536ebea1c58407e44bff95f49fc7882b60f6c1d18aa9270309faf7a16fcb6b5');
+    ).toBe('7bea5699d5e5c8beb9cde87c00e70b1d2d74d76bbea75ca0e996eb723b1297f7');
   });
 
-  it('registers both incoming banks once, in category order, without replacing content', () => {
+  it('registers each bank once, in category order, without replacing content', () => {
     expect(track.sessions.slice(24, 30)).toEqual(uxUuSessions);
-    expect(track.sessions.slice(30)).toEqual(sqlMysqlSessions);
+    expect(track.sessions.slice(30, 36)).toEqual(sqlMysqlSessions);
+    expect(track.sessions.slice(36)).toEqual(teknologiSessions);
     const registered = track.categories!.flatMap(
       (category) => category.sessionIds,
     );

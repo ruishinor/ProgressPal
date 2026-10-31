@@ -37,7 +37,7 @@ const registrations = [
 
 describe('SQL/MySQL authored assessment contract', () => {
   it('registers exactly six complete activities after the preserved 24 and six UX/UU activities', () => {
-    expect(track.categories!.slice(5)).toEqual([
+    expect(track.categories!.slice(5, 6)).toEqual([
       {
         id: 'sql-mysql',
         title: 'Databaser – SQL/MySQL',
@@ -48,7 +48,7 @@ describe('SQL/MySQL authored assessment contract', () => {
         ),
       },
     ]);
-    expect(track.sessions.slice(30)).toEqual(sessions);
+    expect(track.sessions.slice(30, 36)).toEqual(sessions);
     for (const [index, session] of sessions.entries()) {
       expect(session.cards).toHaveLength([6, 6, 5, 6, 6, 6][index]!);
       expect(session.cards[0]!.kind).toBe('learn');

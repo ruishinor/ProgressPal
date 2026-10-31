@@ -200,9 +200,10 @@ test('a dark preference keeps the accepted dark RPG palette exactly', async ({
   await completeOnboarding(page, { theme: 'dark' });
   await openRpgHub(page);
   expectDarkRpg(await sampleRpgPalette(page));
+  // The approved transparent compass uses normal alpha composition in both themes.
   await expect(page.locator('.rpg-identity__guild img').first()).toHaveCSS(
     'mix-blend-mode',
-    'screen',
+    'normal',
   );
 });
 

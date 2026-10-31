@@ -533,7 +533,7 @@ describe('category navigation through the existing track route', () => {
   });
 
   it.each(track.categories!.slice(1).map((entry) => [entry.title, entry]))(
-    '%s lists exactly its own six activities in authored order',
+    '%s lists exactly its own activities in authored order',
     async (_title, category) => {
       await onboard();
       await activateProgramme2();
@@ -543,7 +543,9 @@ describe('category navigation through the existing track route', () => {
       });
 
       expect(
-        screen.getByText(`${category.title} · 6 aktiviteter`),
+        screen.getByText(
+          `${category.title} · ${category.sessionIds.length} aktiviteter`,
+        ),
       ).toBeInTheDocument();
       expect(
         within(list)

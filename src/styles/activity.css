@@ -301,6 +301,10 @@
 .activity-goal > .activity-icon {
   margin-top: 0.125rem;
 }
+.activity-goal > .rpg-progress-bar {
+  grid-column: 2;
+  grid-row: 1;
+}
 .activity-goal .rpg-progress-bar__helper {
   font-size: var(--text-base);
 }

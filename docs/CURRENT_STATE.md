@@ -1,5 +1,34 @@
 # ProgressPal current state
 
+**2026-10-31 ACH-02/ACH-03 — local visual corrections.** Branch
+`cx/ach-02-03-visual-fixes` starts at refreshed `origin/master` `5e12d057`.
+Twelve existing raster achievement illustrations now have transparent exterior
+surrounds, using the existing same-origin static badge/offline path; their
+original source files, award rules and unlock history are preserved. Circular
+image clipping is removed. The owner additionally requested the compass shield
+from supplied shield (2), coloured like supplied shield (1), as the shared Guild
+emblem; its transparent export uses normal composition in both themes.
+Unsupported movements, including Kickbacks, now use their existing names without
+the Activity-level heart. A movement-specific Kickbacks image remains blocked:
+the approved seven-icon pack contains no matching artwork. Schema, versions,
+progression, backup contracts and provider configuration are unchanged.
+Focused verification passes: 109 unit/integration tests, the six source-identity
+tests rechecked after the final emblem alpha adjustment, and 29 browser tests
+including the dedicated offline project. Lint, formatting, typecheck, build,
+bundle budgets, circular check and dependency audit pass. Light/dark captures
+cover 320/390/desktop and 100%/200% root text, with no measured horizontal
+overflow; root-text scaling is not physical-device/browser-zoom certification.
+One bounded self-review found no remaining implementation blocker; the missing
+Kickbacks artwork remains explicit. No independent release review, publication
+or production certification is claimed. Asset provenance: `docs/rpg-v2/ASSETS.md`;
+local before/after evidence: `artifacts/ach-02-03/`.
+
+**2026-10-31 KAN-01 — local board teaching, not release-certified.** Isolated `cx/kan-01-board-learning` starts at verified remote `master` `5e12d0572961758c06e78cf4c0965853d6d6e7da`. The existing Kanban activity `tsu-kanban-k02` now shows one fictional festival-app board before and after Billettkjøp and Varsler finish. Both existing Select decisions show their own state, the four-task limit, the blocked login task and the shared start/finish rules. Activity/card/answer IDs, progression, learner storage, XP, assets, schema and version are preserved. The only shared addition is an optional static board illustration on Learn/Select cards, validated for tracks; no new exercise engine or interaction is added. Focused regression: 286 tests in nine files pass. Five production browser cases pass, including all six Kanban activities at 360px, K02 at 320px/390px/desktop and 320px with 200% root text, keyboard/focus, axe, reduced motion and an offline reload. Root text scaling is a stress proxy, not native browser-zoom or physical-device certification. Lint, formatting, build, bundle, circular checks and audit pass (0 vulnerabilities); JavaScript gzip 466,603/470,000 B. Dependencies were reused through a local junction from an identical-lockfile worktree, with no installation. Ordinary `tsc -b` reports two inferred-type portability errors through that junction; both projects pass with `--preserveSymlinks --noEmit`. Synthetic screenshots are local in `artifacts/kan-01/`. Independent candidate-bound review remains required; no publication, release or provider change is claimed.
+
+**2026-10-31 EDU-04 — local implementation, independent acceptance pending.** `cx/edu-04-technologies` starts at verified remote `master` `5e12d0572961758c06e78cf4c0965853d6d6e7da`. Five independent Bokmål activities add **Teknologier og rammeverk** to the existing Utviklerblikk registry (41 activities, seven categories). Existing content, routes, schemas, transient answer handling, learner records, XP, backup and offline delivery contracts are preserved. Focused content/registry/app/browser checks, typecheck/build/bundle and audit pass; no release certification or formal content acceptance is claimed. Final JS gzip is **469,977/470,000 B**, leaving **23 B**; integration must remeasure. Scope, sources, exact checks and limits: [EDU-04 handoff](utviklerblikk-teknologier.md). Local commit only; no push, PR, merge, deployment or version change.
+
+**2026-10-31 DEV-01 — bounded copy-resilient evidence tests.** From clean `5e12d05`, `cx/dev-01-copy-resilient-tests` replaces prompt-substring exercise lookup in `tests/features/lessons/currentContentEvidence.test.tsx` with the existing numbered, named `group` roles. All eight tests retain their answer labels, result/retry, current-hash, history, checkpoint and once-per-task XP assertions. A temporary rendered-prompt rewrite (`Du endrer teksten i` → `Du gjør en tekstendring i`) reproduced the old selector failure and passed all eight revised tests; temporarily reversing `isCurrentEvidence` still failed on an incorrectly displayed stale result. Both source mutations were restored completely. The focused evidence/incorrect-feedback/learner-language run passed 320 tests; lint, formatting, typecheck, build and bundle checks passed. No application/content, persistence, dependency, CI or release-policy change. Browser/layout/offline checks and full release certification were not run for this test-only change. Local implementation self-review is not independent candidate-bound review; publication remains deferred until that evidence is available.
+
 **2026-10-29 Task A shadow preparation:** isolated `cx/release-reuse-shadow` from verified upstream `3be2fcbdf7fb46125fa84997eb875904660bc1bc` (B merged). Additive source binding and bounded passive reuse analysis preserve the single unconditional comprehensive `Final candidate` gate. No enforcement, merge or provider-setting change. Independent payload review and hosted PR certification precede owner-authorized installation; a real ordinary shadow release and separately reviewed activation remain required. Contract, feasibility sample, decision reasons and rollback: [release reuse](release-reuse.md).
 
 **2026-10-29 release diagnostic-policy correction:** dedicated `cx/release-diagnostic-policy` candidate from refreshed master `800e2c9`. Command outcomes and explicit validators govern release decisions; incidental text remains inspectable. Release-only structured test evidence preserves no-skip/no-retry enforcement. Focused verification and independent review are required before PR publication; no full local certification, merge or deployment is authorized by this task. Policy and manifest compatibility: `docs/ci.md`.
