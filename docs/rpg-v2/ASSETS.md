@@ -4,6 +4,32 @@ Status: active asset provenance ledger
 Location in repo: `docs/rpg-v2/ASSETS.md`  
 Scope: all RPG v2 visual assets used in source code or public app surfaces
 
+### Owner-authorized presentation correction, 2026-10-31
+
+ACH-02 removes the exterior dark matte from the twelve existing 192 px raster
+achievement illustrations. Their subjects, framing and original source files
+under `src/features/rpg/assets/badges/` are retained. Transparent WebP exports
+under `public/assets/badges/rpg-badge-*.webp` use the existing same-origin static
+badge renderer and service-worker install list; no circular CSS crop is applied.
+The four original SVGs and the already-transparent Activity/programme artwork
+are unchanged. The extraction changes exterior alpha, preserves enclosed dark
+paint, and cleans the matte at the boundary before WebP encoding.
+
+The owner also explicitly replaces the Guild emblem with
+`shield-badges/progress-pal-visual-asset-shield-badges (2).png` (compass shield),
+coloured using `shield-badges/progress-pal-visual-asset-shield-badges (1).png`
+(gold metal and dark blue field) as the palette reference. Both are owner-supplied
+files from `C:/00 DEV/Visual Layouts/ProgressPal-visual-assets/progresspal-visual-assets-library-categorized/`.
+Built-in image editing recolours the supplied compass and removes its exterior
+background. The production export replaces
+`src/features/rpg/assets/emblems/rpg-emblem-code-knights-primary.webp`:
+128 × 128, 5,514 B, SHA-256
+`9d8d10ec6708aa8de947825fd354611181a4f63d2ac494e7d9a5c12102b198ed`.
+The same decorative image remains statically inlined in the shared HUD/profile
+identity; normal alpha composition replaces the former screen-blend treatment.
+Guild, Class, Path, achievement definitions and unlock records are unchanged.
+The historical selections and measurements below describe their original dates.
+
 ---
 
 ## 1. Purpose

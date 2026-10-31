@@ -50,6 +50,58 @@ async function section(page: Page, name: 'Today' | 'History' | 'Settings') {
   await page.getByRole('tab', { name, exact: true }).click();
   await expect(page.getByRole('tabpanel', { name, exact: true })).toBeVisible();
 }
+test('movements without approved artwork retain names and history without the Activity heart', async ({
+  page,
+}) => {
+  await openActivity(page);
+  await section(page, 'Settings');
+  const customName = 'Rolig bevegelse';
+  await page.getByLabel('Activity name', { exact: true }).fill(customName);
+  await page.getByRole('button', { name: 'Add activity', exact: true }).click();
+  for (const name of ['Kickbacks', customName]) {
+    await page
+      .getByLabel('Goal activity', { exact: true })
+      .selectOption({ label: name });
+    await page.getByLabel('Repetitions per day', { exact: true }).fill('10');
+    await page.getByRole('button', { name: 'Add goal', exact: true }).click();
+    await expect(page.locator('.activity-feedback')).toHaveText('Goal saved.');
+  }
+  await section(page, 'Today');
+  for (const name of ['Kickbacks', customName]) {
+    const goal = page.getByRole('listitem', { name, exact: true });
+    await expect(
+      goal.getByRole('progressbar', { name, exact: true }),
+    ).toBeVisible();
+    await expect(goal.locator('.activity-icon')).toHaveCount(0);
+  }
+  await page
+    .getByLabel('Activity type', { exact: true })
+    .selectOption('kickbacks');
+  await log(page, '7');
+  await section(page, 'History');
+  const entry = page
+    .getByRole('tabpanel', { name: 'History', exact: true })
+    .locator('.activity-list > li')
+    .filter({ hasText: '7 repetitions' });
+  await expect(entry).toContainText('Kickbacks');
+  await entry.getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(page.getByLabel('Activity type', { exact: true })).toHaveValue(
+    'kickbacks',
+  );
+  await log(page, '8');
+  await page.reload();
+  await section(page, 'History');
+  await expect(
+    page
+      .getByRole('tabpanel', { name: 'History', exact: true })
+      .locator('.activity-list > li')
+      .filter({ hasText: '8 repetitions' }),
+  ).toContainText('Kickbacks');
+  await expect(
+    page.locator('.activity-goal [data-activity-icon="general"]'),
+  ).toHaveCount(0);
+});
+
 test('individual entries, correction, deletion, goals, navigation and backup preserve saved Activity', async ({
   page,
 }) => {

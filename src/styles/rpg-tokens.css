@@ -25,8 +25,8 @@ body.rpg-route-active {
   --rpg-nav-ring: rgb(236 241 245 / 0.72);
   --rpg-track: rgba(27, 36, 48, 0.08);
   --rpg-overlay: rgba(22, 31, 39, 0.6);
-  /* The guild emblem is opaque art on black: screen drops the black on the
-     night canvas; on the light canvas it would wash the emblem out. */
+  /* Legacy palette token retained; the transparent compass emblem now uses
+     normal composition in both themes, without this former workaround. */
   --rpg-emblem-blend: normal;
 }
 

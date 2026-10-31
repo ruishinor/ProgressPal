@@ -3,6 +3,41 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
+test('guild compass retains transparent surrounds and original colours in both themes and offline', async ({
+  page,
+  context,
+}) => {
+  await completeOnboarding(page);
+  await page.goto('/rpg/hero');
+  const emblem = page.locator(
+    '.rpg-identity--profile .rpg-identity__guild img',
+  );
+  await expect(emblem).toHaveAttribute('alt', '');
+  await expect(emblem).toHaveJSProperty('naturalWidth', 128);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(
+      `document.documentElement.setAttribute('data-theme','${theme}')`,
+    );
+    await expect(emblem).toHaveCSS('mix-blend-mode', 'normal');
+    await expect(emblem).toHaveCSS('object-fit', 'contain');
+    expect(
+      await page.evaluate(`(() => {
+      const img = document.querySelector('.rpg-identity--profile .rpg-identity__guild img');
+      const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+      const pixels = ctx.getImageData(0, 0, 128, 128).data;
+      return { corner: pixels[3], centre: pixels[(64 * 128 + 64) * 4 + 3] };
+    })()`),
+    ).toEqual({ corner: 0, centre: 255 });
+  }
+  await page.evaluate('navigator.serviceWorker.ready');
+  await page.reload();
+  await page.waitForFunction('navigator.serviceWorker.controller !== null');
+  await context.setOffline(true);
+  await page.reload();
+  await expect(emblem).toHaveJSProperty('naturalWidth', 128);
+});
+
 // Browser globals for code that runs in the page (the E2E project has no DOM lib).
 declare function getComputedStyle(element: unknown): {
   color: string;

@@ -1,5 +1,28 @@
 # ProgressPal current state
 
+**2026-10-31 ACH-02/ACH-03 — local visual corrections.** Branch
+`cx/ach-02-03-visual-fixes` starts at refreshed `origin/master` `5e12d057`.
+Twelve existing raster achievement illustrations now have transparent exterior
+surrounds, using the existing same-origin static badge/offline path; their
+original source files, award rules and unlock history are preserved. Circular
+image clipping is removed. The owner additionally requested the compass shield
+from supplied shield (2), coloured like supplied shield (1), as the shared Guild
+emblem; its transparent export uses normal composition in both themes.
+Unsupported movements, including Kickbacks, now use their existing names without
+the Activity-level heart. A movement-specific Kickbacks image remains blocked:
+the approved seven-icon pack contains no matching artwork. Schema, versions,
+progression, backup contracts and provider configuration are unchanged.
+Focused verification passes: 109 unit/integration tests, the six source-identity
+tests rechecked after the final emblem alpha adjustment, and 29 browser tests
+including the dedicated offline project. Lint, formatting, typecheck, build,
+bundle budgets, circular check and dependency audit pass. Light/dark captures
+cover 320/390/desktop and 100%/200% root text, with no measured horizontal
+overflow; root-text scaling is not physical-device/browser-zoom certification.
+One bounded self-review found no remaining implementation blocker; the missing
+Kickbacks artwork remains explicit. No independent release review, publication
+or production certification is claimed. Asset provenance: `docs/rpg-v2/ASSETS.md`;
+local before/after evidence: `artifacts/ach-02-03/`.
+
 **2026-10-29 Task A shadow preparation:** isolated `cx/release-reuse-shadow` from verified upstream `3be2fcbdf7fb46125fa84997eb875904660bc1bc` (B merged). Additive source binding and bounded passive reuse analysis preserve the single unconditional comprehensive `Final candidate` gate. No enforcement, merge or provider-setting change. Independent payload review and hosted PR certification precede owner-authorized installation; a real ordinary shadow release and separately reviewed activation remain required. Contract, feasibility sample, decision reasons and rollback: [release reuse](release-reuse.md).
 
 **2026-10-29 release diagnostic-policy correction:** dedicated `cx/release-diagnostic-policy` candidate from refreshed master `800e2c9`. Command outcomes and explicit validators govern release decisions; incidental text remains inspectable. Release-only structured test evidence preserves no-skip/no-retry enforcement. Focused verification and independent review are required before PR publication; no full local certification, merge or deployment is authorized by this task. Policy and manifest compatibility: `docs/ci.md`.
