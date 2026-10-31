@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "module": "integration-01-visuals-20261031",
+  "reviewer": "Independent Codex review agent /root/review_01; evidence authored in reviewer response and recorded by integration agent /root",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "b1dd7060c66d9729697d29e90e1e99a18f89fe5f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of the entire ACH-02/ACH-03 visual-correction candidate 5079ae865dd0cde9da0d5f8b67ed8e939e08320f against baseline 5e12d0572961758c06e78cf4c0965853d6d6e7da: twelve raster badge cutouts and renderer URLs, owner-requested compass emblem, movement icon fallback, affected CSS, complete changed tests and documentation, same-origin static/offline asset delivery and preservation of achievement, Activity, persistence and backup contracts. No product changes were authored by this reviewer.",
+    "evidence": [
+      "Reviewer independently inspected the complete text diff and all changed path families, RpgAchievementArt consumers in RPG badges, Hero, Activity and shared reward composition, ActivityIcon consumers and goal layout, and the actual service-worker install and fetch implementation.",
+      "Reviewer visually inspected source artifacts extraction-comparison.png for all twelve badge cutouts, guild-native-sizes.png for the compass in both theme backgrounds, and after-movements-light-320-200.png for unsupported movement labels and enlarged-text reflow. Reviewer also inspected source extraction metadata, guild-emblem hash metadata and rendered size/overflow measurements. These source artifacts support visual review and are not independently generated certification evidence.",
+      "Reviewer confirmed that the twelve same-origin raster renderer URLs have shipped public files and explicit service-worker install entries; original source badge files remain preserved. The compass replacement is pinned by SHA-256 9d8d10ec6708aa8de947825fd354611181a4f63d2ac494e7d9a5c12102b198ed.",
+      "Integration agent /root reported verification on the unchanged exact candidate: lint, native TypeScript project build, production build and bundle checks exit 0; JavaScript gzip 412470/470000 bytes and largest raw JavaScript chunk 420931/500000 bytes.",
+      "Integration agent /root reported the focused four-file unit verification: tests/features/rpg/activityIcon.test.tsx, tests/architecture/serviceWorker.test.ts, tests/lib/serviceWorkerCache.test.ts and tests/preservation/c1VisualIdentity.test.tsx; 55/55 tests across four files passed, exit 0.",
+      "Integration agent /root reported three new visual browser tests passed and the complete required offline project passed 7/7, exit 0, on the unchanged candidate.",
+      "Integration agent /root computed the exact payload with the repository's scripts/review-payload-tree.mjs consumer and confirmed a clean candidate. Reviewer's own binding-test attempt failed because the sandbox denied temporary Git writes; the escalated retry was interrupted, so it is not counted as a passing check.",
+      "This review is independent AI code and visual review, not human beginner testing, full hosted release certification or evidence of production deployment."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "R01-1",
+      "severity": "P2",
+      "description": "Moving twelve raster badge images from inlined JavaScript to public static URLs would break offline rendering if any URL, shipped file or service-worker install entry were missing or mismatched.",
+      "resolution": "The final candidate maps all twelve badges to matching same-origin public files, adds the eleven previously absent install-list entries while retaining first-step, and updates both source-contract and cache-harness expectations. The new browser test exercises all twelve offline and checks native dimensions, transparent borders, opaque centres and uncropped containment. Parent-reported focused tests and the complete offline project pass.",
+      "status": "resolved"
+    },
+    {
+      "id": "R01-2",
+      "severity": "P2",
+      "description": "Removing the unsupported movement icon could allow the daily-goal progress element to occupy the decorative grid column or remove the only movement identification.",
+      "resolution": "Existing textual activity labels and history identity remain present. The final CSS explicitly places the progress component in column two, row one, and retains the existing enlarged-text block reflow. Reviewer inspected the 320px enlarged-text screenshot; unit and browser coverage includes Kickbacks and a custom movement without the Activity heart.",
+      "status": "resolved"
+    },
+    {
+      "id": "R01-3",
+      "severity": "P3",
+      "description": "The approved artwork pack contains no Kickbacks-specific movement image, and source screenshots use root-text scaling rather than native browser zoom or physical-device testing.",
+      "resolution": "Accept the bounded, explicit limitation: unsupported movements retain their existing names without a misleading heart or invented artwork. No claim of physical-device or native browser-zoom certification is made. This limitation does not change movement logging, historical records, goals, awards or progression.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "R01-4",
+      "severity": "P2",
+      "description": "A decorative correction could accidentally alter award semantics or clip artwork in shared reward, narrative or Hero surfaces beyond the gallery.",
+      "resolution": "The complete diff changes no achievement definition, evaluator, unlock store, Activity formula, schema, backup contract or version. Global image clipping is removed while the glyph fallback retains its circular treatment. Shared renderer consumers and native-size visual artifacts were inspected; parent-reported focused browser tests cover the changed visual contracts.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No unresolved blocking defect was identified in the exact reviewed payload. The candidate preserves original badge source identities and learner-state contracts while adding explicit same-origin offline delivery for the new transparent exports, a documented owner-requested compass replacement and truthful text fallback for unsupported movements. Focused verification reported by the integration agent supports the independent source and artifact inspection. This evidence permits the ordinary exact-candidate hosted certification sequence; it does not certify an untested successor, a changed merge payload or production deployment."
+  }
+}
