@@ -99,15 +99,18 @@ async function openLesson(itemId: string) {
   return screen.findByRole('article', { name: /./ }, { timeout: 15_000 });
 }
 
-function groupWith(lesson: HTMLElement, prompt: RegExp) {
-  return within(lesson)
-    .getAllByRole('group', { name: /^Oppgave \d+/ })
-    .find((group) => prompt.test(group.textContent ?? ''))!;
+// Exercise numbers identify the learner-visible groups. Prompt prose
+// is not the subject of these evidence/history tests; answer labels below are.
+function exerciseGroup(lesson: HTMLElement, number: number) {
+  return within(lesson).getByRole('group', {
+    name: `Oppgave ${number} · Flervalg`,
+  });
 }
 
-const formativePrompt = /Du endrer teksten i/;
-const neighbourPrompt = /skjuler som standard filendelser/;
-const gatePrompt = /git status --short/;
+// S1-M01-P01-E03, S1-M01-P01-E05 and S1-M01-CHK-E04, respectively.
+const formativeNumber = 3;
+const neighbourNumber = 5;
+const gateNumber = 4;
 
 /** The tab may write: the hint control is enabled whatever the answer state. */
 async function writable(group: HTMLElement) {
@@ -144,7 +147,7 @@ describe('the lesson presents only evidence about the current version of an exer
       outcome: 'correct',
     });
     const lesson = await openLesson('s1-m01-o01');
-    const group = groupWith(lesson, formativePrompt);
+    const group = exerciseGroup(lesson, formativeNumber);
 
     await expectUnanswered(group);
     expect(group.textContent).not.toMatch(/Riktig/);
@@ -180,7 +183,7 @@ describe('the lesson presents only evidence about the current version of an exer
       awardedAt: new Date('2026-10-01T10:00:00.000Z').toISOString(),
     });
     const lesson = await openLesson('s1-m01-o01');
-    const group = groupWith(lesson, formativePrompt);
+    const group = exerciseGroup(lesson, formativeNumber);
 
     await expectUnanswered(group);
     fireEvent.click(
@@ -228,7 +231,7 @@ describe('the lesson presents only evidence about the current version of an exer
       outcome: 'correct',
     });
     const lesson = await openLesson('s1-m01-o01');
-    const group = groupWith(lesson, formativePrompt);
+    const group = exerciseGroup(lesson, formativeNumber);
     const status = await within(group).findByRole(
       'status',
       { name: /Resultat/ },
@@ -262,7 +265,7 @@ describe('the lesson presents only evidence about the current version of an exer
       outcome: 'incorrect',
     });
     const lesson = await openLesson('s1-m01-o01');
-    const group = groupWith(lesson, formativePrompt);
+    const group = exerciseGroup(lesson, formativeNumber);
     const status = await within(group).findByRole(
       'status',
       { name: /Resultat/ },
@@ -293,9 +296,9 @@ describe('the lesson presents only evidence about the current version of an exer
     });
     const lesson = await openLesson('s1-m01-o01');
 
-    await expectUnanswered(groupWith(lesson, formativePrompt));
+    await expectUnanswered(exerciseGroup(lesson, formativeNumber));
     expect(
-      await within(groupWith(lesson, neighbourPrompt)).findByRole(
+      await within(exerciseGroup(lesson, neighbourNumber)).findByRole(
         'status',
         { name: /Resultat/ },
         { timeout: 15_000 },
@@ -314,7 +317,7 @@ describe('a closed lesson claims “already correct” only for the current vers
       outcome: 'correct',
     });
     const lesson = await openLesson('s1-m01-chk');
-    const group = groupWith(lesson, gatePrompt);
+    const group = exerciseGroup(lesson, gateNumber);
 
     await expectUnanswered(group);
     expect(group.textContent).not.toMatch(alreadyCorrectNote);
@@ -337,7 +340,7 @@ describe('a closed lesson claims “already correct” only for the current vers
       outcome: 'incorrect',
     });
     const lesson = await openLesson('s1-m01-chk');
-    const group = groupWith(lesson, gatePrompt);
+    const group = exerciseGroup(lesson, gateNumber);
     const status = await within(group).findByRole(
       'status',
       { name: /Resultat/ },
@@ -357,7 +360,7 @@ describe('a closed lesson claims “already correct” only for the current vers
       outcome: 'correct',
     });
     const lesson = await openLesson('s1-m01-chk');
-    const group = groupWith(lesson, gatePrompt);
+    const group = exerciseGroup(lesson, gateNumber);
 
     expect(
       await within(group).findByText(
