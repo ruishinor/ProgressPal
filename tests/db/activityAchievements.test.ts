@@ -97,15 +97,15 @@ describe('atomic Activity awards on explicit entry saves only', () => {
   it('recognizes qualifying older history on a save, with actual save time and first-prefix witness', async () => {
     const { db, options } = await device();
     await saveActivityEntry(
-      { ...input, amount: 11, date: '2026-10-01' },
+      { ...input, amount: 49, date: '2026-10-01' },
       options,
     );
     await saveActivityEntry(
-      { ...input, amount: 10, date: '2026-10-02' },
+      { ...input, amount: 50, date: '2026-10-02' },
       options,
     );
     const third = await saveActivityEntry(
-      { ...input, amount: 11, date: '2026-10-03' },
+      { ...input, amount: 101, date: '2026-10-03' },
       options,
     );
     expect(third.unlockedAchievements).toMatchObject([
@@ -120,7 +120,7 @@ describe('atomic Activity awards on explicit entry saves only', () => {
         ...input,
         activityId: 'walking',
         unit: 'metres',
-        amount: 1000,
+        amount: 10000,
         date: '2026-10-03',
       },
       options,
