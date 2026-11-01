@@ -1,32 +1,32 @@
 {
-    "reviewScope":  {
-                        "summary":  "Activity achievement thresholds, wording and focused regression tests.",
-                        "evidence":  [
-                                         "TypeScript typecheck passed",
-                                         "19 of 19 focused tests passed",
-                                         "Historical fixture unchanged",
-                                         "Full hosted certification pending"
-                                     ]
-                    },
-    "adversarialFindings":  [
-                                {
-                                    "status":  "resolved",
-                                    "resolution":  "Focused test corrections, removal of cross-project import, successful typecheck and 19 focused tests.",
-                                    "description":  "Stale threshold assertions and an E2E TypeScript project-boundary import.",
-                                    "id":  "ACT-01",
-                                    "severity":  "P2"
-                                }
-                            ],
-    "reviewer":  "ChatGPT GPT-6 - AI-assisted review, not independent human review",
-    "module":  "activity-achievements-f62d01318de9",
-    "schemaVersion":  2,
-    "binding":  {
-                    "payloadTree":  "f62d01318de986bc9daceaf29f5ca54803483c44",
-                    "excludedPath":  "docs/release-reviews",
-                    "kind":  "payload-tree"
-                },
-    "retrospective":  {
-                          "decision":  "proceed",
-                          "summary":  "Targeted validation passed. No evaluator or database changes. GitHub certification remains required."
-                      }
+  "reviewScope": {
+    "summary": "Activity achievement thresholds, wording and focused regression tests.",
+    "evidence": [
+      "TypeScript typecheck passed",
+      "19 of 19 focused tests passed",
+      "Historical fixture unchanged",
+      "Full hosted certification pending"
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "status": "resolved",
+      "resolution": "Focused test corrections, removal of cross-project import, successful typecheck and 19 focused tests.",
+      "description": "Stale threshold assertions and an E2E TypeScript project-boundary import.",
+      "id": "ACT-01",
+      "severity": "P2"
+    }
+  ],
+  "reviewer": "ChatGPT GPT-6 - AI-assisted review, not independent human review",
+  "module": "activity-achievements-f62d01318de9",
+  "schemaVersion": 2,
+  "binding": {
+    "payloadTree": "f62d01318de986bc9daceaf29f5ca54803483c44",
+    "excludedPath": "docs/release-reviews",
+    "kind": "payload-tree"
+  },
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Targeted validation passed. No evaluator or database changes. GitHub certification remains required."
+  }
 }
