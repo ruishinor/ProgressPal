@@ -26,6 +26,7 @@ import {
   getRpgTrackPath,
   rpgMapPath,
   rpgMicroPath,
+  rpgReferencePath,
 } from '@/lib/routing/rpgRoutePaths';
 import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
 import { useAppState } from '@/lib/appState';
@@ -324,6 +325,14 @@ export function RpgHomePage() {
               ))}
             </div>
           )}
+          <div className="rpg-hub__module-context">
+            <RpgButton href={rpgReferencePath} variant="secondary">
+              Teknologioppslag
+            </RpgButton>
+            <p className="rpg-hub__note" lang="nb">
+              Begreper, verktøy og sammenhenger i programvareutvikling
+            </p>
+          </div>
         </RpgPanel>
 
         <RpgPanel

@@ -45,6 +45,8 @@ describe('routeDefinitions', () => {
       '/rpg/micro',
       '/rpg/track/:trackId',
       '/sessions',
+      '/rpg/oppslag',
+      '/rpg/oppslag/:entryId',
       '/achievements',
       '/insights',
       '/settings',

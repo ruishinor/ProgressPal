@@ -26,6 +26,7 @@ import {
   RpgShell,
 } from '@/features/rpg';
 import { SessionsPage } from '@/features/sessions';
+import { ReferencePage } from '@/features/technologyReference';
 import { CloudCallbackPage, SettingsPage } from '@/features/settings';
 
 const onboardingRoute = getRouteDefinition('onboarding');
@@ -156,6 +157,14 @@ export const router = createBrowserRouter([
           {
             path: rpgSettingsRoute.segment,
             element: <RpgSettingsPage />,
+          },
+          {
+            path: getRouteDefinition('rpgReference').segment,
+            element: <ReferencePage />,
+          },
+          {
+            path: getRouteDefinition('rpgReferenceEntry').segment,
+            element: <ReferencePage />,
           },
         ],
       },

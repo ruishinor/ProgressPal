@@ -10,6 +10,15 @@ export const rpgLogPath = '/rpg/log' as const;
 export const rpgSettingsPath = '/rpg/settings' as const;
 export const rpgMicroPath = '/rpg/micro' as const;
 export const rpgTrackPathPattern = '/rpg/track/:trackId' as const;
+export const rpgReferencePath = '/rpg/oppslag' as const;
+export const rpgReferenceEntryPathPattern = '/rpg/oppslag/:entryId' as const;
+
+export function getRpgReferencePath(entryId: string) {
+  return rpgReferenceEntryPathPattern.replace(
+    ':entryId',
+    encodeURIComponent(entryId),
+  );
+}
 
 export const rpgRouteSegments = {
   activity: 'movement',
@@ -23,6 +32,8 @@ export const rpgRouteSegments = {
   root: 'rpg',
   settings: 'settings',
   track: 'track/:trackId',
+  reference: 'oppslag',
+  referenceEntry: 'oppslag/:entryId',
   week: 'week/:unitId',
 } as const;
 

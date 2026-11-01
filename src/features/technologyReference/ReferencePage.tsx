@@ -1,0 +1,247 @@
+import {
+  Form,
+  Link,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
+
+import {
+  getRpgReferencePath,
+  rpgReferencePath,
+} from '@/lib/routing/rpgRoutePaths';
+
+import { entries, searchEntries, suggestEntries, topics } from './model';
+import './reference.css';
+
+const aliasLabels = {
+  synonym: 'Synonym',
+  abbreviation: 'Forkortelse / fullt navn',
+  historical: 'Tidligere navn',
+};
+
+export function ReferencePage() {
+  const { entryId } = useParams();
+  const [params] = useSearchParams();
+  const { search } = useLocation();
+  const query = params.get('q') ?? '';
+  const requestedTopic = params.get('tema') ?? '';
+  const topic = topics.find((item) => item === requestedTopic) ?? '';
+  const entry = entries.find((item) => item.id === entryId);
+  const hits = searchEntries(query, topic);
+  const direct = hits.filter(
+    (hit) => !['context', 'related'].includes(hit.match),
+  );
+  const secondary = hits.filter((hit) =>
+    ['context', 'related'].includes(hit.match),
+  );
+  const suggestions = hits.length ? [] : suggestEntries(query, topic);
+  const indexHref = `${rpgReferencePath}${search}`;
+  const unfiltered = new URLSearchParams(params);
+  unfiltered.delete('tema');
+
+  return (
+    <section className="reference" lang="nb" aria-label="Teknologioppslag">
+      {entryId ? <Link to={indexHref}>Tilbake til søk og tema</Link> : null}
+      <h1>
+        {entryId
+          ? (entry?.name ?? 'Oppføringen finnes ikke')
+          : 'Teknologioppslag'}
+      </h1>
+      {!entryId ? (
+        <>
+          <p>Begreper, verktøy og sammenhenger i programvareutvikling</p>
+          <Form
+            method="get"
+            action={rpgReferencePath}
+            role="search"
+            className="reference__search"
+          >
+            <label>
+              Søk etter navn, alias eller formål
+              <input
+                key={query}
+                name="q"
+                type="search"
+                defaultValue={query}
+                maxLength={200}
+              />
+            </label>
+            <label>
+              Tema
+              <select key={topic} name="tema" defaultValue={topic}>
+                <option value="">Alle temaer</option>
+                {topics.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+            <button type="submit">Søk</button>
+          </Form>
+          {requestedTopic && !topic ? (
+            <p role="status">Temaet finnes ikke. Viser alle temaer.</p>
+          ) : null}
+          <p role="status">
+            {!query.trim()
+              ? `${hits.length} oppføringer`
+              : hits.length
+                ? `${direct.length} direkte treff${secondary.length ? ` · ${secondary.length} relaterte oppføringer eller omtaler` : ''}`
+                : 'Ingen treff. Prøv et annet navn eller et annet tema.'}
+          </p>
+          {!hits.length && topic ? (
+            <p>
+              Ingen treff i temaet {topic}.{' '}
+              <Link to={`${rpgReferencePath}?${unfiltered}`}>
+                Søk i alle temaer
+              </Link>
+            </p>
+          ) : null}
+          {suggestions.length ? (
+            <p>
+              Mente du{' '}
+              {suggestions.map((item, i) => (
+                <span key={item.id}>
+                  {i ? ', ' : ''}
+                  <Link to={`${getRpgReferencePath(item.id)}${search}`}>
+                    {item.name}
+                  </Link>
+                </span>
+              ))}
+              ?
+            </p>
+          ) : null}
+          <ul
+            className="reference__results"
+            aria-label={query.trim() ? 'Direkte treff' : 'Oppføringer'}
+          >
+            {direct.map(({ entry: item, reason }) => (
+              <li key={item.id}>
+                <h2>
+                  <Link to={`${getRpgReferencePath(item.id)}${search}`}>
+                    {item.name}
+                  </Link>
+                </h2>
+                <p className="reference__meta">
+                  {item.type}
+                  {reason ? ` · ${reason}` : ''}
+                </p>
+                <p>{item.summary}</p>
+              </li>
+            ))}
+          </ul>
+          {secondary.length ? (
+            <section aria-label="Relaterte begreper og omtaler">
+              <h2>Relaterte begreper og omtaler</h2>
+              <p>
+                Disse oppføringene gir sammenheng, men er ikke direkte navne-
+                eller formålstreff.
+              </p>
+              <ul className="reference__results">
+                {secondary.map(({ entry: item, reason }) => (
+                  <li key={item.id}>
+                    <h3>
+                      <Link to={`${getRpgReferencePath(item.id)}${search}`}>
+                        {item.name}
+                      </Link>
+                    </h3>
+                    <p className="reference__meta">
+                      {item.type} · {reason}
+                    </p>
+                    <p>{item.summary}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </>
+      ) : entry ? (
+        <article aria-label={entry.name}>
+          <p className="reference__meta">{entry.type}</p>
+          <p>{entry.summary}</p>
+          {entry.aliases.length ? (
+            <dl>
+              {entry.aliases.map((alias) => (
+                <div key={alias.name}>
+                  <dt>{aliasLabels[alias.kind]}</dt>
+                  <dd>{alias.name}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+          <p>
+            Tema:{' '}
+            {entry.topics.map((item, i) => (
+              <span key={item}>
+                {i ? ', ' : ''}
+                <Link
+                  to={`${rpgReferencePath}?tema=${encodeURIComponent(item)}`}
+                >
+                  {item}
+                </Link>
+              </span>
+            ))}
+          </p>
+          <h2>Hva brukes det til?</h2>
+          <p>{entry.purpose}</p>
+          <h2>Et konkret eksempel</h2>
+          <p>{entry.example}</p>
+          <h2>Viktige skiller</h2>
+          <ul>
+            {entry.distinctions.map((text) => (
+              <li key={text}>{text}</li>
+            ))}
+          </ul>
+          {entry.spoken ? (
+            <>
+              <h2>Med egne ord</h2>
+              <p>{entry.spoken}</p>
+            </>
+          ) : null}
+          {entry.relations.length ? (
+            <>
+              <h2>Sammenhenger</h2>
+              <ul>
+                {entry.relations.map((relation) => (
+                  <li key={relation.target}>
+                    <Link
+                      to={`${getRpgReferencePath(relation.target)}${search}`}
+                    >
+                      {
+                        entries.find((item) => item.id === relation.target)!
+                          .name
+                      }
+                    </Link>{' '}
+                    — {relation.kind}. {relation.explanation}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <h2>Kilder</h2>
+          <p>Fagkilder åpnes bare når du følger en lenke.</p>
+          <ul>
+            {entry.sources.map((source) => (
+              <li key={source.url}>
+                <a
+                  href={source.url}
+                  rel="noopener noreferrer"
+                  referrerPolicy="no-referrer"
+                >
+                  {source.title}
+                </a>{' '}
+                <span className="reference__meta">
+                  Kontrollert {source.checked}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </article>
+      ) : (
+        <p>
+          Adressen peker ikke til et oppslag i denne utgaven. Bruk lenken
+          tilbake for å søke.
+        </p>
+      )}
+    </section>
+  );
+}

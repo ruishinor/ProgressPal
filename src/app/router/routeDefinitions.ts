@@ -14,6 +14,8 @@ import {
   rpgRouteSegments,
   rpgSettingsPath,
   rpgTrackPathPattern,
+  rpgReferencePath,
+  rpgReferenceEntryPathPattern,
   rpgWeekPathPattern,
 } from '@/lib/routing/rpgRoutePaths';
 
@@ -36,6 +38,8 @@ export type AppRouteId =
   | 'rpgSettings'
   | 'rpgMicro'
   | 'rpgTrack'
+  | 'rpgReference'
+  | 'rpgReferenceEntry'
   | 'sessions'
   | 'achievements'
   | 'insights'
@@ -178,6 +182,18 @@ export const routeDefinitions: AppRouteDefinition[] = [
     to: '/sessions',
     label: 'Sessions',
     includeInPrimaryNavigation: true,
+  },
+  {
+    id: 'rpgReference',
+    segment: rpgRouteSegments.reference,
+    to: rpgReferencePath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgReferenceEntry',
+    segment: rpgRouteSegments.referenceEntry,
+    to: rpgReferenceEntryPathPattern,
+    includeInPrimaryNavigation: false,
   },
   {
     id: 'achievements',

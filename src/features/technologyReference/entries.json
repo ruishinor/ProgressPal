@@ -1,0 +1,1132 @@
+[
+  {
+    "id": "api",
+    "name": "API",
+    "type": "Begrep",
+    "summary": "Et API er et avtalt grensesnitt som lar programkode bruke funksjoner eller data fra annen programvare.",
+    "purpose": "Utvikleren kan be om en bestemt handling uten å kjenne alle detaljene i programmet som utfører den. Grensesnittet beskriver hva koden kan be om, hvilke opplysninger den må sende, og hva den kan få tilbake.",
+    "example": "En utvikler lager en side som viser avstanden til et møtested. Sidens kode ber nettleserens Geolocation-API om brukerens posisjon. Nettleseren håndterer tillatelsen og gir koden en posisjon eller en feil. Dette er et nettleser-API; eksempelet trenger ingen egen server.",
+    "distinctions": [
+      "API står for Application Programming Interface, ofte kalt programmeringsgrensesnitt. Det kan finnes i et bibliotek, i nettleseren eller hos en tjeneste på nettet.",
+      "REST er en arkitekturstil med bestemte regler for samhandling mellom systemer. API er det bredere begrepet: et API blir ikke REST bare fordi det bruker HTTP eller sender JSON."
+    ],
+    "spoken": "Et API forteller koden min hva den kan be en annen del av programvaren om, og hvordan den skal spørre.",
+    "aliases": [
+      {
+        "name": "Application Programming Interface",
+        "kind": "abbreviation"
+      },
+      {
+        "name": "programmeringsgrensesnitt",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Grunnbegreper", "Web og grensesnitt"],
+    "purposeTerms": [
+      "bruke funksjoner fra annen programvare",
+      "hente data",
+      "nettleserens posisjon"
+    ],
+    "relations": [
+      {
+        "target": "react",
+        "kind": "Eksempel på tilbyder",
+        "explanation": "React tilbyr et bibliotek-API, blant annet funksjonen useState. API er begrepet; React er ett bibliotek med et slikt grensesnitt."
+      },
+      {
+        "target": "kubernetes",
+        "kind": "Eksempel på tilbyder",
+        "explanation": "Kubernetes tilbyr et HTTP-API som blant annet brukes til å beskrive hvordan containere skal kjøres."
+      },
+      {
+        "target": "rest",
+        "kind": "Kan utformes etter",
+        "explanation": "REST er en arkitekturstil som et tjeneste-API kan følge. Ikke alle API-er følger REST."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: API",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/API",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "W3C: Geolocation",
+        "url": "https://www.w3.org/TR/geolocation/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Fielding: REST, kapittel 5",
+        "url": "https://roy.gbiv.com/pubs/dissertation/rest_arch_style.htm",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "React: komponentens tilstand",
+        "url": "https://react.dev/learn/state-a-components-memory",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Kubernetes: komponenter",
+        "url": "https://kubernetes.io/docs/concepts/overview/components/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "react",
+    "name": "React",
+    "type": "Bibliotek",
+    "summary": "React er et JavaScript-bibliotek for å bygge brukergrensesnitt av komponenter: deler av skjermen med egen visning og logikk.",
+    "purpose": "Utvikleren beskriver hva grensesnittet skal vise ut fra data og tilstand. React oppdaterer visningen når tilstanden endres. En komponent kan være en knapp, en handlekurv eller en hel side.",
+    "example": "En utvikler lager en billettbestilling. Komponenten viser antall billetter og en knapp for å legge til én. Når kunden trykker, endrer utviklerens kode antallet i React-tilstand, og React viser det nye tallet. Utvikleren må selv skrive regelen om maksimalt fire billetter; React bestemmer ingen billettregler.",
+    "distinctions": [
+      "Tilstand er komponentens minne mellom gjengivelser. Den er ikke i seg selv varig lagring. Skal bestillingen overleve at siden lukkes, må utvikleren i tillegg velge og bruke en lagringsløsning.",
+      "React for web viser innhold gjennom nettleseren. React Native er et eget rammeverk som bruker React-komponenter til grensesnitt med plattformens native byggesteiner, blant annet på Android og iOS. React Native er ikke et annet navn på React."
+    ],
+    "spoken": "React hjelper meg å bygge skjermen av komponenter og holde visningen i takt med dataene; reglene og lagringen må jeg fortsatt lage.",
+    "aliases": [],
+    "topics": ["Web og grensesnitt"],
+    "purposeTerms": [
+      "bygge brukergrensesnitt",
+      "oppdatere skjermen",
+      "gjenbruke komponenter"
+    ],
+    "relations": [
+      {
+        "target": "api",
+        "kind": "Tilbyr",
+        "explanation": "React har et API som utviklerens kode kaller. useState er en av funksjonene i dette grensesnittet."
+      },
+      {
+        "target": "react-native",
+        "kind": "Brukes av",
+        "explanation": "React Native bruker Reacts komponentmodell til native grensesnitt, mens React for web arbeider med nettleserens grensesnitt."
+      }
+    ],
+    "sources": [
+      {
+        "title": "React: Quick Start",
+        "url": "https://react.dev/learn",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "React: komponentens tilstand",
+        "url": "https://react.dev/learn/state-a-components-memory",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "React Native: native komponenter",
+        "url": "https://reactnative.dev/docs/intro-react-native-components",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "React: bevare og nullstille tilstand",
+        "url": "https://react.dev/learn/preserving-and-resetting-state",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "kubernetes",
+    "name": "Kubernetes",
+    "type": "Driftsplattform",
+    "summary": "Kubernetes er en plattform for å styre kjøring av containerbaserte applikasjoner på en gruppe maskiner.",
+    "purpose": "En container er en isolert prosess med filene den trenger. I Kubernetes beskriver driftsteamet en ønsket tilstand, for eksempel antall kopier av en tjeneste. Kontrollprosessene forsøker løpende å få den faktiske tilstanden til å samsvare med beskrivelsen.",
+    "example": "Et driftsteam vil kjøre tre kopier av festivalens billettjeneste. Teamet sender en beskrivelse til Kubernetes. Plattformen fordeler arbeidet og kan opprette erstatninger når en kopi feiler. Ved en ny versjon kan en konfigurert utrulling bytte ut kopiene gradvis. Teamet må fortsatt sette opp helsesjekker, ressursgrenser og håndtering av feil.",
+    "distinctions": [
+      "Ønsket tilstand er et mål, ingen garanti for oppetid. Manglende kapasitet, feil programkode eller nettverksfeil kan hindre at målet nås. Kontrollert oppdatering må konfigureres og kontrolleres.",
+      "Docker er verktøy for blant annet å bygge og kjøre containere; Kubernetes styrer kjøringen på maskinene. De er ikke samme produkt. En container-runtime utfører selve containerkjøringen på hver maskin. Kubernetes bruker CRI-grensesnittet mot en kompatibel runtime, for eksempel containerd; Docker Engine implementerer ikke CRI direkte."
+    ],
+    "spoken": "Kubernetes prøver å holde containerne i den tilstanden vi har bedt om, men teamet har fortsatt ansvar for at løsningen faktisk tåler feil.",
+    "aliases": [
+      {
+        "name": "K8s",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Drift"],
+    "purposeTerms": [
+      "orkestrere containere",
+      "fordele containere på flere maskiner",
+      "gradvis oppdatering"
+    ],
+    "relations": [
+      {
+        "target": "api",
+        "kind": "Tilbyr",
+        "explanation": "Kubernetes eksponerer et HTTP-API gjennom kube-apiserver. Verktøy sender beskrivelser og leser tilstanden gjennom dette grensesnittet."
+      },
+      {
+        "target": "container",
+        "kind": "Styrer kjøring av",
+        "explanation": "Kubernetes styrer arbeidslaster som kjører i containere; container-runtime på hver maskin utfører selve kjøringen."
+      },
+      {
+        "target": "docker",
+        "kind": "Har en annen rolle enn",
+        "explanation": "Docker kan blant annet bygge container-images. Kubernetes styrer kjøringen av containerbaserte arbeidslaster og krever en kompatibel runtime."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Kubernetes: oversikt",
+        "url": "https://kubernetes.io/docs/concepts/overview/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Kubernetes: komponenter",
+        "url": "https://kubernetes.io/docs/concepts/overview/components/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Kubernetes: CRI",
+        "url": "https://kubernetes.io/docs/concepts/containers/cri/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Docker: hva er en container?",
+        "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Kubernetes: container-runtimer og Docker Engine",
+        "url": "https://kubernetes.io/docs/setup/production-environment/container-runtimes/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "rest",
+    "name": "REST",
+    "type": "Arkitekturstil",
+    "summary": "REST er en arkitekturstil for systemer som kommuniserer over nettverk. Den stiller blant annet krav til et felles grensesnitt og at hver forespørsel kan forstås uten tidligere forespørsler.",
+    "purpose": "Reglene gir et felles grunnlag for hvordan ressurser identifiseres og hvordan systemer utveksler representasjoner av dem. En representasjon kan være data som beskriver en bestilling.",
+    "example": "Et festivalteam lager en tjeneste der en klient ber om representasjonen av bestilling 42. Hver forespørsel inneholder informasjonen tjenesten trenger for å forstå den; tjenesten skal ikke være avhengig av en skjult samtalehistorikk for klienten.",
+    "distinctions": [
+      "REST er ikke et synonym for API, HTTP eller JSON. Én HTTP-adresse med JSON-svar er ikke nok til å vise at et system følger REST.",
+      "Tilstandsløs samhandling betyr ikke at systemet mangler database. Kravet gjelder hvordan hver forespørsel forstås."
+    ],
+    "aliases": [
+      {
+        "name": "Representational State Transfer",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Grunnbegreper", "Web og grensesnitt"],
+    "purposeTerms": [
+      "utforme samhandling mellom systemer",
+      "ressurser og representasjoner"
+    ],
+    "relations": [
+      {
+        "target": "api",
+        "kind": "Kan forme",
+        "explanation": "REST-regler kan forme et tjeneste-API. API er grensesnittet; REST er arkitekturstilen som grensesnittet og samhandlingen kan følge."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Fielding: REST, kapittel 5",
+        "url": "https://roy.gbiv.com/pubs/dissertation/rest_arch_style.htm",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "frontend",
+    "name": "Frontend",
+    "type": "Begrep",
+    "summary": "Frontend er den delen av en applikasjon brukeren møter og samhandler med. På web kjører grensesnittet i nettleseren.",
+    "purpose": "Frontend viser innhold, tar imot handlinger og gir tilbakemeldinger, for eksempel i et skjema. HTML, CSS og JavaScript har ulike roller i en vanlig webside.",
+    "example": "En utvikler lager festivalens påmeldingsside. Besøkeren velger billettype og trykker «Bestill». Frontend viser valget og sender en forespørsel dersom løsningen bruker en bestillingstjeneste.",
+    "distinctions": [
+      "Et grensesnitt kan kontrollere at et felt er fylt ut, men en tjeneste må selv kontrollere hvilke forespørsler den godtar.",
+      "En webside kan være statisk eller bruke lokal lagring; ikke alle grensesnitt trenger en egen applikasjonsbackend."
+    ],
+    "aliases": [],
+    "topics": ["Grunnbegreper", "Web og grensesnitt"],
+    "purposeTerms": ["lage nettside", "vise innhold i nettleseren"],
+    "relations": [
+      {
+        "target": "html",
+        "kind": "Bruker",
+        "explanation": "HTML beskriver strukturen og betydningen av innholdet som nettleseren viser."
+      },
+      {
+        "target": "backend",
+        "kind": "Kan samarbeide med",
+        "explanation": "En frontend kan sende forespørsler til en backend som behandler dem og svarer."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: hvordan weben virker",
+        "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Web_standards/How_the_web_works",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "MDN: introduksjon til serversiden",
+        "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Introduction",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "backend",
+    "name": "Backend",
+    "type": "Begrep",
+    "summary": "Backend er delen av en applikasjon som behandler arbeid på serversiden, for eksempel forespørsler, regler og tilgang til data.",
+    "purpose": "Backend kan samle felles logikk og datatilgang for flere klienter. Den bestemmer hvilke forespørsler som er gyldige og hvilke opplysninger klienten får tilbake.",
+    "example": "Festivalens kunde ber om å kjøpe to billetter. Backend kontrollerer at det finnes ledige billetter, lagrer bestillingen og sender et svar som frontend viser.",
+    "distinctions": [
+      "En backend er en rolle i systemet, ikke ett bestemt språk eller rammeverk. En database kan brukes av backend, men ordene betyr ikke det samme."
+    ],
+    "aliases": [],
+    "topics": ["Grunnbegreper", "Web og grensesnitt"],
+    "purposeTerms": ["behandle forespørsler", "regler på serveren"],
+    "relations": [
+      {
+        "target": "frontend",
+        "kind": "Svarer til",
+        "explanation": "En backend kan behandle forespørsler fra frontend og sende data tilbake."
+      },
+      {
+        "target": "database",
+        "kind": "Kan bruke",
+        "explanation": "En backend kan lagre og hente organiserte data i en database."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: introduksjon til serversiden",
+        "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Introduction",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "html",
+    "name": "HTML",
+    "type": "Markeringsspråk",
+    "summary": "HTML er et markeringsspråk som beskriver struktur og betydning i webinnhold, som overskrifter, avsnitt, lenker og skjemaer.",
+    "purpose": "Ved å markere hva innholdet er, får nettleseren og hjelpemidler et grunnlag for å vise og navigere siden.",
+    "example": "En utvikler merker festivalnavnet som hovedoverskrift og billettvalget som et skjema med en etikett. Nettleseren kan dermed vise og betjene disse som riktige elementer.",
+    "distinctions": [
+      "HTML beskriver innholdets struktur. CSS beskriver presentasjon, mens JavaScript kan legge til programmert oppførsel. Et klikkbart element blir ikke en knapp bare fordi det ser slik ut."
+    ],
+    "aliases": [
+      {
+        "name": "HyperText Markup Language",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Web og grensesnitt"],
+    "purposeTerms": ["strukturere innhold", "overskrifter og skjemaer"],
+    "relations": [
+      {
+        "target": "css",
+        "kind": "Formgis med",
+        "explanation": "CSS kan styre hvordan HTML-elementene presenteres på skjermen."
+      },
+      {
+        "target": "javascript",
+        "kind": "Kan samhandle med",
+        "explanation": "JavaScript kan reagere på hendelser og endre innholdet i et HTML-dokument."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: HTML",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/HTML",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "css",
+    "name": "CSS",
+    "type": "Stilspråk",
+    "summary": "CSS er et stilspråk som beskriver hvordan dokumentinnhold skal presenteres, blant annet farger, plassering og tekststørrelse.",
+    "purpose": "Utvikleren kan tilpasse presentasjonen til ulike skjermer og behov uten å blande alle utseendevalg inn i innholdets struktur.",
+    "example": "Festivalens programliste skal få plass på en mobil. Utvikleren bruker CSS til å la kolonnene brytes og teksten flyte, mens opplysningene fortsatt står i HTML.",
+    "distinctions": [
+      "CSS er ikke HTML og erstatter ikke god innholdsstruktur. En visuelt skjult tekst kan fortsatt ha betydning for tilgjengeligheten."
+    ],
+    "aliases": [
+      {
+        "name": "Cascading Style Sheets",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Web og grensesnitt"],
+    "purposeTerms": [
+      "style nettside",
+      "tilpasse layout til mobil",
+      "farger og tekststørrelse"
+    ],
+    "relations": [
+      {
+        "target": "html",
+        "kind": "Formgir",
+        "explanation": "CSS-regler velger blant annet HTML-elementer og bestemmer hvordan de skal presenteres."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: CSS",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/CSS",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "javascript",
+    "name": "JavaScript",
+    "type": "Programmeringsspråk",
+    "summary": "JavaScript er et programmeringsspråk som blant annet brukes til oppførsel i websider og til programmer utenfor nettleseren.",
+    "purpose": "Språket lar utvikleren beskrive regler, beregninger og handlinger. Nettleseren tilbyr egne API-er som koden kan bruke.",
+    "example": "Besøkeren endrer antall festivalbilletter. Utviklerens JavaScript-kode beregner ny sum og oppdaterer visningen i nettleseren.",
+    "distinctions": [
+      "JavaScript er ikke Java. Nettleserfunksjoner som å finne posisjonen kommer fra nettleserens API-er, ikke fra selve språket."
+    ],
+    "aliases": [
+      {
+        "name": "JS",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Språk", "Web og grensesnitt"],
+    "purposeTerms": ["programmere nettsider", "reagere på klikk"],
+    "relations": [
+      {
+        "target": "typescript",
+        "kind": "Utvides av",
+        "explanation": "TypeScript legger statisk typekontroll til JavaScript."
+      },
+      {
+        "target": "node-js",
+        "kind": "Kan kjøres i",
+        "explanation": "Node.js er et kjøremiljø som kan kjøre JavaScript utenfor nettleseren."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: JavaScript",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "TypeScript: for nye programmerere",
+        "url": "https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Node.js: introduksjon",
+        "url": "https://nodejs.org/learn/getting-started/introduction-to-nodejs",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "typescript",
+    "name": "TypeScript",
+    "type": "Programmeringsspråk",
+    "summary": "TypeScript er et språk som utvider JavaScript med typer og statisk typekontroll: kontroll av kode før den kjøres.",
+    "purpose": "Typer beskriver hvilke slags verdier koden forventer. Verktøyene kan da oppdage mange feil mens utvikleren skriver eller bygger programmet.",
+    "example": "Utvikleren sier at antall billetter er et tall. Et forsøk på å bruke en tekstverdi der blir meldt som typefeil før kunden åpner bestillingssiden.",
+    "distinctions": [
+      "Typer er ikke automatisk validering av data som kommer inn mens programmet kjører. Typeinformasjonen fjernes ved vanlig oversetting til JavaScript; utvikleren må fortsatt kontrollere ukjente inndata.",
+      "TypeScript er et språk, ikke et grensesnittbibliotek som React."
+    ],
+    "aliases": [
+      {
+        "name": "TS",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Språk", "Web og grensesnitt"],
+    "purposeTerms": ["finne typefeil", "typekontroll før kjøring"],
+    "relations": [
+      {
+        "target": "javascript",
+        "kind": "Utvider",
+        "explanation": "TypeScript bygger på JavaScript og beholder JavaScripts kjøreatferd. Typekontroll erstatter ikke testing."
+      }
+    ],
+    "sources": [
+      {
+        "title": "TypeScript: for nye programmerere",
+        "url": "https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "react-native",
+    "name": "React Native",
+    "type": "Rammeverk",
+    "summary": "React Native er et rammeverk for å lage apper med React og plattformens egne grensesnittbyggesteiner, kalt native komponenter, blant annet på Android og iOS.",
+    "purpose": "Utvikleren kan beskrive grensesnittet med React-komponenter og bruke plattformens funksjoner gjennom de relevante grensesnittene.",
+    "example": "Et team lager festivalappen for telefoner. Utvikleren bruker en View og en Text-komponent til programoversikten, og legger til kode som reagerer når brukeren velger en konsert.",
+    "distinctions": [
+      "React Native er ikke et alias for React. React er biblioteket komponentmodellen bygger på; React Native knytter den til native plattformer. Web-HTML som div er ikke samme byggestein som en native View."
+    ],
+    "aliases": [],
+    "topics": ["Web og grensesnitt"],
+    "purposeTerms": ["lage mobilapp", "native grensesnitt"],
+    "relations": [
+      {
+        "target": "react",
+        "kind": "Bygger på",
+        "explanation": "React Native bruker React til å beskrive komponentenes visning og oppførsel, men gjengir dem med native byggesteiner."
+      }
+    ],
+    "sources": [
+      {
+        "title": "React Native: native komponenter",
+        "url": "https://reactnative.dev/docs/intro-react-native-components",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "React Native: introduksjon",
+        "url": "https://reactnative.dev/docs/getting-started",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "node-js",
+    "name": "Node.js",
+    "type": "Kjøremiljø",
+    "summary": "Node.js er et kjøremiljø som kjører JavaScript utenfor nettleseren, for eksempel på en server eller i et lokalt utviklerverktøy.",
+    "purpose": "Det gir JavaScript-programmer tilgang til funksjoner som filhåndtering og nettverk i dette miljøet.",
+    "example": "En utvikler skriver et lokalt skript som leser festivalens programfil og lager en oversikt. Node.js kjører skriptet uten at utvikleren åpner en webside.",
+    "distinctions": [
+      "Node.js er ikke et nytt programmeringsspråk og ikke det samme som npm. Nettleserens skjermdokument finnes ikke automatisk i Node.js."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy", "Web og grensesnitt"],
+    "purposeTerms": ["kjøre JavaScript uten nettleser", "JavaScript på server"],
+    "relations": [
+      {
+        "target": "javascript",
+        "kind": "Kjører",
+        "explanation": "Node.js kjører JavaScript-kode utenfor nettleseren."
+      },
+      {
+        "target": "npm",
+        "kind": "Brukes ofte sammen med",
+        "explanation": "npm-verktøyet kan håndtere pakker i et Node.js-prosjekt; verktøyet og kjøremiljøet har ulike roller."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Node.js: introduksjon",
+        "url": "https://nodejs.org/learn/getting-started/introduction-to-nodejs",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "npm: om npm",
+        "url": "https://docs.npmjs.com/about-npm/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "database",
+    "name": "Database",
+    "type": "Begrep",
+    "summary": "En database er en organisert samling data som kan lagres, søkes i og oppdateres etter bestemte regler.",
+    "purpose": "Programmet kan finne og endre bestemte opplysninger uten at brukeren må holde orden på dem manuelt.",
+    "example": "Festivalens bestillinger lagres med billettype og antall. Når arrangøren ber om dagens bestillinger, henter programmet de aktuelle opplysningene fra databasen.",
+    "distinctions": [
+      "Database er et generelt begrep. En database trenger ikke være en relasjonsdatabase, og datalagring trenger ikke ligge i en skytjeneste."
+    ],
+    "aliases": [],
+    "topics": ["Grunnbegreper", "Data"],
+    "purposeTerms": ["lagre data", "søke i lagrede opplysninger"],
+    "relations": [
+      {
+        "target": "relational-database",
+        "kind": "Har som underkategori",
+        "explanation": "En relasjonsdatabase organiserer data som tabeller. Det er én måte å organisere en database på."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: database",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/Database",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "relational-database",
+    "name": "Relasjonsdatabase",
+    "type": "Databasemodell",
+    "summary": "En relasjonsdatabase organiserer data i tabeller med rader og kolonner. Tabellene kan knyttes sammen gjennom verdier som identifiserer radene.",
+    "purpose": "Modellen gjør det mulig å holde ulike typer opplysninger adskilt og spørre etter kombinasjoner av dem.",
+    "example": "Arrangøren har én tabell med kunder og én med bestillinger. En kundereferanse i bestillingen gjør at en spørring kan finne hvilke bestillinger som tilhører en kunde.",
+    "distinctions": [
+      "Relasjonsdatabase er en modell, ikke et bestemt produkt. SQL er et språk som brukes mot slike data, ikke selve databasen."
+    ],
+    "aliases": [],
+    "topics": ["Data"],
+    "purposeTerms": [
+      "organisere data i tabeller",
+      "koble kunder og bestillinger"
+    ],
+    "relations": [
+      {
+        "target": "database",
+        "kind": "Er en type",
+        "explanation": "En relasjonsdatabase er en database som organiserer data som tabeller."
+      },
+      {
+        "target": "sql",
+        "kind": "Bruker vanligvis",
+        "explanation": "SQL brukes til å definere, lese og endre data i relasjonsdatabasesystemer."
+      },
+      {
+        "target": "postgresql",
+        "kind": "Implementeres av",
+        "explanation": "PostgreSQL er et konkret databasesystem med relasjonsmodell."
+      }
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: relasjoner og tabeller",
+        "url": "https://www.postgresql.org/docs/current/tutorial-concepts.html",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "sql",
+    "name": "SQL",
+    "type": "Spørrespråk",
+    "summary": "SQL er et språk for å beskrive, hente og endre data i relasjonsdatabasesystemer.",
+    "purpose": "Utvikleren beskriver hvilke data som ønskes eller hvilken endring som skal utføres. Databasesystemet utfører spørringen.",
+    "example": "Arrangøren vil se alle bestillinger med mer enn to billetter. Utvikleren skriver en SELECT-spørring med en betingelse for antallet.",
+    "distinctions": [
+      "SQL er ikke et annet navn på SQL Server. Flere databasesystemer bruker SQL, med forskjeller i støttede funksjoner og utvidelser."
+    ],
+    "aliases": [
+      {
+        "name": "Structured Query Language",
+        "kind": "abbreviation"
+      }
+    ],
+    "topics": ["Språk", "Data"],
+    "purposeTerms": ["spørre en database", "hente rader fra tabeller"],
+    "relations": [
+      {
+        "target": "relational-database",
+        "kind": "Brukes med",
+        "explanation": "SQL brukes til å arbeide med tabeller og data i relasjonsdatabasesystemer."
+      },
+      {
+        "target": "sql-server",
+        "kind": "Har implementasjon i",
+        "explanation": "SQL Server er et databasesystem som bruker SQL-dialekten Transact-SQL."
+      }
+    ],
+    "sources": [
+      {
+        "title": "MDN: SQL",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/SQL",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "PostgreSQL: SQL-introduksjon",
+        "url": "https://www.postgresql.org/docs/current/tutorial-sql-intro.html",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Microsoft: hva er SQL Server?",
+        "url": "https://learn.microsoft.com/en-us/sql/sql-server/what-is-sql-server?view=sql-server-ver17",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "postgresql",
+    "name": "PostgreSQL",
+    "type": "Databasesystem",
+    "summary": "PostgreSQL er et åpent kildekodebasert objektrelasjonelt databasesystem som bruker og utvider SQL.",
+    "purpose": "Utvikleren kan opprette tabeller, lagre data og bruke spørringer og transaksjoner til å behandle dem.",
+    "example": "Festivalteamet velger PostgreSQL til kundedata og bestillinger. Backend sender SQL-spørringer til databasesystemet for å lagre en ny bestilling og hente den senere.",
+    "distinctions": [
+      "Postgres er et akseptert alias. Prosjektets offisielle navn er PostgreSQL.",
+      "PostgreSQL er et produkt, mens SQL er språket og relasjonsdatabase beskriver datamodellen."
+    ],
+    "aliases": [
+      {
+        "name": "Postgres",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Data"],
+    "purposeTerms": ["lagre relasjonelle data", "åpen kildekode database"],
+    "relations": [
+      {
+        "target": "relational-database",
+        "kind": "Implementerer",
+        "explanation": "PostgreSQL organiserer blant annet data som relasjonelle tabeller."
+      },
+      {
+        "target": "sql",
+        "kind": "Bruker og utvider",
+        "explanation": "PostgreSQL støtter SQL og har egne utvidelser; SQL-kode er derfor ikke alltid identisk mellom produkter."
+      }
+    ],
+    "sources": [
+      {
+        "title": "PostgreSQL: om prosjektet",
+        "url": "https://www.postgresql.org/about/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "PostgreSQL: navnepolicy",
+        "url": "https://www.postgresql.org/about/policies/project-name/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "sql-server",
+    "name": "SQL Server",
+    "type": "Databasesystem",
+    "summary": "SQL Server er Microsofts relasjonsdatabasesystem. Applikasjoner kan kommunisere med det gjennom SQL-dialekten Transact-SQL, også kalt T-SQL.",
+    "purpose": "Det kan håndtere tabeller, spørringer og endringer i data for applikasjoner som trenger et databasesystem.",
+    "example": "En organisasjon har bestillingene sine i SQL Server. Utvikleren skriver en T-SQL-spørring som henter antall bestillinger per billettype til arrangørens rapport.",
+    "distinctions": [
+      "SQL Server er et produkt; SQL er et språk som flere produkter bruker. MSSQL er et søkealias her, ikke produktets offisielle navn."
+    ],
+    "aliases": [
+      {
+        "name": "MSSQL",
+        "kind": "abbreviation"
+      },
+      {
+        "name": "Microsoft SQL Server",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Data"],
+    "purposeTerms": ["Microsoft relasjonsdatabase", "spørringer med T-SQL"],
+    "relations": [
+      {
+        "target": "sql",
+        "kind": "Bruker dialekt av",
+        "explanation": "SQL Server bruker Transact-SQL, en SQL-dialekt med egne utvidelser."
+      },
+      {
+        "target": "relational-database",
+        "kind": "Implementerer",
+        "explanation": "SQL Server er et konkret system for å håndtere relasjonelle databaser."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Microsoft: hva er SQL Server?",
+        "url": "https://learn.microsoft.com/en-us/sql/sql-server/what-is-sql-server?view=sql-server-ver17",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "git",
+    "name": "Git",
+    "type": "Versjonskontrollverktøy",
+    "summary": "Git er et distribuert versjonskontrollverktøy som registrerer historikk for filer i et repository, ofte kalt et repo.",
+    "purpose": "Utvikleren kan bevare navngitte endringspunkter, sammenligne endringer og arbeide med alternative utviklingslinjer i branches.",
+    "example": "En utvikler endrer billettskjemaet og lager en commit som registrerer endringen lokalt. Teamet kan senere undersøke forskjellen fra forrige commit.",
+    "distinctions": [
+      "Git kan brukes lokalt uten GitHub. En lokal commit publiserer ikke automatisk koden til en tjeneste på nettet."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy"],
+    "purposeTerms": [
+      "versjonskontroll",
+      "historikk for kode",
+      "sammenligne endringer"
+    ],
+    "relations": [
+      {
+        "target": "github",
+        "kind": "Kan brukes med",
+        "explanation": "GitHub kan være vert for et Git-repo og tilby samarbeid rundt endringene. Git er versjonskontrollverktøyet."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Pro Git: hva er Git?",
+        "url": "https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "type": "Samarbeidsplattform",
+    "summary": "GitHub er en plattform for programvareutvikling som blant annet kan være vert for Git-repoer og støtte samarbeid om kode.",
+    "purpose": "Teamet kan dele endringer, diskutere forslag i pull requests og følge opp arbeid gjennom issues.",
+    "example": "Utvikleren publiserer sin branch til teamets repo på GitHub og åpner en pull request. En kollega leser endringene og kommenterer før teamet bestemmer om de skal flettes inn.",
+    "distinctions": [
+      "GitHub er ikke det samme som Git. Git registrerer versjonshistorikken; GitHub tilbyr en plattform rundt repoene."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy"],
+    "purposeTerms": ["samarbeide om kode", "pull request", "issues"],
+    "relations": [
+      {
+        "target": "git",
+        "kind": "Bruker",
+        "explanation": "GitHub bruker Git som grunnlag for versjonskontroll i repoene."
+      }
+    ],
+    "sources": [
+      {
+        "title": "GitHub: hva er GitHub?",
+        "url": "https://docs.github.com/en/get-started/start-your-journey/what-is-github",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "npm",
+    "name": "npm",
+    "type": "Pakkeverktøy og register",
+    "summary": "npm omfatter et kommandolinjeverktøy, et pakkeregister og et nettsted. Pakker gjør det mulig å dele og bruke kode i blant annet JavaScript-prosjekter.",
+    "purpose": "Utvikleren kan deklarere og installere prosjektets avhengigheter fremfor å kopiere all bibliotekskode manuelt.",
+    "example": "Et team har React som avhengighet i prosjektet. Utvikleren bruker npm til å installere pakkene som prosjektets manifest og låsefil beskriver.",
+    "distinctions": [
+      "npm er ikke Node.js og kjører ikke appens grensesnitt i nettleseren. En pakke fra et register er heller ikke automatisk trygg eller riktig for prosjektet."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy"],
+    "purposeTerms": ["installere pakker", "håndtere avhengigheter"],
+    "relations": [
+      {
+        "target": "node-js",
+        "kind": "Brukes ofte sammen med",
+        "explanation": "npm-verktøyet brukes ofte i Node.js-miljøet, men kjøremiljø og pakkehåndtering er ulike oppgaver."
+      },
+      {
+        "target": "react",
+        "kind": "Kan installere",
+        "explanation": "React distribueres som pakker som et prosjekt kan installere med npm."
+      }
+    ],
+    "sources": [
+      {
+        "title": "npm: om npm",
+        "url": "https://docs.npmjs.com/about-npm/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "vite",
+    "name": "Vite",
+    "type": "Byggverktøy",
+    "summary": "Vite er et byggverktøy for webprosjekter, med utviklingsserver og en kommando som lager statiske produksjonsfiler.",
+    "purpose": "Utvikleren kan arbeide med rask oppdatering i nettleseren og lage en samlet utgave av filene som skal publiseres.",
+    "example": "Utvikleren endrer festivalens React-komponent. Vites utviklingsserver viser endringen lokalt. Før publisering kjører teamet byggkommandoen og får filene som skal leveres til nettleseren.",
+    "distinctions": [
+      "Vites utviklingsserver er ikke automatisk den produksjonsbackend applikasjonen trenger. Et vellykket bygg beviser heller ikke at brukerflyten er riktig."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy", "Web og grensesnitt"],
+    "purposeTerms": [
+      "bygge webprosjekt",
+      "utviklingsserver",
+      "lage produksjonsfiler"
+    ],
+    "relations": [
+      {
+        "target": "react",
+        "kind": "Kan bygge prosjekter med",
+        "explanation": "Vite kan brukes med React gjennom passende prosjektoppsett; det erstatter ikke Reacts komponentmodell."
+      },
+      {
+        "target": "javascript",
+        "kind": "Behandler",
+        "explanation": "Vite behandler blant annet JavaScript-moduler som del av webprosjektets bygg."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Vite: kom i gang",
+        "url": "https://vite.dev/guide/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "playwright",
+    "name": "Playwright",
+    "type": "Testverktøy",
+    "summary": "Playwright er et verktøy for å automatisere nettlesere. Playwright Test gir en testkjører og forventninger for ende-til-ende-tester av webapper.",
+    "purpose": "Teamet kan gjenta konkrete handlinger i en nettleser og kontrollere resultatet i blant annet Chromium, Firefox og WebKit.",
+    "example": "En tester lar Playwright åpne festivalens side, velge to billetter og trykke «Bestill». Testen kontrollerer at riktig bekreftelse vises.",
+    "distinctions": [
+      "En test bekrefter bare de handlingene og forventningene som faktisk er kjørt i de valgte miljøene. Nettleseremulering er ikke testing på en fysisk telefon."
+    ],
+    "aliases": [],
+    "topics": ["Verktøy", "Web og grensesnitt"],
+    "purposeTerms": [
+      "teste nettsider automatisk",
+      "automatisere nettleser",
+      "teste brukerflyt"
+    ],
+    "relations": [
+      {
+        "target": "frontend",
+        "kind": "Tester samhandling med",
+        "explanation": "Playwright kan betjene og kontrollere frontend i en faktisk nettleser."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Playwright: introduksjon",
+        "url": "https://playwright.dev/docs/intro",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "container",
+    "name": "Container",
+    "type": "Kjøreteknikk",
+    "summary": "En container er en isolert prosess med filene den trenger for å kjøre, adskilt fra andre prosesser gjennom kjøremiljøets mekanismer.",
+    "purpose": "Teamet kan pakke en applikasjon med nødvendige filer og kjøre den med et mer forutsigbart oppsett.",
+    "example": "En utvikler kjører festivalens testtjeneste i en container med riktig runtime og bibliotekversjoner. Tjenesten startes uten at disse må installeres enkeltvis på vertsmaskinen.",
+    "distinctions": [
+      "Et container-image er grunnlaget man starter en container fra; containeren er den kjørende instansen. En container er ikke en full virtuell maskin med egen operativsystemkjerne, og isolasjon er ingen garanti mot alle angrep."
+    ],
+    "aliases": [],
+    "topics": ["Drift"],
+    "purposeTerms": ["isolere en prosess", "pakke kjøreoppsett"],
+    "relations": [
+      {
+        "target": "docker",
+        "kind": "Kan opprettes med",
+        "explanation": "Docker har verktøy for å bygge images og starte containere."
+      },
+      {
+        "target": "kubernetes",
+        "kind": "Kan styres av",
+        "explanation": "Kubernetes styrer kjøring av containerbaserte applikasjoner på maskiner i en klynge."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Docker: hva er en container?",
+        "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Docker: oversikt",
+        "url": "https://docs.docker.com/get-started/docker-overview/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "type": "Containerverktøy",
+    "summary": "Docker er en plattform med verktøy for å bygge, distribuere og kjøre applikasjoner som containere.",
+    "purpose": "Utvikleren kan beskrive et image, bygge det og starte containere fra det i et egnet kjøremiljø.",
+    "example": "Teamet beskriver festivalens tjeneste i en Dockerfile og bygger et image. En utvikler starter en container fra imaget for å teste tjenesten lokalt.",
+    "distinctions": [
+      "Docker er ikke det samme som en container eller Kubernetes. Et image alene er heller ikke en kjørende tjeneste. Drift krever fortsatt konfigurasjon av blant annet nettverk og lagring."
+    ],
+    "aliases": [],
+    "topics": ["Drift", "Verktøy"],
+    "purposeTerms": [
+      "bygge container-image",
+      "kjøre en container lokalt",
+      "kjøre containere"
+    ],
+    "relations": [
+      {
+        "target": "container",
+        "kind": "Bygger images og kjører containere",
+        "explanation": "Docker-verktøy bygger images som kan brukes til å starte containere."
+      },
+      {
+        "target": "kubernetes",
+        "kind": "Har en annen rolle enn",
+        "explanation": "Docker tilbyr blant annet bygging og lokal containerkjøring; Kubernetes styrer containerbaserte arbeidslaster på en klynge."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Docker: oversikt",
+        "url": "https://docs.docker.com/get-started/docker-overview/",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "go",
+    "name": "Go",
+    "type": "Programmeringsspråk",
+    "summary": "Go er et statisk typet, kompilert programmeringsspråk med blant annet innebygd støtte for samtidige arbeidsoppgaver.",
+    "purpose": "Utvikleren kan bruke språket til for eksempel tjenester og kommandolinjeprogrammer. En kompilator oversetter kildekoden til et program som kan kjøres.",
+    "example": "En utvikler skriver et Go-program som behandler festivalens programfil og skriver ut en oversikt over konsertene. Teamet bygger programmet før det kjøres.",
+    "distinctions": [
+      "Språkets navn er Go. Golang er et utbredt kallenavn knyttet til det tidligere domenet golang.org, ikke et annet språk.",
+      "Go er et språk, ikke en driftsplattform som Kubernetes."
+    ],
+    "aliases": [
+      {
+        "name": "Golang",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Språk"],
+    "purposeTerms": ["kompilert språk", "lage kommandolinjeprogram"],
+    "relations": [
+      {
+        "target": "backend",
+        "kind": "Kan brukes til",
+        "explanation": "En backend kan implementeres i Go; backend beskriver systemrollen, ikke et bestemt språk."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Go: ofte stilte spørsmål",
+        "url": "https://go.dev/doc/faq",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "authentication",
+    "name": "Autentisering",
+    "type": "Sikkerhetsbegrep",
+    "summary": "Autentisering er å kontrollere identiteten som en bruker, applikasjon eller enhet oppgir.",
+    "purpose": "Systemet trenger et grunnlag for å vite hvilken identitet en forespørsel tilhører, for eksempel gjennom en innloggingsprosess.",
+    "example": "En arrangør logger inn i et fiktivt administrasjonssystem. Identitetsleverandøren kontrollerer bevisene arrangøren gir, før applikasjonen behandler forespørsler som innlogget.",
+    "distinctions": [
+      "Autentisering avgjør identitet. Autorisasjon avgjør tillatelser; en innlogget bruker får ikke dermed lese alle data."
+    ],
+    "aliases": [
+      {
+        "name": "Authentication",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Identitet", "Grunnbegreper"],
+    "purposeTerms": ["kontrollere identitet", "hvem logger inn"],
+    "relations": [
+      {
+        "target": "authorization",
+        "kind": "Må skilles fra",
+        "explanation": "Autentisering kontrollerer identitet; autorisasjon bestemmer hvilke handlinger identiteten får utføre."
+      },
+      {
+        "target": "microsoft-entra-id",
+        "kind": "Kan leveres av",
+        "explanation": "Microsoft Entra ID er en mulig identitetsleverandør. Begrepet autentisering er ikke bundet til denne tjenesten."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Microsoft: autentisering og autorisasjon",
+        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/authentication-vs-authorization",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "authorization",
+    "name": "Autorisasjon",
+    "type": "Sikkerhetsbegrep",
+    "summary": "Autorisasjon er å avgjøre om en identitet har lov til å utføre en bestemt handling eller få tilgang til bestemte data.",
+    "purpose": "Systemet bruker regler og tillatelser til å avgjøre hva en forespørsel får gjøre.",
+    "example": "En innlogget festivalmedarbeider kan lese programmet, mens bare en person med riktig rolle kan endre billettprisene. Systemet kontrollerer tillatelsen før endringen utføres.",
+    "distinctions": [
+      "Autorisert er ikke det samme som innlogget. Autentisering og autorisasjon svarer på ulike spørsmål."
+    ],
+    "aliases": [
+      {
+        "name": "Authorization",
+        "kind": "synonym"
+      }
+    ],
+    "topics": ["Identitet", "Grunnbegreper"],
+    "purposeTerms": ["styre tilgang", "kontrollere tillatelser"],
+    "relations": [
+      {
+        "target": "authentication",
+        "kind": "Må skilles fra",
+        "explanation": "Autentisering kontrollerer identitet; autorisasjon avgjør hvilke handlinger denne identiteten har lov til å utføre."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Microsoft: autentisering og autorisasjon",
+        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/authentication-vs-authorization",
+        "checked": "2026-11-01"
+      }
+    ]
+  },
+  {
+    "id": "microsoft-entra-id",
+    "name": "Microsoft Entra ID",
+    "type": "Identitetstjeneste",
+    "summary": "Microsoft Entra ID er Microsofts skybaserte identitets- og tilgangstjeneste, tidligere kalt Azure Active Directory.",
+    "purpose": "Organisasjoner kan bruke tjenesten som felles identitetsleverandør for innlogging og tilgang til tilknyttede applikasjoner.",
+    "example": "En organisasjon knytter sitt fiktive festivalsystem til Entra ID. Medarbeideren bruker organisasjonens innlogging; applikasjonen må fortsatt håndheve hvilke bestillinger medarbeideren får behandle.",
+    "distinctions": [
+      "Microsoft kunngjorde navneendringen 11. juli 2023. Azure AD, Azure Active Directory og AAD er tidligere navn eller forkortelser, ikke separate nye produkter.",
+      "Windows Server Active Directory er ikke bare et annet navn på Entra ID. Autentisering og autorisasjon må fortsatt skilles."
+    ],
+    "aliases": [
+      {
+        "name": "Azure AD",
+        "kind": "historical"
+      },
+      {
+        "name": "Azure Active Directory",
+        "kind": "historical"
+      },
+      {
+        "name": "AAD",
+        "kind": "historical"
+      }
+    ],
+    "topics": ["Identitet"],
+    "purposeTerms": ["organisasjonsinnlogging", "felles identitetsleverandør"],
+    "relations": [
+      {
+        "target": "authentication",
+        "kind": "Tilbyr støtte for",
+        "explanation": "Entra ID kan fungere som identitetsleverandør for autentisering i tilknyttede applikasjoner."
+      },
+      {
+        "target": "authorization",
+        "kind": "Tilbyr støtte for",
+        "explanation": "Tjenesten støtter tilgangsstyring, men en applikasjon må fortsatt håndheve egne tilgangskrav korrekt."
+      }
+    ],
+    "sources": [
+      {
+        "title": "Microsoft: navneendringen fra Azure AD",
+        "url": "https://learn.microsoft.com/en-us/entra/fundamentals/new-name",
+        "checked": "2026-11-01"
+      },
+      {
+        "title": "Microsoft: autentisering og autorisasjon",
+        "url": "https://learn.microsoft.com/en-us/entra/identity-platform/authentication-vs-authorization",
+        "checked": "2026-11-01"
+      }
+    ]
+  }
+]
