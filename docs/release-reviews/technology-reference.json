@@ -1,0 +1,54 @@
+{
+    "schemaVersion":  2,
+    "module":  "technology-reference",
+    "reviewer":  "ChatGPT (AI source reviewer; not a human reviewer)",
+    "binding":  {
+                    "kind":  "payload-tree",
+                    "payloadTree":  "0d8476a2f5264ce914d21329aa902b94b2b54ec6",
+                    "excludedPath":  "docs/release-reviews"
+                },
+    "reviewScope":  {
+                        "summary":  "Source-level acceptance of the 28-entry searchable technology reference and subsequent bounded search correction.",
+                        "evidence":  [
+                                         "Independent source archive review with 34 file hashes checked.",
+                                         "44 search evaluation cases independently reproduced.",
+                                         "Additional Norwegian query cases reviewed and corrected.",
+                                         "Owner-reported final validation: 60 Vitest tests, TypeScript, ESLint, Prettier, production build and bundle budget passed.",
+                                         "Existing targeted browser and offline results reviewed; not independently rerun by this reviewer."
+                                     ]
+                    },
+    "adversarialFindings":  [
+                                {
+                                    "id":  "TR-01",
+                                    "severity":  "P2",
+                                    "description":  "Original search relevance conflated distinct technologies and gave incorrect rankings.",
+                                    "resolution":  "Search ranking, word matching, result grouping and regression expectations were corrected.",
+                                    "status":  "resolved"
+                                },
+                                {
+                                    "id":  "TR-02",
+                                    "severity":  "P3",
+                                    "description":  "Additional Norwegian question formulations initially produced unnecessary null results.",
+                                    "resolution":  "Bounded normalization correction applied and 60 focused tests passed.",
+                                    "status":  "resolved"
+                                },
+                                {
+                                    "id":  "TR-03",
+                                    "severity":  "P2",
+                                    "description":  "Local npm security audit could not reach its advisory endpoint.",
+                                    "resolution":  "No security PASS claimed. The ordinary hosted release gate must independently complete its audit.",
+                                    "status":  "accepted-risk"
+                                },
+                                {
+                                    "id":  "TR-04",
+                                    "severity":  "P3",
+                                    "description":  "No observed human beginner-comprehension study was conducted.",
+                                    "resolution":  "Explicitly documented limitation; no material defect was identified that warrants making this an additional owner acceptance gate.",
+                                    "status":  "accepted-risk"
+                                }
+                            ],
+    "retrospective":  {
+                          "decision":  "proceed",
+                          "summary":  "PASS under the owner review policy. No unresolved material source defect identified. This is AI source acceptance, not human review, CI certification or deployment approval."
+                      }
+}
