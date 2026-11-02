@@ -1,11 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { App } from '@/app/App';
 import { router } from '@/app/router/router';
+import {
+  ACTION_GUARD_MS,
+  ActionGuardContext,
+  createActionGuard,
+} from '@/features/microlearning/components/actionGuard';
 import {
   defaultLearnerProfileValues,
   enrolAndSwitchActiveProgramme,
@@ -13,7 +19,6 @@ import {
   saveLearnerProfile,
 } from '@/lib/db';
 import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
-import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { getProgrammeRegistry } from '@/programmes';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
 import { bundledCourseSeed } from '@/seed';
@@ -54,6 +59,23 @@ const generelt = placed
   .filter((entry) => entry.category.id === 'generelt')
   .map((entry) => entry.session);
 
+// Control only the guard's monotonic clock. React, user-event, router and
+// IndexedDB keep their real scheduling; every render gets a real, fresh guard.
+let guardTime = 0;
+const advanceGuardWindow = () => {
+  guardTime += ACTION_GUARD_MS;
+};
+
+async function renderAppAtRoute(route: string, state?: unknown) {
+  window.history.pushState({}, '', route);
+  await router.navigate(route, { state });
+  return render(
+    <ActionGuardContext.Provider value={createActionGuard(() => guardTime)}>
+      <App />
+    </ActionGuardContext.Provider>,
+  );
+}
+
 function servePackagedContent() {
   vi.stubGlobal('fetch', async (input: string | URL | Request) => {
     const url = new URL(
@@ -67,6 +89,7 @@ function servePackagedContent() {
 }
 
 beforeEach(() => {
+  guardTime = 0;
   servePackagedContent();
   closeSharedDatabase();
   getSharedDatabase({
@@ -79,6 +102,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  guardTime = 0;
   vi.unstubAllGlobals();
 });
 
@@ -194,8 +218,6 @@ describe('the way in', () => {
 });
 
 describe('each activity end to end against the real database', () => {
-  const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
-
   it.each(placed)(
     '$category.title $row: $session.title plays to the takeaway, wrong then right, and changes no store',
     async ({ category, row, session }) => {
@@ -225,7 +247,7 @@ describe('each activity end to end against the real database', () => {
         }
       };
       const act = async (name: string | RegExp) => {
-        await pause();
+        advanceGuardWindow();
         await user.click(screen.getByRole('button', { name }));
       };
 
@@ -269,7 +291,7 @@ describe('each activity end to end against the real database', () => {
         await screen.findByRole('heading', { name: track.title }),
       ).toBeInTheDocument();
       // The start is guarded against a double tap, like the other pickers.
-      await pause();
+      advanceGuardWindow();
       await user.click(
         screen.getByRole('button', {
           name: new RegExp(`^${row}\\. `),
@@ -285,7 +307,6 @@ describe('each activity end to end against the real database', () => {
   );
 });
 
-const guardPause = () => new Promise((resolve) => setTimeout(resolve, 450));
 const heading = () => screen.getByRole('heading', { level: 1 });
 const option = (label: string) =>
   screen.getByRole('button', {
@@ -293,6 +314,25 @@ const option = (label: string) =>
   });
 
 describe('the activity list and the first card', () => {
+  it('rejects immediate and 399-ms successor activations, then accepts at 400 ms', async () => {
+    const user = userEvent.setup();
+    const [first] = track.sessions;
+    await onboard();
+    await activateProgramme2();
+    await renderAppAtRoute(trackPath + '?kategori=generelt');
+    await user.click(await screen.findByRole('button', { name: /^1\. / }));
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+    guardTime = 399;
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(first!.cards[0]!.title);
+    guardTime = 400;
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(first!.cards[1]!.title);
+  });
+
   it('cues the choice next to the six activities and bolds the four key words', async () => {
     const user = userEvent.setup();
 
@@ -331,7 +371,7 @@ describe('a new choice after a miss is the one retry', () => {
     await activateProgramme2();
     await renderAppAtRoute(`${trackPath}?kategori=generelt`);
     await user.click(await screen.findByRole('button', { name: /^1\. / }));
-    await guardPause();
+    advanceGuardWindow();
     await user.click(screen.getByRole('button', { name: 'Neste' }));
     expect(heading()).toHaveTextContent(card.title);
     if (card.kind !== 'select') {
@@ -389,7 +429,7 @@ describe('a new choice after a miss is the one retry', () => {
     const right = card.options.find((entry) => entry.id === card.correctId)!;
 
     await user.click(option(wrong.label));
-    await guardPause();
+    advanceGuardWindow();
     await user.click(screen.getByRole('button', { name: 'Prøv igjen' }));
     expect(screen.getByRole('status')).toHaveTextContent(card.hint);
     await user.click(option(right.label));
@@ -410,7 +450,7 @@ describe('the browser’s Back and Forward', () => {
     await renderAppAtRoute(`${trackPath}?kategori=generelt`);
     await user.click(await screen.findByRole('button', { name: /^1\. / }));
     expect(heading()).toHaveTextContent(first!.cards[0]!.title);
-    await guardPause();
+    advanceGuardWindow();
     await user.click(screen.getByRole('button', { name: 'Neste' }));
     expect(heading()).toHaveTextContent(first!.cards[1]!.title);
 
@@ -499,12 +539,12 @@ describe('category navigation through the existing track route', () => {
     expect(router.state.location.search).toBe(
       '?aktivitet=' + track.sessions[0]!.id + '&kort=1',
     );
-    await guardPause();
+    advanceGuardWindow();
     await user.click(
       screen.getByRole('button', { name: 'Tilbake til aktiviteter' }),
     );
     expect(router.state.location.search).toBe('?kategori=generelt');
-    await guardPause();
+    advanceGuardWindow();
     await user.click(
       screen.getByRole('button', { name: 'Tilbake til temaer' }),
     );
@@ -572,7 +612,7 @@ describe('category navigation through the existing track route', () => {
       await screen.findByRole('heading', { name: k04.cards[0]!.title }),
     ).toBeInTheDocument();
     expect(router.state.location.search).toBe(`?aktivitet=${k04.id}&kort=1`);
-    await guardPause();
+    advanceGuardWindow();
     await user.click(
       screen.getByRole('button', { name: 'Tilbake til aktiviteter' }),
     );
