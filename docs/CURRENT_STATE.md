@@ -1,5 +1,17 @@
 # ProgressPal current state
 
+**2026-11-02 certification reuse activation candidate.** Isolated
+`cx/release-reuse-active` starts at verified remote master
+`c802491bd8f54d62db09699a6e819e48d6a4e99f`. The existing native
+`Final candidate` job selects FULL, authenticated ATTEST, or mandatory BLOCK;
+activation itself requires comprehensive PR and master runs because release
+controls change. Independent payload review and actual hosted/provider results
+remain distinct from focused preflight. Current CLI inspection directly confirms
+the GitHub check blocks production alias assignment on `progress-pal`; no
+provider settings, product bytes, schema, version or dependencies change.
+Contract and recovery: [release reuse](release-reuse.md). This candidate record
+does not assert integration, hosted success or production promotion.
+
 **2026-11-01 Teknologioppslag — source-verified local correction, review-ready.** Isolated
 `feat/technology-reference-20261101-203711` starts at clean local `master`
 `9b2f5239728cafa1ac4ac43a0c222e36cf2edfec`. A secondary RPG Home link for both

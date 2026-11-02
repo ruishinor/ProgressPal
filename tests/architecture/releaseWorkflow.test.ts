@@ -54,6 +54,20 @@ describe('release validation workflow contract', () => {
     expect(gateRunner).toContain('no longer supported');
   });
 
+  it('branches only the expensive steps and retains evidence on failure', () => {
+    expect(workflow.match(/name: Final candidate/g)).toHaveLength(1);
+    expect(
+      workflow.match(/if: steps.reuse.outputs.decision != 'ATTEST'/g),
+    ).toHaveLength(3);
+    expect(workflow).toContain('id: reuse');
+    expect(workflow).toContain('selection=$(mktemp)');
+    expect(workflow).toContain('timeout 150s node --input-type=module');
+    expect(workflow).toContain('if: always()');
+    expect(workflow).not.toContain('continue-on-error');
+    const job = workflow.split('    steps:')[0];
+    expect(job).not.toMatch(/^\s+if:/m);
+  });
+
   it('holds no deployment authority or secrets', () => {
     expect(workflow).toMatch(/^permissions:\n {2}contents: read$/m);
     expect(workflow).not.toMatch(/secrets\./);

@@ -7,7 +7,6 @@ export const REPOSITORY_ID = 1269722314;
 export const WORKFLOW = '.github/workflows/test.yml';
 export const ARTIFACT = 'release-evidence-final-candidate';
 export const CONTRACT = 1;
-export const MODE = 'shadow';
 export const STEPS = [
   'Run actions/checkout@v5',
   'Run actions/setup-node@v6',

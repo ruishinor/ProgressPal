@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "release-reuse-active",
+  "reviewer": "Codex AI independent reviewer /root/review_a; separate reviewer agent, no implementation authorship or human review claimed",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f6a4cbfc734767e7e564648b414cffdcc27c1b26",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent adversarial review of activation payload 0959d00d23079b5931fd60881945fae214e0d76e from master c802491bd8f54d62db09699a6e819e48d6a4e99f. Traced the installed native workflow through authenticated source discovery, audit classification, final recheck, record publication, FULL fallback and BLOCK failure propagation. Examined affected documentation, contract changes and test oracles. Reviewer supplied findings only and did not edit the implementation payload.",
+    "evidence": [
+      "Reviewer directly inspected the complete production-script/workflow diff and existing source run/job/check/artifact/tree/ordered-parent/report/review validation. The authentic workflow/job names, triggers, read-only permissions, comprehensive commands and always-upload path remain intact.",
+      "Reviewer ran node --test scripts/release-reuse.test.mjs: 58 passed, 0 failed/skipped/cancelled/todo. This includes exact source/attempt and tampered review/control attacks, no reuse chains, audit transport versus structured vulnerability, optional fallback versus mandatory failure, full failure propagation, timestamp precision, the installed shell with command doubles, and the actual bootstrap with imported synthetic selectors.",
+      "Reviewer inspected the narrow final delta 9ac0dcb..0959d00 and verified that eligibility metadata no longer claims which expensive steps actually executed. The native step outcomes remain execution evidence.",
+      "Reviewer independently computed payload f6a4cbfc734767e7e564648b414cffdcc27c1b26 with npm run review:payload-tree -- HEAD and observed git diff --check pass.",
+      "Implementer-reported targeted preflight, not independently rerun as a full gate: focused gate/review/reuse Node tests, workflow architecture Vitest, changed-file formatter/linter, TypeScript and clean npm 11 lock-only JSON audit. Reviewer did not certify hosted execution, current provider settings or a production alias.",
+      "No full local gate, hosted dispatch, production mutation, fabricated comprehensive manifest or self-issued source certificate was used by this review. Ordinary comprehensive PR and activation-master gates, current-identity/protection rechecks and observed deployment/alias/smoke remain release conditions."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "RA-1",
+      "severity": "P2",
+      "description": "The initial reuse record claimed executed ATTEST before bootstrap output publication. An optional output fault could then select FULL while leaving misleading execution metadata in the upload.",
+      "resolution": "The implementer changed the record to eligibility verified in 0959d00d23079b5931fd60881945fae214e0d76e and documented that actual native job steps establish execution. Reviewer inspected the exact correction; no execution claim or comprehensive manifest is fabricated by the record.",
+      "status": "resolved"
+    },
+    {
+      "id": "RA-2",
+      "severity": "P2",
+      "description": "A selector error or optional reuse miss must not suppress mandatory certification, while an established current violation must not be hidden by fallback.",
+      "resolution": "Source inspection and focused shell/decision probes establish that only verified ATTEST skips the three expensive steps; incomplete/crashed/timed-out output and optional operations select one FULL path, confirmed BLOCK fails the native job, and FULL failures propagate without retry. Existing source authenticity and rejection-precedence checks remain in force.",
+      "status": "resolved"
+    },
+    {
+      "id": "RA-3",
+      "severity": "P3",
+      "description": "Focused doubles and source checks cannot prove hosted activation or actual production promotion, and candidate-controlled scripts retain the repository's existing authorized-editor trust boundary.",
+      "resolution": "Accepted for publication through the existing comprehensive PR gate. Activation changes controls and must comprehensively certify master; a later ordinary useful release must supply natural active-reuse evidence. Current provider/check identity and exact master deployment/alias/smoke must be observed before claiming the corresponding milestones. This review does not certify those future states or isolate a hostile authorized workflow editor.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Technical/editorial PASS for the exact bound activation payload after the evidence-truth correction. No unresolved material source-review finding remains. Proceed through the mandate's ordinary comprehensive PR certification and conditional release predicates; this independent AI review is neither a hosted certificate nor a production-success claim. Existing working provenance checks were reused, and one narrow metadata correction resolved the substantive review finding without a new control framework."
+  }
+}
