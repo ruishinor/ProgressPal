@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "test-debt-combined-20261102",
+  "reviewer": "ChatGPT GPT-6 - separate AI source reviewer; not a human review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "d213baea6bcd6e71cca10b47831abee7cfe03300",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source review of the two combined test-pacing improvements against master 5dce7507. No production behavior or release controls changed.",
+    "evidence": [
+      "GitHub source comparison confirms exactly three changed files: current-state documentation, Utviklerblikk Playwright helper and Mikrookt route tests.",
+      "Utviklerblikk retains the real 400 ms guard while subtracting elapsed time from the test helper 430 ms interval.",
+      "Mikrookt uses the existing real guard with an isolated test clock and adds immediate, 399 ms and 400 ms boundary assertions.",
+      "Owner-provided combined validation passed 109 focused Vitest tests, one representative Playwright case, TypeScript, ESLint, Prettier and diff checks.",
+      "Earlier focused validation included a guard-bypass negative control. No full hosted certification is claimed.",
+      "The exact payload-tree SHA was independently reconstructed from GitHub Git tree objects."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "TDC-01",
+      "severity": "P2",
+      "description": "Optimized pacing might weaken the double-activation guard test.",
+      "resolution": "The real guard remains unchanged; the test-local clock preserves guard behavior and adds the 0/399/400 ms boundary oracle.",
+      "status": "resolved"
+    },
+    {
+      "id": "TDC-02",
+      "severity": "P3",
+      "description": "Focused local success does not establish full hosted-suite stability.",
+      "resolution": "Accepted limitation. The ordinary comprehensive PR gate remains authoritative and will exercise the full selected test obligations.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "TDC-03",
+      "severity": "P3",
+      "description": "Local timing comparisons do not establish hosted CI runtime savings.",
+      "resolution": "No hosted performance improvement is claimed. Existing FULL and authenticated ATTEST release controls remain unchanged.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped AI source review PASS. No unresolved material source defect identified. Full hosted release certification remains outstanding."
+  }
+}

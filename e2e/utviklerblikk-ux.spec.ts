@@ -148,9 +148,16 @@ async function expectTallAnswerReachable(control: Locator, label: string) {
     expect(end.operable, label + ' tall answer ' + block + ' hit').toBe(true);
   }
 }
+const lastAction = new WeakMap<Page, number>();
 async function action(page: Page, name: string) {
-  await page.waitForTimeout(430);
+  // Keep the real 400 ms guard, counting time already spent inspecting or
+  // answering. The first call waits fully for an untracked category click.
+  const previous = lastAction.get(page);
+  const remaining =
+    previous === undefined ? 430 : 430 - (performance.now() - previous);
+  if (remaining > 0) await page.waitForTimeout(remaining);
   await page.getByRole('button', { name, exact: true }).click();
+  lastAction.set(page, performance.now());
 }
 async function taps(page: Page, list: Tap[]) {
   for (const tap of list) {
