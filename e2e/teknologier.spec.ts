@@ -76,8 +76,8 @@ async function inspect(page: Page) {
   ).toEqual([]);
   for (const control of await page
     .locator('.micro button:visible, .micro a:visible')
-    .all()) {
-    await control.scrollIntoViewIfNeeded();
+    .elementHandles()) {
+    await control.scrollIntoViewIfNeeded({ timeout: 5000 });
     const rect = (await control.boundingBox())!;
     expect(rect.width).toBeGreaterThanOrEqual(43.9);
     expect(rect.height).toBeGreaterThanOrEqual(43.9);
@@ -203,6 +203,8 @@ for (const [width, scale] of [
     await page
       .getByRole('button', { name: /^Teknologier og rammeverk/ })
       .click();
+    await expect(page).toHaveURL(new RegExp(`kategori=${category}$`));
+    await expect(page.getByRole('button', { name: /^1\./ })).toBeVisible();
     await inspect(page);
     await walk(page, `${width}-${scale}`);
     expect(

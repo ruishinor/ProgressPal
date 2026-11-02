@@ -66,7 +66,7 @@ async function inspect(
   for (const control of await page
     .locator('.micro button:visible,.micro a:visible,.micro summary:visible')
     .all()) {
-    await control.scrollIntoViewIfNeeded();
+    await control.scrollIntoViewIfNeeded({ timeout: 5000 });
     const hit = await control.evaluate((el) => {
       const r = el.getBoundingClientRect(),
         doc = el.ownerDocument,
