@@ -31,6 +31,7 @@ import {
   type SaveLearnerProfileInput,
 } from '@/lib/db';
 import { getSharedDatabase } from '@/lib/db/database';
+import { getLocalWeekStart } from '@/lib/time';
 import { cs50AchievementDefinitions as achievementDefinitions } from '../programmes/cs50Policy';
 import { router } from '@/app/router/router';
 import { App } from '@/app/App';
@@ -2260,6 +2261,7 @@ describe('RPG routes', () => {
       },
       { catalogueId: cs50CatalogueId, policy: cs50Policy },
     );
+    return startedAt;
   }
 
   async function seedOnboardedLearnerWithRpgMapProgress() {
@@ -2585,7 +2587,7 @@ describe('RPG routes', () => {
   });
 
   it('renders the RPG quest hub from real local data', async () => {
-    await seedOnboardedLearnerWithRpgHistory();
+    const seededSessionStart = await seedOnboardedLearnerWithRpgHistory();
 
     await renderAppAtRoute('/rpg');
 
@@ -2614,7 +2616,14 @@ describe('RPG routes', () => {
     expect(
       within(questPanel).getByRole('heading', { name: 'Lecture 4: Memory' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('30 min')).toBeInTheDocument();
+    const weekStart = getLocalWeekStart(new Date().toISOString());
+    const expectedMinutes =
+      new Date(seededSessionStart).getTime() >= weekStart.getTime()
+        ? '30 min'
+        : '0 min';
+    expect(screen.getByText('Study time').nextElementSibling).toHaveTextContent(
+      expectedMinutes,
+    );
     expect(screen.getAllByText('In progress').length).toBeGreaterThan(0);
     expect(screen.getByText('Progress snapshot')).toBeInTheDocument();
 

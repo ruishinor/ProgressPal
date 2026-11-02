@@ -1,5 +1,27 @@
 # ProgressPal current state
 
+**2026-11-01 Teknologioppslag — source-verified local correction, review-ready.** Isolated
+`feat/technology-reference-20261101-203711` starts at clean local `master`
+`9b2f5239728cafa1ac4ac43a0c222e36cf2edfec`. A secondary RPG Home link for both
+programmes opens `/rpg/oppslag` and its canonical entry routes: 28 source-checked
+Bokmål reference entries with deterministic search, aliases, topics and explained
+relations. Whole technical terms and bounded question normalization separate direct
+answers from labelled context/relations; API under Drift offers filter recovery,
+and basic container running gives Docker first. The same 44-query oracle fails
+on the starting model and passes after correction. Static imported text uses the
+existing boot/offline graph; no curriculum,
+database, backup, progression, Focus, EDU-04, provider, dependency, version,
+service-worker or budget change. A measured three-entry slice and cold offline
+pass preceded expansion. Final native sizes: JS gzip 430,860/470,000 B; largest
+raw JS 470,334/500,000 B; CSS gzip 16,397 B. 118 focused tests and nine managed browser
+cases pass, including both programmes, both themes, all 28 entries at 320px and
+separate/combined 200% root-text stress. Extra npm audit exits 1 because its
+advisory endpoint is unavailable; dependency security remains UNKNOWN.
+This is not release certification or independent content acceptance. Changes are
+uncommitted; no Git publication or deployment is authorized. Evidence, source
+provenance, search results, limitations and next independent review action:
+[current correction handoff](TEKNOLOGIOPPSLAG_REMEDIATION.md).
+
 **2026-10-31 ACH-02/ACH-03 — local visual corrections.** Branch
 `cx/ach-02-03-visual-fixes` starts at refreshed `origin/master` `5e12d057`.
 Twelve existing raster achievement illustrations now have transparent exterior

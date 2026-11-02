@@ -1,0 +1,78 @@
+.reference {
+  max-width: 72ch;
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: var(--rpg-surface);
+  color: var(--rpg-text);
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+.reference h1 {
+  font-size: 1.75rem;
+}
+.reference h2 {
+  font-size: 1.25rem;
+  margin-block: 1.4rem 0.4rem;
+}
+.reference a {
+  color: var(--rpg-accent-strong);
+  text-decoration: underline;
+}
+.reference :focus-visible {
+  outline: 3px solid var(--rpg-focus-ring);
+  outline-offset: 3px;
+}
+.reference p {
+  margin-block: 0.5rem 1rem;
+}
+.reference li {
+  margin-block: 0.75rem;
+}
+.reference ul {
+  padding-inline-start: 1.25rem;
+}
+.reference dd {
+  margin-inline-start: 1rem;
+}
+.reference__meta {
+  color: var(--rpg-text-muted);
+}
+.reference__search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+}
+.reference__search label {
+  display: grid;
+  gap: 0.35rem;
+  flex: 1 1 15rem;
+  min-width: 0;
+}
+.reference__search input,
+.reference__search select,
+.reference__search button {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  font: inherit;
+  border: 1px solid var(--rpg-border-strong);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  background: var(--rpg-surface);
+  color: var(--rpg-text);
+}
+.reference__search button {
+  width: auto;
+  padding-inline: 1.25rem;
+  cursor: pointer;
+}
+.reference .reference__results {
+  list-style: none;
+  padding: 0;
+}
+.reference__results > li {
+  border-bottom: 1px solid var(--rpg-border);
+  padding-bottom: 0.5rem;
+}
