@@ -227,7 +227,10 @@ export default defineConfig({
   test: {
     css: true,
     environment: 'jsdom',
-    fileParallelism: false,
+    // Bound local and CI concurrency while preserving test-file isolation.
+    fileParallelism: true,
+    maxWorkers: 2,
+    isolate: true,
     include: [
       'src/**/*.test.ts',
       'src/**/*.test.tsx',

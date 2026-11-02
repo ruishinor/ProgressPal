@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "module": "vitest-concurrency-20261102",
+  "reviewer": "ChatGPT GPT-6 - separate AI source reviewer; not a human review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "bb2dd69ac2b1d8c5e4bc5d22764e155b1b2f5ab0",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent AI review of bounded two-worker Vitest configuration and aligned repository guidance.",
+    "evidence": [
+      "Reviewed owner-supplied Git diff and local implementation transcript, alongside repository release-control source.",
+      "Candidate verification checks require exactly four modified files and the expected two commits based on bc622986.",
+      "Local seven-file pilot: 173 tests passed with one worker and two workers; measured wall times 226.9 s and 111.6 s.",
+      "One complete local two-worker run: 214/214 files and 3644/3644 tests passed, wall time 884.9 s.",
+      "Reported focused Prettier, ESLint, TypeScript and diff checks passed; no residual new Node processes remained after final checks.",
+      "Hosted stability and performance have not been tested. This review did not independently execute the test suite."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "VIT-01",
+      "severity": "P2",
+      "description": "Concurrent test files could interfere through shared resources or memory contention.",
+      "resolution": "Worker count is capped at two, file isolation remains explicit, and all local tests passed. Hosted FULL must verify the actual runner.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "VIT-02",
+      "severity": "P2",
+      "description": "The previous unconstrained Windows worker model leaked processes.",
+      "resolution": "The new configuration explicitly caps workers at two; the observed local run ended without residual new Node processes.",
+      "status": "resolved"
+    },
+    {
+      "id": "VIT-03",
+      "severity": "P3",
+      "description": "Local timing measurements do not prove a hosted CI improvement.",
+      "resolution": "The pilot improvement is reported as local only. Hosted FULL timing and resource observations remain required before merge.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "VIT-04",
+      "severity": "P3",
+      "description": "Old repository instructions contradicted the revised worker configuration.",
+      "resolution": "The candidate updates AGENTS.md and docs/ci.md to describe bounded, isolated concurrency.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped independent AI source review permits one ordinary hosted PR evaluation. Production acceptance and hosted performance benefit are not established."
+  }
+}
