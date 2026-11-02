@@ -1,11 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { App } from '@/app/App';
 import { router } from '@/app/router/router';
+import {
+  ACTION_GUARD_MS,
+  ActionGuardContext,
+  createActionGuard,
+} from '@/features/microlearning/components/actionGuard';
 import { loadRpgCampaignPosition, loadRpgHubSummary } from '@/features/rpg';
 import {
   defaultLearnerProfileValues,
@@ -15,7 +21,6 @@ import {
 } from '@/lib/db';
 import { closeSharedDatabase, getSharedDatabase } from '@/lib/db/database';
 import type { ProgrammeScope } from '@/lib/domain';
-import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import { getProgrammeRegistry } from '@/programmes';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
 import { bundledCourseSeed } from '@/seed';
@@ -49,6 +54,24 @@ const bank = programvareutviklingDefinition.content.microlearning!;
 const [variabler] = bank.sessions;
 const programmeId = 'programvareutvikling';
 const order = firstRequired(p2Index, 99);
+
+// Only the real guard's clock is controlled; React, routing and IndexedDB
+// keep real scheduling. Each render gets a fresh guard, as in microTrackRoute.
+let guardTime = 0;
+const advanceGuardWindow = () => {
+  guardTime += ACTION_GUARD_MS;
+};
+
+async function renderAppAtRoute(route: string, state?: unknown) {
+  window.history.pushState({}, '', route);
+  await router.navigate(route, { state });
+
+  return render(
+    <ActionGuardContext.Provider value={createActionGuard(() => guardTime)}>
+      <App />
+    </ActionGuardContext.Provider>,
+  );
+}
 
 // The one Campaign read the route makes can be made to fail, and the answer
 // can be made empty (no primer, no Repeter: no real Programme 2 position is
@@ -99,6 +122,7 @@ function servePackagedContent() {
 }
 
 beforeEach(() => {
+  guardTime = 0;
   injected.failRead = false;
   injected.nothingOpen = false;
   servePackagedContent();
@@ -113,6 +137,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  guardTime = 0;
   vi.unstubAllGlobals();
 });
 
@@ -672,9 +697,6 @@ describe('Home only advertises a session that exists', () => {
 });
 
 describe('a whole session against the real database', () => {
-  // The guard needs real time between presses of an action that moves on.
-  const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
-
   async function run(title: RegExp, wrongFirst: boolean, complete: number) {
     const user = userEvent.setup();
 
@@ -705,7 +727,7 @@ describe('a whole session against the real database', () => {
       }
     };
     const act = async (name: string | RegExp) => {
-      await pause();
+      advanceGuardWindow();
       await user.click(screen.getByRole('button', { name }));
     };
 
@@ -807,8 +829,29 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
   const back = () => act(async () => void (await router.navigate(-1)));
   const forward = () => act(async () => void (await router.navigate(1)));
   const heading = () => screen.getByRole('heading', { level: 1 });
-  const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
   const [learnCard, firstCheck, thirdCard] = variabler!.cards;
+
+  it('rejects immediate and 399-ms successor activations, then accepts at 400 ms', async () => {
+    const user = userEvent.setup();
+
+    await onboard();
+    await activateProgramme2();
+    await completeRequired(13);
+    await renderAppAtRoute('/rpg/micro');
+    await user.click(
+      await screen.findByRole('button', { name: /^Følg variablene/ }),
+    );
+    expect(heading()).toHaveTextContent(learnCard!.title);
+
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(learnCard!.title);
+    guardTime = 399;
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(learnCard!.title);
+    guardTime = 400;
+    await user.click(screen.getByRole('button', { name: 'Neste' }));
+    expect(heading()).toHaveTextContent(firstCheck!.title);
+  });
 
   it('move between cards and the picker, and Lukk goes Home', async () => {
     const user = userEvent.setup();
@@ -821,7 +864,7 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await user.click(screen.getByRole('button', { name: /^Følg variablene/ }));
     expect(heading()).toHaveTextContent(learnCard!.title);
     expect(router.state.location.search).toBe('?okt=variabler&kort=1');
-    await pause();
+    advanceGuardWindow();
     await user.click(screen.getByRole('button', { name: 'Neste' }));
     expect(heading()).toHaveTextContent(firstCheck!.title);
 
@@ -905,7 +948,7 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     expect(heading()).toHaveTextContent('Øv igjen');
     expect(router.state.location.search).toBe('?liste=ov-igjen');
     expect(rows()).toHaveLength(4);
-    await pause();
+    advanceGuardWindow();
     await user.click(screen.getByRole('button', { name: /^Følg variablene/ }));
     expect(heading()).toHaveTextContent(learnCard!.title);
 

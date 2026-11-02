@@ -1,5 +1,11 @@
 # ProgressPal current state
 
+**2026-11-02 combined local test-debt candidate.** The previously
+validated Utviklerblikk browser wait reduction (4c9790a) is now
+combined with the separately validated Mikroøkt test-local guard-clock
+improvement. Production behavior and release controls are unchanged.
+Combined hosted certification has not been run.
+
 **2026-11-02 bounded test-debt inspection — local verification.** Isolated
 `cx/test-debt-20261102-135538` starts at live `origin/master`
 `5dce7507e674a8d9a8b7a88714d46ad15fe4b6ec`. Only the Utviklerblikk E2E
