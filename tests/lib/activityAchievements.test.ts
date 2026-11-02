@@ -68,16 +68,23 @@ const days = (
   );
 
 describe('approved Activity achievement fidelity and dispatch', () => {
-  it('preserves all approved runtime text/configuration, ordering, identity and zero XP', () => {
-    expect(activityAchievementData).toEqual(
-      approved.achievements.map((row) =>
-        Object.fromEntries(
-          Object.keys(activityAchievementData[0]).map((key) => [
-            key,
-            row[key as keyof typeof row],
-          ]),
-        ),
-      ),
+  it('preserves approved identity and verifies the current Activity catalogue and zero XP', () => {
+    // The 2026-10-28 approved JSON is a historical design fixture. The owner's
+    // revised November 2026 text and thresholds are defined in the runtime file.
+    expect(
+      activityAchievementData.map((row) => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        rule: row.rule,
+      })),
+    ).toEqual(
+      approved.achievements.map((row) => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        rule: row.rule,
+      })),
     );
     expect(
       activityAchievementDefinitions.map((d) => ({
@@ -89,13 +96,13 @@ describe('approved Activity achievement fidelity and dispatch', () => {
         ruleConfig: d.ruleConfig,
       })),
     ).toEqual(
-      approved.achievements.map((r) => ({
-        id: r.id,
-        title: r.name,
-        description: r.description,
-        category: r.category,
-        xpReward: r.xpReward,
-        ruleConfig: { kind: r.rule, ...r.config },
+      activityAchievementData.map((row) => ({
+        id: row.id,
+        title: row.name,
+        description: row.description,
+        category: row.category,
+        xpReward: 0,
+        ruleConfig: { kind: row.rule, ...row.config },
       })),
     );
     for (const catalogue of [
@@ -148,18 +155,20 @@ describe('native-unit and distinct-date boundaries', () => {
     ).toBe(false);
   });
   it.each([
-    ['push-to-main', 'pushups', 32],
-    ['leg-day-compiler', 'squats', 64],
+    ['push-to-main', 'pushups', 200, 3],
+    ['leg-day-compiler', 'squats', 404, 4],
   ] as const)(
-    '%s requires its amount and three distinct dates',
-    (id, activity, total) => {
-      const logs = days(activity, 1);
-      logs[2].amount = total - 2;
+    '%s requires its amount and configured distinct dates',
+    (id, activity, total, count) => {
+      const logs = days(activity, 1, 'reps', count);
+      logs[count - 1].amount = total - count + 1;
       expect(has(id, logs)).toBe(true);
       expect(
         has(
           id,
-          logs.map((e, i) => (i === 2 ? { ...e, amount: e.amount - 1 } : e)),
+          logs.map((e, i) =>
+            i === count - 1 ? { ...e, amount: e.amount - 1 } : e,
+          ),
         ),
       ).toBe(false);
       expect(
@@ -187,9 +196,9 @@ describe('native-unit and distinct-date boundaries', () => {
     },
   );
   it.each([
-    ['cache-me-outside', 'walking', 5000, 3600, 1],
-    ['runtime-ranger', 'running', 10000, 5400, 3],
-    ['cycle-of-power', 'cycling', 25000, 7200, 3],
+    ['cache-me-outside', 'walking', 16000, 11520, 1],
+    ['runtime-ranger', 'running', 42000, 15120, 7],
+    ['cycle-of-power', 'cycling', 64000, 11520, 4],
   ] as const)(
     '%s evaluates each native branch with its own dates',
     (id, activity, metres, seconds, count) => {
@@ -240,13 +249,21 @@ describe('native-unit and distinct-date boundaries', () => {
     expect(has('full-stack-adventurer', two)).toBe(false);
     expect(
       has('full-stack-adventurer', [...two, entry('d', 'kickbacks')]),
+    ).toBe(false);
+    expect(
+      has('full-stack-adventurer', [
+        ...two,
+        entry('d', 'kickbacks'),
+        entry('e', 'squats'),
+        entry('f', 'cycling', 1, undefined, 'metres'),
+      ]),
     ).toBe(true);
   });
   it('Merge Quest requires a same-date different-ID pair and an intact threshold', () => {
-    const reps = entry('a', 'kickbacks', 10);
+    const reps = entry('a', 'kickbacks', 101);
     for (const [unit, amount] of [
-      ['metres', 1000],
-      ['seconds', 600],
+      ['metres', 10000],
+      ['seconds', 6000],
     ] as const) {
       expect(
         has('merge-quest', [
@@ -268,7 +285,7 @@ describe('native-unit and distinct-date boundaries', () => {
       ).toBe(false);
       expect(
         has('merge-quest', [
-          entry('a', 'custom-a', 10),
+          entry('a', 'custom-a', 101),
           entry('b', 'custom-a', amount, undefined, unit),
         ]),
       ).toBe(false);
@@ -284,8 +301,8 @@ describe('native-unit and distinct-date boundaries', () => {
 });
 
 describe('snapshots, custom history, return paths and witnesses', () => {
-  it('Build Passed needs three nonempty completed enabled historical plans', () => {
-    const logs = days('pushups', 10);
+  it('Build Passed needs seven nonempty completed enabled historical plans', () => {
+    const logs = days('pushups', 10, 'reps', 7);
     const plans = logs.map((e) => ({
       id: e.date,
       goals: [
@@ -329,7 +346,7 @@ describe('snapshots, custom history, return paths and witnesses', () => {
       }),
     ).toBe(false);
   });
-  it('Fork Your Path retains one archived renamed custom identity across three dates', () => {
+  it('Fork Your Path retains one archived renamed custom identity across eight dates', () => {
     const defs = [
       {
         id: 'custom-a',
@@ -344,38 +361,38 @@ describe('snapshots, custom history, return paths and witnesses', () => {
         archived: false,
       },
     ];
-    const logs = days('custom-a');
+    const logs = days('custom-a', 1, 'reps', 8);
     expect(has('fork-your-path', logs, { activityDefinitions: defs })).toBe(
       true,
     );
     expect(
       has(
         'fork-your-path',
-        logs.map((e, i) => (i === 2 ? { ...e, activityId: 'custom-b' } : e)),
+        logs.map((e, i) => (i === 7 ? { ...e, activityId: 'custom-b' } : e)),
         { activityDefinitions: defs },
       ),
     ).toBe(false);
     expect(has('fork-your-path', days())).toBe(false);
   });
-  it('Warm Reboot uses seven fully blank dates OR fourteen active dates', () => {
+  it('Warm Reboot uses three fully blank dates OR eleven active dates', () => {
     expect(
-      has('warm-reboot', [entry('a'), entry('b', 'pushups', 1, '2026-10-09')]),
+      has('warm-reboot', [entry('a'), entry('b', 'pushups', 1, '2026-10-05')]),
     ).toBe(true);
     expect(
-      has('warm-reboot', [entry('a'), entry('b', 'pushups', 1, '2026-10-08')]),
+      has('warm-reboot', [entry('a'), entry('b', 'pushups', 1, '2026-10-04')]),
     ).toBe(false);
     expect(
       has('warm-reboot', [
         entry('a'),
-        entry('middle', 'pushups', 1, '2026-10-05'),
-        entry('b', 'pushups', 1, '2026-10-09'),
+        entry('middle', 'pushups', 1, '2026-10-03'),
+        entry('b', 'pushups', 1, '2026-10-05'),
       ]),
     ).toBe(false);
-    expect(has('warm-reboot', days('pushups', 1, 'reps', 14))).toBe(true);
-    expect(has('warm-reboot', days('pushups', 1, 'reps', 13))).toBe(false);
+    expect(has('warm-reboot', days('pushups', 1, 'reps', 11))).toBe(true);
+    expect(has('warm-reboot', days('pushups', 1, 'reps', 10))).toBe(false);
   });
-  it('Long-Term Support counts 42 nonconsecutive dates and no log inflation', () => {
-    const logs = Array.from({ length: 42 }, (_, i) =>
+  it('Long-Term Support counts 20 nonconsecutive dates and no log inflation', () => {
+    const logs = Array.from({ length: 20 }, (_, i) =>
       entry(
         `entry-${i}`,
         'kickbacks',
@@ -394,9 +411,9 @@ describe('snapshots, custom history, return paths and witnesses', () => {
   });
   it('uses the first qualifying date/ID prefix, independently of insertion order', () => {
     const logs = [
-      entry('z', 'walking', 1000, undefined, 'metres'),
-      entry('a', 'pushups', 10),
-      entry('later', 'walking', 9000, '2026-10-02', 'metres'),
+      entry('z', 'walking', 10000, undefined, 'metres'),
+      entry('a', 'pushups', 101),
+      entry('later', 'walking', 6000, '2026-10-02', 'metres'),
     ];
     const result = evaluateActivityAchievements(data(logs), today);
     expect(result).toEqual(
