@@ -1,5 +1,37 @@
 # ProgressPal current state
 
+**2026-11-02 bounded track-test clock — focused verification.** Separate
+`cx/test-guard-clock` starts at certified/promoted master
+`c56f3f2db5d588c190ff7dec29f8fda7d05c1218`. Only the route test harness uses
+the existing real action guard/context with a reset test-local monotonic clock;
+React, user-event, routing and IndexedDB keep real scheduling. All 62 original
+cases/assertions remain; one new route oracle rejects immediate/399-ms successor
+activation and accepts at 400 ms. All 123 focused route/guard/session tests pass,
+as do TypeScript and changed-file lint/format. A temporary production guard bypass
+fails the new oracle as intended; the production file is restored byte for byte.
+One local before/after comparison measured route test-body time 258.315 s (62
+cases) versus 70.683 s (63 cases), excluding setup/import/environment. This is
+neither a hosted wall-time saving nor a controlled runner benchmark. Browser
+geometry/accessibility/offline journeys and distinct large-loader fixtures are
+retained; no product, dependency, schema, worker or release-control change.
+
+Existing complete evidence, compared at `5e12d057` and `c802491b`, accounts
+for growth from 207 to 214 unit files (seven new files: 2.842 s combined body time
+in run #89) and 290 to 311 browser cases (18 in four new specs, three added to
+existing specs). Same-tree #74/#75 and #89/#90 vary substantially in both suites;
+new tests alone do not explain their runtime. No new full-suite baseline was run.
+
+**2026-11-02 reuse activation transition verified.** PR #62's comprehensive
+run `41393140707` and actual master run `41397305476` pass. Both execute
+FULL; activation changes controls. Master `c56f3f2d` has reviewed tree
+`6a1c2b3c92788a717873c429e09101b4b7de388b`. Vercel deployment
+`dpl_C68D1ghD2RTHmfRyJFnhab6YCySh` was observed STAGED while its alias check
+was pending, then PROMOTED with the public alias assigned after certification.
+A fresh public `/rpg` load returns HTTP 200 and the expected onboarding redirect,
+without page errors or failed requests. Existing-learner RPG behavior is outside
+this nonmutating smoke. Active ATTEST execution is not claimed by this record;
+a later eligible ordinary release must establish it from native step outcomes.
+
 **2026-11-02 certification reuse activation candidate.** Isolated
 `cx/release-reuse-active` starts at verified remote master
 `c802491bd8f54d62db09699a6e819e48d6a4e99f`. The existing native
