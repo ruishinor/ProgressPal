@@ -48,8 +48,14 @@ const words = (value: string) =>
 // from identity tokenization so aliases retain all their authored words.
 const queryWords = (value: string) =>
   words(value)
-    // One bounded Bokmål inflection needed for a common purpose query.
-    .map((word) => (word === 'kjører' ? 'kjøre' : word))
+    // Bounded Bokmål forms used by the authored purpose phrases.
+    .map((word) =>
+      ['kjører', 'kjøres'].includes(word)
+        ? 'kjøre'
+        : word === 'pakkes'
+          ? 'pakke'
+          : word,
+    )
     .filter(
       (word) =>
         ![
@@ -67,6 +73,13 @@ const queryWords = (value: string) =>
           'et',
           'for',
           'forskjellen',
+          'mellom',
+          'når',
+          'nyttig',
+          'i',
+          'hvilke',
+          'situasjoner',
+          'settinger',
           'på',
           'what',
           'is',
@@ -85,6 +98,18 @@ export type SearchHit = {
   match: 'name' | 'alias' | 'purpose' | 'context' | 'related' | 'browse';
   reason: string;
 };
+
+// A longer question may contain one of these deliberately authored anchors.
+// At least two whole meaningful words are needed; this is a purpose hint,
+// never evidence that an unknown word is an alias for a catalogue identity.
+function purposeAnchor(entry: ReferenceEntry, tokens: string[]) {
+  if (tokens.some((token) => ['ikke', 'aldri', 'slette'].includes(token)))
+    return undefined;
+  return entry.purposeTerms.find((term) => {
+    const anchor = queryWords(term);
+    return anchor.length >= 2 && anchor.every((word) => tokens.includes(word));
+  });
+}
 
 export function searchEntries(query: string, topic = ''): SearchHit[] {
   const inTopic = (entry: ReferenceEntry) =>
@@ -158,6 +183,13 @@ export function searchEntries(query: string, topic = ''): SearchHit[] {
           ]
         : [];
     });
+  if (!direct.length)
+    direct = entries.flatMap((entry): SearchHit[] => {
+      const term = purposeAnchor(entry, tokens);
+      return term
+        ? [{ entry, score: 200, match: 'purpose', reason: `Formål: ${term}` }]
+        : [];
+    });
   if (!direct.length && tokens.length >= 2)
     direct = entries.flatMap((entry): SearchHit[] =>
       covers(`${entry.summary} ${entry.purpose} ${entry.example}`)
@@ -228,4 +260,61 @@ export function suggestEntries(query: string, topic = '') {
       (!topic || entry.topics.includes(topic)) &&
       editDistance(needle, normalize(entry.name)) <= 2,
   );
+}
+
+export type LiveSuggestion = {
+  entry: ReferenceEntry;
+  kind: 'identity' | 'prediction' | 'purpose' | 'spelling';
+  reason: string;
+};
+
+// Live links are suggestions, separate from the submitted-search contract.
+// Purpose anchors must contain at least two complete meaningful words; extra
+// words in a question never establish an identity or rewrite the input.
+export function liveSuggestions(query: string, topic = ''): LiveSuggestion[] {
+  const tokens = queryWords(query);
+  const needle = tokens.join(' ');
+  if (needle.length < 2 || needle === 'java') return [];
+  const inTopic = (entry: ReferenceEntry) =>
+    !topic || entry.topics.includes(topic);
+  const identities = entries.flatMap((entry): LiveSuggestion[] => {
+    if (words(entry.name).join(' ') === needle)
+      return [{ entry, kind: 'identity', reason: 'Navnetreff' }];
+    const alias = entry.aliases.find(
+      (alias) => words(alias.name).join(' ') === needle,
+    );
+    return alias
+      ? [{ entry, kind: 'identity', reason: `Alias-treff: ${alias.name}` }]
+      : [];
+  });
+  // An identity excluded by a topic must not become a different concept.
+  if (identities.length)
+    return identities.filter(({ entry }) => inTopic(entry));
+  const predictions = entries.filter(
+    (entry) =>
+      inTopic(entry) &&
+      [entry.name, ...entry.aliases.map((alias) => alias.name)].some((name) =>
+        words(name).join(' ').startsWith(needle),
+      ),
+  );
+  if (predictions.length)
+    return predictions.slice(0, 5).map((entry) => ({
+      entry,
+      kind: 'prediction',
+      reason: 'Forslag fra delvis navn eller alias',
+    }));
+  const purposes = entries.flatMap((entry): LiveSuggestion[] => {
+    const term = purposeAnchor(entry, tokens);
+    return inTopic(entry) && term
+      ? [{ entry, kind: 'purpose', reason: `Mulig formål: ${term}` }]
+      : [];
+  });
+  if (purposes.length) return purposes.slice(0, 5);
+  return suggestEntries(query, topic)
+    .slice(0, 5)
+    .map((entry) => ({
+      entry,
+      kind: 'spelling',
+      reason: 'Mente du dette navnet?',
+    }));
 }

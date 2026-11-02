@@ -12,7 +12,8 @@ it('keeps reference reading independent of learner stores, programmes and exerci
     );
     for (const name of imports)
       expect(
-        name === 'react-router-dom' ||
+        name === 'react' ||
+          name === 'react-router-dom' ||
           name === '@/lib/routing/rpgRoutePaths' ||
           name.startsWith('./'),
         `${file}: ${name}`,

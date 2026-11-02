@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   loadRpgHubSummary: vi.fn(),
   loadRpgHudSummary: vi.fn(),
   refresh: vi.fn(),
+  blockReason: null as string | null,
 }));
 
 vi.mock('@/features/rpg/model/readModels', () => ({
@@ -23,7 +24,7 @@ vi.mock('@/features/rpg/model/readModels', () => ({
 
 vi.mock('@/lib/appState', () => ({
   useAppState: () => ({
-    coordination: { blockReason: null },
+    coordination: { blockReason: mocks.blockReason },
     programmeScope: cs50Scope,
     refresh: mocks.refresh,
   }),
@@ -43,9 +44,39 @@ import type { RpgHudSummary } from '@/features/rpg/model/types';
 
 afterEach(() => {
   vi.restoreAllMocks();
+  mocks.blockReason = null;
 });
 
 describe('RpgShell HUD lifecycle', () => {
+  it.each(['/rpg/oppslag', '/rpg/oppslag/kubernetes'])(
+    'keeps navigation, Settings and read-only notices on the quiet reading route %s',
+    (route) => {
+      mocks.loadRpgHudSummary.mockClear();
+      mocks.loadRpgHubSummary.mockClear();
+      mocks.blockReason = 'peer-active';
+      render(
+        <MemoryRouter initialEntries={[route]}>
+          <RpgShell />
+        </MemoryRouter>,
+      );
+      expect(
+        screen.queryByRole('region', { name: 'Persistent hero HUD' }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getAllByRole('link', { name: 'Open Settings' }),
+      ).toHaveLength(1);
+      expect(
+        within(
+          screen.getByRole('navigation', { name: 'RPG primary navigation' }),
+        ).getAllByRole('link'),
+      ).toHaveLength(5);
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'This ProgressPal tab is read-only',
+      );
+      expect(mocks.loadRpgHudSummary).not.toHaveBeenCalled();
+      expect(mocks.loadRpgHubSummary).not.toHaveBeenCalled();
+    },
+  );
   it('discloses one copy of mobile facts, restores desktop facts on resize, and cleans up without another progress read', async () => {
     let change!: () => void;
     const media = {

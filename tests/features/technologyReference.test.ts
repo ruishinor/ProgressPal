@@ -5,6 +5,7 @@ import {
   searchEntries,
   suggestEntries,
   topics,
+  liveSuggestions,
 } from '@/features/technologyReference/model';
 
 describe('reference catalogue contract', () => {
@@ -91,6 +92,81 @@ describe('reference catalogue contract', () => {
         );
       }
     }
+  });
+});
+
+describe('live reference suggestions', () => {
+  it.each([
+    ['Postgre', 'postgresql'],
+    ['K8', 'kubernetes'],
+    ['Azure Act', 'microsoft-entra-id'],
+  ])(
+    'offers %s as a prediction without changing submitted search',
+    (query, id) => {
+      expect(searchEntries(query)).toEqual([]);
+      expect(liveSuggestions(query)).toMatchObject([
+        { entry: { id }, kind: 'prediction' },
+      ]);
+    },
+  );
+  it('keeps exact identities, aliases and spelling guesses distinct', () => {
+    for (const [query, id] of [
+      ['SQL', 'sql'],
+      ['Go', 'go'],
+      ['React', 'react'],
+    ])
+      expect(liveSuggestions(query)).toMatchObject([
+        { entry: { id }, kind: 'identity' },
+      ]);
+    expect(liveSuggestions('Azure AD')).toMatchObject([
+      { entry: { id: 'microsoft-entra-id' }, reason: 'Alias-treff: Azure AD' },
+    ]);
+    expect(liveSuggestions('Kubernets')).toMatchObject([
+      { entry: { id: 'kubernetes' }, kind: 'spelling' },
+    ]);
+    expect(liveSuggestions('API', 'Drift')).toEqual([]);
+    expect(liveSuggestions('Postgre', 'Drift')).toEqual([]);
+  });
+  it.each([
+    ['Jeg vil se hva som ble endret i kildekoden tidligere', 'git'],
+    [
+      'Kan jeg teste at en nettside virker ved å klikke rundt automatisk?',
+      'playwright',
+    ],
+    [
+      'Vi trenger å lagre kunder og bestillinger i tabeller',
+      'relational-database',
+    ],
+    ['Hvordan kan et program pakkes og kjøres likt flere steder?', 'docker'],
+    ['Vi har mange containere på forskjellige maskiner', 'kubernetes'],
+    ['Hvordan sjekker systemet hvem som logger inn?', 'authentication'],
+    ['Hvem får lov til å se fakturaene?', 'authorization'],
+    ['Hvordan får jeg JavaScript til å kjøre utenfor nettleseren?', 'node-js'],
+  ])('labels an authored purpose for %s', (query, id) => {
+    expect(searchEntries(query)[0]).toMatchObject({
+      entry: { id },
+      match: 'purpose',
+    });
+    expect(liveSuggestions(query)).toMatchObject([
+      { entry: { id }, kind: 'purpose' },
+    ]);
+  });
+  it.each([
+    '',
+    'a',
+    'å',
+    'Java',
+    'Hva er Java?',
+    'surdeigsstarter',
+    'god',
+    'C#',
+    '.NET',
+    'CI/CD',
+    'Hva er et rammeverk?',
+    'ikke teste en nettside automatisk',
+    'slette historikk for kode',
+  ])('does not invent suggestions for %s', (query) => {
+    expect(liveSuggestions(query)).toEqual([]);
   });
 });
 

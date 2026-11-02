@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import {
   Form,
   Link,
@@ -11,7 +12,13 @@ import {
   rpgReferencePath,
 } from '@/lib/routing/rpgRoutePaths';
 
-import { entries, searchEntries, suggestEntries, topics } from './model';
+import {
+  entries,
+  liveSuggestions,
+  searchEntries,
+  suggestEntries,
+  topics,
+} from './model';
 import './reference.css';
 
 const aliasLabels = {
@@ -19,6 +26,91 @@ const aliasLabels = {
   abbreviation: 'Forkortelse / fullt navn',
   historical: 'Tidligere navn',
 };
+
+function ReferenceSearch({ query, topic }: { query: string; topic: string }) {
+  const [draft, setDraft] = useState(query);
+  const [draftTopic, setDraftTopic] = useState(topic);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestions = showSuggestions ? liveSuggestions(draft, draftTopic) : [];
+  const context = new URLSearchParams({ q: draft, tema: draftTopic });
+
+  return (
+    <Form
+      method="get"
+      action={rpgReferencePath}
+      role="search"
+      className="reference__search"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setShowSuggestions(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setShowSuggestions(false);
+          inputRef.current?.focus();
+        }
+      }}
+    >
+      <div className="reference__query">
+        <label>
+          Søk etter navn, alias eller formål
+          <input
+            ref={inputRef}
+            name="q"
+            type="search"
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setShowSuggestions(true);
+            }}
+            maxLength={200}
+            autoComplete="off"
+            aria-describedby={
+              suggestions.length ? 'reference-suggestion-help' : undefined
+            }
+          />
+        </label>
+        {suggestions.length ? (
+          <div className="reference__suggestions">
+            <p id="reference-suggestion-help">
+              Søkeforslag
+              <span className="sr-only">
+                {' '}
+                — velg en lenke, eller trykk Enter i feltet for å søke.
+              </span>
+            </p>
+            <ul aria-label="Søkeforslag">
+              {suggestions.map(({ entry, reason }) => (
+                <li key={entry.id}>
+                  <Link to={`${getRpgReferencePath(entry.id)}?${context}`}>
+                    {entry.name}
+                  </Link>{' '}
+                  <span className="reference__meta">{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+      <label>
+        Tema
+        <select
+          name="tema"
+          value={draftTopic}
+          onChange={(event) => setDraftTopic(event.target.value)}
+        >
+          <option value="">Alle temaer</option>
+          {topics.map((item) => (
+            <option key={item}>{item}</option>
+          ))}
+        </select>
+      </label>
+      <button type="submit">Søk</button>
+    </Form>
+  );
+}
 
 export function ReferencePage() {
   const { entryId } = useParams();
@@ -43,41 +135,19 @@ export function ReferencePage() {
   return (
     <section className="reference" lang="nb" aria-label="Teknologioppslag">
       {entryId ? <Link to={indexHref}>Tilbake til søk og tema</Link> : null}
-      <h1>
+      <h1 className={!entryId ? 'reference__title' : undefined}>
         {entryId
           ? (entry?.name ?? 'Oppføringen finnes ikke')
           : 'Teknologioppslag'}
       </h1>
       {!entryId ? (
         <>
+          <ReferenceSearch
+            key={`${query}:${topic}`}
+            query={query}
+            topic={topic}
+          />
           <p>Begreper, verktøy og sammenhenger i programvareutvikling</p>
-          <Form
-            method="get"
-            action={rpgReferencePath}
-            role="search"
-            className="reference__search"
-          >
-            <label>
-              Søk etter navn, alias eller formål
-              <input
-                key={query}
-                name="q"
-                type="search"
-                defaultValue={query}
-                maxLength={200}
-              />
-            </label>
-            <label>
-              Tema
-              <select key={topic} name="tema" defaultValue={topic}>
-                <option value="">Alle temaer</option>
-                {topics.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </label>
-            <button type="submit">Søk</button>
-          </Form>
           {requestedTopic && !topic ? (
             <p role="status">Temaet finnes ikke. Viser alle temaer.</p>
           ) : null}
