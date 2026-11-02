@@ -53,6 +53,8 @@ and job bounds are unchanged; this is not a multi-second grace period.
   and read back a UUID-bound artifacts/release-evidence/reuse-<invocation>.json
   record with target SHA/run/attempt and source PR/synthetic/run/attempt/job/artifact/
   digest. This is reuse evidence, never a fabricated comprehensive manifest.
+  The record says eligibility was verified; the native job's actual step outcomes
+  establish execution, including a later output fault that selects FULL.
 - **FULL:** unsupported event/topology/environment, changed controls, unavailable,
   malformed, stale or ambiguous optional evidence, registry/API failure, or optional
   record/output failure. The original npm ci, Chromium install and

@@ -175,7 +175,7 @@ export async function selectCertification() {
       const record = {
         kind: 'certification-reuse',
         invocation,
-        executed: 'ATTEST',
+        eligibility: 'verified',
         ...result,
         current: env.GITHUB_SHA,
         target: current,
