@@ -450,8 +450,18 @@ interface Checks {
   slack: boolean;
 }
 
+// Mikroøkt-only scan scope: `retry-correct` scans each card's retry success.
+// Other callers (including primers) keep their full scans by default.
+type SessionChecks = Omit<Checks, 'axe'> & {
+  axe: boolean | 'retry-correct';
+};
+
 /** The fit oracle for the contract the walk is running under. */
-async function assertState(page: Page, label: string, checks: Checks) {
+async function assertState(
+  page: Page,
+  label: string,
+  checks: Omit<Checks, 'axe'>,
+) {
   if (checks.enlarged === true) {
     await assertEnlarged(page, label);
   } else {
@@ -472,7 +482,7 @@ async function playCard(
   index: number,
   total: number,
   mode: Mode,
-  checks: Checks,
+  checks: SessionChecks,
 ) {
   const at = (state: string) =>
     `${mode}, card ${index + 1} of ${total} (${card.id}), ${state}`;
@@ -490,7 +500,11 @@ async function playCard(
           .toBe(steady);
       }
     }
-    if (checks.axe && axe) {
+    if (
+      checks.axe &&
+      axe &&
+      (checks.axe !== 'retry-correct' || state === 'correct after retry')
+    ) {
       await assertAccessible(page, at(state));
     }
     if (checks.slack) {
@@ -576,7 +590,7 @@ async function runSession(
   page: Page,
   sessionIndex: number,
   mode: Mode,
-  checks: Checks,
+  checks: SessionChecks,
 ) {
   await runSessionOf(page, bank.sessions[sessionIndex]!, mode, checks);
 }
@@ -586,13 +600,13 @@ async function runSessionOf(
   page: Page,
   session: BankSession,
   mode: Mode,
-  checks: Checks,
+  checks: SessionChecks,
 ) {
   const heading = page.getByRole('heading', { level: 1 });
 
   await expect(heading).toHaveText('Velg en mikroøkt');
   await assertState(page, `${session.id}: picker`, checks);
-  if (checks.axe) {
+  if (checks.axe === true) {
     await assertAccessible(page, `${session.id}: picker`);
   }
   await activate(page, sessionButton(page, session.title));
@@ -603,7 +617,7 @@ async function runSessionOf(
 
   await expect(heading).toHaveText('Økten er ferdig');
   await assertState(page, `${session.id}: done`, checks);
-  if (checks.axe) {
+  if (checks.axe === true) {
     await assertAccessible(page, `${session.id}: done`);
   }
   if (checks.slack) {
@@ -643,6 +657,14 @@ async function gotoPicker(page: Page, scale?: Scale) {
 test.describe('microlearning lab at 360 x 560', () => {
   test.use({ viewport: HARD });
 
+  // Axe ownership, without sharing state between tests:
+  // - Dark miss-twice: every card's prompt, miss, retry and reveal.
+  // - Light right: every card's prompt and first-time success.
+  // - Dark retry-right: every practice card's distinct retry success; its
+  //   prompt/miss/retry (and Learn cards) duplicate the dark miss-twice walk.
+  // Both full walks also scan every picker/finished screen. The retry-right
+  // walk repeats those same dark screens (no results are stored). All cards
+  // still get every fit/geometry check in all three walks.
   test('every card state fits when missed twice, dark theme, with axe', async ({
     page,
   }) => {
@@ -669,7 +691,10 @@ test.describe('microlearning lab at 360 x 560', () => {
     test.setTimeout(240_000);
     await openPicker(page, 'dark');
     for (const index of sessionIndexes) {
-      await runSession(page, index, 'retry-right', { axe: true, slack: false });
+      await runSession(page, index, 'retry-right', {
+        axe: 'retry-correct',
+        slack: false,
+      });
     }
   });
 
