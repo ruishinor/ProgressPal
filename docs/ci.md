@@ -2,7 +2,7 @@
 
 ## Purpose and invariant
 
-`.github/workflows/test.yml` proves, in a clean GitHub-hosted environment, that the triggering ProgressPal commit passes the full release gate once. Together with one clean local final gate it implements D-0075. It is a certification workflow, not a fast-feedback or deployment workflow.
+`.github/workflows/test.yml` proves, in a clean GitHub-hosted environment, that the triggering commit is comprehensively certified once, or that an eligible master merge reuses authenticated comprehensive PR evidence. Targeted local preflight and one ordinary hosted PR gate supersede routine duplicate local certification. It is a certification workflow, not a fast-feedback or deployment workflow.
 
 The release invariant is **validated before production**:
 
@@ -10,10 +10,10 @@ The release invariant is **validated before production**:
 
 Two mechanisms carry it. Their status is tracked in `docs/CURRENT_STATE.md`; this file describes how they work.
 
-| Mechanism                                              | What it enforces                                                                                      | Where it lives                                  |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Candidate-bound review evidence                        | The gate fails closed unless a review is bound to the exact payload tree it certifies                 | `scripts/release-review-binding.mjs`, the gate  |
-| Vercel Deployment Checks (requires one dashboard step) | A production deployment is built but not promoted to the production domain until the check has passed | Vercel project settings (not in the repository) |
+| Mechanism                       | What it enforces                                                                                      | Where it lives                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Candidate-bound review evidence | The gate fails closed unless a review is bound to the exact payload tree it certifies                 | `scripts/release-review-binding.mjs`, the gate  |
+| Vercel Deployment Checks        | A production deployment is built but not promoted to the production domain until the check has passed | Vercel project settings (not in the repository) |
 
 ## Candidate-bound review evidence
 
@@ -70,7 +70,7 @@ prints the payload tree to bind. Independent review is of that exact commit; the
 
 ## Release gate
 
-From a clean committed tree under Node 24/npm 11:
+The comprehensive path runs in the ordinary hosted job from a clean committed tree under Node 24/npm 11. For an explicitly requested local certification only:
 
 ```powershell
 npm ci
@@ -104,7 +104,7 @@ Running the ordinary commands above directly validates a candidate without revie
 
 ## Pipeline
 
-One workflow, `Release validation`, with one job whose check name is `Final candidate`. It runs on pushes to `master`, pull requests to `master` and manual dispatch, checks out `github.sha`, installs the locked environment and runs `npm run verify:release` once. There is no sharding, no retry and no deployment stage. `npm test` is limited to one worker and no file parallelism because the inherited unconstrained Vitest process model leaked workers on Windows.
+One workflow, `Release validation`, with one job whose check name is `Final candidate`. It runs on pushes to `master`, pull requests to `master` and manual dispatch, checks out `github.sha`. PRs, manual dispatch and master control transitions install the locked environment and run `npm run verify:release` once. An eligible master merge can instead authenticate the completed comprehensive PR certificate and perform a fresh lockfile audit; see [release reuse](release-reuse.md). ATTEST never claims to rerun tests or writes a comprehensive manifest. There is no sharding, no retry and no deployment stage. `npm test` is limited to one worker and no file parallelism because the inherited unconstrained Vitest process model leaked workers on Windows.
 
 Timeout ladder: `20m Playwright → 21m managed wrapper → 22m release command → 40m GitHub job`. The inner three were widened from 13/14/15 minutes after a measured hosted timeout (v1.5.1). The green v1.5.1 job then took 27 m 42 s, leaving only 2 m 18 s under its former 30-minute ceiling, so the owner raised the job ceiling to 40 minutes as an outer safety envelope, not a runtime target (2026-10-04).
 
@@ -114,7 +114,7 @@ The check name `Final candidate` is a contract: Vercel stores the required check
 
 ### Why this mechanism
 
-The repository is private on a GitHub plan that returns HTTP 403 for branch protection and rulesets, so a required-check-before-merge model cannot be enforced. Vercel deploys every push to `master` to Production. Before this change a commit whose validation later failed still reached Production (observed for `f153f19`, `269633…`, `5eadb2b…` and `d92d8ce…`).
+Current read-only GitHub inspection (2026-11-02) reports no branch protection or rulesets. Vercel builds every push to `master` for Production. Before this change a commit whose validation later failed still reached Production (observed for `f153f19`, `269633…`, `5eadb2b…` and `d92d8ce…`).
 
 Vercel Deployment Checks hold each production deployment, which Vercel still builds, until the required GitHub check on the same commit passes, and only then assign it to the production domains. A failed or missing check leaves the previous deployment serving Production. It needs no secret, no deploy hook and no branch protection, and it gates promotion regardless of how the commit reached `master`.
 
@@ -122,19 +122,16 @@ Identity chain: the Vercel production deployment records the Git commit it was b
 
 ### Status and activation
 
-The repository side is in place. The platform side is a Vercel project setting that this repository cannot hold. Observed on 2026-10-02 (read-only, authenticated CLI): project `progress-pal`, production branch `master`, `autoAssignCustomDomains: true` (a prerequisite), no deploy hooks, `GET /v2/projects/progress-pal/checks` returns no checks, and the production deployment carries no check state. **Deployment Checks are therefore not active.**
-
-Activation, one action in the Vercel dashboard: Project → Settings → Build & Deployment → Deployment Checks → Add Checks → provider GitHub → select the `Final candidate` check from the `Release validation` workflow. Vercel documents these checks as available to every team; confirm that the control is present on this Hobby team.
-
-Verify after activation (read-only):
-
-```powershell
-vercel api /v2/projects/progress-pal/checks
-```
-
-and on the next production deployment confirm that it is not aliased until the check completes and succeeds. Record the activation date in `docs/CURRENT_STATE.md`.
-
-Rollback: remove the check in the same settings page. A deployment held by a check can be released with **Force Promote**, which deliberately bypasses the check and should be used only by the owner.
+Read-only authenticated inspection on 2026-11-02 directly confirms project
+`progress-pal` (`prj_npdQBbWuAlQMzraZuhM12yv3XgmZ`), production branch
+`master`, and automatic domain assignment. `GET /v2/projects/progress-pal/checks`
+returns the GitHub `Final candidate` check
+`chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7`, blocking `deployment-alias`
+for `production`. No provider settings were changed. The connector omits this
+field; the native CLI supplied the effective setting. Future merges still need a
+current protection/identity recheck and observed alias assignment for the actual
+master SHA. READY alone is insufficient. Rollback is an ordinary reviewed change
+restoring FULL; this task does not authorize removal/bypass of the provider check.
 
 ### Release sequence
 
@@ -148,7 +145,7 @@ Pushing `C` without `E` is safe but unproductive: its check fails closed, so Ver
 
 ### Residual limits
 
-- The gate proves a review **names this exact payload**; it does not authenticate **who wrote it**. A review file is a claim recorded in Git, and anyone who can commit can write one. Independence rests on process: the reviewer, not the implementer, authors and commits the evidence file, and the owner checks the evidence commit's author and `reviewer` field before merging.
+- The gate proves a review **names this exact payload**; it does not authenticate **who wrote it**. A review file is a claim recorded in Git, and anyone who can commit can write one. Independence rests on process: a genuinely separate reviewer authors and commits the evidence file, with explicit AI provenance when applicable; the authorized merger checks the evidence commit and `reviewer` field before merging.
 - Without branch protection, GitHub cannot stop a direct push to `master`; the guarantee is that such a push is not promoted until its check passes.
 - Force Promote and `vercel deploy --prod` with owner credentials are deliberate owner bypasses.
 - The gate runs from the candidate's own checkout, so a candidate that edits `scripts/` or the workflow can alter the gate that judges it. The independent review must cover those paths; upgrading the GitHub plan would allow a base-branch-owned gate.

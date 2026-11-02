@@ -1,6 +1,5 @@
 import { isDeepStrictEqual } from 'node:util';
 import {
-  enforceCommandPolicy,
   validateNodeTests,
   validateTestReport,
 } from './release-gate-utils.mjs';
@@ -231,7 +230,9 @@ export async function verifyEvidence(entries, artifact, run, job, pr, current) {
       start <= end &&
       start >= Date.parse(job.started_at) &&
       end <= Date.parse(job.completed_at) &&
-      Date.parse(artifact.created_at) >= end &&
+      // GitHub truncates artifact creation times to seconds. Compare at that
+      // precision, retaining the exact run/attempt bindings above and job bounds.
+      Date.parse(artifact.created_at) >= Math.floor(end / 1000) * 1000 &&
       Date.parse(artifact.created_at) <= Date.parse(job.completed_at),
     'SOURCE_ATTEMPT_TIME_INVALID',
   );
@@ -477,7 +478,16 @@ export async function decideReuse({ currentCheck, discover, audit, recheck }) {
   }
   try {
     const result = await audit();
-    await enforceCommandPolicy(result);
+    const auditDecision = classifyAudit(result);
+    if (auditDecision !== 'CLEAN')
+      return {
+        decision: auditDecision,
+        reason:
+          auditDecision === 'BLOCK'
+            ? 'CURRENT_AUDIT_VULNERABLE'
+            : 'CURRENT_AUDIT_UNAVAILABLE',
+        source,
+      };
     try {
       await recheck(current, source);
     } catch (error) {
@@ -495,16 +505,74 @@ export async function decideReuse({ currentCheck, discover, audit, recheck }) {
     };
   } catch (error) {
     return {
-      decision: 'BLOCK',
-      reason: error.reason ?? 'CURRENT_AUDIT_FAILED',
+      decision: 'FULL',
+      reason: error.reason ?? 'CURRENT_AUDIT_UNAVAILABLE',
       source,
     };
   }
 }
 
-// Shared orchestration contract; the installed workflow uses shadow unconditionally.
-export async function executeDecision(mode, decision, { full, attest }) {
-  if (mode !== 'enforce') return full();
-  if (decision.decision === 'BLOCK') throw new Error(decision.reason);
-  return decision.decision === 'ATTEST' ? attest() : full();
+// npm 11 --json distinguishes a completed vulnerability report from a transport
+// error (which can also exit 1). Unknown or contradictory reports require FULL.
+export function classifyAudit(result) {
+  try {
+    if (
+      ![0, 1].includes(result.exitCode) ||
+      result.signal !== null ||
+      result.timedOut !== false ||
+      result.interrupted !== false
+    )
+      return 'FULL';
+    const report = JSON.parse(result.stdout);
+    const counts = report.metadata?.vulnerabilities;
+    const levels = ['info', 'low', 'moderate', 'high', 'critical'];
+    if (
+      report.auditReportVersion !== 2 ||
+      report.error ||
+      !counts ||
+      !report.vulnerabilities ||
+      typeof report.vulnerabilities !== 'object' ||
+      Array.isArray(report.vulnerabilities) ||
+      ![...levels, 'total'].every(
+        (level) => Number.isSafeInteger(counts[level]) && counts[level] >= 0,
+      )
+    )
+      return 'FULL';
+    const actual = Object.fromEntries(levels.map((level) => [level, 0]));
+    for (const [name, entry] of Object.entries(report.vulnerabilities)) {
+      if (
+        entry?.name !== name ||
+        !levels.includes(entry.severity) ||
+        !Array.isArray(entry.via) ||
+        !entry.via.length ||
+        !Array.isArray(entry.nodes) ||
+        !entry.nodes.length
+      )
+        return 'FULL';
+      actual[entry.severity]++;
+    }
+    if (
+      !levels.every((level) => actual[level] === counts[level]) ||
+      counts.total !== levels.reduce((sum, level) => sum + counts[level], 0)
+    )
+      return 'FULL';
+    if (counts.moderate + counts.high + counts.critical > 0) return 'BLOCK';
+    return result.exitCode === 0 ? 'CLEAN' : 'FULL';
+  } catch {
+    return 'FULL';
+  }
+}
+
+// Only optional attestation operations are recoverable here. A full failure is
+// never caught/retried, and a confirmed mandatory violation never falls back.
+export async function executeDecision(decision, { full, attest }) {
+  if (decision.decision === 'BLOCK')
+    throw new ReuseError(decision.reason, 'BLOCK');
+  if (decision.decision !== 'ATTEST') return full();
+  try {
+    return await attest();
+  } catch (error) {
+    if (error.decision === 'BLOCK') throw error;
+    return full();
+  }
 }

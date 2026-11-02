@@ -86,12 +86,19 @@ npm run verify:release  # full immutable release gate (see below)
 npm run validate        # alias of verify:release
 ```
 
-The ordinary validation gate before considering work done:
+Use targeted preflight before publication: changed-file formatting/lint, affected
+Node/Vitest contracts, and managed Playwright paths/projects when browser journeys
+change. Run `npm run typecheck` for TypeScript/config changes, including E2E API
+changes (`tsconfig.node.json` includes `e2e`). Inspect the affected callers and
+assertion family before publication. Preserve command exit codes; inspect installed
+CLI help before using provider commands. Use authenticated tools directly; do not
+relay routine commands through the owner.
 
-```bash
-npm run lint && npm run format:check && npm run typecheck && npm run build && \
-npm test && npm run test:e2e && npm run check:circular && npm run audit
-```
+Do not run a routine full local gate. One ordinary PR event produces the authentic
+hosted comprehensive certificate after independent payload-bound review. The
+single native master job then runs FULL or authenticated ATTEST as specified in
+`docs/release-reuse.md`. PR green, master green, deployment READY, public alias
+assignment and public smoke are separate observations.
 
 ## Testing instructions
 
@@ -125,7 +132,7 @@ It runs `npm ci`, lint, format check, typecheck, build, bundle budget, unit test
 
 ### CI (`.github/workflows/test.yml`)
 
-One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`, checking out the triggering SHA and running `npm run verify:release` once. Together with one clean local final gate, this implements D-0075. There is no sharding, retry, or deployment stage (deliberate omissions — see `docs/ci.md`). The job name `Final candidate` is a contract: Vercel Deployment Checks require it by name to hold a production deployment until validation passes (platform step status: `docs/CURRENT_STATE.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
+One workflow, "Release validation": one `Final candidate` job on `ubuntu-latest`, checking out the triggering SHA. PR/manual/control transitions run `npm run verify:release` once; eligible master merges authenticate comprehensive PR evidence and a fresh audit before ATTEST. Targeted local preflight plus the ordinary hosted comprehensive PR gate supersedes the former routine full-local-gate advice. There is no sharding, retry, or deployment stage (deliberate omissions — see `docs/ci.md`). The job name `Final candidate` is a contract: Vercel Deployment Checks require it by name to hold a production deployment until validation passes (platform step status: `docs/CURRENT_STATE.md`). If `npm audit` cannot reach its endpoint, the pass fails; record the outage honestly, never relabel it a clean pass.
 
 ## Code style guidelines
 

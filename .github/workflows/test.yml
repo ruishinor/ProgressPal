@@ -36,24 +36,49 @@ jobs:
           cache: npm
       - name: Pin npm 11
         run: npm install --global npm@11.10.1
-      # Shadow is data only. A missing script, import/parser error, API outage or
-      # deadline cannot prevent the original unconditional comprehensive gate.
-      - name: Observe certification reuse (shadow)
+      # Publish an ATTEST output only after verified evidence and a durable record.
+      # A private, fresh output file prevents partial/crashed selector output reuse.
+      - name: Select certification path
+        id: reuse
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          if timeout 150s node scripts/run-release-reuse.mjs; then
-            :
-          else
-            echo 'Reuse shadow: FULL / VERIFIER_UNAVAILABLE; comprehensive gate follows.'
-          fi
+          selection=$(mktemp) || { echo 'decision=FULL' >> "$GITHUB_OUTPUT"; exit 0; }
+          status=0
+          GITHUB_OUTPUT="$selection" timeout 150s node --input-type=module <<'NODE' || status=$?
+          import { appendFile } from 'node:fs/promises';
+          let decision = 'FULL';
+          try {
+            const { selectCertification } = await import('./scripts/run-release-reuse.mjs');
+            decision = (await selectCertification()).decision;
+          } catch (error) {
+            console.error(error);
+            if (error.decision === 'BLOCK') process.exit(20);
+          }
+          if (decision === 'BLOCK') process.exit(20);
+          await appendFile(process.env.GITHUB_OUTPUT,
+            `decision=${decision === 'ATTEST' ? 'ATTEST' : 'FULL'}\n`);
+          NODE
+          case "$status" in
+            0)
+              if [[ "$(cat "$selection")" == 'decision=ATTEST' ]]; then
+                echo 'decision=ATTEST' >> "$GITHUB_OUTPUT"
+              else
+                echo 'decision=FULL' >> "$GITHUB_OUTPUT"
+              fi ;;
+            20) echo 'Confirmed mandatory violation; certification blocked.'; exit 1 ;;
+            *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
+          esac
       - name: Install locked dependencies
+        if: steps.reuse.outputs.decision != 'ATTEST'
         run: npm ci
       - name: Install Chromium
+        if: steps.reuse.outputs.decision != 'ATTEST'
         run: npx playwright install --with-deps chromium
       # Review evidence is not selected here. The gate resolves it from
       # docs/release-reviews/ by its binding to this exact payload tree.
       - name: Run immutable release gate
+        if: steps.reuse.outputs.decision != 'ATTEST'
         env:
           RELEASE_PASS: '1'
         run: npm run verify:release

@@ -1,152 +1,114 @@
-# Release certification reuse — shadow installation
+# Release certification reuse
 
-Task A, 2026-10-29. This change installs **shadow only**. The single native
-`Final candidate` job still runs the comprehensive gate on every PR, master
-push and manual dispatch. No tests, Chromium installation or existing policy
-checks are skipped. Activation and merging require the existing independent
-review and owner authorization.
+The existing Release validation workflow retains one native final-candidate
+job/check named **Final candidate**, its triggers, read-only permissions and upload.
+PR and manual events run FULL. A master push may run ATTEST only after authenticating
+the comprehensive certificate of its exact tested PR synthetic merge. Activation,
+rollback and other release-control transitions run FULL on both PR and master.
 
-## Authority and design choice
+## Authority and source authentication
 
-Use a reviewed in-repository verifier and a bounded release-control fingerprint.
-Independent payload review and owner control of the workflow remain the trust
-boundary. Authenticated Actions run/job/check records authenticate the producer;
-artifact ownership, SHA-256, Git objects and report validation establish the
-record's relationship to the tested synthetic merge. A manifest's claims alone
-never suffice.
+Independent payload review and authorized workflow changes remain the trust
+boundary: candidate code executes on the runner in both paths. The verifier does
+not claim to isolate a hostile authorized workflow editor. The existing
+release-review-binding.mjs resolver retains exact payload binding, strict file
+validation and rejection precedence; independent review is not self-review.
 
-An immutable Q/K controller would additionally detect replacement of its own
-module when an honest wrapper invokes it. It would require a bootstrap release,
-template/pin management and recurring controller transitions. It cannot isolate
-hostile candidate code on the same runner or constrain an authorized workflow
-editor. Those limits already apply to the comprehensive gate. The smaller design
-preserves this existing trust boundary without claiming to solve it.
+Discovery independently joins the actual master merge to exactly one merged
+same-repository PR. Require complete tree equality, including review evidence,
+and ordered parents(synthetic) = parents(master) = [base, head]. The synthetic
+checkout comes from the authenticated artifact and is independently checked using
+GitHub's Git commit endpoint. Today's moving pull merge ref is never evidence.
 
-The fingerprint covers workflows; release/review/reporter/reuse scripts and
-their focused tests; E2E wrapper and bundle controls; Node/npm settings; build,
-test, lint, formatting, TypeScript and hosting configurations; package scripts,
-engines and package-manager identity. It does not freeze application code,
-ordinary tests or the dependency graph. Changes to these controls between B and C
-require full certification, including installation, activation and rollback.
-There is no transitive policy inventory or YAML renderer.
+Require the expected workflow, latest successful run and exact successful attempt,
+one native job with all comprehensive steps successful, and the GitHub Actions
+check producer. Artifact ownership, bounded ZIP parsing and SHA-256 authenticate
+the bytes. The schema-3 manifest must explicitly certify comprehensive, name the
+same run/attempt/checkout/PR and contain all 21 passed command records with the
+unchanged command profile. Validate Node TAP and both raw structured test reports,
+their digests, invocation identities and counts. Unknown counts are not zero.
+ATTEST records are ineligible as sources: there are no reuse chains.
 
-## Evidence and decisions
+Require exact Node patch/npm, Linux/x64, lock digest, runner versions, current
+review digest and release controls. The fingerprint covers workflows; release,
+review, reporter, reuse, E2E and bundle controls; Node/npm and build/test/lint/
+format/TypeScript/hosting configuration; package scripts, engines and manager.
+Application code, ordinary tests and dependency graphs are covered by source/target
+tree equality, rather than frozen across releases. A changed control fingerprint
+requires FULL. Checkout depth 2 preserves both parents and their control trees.
 
-The schema-3 manifest gains optional `certification` metadata with explicit
-`certificationContractVersion: 1`, `certificationKind: comprehensive`, repository,
-run/attempt, job, workflow ref/SHA, checkout, parents, PR base/head and control
-fingerprint. Missing metadata cannot fail full certification. Existing uploaded
-manifest and structured report bytes are reused; no second certificate artifact
-is introduced. Historical schema-2 and B-only schema-3 manifests are ineligible.
+ZIP limits remain 16 MiB compressed, 64 MiB expanded, 32 MiB per entry, 128 entries.
+Unsupported ZIP features, malformed reports and unavailable artifacts require
+FULL; bytes are never extracted or executed. Source timestamps must fit the exact
+attempt's job interval. GitHub artifact creation timestamps have second precision:
+only that comparison floors the millisecond manifest end to a second. Historical
+run 41367646765, artifact 13109457491 confirms the defect: manifest ended
+2026-11-02T01:21:55.198Z, artifact created 01:21:55Z. Exact attempt bindings
+and job bounds are unchanged; this is not a multi-second grace period.
 
-Discovery independently joins the merge to exactly one merged same-repository PR,
-then verifies the expected workflow, successful attempt-specific native job,
-mandatory steps and GitHub Actions check producer. Empty run `pull_requests` is
-accepted only through this independent match. S comes from the authenticated
-artifact, and GitHub's Git commit endpoint must independently establish its full
-tree and ordered parents. Today's pull merge ref is never used. Require
-`parents(S) = parents(C) = [B,H]` and complete `tree(S) = tree(C)`, including
-review evidence. The current resolver retains rejection precedence.
+## Decision and execution
 
-All 21 command records and their normalized invocation profile must be complete,
-passed, exit-zero, without signal/timeout/interruption or policy violations.
-Node TAP and both raw structured reports are validated with B's existing
-validators; report bytes, digest, invocation, embedded record and explicit counts
-must agree. Keyword `warningCount` is never an eligibility input. Unknown counts
-are not zero. Source reports are data and are never extracted or executed.
+- **ATTEST:** all positive source/current predicates, a clean fresh audit and final
+  source/target recheck pass. Before publishing the step output, exclusively write
+  and read back a UUID-bound artifacts/release-evidence/reuse-<invocation>.json
+  record with target SHA/run/attempt and source PR/synthetic/run/attempt/job/artifact/
+  digest. This is reuse evidence, never a fabricated comprehensive manifest.
+- **FULL:** unsupported event/topology/environment, changed controls, unavailable,
+  malformed, stale or ambiguous optional evidence, registry/API failure, or optional
+  record/output failure. The original npm ci, Chromium install and
+  npm run verify:release execute once with their genuine failure propagation.
+- **BLOCK:** confirmed current identity, checkout, review or package-policy
+  corruption, or a structured current prohibited audit finding. Fail the native
+  job; optional fallback cannot hide that failure.
 
-Archive bounds: 16 MiB compressed, 64 MiB total expanded, 32 MiB per entry,
-128 entries. The observed B artifact was approximately 425 KiB compressed and
-2.4 MiB expanded. ZIP64, comments, directory entries, unusual names, symlinks,
-duplicates, traversal, unsupported compression and invalid checksums fall back.
-The parser accepts ordinary stored/deflated files and data-descriptor flags.
+The selector is invoked once under a 150-second shell deadline. Its bootstrap
+catches import/parser/runtime errors as FULL, but carries confirmed BLOCK through
+a distinct failing exit. A fresh private output file is copied to Actions only
+after successful selector completion and exact complete output validation. Missing,
+partial, invalid, stale or timed-out output cannot select ATTEST. No job-level
+skip or continue-on-error exists. Only the three expensive steps branch; upload
+still runs with always(). A real FULL failure is neither caught nor retried.
 
-Exact Node patch and npm version, Linux/x64 and lock digest must match the source.
-Node patch changes therefore sometimes require FULL; no exact Ubuntu image label,
-first-attempt restriction or arbitrary TTL is imposed. Artifacts must remain
-available and belong to the correct attempt's time interval. This certifies CI
-source evidence, not byte-identical Vercel output.
+Discovery has a 60-second budget, 10 seconds per request, bounded pagination;
+fresh audit has a 60-second command budget. Optional bounds mean FULL. An
+irrecoverable workflow output/storage failure can still fail the job honestly.
 
-| Result                        | Reason codes and effect                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ATTEST (shadow: would-attest) | `EXACT_SOURCE_CERTIFIED`: all positive predicates, fresh audit and final identity check pass. Installed workflow still runs full.                                                                                                                                                                                                                                                                                       |
-| FULL                          | `CURRENT_EVENT_FULL_ONLY`, `CURRENT_MERGE_UNSUPPORTED`, `CURRENT_CONTROLS_CHANGED`, `CURRENT_ENVIRONMENT_UNSUPPORTED`, `CURRENT_MASTER_MOVED`: unsupported/ineligible current context, original gate remains authoritative.                                                                                                                                                                                             |
-| FULL                          | `SOURCE_PR_MISSING`, `SOURCE_PR_AMBIGUOUS`, `SOURCE_PR_CONTRADICTION`, `SOURCE_RUN_MISSING`, `SOURCE_RUN_INVALID`, `SOURCE_JOB_AMBIGUOUS`, `SOURCE_JOB_INVALID`, `SOURCE_PRODUCER_INVALID`, `SOURCE_WORKFLOW_INVALID`: source association/producer not positively established.                                                                                                                                          |
-| FULL                          | `SOURCE_CONTRACT_UNSUPPORTED`, `SOURCE_BINDING_INVALID`, `SOURCE_TREE_DIFFERENT`, `SOURCE_TOPOLOGY_INVALID`, `SOURCE_CONTROLS_CHANGED`, `SOURCE_ENVIRONMENT_DIFFERENT`, `SOURCE_REVIEW_DIFFERENT`, `SOURCE_CHECKOUT_INVALID`, `SOURCE_ATTEMPT_TIME_INVALID`, `SOURCE_RACE`: source cannot certify this candidate.                                                                                                       |
-| FULL                          | `SOURCE_ARTIFACT_AMBIGUOUS`, `SOURCE_ARTIFACT_IDENTITY_INVALID`, `SOURCE_ARTIFACT_SIZE_INVALID`, `SOURCE_ZIP_INVALID`, `SOURCE_MANIFEST_AMBIGUOUS`, `SOURCE_COMMAND_PROFILE_INVALID`, `SOURCE_POLICY_INVALID`, `SOURCE_TAP_INVALID`, `SOURCE_REPORT_MISSING`, `SOURCE_REPORT_DIGEST_INVALID`, `SOURCE_REPORT_CONTENT_INVALID`, `SOURCE_REPORT_COUNTS_INVALID`: old evidence is unusable, not proof that C is defective. |
-| FULL                          | `SOURCE_API_UNAVAILABLE`, `SOURCE_LOOKUP_TIMEOUT`, `SOURCE_RESPONSE_LIMIT`, `SOURCE_RESPONSE_INVALID`, `SOURCE_PAGINATION_CHANGED`, `SOURCE_PAGINATION_LIMIT`, `SOURCE_EVIDENCE_UNAVAILABLE`, `VERIFIER_UNAVAILABLE`: API/parser/import/runtime uncertainty cannot disable full certification.                                                                                                                          |
-| BLOCK                         | `CURRENT_IDENTITY_INVALID`, `CURRENT_CHECKOUT_CHANGED`, `CURRENT_REVIEW_INVALID`, `CURRENT_PACKAGE_POLICY_INVALID`, `CURRENT_AUDIT_FAILED`: current authority or mandatory policy failure. In shadow the original comprehensive gate independently decides the job; analysis cannot suppress or replace it.                                                                                                             |
+The lightweight audit directly invokes npm 11.10.1, without install or lifecycle
+scripts: npm audit --package-lock-only --ignore-scripts --audit-level=moderate
+--json --include=dev --include=optional --include=peer. A valid report v2 with
+consistent vulnerability entries/counts establishes a finding; moderate/high/
+critical findings BLOCK. Clean complete JSON plus exit zero allows continuation.
+Nonzero alone, transport errors, missing/malformed/inconsistent output or an
+interrupted command require FULL. Its authoritative audit still fails honestly
+if the registry is unavailable. npm documents threshold and JSON semantics in
+[npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/).
 
-`SOURCE_RUNNER_VERSION_INVALID` also yields FULL when the locked Vitest/Playwright
-versions or the recorded Playwright/Chromium command outputs cannot be reconciled.
+## Verification, release and recovery
 
-The checkout uses a **bounded `fetch-depth: 2`**: the verifier needs both
-merge parents and the first parent's tracked control files. Depth 1 makes
-`git show --format=%P` hide parents and makes the parent tree unavailable,
-forcing every otherwise valid master candidate to FULL. No full-history clone
-is necessary.
+Use changed-file formatting/lint, focused Node reuse/review/gate tests, the workflow
+architecture test, and TypeScript when TS/config/E2E APIs change. Exercise the actual
+installed shell with small command doubles as well as source attacks. No routine
+full local certification or manual hosted dispatch is needed. A separate reviewer
+binds the final payload; an evidence-only commit must preserve that payload tree.
 
-The installed workflow has no enforcement branch. Its shell handles absent or
-crashing entrypoints and a 150-second deadline, then proceeds unconditionally to
-the original install/Chromium/full gate sequence. Discovery has a 60-second
-budget, each request 10 seconds, at most three pages of 100 rows per endpoint;
-fresh audit has its own 60-second budget. Bounds cause FULL, not a failed valid
-release. `reuse-shadow.json` records actual mode, candidate/run/attempt, source
-identities/digest when available, decision, would-attest and elapsed milliseconds.
-An entrypoint failure is logged as FULL / VERIFIER_UNAVAILABLE.
+One ordinary PR event comprehensively certifies its actual synthetic checkout.
+Before authorized merge, recheck head/base/tree/review and the successful current
+run attempt. Activation's master run must use FULL because controls changed. A
+later useful release may naturally demonstrate active reuse; no dummy release or
+forced eligibility is permitted. Observe master check success, automatic deployment
+source, public alias assignment and minimal public smoke separately. READY alone
+does not establish promotion or end-user behavior.
 
-## Audit parity and efficiency evidence
+Read-only CLI inspection on 2026-11-02 confirms project
+prj_npdQBbWuAlQMzraZuhM12yv3XgmZ, production branch master, and check
+chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7, GitHub Final candidate, blocking
+deployment-alias for production. No provider settings changed. GitHub currently
+reports no branch protection/rulesets; the authorized merger must enforce the
+candidate predicates. Rollback is a normal independently reviewed change restoring
+unconditional FULL. Never remove/bypass the provider check or manually promote.
 
-The proposed lightweight audit directly invokes npm, never a project lifecycle
-or `npm run` script: `npm audit --package-lock-only --ignore-scripts
---audit-level=moderate --include=dev --include=optional --include=peer`.
-On npm 11.10.1, installed and lock-only audits on this lock produced matching
-zero-vulnerability reports and the same dependency counts (364 total). A
-throwaway synthetic fixture with lodash 4.17.20 as dev and minimist 0.0.8 as
-optional produced byte-equivalent JSON results on both paths: one high and one
-critical vulnerability, both exit 1. No lifecycle scripts ran. These are targeted
-parity results on Windows, not a universal npm guarantee; hosted Linux shadow
-evidence must confirm the actual operating environment before activation.
-
-Read-only historical sample, downloaded and checked on 2026-10-29:
-
-| PR / source run   | Tested synthetic S                       | Complete tree and parents match C | B/C controls stable | Historical result                                                   |
-| ----------------- | ---------------------------------------- | --------------------------------- | ------------------- | ------------------------------------------------------------------- |
-| #47 / 40679259536 | 969b188261c8230632edc80b4d4635240cbfc0ad | Yes                               | No                  | FULL: control changes and legacy schema 2                           |
-| #48 / 40756188138 | d890456659f6c7c38cc0ef7bd8c5e513f8abdfa8 | Yes                               | Yes                 | Structurally eligible ordinary release; FULL today: legacy schema 2 |
-| #49 / 40799107209 | 4632d58f2c45c7ded658aeffae2e7a1374b081ae | Yes                               | No                  | FULL: B control changes and absent A binding                        |
-
-This is 3/3 structural equivalence and 1/3 unchanged controls in a small sample
-dominated by release-policy changes, not a measured future eligibility rate.
-PR #48's full job was 60m08s; PR #49's was 71m32s. Master #49 ran approximately
-62 minutes. A later qualifying merge could avoid that duplicate master suite.
-Minutes for attestation remain a budget/hypothesis, not a hosted measurement.
-The two Task A transitions (installation and activation) require four full
-hosted runs in total; at roughly an hour each, their runner cost takes roughly
-four later eligible releases to repay, excluding implementation/review time.
-Shadow uses one already-planned ordinary release and introduces no new routine
-owner action. Persistent fallback or environment drift must be assessed from
-real shadow evidence before activation.
-
-## Rollout and recovery
-
-1. Independently review the exact implementation payload, add the normal bound
-   review evidence, and publish this PR for one authoritative full hosted run.
-   Owner-authorized merge must also receive full master certification.
-2. The next real planned compatible PR runs full on S. Its authorized merge must
-   record would-attest, pass full certification and reach the expected Vercel
-   alias. Until then: **SHADOW—AWAITING_REAL_PROOF** after installation.
-3. Independently review that evidence and a small activation workflow change.
-   Activation PR and merge themselves run full because controls changed. Only
-   a later ordinary qualifying merge may attest. No activation is implemented
-   by changing an environment variable or dispatch input in this installation.
-4. Rollback is a normal reviewed workflow change restoring unconditional full
-   execution (the current installed behavior). Never remove the Vercel check.
-
-Read-only provider verification: project `prj_npdQBbWuAlQMzraZuhM12yv3XgmZ`,
-check `chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7`, GitHub source
-`Final candidate`, blocks `deployment-alias`, target `production`, timeout
-5000 seconds. Deployment `dpl_AdNcSuWt7ohcAMR7sRZ5trmQTGew` reports source
-`3be2fcbdf7fb46125fa84997eb875904660bc1bc`, READY and successful alias check.
-Provider settings were not modified. Native check identity is retained as required
-by [Vercel Deployment Checks](https://vercel.com/docs/deployment-checks).
+Historical shadow #75/#84/#90 reported eligible exact source in about five seconds
+but still ran FULL. That is feasibility evidence, not active-reuse proof or a
+measured saving. Identical source can have substantially different hosted runtime;
+only actual selected steps establish avoided work. No future eligibility rate or
+wall-time saving is promised.

@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { crc32, deflateRawSync } from 'node:zlib';
 import {
@@ -360,6 +368,15 @@ const mutations = {
   'wrong run': (f) => {
     f.manifest.certification.runId = 999;
   },
+  'attested source cannot chain': (f) => {
+    f.manifest.certification.certificationKind = 'reuse';
+  },
+  'changed review': (f) => {
+    f.current.review.sha256 = 'tampered';
+  },
+  'changed controls': (f) => {
+    f.current.controls = 'changed';
+  },
   'wrong attempt': (f) => {
     f.manifest.certification.runAttempt = 1;
   },
@@ -508,7 +525,20 @@ const goodAudit = () => ({
   signal: null,
   timedOut: false,
   interrupted: false,
-  stdout: '0 vulnerabilities',
+  stdout: JSON.stringify({
+    auditReportVersion: 2,
+    vulnerabilities: {},
+    metadata: {
+      vulnerabilities: {
+        info: 0,
+        low: 0,
+        moderate: 0,
+        high: 0,
+        critical: 0,
+        total: 0,
+      },
+    },
+  }),
 });
 for (const error of [new SyntaxError('parser'), new Error('API outage')])
   test(`${error.message}: original full gate exactly once`, async () => {
@@ -522,7 +552,7 @@ for (const error of [new SyntaxError('parser'), new Error('API outage')])
       },
     });
     let full = 0;
-    await executeDecision('enforce', decision, {
+    await executeDecision(decision, {
       full: () => {
         full++;
       },
@@ -537,15 +567,12 @@ test('current policy defect blocks, never hidden by fallback', async () => {
     },
   });
   assert.equal(result.decision, 'BLOCK');
-  await assert.rejects(
-    executeDecision('enforce', result, { full: () => assert.fail() }),
-  );
+  await assert.rejects(executeDecision(result, { full: () => assert.fail() }));
 });
 test('a real full-operation failure propagates unchanged, never classified as a source miss', async () => {
   const failure = new Error('full certification failed');
   await assert.rejects(
     executeDecision(
-      'enforce',
       { decision: 'FULL' },
       {
         full: () => {
@@ -558,15 +585,32 @@ test('a real full-operation failure propagates unchanged, never classified as a 
   );
 });
 test('fresh audit vulnerability blocks', async () => {
+  const report = JSON.parse(goodAudit().stdout);
+  report.vulnerabilities.probe = {
+    name: 'probe',
+    severity: 'moderate',
+    isDirect: true,
+    via: [{ source: 1, name: 'probe', severity: 'moderate', range: '<1.0.1' }],
+    effects: [],
+    range: '<1.0.1',
+    nodes: ['node_modules/probe'],
+    fixAvailable: true,
+  };
+  report.metadata.vulnerabilities.moderate = 1;
+  report.metadata.vulnerabilities.total = 1;
   const result = await decideReuse({
     currentCheck: () => ({}),
     discover: () => ({}),
-    audit: () => ({ ...goodAudit(), exitCode: 1 }),
+    audit: () => ({
+      ...goodAudit(),
+      exitCode: 1,
+      stdout: JSON.stringify(report),
+    }),
   });
   assert.equal(result.decision, 'BLOCK');
-  assert.equal(result.reason, 'CURRENT_AUDIT_FAILED');
+  assert.equal(result.reason, 'CURRENT_AUDIT_VULNERABLE');
 });
-test('shadow would-attest still runs full; enforce attestation never invokes full/browser', async () => {
+test('eligible clean source attests without invoking full/browser', async () => {
   const decision = await decideReuse({
     currentCheck: () => ({}),
     discover: () => ({}),
@@ -583,10 +627,8 @@ test('shadow would-attest still runs full; enforce attestation never invokes ful
       attest++;
     },
   };
-  await executeDecision('shadow', decision, operations);
-  assert.deepEqual([full, attest], [1, 0]);
-  await executeDecision('enforce', decision, operations);
-  assert.deepEqual([full, attest], [1, 1]);
+  await executeDecision(decision, operations);
+  assert.deepEqual([full, attest], [0, 1]);
 });
 test('current ref race yields FULL, checkout corruption yields BLOCK', async () => {
   for (const [reason, decision] of [
@@ -605,54 +647,242 @@ test('current ref race yields FULL, checkout corruption yields BLOCK', async () 
     assert.equal(result.reason, reason);
   }
 });
-test('shadow shell handles entrypoint failure and retains one unconditional native gate', () => {
+
+for (const fault of [
+  { exitCode: 1 },
+  { stdout: '' },
+  { stdout: '{' },
+  {
+    stdout: JSON.stringify({
+      error: { code: 'E503', summary: 'registry unavailable' },
+    }),
+    exitCode: 1,
+  },
+  { timedOut: true },
+  { signal: 'SIGTERM' },
+  { interrupted: true },
+])
+  test(
+    'unknown audit result requires full: ' + JSON.stringify(fault),
+    async () => {
+      const result = await decideReuse({
+        currentCheck: () => ({}),
+        discover: () => ({}),
+        audit: () => ({ ...goodAudit(), ...fault }),
+        recheck: () => assert.fail('cannot attest an unknown audit'),
+      });
+      assert.equal(result.decision, 'FULL');
+    },
+  );
+
+test('audit transport exception requires FULL', async () => {
+  const result = await decideReuse({
+    currentCheck: () => ({}),
+    discover: () => ({}),
+    audit: () => {
+      throw new Error('ECONNRESET');
+    },
+  });
+  assert.equal(result.decision, 'FULL');
+});
+
+test('optional attestation write/output failure falls back once; mandatory failure never greens', async () => {
+  let full = 0;
+  const operations = {
+    full: () => {
+      full++;
+    },
+    attest: () => {
+      throw new Error('EACCES');
+    },
+  };
+  await executeDecision({ decision: 'ATTEST' }, operations);
+  assert.equal(full, 1);
+  operations.attest = () => {
+    throw new ReuseError('CURRENT_CHECKOUT_CHANGED', 'BLOCK');
+  };
+  await assert.rejects(
+    executeDecision({ decision: 'ATTEST' }, operations),
+    /CURRENT_CHECKOUT_CHANGED/,
+  );
+  assert.equal(full, 1);
+  const failure = new Error('full failed');
+  operations.attest = () => {
+    throw new Error('optional metadata unavailable');
+  };
+  operations.full = () => {
+    full++;
+    throw failure;
+  };
+  await assert.rejects(
+    executeDecision({ decision: 'ATTEST' }, operations),
+    (error) => error === failure,
+  );
+  assert.equal(full, 2);
+});
+
+test('artifact second precision accepts only its same-second manifest end', async () => {
+  const f = fixture();
+  f.manifest.endedAt = '2026-10-29T00:00:00.198Z';
+  f.job.completed_at = '2026-10-29T00:00:02Z';
+  await discoverSource(f.api(), f.current);
+  f.manifest.endedAt = '2026-10-29T00:00:01.001Z';
+  await assert.rejects(
+    discoverSource(f.api(), f.current),
+    /SOURCE_ATTEMPT_TIME_INVALID/,
+  );
+  f.manifest.endedAt = time;
+  f.manifest.startedAt = '2026-10-28T23:59:59.999Z';
+  await assert.rejects(
+    discoverSource(f.api(), f.current),
+    /SOURCE_ATTEMPT_TIME_INVALID/,
+  );
+});
+
+test('installed workflow selection defaults uncertain output to FULL and preserves failures', () => {
   const workflow = readFileSync(
     new URL('../.github/workflows/test.yml', import.meta.url),
     'utf8',
   );
   assert.equal((workflow.match(/name: Final candidate/g) || []).length, 1);
-  assert.match(workflow, /^\s+fetch-depth: 2$/m);
   assert.equal((workflow.match(/npm run verify:release/g) || []).length, 1);
-  assert.match(
-    workflow,
-    /if timeout 150s node scripts\/run-release-reuse.mjs; then/,
-  );
+  assert.match(workflow, /^\s+fetch-depth: 2$/m);
   assert.doesNotMatch(workflow, /continue-on-error/);
-  assert.match(
-    workflow,
-    /else\s+echo 'Reuse shadow: FULL \/ VERIFIER_UNAVAILABLE/,
-  );
+  const steps = workflow.split('\n      - ');
   for (const name of [
     'Install locked dependencies',
     'Install Chromium',
     'Run immutable release gate',
   ]) {
-    const step = workflow.split(`- name: ${name}`)[1].split('\n      - ')[0];
-    assert.doesNotMatch(step, /\bif:/);
+    assert.match(
+      steps.find((step) => step.startsWith('name: ' + name)),
+      /if: steps\.reuse\.outputs\.decision != 'ATTEST'/,
+    );
   }
+  assert.match(
+    steps.find((step) => step.startsWith('name: Upload release evidence')),
+    /if: always\(\)/,
+  );
+  const selection = steps
+    .find((step) => step.startsWith('name: Select certification path'))
+    .split('        run: |\n')[1]
+    .split('\n')
+    .map((line) => line.slice(10))
+    .join('\n');
   const shell =
     process.platform === 'win32'
-      ? `${process.env.ProgramFiles}/Git/bin/bash.exe`
+      ? process.env.ProgramFiles + '/Git/bin/bash.exe'
       : 'bash';
-  const guardedStep = workflow
+  for (const [output, status, fullStatus, expectedFull, expectedExit] of [
+    ['decision=ATTEST', 0, 0, 0, 0],
+    ['decision=FULL', 0, 0, 1, 0],
+    ['', 0, 0, 1, 0],
+    ['decision=ATTEST\nstale=true', 0, 0, 1, 0],
+    ['decision=ATTEST', 1, 0, 1, 0],
+    ['decision=ATTEST', 124, 0, 1, 0],
+    ['', 127, 0, 1, 0],
+    ['', 20, 0, 0, 1],
+    ['decision=FULL', 0, 7, 1, 7],
+  ]) {
+    const script = [
+      'export GITHUB_OUTPUT=$(mktemp)',
+      'timeout() { cat >/dev/null; printf "%s" "$PROBE_OUTPUT" > "$GITHUB_OUTPUT"; return "$PROBE_STATUS"; }',
+      selection,
+      'if [[ "$(cat "$GITHUB_OUTPUT")" != "decision=ATTEST" ]]; then',
+      '  echo INSTALL; echo CHROMIUM; echo FULL_GATE_ONCE; (exit "$PROBE_FULL_STATUS")',
+      'fi',
+    ].join('\n');
+    const probe = spawnSync(
+      shell,
+      ['--noprofile', '--norc', '-e', '-c', script],
+      {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 10000,
+        env: {
+          ...process.env,
+          PROBE_OUTPUT: output,
+          PROBE_STATUS: String(status),
+          PROBE_FULL_STATUS: String(fullStatus),
+        },
+      },
+    );
+    assert.equal(probe.status, expectedExit, probe.stderr);
+    for (const label of ['INSTALL', 'CHROMIUM', 'FULL_GATE_ONCE'])
+      assert.equal(
+        probe.stdout.split(label).length - 1,
+        expectedFull,
+        probe.stdout,
+      );
+  }
+});
+
+test('actual workflow bootstrap carries imported decisions and import failures', () => {
+  const workflow = readFileSync(
+    new URL('../.github/workflows/test.yml', import.meta.url),
+    'utf8',
+  );
+  const selection = workflow
     .split('        run: |\n')[1]
     .split('\n      - ')[0]
     .split('\n')
     .map((line) => line.slice(10))
     .join('\n');
-  for (const exit of [0, 1, 124, 127]) {
-    const probe = spawnSync(
-      shell,
+  const directory = mkdtempSync(join(tmpdir(), 'progresspal-selector-'));
+  const output = join(directory, 'output');
+  const module = join(directory, 'scripts/run-release-reuse.mjs');
+  mkdirSync(join(directory, 'scripts'));
+  const shell =
+    process.platform === 'win32'
+      ? process.env.ProgramFiles + '/Git/bin/bash.exe'
+      : 'bash';
+  try {
+    for (const [body, expected, exit] of [
       [
-        '--noprofile',
-        '--norc',
-        '-e',
-        '-c',
-        `timeout() { return ${exit}; }\n${guardedStep}\nprintf 'FULL_GATE_ONCE\\n'\n`,
+        "export async function selectCertification(){ return {decision:'ATTEST'}; }",
+        'decision=ATTEST',
+        0,
       ],
-      { encoding: 'utf8', windowsHide: true, timeout: 10_000 },
-    );
-    assert.equal(probe.status, 0, probe.stderr);
-    assert.equal(probe.stdout.split('FULL_GATE_ONCE').length - 1, 1);
+      [
+        'export async function selectCertification(){ return {}; }',
+        'decision=FULL',
+        0,
+      ],
+      [
+        "export async function selectCertification(){ throw Error('optional write failed'); }",
+        'decision=FULL',
+        0,
+      ],
+      [
+        "export async function selectCertification(){ throw Object.assign(Error('mandatory'),{decision:'BLOCK'}); }",
+        '',
+        1,
+      ],
+      ['invalid syntax {', 'decision=FULL', 0],
+    ]) {
+      writeFileSync(module, body);
+      writeFileSync(output, '');
+      const probe = spawnSync(
+        shell,
+        [
+          '--noprofile',
+          '--norc',
+          '-e',
+          '-c',
+          'timeout() { shift; "$@"; }\n' + selection,
+        ],
+        {
+          cwd: directory,
+          encoding: 'utf8',
+          windowsHide: true,
+          timeout: 10000,
+          env: { ...process.env, GITHUB_OUTPUT: output },
+        },
+      );
+      assert.equal(probe.status, exit, probe.stderr);
+      assert.equal(readFileSync(output, 'utf8').trim(), expected);
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });
