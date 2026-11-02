@@ -1,5 +1,20 @@
 # ProgressPal current state
 
+**2026-11-02 bounded test-debt inspection — local verification.** Isolated
+`cx/test-debt-20261102-135538` starts at live `origin/master`
+`5dce7507e674a8d9a8b7a88714d46ad15fe4b6ec`. Only the Utviklerblikk E2E
+action helper changes: count elapsed monotonic time before waiting the remainder
+of its existing 430 ms interval; retain the full first wait for an untracked
+entry click. The production 400 ms guard, real scheduling, all scenarios and
+assertions remain. One local traced phone case falls from 77.1 to 48.2 s,
+with the same 2,637 assertions and 164 clicks; requested waits fall from 34.83
+to 7.30 s. This is not a hosted benchmark. Eleven focused browser cases,
+six guard unit cases, TypeScript and changed-file lint/format pass. Existing
+native master run #94 independently confirms actual ATTEST execution, with the
+three expensive steps skipped after authentication of PR #63's certificate.
+Local evidence is under ignored `artifacts/test-debt/`. No product, dependency,
+worker, release-control or provider change; no publication or new certification.
+
 **2026-11-02 bounded track-test clock — focused verification.** Separate
 `cx/test-guard-clock` starts at certified/promoted master
 `c56f3f2db5d588c190ff7dec29f8fda7d05c1218`. Only the route test harness uses
