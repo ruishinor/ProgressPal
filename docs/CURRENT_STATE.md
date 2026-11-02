@@ -1,6 +1,6 @@
 # ProgressPal current state
 
-**2026-11-02 bounded track-test clock ? focused verification.** Separate
+**2026-11-02 bounded track-test clock — focused verification.** Separate
 `cx/test-guard-clock` starts at certified/promoted master
 `c56f3f2db5d588c190ff7dec29f8fda7d05c1218`. Only the route test harness uses
 the existing real action guard/context with a reset test-local monotonic clock;
