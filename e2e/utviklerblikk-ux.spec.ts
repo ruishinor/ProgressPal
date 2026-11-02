@@ -65,7 +65,7 @@ async function inspect(
   expect(result.problems, label).toEqual([]);
   for (const control of await page
     .locator('.micro button:visible,.micro a:visible,.micro summary:visible')
-    .elementHandles()) {
+    .all()) {
     await control.scrollIntoViewIfNeeded({ timeout: 5000 });
     const hit = await control.evaluate((el) => {
       const r = el.getBoundingClientRect(),
