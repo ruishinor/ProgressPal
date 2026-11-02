@@ -105,7 +105,7 @@ assignment and public smoke are separate observations.
 ### Unit / integration (Vitest)
 
 - Tests live in `src/**/*.test.{ts,tsx}` and `tests/**/*.test.{ts,tsx}`; `tests/` mirrors the `src/` layout. `tests/architecture/` contains boundary/guard tests (module boundaries, local-only, route definitions) — keep them passing when moving code.
-- `npm test` runs `vitest run --maxWorkers=1 --no-file-parallelism`. Serial execution is **deliberate** (an inherited unconstrained Vitest process model leaked workers on Windows); do not "fix" it by enabling parallelism.
+- `npm test` uses at most two isolated Vitest file workers. This bounded concurrency replaces the previous single-worker protection against unconstrained Windows processes. Do not remove worker limits or test-file isolation.
 - `vitest.setup.ts` installs `fake-indexeddb`, jest-dom matchers, `matchMedia`/`scrollTo` mocks, and a fresh fake Web Locks manager (`navigator.locks`) before each test; it cleans up the DOM and deletes the shared database after each test. IndexedDB reads are given a 5 s Testing Library timeout.
 - E2E needs browsers installed once: `npx playwright install chromium`.
 
