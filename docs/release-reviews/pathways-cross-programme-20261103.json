@@ -19,7 +19,22 @@
       "Limits: no human beginner observation, physical-device testing, native browser zoom, exhaustive failure injection, hosted certification or production smoke performed by this reviewer. Git retains its historical internal programme identity solely for independent learning state and backwards-compatible access. This review is permission to proceed to existing certification, not a hosted or production certificate."
     ]
   },
-  "adversarialFindings": [],
+  "adversarialFindings": [
+    {
+      "id": "PATHWAYS-1",
+      "severity": "P2",
+      "description": "Compatibility risk examined: removing or renaming the historical Git programme registration while hiding it from selection would make existing Git-active backups or learner records unresolvable.",
+      "resolution": "The candidate retains the unchanged registry entry, IDs, content and enrolments; hides only first-run/switch choices; resolves the same Git scope for Pathways; and offers explicit Settings recovery to both study programmes. Independently passed the legacy Git-active route/recovery and all three backup-state cases. No unresolved compatibility defect found.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATHWAYS-2",
+      "severity": "P2",
+      "description": "Cross-programme risk examined: Pathways initialization or assessment code could accidentally inherit the active study scope or bypass tab coordination, reassigning writes or altering activeProgrammeId.",
+      "resolution": "The composition host supplies the fixed registered Git scope. The feature allowlists its lesson IDs, uses existing non-switching catalogue/enrolment repositories through separate coordinated mutation/refresh calls, and passes Git scope into LessonView. Git has no XP planner; local completion uses the existing no-award repository. Independently passed exact app-meta preservation, primary-owned XP backup preservation, foreign-item rejection and switching-boundary tests. Broader read-only/offline browser evidence is implementation-reported.",
+      "status": "resolved"
+    }
+  ],
   "retrospective": {
     "decision": "proceed",
     "summary": "Scoped PASS for the exact reviewed payload. No concrete material active-programme, progress-preservation, route-scope, coordination, reward or offline blocker was found. The correction reuses existing content, persistence and assessment mechanisms without a schema migration or a speculative Pathways platform. Existing hosted certification and deployment checks must pass before the authorized merge/promotion; do not weaken or bypass them."
