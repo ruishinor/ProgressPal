@@ -1,3 +1,4 @@
+import { pathwaysPath } from '@/lib/routing/pathwaysPaths';
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -237,6 +238,12 @@ export function DashboardPage() {
       <PageHeader
         actions={
           <div className="action-row">
+            <Link
+              className="button button--secondary button--md"
+              to={pathwaysPath}
+            >
+              Pathways
+            </Link>
             <Link className="button button--secondary button--md" to="/course">
               Course map
             </Link>

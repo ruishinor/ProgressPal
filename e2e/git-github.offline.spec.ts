@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
+import { pathwayState } from './support/pathways';
 
 test('opens a previously unread Git lesson and records an answer after a cold offline page load', async ({
   page,
   context,
 }) => {
-  await completeOnboarding(page, { programme: 'Git & GitHub' });
+  await completeOnboarding(page, { programme: 'Programvareutvikling' });
+  const before = await pathwayState(page);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });
@@ -14,7 +16,7 @@ test('opens a previously unread Git lesson and records an answer after a cold of
   await context.setOffline(true);
   await page.close();
   const offlinePage = await context.newPage();
-  await offlinePage.goto('/rpg/resource/git-m01-o04');
+  await offlinePage.goto('/rpg/pathways/git-github/git-m01-o04');
   await expect(
     offlinePage.getByRole('heading', {
       level: 1,
@@ -35,5 +37,8 @@ test('opens a previously unread Git lesson and records an answer after a cold of
       .getByRole('group', { name: /^Oppgave 1 · / })
       .getByRole('status', { name: 'Resultat' }),
   ).toContainText('Svaret passer');
+  expect((await pathwayState(offlinePage)).appMeta).toEqual(before.appMeta);
+  await offlinePage.getByRole('link', { name: /^Tilbake til/ }).click();
+  await expect(offlinePage).toHaveURL(/\/rpg$/);
   await context.setOffline(false);
 });

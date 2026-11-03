@@ -1,5 +1,38 @@
 # ProgressPal current state
 
+**2026-11-03 Pathways cross-programme correction — local candidate.**
+`cx/pathways-cross-programme-20261103` starts at verified remote master
+`aab749443ecd2a0c378d93c65bbfff1fc0c7e9ed` (merged PR #67), in a new isolated
+worktree. The owner supersedes the Git pilot's third onboarding choice:
+Pathways is available from Classic Dashboard and RPG Home for both CS50x and
+Programvareutvikling. The five-icon RPG navigation is unchanged. Stable routes
+are `/pathways`, `/pathways/git-github`, `/pathways/git-github/:itemId` and their
+`/rpg` counterparts. Each includes a return to the active programme's home.
+The composition route resolves the existing Git scope explicitly; it never
+replaces app state or switches the active programme. Catalogue sync and
+`enrolInProgramme()` each use the coordinated mutation/refresh boundary.
+
+Git remains registered for compatibility: all catalogue, subject, evidence,
+bookmark, enrolment and progress identities remain unchanged. Legacy Git-active
+learners retain their work and can explicitly choose either study programme in
+Settings, where recovery guidance is shown. Onboarding and switch targets offer
+only the two study programmes. Git local completion and assessments stay scoped
+to Git, award no XP, and preserve existing programme rewards. No authored lesson,
+asset, schema, dependency, version, service worker or release control changes.
+Only implemented Git content is offered; future tracks are not available.
+
+Focused evidence: 40 route/onboarding/content/architecture tests and 64
+persistence/switching/XP/achievement tests pass (three backup cases overlap).
+Backup cases cover both active study programmes and legacy Git-active state,
+including preservation of already-earned rows for both study programmes.
+TypeScript, changed-file lint/format, production build and bundle budgets pass.
+All 24 managed browser cases pass: both programmes and shells, all five lessons
+in light/dark at 320px/200% root text, five axe scans, keyboard/clipboard,
+read-only peers, reload/switch persistence and cold offline initialization/save.
+Independent payload review and hosted certification remain the next release
+steps; this local record does not claim production promotion. No extra local full release gate is run.
+The historical pilot notes below describe their original implementation stage.
+
 **2026-11-03 Git & GitHub — authorized local beginner pilot.** Dedicated
 cx/pathways-git-foundations-20261103 starts at clean local cdcceb5e83af3c5da652d28ad75bf34914533ca6.
 One independent programme adds five complete Bokmål lessons from zero Git/terminal

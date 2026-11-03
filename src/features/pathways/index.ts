@@ -1,0 +1,1 @@
+export { PathwaysPage } from './PathwaysPage';

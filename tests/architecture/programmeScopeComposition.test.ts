@@ -221,7 +221,7 @@ describe('C7 programme boundary guards', () => {
   it('reaches the switching mutations only through the application-state boundary', () => {
     const mutationConsumers = filesReferencing(
       runtimeFiles,
-      /\b(?:enrolAndSwitchActiveProgramme|switchActiveProgramme|enrolInProgramme)\b/,
+      /\b(?:enrolAndSwitchActiveProgramme|switchActiveProgramme)\b/,
     );
 
     for (const file of mutationConsumers) {
@@ -230,6 +230,23 @@ describe('C7 programme boundary guards', () => {
         file,
       ).toBe(true);
     }
+  });
+
+  it('allows non-switching enrolment only through app state or the explicit Pathways host', () => {
+    for (const file of filesReferencing(runtimeFiles, /\benrolInProgramme\b/)) {
+      expect(
+        file.startsWith('src/lib/db/') ||
+          file.startsWith('src/lib/appState/') ||
+          file === 'src/features/pathways/PathwaysPage.tsx',
+        file,
+      ).toBe(true);
+    }
+    expect(
+      filesReferencing(
+        layerFiles('features/pathways'),
+        /\b(?:enrolAndSwitchActiveProgramme|switchActiveProgramme|switchProgramme|enrolAndSwitchProgramme)\b/,
+      ),
+    ).toEqual([]);
   });
 
   it('exposes programme switching to no surface but Settings', () => {

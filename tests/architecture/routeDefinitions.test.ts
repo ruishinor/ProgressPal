@@ -26,6 +26,12 @@ describe('routeDefinitions', () => {
 
   it('keeps the baseline routes in a single source of truth', () => {
     expect(knownRoutePaths).toEqual([
+      '/pathways',
+      '/pathways/git-github',
+      '/pathways/git-github/:itemId',
+      '/rpg/pathways',
+      '/rpg/pathways/git-github',
+      '/rpg/pathways/git-github/:itemId',
       '/',
       '/profile',
       '/onboarding',

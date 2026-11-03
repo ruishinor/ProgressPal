@@ -1,3 +1,4 @@
+import { rpgPathwaysPath } from '@/lib/routing/pathwaysPaths';
 import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import {
@@ -326,6 +327,9 @@ export function RpgHomePage() {
             </div>
           )}
           <div className="rpg-hub__module-context">
+            <RpgButton href={rpgPathwaysPath} variant="secondary">
+              Pathways
+            </RpgButton>
             <RpgButton href={rpgReferencePath} variant="secondary">
               Teknologioppslag
             </RpgButton>

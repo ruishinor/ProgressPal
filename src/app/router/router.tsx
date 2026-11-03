@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { PathwaysRoute } from '@/app/routes/PathwaysRoute';
 import { HomePage } from '@/app/routes/HomePage';
 import { MicrolearningRoute } from '@/app/routes/MicrolearningRoute';
 import { NotFoundPage } from '@/app/routes/NotFoundPage';
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
     path: '/',
     element: <AppShell />,
     children: [
+      ...(['pathways', 'pathwayTrack', 'pathwayLesson'] as const).map((id) => ({
+        path: getRouteDefinition(id).segment,
+        element: <PathwaysRoute />,
+      })),
       {
         path: profileRoute.segment,
         element: <HomePage />,
@@ -118,6 +123,12 @@ export const router = createBrowserRouter([
       {
         element: <RpgShell />,
         children: [
+          ...(
+            ['rpgPathways', 'rpgPathwayTrack', 'rpgPathwayLesson'] as const
+          ).map((id) => ({
+            path: getRouteDefinition(id).segment,
+            element: <PathwaysRoute />,
+          })),
           {
             index: true,
             element: <RpgHomePage />,

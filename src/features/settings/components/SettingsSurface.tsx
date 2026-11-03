@@ -1,3 +1,4 @@
+import { gitPathwayProgrammeId } from '@/lib/routing/pathwaysPaths';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -231,7 +232,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
 
   const resetReady = resetPhrase.trim() === resetConfirmationPhrase;
   const activeProgramme = programmeChoices.find((choice) => choice.active);
-  const switchTargets = programmeChoices.filter((choice) => !choice.active);
+  const switchTargets = programmeChoices.filter(
+    (choice) => !choice.active && choice.programmeId !== gitPathwayProgrammeId,
+  );
   const switchTarget =
     switchTargets.find(
       (choice) => choice.programmeId === selectedProgrammeId,
@@ -321,6 +324,13 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </Link>
         </div>
       </Card>
+      {activeProgramme?.programmeId === gitPathwayProgrammeId ? (
+        <p role="status">
+          Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er bevart.
+          Velg CS50x eller Programvareutvikling nedenfor for å fortsette med et
+          studieprogram.
+        </p>
+      ) : null}
       <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
         <p className="card__description">
           Active programme:{' '}
