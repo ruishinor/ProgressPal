@@ -82,10 +82,28 @@ raw JS 470,334/500,000 B; CSS gzip 16,397 B. 118 focused tests and nine managed 
 cases pass, including both programmes, both themes, all 28 entries at 320px and
 separate/combined 200% root-text stress. Extra npm audit exits 1 because its
 advisory endpoint is unavailable; dependency security remains UNKNOWN.
-This is not release certification or independent content acceptance. Changes are
-uncommitted; no Git publication or deployment is authorized. Evidence, source
-provenance, search results, limitations and next independent review action:
+The implementation was subsequently merged in PR #60 as
+`90f701a374d8f1191409c7ca9c85e41e16d4f607` and is included in the
+owner-confirmed master deployment of 2026-11-02. The preceding measurements
+describe that implementation session, not the current deployment certificate.
+Historical source provenance, search results and limitations:
 [current correction handoff](TEKNOLOGIOPPSLAG_REMEDIATION.md).
+
+**2026-11-02 Teknologioppslag — local UX/search candidate.** Isolated
+`cx/reference-ux-overnight-20261102` starts at fetched `origin/master`
+`cdcceb5e83af3c5da652d28ad75bf34914533ca6`; a fresh remote check is unavailable
+in this sandbox. The two lookup routes reuse the HUD-free shell while preserving
+Settings, primary navigation and coordination notices. Search precedes the
+introduction; narrow titles stay readable at 320px/200% root-text stress.
+Native live suggestion links distinguish identity, prediction, authored purpose
+and spelling; bounded purpose phrases also support submitted questions.
+REST, Docker and Kubernetes receive small source-checked clarifications; all 28
+IDs remain. 115 focused tests and four browser cases pass, including cold offline
+suggestions, both programmes and both themes. The locked 18-task UI comparison
+and before/after screenshots are under ignored `artifacts/reference-ux/`.
+Final JS gzip 432,405/470,000 B (+965), CSS gzip 16,499/40,000 B (+102), largest
+raw JS 473,585/500,000 B (+3,194). This is local work, not independent review,
+release certification or production. No push, PR, merge or deployment authorized.
 
 **2026-10-31 ACH-02/ACH-03 — local visual corrections.** Branch
 `cx/ach-02-03-visual-fixes` starts at refreshed `origin/master` `5e12d057`.

@@ -58,7 +58,7 @@
       {
         "title": "Fielding: REST, kapittel 5",
         "url": "https://roy.gbiv.com/pubs/dissertation/rest_arch_style.htm",
-        "checked": "2026-11-01"
+        "checked": "2026-11-02"
       },
       {
         "title": "React: komponentens tilstand",
@@ -131,9 +131,10 @@
     "name": "Kubernetes",
     "type": "Driftsplattform",
     "summary": "Kubernetes er en plattform for å styre kjøring av containerbaserte applikasjoner på en gruppe maskiner.",
-    "purpose": "En container er en isolert prosess med filene den trenger. I Kubernetes beskriver driftsteamet en ønsket tilstand, for eksempel antall kopier av en tjeneste. Kontrollprosessene forsøker løpende å få den faktiske tilstanden til å samsvare med beskrivelsen.",
+    "purpose": "Kubernetes er nyttig når teamet trenger å fordele containere på flere maskiner, erstatte mislykkede kopier og styre oppdateringer. I Kubernetes beskriver driftsteamet en ønsket tilstand, for eksempel antall kopier av en tjeneste. Kontrollprosessene forsøker løpende å få den faktiske tilstanden til å samsvare med beskrivelsen.",
     "example": "Et driftsteam vil kjøre tre kopier av festivalens billettjeneste. Teamet sender en beskrivelse til Kubernetes. Plattformen fordeler arbeidet og kan opprette erstatninger når en kopi feiler. Ved en ny versjon kan en konfigurert utrulling bytte ut kopiene gradvis. Teamet må fortsatt sette opp helsesjekker, ressursgrenser og håndtering av feil.",
     "distinctions": [
+      "Et lite prosjekt trenger ikke automatisk Kubernetes. For å prøve én tjeneste lokalt kan Docker være et enklere utgangspunkt; velg driftsopplegg etter behovet, ikke bare fordi programmet bruker containere.",
       "Ønsket tilstand er et mål, ingen garanti for oppetid. Manglende kapasitet, feil programkode eller nettverksfeil kan hindre at målet nås. Kontrollert oppdatering må konfigureres og kontrolleres.",
       "Docker er verktøy for blant annet å bygge og kjøre containere; Kubernetes styrer kjøringen på maskinene. De er ikke samme produkt. En container-runtime utfører selve containerkjøringen på hver maskin. Kubernetes bruker CRI-grensesnittet mot en kompatibel runtime, for eksempel containerd; Docker Engine implementerer ikke CRI direkte."
     ],
@@ -148,6 +149,7 @@
     "purposeTerms": [
       "orkestrere containere",
       "fordele containere på flere maskiner",
+      "containere på forskjellige maskiner",
       "gradvis oppdatering"
     ],
     "relations": [
@@ -171,7 +173,7 @@
       {
         "title": "Kubernetes: oversikt",
         "url": "https://kubernetes.io/docs/concepts/overview/",
-        "checked": "2026-11-01"
+        "checked": "2026-11-02"
       },
       {
         "title": "Kubernetes: komponenter",
@@ -199,8 +201,8 @@
     "id": "rest",
     "name": "REST",
     "type": "Arkitekturstil",
-    "summary": "REST er en arkitekturstil for systemer som kommuniserer over nettverk. Den stiller blant annet krav til et felles grensesnitt og at hver forespørsel kan forstås uten tidligere forespørsler.",
-    "purpose": "Reglene gir et felles grunnlag for hvordan ressurser identifiseres og hvordan systemer utveksler representasjoner av dem. En representasjon kan være data som beskriver en bestilling.",
+    "summary": "REST er en arkitekturstil for systemer som kommuniserer over nettverk: et sett regler for hvordan delene samhandler. Den stiller blant annet krav til et felles grensesnitt og at hver forespørsel kan forstås uten tidligere forespørsler.",
+    "purpose": "En ressurs er noe systemet gir en identitet, for eksempel bestilling 42. En representasjon er data som beskriver ressursen, for eksempel bestillingens innhold og status. RESTs regler gir et felles grunnlag for hvordan klient og tjeneste identifiserer ressursene og utveksler slike beskrivelser.",
     "example": "Et festivalteam lager en tjeneste der en klient ber om representasjonen av bestilling 42. Hver forespørsel inneholder informasjonen tjenesten trenger for å forstå den; tjenesten skal ikke være avhengig av en skjult samtalehistorikk for klienten.",
     "distinctions": [
       "REST er ikke et synonym for API, HTTP eller JSON. Én HTTP-adresse med JSON-svar er ikke nok til å vise at et system følger REST.",
@@ -228,7 +230,7 @@
       {
         "title": "Fielding: REST, kapittel 5",
         "url": "https://roy.gbiv.com/pubs/dissertation/rest_arch_style.htm",
-        "checked": "2026-11-01"
+        "checked": "2026-11-02"
       }
     ]
   },
@@ -506,7 +508,11 @@
     ],
     "aliases": [],
     "topics": ["Verktøy", "Web og grensesnitt"],
-    "purposeTerms": ["kjøre JavaScript uten nettleser", "JavaScript på server"],
+    "purposeTerms": [
+      "kjøre JavaScript uten nettleser",
+      "JavaScript på server",
+      "kjøre JavaScript utenfor nettleseren"
+    ],
     "relations": [
       {
         "target": "javascript",
@@ -574,7 +580,8 @@
     "topics": ["Data"],
     "purposeTerms": [
       "organisere data i tabeller",
-      "koble kunder og bestillinger"
+      "koble kunder og bestillinger",
+      "kunder og bestillinger i tabeller"
     ],
     "relations": [
       {
@@ -750,6 +757,7 @@
     "purposeTerms": [
       "versjonskontroll",
       "historikk for kode",
+      "se hva som ble endret i kildekoden",
       "sammenligne endringer"
     ],
     "relations": [
@@ -879,6 +887,7 @@
     "topics": ["Verktøy", "Web og grensesnitt"],
     "purposeTerms": [
       "teste nettsider automatisk",
+      "teste en nettside automatisk",
       "automatisere nettleser",
       "teste brukerflyt"
     ],
@@ -931,7 +940,7 @@
       {
         "title": "Docker: oversikt",
         "url": "https://docs.docker.com/get-started/docker-overview/",
-        "checked": "2026-11-01"
+        "checked": "2026-11-02"
       }
     ]
   },
@@ -940,7 +949,7 @@
     "name": "Docker",
     "type": "Containerverktøy",
     "summary": "Docker er en plattform med verktøy for å bygge, distribuere og kjøre applikasjoner som containere.",
-    "purpose": "Utvikleren kan beskrive et image, bygge det og starte containere fra det i et egnet kjøremiljø.",
+    "purpose": "Et image er en pakke med programmet og filene det trenger. Utvikleren kan bygge et image og bruke samme pakke i utvikling og testing på maskiner med et kompatibelt kjøremiljø. Det reduserer forskjeller mellom miljøene; nettverk, lagring og annen konfigurasjon må fortsatt settes opp.",
     "example": "Teamet beskriver festivalens tjeneste i en Dockerfile og bygger et image. En utvikler starter en container fra imaget for å teste tjenesten lokalt.",
     "distinctions": [
       "Docker er ikke det samme som en container eller Kubernetes. Et image alene er heller ikke en kjørende tjeneste. Drift krever fortsatt konfigurasjon av blant annet nettverk og lagring."
@@ -950,7 +959,8 @@
     "purposeTerms": [
       "bygge container-image",
       "kjøre en container lokalt",
-      "kjøre containere"
+      "kjøre containere",
+      "pakke og kjøre et program"
     ],
     "relations": [
       {
@@ -968,7 +978,7 @@
       {
         "title": "Docker: oversikt",
         "url": "https://docs.docker.com/get-started/docker-overview/",
-        "checked": "2026-11-01"
+        "checked": "2026-11-02"
       }
     ]
   },
@@ -1023,7 +1033,11 @@
       }
     ],
     "topics": ["Identitet", "Grunnbegreper"],
-    "purposeTerms": ["kontrollere identitet", "hvem logger inn"],
+    "purposeTerms": [
+      "kontrollere identitet",
+      "hvem logger inn",
+      "hvem som logger inn"
+    ],
     "relations": [
       {
         "target": "authorization",
@@ -1061,7 +1075,11 @@
       }
     ],
     "topics": ["Identitet", "Grunnbegreper"],
-    "purposeTerms": ["styre tilgang", "kontrollere tillatelser"],
+    "purposeTerms": [
+      "styre tilgang",
+      "kontrollere tillatelser",
+      "hvem får lov"
+    ],
     "relations": [
       {
         "target": "authentication",

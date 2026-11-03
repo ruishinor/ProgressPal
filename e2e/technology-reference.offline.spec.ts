@@ -61,4 +61,11 @@ test('reference: cold offline opens a never-visited entry and its relation', asy
   await expect(
     cold.getByText('Alias-treff: K8s', { exact: false }),
   ).toBeVisible();
+  await cold.getByRole('searchbox').fill('Kub');
+  const suggestions = cold.getByRole('list', { name: 'Søkeforslag' });
+  await expect(suggestions.getByRole('link')).toHaveText(['Kubernetes']);
+  await suggestions.getByRole('link').click();
+  await expect(cold.getByRole('heading', { level: 1 })).toHaveText(
+    'Kubernetes',
+  );
 });
