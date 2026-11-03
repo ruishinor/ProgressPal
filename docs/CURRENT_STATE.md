@@ -31,6 +31,10 @@ in light/dark at 320px/200% root text, five axe scans, keyboard/clipboard,
 read-only peers, reload/switch persistence and cold offline initialization/save.
 Independent payload review and hosted certification remain the next release
 steps; this local record does not claim production promotion. No extra local full release gate is run.
+Hosted PR #68 run `41688187226` stopped at one stale Settings composition
+assertion that still offered Git as a study-programme switch target. Its expected
+options now name only the other primary study programme and explicitly reject
+Git; both shell cases and the remaining switching/restore assertions are retained.
 The historical pilot notes below describe their original implementation stage.
 
 **2026-11-03 Git & GitHub — authorized local beginner pilot.** Dedicated
