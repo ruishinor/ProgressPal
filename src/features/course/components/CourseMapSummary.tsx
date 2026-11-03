@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapView } from '@/features/course/model';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 
@@ -52,7 +52,7 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
           </div>
           <div>
             <dt>Planned time</dt>
-            <dd>{formatMinutes(courseMap.estimatedMinutes)}</dd>
+            <dd>{formatEstimatedMinutes(courseMap.estimatedMinutes)}</dd>
           </div>
         </dl>
       </Card>

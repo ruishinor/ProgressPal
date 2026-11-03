@@ -4,6 +4,7 @@ import { SchemaValidationError } from '@/lib/validation';
 
 import { cs50x2026Definition } from './cs50x-2026';
 import { programvareutviklingDefinition } from './programvareutvikling';
+import { gitGithubDefinition } from './git-github';
 import {
   validateProgrammeDefinition,
   type ProgrammeDefinition,
@@ -198,7 +199,8 @@ let productionRegistry: ProgrammeRegistry | null = null;
 
 /**
  * The registry compiled into the app. Production registers CS50x, the
- * explicit default/bootstrap programme, and Programvareutvikling (Epic E).
+ * explicit default/bootstrap programme, Programvareutvikling (Epic E), and
+ * the owner-authorized local Git & GitHub pilot.
  * Registration is not enrolment: no learner is enrolled or switched by it.
  * It is built through the same validated path as any other registry, on
  * first use, so an invalid registry surfaces as the existing bootstrap error
@@ -207,7 +209,11 @@ let productionRegistry: ProgrammeRegistry | null = null;
 export function getProgrammeRegistry(): ProgrammeRegistry {
   productionRegistry ??= createProgrammeRegistry({
     defaultProgrammeId: 'cs50x',
-    definitions: [cs50x2026Definition, programvareutviklingDefinition],
+    definitions: [
+      cs50x2026Definition,
+      programvareutviklingDefinition,
+      gitGithubDefinition,
+    ],
   });
 
   return productionRegistry;

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgEmptyState,
@@ -295,7 +295,7 @@ export function RpgMapPage() {
                               {module.title}
                             </span>
                             <span className="rpg-map__node-meta">
-                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatEstimatedMinutes(
                                 module.estimatedMinutes,
                               )}`}
                             </span>
@@ -352,7 +352,7 @@ export function RpgMapPage() {
                               {module.title}
                             </span>
                             <span className="rpg-map__node-meta">
-                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatMinutes(
+                              {`${availabilityLabel} - ${module.itemCount} quests - ${formatEstimatedMinutes(
                                 module.estimatedMinutes,
                               )}`}
                             </span>

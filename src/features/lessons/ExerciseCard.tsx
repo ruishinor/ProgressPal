@@ -466,7 +466,9 @@ export function ExerciseCard({
             onClick={() => void submit()}
             type="button"
           >
-            {copy.text.submit}
+            {exercise.type === 'checklist' || exercise.type === 'reflect'
+              ? (copy.recordSelfReportLabel ?? copy.text.submit)
+              : copy.text.submit}
           </button>
         )}
         {showResult &&

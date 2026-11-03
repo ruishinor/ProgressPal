@@ -54,7 +54,7 @@ async function expectSettledOnHome() {
 }
 
 describe('fresh onboarding: an explicit programme choice', () => {
-  it('offers both real programmes and selects neither for the learner', async () => {
+  it('offers all three programmes and selects none for the learner', async () => {
     const group = await openFreshOnboarding();
     const options = within(group).getAllByRole('radio');
 
@@ -64,7 +64,10 @@ describe('fresh onboarding: an explicit programme choice', () => {
     expect(
       within(group).getByRole('radio', { name: /Programvareutvikling/ }),
     ).not.toBeChecked();
-    expect(options).toHaveLength(2);
+    expect(
+      within(group).getByRole('radio', { name: /Git & GitHub/ }),
+    ).not.toBeChecked();
+    expect(options).toHaveLength(3);
     expect(
       screen.getByRole('button', { name: 'Use default learner' }),
     ).toBeDisabled();

@@ -12,7 +12,7 @@ import {
   getItemStatusVariant,
   type CourseStatusVariant,
 } from '@/lib/progress';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import { getDefaultProgrammeDefinition } from '@/programmes';
 
 export type CourseDetailView = {
@@ -124,7 +124,7 @@ export function buildCourseDetailView(
     (longFormProgress?.hasProgress ? 'started' : 'not_started');
 
   return {
-    estimatedMinutesLabel: formatMinutes(item.estimatedMinutes),
+    estimatedMinutesLabel: formatEstimatedMinutes(item.estimatedMinutes),
     itemId: item.id,
     longFormProgress,
     progressStatus,

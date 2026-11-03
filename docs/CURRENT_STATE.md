@@ -1,5 +1,20 @@
 # ProgressPal current state
 
+**2026-11-03 Git & GitHub — authorized local beginner pilot.** Dedicated
+cx/pathways-git-foundations-20261103 starts at clean local cdcceb5e83af3c5da652d28ad75bf34914533ca6.
+One independent programme adds five complete Bokmål lessons from zero Git/terminal
+experience through safe Windows PowerShell 5.1 setup, a first snapshot, selective
+staging, commit inspection, safe unstaging and a changed-condition exercise.
+Future curriculum is a labelled roadmap, not empty catalogue items. Existing
+CS50x default, shared identity, programme boundaries, schema 5, version 1.10.0,
+backup format and offline mechanisms remain. This programme awards no XP;
+external self-reports are recorded without a correctness claim. Focused real-Git,
+application, persistence, browser, accessibility and offline checks pass; internal
+review passes under the owner's scoped-PASS policy. No novice observation or
+independent release certification is claimed. All changes remain uncommitted
+and unpublished. Identities, source fit, evidence, limits and local preview:
+[Git pilot handoff](PATHWAYS_GIT_PILOT_HANDOFF.md).
+
 **2026-11-02 combined local test-debt candidate.** The previously
 validated Utviklerblikk browser wait reduction (4c9790a) is now
 combined with the separately validated Mikroøkt test-local guard-clock

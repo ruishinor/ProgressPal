@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusPill } from '@/components/ui/StatusPill';
 import type { CourseMapUnit } from '@/features/course/model';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 
@@ -26,7 +26,7 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
     <Card
       className="course-unit-card"
       data-testid={`course-unit-${unit.id}`}
-      description={`${unit.typeLabel} · ${formatMinutes(unit.estimatedMinutes)} planned`}
+      description={`${unit.typeLabel} · ${formatEstimatedMinutes(unit.estimatedMinutes)} planned`}
       title={unit.title}
       titleAs="h3"
     >
@@ -43,7 +43,9 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
             {unit.statusLabel}
           </StatusPill>
           <Badge tone="neutral">{unit.itemCount} tasks</Badge>
-          <Badge tone="accent">{formatMinutes(unit.estimatedMinutes)}</Badge>
+          <Badge tone="accent">
+            {formatEstimatedMinutes(unit.estimatedMinutes)}
+          </Badge>
           {unit.optionalItemCount > 0 ? (
             <Badge tone="warning">{unit.optionalItemCount} optional</Badge>
           ) : null}
@@ -72,7 +74,8 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
                 </Badge>
               </div>
               <p className="course-item-row__eyebrow">
-                {item.typeLabel} · {formatMinutes(item.estimatedMinutes)}
+                {item.typeLabel} ·{' '}
+                {formatEstimatedMinutes(item.estimatedMinutes)}
               </p>
               {item.longFormProgress !== null &&
               item.longFormProgress.hasProgress ? (

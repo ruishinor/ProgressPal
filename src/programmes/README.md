@@ -9,6 +9,9 @@ Current responsibilities:
   whose definition key equals its catalogue identity for compatibility
   through C5, and `programvareutvikling-2026` (`programvareutvikling/`,
   Epic E), the authored Bokmål S1-M01/S1-M02 slice;
+- the owner-authorized local Git & GitHub pilot (git-github/): five complete
+  beginner lessons, an independent programme identity, no XP policy and no
+  change to the default; see git-github/README.md and the current-state handoff;
 - Programvareutvikling content: a committed runtime snapshot in
   `programvareutvikling/content/` (manifest plus one file per module),
   generated and checked by `scripts/programvareutvikling-content.mjs` from

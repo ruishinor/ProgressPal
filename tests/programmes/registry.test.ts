@@ -21,10 +21,11 @@ import { bundledCourseSeed } from '@/seed';
 describe('programme registry', () => {
   // Epic E (accepted-oracle change): Programvareutvikling is the second
   // production definition; CS50 stays the explicit default.
-  it('registers exactly the two accepted production definitions, with cs50x-2026 the explicit default', () => {
+  it('registers the two existing programmes and the authorized Git pilot, with cs50x-2026 the explicit default', () => {
     expect(listRegisteredDefinitionKeys()).toEqual([
       'cs50x-2026',
       'programvareutvikling-2026',
+      'git-github-2026',
     ]);
     expect(getDefaultProgrammeDefinition()).toBe(
       getProgrammeDefinition('cs50x-2026'),

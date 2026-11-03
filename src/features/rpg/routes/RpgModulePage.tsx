@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgPanel,
@@ -250,7 +250,7 @@ export function RpgModulePage() {
           <p className="rpg-week__eyebrow rpg-page-eyebrow">{`RPG ${unitNoun.lowercase}`}</p>
           <h1>{summary.title}</h1>
           <p className="rpg-week__lede rpg-page-lede">
-            {`${summary.typeLabel} - ${formatMinutes(
+            {`${summary.typeLabel} - ${formatEstimatedMinutes(
               summary.estimatedMinutes,
             )} estimated study time.`}
           </p>
@@ -326,7 +326,7 @@ export function RpgModulePage() {
                 data-quest-id={quest.id}
                 data-testid={`rpg-resource-${quest.id}`}
                 key={quest.id}
-                meta={`${quest.typeLabel} - ${formatMinutes(
+                meta={`${quest.typeLabel} - ${formatEstimatedMinutes(
                   quest.estimatedMinutes,
                 )}${campaignOpensAtTask && quest.id === summary.nextQuestId ? ' - Up next' : ''}`}
                 requiredLabel={quest.required ? 'Required' : 'Optional'}

@@ -12,7 +12,7 @@ import {
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgPanel,
@@ -193,7 +193,7 @@ function RpgHeroHud({
         <p className="rpg-hero-hud__quest-context">
           {currentQuest.unitTitle} /{' '}
           <span className="rpg-hero-hud__nowrap">
-            {formatMinutes(currentQuest.estimatedMinutes)}
+            {formatEstimatedMinutes(currentQuest.estimatedMinutes)}
           </span>
         </p>
       ) : null}

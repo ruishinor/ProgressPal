@@ -101,6 +101,11 @@ export function formatDurationMinutes(totalMinutes: number) {
   return `${hours}h ${minutes}m`;
 }
 
+/** Zero in a catalogue is an unspecified estimate, not a zero-length activity. */
+export function formatEstimatedMinutes(totalMinutes: number) {
+  return totalMinutes === 0 ? 'Not estimated' : formatMinutes(totalMinutes);
+}
+
 export function formatMinutes(totalMinutes: number) {
   const safeMinutes = Math.max(0, Math.round(totalMinutes));
   const hours = Math.floor(safeMinutes / 60);

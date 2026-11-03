@@ -1022,6 +1022,8 @@ export type LessonUiCopy = {
     Record<(typeof exerciseResponseModeValues)[number], string>
   >;
   readonly text: Readonly<Record<LessonUiTextKey, string>>;
+  /** Optional programme copy for saving an ungraded checklist/reflection. */
+  readonly recordSelfReportLabel?: string;
   /**
    * The programme's own learner-facing wording rules, applied to prose at
    * display time (never to code, terminal or tool text, and never to the

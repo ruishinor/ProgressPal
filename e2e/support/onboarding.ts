@@ -15,7 +15,7 @@ export async function completeOnboarding(
   page: Page,
   options: {
     theme?: 'dark' | 'light';
-    programme?: 'CS50x' | 'Programvareutvikling';
+    programme?: 'CS50x' | 'Programvareutvikling' | 'Git & GitHub';
   } = {},
 ) {
   await page.goto('/');

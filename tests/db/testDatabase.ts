@@ -32,6 +32,7 @@ export const defaultTestMigrationContext: DatabaseMigrationContext = {
       courseId: 'programvareutvikling-2026',
       programmeId: 'programvareutvikling',
     },
+    { courseId: 'git-github-2026', programmeId: 'git-github' },
   ],
 };
 

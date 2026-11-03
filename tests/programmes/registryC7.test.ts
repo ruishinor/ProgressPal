@@ -63,6 +63,7 @@ describe('C7 fixture sanity (must hold before any production change)', () => {
     expect(listRegisteredDefinitionKeys()).toEqual([
       'cs50x-2026',
       'programvareutvikling-2026',
+      'git-github-2026',
     ]);
   });
 });
@@ -143,14 +144,14 @@ describe('C7 registry construction', () => {
     expect(registry.definitions).toHaveLength(2);
   });
 
-  // Epic E (accepted-oracle change): the production registry holds CS50 and
-  // Programvareutvikling, built through the same validated path.
-  it('builds the production registry through the same validated path, with CS50 and Programvareutvikling', () => {
+  // The authorized Git pilot uses the same validated path and keeps CS50 default.
+  it('builds all three programmes through the same validated path', () => {
     const production = getProgrammeRegistry();
 
     expect(production.definitions.map((entry) => entry.programmeId)).toEqual([
       cs50ProgrammeId,
       'programvareutvikling',
+      'git-github',
     ]);
     expect(production.getDefault()).toBe(cs50Definition);
     expect(production.getByProgrammeId('cs50x')).toBe(cs50Definition);
@@ -162,6 +163,7 @@ describe('C7 registry construction', () => {
     expect(listRegisteredDefinitionKeys()).toEqual([
       'cs50x-2026',
       'programvareutvikling-2026',
+      'git-github-2026',
     ]);
   });
 
@@ -182,10 +184,11 @@ describe('C7 registry construction', () => {
         }),
       ),
     ).toThrow(/programmeId "c5-alt-programme"/);
-    expect(getProgrammeRegistry().definitions).toHaveLength(2);
+    expect(getProgrammeRegistry().definitions).toHaveLength(3);
     expect(listRegisteredDefinitionKeys()).toEqual([
       'cs50x-2026',
       'programvareutvikling-2026',
+      'git-github-2026',
     ]);
   });
 });
