@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "99226d450f7dd67977956f03451cb93516de184c",
+    "payloadTree": "57e0bffc4d90eae411fa59079d98068a2eb82fe1",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -17,7 +17,8 @@
       "Existing test/release controls, CS50x default, dependencies, database schema and version remain unchanged.",
       "Human beginner observation, physical-device testing and hosted certification remain unperformed.",
       "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed.",
-      "Hosted run 41627354974: all 3680 Vitest tests passed. Playwright exposed a heading-order issue in an asynchronous loading state. The shared loading heading was corrected and route axe scans now wait for loading completion. The accessibility E2E file and TypeScript passed locally."
+      "Hosted run 41627354974: all 3680 Vitest tests passed. Playwright exposed a heading-order issue in an asynchronous loading state. The shared loading heading was corrected and route axe scans now wait for loading completion. The accessibility E2E file and TypeScript passed locally.",
+      "Owner-authorized test-only correction after hosted run 41630349133: split the 30-second combined Git lesson test into ten isolated lesson/theme cases, wait for ready lesson content, and remove ten mandatory full-page screenshots. All ten 320x900/200% root-text overflow checks and the same five Axe scans are retained; functional, clipboard/keyboard and offline scenarios are unchanged. Local managed run with three workers passed all 13 tests in 20.7 seconds; changed-file Prettier/ESLint and TypeScript exited 0. This implementation-session evidence note and binding update do not claim a new independent or human review, native browser zoom, or hosted certification."
     ]
   },
   "adversarialFindings": [
