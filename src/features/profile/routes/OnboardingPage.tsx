@@ -1,3 +1,4 @@
+import { gitPathwayProgrammeId } from '@/lib/routing/pathwaysPaths';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -138,19 +139,21 @@ export function OnboardingPage() {
           programmes later in Settings.
         </p>
         <div className="checkbox-grid checkbox-grid--programmes">
-          {programmeChoices.map((choice) => (
-            <label className="checkbox" key={choice.programmeId}>
-              <input
-                checked={programmeId === choice.programmeId}
-                disabled={startingDefault || !coordination.canWrite}
-                name="starting-programme"
-                onChange={() => setProgrammeId(choice.programmeId)}
-                type="radio"
-                value={choice.programmeId}
-              />
-              <span>{choice.title}</span>
-            </label>
-          ))}
+          {programmeChoices
+            .filter((choice) => choice.programmeId !== gitPathwayProgrammeId)
+            .map((choice) => (
+              <label className="checkbox" key={choice.programmeId}>
+                <input
+                  checked={programmeId === choice.programmeId}
+                  disabled={startingDefault || !coordination.canWrite}
+                  name="starting-programme"
+                  onChange={() => setProgrammeId(choice.programmeId)}
+                  type="radio"
+                  value={choice.programmeId}
+                />
+                <span>{choice.title}</span>
+              </label>
+            ))}
         </div>
       </fieldset>
       {mode === 'quick' ? (

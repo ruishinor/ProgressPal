@@ -20,6 +20,12 @@ import {
 } from '@/lib/routing/rpgRoutePaths';
 
 export type AppRouteId =
+  | 'pathways'
+  | 'pathwayTrack'
+  | 'pathwayLesson'
+  | 'rpgPathways'
+  | 'rpgPathwayTrack'
+  | 'rpgPathwayLesson'
   | 'home'
   | 'profile'
   | 'onboarding'
@@ -62,6 +68,43 @@ type PrimaryNavigationRoute = AppRouteDefinition & {
 };
 
 export const routeDefinitions: AppRouteDefinition[] = [
+  {
+    id: 'pathways',
+    segment: 'pathways',
+    to: '/pathways',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'pathwayTrack',
+    segment: 'pathways/git-github',
+    to: '/pathways/git-github',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'pathwayLesson',
+    segment: 'pathways/git-github/:itemId',
+    to: '/pathways/git-github/:itemId',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgPathways',
+    segment: 'pathways',
+    to: '/rpg/pathways',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgPathwayTrack',
+    segment: 'pathways/git-github',
+    to: '/rpg/pathways/git-github',
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgPathwayLesson',
+    segment: 'pathways/git-github/:itemId',
+    to: '/rpg/pathways/git-github/:itemId',
+    includeInPrimaryNavigation: false,
+  },
+
   {
     id: 'home',
     segment: '',

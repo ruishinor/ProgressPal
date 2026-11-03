@@ -1,8 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { completeOnboarding } from './support/onboarding';
+import { pathwayState } from './support/pathways';
 
-const route = (part: number) => '/rpg/resource/git-m01-o0' + part;
+const route = (part: number) => '/rpg/pathways/git-github/git-m01-o0' + part;
 const exercise = (page: Page, number: number) =>
   page.getByRole('group', {
     name: new RegExp('^Oppgave ' + number + ' · '),
@@ -45,8 +46,11 @@ test('starts from zero, explains wrong answers, records external reports honestl
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await completeOnboarding(page, { programme: 'Git & GitHub' });
-  await page.goto('/rpg/map');
+  await completeOnboarding(page);
+  const primary = await pathwayState(page);
+  await page.goto('/rpg');
+  await page.getByRole('link', { name: 'Pathways', exact: true }).click();
+  await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
   await page
     .getByRole('link', { name: 'Start her: hvorfor bruke Git?', exact: true })
     .click();
@@ -150,16 +154,17 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await expect(
     page.getByRole('status').filter({ hasText: 'Local status:' }),
   ).toContainText('Completed');
+  expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
   const before = await counts(page);
   expect(before[0]).toBe(12); // Six submitted attempts, each with its terminal result.
   expect(before[1]).toBeGreaterThan(0);
   expect(before[2]).toBe(0);
-  await switchProgramme(page, 'cs50x');
+  await switchProgramme(page, 'programvareutvikling');
   await page.goto('/rpg');
   await expect(
-    page.getByText('CS Foundations', { exact: true }).first(),
+    page.getByText('Programvareutvikling 1', { exact: true }).first(),
   ).toBeVisible();
-  await switchProgramme(page, 'git-github');
+  await switchProgramme(page, 'cs50x');
   await page.goto(route(5));
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
@@ -168,6 +173,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     page.getByRole('heading', { name: 'Fortsett der du slapp' }),
   ).toBeVisible();
   expect(await counts(page)).toEqual(before);
+  expect((await pathwayState(page)).activeProgrammeId).toBe('cs50x');
   expect(errors).toEqual([]);
 });
 
@@ -176,7 +182,7 @@ for (const theme of ['light', 'dark'] as const) {
     test(`keeps lesson ${part} within 320px at 200% root text with accessible controls in ${theme} theme`, async ({
       page,
     }) => {
-      await completeOnboarding(page, { programme: 'Git & GitHub', theme });
+      await completeOnboarding(page, { theme });
       await page.setViewportSize({ width: 320, height: 900 });
       await page.goto(route(part));
       await expect(page.getByRole('article')).toBeVisible();
@@ -214,7 +220,7 @@ test('copies only the intended commands and keeps command blocks usable by keybo
     }
   });
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await completeOnboarding(page, { programme: 'Git & GitHub', theme: 'light' });
+  await completeOnboarding(page, { theme: 'light' });
   await page.goto(route(3));
   const command = page
     .getByRole('group', { name: 'Kommando – PowerShell 5.1', exact: true })
@@ -249,4 +255,93 @@ test('copies only the intended commands and keeps command blocks usable by keybo
     path: testInfo.outputPath('git-mobile-commands-keyboard.png'),
   });
   expect(externalRequests).toEqual([]);
+});
+
+for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
+  for (const shell of ['classic', 'rpg'] as const) {
+    test(`${programme} enters Pathways from ${shell}, saves an assessment and returns with the same active programme`, async ({
+      page,
+    }) => {
+      await completeOnboarding(page, { programme });
+      const before = await pathwayState(page);
+      const home = shell === 'rpg' ? '/rpg' : '/dashboard';
+      await page.goto(home);
+      const entry = page.getByRole('link', { name: 'Pathways', exact: true });
+      await entry.focus();
+      await page.keyboard.press('Enter');
+      await expect(
+        page.getByRole('heading', { name: 'Pathways', exact: true }),
+      ).toBeVisible();
+      const track = page.getByRole('link', {
+        name: 'Git & GitHub',
+        exact: true,
+      });
+      await track.focus();
+      await page.keyboard.press('Enter');
+      await page
+        .getByRole('link', {
+          name: 'Start her: hvorfor bruke Git?',
+          exact: true,
+        })
+        .click();
+      const first = exercise(page, 1);
+      await first
+        .getByRole('radio', { name: /Lagring i Notisblokk oppdaterer filen/ })
+        .check();
+      await first.getByRole('button', { name: 'Sjekk svaret' }).click();
+      await expect(
+        first.getByRole('status', { name: 'Resultat' }),
+      ).toContainText('Svaret passer');
+      const after = await pathwayState(page);
+      expect(after.appMeta).toEqual(before.appMeta);
+      expect(after.xp).toEqual(before.xp);
+      expect(after.achievements).toEqual(before.achievements);
+      expect(
+        after.evidence.every((row) => row.programmeId === 'git-github'),
+      ).toBe(true);
+      await page.getByRole('link', { name: /^Tilbake til/ }).click();
+      await expect(page).toHaveURL(new RegExp(home + '$'));
+      expect((await pathwayState(page)).appMeta).toEqual(before.appMeta);
+      if (shell === 'rpg')
+        await expect(
+          page.getByRole('navigation', { name: /primary/i }).getByRole('link'),
+        ).toHaveCount(5);
+    });
+  }
+}
+
+test('a read-only peer cannot prepare or save Pathways and reads existing Git work without mutation', async ({
+  page,
+  context,
+}) => {
+  await completeOnboarding(page);
+  const before = await pathwayState(page);
+  const peer = await context.newPage();
+  await peer.goto(route(1));
+  await expect(
+    peer.getByText(
+      'Åpne Pathway i fanen som kan lagre, før du bruker den i denne skrivebeskyttede fanen.',
+    ),
+  ).toBeVisible();
+  expect(await pathwayState(peer)).toEqual(before);
+  await peer.close();
+  await page.goto(route(1));
+  await expect(exercise(page, 1)).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Mark locally complete', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Reopen lesson' }),
+  ).toBeVisible();
+  const saved = await pathwayState(page);
+  const reader = await context.newPage();
+  await reader.goto(route(1));
+  await expect(
+    reader.getByRole('button', { name: 'Reopen lesson' }),
+  ).toBeDisabled();
+  await expect(
+    exercise(reader, 1).getByRole('button', { name: 'Sjekk svaret' }),
+  ).toBeDisabled();
+  expect(await pathwayState(reader)).toEqual(saved);
+  await reader.close();
 });
