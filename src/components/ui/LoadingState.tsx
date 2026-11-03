@@ -11,7 +11,7 @@ export function LoadingState({ description, title }: LoadingStateProps) {
       <div className="loading-state__header">
         <span aria-hidden="true" className="loading-state__bar" />
         <div>
-          <h3 className="loading-state__title">{title}</h3>
+          <h2 className="loading-state__title">{title}</h2>
           <p className="loading-state__description">{description}</p>
         </div>
       </div>
