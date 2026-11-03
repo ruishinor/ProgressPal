@@ -4,11 +4,11 @@
   "reviewer": "Independent OpenAI Codex AI reviewer (/root/independent_release_review), separate from the implementation agent; no human review claimed",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "0fc6f54807145d6e46688080f0948683974abf96",
+    "payloadTree": "8fcdb0a846dd47cecf6940b27b03d486cf7b708e",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Independent adversarial source review of candidate 9954b0dbcb39d19477826b42c0c77a1d9555eb02 against master aab749443ecd2a0c378d93c65bbfff1fc0c7e9ed: cross-programme Pathways routes and discovery, explicit Git learning scope, coordinated non-switching catalogue/enrolment preparation, active-programme invariants, legacy Git progress/recovery, independent persistence, no Git XP, backup and offline boundaries. Scoped PASS; no material blocker identified.",
+    "summary": "Independent adversarial source review of final candidate 12820ca45406ac1cd4331a0a82d5b067410f7d32 against master aab749443ecd2a0c378d93c65bbfff1fc0c7e9ed: cross-programme Pathways routes and discovery, explicit Git learning scope, coordinated non-switching preparation, active-programme invariants, legacy Git progress/recovery, independent persistence, no Git XP, backup/offline boundaries and the hosted-failure Settings oracle correction. Product bytes are unchanged from independently reviewed implementation 9954b0dbcb39d19477826b42c0c77a1d9555eb02. Scoped PASS; no material blocker identified.",
     "evidence": [
       "Independently inspected the complete changed-file set and product diff, PathwaysRoute/PathwaysPage, route definitions/helpers, onboarding/settings filters, programme composition, shared LessonView evidence/reward paths, enrolInProgramme repository, backup oracle, offline and browser invariants, and repository release contracts.",
       "Independently ran npm test -- tests/features/pathways/pathways.test.tsx tests/db/gitGithubPersistence.test.ts tests/architecture/programmeScopeComposition.test.ts: 3 files / 23 tests passed, zero failed or skipped. This exercises both primary scopes, legacy Git-active recovery, invalid foreign-item rejection, all three active-state backup round trips, preservation of pre-existing XP rows belonging to both study programmes, and restricted switching boundaries.",
@@ -16,7 +16,12 @@
       "Implementation-session evidence, not independently rerun by this reviewer: 40 route/onboarding/content/architecture tests and 64 persistence/switching/XP/achievement tests (three overlapping backup cases), changed-file lint/format, TypeScript, production build and bundle budgets pass.",
       "Implementation-session managed browser evidence, not independently rerun by this reviewer: all 24 cases pass across git-github.spec.ts, git-github.offline.spec.ts and rpg-ia-consolidation.spec.ts, retaining five lesson/theme pairs per theme, five axe scans, wrong-answer/retry, self-report/injection, keyboard/clipboard, reload/switch, both programmes/shells, read-only peer and cold offline initialization/save assertions.",
       "Adversarial trace: the fixed Git scope comes from the composition root, never activeProgrammeId; invalid item IDs are rejected before preparation; catalogue and enrolment mutations each use runLocalMutation with an intervening refresh; neither changes active programme. Local completion targets a catalogue-allowlisted Git item, preserves existing fields and awards no XP. Existing Git IDs/enrolments remain registered and restorable, and explicit Settings recovery offers both study programmes.",
-      "Limits: no human beginner observation, physical-device testing, native browser zoom, exhaustive failure injection, hosted certification or production smoke performed by this reviewer. Git retains its historical internal programme identity solely for independent learning state and backwards-compatible access. This review is permission to proceed to existing certification, not a hosted or production certificate."
+      "Limits: no human beginner observation, physical-device testing, native browser zoom, exhaustive failure injection, hosted certification or production smoke performed by this reviewer. Git retains its historical internal programme identity solely for independent learning state and backwards-compatible access. This review is permission to proceed to existing certification, not a hosted or production certificate.",
+      "Follow-up independent review: inspected the exact delta from prior evidence head 8a34d2e to frozen correction 12820ca45406ac1cd4331a0a82d5b067410f7d32. It changes only the Settings composition option oracle and the CURRENT_STATE failure note. git diff --quiet confirms src, public, scripts, .github, package.json and package-lock.json are byte-identical to reviewed implementation 9954b0d.",
+      "Independently inspected GitHub PR #68 run 41688187226 metadata and failed logs: the Final candidate release gate failed at tests/features/settings/programmeSwitchingComposition.test.tsx, which incorrectly expected Git & GitHub (not enrolled) as a primary study-programme switch option. No clean hosted certification is claimed for that run.",
+      "Independently ran npm test -- tests/features/settings/programmeSwitchingComposition.test.tsx on correction 12820ca: all 13 scenarios passed, zero failed or skipped. Both production-shell cases now require exactly the other primary study programme and explicitly reject a Git option. All existing switching, render-only, restore and failure assertions remain.",
+      "Independently searched the Git & GitHub/git-github assertion family throughout tests and e2e. Remaining registry/catalogue assertions correctly retain three internal definitions/identities for data compatibility; learner selection assertions require two study programmes or explicitly reject Git. No additional obsolete Git primary-option expectation was found.",
+      "Verified final candidate payload with the existing script: 8fcdb0a846dd47cecf6940b27b03d486cf7b708e. Follow-up lint/format/TypeScript checks are implementation-reported; no additional browser rerun is necessary for this test/documentation-only delta. Existing hosted certification must still succeed for the exact final candidate."
     ]
   },
   "adversarialFindings": [
@@ -33,10 +38,17 @@
       "description": "Cross-programme risk examined: Pathways initialization or assessment code could accidentally inherit the active study scope or bypass tab coordination, reassigning writes or altering activeProgrammeId.",
       "resolution": "The composition host supplies the fixed registered Git scope. The feature allowlists its lesson IDs, uses existing non-switching catalogue/enrolment repositories through separate coordinated mutation/refresh calls, and passes Git scope into LessonView. Git has no XP planner; local completion uses the existing no-award repository. Independently passed exact app-meta preservation, primary-owned XP backup preservation, foreign-item rejection and switching-boundary tests. Broader read-only/offline browser evidence is implementation-reported.",
       "status": "resolved"
+    },
+    {
+      "id": "PATHWAYS-3",
+      "severity": "P2",
+      "description": "Actual hosted blocker: the Settings composition preservation oracle still expected Git as a primary study-programme switch option, contradicting the owner-authorized correction and failing PR #68 run 41688187226.",
+      "resolution": "Only the obsolete expected option was removed; an explicit assertion now rejects a Git option. Both Classic and RPG cases and all 13 existing scenarios remain. Independently reviewed the delta and assertion family and reran all 13 scenarios successfully. No product bytes, test controls, timeout, runner, schema or release gate were changed.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Scoped PASS for the exact reviewed payload. No concrete material active-programme, progress-preservation, route-scope, coordination, reward or offline blocker was found. The correction reuses existing content, persistence and assessment mechanisms without a schema migration or a speculative Pathways platform. Existing hosted certification and deployment checks must pass before the authorized merge/promotion; do not weaken or bypass them."
+    "summary": "Scoped PASS for final payload 8fcdb0a846dd47cecf6940b27b03d486cf7b708e. The hosted failure was an obsolete accepted-product expectation, corrected with a stronger explicit Git-absence assertion while retaining all scenarios. The earlier independent product review remains applicable because product bytes are unchanged. Current hosted certification and deployment checks must still pass before the authorized merge/promotion; do not weaken or bypass them."
   }
 }
