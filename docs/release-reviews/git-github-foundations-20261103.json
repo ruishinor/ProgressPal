@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 2,
+  "module": "git-github-foundations-20261103",
+  "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "660a487a987c812c67555a340ff86497bb9e3bce",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source, curriculum, UX, security and integration review of the five-lesson Git and GitHub Foundations pilot.",
+    "evidence": [
+      "Reviewed published candidate source, five canonical lessons, programme registration, content exporter, relevant tests and integration results.",
+      "Candidate 0a1a740 is based on master a01e1a9 with no remaining divergence.",
+      "Reported local integration: 16 focused tests pass; typecheck, formatting, production build and bundle budget pass.",
+      "Implementation reported broader focused tests, browser tests, PowerShell 5.1 Git fixtures and offline validation; not independently rerun.",
+      "Existing test/release controls, CS50x default, dependencies, database schema and version remain unchanged.",
+      "Human beginner observation, physical-device testing and hosted certification remain unperformed."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PATH-01",
+      "severity": "P2",
+      "description": "A Git and GitHub programme could misleadingly imply that remote collaboration is already taught.",
+      "resolution": "The five available lessons teach local foundations; the explicit roadmap marks GitHub collaboration and later topics as planned. Scope accepted for the first pilot.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-02",
+      "severity": "P2",
+      "description": "Copyable shell instructions could affect an unrelated directory or overwrite existing files.",
+      "resolution": "The authored commands use practice-directory guards, grouped execution, file collision checks and repository-local Git identity. The implementation reports Windows PowerShell 5.1 reproduction.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-03",
+      "severity": "P2",
+      "description": "Programme integration could interfere with persisted progress, offline content or the existing RPG shell.",
+      "resolution": "The new programme uses existing persistence and content contracts. Focused persistence, navigation, offline and merged-shell evidence supports proceeding without schema or provider changes.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-04",
+      "severity": "P3",
+      "description": "Automated checks cannot prove real beginner comprehension, native browser zoom or screen-reader usability.",
+      "resolution": "These are explicitly unverified. Existing focused checks support this bounded release without claiming human usability certification.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-05",
+      "severity": "P3",
+      "description": "New tests can add hosted runtime despite preserving previous test optimizations.",
+      "resolution": "No existing test runner or gate was modified. The normal hosted candidate gate will establish actual CI success; no additional local fullsuite is justified.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS for an ordinary PR. No material unresolved blocker identified. Preserve scope and existing release controls. Hosted certification and production promotion are separate."
+  }
+}
