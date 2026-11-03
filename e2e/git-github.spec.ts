@@ -171,15 +171,16 @@ test('starts from zero, explains wrong answers, records external reports honestl
   expect(errors).toEqual([]);
 });
 
-test('keeps all five lessons readable at 320px and enlarged text, with accessible controls in both themes', async ({
-  page,
-}, testInfo) => {
-  await completeOnboarding(page, { programme: 'Git & GitHub', theme: 'light' });
-  await page.setViewportSize({ width: 320, height: 900 });
-  for (const theme of ['light', 'dark']) {
-    for (const part of [1, 2, 3, 4, 5]) {
+for (const theme of ['light', 'dark'] as const) {
+  for (const part of [1, 2, 3, 4, 5]) {
+    test(`keeps lesson ${part} within 320px at 200% root text with accessible controls in ${theme} theme`, async ({
+      page,
+    }) => {
+      await completeOnboarding(page, { programme: 'Git & GitHub', theme });
+      await page.setViewportSize({ width: 320, height: 900 });
       await page.goto(route(part));
       await expect(page.getByRole('article')).toBeVisible();
+      await expect(exercise(page, 1)).toBeVisible();
       await page.evaluate((theme) => {
         document.documentElement.dataset.theme = theme;
         document.documentElement.style.fontSize = '200%';
@@ -195,13 +196,9 @@ test('keeps all five lessons readable at 320px and enlarged text, with accessibl
           .analyze();
         expect(scan.violations).toEqual([]);
       }
-      await page.screenshot({
-        path: testInfo.outputPath('git-' + theme + '-' + part + '.png'),
-        fullPage: true,
-      });
-    }
+    });
   }
-});
+}
 
 test('copies only the intended commands and keeps command blocks usable by keyboard', async ({
   page,
