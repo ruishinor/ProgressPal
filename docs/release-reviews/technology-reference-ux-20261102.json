@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "module": "technology-reference-ux-20261102",
+  "reviewer": "ChatGPT GPT-6 - independent AI source reviewer, not human QA",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a75594fd1f9f396441583b986232828ae474805a",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source, diff, visual and regression-risk review of Technology Reference candidate 352741d.",
+    "evidence": [
+      "Reviewed all 12 changed source files, complete diff, contextual files and before/after screenshots supplied in the final review archive.",
+      "Reviewed deterministic search, live suggestions, exact-name handling, route-specific HUD removal, Settings and navigation preservation.",
+      "Codex reported 115 focused Vitest tests, four targeted Playwright cases, static checks, build and bundle checks passing. Not independently rerun.",
+      "No dependency, schema, provider, service-worker or release-control changes.",
+      "The 18 search tasks informed implementation and are not an independent generalization benchmark."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "B-01",
+      "severity": "P2",
+      "description": "Large RPG HUD obstructed reference access and narrow titles broke unnaturally.",
+      "resolution": "Route-specific quiet reading layout and focused visual and navigation regression coverage address the observed defects.",
+      "status": "resolved"
+    },
+    {
+      "id": "B-02",
+      "severity": "P2",
+      "description": "Live suggestions could be present but obstructed by fixed mobile navigation.",
+      "resolution": "Shortened visible guidance and added a browser assertion for the first actionable suggestion at the checked viewport.",
+      "status": "resolved"
+    },
+    {
+      "id": "B-03",
+      "severity": "P3",
+      "description": "The evaluated search tasks also guided implementation.",
+      "resolution": "Accept as bounded before/after results, without claiming general search accuracy.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "B-04",
+      "severity": "P3",
+      "description": "Physical mobile, native browser zoom and spoken screen-reader behavior were not independently tested.",
+      "resolution": "Existing targeted keyboard, accessibility and visual checks provide proportionate coverage; no confirmed blocking defect.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS: No material unresolved source-review blocker. Proceed to one ordinary hosted Final candidate certification. Merge and production state remain separate."
+  }
+}

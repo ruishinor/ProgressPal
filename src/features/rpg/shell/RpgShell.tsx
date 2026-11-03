@@ -35,6 +35,7 @@ import {
   rpgRoutePath,
   rpgFocusPath,
   rpgSettingsPath,
+  rpgReferencePath,
 } from '@/lib/routing/rpgRoutePaths';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
@@ -261,13 +262,16 @@ export function RpgShell() {
   const mounted = useRef(true);
   const location = useLocation();
   const mainRef = useMainContentFocus<HTMLElement>();
-  const loadMode =
-    location.pathname === rpgHeroPath
-      ? 'none'
-      : location.pathname === rpgRoutePath ||
-          !location.pathname.startsWith('/rpg')
-        ? 'hub'
-        : 'hud';
+  const readingReference =
+    location.pathname === rpgReferencePath ||
+    location.pathname.startsWith(`${rpgReferencePath}/`);
+  const withoutHud = location.pathname === rpgHeroPath || readingReference;
+  const loadMode = withoutHud
+    ? 'none'
+    : location.pathname === rpgRoutePath ||
+        !location.pathname.startsWith('/rpg')
+      ? 'hub'
+      : 'hud';
 
   useEffect(() => {
     mounted.current = true;
@@ -395,9 +399,9 @@ export function RpgShell() {
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        {/* Exactly one Settings launch: the HUD's gear where there is a
-            HUD, this utility bar on the one route without it. */}
-        {location.pathname === rpgHeroPath ? (
+        {/* Reuse the HUD-free reading layout; navigation and coordination
+            notices remain available on both reference routes. */}
+        {withoutHud ? (
           <nav
             aria-label="RPG utility navigation"
             className="rpg-shell__utility-bar"
@@ -406,7 +410,7 @@ export function RpgShell() {
           </nav>
         ) : null}
         <RpgPrimaryNav />
-        {location.pathname !== rpgHeroPath ? (
+        {!withoutHud ? (
           <RpgHeroHud
             programmeTitle={programmeScope?.title}
             showQuest={

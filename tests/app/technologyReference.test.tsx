@@ -29,6 +29,64 @@ async function snapshot() {
   return JSON.stringify(result);
 }
 
+it('opens a live suggestion by keyboard and preserves draft context without learner writes', async () => {
+  await onboard();
+  const before = await snapshot();
+  await renderAppAtRoute('/rpg/oppslag');
+  const user = userEvent.setup();
+  const input = await screen.findByRole('searchbox');
+  expect(
+    screen.queryByRole('region', { name: 'Persistent hero HUD' }),
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByRole('link', { name: 'Open Settings' })).toHaveLength(
+    1,
+  );
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: 'Tema' }),
+    'Drift',
+  );
+  await user.type(input, 'Kub');
+  const list = screen.getByRole('list', { name: 'Søkeforslag' });
+  expect(
+    within(list).getByRole('link', { name: 'Kubernetes' }),
+  ).toHaveAttribute('href', '/rpg/oppslag/kubernetes?q=Kub&tema=Drift');
+  expect(input).toHaveValue('Kub');
+  await user.keyboard('{Escape}');
+  expect(
+    screen.queryByRole('list', { name: 'Søkeforslag' }),
+  ).not.toBeInTheDocument();
+  expect(input).toHaveFocus();
+  expect(input).toHaveValue('Kub');
+  await user.type(input, 'e');
+  await user.tab();
+  expect(
+    within(screen.getByRole('list', { name: 'Søkeforslag' })).getByRole(
+      'link',
+      { name: 'Kubernetes' },
+    ),
+  ).toHaveFocus();
+  await user.keyboard('{Enter}');
+  expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(
+    'Kubernetes',
+  );
+  await user.click(
+    screen.getByRole('link', { name: 'Tilbake til søk og tema' }),
+  );
+  expect(await screen.findByRole('searchbox')).toHaveValue('Kube');
+  expect(screen.getByRole('combobox', { name: 'Tema' })).toHaveValue('Drift');
+  await user.clear(screen.getByRole('searchbox'));
+  await user.type(screen.getByRole('searchbox'), 'Java');
+  expect(
+    screen.queryByRole('list', { name: 'Søkeforslag' }),
+  ).not.toBeInTheDocument();
+  await user.clear(screen.getByRole('searchbox'));
+  await user.type(screen.getByRole('searchbox'), 'surdeigsstarter');
+  expect(
+    screen.queryByRole('list', { name: 'Søkeforslag' }),
+  ).not.toBeInTheDocument();
+  expect(await snapshot()).toBe(before);
+});
+
 it('Home → search → entry → relation → search preserves URL state without learner writes', async () => {
   await onboard();
   const before = await snapshot();

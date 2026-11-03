@@ -11,6 +11,17 @@
 .reference h1 {
   font-size: 1.75rem;
 }
+.reference .reference__title {
+  overflow-wrap: normal;
+}
+@media (max-width: 24rem) {
+  .reference {
+    padding-inline: 0.25rem;
+  }
+  .reference h1 {
+    font-size: clamp(1rem, calc(0.25rem + 6vw), 1.75rem);
+  }
+}
 .reference h2 {
   font-size: 1.25rem;
   margin-block: 1.4rem 0.4rem;
@@ -41,14 +52,32 @@
 .reference__search {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: start;
   gap: 1rem;
+}
+.reference__query {
+  flex: 1 0 100%;
+  min-width: 0;
 }
 .reference__search label {
   display: grid;
   gap: 0.35rem;
   flex: 1 1 15rem;
   min-width: 0;
+}
+.reference__search button {
+  align-self: end;
+}
+.reference__suggestions {
+  border-inline-start: 3px solid var(--rpg-border-strong);
+  padding-inline-start: 0.75rem;
+}
+.reference__suggestions a {
+  display: inline-block;
+  padding-block: 0.25rem;
+}
+.reference__suggestions .reference__meta {
+  display: block;
 }
 .reference__search input,
 .reference__search select,
