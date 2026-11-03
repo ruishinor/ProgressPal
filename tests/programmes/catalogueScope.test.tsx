@@ -183,12 +183,12 @@ afterEach(async () => {
 });
 
 describe('C5 P3: scoped readers isolate catalogues in both directions', () => {
-  // Epic E (accepted-oracle change): Programvareutvikling is the second
-  // production definition; synthetic fixtures are still never registered.
-  it('keeps the production registry to the accepted CS50 and Programvareutvikling definitions only', () => {
+  // Three approved production definitions; synthetic fixtures stay excluded.
+  it('registers the three approved production definitions only', () => {
     expect(listRegisteredDefinitionKeys()).toEqual([
       'cs50x-2026',
       'programvareutvikling-2026',
+      'git-github-2026',
     ]);
   });
 
