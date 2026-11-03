@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "79a51d0daf704452efa89f8254b19c7ba55b4741",
+    "payloadTree": "99226d450f7dd67977956f03451cb93516de184c",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -16,7 +16,8 @@
       "Implementation reported broader focused tests, browser tests, PowerShell 5.1 Git fixtures and offline validation; not independently rerun.",
       "Existing test/release controls, CS50x default, dependencies, database schema and version remain unchanged.",
       "Human beginner observation, physical-device testing and hosted certification remain unperformed.",
-      "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed."
+      "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed.",
+      "Hosted run 41627354974: all 3680 Vitest tests passed. Playwright exposed a heading-order issue in an asynchronous loading state. The shared loading heading was corrected and route axe scans now wait for loading completion. The accessibility E2E file and TypeScript passed locally."
     ]
   },
   "adversarialFindings": [
@@ -60,6 +61,13 @@
       "severity": "P2",
       "description": "The previous independent review missed a legacy two-programme registry assertion.",
       "resolution": "Corrected the exact test oracle to recognize all three approved programmes and validated the affected test file.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-07",
+      "severity": "P2",
+      "description": "Axe encountered an h3 after h1 during asynchronous page loading, and the route scan did not wait for ready content.",
+      "resolution": "Corrected the shared loading heading to h2, explicitly waited for loading completion in all three route-scan loops, and validated the affected accessibility suite.",
       "status": "resolved"
     }
   ],
