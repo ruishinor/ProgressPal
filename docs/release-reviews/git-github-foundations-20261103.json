@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "660a487a987c812c67555a340ff86497bb9e3bce",
+    "payloadTree": "cbe28d975aac10bff9aee9ffc89b9f826be8f07f",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -15,7 +15,8 @@
       "Reported local integration: 16 focused tests pass; typecheck, formatting, production build and bundle budget pass.",
       "Implementation reported broader focused tests, browser tests, PowerShell 5.1 Git fixtures and offline validation; not independently rerun.",
       "Existing test/release controls, CS50x default, dependencies, database schema and version remain unchanged.",
-      "Human beginner observation, physical-device testing and hosted certification remain unperformed."
+      "Human beginner observation, physical-device testing and hosted certification remain unperformed.",
+      "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed."
     ]
   },
   "adversarialFindings": [
@@ -53,6 +54,13 @@
       "description": "New tests can add hosted runtime despite preserving previous test optimizations.",
       "resolution": "No existing test runner or gate was modified. The normal hosted candidate gate will establish actual CI success; no additional local fullsuite is justified.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-06",
+      "severity": "P2",
+      "description": "The previous independent review missed a legacy two-programme registry assertion.",
+      "resolution": "Corrected the exact test oracle to recognize all three approved programmes and validated the affected test file.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
