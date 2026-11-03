@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-cross-programme-20261103",
+  "reviewer": "Independent OpenAI Codex AI reviewer (/root/independent_release_review), separate from the implementation agent; no human review claimed",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "0fc6f54807145d6e46688080f0948683974abf96",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent adversarial source review of candidate 9954b0dbcb39d19477826b42c0c77a1d9555eb02 against master aab749443ecd2a0c378d93c65bbfff1fc0c7e9ed: cross-programme Pathways routes and discovery, explicit Git learning scope, coordinated non-switching catalogue/enrolment preparation, active-programme invariants, legacy Git progress/recovery, independent persistence, no Git XP, backup and offline boundaries. Scoped PASS; no material blocker identified.",
+    "evidence": [
+      "Independently inspected the complete changed-file set and product diff, PathwaysRoute/PathwaysPage, route definitions/helpers, onboarding/settings filters, programme composition, shared LessonView evidence/reward paths, enrolInProgramme repository, backup oracle, offline and browser invariants, and repository release contracts.",
+      "Independently ran npm test -- tests/features/pathways/pathways.test.tsx tests/db/gitGithubPersistence.test.ts tests/architecture/programmeScopeComposition.test.ts: 3 files / 23 tests passed, zero failed or skipped. This exercises both primary scopes, legacy Git-active recovery, invalid foreign-item rejection, all three active-state backup round trips, preservation of pre-existing XP rows belonging to both study programmes, and restricted switching boundaries.",
+      "Verified candidate payload using npm run review:payload-tree -- 9954b0dbcb39d19477826b42c0c77a1d9555eb02: 0fc6f54807145d6e46688080f0948683974abf96. Implementation leaves programme registry/content/identity, schema, dependency lockfile, version, service worker, CSP and release controls unchanged.",
+      "Implementation-session evidence, not independently rerun by this reviewer: 40 route/onboarding/content/architecture tests and 64 persistence/switching/XP/achievement tests (three overlapping backup cases), changed-file lint/format, TypeScript, production build and bundle budgets pass.",
+      "Implementation-session managed browser evidence, not independently rerun by this reviewer: all 24 cases pass across git-github.spec.ts, git-github.offline.spec.ts and rpg-ia-consolidation.spec.ts, retaining five lesson/theme pairs per theme, five axe scans, wrong-answer/retry, self-report/injection, keyboard/clipboard, reload/switch, both programmes/shells, read-only peer and cold offline initialization/save assertions.",
+      "Adversarial trace: the fixed Git scope comes from the composition root, never activeProgrammeId; invalid item IDs are rejected before preparation; catalogue and enrolment mutations each use runLocalMutation with an intervening refresh; neither changes active programme. Local completion targets a catalogue-allowlisted Git item, preserves existing fields and awards no XP. Existing Git IDs/enrolments remain registered and restorable, and explicit Settings recovery offers both study programmes.",
+      "Limits: no human beginner observation, physical-device testing, native browser zoom, exhaustive failure injection, hosted certification or production smoke performed by this reviewer. Git retains its historical internal programme identity solely for independent learning state and backwards-compatible access. This review is permission to proceed to existing certification, not a hosted or production certificate."
+    ]
+  },
+  "adversarialFindings": [],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped PASS for the exact reviewed payload. No concrete material active-programme, progress-preservation, route-scope, coordination, reward or offline blocker was found. The correction reuses existing content, persistence and assessment mechanisms without a schema migration or a speculative Pathways platform. Existing hosted certification and deployment checks must pass before the authorized merge/promotion; do not weaken or bypass them."
+  }
+}
