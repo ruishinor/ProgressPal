@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "module": "git-github-foundations-20261103",
+  "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "42490321942d033efca44a97c53a06e12e96759c",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent source, curriculum, UX, security and integration review of the five-lesson Git and GitHub Foundations pilot.",
+    "evidence": [
+      "Reviewed published candidate source, five canonical lessons, programme registration, content exporter, relevant tests and integration results.",
+      "Candidate 0a1a740 is based on master a01e1a9 with no remaining divergence.",
+      "Reported local integration: 16 focused tests pass; typecheck, formatting, production build and bundle budget pass.",
+      "Implementation reported broader focused tests, browser tests, PowerShell 5.1 Git fixtures and offline validation; not independently rerun.",
+      "Existing test/release controls, CS50x default, dependencies, database schema and version remain unchanged.",
+      "Human beginner observation, physical-device testing and hosted certification remain unperformed.",
+      "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed.",
+      "Hosted run 41627354974: all 3680 Vitest tests passed. Playwright exposed a heading-order issue in an asynchronous loading state. The shared loading heading was corrected and route axe scans now wait for loading completion. The accessibility E2E file and TypeScript passed locally.",
+      "Owner-authorized test-only correction after hosted run 41630349133: split the 30-second combined Git lesson test into ten isolated lesson/theme cases, wait for ready lesson content, and remove ten mandatory full-page screenshots. All ten 320x900/200% root-text overflow checks and the same five Axe scans are retained; functional, clipboard/keyboard and offline scenarios are unchanged. Local managed run with three workers passed all 13 tests in 20.7 seconds; changed-file Prettier/ESLint and TypeScript exited 0. This implementation-session evidence note and binding update do not claim a new independent or human review, native browser zoom, or hosted certification.",
+      "Hosted run 41636088740 passed all 3680 Vitest tests but stopped before the Git cases: the dashboard course-map heading locator matched both Course Map and Loading course map after the earlier h2 loading-state correction. The implementation session added exact: true to that one locator, retaining all content and persistence assertions. All eight dashboard browser cases passed locally with three workers in 13.3 seconds; changed-file Prettier/ESLint and TypeScript exited 0. No production, timeout, runner or release-control change, blind rerun, or new independent/human review is claimed.",
+      "Hosted run 41639447501 passed 3680 Vitest tests and all ten Git lesson/theme cases (4.7-9.0 seconds each), then exposed an obsolete two-programme count in the onboarding layout test. Its single count assertion now expects the three approved programmes, retaining all option bounds, touch-target and overflow checks at 320/360/384px. All six affected layout/navigation browser cases passed locally with three workers in 7.9 seconds; changed-file Prettier/ESLint and TypeScript exited 0. The direct programme-count assertion family was inspected. This implementation-session correction and binding update claim no new independent/human review or complete hosted certification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PATH-01",
+      "severity": "P2",
+      "description": "A Git and GitHub programme could misleadingly imply that remote collaboration is already taught.",
+      "resolution": "The five available lessons teach local foundations; the explicit roadmap marks GitHub collaboration and later topics as planned. Scope accepted for the first pilot.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-02",
+      "severity": "P2",
+      "description": "Copyable shell instructions could affect an unrelated directory or overwrite existing files.",
+      "resolution": "The authored commands use practice-directory guards, grouped execution, file collision checks and repository-local Git identity. The implementation reports Windows PowerShell 5.1 reproduction.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-03",
+      "severity": "P2",
+      "description": "Programme integration could interfere with persisted progress, offline content or the existing RPG shell.",
+      "resolution": "The new programme uses existing persistence and content contracts. Focused persistence, navigation, offline and merged-shell evidence supports proceeding without schema or provider changes.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-04",
+      "severity": "P3",
+      "description": "Automated checks cannot prove real beginner comprehension, native browser zoom or screen-reader usability.",
+      "resolution": "These are explicitly unverified. Existing focused checks support this bounded release without claiming human usability certification.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-05",
+      "severity": "P3",
+      "description": "New tests can add hosted runtime despite preserving previous test optimizations.",
+      "resolution": "No existing test runner or gate was modified. The normal hosted candidate gate will establish actual CI success; no additional local fullsuite is justified.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PATH-06",
+      "severity": "P2",
+      "description": "The previous independent review missed a legacy two-programme registry assertion.",
+      "resolution": "Corrected the exact test oracle to recognize all three approved programmes and validated the affected test file.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATH-07",
+      "severity": "P2",
+      "description": "Axe encountered an h3 after h1 during asynchronous page loading, and the route scan did not wait for ready content.",
+      "resolution": "Corrected the shared loading heading to h2, explicitly waited for loading completion in all three route-scan loops, and validated the affected accessibility suite.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS for an ordinary PR. No material unresolved blocker identified. Preserve scope and existing release controls. Hosted certification and production promotion are separate."
+  }
+}

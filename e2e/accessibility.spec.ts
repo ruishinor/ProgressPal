@@ -682,6 +682,9 @@ test('classic routes pass axe in dark theme', async ({ page }) => {
       page.getByRole('heading', { exact: true, name: route.heading }),
     ).toBeVisible({ timeout: 15000 });
 
+    await expect(page.locator('.loading-state')).toHaveCount(0, {
+      timeout: 15000,
+    });
     const scan = await new AxeBuilder({ page }).analyze();
     expect(scan.violations).toEqual([]);
   }
@@ -696,6 +699,9 @@ test('key classic routes pass axe in light theme', async ({ page }) => {
       page.getByRole('heading', { exact: true, name: route.heading }),
     ).toBeVisible({ timeout: 15000 });
 
+    await expect(page.locator('.loading-state')).toHaveCount(0, {
+      timeout: 15000,
+    });
     const scan = await new AxeBuilder({ page }).analyze();
     expect(scan.violations).toEqual([]);
   }
@@ -715,6 +721,9 @@ for (const theme of ['dark', 'light'] as const) {
         page.getByRole('heading', { exact: true, name: route.heading }),
       ).toBeVisible({ timeout: 15000 });
 
+      await expect(page.locator('.loading-state')).toHaveCount(0, {
+        timeout: 15000,
+      });
       const scan = await new AxeBuilder({ page }).analyze();
       expect(scan.violations).toEqual([]);
     }

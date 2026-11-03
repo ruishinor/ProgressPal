@@ -211,6 +211,11 @@
 }
 
 @media (max-width: 42rem) {
+  /* Native figure margins consume 80px of the narrow reading column. */
+  .lesson-figure {
+    margin-inline: 0;
+  }
+
   .lesson .lesson-unit {
     gap: var(--space-5);
   }

@@ -397,7 +397,7 @@ test('renders the seeded course map and reflects persisted progress after reload
   await page.goto('/course');
 
   await expect(
-    page.getByRole('heading', { level: 2, name: 'Course Map' }),
+    page.getByRole('heading', { level: 2, name: 'Course Map', exact: true }),
   ).toBeVisible();
   await expect(page.getByTestId('course-unit-week-0')).toContainText(
     'Week 0: Scratch',

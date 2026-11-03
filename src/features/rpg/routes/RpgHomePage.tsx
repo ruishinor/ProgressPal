@@ -9,7 +9,7 @@ import { useOutletContext } from 'react-router-dom';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
-import { formatMinutes } from '@/lib/time';
+import { formatEstimatedMinutes, formatMinutes } from '@/lib/time';
 import {
   RpgButton,
   RpgPanel,
@@ -228,7 +228,7 @@ export function RpgHomePage() {
                 <h3>{currentQuest.title}</h3>
                 <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
                 <p className="rpg-hub__quest-meta">
-                  {`${currentQuest.unitTitle} - ${currentQuest.typeLabel} - ${formatMinutes(
+                  {`${currentQuest.unitTitle} - ${currentQuest.typeLabel} - ${formatEstimatedMinutes(
                     currentQuest.estimatedMinutes,
                   )}`}
                 </p>

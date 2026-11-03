@@ -1,0 +1,88 @@
+{
+  "format": "progresspal-programme-catalogue",
+  "formatVersion": 1,
+  "programmeId": "git-github",
+  "contentVersion": 1,
+  "evaluatorContractVersion": 1,
+  "language": "nb",
+  "technicalLanguage": "en",
+  "sourceSha256": "b6198e867b4ff53d711cd29883472d4db5e990c8d46852243ed6a502782e2c0e",
+  "modules": [
+    {
+      "moduleId": "GIT-M01",
+      "catalogueUnitId": "git-m01",
+      "title": "Fra null til din første commit",
+      "order": 0,
+      "missions": [
+        {
+          "missionId": "GIT-M01-O01",
+          "itemId": "git-m01-o01",
+          "surface": "mission",
+          "title": "Start her: hvorfor bruke Git?",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M01-O02",
+          "itemId": "git-m01-o02",
+          "surface": "mission",
+          "title": "Gjør klar Windows og øvingsmappen",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M01-O03",
+          "itemId": "git-m01-o03",
+          "surface": "mission",
+          "title": "Lag og undersøk den første versjonen",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M01-O04",
+          "itemId": "git-m01-o04",
+          "surface": "mission",
+          "title": "Velg innholdet i neste commit",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M01-O05",
+          "itemId": "git-m01-o05",
+          "surface": "mission",
+          "title": "Prøv selv: et endret mål",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        }
+      ]
+    }
+  ],
+  "subjectIds": [
+    "git-m01-e01",
+    "git-m01-e02",
+    "git-m01-e03",
+    "git-m01-e04",
+    "git-m01-e05",
+    "git-m01-e06",
+    "git-m01-e07"
+  ],
+  "assets": {
+    "index": {
+      "path": "content/git-github/index.a6d6899bc97a77b8.json",
+      "sha256": "a6d6899bc97a77b88ac1e18a228051fcafc2c8e47252e0ccb3beb89afdd7b800",
+      "bytes": 8651
+    },
+    "modules": {
+      "GIT-M01": {
+        "path": "content/git-github/git-m01.5783df29655f4414.json",
+        "sha256": "5783df29655f44147b04e3e51fd0e51803dd562fdb49e2aef57fa4bb187c4751",
+        "bytes": 41683
+      }
+    }
+  }
+}

@@ -47,7 +47,7 @@ for (const viewport of [
       .getByRole('radiogroup', { name: 'Choose your programme' })
       .getByRole('radio');
 
-    await expect(options).toHaveCount(2);
+    await expect(options).toHaveCount(3);
 
     for (const option of await options.all()) {
       const label = option.locator('xpath=ancestor::label');

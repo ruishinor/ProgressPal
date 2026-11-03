@@ -25,12 +25,13 @@ const units = definition.catalogue.units;
 const items = units.flatMap((unit) => unit.items);
 
 describe('registration', () => {
-  it('registers CS50x and Programvareutvikling, with CS50x the explicit default', () => {
+  it('registers all three approved programmes, with CS50x the explicit default', () => {
     const registry = getProgrammeRegistry();
 
     expect(registry.definitions.map((entry) => entry.programmeId)).toEqual([
       'cs50x',
       'programvareutvikling',
+      'git-github',
     ]);
     expect(registry.defaultProgrammeId).toBe('cs50x');
     expect(registry.getDefault()).toBe(cs50x2026Definition);

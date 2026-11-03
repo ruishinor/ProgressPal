@@ -1062,12 +1062,21 @@ const catalogue = {
   },
 };
 
+// Each programme owns only its own entries in the shared offline manifest.
+const retainedOfflineAssets = existsSync(join(PUBLIC_DIR, OFFLINE_LIST))
+  ? JSON.parse(
+      readFileSync(join(PUBLIC_DIR, OFFLINE_LIST), 'utf8'),
+    ).assets.filter((path) => !path.startsWith('/' + ASSET_PREFIX + '/'))
+  : [];
+
 /** Every content asset, for the service worker's install-time cache. */
 const offlineList = {
   format: 'progresspal-offline-content',
   formatVersion: 1,
   assets: [indexAsset, ...moduleAssets].map((entry) => `/${entry.path}`),
 };
+
+offlineList.assets = [...offlineList.assets, ...retainedOfflineAssets].sort();
 
 const rawOutputs = [
   [join(PUBLIC_DIR, indexAsset.path), indexAsset.text],

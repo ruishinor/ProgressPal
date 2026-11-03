@@ -98,6 +98,14 @@ const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
  */
 const PACKAGED_ASSET_READER = 'src/lib/assets/sameOriginAsset.ts';
 
+// Git pilot: these two static values configure an explicit installation link.
+// They authorize no runtime network primitive, remote asset or other module.
+const GIT_RESOURCE_MODULE = 'src/programmes/git-github/index.ts';
+const GIT_RESOURCE_URLS = [
+  'https://git-scm.com/',
+  'https://git-scm.com/install/windows',
+];
+
 /**
  * The Python worker (owner decision 2026-10-03, runtime spike) names three
  * network primitives only to remove them from its own global scope before
@@ -206,7 +214,9 @@ describe('local-only source safety guardrail', () => {
         const allowed =
           ALLOWED_URL_PREFIXES.some((prefix) => url.startsWith(prefix)) ||
           (relativePath === CLOUD_ENDPOINT_MODULE &&
-            CLOUD_ENDPOINT_URLS.includes(url));
+            CLOUD_ENDPOINT_URLS.includes(url)) ||
+          (relativePath === GIT_RESOURCE_MODULE &&
+            GIT_RESOURCE_URLS.includes(url));
 
         if (!allowed) {
           violations.push(`${relativePath}: external URL ${url}`);
