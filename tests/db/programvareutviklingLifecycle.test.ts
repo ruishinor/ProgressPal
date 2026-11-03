@@ -78,7 +78,7 @@ function withoutAppMeta(snapshot: DatabaseSnapshot) {
 }
 
 describe('registration is not enrolment', () => {
-  it('authorizes both production catalogues with CS50 as the bootstrap programme', () => {
+  it('authorizes all production catalogues with CS50 as the bootstrap programme', () => {
     const context = resolveDatabaseMigrationContext();
 
     expect(context.programmeId).toBe('cs50x');
@@ -88,10 +88,12 @@ describe('registration is not enrolment', () => {
         courseId: 'programvareutvikling-2026',
         programmeId: 'programvareutvikling',
       },
+      { courseId: 'git-github-2026', programmeId: 'git-github' },
     ]);
     expect(listAuthorizedProgrammeIds(context)).toEqual([
       'cs50x',
       'programvareutvikling',
+      'git-github',
     ]);
   });
 
