@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6 - independent AI source reviewer; not human QA",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "be0cfe27dace15e429944c88b4a562d12708e826",
+    "payloadTree": "42490321942d033efca44a97c53a06e12e96759c",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -19,7 +19,8 @@
       "Hosted run 41617925041 found one obsolete registry assertion expecting two programmes. The test oracle was corrected to the three approved programmes and the affected test file passed locally. No production code, test runner or release policy changed.",
       "Hosted run 41627354974: all 3680 Vitest tests passed. Playwright exposed a heading-order issue in an asynchronous loading state. The shared loading heading was corrected and route axe scans now wait for loading completion. The accessibility E2E file and TypeScript passed locally.",
       "Owner-authorized test-only correction after hosted run 41630349133: split the 30-second combined Git lesson test into ten isolated lesson/theme cases, wait for ready lesson content, and remove ten mandatory full-page screenshots. All ten 320x900/200% root-text overflow checks and the same five Axe scans are retained; functional, clipboard/keyboard and offline scenarios are unchanged. Local managed run with three workers passed all 13 tests in 20.7 seconds; changed-file Prettier/ESLint and TypeScript exited 0. This implementation-session evidence note and binding update do not claim a new independent or human review, native browser zoom, or hosted certification.",
-      "Hosted run 41636088740 passed all 3680 Vitest tests but stopped before the Git cases: the dashboard course-map heading locator matched both Course Map and Loading course map after the earlier h2 loading-state correction. The implementation session added exact: true to that one locator, retaining all content and persistence assertions. All eight dashboard browser cases passed locally with three workers in 13.3 seconds; changed-file Prettier/ESLint and TypeScript exited 0. No production, timeout, runner or release-control change, blind rerun, or new independent/human review is claimed."
+      "Hosted run 41636088740 passed all 3680 Vitest tests but stopped before the Git cases: the dashboard course-map heading locator matched both Course Map and Loading course map after the earlier h2 loading-state correction. The implementation session added exact: true to that one locator, retaining all content and persistence assertions. All eight dashboard browser cases passed locally with three workers in 13.3 seconds; changed-file Prettier/ESLint and TypeScript exited 0. No production, timeout, runner or release-control change, blind rerun, or new independent/human review is claimed.",
+      "Hosted run 41639447501 passed 3680 Vitest tests and all ten Git lesson/theme cases (4.7-9.0 seconds each), then exposed an obsolete two-programme count in the onboarding layout test. Its single count assertion now expects the three approved programmes, retaining all option bounds, touch-target and overflow checks at 320/360/384px. All six affected layout/navigation browser cases passed locally with three workers in 7.9 seconds; changed-file Prettier/ESLint and TypeScript exited 0. The direct programme-count assertion family was inspected. This implementation-session correction and binding update claim no new independent/human review or complete hosted certification."
     ]
   },
   "adversarialFindings": [
