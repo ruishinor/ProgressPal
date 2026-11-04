@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-foundations-pedagogy-20261105",
+  "reviewer": "ChatGPT GPT-6 (separate scoped AI source review; not a human reviewer)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "768967f0f16df9e81999c27575ebf72b28a2ee4e",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Bounded adversarial review of the 2026-11-05 Git & GitHub foundations pedagogical consolidation. Checked changed sources and test relationships against the user-supplied worktree diagnostic, and distinguished reported local test outcomes from hosted release certification. This is an AI review, not an independent human assessment.",
+    "evidence": [
+      "Candidate 64b2573f432f99b2d5d26b5c85093b2cf2f2052d and payload tree 768967f0f16df9e81999c27575ebf72b28a2ee4e reported by the owner after local commit.",
+      "Direct inspection of owner-uploaded ProgressPal-Pathways-Diagnostic-20261105-003146-606.zip: working-tree diff, Git orientation and M01-M07 overview, five existing lessons, source.mjs, index.ts, technology reference entries, CSS and Playwright specs.",
+      "Owner-reported content exporter --check PASS (five lessons, seven exercises), focused Vitest 101/101 PASS, typecheck, changed-file ESLint and Prettier PASS.",
+      "Owner-reported Playwright diagnostic: 29/30 PASS with one old-button-selector timeout; following selector correction, the remaining scenario passed separately (1/1). No claim that all 30 ran against the final exact commit in one invocation.",
+      "Owner-reported production Vite build PASS and budget checker PASS: JavaScript gzip 439150/470000; CSS gzip 16868/40000; curriculum gzip 141437/150000; runtime gzip 6398912/7000000.",
+      "Review excludes an independent human novice-comprehension study, complete local release validation, GitHub Final candidate certification, merge and production smoke."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P2",
+      "description": "Rewritten Git reference copy initially lost a historically indexed contextual phrase (registrerer historikk), breaking an existing legitimate search expectation.",
+      "resolution": "Restored the searchable concept in the Git summary without changing the search engine or lowering the test oracle; the owner reported 84/84 technology-reference tests passing afterward.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P2",
+      "description": "New and revised browser assertions initially disagreed with the actual disclosure and self-report controls, preventing the intended flows from being exercised.",
+      "resolution": "Changed the orientation assertion to verify the details open state after keyboard activation; aligned both self-report button locators and resulting status copy to the implemented UI; the owner reported 29 relevant E2E PASS plus the corrected final E2E PASS separately.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-3",
+      "severity": "P3",
+      "description": "The lesson roadmap and beginner explanations have not yet been evaluated with a real first-year learner who has no Git experience; test automation cannot establish comprehension.",
+      "resolution": "Accepted as a pilot-evaluation limitation rather than a technical release blocker; M02-M07 are explicitly marked planned, M01 alone is available, and no evidence of learner understanding is claimed.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No unresolved P0/P1 defects or concrete blocking findings were identified in this bounded AI source review. Candidate may proceed to normal exact-candidate hosted Final candidate validation; this review does not certify the release, establish human independence, or authorize merge on failed checks."
+  }
+}
