@@ -1,0 +1,109 @@
+/* Pathways is a supporting learning path, not a new Campaign or programme. */
+.pathways-page {
+  max-width: 76rem;
+  margin-inline: auto;
+}
+
+.pathways-page__offer,
+.pathways-track__roadmap > li {
+  background: var(--rpg-surface-raised, var(--color-surface-muted));
+  color: var(--rpg-text, var(--color-text));
+  border: 1px solid var(--rpg-border, var(--color-border));
+  border-radius: var(--radius-sm);
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+}
+
+.pathways-track {
+  max-width: 76ch;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.pathways-track__lead {
+  font-size: 1.1rem;
+}
+
+.pathways-track section {
+  margin-block: 1.75rem;
+}
+
+.pathways-track details {
+  background: var(--rpg-surface, var(--color-surface));
+  border: 1px solid var(--rpg-border, var(--color-border));
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+}
+
+.pathways-track summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pathways-track__roadmap {
+  display: grid;
+  gap: 0.85rem;
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.pathways-track__roadmap h3,
+.pathways-track__roadmap h4 {
+  margin: 0;
+}
+
+.pathways-track__roadmap p {
+  margin-block: 0.6rem;
+}
+
+.pathways-track__roadmap ol {
+  margin-block: 0.75rem;
+  padding-inline-start: 1.5rem;
+}
+
+.pathways-track__roadmap li li {
+  padding-block: 0.2rem;
+}
+
+.pathways-track__roadmap > .pathways-track__current {
+  border-color: var(--rpg-border-strong, var(--color-border-strong));
+}
+
+.pathways-track__module-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.pathways-track__availability {
+  color: var(--rpg-text-muted, var(--color-text-muted));
+  border: 1px solid var(--rpg-border, var(--color-border));
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+}
+
+.pathways-track__builds-on {
+  color: var(--rpg-text-muted, var(--color-text-muted));
+}
+
+.pathways-track__start {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--rpg-surface, var(--color-surface));
+  border: 1px solid var(--rpg-border-strong, var(--color-border-strong));
+  border-radius: var(--radius-sm);
+  color: var(--rpg-text, var(--color-text));
+  font-weight: 600;
+}
+
+.pathways-page a:focus-visible,
+.pathways-track summary:focus-visible {
+  outline: 3px solid var(--rpg-focus-ring, var(--color-focus));
+  outline-offset: 3px;
+}

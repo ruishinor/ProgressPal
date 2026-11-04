@@ -44,63 +44,39 @@ export const gitLessons = [
     skillId: 'GIT-VERSIONING',
     flow: [
       text(
-        'Du trenger ikke ha programmert eller brukt en terminal før. Begynn med denne delen, og bruk «Neste del» nederst for å fortsette. Hele øvingen bruker noen små tekstfiler om en tur. Du trenger verken et eksisterende prosjekt, en GitHub-konto eller et annet ProgressPal-program.',
+        'Du trenger ikke kunne programmere, Git eller terminal fra før. I denne modulen går vi fra å forstå et vanlig utviklingsproblem til å registrere og kontrollere egne versjoner. De praktiske øvelsene bruker ufarlige tekstfiler om en tur, slik at du kan lære Git uten samtidig å måtte feilsøke programkode. Du trenger ingen GitHub-konto.',
       ),
       text(
-        'Tenk deg at du skriver en turplan. Du lagrer den, prøver en ny rute og angrer. Vanlig lagring oppdaterer filen du har foran deg. Filnavn som turplan-ny og turplan-endelig kan hjelpe en stund, men gjør det vanskelig å vite hva som ble endret, når det skjedde og hvorfor.',
+        'Tenk deg at du har laget en enkel nettside som virker. Du endrer koden for å legge til et kontaktskjema, men nå virker ikke menyen. Hva ble endret, og kan du få tilbake versjonen som virket? Det samme blir enda vanskeligere når flere i klassen endrer forskjellige deler av prosjektet. Å lagre en fil eller kopiere prosjektmappen hjelper med å beholde filinnhold, men gir ikke i seg selv en ryddig oversikt over hvilke endringer som hører sammen, eller hvorfor de ble gjort.',
       ),
       text(
-        'Git er et gratis verktøy som holder en lokal versjonshistorikk. Du bestemmer når en nyttig versjon skal registreres. En slik registrering heter en **commit**. Den peker på et snapshot: innholdet i filene Git følger på det tidspunktet, sammen med blant annet en forklaring og hvem som registrerte det. Du kan undersøke tidligere versjoner uten å endre dagens filer.',
+        'Git er et versjonskontrollsystem som organiserer prosjektets endringer. Du bestemmer når en sammenhengende versjon er verdt å registrere. Den registreringen heter en **commit**. En commit bevarer et øyeblikksbilde (snapshot) av det utvalgte filinnholdet, med en melding som forklarer endringen. Du kan sammenligne versjoner og undersøke tidligere arbeid. Dette skjer lokalt på datamaskinen, også uten nett. Git sjekker ikke om programmet faktisk virker: det er ditt og teamets arbeid å teste.',
       ),
       text(
-        'En **mappe** samler filer på datamaskinen. Et **repository**, ofte forkortet repo, er en prosjektmappe der Git også oppbevarer historikken i en skjult undermappe som heter .git. Når du senere skriver git-kommandoer i prosjektmappen, er det dette repositoryet Git arbeider med. Ikke flytt eller rediger .git selv.',
+        'Filene i et prosjekt ligger i en mappe. Når Git settes opp for den mappen, blir den et **repository**, ofte kalt et **repo**. Git lagrer historikken i en skjult undermappe som heter .git. Kommandoene du bruker i prosjektmappen, arbeider med dette repositoryet. Ikke endre .git manuelt.',
       ),
       text(
-        '**GitHub** er en egen nettjeneste for å lagre Git-repositoryer og samarbeide om endringer. Git fungerer på datamaskinen uten GitHub og uten nett. En lokal commit laster ikke opp noe. Senere i programmet skal du lære å dele endringer, men her bruker vi bare Git lokalt.',
+        '**GitHub** er en nettplattform der dere kan oppbevare et Git-repo og samarbeide om kode, for eksempel ved å foreslå endringer og diskutere dem før de tas inn. Git lager og organiserer versjonshistorikken; GitHub tilbyr tjenester rundt den. GitLab og Bitbucket er alternativer. En lokal commit sendes ikke automatisk til GitHub. I M01 bruker vi bare Git lokalt, og lærer deling senere.',
       ),
       note(
-        'Git-historikken er ikke en sikkerhetskopi av datamaskinen. Hvis hele øvingsmappen forsvinner, forsvinner også .git. ProgressPal og Git-mappen er dessuten to ulike ting: appen lagrer svar og framdrift i nettleseren, mens Git lagrer turfilene i øvingsmappen.',
+        'Git-historikk på samme disk er ikke en sikkerhetskopi: forsvinner hele prosjektmappen, kan også .git og historikken gå tapt. Ta en separat sikkerhetskopi av verdifullt arbeid. ProgressPal lagrer svar og framdrift i nettleseren; Git lagrer filene og historikken i din øvingsmappe. Appens sikkerhetskopi tar ikke med Git-mappen.',
       ),
       {
         t: 'table',
-        columns: [
-          'Retning i programmet',
-          'Hva bygger du videre på?',
-          'Tilgjengelig nå?',
-        ],
+        columns: ['Del', 'Hva er hensikten?', 'Status'],
         rows: [
           [
-            '1. Fra null til et bevisst lokalt commit',
-            'Hvorfor Git, Windows-oppsett, filer, status, staging, historikk og en trygg retting.',
-            'Ja: de fem delene i denne modulen.',
+            'M01 – din første lokale versjon',
+            'Forstå og bruke Git lokalt, fra prosjektmappe til kontrollert commit.',
+            'Tilgjengelig: fem leksjoner.',
           ],
           [
-            '2. Endringer og historikk',
-            'Bruke diff, log og show mer selvstendig; velge sammenhengende endringer og bruke .gitignore riktig.',
-            'Planlagt, ikke skrevet som leksjoner ennå.',
-          ],
-          [
-            '3. Brancher og merge',
-            'Lage og bytte branch, samle arbeid og forstå en enkel konflikt etter at commits sitter.',
-            'Planlagt.',
-          ],
-          [
-            '4. GitHub og samarbeid',
-            'Konto og autentisering når det trengs; remotes, clone, fetch, pull, push, tracking, README, fork, pull request og review.',
-            'Planlagt; krever nett ved faktisk samarbeid.',
-          ],
-          [
-            '5. Feil og praktisk arbeid',
-            'Endrede krav, avgrensede commits, enkel konfliktløsing og trygg gjenoppretting. Revert, amend, stash, reset, rebase og reflog innføres etter behov og risiko.',
-            'Planlagt.',
-          ],
-          [
-            'Valgfrie fordypninger',
-            'Tags, bisect, hooks, submodules, GitHub Actions, automatisering og andre diff-verktøy.',
-            'Framtidig oppslags- og fordypningsstoff.',
+            'M02–M07 – videre arbeid',
+            'Historikk, grener, sammenslåing, GitHub, samarbeid og bruk i egne prosjekter. Den fullstendige oversikten finnes på Pathways-siden.',
+            'Planlagt. Ingen leksjoner eller framdrift ennå.',
           ],
         ],
-        nb: 'Bare den første modulen teller i framdriften nå. De planlagte temaene er ingen åpne oppgaver og blir ikke registrert som gjennomført.',
+        nb: 'Du begynner med egne, lokale endringer. Senere skal du bruke samme forståelse når flere utviklere arbeider sammen.',
       },
       question(
         'GIT-M01-E01',
@@ -128,7 +104,7 @@ export const gitLessons = [
         'Tenk på hva som skjer med filen på disken, og hva du selv må be Git registrere.',
       ),
       text(
-        'Du kan lese raskere hvis du kjenner stoffet fra før. Delene er åpne, men det å hoppe over noe dokumenterer ingen ferdighet. Piloten gir ingen XP. Et riktig svar betyr at det innsendte svaret passer med oppgaven; appen kan ikke se hva du har gjort i Git.',
+        'I neste leksjon gjør du klar en trygg mappe og ser hvor kommandoer kjøres. Deretter lager du din første commit og øver på å velge nøyaktig hvilke endringer den skal inneholde.',
       ),
     ],
   },
@@ -139,16 +115,16 @@ export const gitLessons = [
     skillId: 'GIT-TOOLS',
     flow: [
       text(
-        '**Du trenger:** en Windows-maskin, Windows PowerShell 5.1, Git 2.28 eller nyere og Notisblokk. PowerShell og Notisblokk følger med Windows. Nett trengs for å laste ned Git hvis det mangler. Selve øvingen trenger ikke nett. En annen teksteditor er valgfri. GitHub-konto, VS Code og programmeringskunnskap er ikke påkrevd. På en administrert skole- eller jobbmaskin følger du installasjonsreglene der.',
+        '**Du trenger:** Windows PowerShell 5.1, Git 2.28 eller nyere og Notisblokk på en Windows-maskin. PowerShell og Notisblokk følger med Windows. Du trenger nett bare hvis Git må installeres; selve øvingen fungerer uten nett. GitHub-konto, VS Code og programmeringskunnskap er ikke nødvendig. Bruker du en administrert skole- eller jobbmaskin, følger du installasjonsreglene der.',
       ),
       text(
         'En **terminal** er et vindu der du skriver beskjeder til datamaskinen. **PowerShell** er programmet som tolker beskjedene, eller kommandoene, i dette vinduet. Åpne Start-menyen i Windows, skriv Windows PowerShell og åpne appen med det navnet. Velg vanlig åpning; ikke «Kjør som administrator». Velg Windows PowerShell framfor Git Bash i denne øvingen.',
       ),
       text(
-        'Du ser gjerne noe som PS C:\\Users\\navn> og en blinkende markør. Dette er en ledetekst som viser hvor terminalen står. Du skal ikke kopiere PS, stien eller tegnet >. Boksene merket «Kommando – PowerShell 5.1» nedenfor inneholder bare det du skal skrive eller kopiere. Trykk Enter for å utføre. Utskrift vises i egne bokser som du ikke skal kjøre.',
+        'Ledeteksten kan for eksempel vise PS C:\\Users\\navn> med en blinkende markør. Den forteller hvilken mappe terminalen står i. Ikke kopier ledeteksten, stien eller tegnet >. Du skriver eller kopierer bare innholdet i bokser merket «Kommando – PowerShell 5.1» og trykker Enter. Bokser med «Forventet utskrift» viser resultater du skal lese, ikke kjøre.',
       ),
       text(
-        'Kopier hele kommandoboksen, også ytterlinjene . { og }. De gjør at linjene kjøres samlet, slik at en STOPP stanser resten av boksen. Punktumet gjør også at PowerShell husker øvingsstien mellom boksene. Trykk Enter etter at hele boksen er limt inn.',
+        'Når du kopierer en kommandoboks, tar du med alle linjene. Noen bokser har ytterlinjene . { og }. De sørger for at en sikkerhetsstopp avbryter hele boksen, og at PowerShell husker øvingsmappen mellom boksene. Du trenger ikke forstå eller skrive disse tegnene selv for å lære Git; bruk dem slik de står.',
       ),
       command(
         'Finn ut hvor du står',
@@ -171,7 +147,7 @@ export const gitLessons = [
         'Lukk PowerShell-vinduet etter installasjonen, åpne Windows PowerShell på nytt fra Start og kjør git --version igjen. Fortsett først når Git svarer med 2.28 eller nyere. Hvis installasjonen avvises, eller git fortsatt ikke gjenkjennes etter ny åpning, stopp Git-øvingene og få hjelp til selve installasjonen. Ikke prøv tilfeldige skript fra nettet. Installasjonsveiviseren er ikke en del av den lokale, reproduserte Git-øvelsen.',
       ),
       text(
-        'Nå lager vi en ny mappe under Dokumenter. Navnet har mellomrom med vilje. Anførselstegn holder ordene samlet som ett navn. $practiceRoot er et midlertidig navn i dette PowerShell-vinduet som husker hele stien. Join-Path setter sammen Dokumenter-stien og mappenavnet. Linjene med if stanser hvis mappen allerede finnes. De sletter eller overskriver ingenting.',
+        'Vi lager en egen mappe under Dokumenter, ikke i et eksisterende kodeprosjekt. Kommandoene nedenfor undersøker om navnet allerede finnes, før de oppretter noe. $practiceRoot er et navn PowerShell bruker for å huske adressen til øvingsmappen; Join-Path setter sammen adressen og mappenavnet. Du trenger ikke lære skriptsyntaksen utenat. Det viktige er at du vet hvilken mappe Git skal arbeide i, og at en eksisterende mappe ikke overskrives.',
       ),
       command(
         'Opprett en ny øvingsmappe én gang',
@@ -220,10 +196,10 @@ export const gitLessons = [
     skillId: 'GIT-SNAPSHOT',
     flow: [
       text(
-        'Fortsett i Windows PowerShell i den nye, tomme mappen ProgressPal Git oving fra forrige del. Kjør Get-Location og Get-ChildItem -Force hvis du er usikker. Ikke kjør oppsettet i en annen mappe. Hvis du allerede har gjennomført denne delen, skal du undersøke tilstanden og fortsette, ikke opprette filene på nytt.',
+        'I et utviklingsprosjekt kan den første commiten beskrive en fungerende grunnversjon av programmet. Da har teamet et kjent utgangspunkt å sammenligne senere endringer med. Her øver vi på akkurat den arbeidsmåten med små tekstfiler: én beskrivelse, én huskeliste og en kladd som ikke skal inn i historikken. Fortsett i den tomme mappen ProgressPal Git oving fra forrige leksjon. Sjekk hvor du står før du kjører kommandoer. Har du gjort dette før, skal du undersøke filene og historikken, ikke lage dem på nytt.',
       ),
       text(
-        'Git må først få vite at denne mappen er et repository. Kommandoen init starter et nytt repository; -b main gir den første **branchen** navnet main. En branch er en navngitt linje i historikken. Vi holder oss på main nå og lærer å arbeide med flere brancher senere.',
+        'Før Git kan følge endringene dine, må du gjøre prosjektmappen til et repo. **git init** starter et lokalt repository. **-b main** gir den første **branchen** navnet main. En branch er en navngitt utviklingslinje i historikken. Foreløpig bruker du bare main; egne grener kommer senere når du skal prøve endringer parallelt.',
       ),
       command(
         'Start repositoryet',
@@ -273,7 +249,7 @@ export const gitLessons = [
         'Turplan\nDagstur langs elva.\n?? .gitignore\n?? README.txt\n?? plan.txt',
       ),
       text(
-        'Her kommer Git sin første arbeidsdeling. **Working tree** er prosjektfilene slik de ligger på datamaskinen nå. **Staging area**, også kalt **index**, er innholdet du har valgt ut til neste commit. **Commit-historikken** er snapshotene Git allerede har registrert. git add kopierer innholdet på det tidspunktet til staging area. Det lager ingen commit. git commit registrerer det klargjorte snapshotet.',
+        'I et virkelig prosjekt kan du for eksempel rette en feil i én fil mens du eksperimenterer med en annen. Du vil ikke nødvendigvis registrere begge deler i samme commit. Derfor skiller Git mellom **working tree** (filene på disken), **staging area** eller **index** (innholdet du har valgt til neste commit) og **commit-historikken** (versjoner som allerede er registrert). **git add** kopierer det valgte filinnholdet inn i staging. **git commit** registrerer det som er klargjort. En lagret fil blir verken staged eller committed av seg selv.',
       ),
       command(
         'Velg startfilene',
@@ -334,7 +310,7 @@ export const gitLessons = [
     skillId: 'GIT-STAGING',
     flow: [
       text(
-        'Nå bruker du det samme repositoryet på main, med én commit: Start turplanen. README.txt har linjene Turplan og Dagstur langs elva.; plan.txt har Husk vann. Status skal ikke vise endrede filer. Du skal nå registrere starttidspunktet i README.txt, mens en endret huskeliste skal vente. Dette viser hvorfor ikke alle endringer trenger å være i samme commit.',
+        'I et kodeprosjekt kan du ha endret både innloggingsskjermen og en uferdig eksperimentell funksjon. En god commit bør inneholde en endring du kan forklare og undersøke; du trenger ikke ta med alt bare fordi filene er endret. Nå bruker du det samme repoet på main med én commit: Start turplanen. Du skal registrere starttidspunktet i README.txt, mens en endret huskeliste skal vente. Den konkrete øvingen lærer deg å velge hva som faktisk blir med.',
       ),
       command(
         'Åpne begge filene',
@@ -411,7 +387,7 @@ export const gitLessons = [
         'README.txt\nplan.txt',
       ),
       text(
-        'Vi vil ta plan.txt ut av utvalget uten å miste redigeringen. **git restore --staged** setter bare denne filens plass i index tilbake til siste commit. I dette repositoryet finnes den første commiten allerede. Behold --staged; restore uten dette valget kan erstatte filinnhold i working tree. Ikke bruk andre restore-varianter her.',
+        'Du oppdaget at plan.txt var klargjort ved en feil. **git restore --staged -- plan.txt** fjerner denne filens endring fra utvalget for neste commit, men lar den redigerte filen på disken være i fred. Det er en nyttig retting når du ser at feil arbeid er valgt. **Behold --staged**: restore uten dette valget kan erstatte endringer i selve arbeidsfilen.',
       ),
       command(
         'Rett bare utvalget',
@@ -444,7 +420,7 @@ export const gitLessons = [
     skillId: 'GIT-TRANSFER',
     flow: [
       text(
-        'Start i samme repository på main etter forrige del: to commits, en ventende kartlinje i README.txt og en ventende endring til Husk vann og mat. i plan.txt. Kontroller status og filinnhold. Er tilstanden annerledes, finn først ut hva som allerede er staged eller registrert. Følg ikke oppgaven blindt i et annet prosjekt.',
+        'Til nå har du fått steg for steg-hjelp. I et virkelig programvareprosjekt endres ofte oppgaven mens du arbeider: en annen feil blir viktigere, eller teamet velger å sende én retting før den andre. Nå får du et endret mål og må selv bruke status og diff til å avgjøre hva Git skal registrere. Start i samme repo på main med to commits, en ventende kartlinje i README.txt og en ventende huskelisteendring i plan.txt. Er tilstanden annerledes, undersøk først hva som er staged eller committed før du gjør noe mer.',
       ),
       text(
         'Det nye målet er motsatt av forrige commit: **registrer bare huskelisten i plan.txt**, nå med en sjekk av været. Kartlinjen i README.txt skal fortsatt vente. Før du fikk det nye målet, rakk du å klargjøre README.txt. Vi lager den startsituasjonen bevisst under.',
@@ -527,7 +503,7 @@ export const gitLessons = [
         hints: [],
       },
       text(
-        'Svar på forståelsesspørsmål og innlimt tekst får en automatisk tekstkontroll. Sjekklisten og egenrapporten blir bare lagret, også når du beskriver noe uferdig. Ingen av delene gir XP. «Mark locally complete» i panelet nederst markerer at du har gått gjennom denne delen; det er et eget valg og ingen prøve du har bestått. Rett status hvis du ønsker å gå tilbake. Svar og versjonsbundet lesested beholdes når du bytter program i Settings → Programme. Ta sikkerhetskopi fra Settings før du sletter nettleserdata. Øvingsmappen må du ta vare på separat.',
+        'Du kan lagre svar, en valgfri filnavnkontroll og din egen beskrivelse av øvingen. Marker leksjonen som fullført når du selv har gått gjennom den. Framdrift og svar blir lagret i ProgressPal og følger med en sikkerhetskopi av appen; Git-øvingsmappen må du ta vare på separat.',
       ),
       {
         t: 'recap',

@@ -72,7 +72,7 @@ export const gitGithubDefinition = validateProgrammeDefinition({
       evaluatorContractVersion: lessonEvaluatorContractVersion,
       copy: {
         ...programvareutviklingLessonCopy,
-        recordSelfReportLabel: 'Lagre egenrapport',
+        recordSelfReportLabel: 'Lagre svaret mitt',
         learnerWording: [],
         text: {
           ...programvareutviklingLessonCopy.text,
@@ -82,17 +82,17 @@ export const gitGithubDefinition = validateProgrammeDefinition({
           output: 'Forventet utskrift eller utdrag (ikke en kommando):',
           correct: 'Svaret passer',
           selfReported:
-            'Bare den innsendte teksten sjekkes. ProgressPal kan ikke se repositoryet eller bekrefte at du har kjørt Git.',
+            'Svaret ditt er lagret. Se også etter hva Git viser i terminalen.',
           privacy:
             'Ingen passord, tokens, personopplysninger, private repoer eller personlige stier. Lagrede svar følger med sikkerhetskopier.',
           recordedBody:
-            'Din egenrapport er lagret, uten vurdering av riktighet eller praktisk kompetanse. Ingen XP.',
+            'Svaret ditt er lagret. Du kan gå videre eller komme tilbake senere.',
           localCompletionNote:
-            'Dette markerer delen som gjennomgått, uten XP. Svar og egenrapport er ikke bekreftet ekstern Git-praksis.',
+            'Denne delen er markert som gjennomgått. Du kan åpne den igjen når du vil.',
           completionDisclaimer:
-            'Gjennomgått innhold og innsendte svar dokumenterer ikke Git-mestring. Denne piloten gir ingen XP.',
+            'Du kan øve igjen når du vil. Ingen XP tildeles i dette læringsløpet.',
           whereNextModuleRule:
-            'Modulen vises som gjennomgått når du selv har markert alle fem delene fullført. Dette er framdrift, ikke en bestått ferdighetsprøve.',
+            'Når du har markert de fem leksjonene fullført, kan du se tilbake på det du har gjort. Videre moduler er planlagt.',
         },
       },
     }),
