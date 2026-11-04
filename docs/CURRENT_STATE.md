@@ -1,6 +1,41 @@
 # ProgressPal current state
 
-**2026-11-04 Pathways — merged and deployed baseline; focused follow-up.**
+**2026-11-04 Pathways — PR #69 certified and deployed; residual corrections.**
+PR [#69](https://github.com/ruishinor/ProgressPal/pull/69) merged as
+`f39ab862c0fc68c1306479c004021f8c52bc4acd`, directly verified as remote
+`master` and the production source when this residual investigation began.
+Comprehensive PR run
+[`41817040865`](https://github.com/ruishinor/ProgressPal/actions/runs/41817040865)
+passed all 21 command validators, 3,691 unit/integration tests and 330 browser
+tests with no skipped or retried tests. Native master run
+[`41821950295`](https://github.com/ruishinor/ProgressPal/actions/runs/41821950295)
+passed using authenticated ATTEST reuse plus a fresh audit. Vercel deployment
+`dpl_Fw7rwFsy8mnrAhrBNpUtRaXC3FiU` is READY with the public alias
+`progress-pal-seven.vercel.app` assigned, directly rechecked on 2026-11-04.
+
+The bounded residual investigation reproduced the two stderr diagnostics by
+holding a completion refresh until synthetic test cleanup closed the shared
+database. The route helper now waits for the successor control to be enabled
+before a test can finish; no application lifecycle or migration-context behavior
+changes. A separate regression proves that historical `started`/`blocked` rows
+can retain `completedAt`, survive backup/restore, and incorrectly reuse that old
+time. A new Pathways completion transition now records its own event time;
+opening an already-completed row leaves it intact, reopening clears completion,
+and the original first-start time and unrelated records remain preserved. No
+historical rewrite, schema, XP, dependency, release-control or infrastructure
+change is involved. These investigation and implementation facts are distinct
+from the hosted certificate and deployment identity of any subsequent release.
+Focused preflight passes: 29 Pathways/persistence/RPG-save Vitest cases, four
+managed browser journeys across both programmes/shells, TypeScript, changed-file
+lint/format, production build and bundle budgets. The three new lifecycle/stale
+timestamp regression cases failed on the unchanged starting implementation and
+pass after the correction. The final targeted run emitted no missing-context
+diagnostic. No full local suite or release gate was run.
+
+The following records are historical; their pending/local wording describes the
+original development stage, not the current PR #69 release status.
+
+**2026-11-04 Pathways correctness — historical implementation record.**
 PR [#68](https://github.com/ruishinor/ProgressPal/pull/68) merged on 2026-11-03
 as `737ccdf0ad14f80e27e1b36b3b085425ba78c73c`, freshly confirmed as remote
 `master` on 2026-11-04. Its native master `Final candidate` run

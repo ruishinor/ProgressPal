@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-residuals-20261104",
+  "reviewer": "Independent OpenAI Codex AI reviewer (/root/independent_release_review), separate from the implementation agent; no human review claimed",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "63b150041e83037ea745a530ca6dffe337c1768f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Fresh independent scoped adversarial review of frozen residual-correction candidate 3e723fbe7544d9e08bb1bde4c91e55e3c298e44e against master f39ab862c0fc68c1306479c004021f8c52bc4acd in the dedicated pathways-residuals worktree. Reviewed the complete four-file diff: settled completion-test lifetime, new-event timestamps for permitted historical noncompleted rows, exact backup/data preservation and current PR #69 release status. Scoped PASS; no material blocker identified.",
+    "evidence": [
+      "Independently inspected current repository/current-state/release-review instructions, the full four-file diff, PathwaysPage save semantics and feature boundary, ProgressEntrySchema, upsertProgress, runLocalMutation/refresh and test cleanup lifetimes. The only product delta replaces reuse of existing completedAt with the current timestamp on a transition into completed.",
+      "Independently ran npm test -- tests/features/pathways/pathways.test.tsx tests/db/gitGithubPersistence.test.ts: 2 files, 13 tests passed, zero failed or skipped. No missing-migration-context stderr diagnostic was observed in this run. The tests include held-refresh settlement, initial completion, reopen/recompletion, started and blocked historical timestamps, existing metadata/assessment/bookmark/programme/reward preservation, both shells/primary programmes, legacy access, foreign-item rejection and all three backup contexts.",
+      "Independently computed the frozen payload using npm run review:payload-tree -- 3e723fbe7544d9e08bb1bde4c91e55e3c298e44e: 63b150041e83037ea745a530ca6dffe337c1768f. Independently inspected the changed-file set and git diff --check.",
+      "Lifecycle adversarial trace: preparation can publish a committed progress row before saveCompletion's runLocalMutation refresh finishes. The updated test helper waits for the successor button to be enabled, which requires both saving=false and writable coordination. The new controlled oracle holds initializeDatabase during that refresh, proves committed progress is already readable while the successor is disabled, and verifies the helper remains unsettled until the held refresh is released. The spy is restored; no console suppression, application lifecycle change, global teardown alteration or timeout increase is present.",
+      "Historical-state adversarial trace: ProgressEntrySchema permits noncompleted status with completedAt. Independently inspected the released PR #68 handler at 737ccdf0ad14f80e27e1b36b3b085425ba78c73c: it spread the previous row and changed only status. The expanded persistence fixture constructs that exact completed-to-started shape and asserts exact retention after backup/restore for CS50x, Programvareutvikling and legacy Git-active state. This makes historical reachability concrete without claiming real learner data was inspected.",
+      "Current-transition adversarial trace: Pathways rereads and spreads the existing row, retains startedAt and all unrelated fields, sets completedAt to the new event timestamp when entering completed, and clears it when reopening. Opening a genuinely completed row does not write it. The started/blocked route cases assert replacement of stale completedAt plus preservation of ID/createdAt/confidence/notes/self-reported evidence, assessment history, bookmark, other progress, programme enrolments/active state and rewards. No historical bulk rewrite, schema change or XP award is introduced.",
+      "Independently checked GitHub PR #69: merged at f39ab862c0fc68c1306479c004021f8c52bc4acd. Native master run 41821950295 has a successful Final candidate job with comprehensive install/browser/gate steps skipped, consistent with the documented ATTEST path. Independently checked Vercel dpl_Fw7rwFsy8mnrAhrBNpUtRaXC3FiU: production READY for that SHA and progress-pal-seven.vercel.app assigned. These are baseline observations, not certification/deployment of this candidate.",
+      "Implementation-session evidence, not independently rerun by this reviewer: temporary call-through diagnosis deterministically reproduced the old missing-context diagnostic after cleanup closed the singleton; the new held-refresh and both stale-time regressions failed against their prior implementations; 29 targeted Pathways/persistence/RPG-save tests, four managed cross-programme/shell browser journeys, TypeScript, changed-file lint/format, production build and bundle budgets pass. Temporary diagnosis was removed before this frozen candidate.",
+      "Scope verification: no AppStateProvider/global teardown, shared database/domain, authored lesson/PowerShell, assessment, programme rule, schema, XP, dependency/version, infrastructure, service-worker, test-runner, release-control or workflow changes. Current-state wording identifies PR #69 as the certified/deployed baseline and explicitly marks the earlier pending/local records as history.",
+      "Limits: no real learner data inspected; historical reachability is demonstrated with synthetic schema/repository/backup states. No independent rerun of the temporary diagnostic, previous-code mutation checks, browser suite, full local gate or hosted candidate certification, and no residual-candidate production smoke. Review PASS and baseline certification/deployment are separate evidence classes."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PATHWAYS-RESIDUALS-1",
+      "severity": "P2",
+      "description": "Test-lifetime defect: a route test could finish after observing committed completion while the save refresh was still pending, allowing synthetic database cleanup to produce the hosted missing-context diagnostics.",
+      "resolution": "The helper now waits for the successor button to be enabled before returning. Independently passed the controlled held-refresh oracle, which keeps committed data readable but the helper unsettled until refresh is released. Production lifecycle and global cleanup remain unchanged; no missing-context stderr was observed in the independent focused run.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATHWAYS-RESIDUALS-2",
+      "severity": "P2",
+      "description": "Historical-data defect: a schema-valid started or blocked record may retain completedAt, and the prior Pathways completion transition reused that old timestamp instead of recording the new completion event.",
+      "resolution": "The bounded product change supplies the current event timestamp for every transition into completed. Independently passed both stale-state route cases and the expanded exact-preservation backup round trips. Opening existing records leaves them unchanged; reopening clears completion; first-start time, unrelated fields and assessment/programme/reward records remain preserved.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped PASS for payload 63b150041e83037ea745a530ca6dffe337c1768f. The earlier focused review covered clean completion/reopen sequences but omitted the schema-permitted historical noncompleted-plus-completedAt combination; the new started/blocked oracles and exact backup fixture close that gap. The held-refresh test turns the prior teardown explanation into a bounded synchronization contract without changing application lifecycle. Independent focused tests and source inspection support proceeding to the existing hosted certification and authorized merge/deployment workflow; no certification or production deployment of this candidate is claimed."
+  }
+}

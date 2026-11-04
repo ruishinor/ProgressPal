@@ -1,5 +1,12 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, expect, it } from 'vitest';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import { beforeEach, expect, it, vi } from 'vitest';
+import * as database from '@/lib/db';
 import { resolveDatabaseMigrationContext } from '@/app/providers/programmeComposition';
 import { router } from '@/app/router/router';
 import {
@@ -26,9 +33,12 @@ async function toggleCompletion(name: string) {
   const button = await screen.findByRole('button', { name });
   await waitFor(() => expect(button).toBeEnabled());
   fireEvent.click(button);
-  await screen.findByRole('button', {
+  const successor = await screen.findByRole('button', {
     name: name === completeLabel ? reopenLabel : completeLabel,
   });
+  // Preparation can publish committed progress before the save's refresh settles.
+  // Do not let test cleanup close the singleton while that refresh still runs.
+  await waitFor(() => expect(successor).toBeEnabled());
   return (await getProgress(lessonId))!;
 }
 
@@ -50,6 +60,47 @@ async function learner(id: string) {
     { completeOnboarding: true },
   );
 }
+
+it('waits for the completion refresh before the test can tear down its database', async () => {
+  await learner('cs50x');
+  await renderAppAtRoute('/pathways/git-github/' + lessonId);
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: completeLabel })).toBeEnabled(),
+  );
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const originalInitialize = database.initializeDatabase;
+  const refresh = vi
+    .spyOn(database, 'initializeDatabase')
+    .mockImplementationOnce(async (options) => {
+      await pending;
+      return originalInitialize(options);
+    });
+  let settled = false;
+  const completion = toggleCompletion(completeLabel).then((saved) => {
+    settled = true;
+    return saved;
+  });
+  try {
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    const successor = await screen.findByRole('button', { name: reopenLabel });
+    expect(successor).toBeDisabled();
+    await act(async () => {
+      expect((await getProgress(lessonId))?.status).toBe('completed');
+    });
+    expect(settled).toBe(false);
+  } finally {
+    await act(async () => {
+      release();
+      await refresh.mock.results[0]!.value;
+    });
+    await completion;
+    refresh.mockRestore();
+  }
+  expect(screen.getByRole('button', { name: reopenLabel })).toBeEnabled();
+});
 
 it('records matching start and completion times on initial manual completion', async () => {
   await learner('cs50x');
@@ -85,6 +136,8 @@ it('clears the completion timestamp when reopening and retains the original star
     completedAt: oldTimestamp,
   });
   await renderAppAtRoute('/rpg/pathways/git-github/' + lessonId);
+  await screen.findByRole('button', { name: reopenLabel });
+  expect(await getProgress(lessonId)).toEqual(original);
   const reopened = await toggleCompletion(reopenLabel);
   expect(reopened).toEqual({
     ...original,
@@ -122,64 +175,73 @@ it('records a fresh completion time after reopening while preserving identity an
   expect(saved.completedAt! <= new Date().toISOString()).toBe(true);
 });
 
-it('preserves the latest progress fields, other progress, assessments and programme state through completion and reopening', async () => {
-  await learner('programvareutvikling');
-  await upsertProgress({
-    itemId: 'week-0-lecture',
-    status: 'started',
-    confidence: 3,
-    notes: 'Other programme work',
-  });
-  await renderAppAtRoute('/pathways/git-github/' + lessonId);
-  await screen.findByRole('button', { name: completeLabel });
-  const task = within(screen.getByRole('group', { name: /^Oppgave 1 · / }));
-  fireEvent.click(
-    task.getByRole('radio', { name: /Lagring i Notisblokk oppdaterer filen/ }),
-  );
-  fireEvent.click(task.getByRole('button', { name: 'Sjekk svaret' }));
-  await waitFor(() =>
-    expect(task.getByRole('status', { name: 'Resultat' })).toHaveTextContent(
-      'Svaret passer',
-    ),
-  );
-  // Write after the route loads: saving must preserve the latest stored fields.
-  const original = await upsertProgress({
-    itemId: lessonId,
-    status: 'blocked',
-    confidence: 4,
-    notes: 'Behold notatene mine',
-    evidenceType: 'self_report',
-    evidenceText: 'Eget arbeid, ikke en automatisk vurdering',
-    startedAt: oldTimestamp,
-  });
-  const before = await getDatabaseSnapshot();
-  const saved = await toggleCompletion(completeLabel);
-  expect(saved).toEqual({
-    ...original,
-    status: 'completed',
-    completedAt: saved.completedAt,
-    updatedAt: saved.updatedAt,
-  });
-  expect(saved.completedAt).toBeDefined();
-  const reopened = await toggleCompletion(reopenLabel);
-  expect(reopened).toEqual({
-    ...original,
-    status: 'started',
-    completedAt: undefined,
-    updatedAt: reopened.updatedAt,
-  });
-  const after = await getDatabaseSnapshot();
-  expect(
-    after.progressEntries.filter((row) => row.itemId !== lessonId),
-  ).toEqual(before.progressEntries.filter((row) => row.itemId !== lessonId));
-  expect(after.learnerEvidence).toEqual(before.learnerEvidence);
-  expect(after.learnerEvidence.length).toBeGreaterThan(0);
-  expect(after.lessonPositions).toEqual(before.lessonPositions);
-  expect(after.appMeta).toEqual(before.appMeta);
-  expect(after.programmeEnrolments).toEqual(before.programmeEnrolments);
-  expect(after.xpTransactions).toEqual(before.xpTransactions);
-  expect(after.achievementUnlocks).toEqual(before.achievementUnlocks);
-});
+it.each(['started', 'blocked'] as const)(
+  'replaces a stale completion time from %s while preserving progress, assessments and programme state',
+  async (status) => {
+    await learner('programvareutvikling');
+    await upsertProgress({
+      itemId: 'week-0-lecture',
+      status: 'started',
+      confidence: 3,
+      notes: 'Other programme work',
+    });
+    await renderAppAtRoute('/pathways/git-github/' + lessonId);
+    await screen.findByRole('button', { name: completeLabel });
+    const task = within(screen.getByRole('group', { name: /^Oppgave 1 · / }));
+    fireEvent.click(
+      task.getByRole('radio', {
+        name: /Lagring i Notisblokk oppdaterer filen/,
+      }),
+    );
+    fireEvent.click(task.getByRole('button', { name: 'Sjekk svaret' }));
+    await waitFor(() =>
+      expect(task.getByRole('status', { name: 'Resultat' })).toHaveTextContent(
+        'Svaret passer',
+      ),
+    );
+    // Write after the route loads: saving must preserve the latest stored fields.
+    const original = await upsertProgress({
+      itemId: lessonId,
+      status,
+      confidence: 4,
+      notes: 'Behold notatene mine',
+      evidenceType: 'self_report',
+      evidenceText: 'Eget arbeid, ikke en automatisk vurdering',
+      startedAt: oldTimestamp,
+      completedAt: oldTimestamp,
+    });
+    const before = await getDatabaseSnapshot();
+    const earliest = new Date().toISOString();
+    const saved = await toggleCompletion(completeLabel);
+    expect(saved).toEqual({
+      ...original,
+      status: 'completed',
+      completedAt: saved.completedAt,
+      updatedAt: saved.updatedAt,
+    });
+    expect(saved.completedAt).toBeDefined();
+    expect(saved.completedAt! >= earliest).toBe(true);
+    expect(saved.completedAt).not.toBe(original.completedAt);
+    const reopened = await toggleCompletion(reopenLabel);
+    expect(reopened).toEqual({
+      ...original,
+      status: 'started',
+      completedAt: undefined,
+      updatedAt: reopened.updatedAt,
+    });
+    const after = await getDatabaseSnapshot();
+    expect(
+      after.progressEntries.filter((row) => row.itemId !== lessonId),
+    ).toEqual(before.progressEntries.filter((row) => row.itemId !== lessonId));
+    expect(after.learnerEvidence).toEqual(before.learnerEvidence);
+    expect(after.learnerEvidence.length).toBeGreaterThan(0);
+    expect(after.lessonPositions).toEqual(before.lessonPositions);
+    expect(after.appMeta).toEqual(before.appMeta);
+    expect(after.programmeEnrolments).toEqual(before.programmeEnrolments);
+    expect(after.xpTransactions).toEqual(before.xpTransactions);
+    expect(after.achievementUnlocks).toEqual(before.achievementUnlocks);
+  },
+);
 it.each(['cs50x', 'programvareutvikling'])(
   'opens, saves and returns through both shells without switching %s',
   async (id) => {
@@ -200,12 +262,7 @@ it.each(['cs50x', 'programvareutvikling'])(
       level: 1,
       name: 'Start her: hvorfor bruke Git?',
     });
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Marker som fullført lokalt',
-      }),
-    );
-    await screen.findByRole('button', { name: 'Åpne leksjonen igjen' });
+    await toggleCompletion(completeLabel);
     const saved = await getDatabaseSnapshot();
     expect(saved.appMeta).toEqual(before.appMeta);
     expect(saved.xpTransactions).toEqual(before.xpTransactions);
