@@ -109,10 +109,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             confidence: existing?.confidence ?? 0,
             status,
             startedAt: existing?.startedAt ?? timestamp,
-            completedAt:
-              status === 'completed'
-                ? (existing?.completedAt ?? timestamp)
-                : undefined,
+            completedAt: status === 'completed' ? timestamp : undefined,
           }),
         { invalidateRoute: false },
       );

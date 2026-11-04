@@ -123,9 +123,27 @@ it.each(['cs50x', 'programvareutvikling', 'git-github'])(
         },
         options,
       );
-      await upsertProgress(
-        { itemId: 'git-m01-o05', status: 'completed', confidence: 0 },
+      const completedProgress = await upsertProgress(
+        {
+          itemId: 'git-m01-o05',
+          status: 'completed',
+          confidence: 2,
+          startedAt: '2026-11-01T08:00:00.000Z',
+          completedAt: '2026-11-02T08:00:00.000Z',
+          notes: 'Historical note',
+          evidenceType: 'self_report',
+          evidenceText: 'Historical learner work',
+        },
         options,
+      );
+      // PR #68's released toggle spread a completed row and changed only status.
+      // The schema permits this historical state; backup/restore must retain it.
+      const historicalProgress = await upsertProgress(
+        { ...completedProgress, status: 'started' },
+        options,
+      );
+      expect(historicalProgress.completedAt).toBe(
+        completedProgress.completedAt,
       );
       const snapshot = await getDatabaseSnapshot(options);
       expect(snapshot.xpTransactions).toEqual(earned);
@@ -162,6 +180,7 @@ it.each(['cs50x', 'programvareutvikling', 'git-github'])(
       expect(restored.achievementUnlocks).toEqual(snapshot.achievementUnlocks);
       expect(await getLessonPosition('git-m01-o05', options)).toEqual(position);
       expect(restored.progressEntries).toContainEqual(cs50Progress);
+      expect(restored.progressEntries).toContainEqual(historicalProgress);
       await enrolAndSwitchActiveProgramme('cs50x', {
         ...options,
         seed: bundledCourseSeed,
