@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-correctness-20261104",
+  "reviewer": "Independent OpenAI Codex AI reviewer (/root/independent_release_review), separate from the implementation agent; no human review claimed",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "b9556472e0794f286feb4a4f64a50a529534dd2a",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent scoped adversarial review of frozen candidate 31d247aa4d69c18b27172e31f0faae431f96083b against master 737ccdf0ad14f80e27e1b36b3b085425ba78c73c. Reviewed all four changed files: Pathways manual-completion timestamp lifecycle, preservation of existing learner records and assessment evidence, Bokmaal controls and accessible status feedback, and correction of the top-level PR #68 deployed status while retaining historical records. Scoped PASS; no material blocker identified.",
+    "evidence": [
+      "Independently inspected the complete candidate diff, PathwaysPage save/preparation/allowlist boundaries, its feature README, ProgressEntrySchema, upsertProgress and existing RPG getDefaultStartedAt/getDefaultCompletedAt semantics. The change remains local to the Pathways host and does not alter shared repository/schema behavior.",
+      "Independently ran npm test -- tests/features/pathways/pathways.test.tsx tests/db/gitGithubPersistence.test.ts: 2 files, 11 tests passed, zero failed or skipped. These include matching initial start/completion times, clearing completion on reopening, fresh recompletion time with stable identity/first start, latest notes/confidence/self-report preservation, assessment history/bookmark/programme/reward preservation, both primary programmes and shells, legacy Git-active recovery, foreign-item rejection and backup round trips.",
+      "Independently computed the frozen candidate payload with npm run review:payload-tree -- 31d247aa4d69c18b27172e31f0faae431f96083b: b9556472e0794f286feb4a4f64a50a529534dd2a. The first sandbox attempt failed to create its temporary index; the approved unsandboxed execution succeeded. That tooling failure is not represented as a passing test.",
+      "Adversarial data-preservation trace: save rereads the stored progress by the allowlisted Git item ID, spreads the existing row, and overrides only status, start/completion timestamps and the existing confidence default. upsertProgress retains the existing record ID/createdAt and refreshes updatedAt. First start is retained; reopening explicitly supplies completedAt undefined; completion after reopening supplies the new timestamp. The no-award repository cannot create XP or assessment results. Learner evidence, bookmarks and programme state are outside this write.",
+      "Adversarial language/accessibility trace: the native button names and role=status text are consistent Bokmaal, the enclosing lang=nb and named local-status region remain, and the explanation still explicitly distinguishes the learner's manual marker from a subject assessment. Existing failure alert and read-only/save-disabled boundaries remain unchanged. Authored Git lessons and executable PowerShell are untouched.",
+      "Independently checked GitHub PR #68 metadata: merged 2026-11-03 at 737ccdf0ad14f80e27e1b36b3b085425ba78c73c. Independently checked native master run 41694959587: Final candidate completed successfully. Independently checked Vercel deployment dpl_5DbZ4S6M35mstwCau4PGj6Gi174C: production READY, same master SHA, public alias progress-pal-seven.vercel.app assigned. This supports the corrected baseline documentation, not deployment of this follow-up.",
+      "Implementation-session evidence, not independently rerun by this reviewer: 27 focused Vitest cases including RPG save outcomes; 17 managed Git/Pathways Playwright cases including both programmes/shells, keyboard completion/reload/reopening/recompletion, assessment preservation, read-only peers, narrow layouts and five axe scans; TypeScript, changed-file ESLint/Prettier, production build and bundle budgets pass.",
+      "Verified scope from the complete changed-file set: no shared database/domain, programme content or rule, schema, dependency/version, runtime, service-worker, release-gate, global runner or workflow modifications. Historical development prose is retained under an explicit historical heading.",
+      "Limits: no human usability observation, physical-device testing, native browser zoom, exhaustive concurrent-write/failure injection, full local release suite, hosted candidate certification or follow-up production smoke performed by this reviewer. This scoped review is distinct from tests and authoritative hosted certification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PATHWAYS-CORRECTNESS-1",
+      "severity": "P2",
+      "description": "Data-loss risk examined: changing a manual completion marker could replace notes/confidence/self-report metadata or assessment history, or carry an obsolete completion timestamp into a reopened lesson.",
+      "resolution": "The candidate rereads and spreads the existing record before overriding the bounded status/timestamp fields; the repository preserves ID and creation time. Reopening explicitly clears completedAt and recompleting creates a fresh time while retaining startedAt. Independent route regressions passed exact progress-field, assessment/bookmark, programme and reward preservation assertions. No unresolved defect found in the scoped change.",
+      "status": "resolved"
+    },
+    {
+      "id": "PATHWAYS-CORRECTNESS-2",
+      "severity": "P2",
+      "description": "Evidence/copy risk examined: a translated local marker or the new top-level status could imply a verified assessment, or conflate PR #68's existing production deployment with certification of this follow-up.",
+      "resolution": "The manual-marker explanation, named status region, native controls and lang=nb remain; authored lessons are untouched. Independent GitHub/Vercel inspection confirms the PR #68 baseline merge, passing master job and production alias, while the follow-up record explicitly leaves its own review/certification/deployment pending. No unsupported follow-up release claim found.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped PASS for payload b9556472e0794f286feb4a4f64a50a529534dd2a. The repair matches existing RPG timestamp semantics and preserves unrelated stored fields; independent focused tests support the lifecycle/data-preservation conclusions. The test helper waits for the existing coordination-enabled control rather than changing timing or production coordination. Proceed through the existing hosted certification and authorized merge/deployment workflow; do not treat this review or baseline deployment observation as certification or deployment of the follow-up."
+  }
+}
