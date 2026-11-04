@@ -1,6 +1,36 @@
 # ProgressPal current state
 
-**2026-11-03 Pathways cross-programme correction — local candidate.**
+**2026-11-04 Pathways — merged and deployed baseline; focused follow-up.**
+PR [#68](https://github.com/ruishinor/ProgressPal/pull/68) merged on 2026-11-03
+as `737ccdf0ad14f80e27e1b36b3b085425ba78c73c`, freshly confirmed as remote
+`master` on 2026-11-04. Its native master `Final candidate` run
+[`41694959587`](https://github.com/ruishinor/ProgressPal/actions/runs/41694959587)
+passed. Vercel production deployment `dpl_5DbZ4S6M35mstwCau4PGj6Gi174C` is
+READY with the public alias `progress-pal-seven.vercel.app` assigned, directly
+observed on 2026-11-04. The blocking production `Final candidate` deployment
+check remains configured. Pathways is available from both study programmes in
+Classic and RPG; Git learning state stays separate and awards no XP.
+
+The isolated `cx/pathways-correctness-20261104` follow-up starts at that baseline.
+It aligns manual lesson completion timestamps with the existing RPG semantics
+and translates only the Pathways completion controls/status into Bokmål. Notes,
+confidence, evidence, first-start time and record identity are preserved;
+reopening clears the completion timestamp and completing again records a fresh
+one. Assessment results remain distinct from the learner's manual marker.
+Authored lessons/PowerShell, programme rules, schema, XP, dependencies, runtime,
+service worker and release controls are unchanged. Focused preflight passes:
+27 Vitest cases (Pathways lifecycle/preservation, Git persistence/backup and RPG
+save outcomes), 17 managed Git/Pathways browser cases, TypeScript, changed-file
+lint/format, production build and bundle budgets. Browser coverage includes both
+programmes/shells, keyboard completion, reload/reopen/recompletion, assessment
+preservation, read-only peers, narrow layouts and five axe scans. Independent
+payload review and the existing hosted certification workflow remain required;
+this follow-up is not yet claimed as certified or deployed. No full local
+release suite was run.
+
+The following development records describe their original historical stages.
+
+**2026-11-03 Pathways cross-programme correction — historical local candidate.**
 `cx/pathways-cross-programme-20261103` starts at verified remote master
 `aab749443ecd2a0c378d93c65bbfff1fc0c7e9ed` (merged PR #67), in a new isolated
 worktree. The owner supersedes the Git pilot's third onboarding choice:

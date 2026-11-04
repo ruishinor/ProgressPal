@@ -99,13 +99,20 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     setSaveFailed(false);
     try {
       const existing = await getProgress(item.id);
+      const timestamp = new Date().toISOString();
+      const status = existing?.status === 'completed' ? 'started' : 'completed';
       const saved = await runLocalMutation(
         () =>
           upsertProgress({
             ...existing,
             itemId: item.id,
             confidence: existing?.confidence ?? 0,
-            status: existing?.status === 'completed' ? 'started' : 'completed',
+            status,
+            startedAt: existing?.startedAt ?? timestamp,
+            completedAt:
+              status === 'completed'
+                ? (existing?.completedAt ?? timestamp)
+                : undefined,
           }),
         { invalidateRoute: false },
       );
@@ -204,10 +211,10 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           footer={
             <section aria-label="Lokal leksjonsstatus">
               <p role="status">
-                Local status:{' '}
+                Lokal status:{' '}
                 {progress?.status === 'completed'
-                  ? 'Completed'
-                  : 'Not completed'}
+                  ? 'Fullført'
+                  : 'Ikke fullført'}
               </p>
               <p>Dette er din egen markering, ikke en faglig vurdering.</p>
               <button
@@ -216,8 +223,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 onClick={() => void saveCompletion()}
               >
                 {progress?.status === 'completed'
-                  ? 'Reopen lesson'
-                  : 'Mark locally complete'}
+                  ? 'Åpne leksjonen igjen'
+                  : 'Marker som fullført lokalt'}
               </button>
               {saveFailed && (
                 <p role="alert">
