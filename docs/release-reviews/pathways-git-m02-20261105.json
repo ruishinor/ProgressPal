@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-m02-20261105",
+  "reviewer": "ChatGPT GPT-6 (bounded AI source review; not an independent human reviewer)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "d168d1ecbe225247a94bfa82ed0e781a59ba0c4b",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped M01-to-M02 integration review: Git teaching, module source, exporter/index/manifest, catalogue synchronization, UI accessibility, unchanged XP policies, tests, privacy and release limits.",
+    "evidence": [
+      "Exact candidate commit a64d7cdfce3fa415806bb580ae0d0d867c898c28, payload tree d168d1ecbe225247a94bfa82ed0e781a59ba0c4b",
+      "Windows-side preflight PASS: real disposable Git fixture, deterministic exporter check, Prettier, TypeScript, changed-file ESLint, existing relevant Vitest, production build, measured curriculum budget and existing representative browser scenario.",
+      "Course dataVersion 2 adds real M02 catalogue records; contentVersion 1 and original M01 exercise IDs retained.",
+      "No new permanent test files, new schema, XP rules, credential collection, auto GitHub validation or release infrastructure.",
+      "Not an empirical novice-user study; not a human-independent review; not CI or production certification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P3",
+      "description": "Actual comprehension by a first-year Git novice has not been observed.",
+      "resolution": "Accepted as a pilot-validation limitation, not proof of competence; lessons offer explained feedback and controlled exercises.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped AI review found no unresolved material blocker after targeted technical preflight. Hosted release certification and independently confirmed production promotion remain separate."
+  }
+}
