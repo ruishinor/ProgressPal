@@ -4,14 +4,14 @@
   "reviewer": "ChatGPT GPT-6 (bounded AI source review; not an independent human reviewer)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "b3c47ecd19f64ec4ccd77e22575dbc68944aad91",
+    "payloadTree": "f23019f9c6d552b8e61add6ccd5bf128b5a7411e",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
     "summary": "Scoped M01-to-M02 integration review: Git teaching, module source, exporter/index/manifest, catalogue synchronization, UI accessibility, unchanged XP policies, tests, privacy and release limits.",
     "evidence": [
-      "Corrected candidate 3cc5b2efebc286774735f7ec8856baea8dc61462, payload tree b3c47ecd19f64ec4ccd77e22575dbc68944aad91",
-      "Previous CI run 42013896241 failed on TS2345. A stable string binding now passes forced local TypeScript, ESLint and formatting. Earlier content, build, targeted test and E2E results were not rerun after this type-only change.",
+      "Corrected candidate b665c0e9d7837849789b2b5726d4c0e0506e399b, payload tree f23019f9c6d552b8e61add6ccd5bf128b5a7411e",
+      "Hosted run 42015545589 failed on one stale 150000-byte curriculum budget assertion. Authorized limit 157000 bytes remains unchanged. Corrected existing test; targeted local Node tests passed. Earlier application tests, build and E2E were not repeated.",
       "Course dataVersion 2 adds real M02 catalogue records; contentVersion 1 and original M01 exercise IDs retained.",
       "No new permanent test files, new schema, XP rules, credential collection, auto GitHub validation or release infrastructure.",
       "Not an empirical novice-user study; not a human-independent review; not CI or production certification."
