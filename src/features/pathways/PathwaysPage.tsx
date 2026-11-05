@@ -104,11 +104,12 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     // learner, create catalogue rows or mutate their active programme here.
     const selectedItemId = item?.id;
     if (itemId === undefined || selectedItemId === undefined) return;
+    const stableItemId: string = selectedItemId;
     let current = true;
     async function prepare() {
       const [enrolments, storedItem] = await Promise.all([
         listProgrammeEnrolments(),
-        getCourseItem(selectedItemId),
+        getCourseItem(stableItemId),
       ]);
       const enrolled = enrolments.some(
         (row) => row.programmeId === scope.programmeId,
