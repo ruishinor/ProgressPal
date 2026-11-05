@@ -96,7 +96,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Planlagt');
-  await expect(page.getByRole('table')).toContainText('M04–M07');
+  await expect(page.getByRole('table')).toContainText('M05–M07');
   await page.goto('/rpg/pathways/git-github');
   await expect(
     page.getByRole('link', { name: 'Hvorfor arbeide med branches?' }),

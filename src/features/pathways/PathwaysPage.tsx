@@ -27,15 +27,8 @@ type PlannedModule = {
   buildsOn: string;
 };
 
-// M01–M03 have real lessons; these cards describe only later plans.
+// M01–M04 have real lessons; these cards describe only later plans.
 const plannedModules: readonly PlannedModule[] = [
-  {
-    id: 'M04',
-    name: 'Fra lokal Git til GitHub',
-    learns: 'Forstå remotes, clone, fetch, push, pull, publisering og tilgang.',
-    value: 'Dele og hente prosjekter uten å forveksle lokal og delt historikk.',
-    buildsOn: 'Du kjenner branches og merge fra M03.',
-  },
   {
     id: 'M05',
     name: 'Samarbeid med pull requests',
@@ -80,6 +73,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     scope.catalogue.units.find((unit) => unit.id === 'git-m02')?.items ?? [];
   const m03Items =
     scope.catalogue.units.find((unit) => unit.id === 'git-m03')?.items ?? [];
+  const m04Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m04')?.items ?? [];
   const item = items.find((candidate) => candidate.id === itemId);
   const [state, setState] = useState<
     'loading' | 'ready' | 'read-only' | 'error'
@@ -201,7 +196,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             <p>
               Lær å ta vare på endringer, finne igjen fungerende kode og etter
               hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner, M02 har seks og M03 har seks. M04–M07 er planlagt.
+              leksjoner, M02 har seks, M03 har seks og M04 har sju. M05–M07 er
+              planlagt.
             </p>
             <p>
               Du kan lese oversikten før du begynner. Ingen installasjon kreves.
@@ -283,8 +279,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. M01–M03 er tilgjengelige.
-              M04–M07 viser retningen videre, men har ingen leksjoner eller
+              Hver modul bygger videre på forrige. M01–M04 er tilgjengelige.
+              M05–M07 viser retningen videre, men har ingen leksjoner eller
               registrert framdrift ennå.
             </p>
             <ol className="pathways-track__roadmap">
@@ -367,6 +363,32 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <h4>Seks leksjoner i M03</h4>
                 <ol>
                   {m03Items.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                        {lesson.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </li>
+              <li className="pathways-track__current">
+                <div className="pathways-track__module-head">
+                  <h3>M04 · Fra lokal Git til GitHub</h3>
+                  <span className="pathways-track__availability">
+                    Tilgjengelig
+                  </span>
+                </div>
+                <p>
+                  Del og hent Git-historikk med remotes, push, clone, fetch og
+                  pull. Lær å skille lokal main fra origin/main og forstå
+                  autentisering, tilgang og hva som ikke bør publiseres.
+                </p>
+                <p className="pathways-track__builds-on">
+                  Bygger på: Branches og merge fra M03.
+                </p>
+                <h4>Sju leksjoner i M04</h4>
+                <ol>
+                  {m04Items.map((lesson) => (
                     <li key={lesson.id}>
                       <Link to={getPathwayLessonPath(lesson.id, rpg)}>
                         {lesson.title}
