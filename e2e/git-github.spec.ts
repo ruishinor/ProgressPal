@@ -49,8 +49,29 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await completeOnboarding(page);
   const primary = await pathwayState(page);
   await page.goto('/rpg');
+  const pathwaysInfo = page.getByRole('button', { name: 'Om Pathways' });
+  await pathwaysInfo.focus();
+  await page.keyboard.press('Enter');
+  await expect(
+    page.getByText('Sammenhengende læringsløp med forklaringer, praktiske'),
+  ).toBeVisible();
   await page.getByRole('link', { name: 'Pathways', exact: true }).click();
   await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Hvorfor lære dette?' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('M07 · Bruke Git i et eget prosjekt'),
+  ).toBeVisible();
+  await expect(
+    page.getByText('GitLab og Bitbucket er andre slike'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Begynn med første leksjon' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'M02', exact: false }),
+  ).toHaveCount(0);
   await page
     .getByRole('link', { name: 'Start her: hvorfor bruke Git?', exact: true })
     .click();
@@ -65,7 +86,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Planlagt');
-  await expect(page.getByRole('table')).toContainText('GitHub og samarbeid');
+  await expect(page.getByRole('table')).toContainText('M02–M07');
   const first = exercise(page, 1);
   await first
     .getByRole('radio', { name: /Git registrerer automatisk/ })
@@ -106,11 +127,11 @@ test('starts from zero, explains wrong answers, records external reports honestl
   ).toBeVisible();
   await exercise(page, 1).getByRole('checkbox').first().check();
   await exercise(page, 1)
-    .getByRole('button', { name: 'Lagre egenrapport' })
+    .getByRole('button', { name: 'Lagre svaret mitt' })
     .click();
   await expect(
     exercise(page, 1).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('uten vurdering');
+  ).toContainText('Svaret ditt er lagret');
   for (const part of [3, 4, 5]) {
     await page
       .getByRole('link', {
@@ -143,10 +164,10 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await reflection
     .getByRole('textbox')
     .fill('Jeg fikk ikke laget siste commit. <img src=x onerror=alert(1)>');
-  await reflection.getByRole('button', { name: 'Lagre egenrapport' }).click();
+  await reflection.getByRole('button', { name: 'Lagre svaret mitt' }).click();
   await expect(
     reflection.getByRole('status', { name: 'Resultat' }),
-  ).toContainText('uten vurdering');
+  ).toContainText('Svaret ditt er lagret');
   await expect(reflection.locator('img')).toHaveCount(0);
   await page
     .getByRole('button', { name: 'Marker som fullført lokalt', exact: true })
@@ -168,13 +189,60 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await page.goto(route(5));
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('uten vurdering');
+  ).toContainText('Svaret ditt er lagret');
   await expect(
     page.getByRole('heading', { name: 'Fortsett der du slapp' }),
   ).toBeVisible();
   expect(await counts(page)).toEqual(before);
   expect((await pathwayState(page)).activeProgrammeId).toBe('cs50x');
   expect(errors).toEqual([]);
+});
+
+test('reading the Git roadmap does not enrol or change learner state', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  const before = await pathwayState(page);
+  await page.goto('/rpg/pathways');
+  await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: /Git & GitHub: fra første endring/ }),
+  ).toBeVisible();
+  const after = await pathwayState(page);
+  expect(after).toEqual(before);
+});
+
+test('Git orientation is keyboard accessible at 320px and 200% text', async ({
+  page,
+}) => {
+  await completeOnboarding(page, { theme: 'dark' });
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto('/rpg/pathways/git-github');
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  const disclosure = page.getByText(
+    'Hva med kopierte mapper, skylagring og sikkerhetskopier?',
+  );
+  await disclosure.focus();
+  await page.keyboard.press('Enter');
+  await expect(
+    page.locator('details').filter({
+      hasText: 'Hva med kopierte mapper, skylagring og sikkerhetskopier?',
+    }),
+  ).toHaveAttribute('open', '');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
+  await expect(
+    page.getByRole('navigation', { name: /primary/i }).getByRole('link'),
+  ).toHaveCount(5);
+  const scan = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+    .analyze();
+  expect(scan.violations).toEqual([]);
 });
 
 for (const theme of ['light', 'dark'] as const) {
@@ -303,7 +371,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
         'Lokal status: Ikke fullført',
       );
       await expect(localStatus).toContainText(
-        'Dette er din egen markering, ikke en faglig vurdering.',
+        'Du styrer selv når du vil markere leksjonen som gjennomgått.',
       );
       await localStatus
         .getByRole('button', { name: 'Marker som fullført lokalt' })
@@ -372,7 +440,7 @@ test('a read-only peer cannot prepare or save Pathways and reads existing Git wo
   await peer.goto(route(1));
   await expect(
     peer.getByText(
-      'Åpne Pathway i fanen som kan lagre, før du bruker den i denne skrivebeskyttede fanen.',
+      'Åpne leksjonen i fanen som kan lagre, før du bruker den i denne skrivebeskyttede fanen.',
     ),
   ).toBeVisible();
   expect(await pathwayState(peer)).toEqual(before);

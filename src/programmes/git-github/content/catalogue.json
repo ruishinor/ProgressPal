@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "b6198e867b4ff53d711cd29883472d4db5e990c8d46852243ed6a502782e2c0e",
+  "sourceSha256": "99aca9bb6469f01496f7969bc8fdb23be4da425925533c6536bdfb690b1764ce",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -73,15 +73,15 @@
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.a6d6899bc97a77b8.json",
-      "sha256": "a6d6899bc97a77b88ac1e18a228051fcafc2c8e47252e0ccb3beb89afdd7b800",
+      "path": "content/git-github/index.4a39c6e9a4b18d06.json",
+      "sha256": "4a39c6e9a4b18d06366f0b067207c0c4766e7f8ad9cb1c55f82fe8fa81e7547a",
       "bytes": 8651
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.5783df29655f4414.json",
-        "sha256": "5783df29655f44147b04e3e51fd0e51803dd562fdb49e2aef57fa4bb187c4751",
-        "bytes": 41683
+        "path": "content/git-github/git-m01.eeef4072e23b780b.json",
+        "sha256": "eeef4072e23b780ba1fd03ed2d4e1626ac7624b3a427db932c017545e1e95c1c",
+        "bytes": 41984
       }
     }
   }

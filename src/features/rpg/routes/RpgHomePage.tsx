@@ -326,16 +326,34 @@ export function RpgHomePage() {
               ))}
             </div>
           )}
-          <div className="rpg-hub__module-context">
-            <RpgButton href={rpgPathwaysPath} variant="secondary">
-              Pathways
-            </RpgButton>
-            <RpgButton href={rpgReferencePath} variant="secondary">
-              Teknologioppslag
-            </RpgButton>
-            <p className="rpg-hub__note" lang="nb">
-              Begreper, verktøy og sammenhenger i programvareutvikling
+          <div className="rpg-hub__module-context" lang="nb">
+            <h3>Lær mer ved siden av studieprogrammet</h3>
+            <p className="rpg-hub__note">
+              Fortsett hovedstudieprogrammet i Campaign. Her finner du egne
+              læringsløp og et oppslagsverk som kan brukes når du trenger det.
             </p>
+            <div className="rpg-hub__entries">
+              <div className="rpg-hub__entry">
+                <RpgButton href={rpgPathwaysPath} variant="secondary">
+                  Pathways
+                </RpgButton>
+                <RpgInfoNote label="Om Pathways" size="md">
+                  Sammenhengende læringsløp med forklaringer, praktiske oppgaver
+                  og egen framdrift. Git &amp; GitHub har fem tilgjengelige
+                  leksjoner i M01.
+                </RpgInfoNote>
+              </div>
+              <div className="rpg-hub__entry">
+                <RpgButton href={rpgReferencePath} variant="secondary">
+                  Teknologioppslag
+                </RpgButton>
+                <RpgInfoNote label="Om Teknologioppslag" size="md">
+                  Slå opp et begrep eller verktøy, se et konkret eksempel og
+                  finn sammenhenger. Dette er et oppslagsverk, ikke et
+                  undervisningsløp.
+                </RpgInfoNote>
+              </div>
+            </div>
           </div>
         </RpgPanel>
 

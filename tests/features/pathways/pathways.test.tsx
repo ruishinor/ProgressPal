@@ -61,6 +61,16 @@ async function learner(id: string) {
   );
 }
 
+it('opens the Git roadmap without enrolment or programme changes', async () => {
+  await learner('programvareutvikling');
+  const before = await getDatabaseSnapshot();
+  await renderAppAtRoute('/rpg/pathways/git-github');
+  await screen.findByRole('heading', {
+    name: /Git & GitHub: fra første endring/,
+  });
+  expect(await getDatabaseSnapshot()).toEqual(before);
+});
+
 it('waits for the completion refresh before the test can tear down its database', async () => {
   await learner('cs50x');
   await renderAppAtRoute('/pathways/git-github/' + lessonId);
@@ -121,7 +131,7 @@ it('records matching start and completion times on initial manual completion', a
   expect(localStatus.closest('[lang]')).toHaveAttribute('lang', 'nb');
   expect(
     within(localStatus).getByText(
-      'Dette er din egen markering, ikke en faglig vurdering.',
+      'Du styrer selv når du vil markere leksjonen som gjennomgått.',
     ),
   ).toBeVisible();
 });

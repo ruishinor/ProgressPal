@@ -18,21 +18,20 @@ export const gitTerminology: ProgrammeTerminology = {
     profileDescription:
       'Den samme lokale profilen brukes på tvers av programmer.',
     dashboardDescription:
-      'Framdriften din i Git & GitHub. Piloten gir ingen XP.',
+      'Følg med på hvilke Git-leksjoner du har gått gjennom.',
     dashboardErrorDescription:
       'Git & GitHub bruker den lagrede framdriften på denne enheten.',
     courseMapEyebrow: 'Git & GitHub – begynn her',
     courseMapLoadingDescription: 'Åpner den første Git-modulen.',
     courseMapErrorDescription: 'Modulen og framdriften kunne ikke vises.',
     catalogueDescription:
-      'Begynn med «Start her: hvorfor bruke Git?». Fem tilgjengelige deler tar deg fra null til en bevisst lokal commit. Veikartet i første del forklarer senere temaer; de er ikke leksjoner ennå. Windows PowerShell 5.1, uten GitHub-konto.',
-    insightsDescription:
-      'Studieaktivitet over tid. Dette dokumenterer aktivitet, ikke Git-kompetanse.',
+      'Begynn med hvorfor utviklere trenger Git. Fem leksjoner tar deg fra en trygg øvingsmappe til å velge, registrere og kontrollere egne endringer. M02–M07 er planlagt.',
+    insightsDescription: 'Se når du har arbeidet med leksjonene.',
     insightsErrorDescription: 'Innsikt leser lagrede studieøkter og framdrift.',
     rpgRequiredCompleteNote:
-      'Du har markert de fem tilgjengelige delene gjennomgått. Videre Git- og GitHub-innhold er planlagt.',
+      'Du har gått gjennom de fem tilgjengelige Git-leksjonene. M02–M07 er planlagt.',
     rpgHeroProgressNote:
-      'Gjennomgåtte deler og egenrapport er ikke bekreftet praktisk ferdighet. Piloten gir ingen XP.',
+      'Her finner du leksjonene og framdriften din. Du kan øve på nytt når som helst.',
     settingsBoundaryTitle: 'Git-praksis og lagring',
     settingsBoundaryText:
       'Appen lagrer svar og framdrift i nettleseren. Git-øvelsen bruker en separat mappe. Ta vare på begge; eksport fra appen tar ikke kopi av øvingsmappen. Eventuell manuell fjernbackup er et eget valg.',

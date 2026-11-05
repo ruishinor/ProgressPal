@@ -746,11 +746,13 @@
     "id": "git",
     "name": "Git",
     "type": "Versjonskontrollverktøy",
-    "summary": "Git er et distribuert versjonskontrollverktøy som registrerer historikk for filer i et repository, ofte kalt et repo.",
-    "purpose": "Utvikleren kan bevare navngitte endringspunkter, sammenligne endringer og arbeide med alternative utviklingslinjer i branches.",
-    "example": "En utvikler endrer billettskjemaet og lager en commit som registrerer endringen lokalt. Teamet kan senere undersøke forskjellen fra forrige commit.",
+    "summary": "Git er et versjonskontrollsystem som registrerer historikk over endringer i et prosjekt og organiserer versjonene. Historikken fungerer lokalt, uten GitHub.",
+    "purpose": "Når kode endres, kan utvikleren velge hva som skal registreres i en commit, undersøke forskjeller og finne fram til tidligere versjoner. Det er nyttig både ved feilretting og når flere arbeider på samme prosjekt.",
+    "example": "En nettside virket før utvikleren endret innloggingsskjermen. Med git diff undersøker hun hvilke linjer som ble endret. Når rettingen fungerer, klargjør hun akkurat de filene som hører til, og lager en commit med en forklarende melding.",
     "distinctions": [
-      "Git kan brukes lokalt uten GitHub. En lokal commit publiserer ikke automatisk koden til en tjeneste på nettet."
+      "Git arbeider med prosjektfiler, et eget utvalg til neste commit (staging) og registrerte versjoner. Å lagre en fil er ikke det samme som å lage en commit.",
+      "En Git-commit er lokal til den blir delt bevisst. GitHub er én mulig nettplattform; også GitLab og Bitbucket kan brukes.",
+      "Git-historikken på samme disk er ikke en sikkerhetskopi hvis hele prosjektmappen blir borte. Git tester heller ikke automatisk om koden fungerer."
     ],
     "aliases": [],
     "topics": ["Verktøy"],
@@ -773,17 +775,20 @@
         "url": "https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F",
         "checked": "2026-11-01"
       }
-    ]
+    ],
+    "spoken": "Git hjelper meg å holde orden på versjoner av et prosjekt. Jeg kan se hva som ble endret, velge hva som skal være med i neste commit og gå tilbake for å undersøke tidligere arbeid. Git trenger ikke GitHub for å fungere."
   },
   {
     "id": "github",
     "name": "GitHub",
     "type": "Samarbeidsplattform",
-    "summary": "GitHub er en plattform for programvareutvikling som blant annet kan være vert for Git-repoer og støtte samarbeid om kode.",
-    "purpose": "Teamet kan dele endringer, diskutere forslag i pull requests og følge opp arbeid gjennom issues.",
-    "example": "Utvikleren publiserer sin branch til teamets repo på GitHub og åpner en pull request. En kollega leser endringene og kommenterer før teamet bestemmer om de skal flettes inn.",
+    "summary": "GitHub er en nettplattform for å oppbevare, dele og samarbeide om Git-repositoryer. Git og GitHub har forskjellige oppgaver.",
+    "purpose": "Når et team utvikler programvare sammen, kan deltakerne hente og publisere Git-endringer, foreslå sammenslåinger gjennom pull requests, diskutere kode og følge opp saker i issues.",
+    "example": "Tre studenter endrer ulike deler av et program. Hver student arbeider først lokalt med Git og publiserer deretter arbeidet til et delt repo på GitHub. En student åpner en pull request; de andre leser og kommenterer endringen før den eventuelt flettes inn.",
     "distinctions": [
-      "GitHub er ikke det samme som Git. Git registrerer versjonshistorikken; GitHub tilbyr en plattform rundt repoene."
+      "Git oppretter og vedlikeholder versjonshistorikken. GitHub er en tjeneste for deling og samarbeid rundt den; en lokal commit publiseres ikke automatisk.",
+      "GitHub er ikke nødvendig for å lære lokal Git. GitLab og Bitbucket er andre plattformer for Git-prosjekter, med egne samarbeidsfunksjoner.",
+      "Et repo på GitHub kan gi en ekstra kopi, men du må fortsatt ha rutiner for sikkerhetskopiering, tilgangsstyring og hemmeligheter i historikken."
     ],
     "aliases": [],
     "topics": ["Verktøy"],
@@ -801,7 +806,8 @@
         "url": "https://docs.github.com/en/get-started/start-your-journey/what-is-github",
         "checked": "2026-11-01"
       }
-    ]
+    ],
+    "spoken": "GitHub er et sted teamet kan dele Git-prosjekter og gjennomgå hverandres endringer. Git er verktøyet som lager historikken; GitHub gjør det lettere å samarbeide rundt den."
   },
   {
     "id": "npm",

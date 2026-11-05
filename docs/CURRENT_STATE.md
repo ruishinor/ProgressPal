@@ -1,5 +1,18 @@
 # ProgressPal current state
 
+**2026-11-04 Pathways Foundations — pedagogisk konsolidering (lokal kandidat, ikke sertifisert).**
+Utgangspunkt: verifisert master 2832d1c6645f243b8a31e7509adadf6f54e2ad28.
+Endringen legger en lesbar orientering før leksjonsstart, med forklaring av Git,
+GitHub, praktisk utviklingsnytte og et ærlig M01–M07-veikart. De fem eksisterende
+M01-leksjonene beholder identitet, rekkefølge, blokkstruktur, kommandoøvelser og
+samtlige sju øvingsoppgaver uendret; forklaringstekst og relevante elevmeldinger
+revideres. Git/GitHub i Teknologioppslag og støttefunksjonene på RPG Home knyttes
+til samme pedagogiske modell. Oversiktsruter skal ikke opprette påmelding eller
+endre brukerdata. Eksisterende schema, XP, studieprogram og backupregler beholdes.
+Filenes reelle lokale teststatus, uavhengig payload-review, PR/hosted sertifisering,
+merge og deployment må rapporteres separat etter faktisk gjennomføring. Ingen
+release-kontroll eller provider-oppsett endres av denne kandidaten.
+
 **2026-11-04 Pathways — PR #69 certified and deployed; residual corrections.**
 PR [#69](https://github.com/ruishinor/ProgressPal/pull/69) merged as
 `f39ab862c0fc68c1306479c004021f8c52bc4acd`, directly verified as remote
