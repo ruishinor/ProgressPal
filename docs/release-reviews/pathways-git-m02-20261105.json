@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-m02-20261105",
+  "reviewer": "ChatGPT GPT-6 (bounded AI source review; not an independent human reviewer)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f23019f9c6d552b8e61add6ccd5bf128b5a7411e",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped M01-to-M02 integration review: Git teaching, module source, exporter/index/manifest, catalogue synchronization, UI accessibility, unchanged XP policies, tests, privacy and release limits.",
+    "evidence": [
+      "Corrected candidate b665c0e9d7837849789b2b5726d4c0e0506e399b, payload tree f23019f9c6d552b8e61add6ccd5bf128b5a7411e",
+      "Hosted run 42015545589 failed on one stale 150000-byte curriculum budget assertion. Authorized limit 157000 bytes remains unchanged. Corrected existing test; targeted local Node tests passed. Earlier application tests, build and E2E were not repeated.",
+      "Course dataVersion 2 adds real M02 catalogue records; contentVersion 1 and original M01 exercise IDs retained.",
+      "No new permanent test files, new schema, XP rules, credential collection, auto GitHub validation or release infrastructure.",
+      "Not an empirical novice-user study; not a human-independent review; not CI or production certification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P3",
+      "description": "Actual comprehension by a first-year Git novice has not been observed.",
+      "resolution": "Accepted as a pilot-validation limitation, not proof of competence; lessons offer explained feedback and controlled exercises.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "F-2",
+      "severity": "P2",
+      "description": "The first hosted PR candidate failed TypeScript because a narrowed optional item ID was captured by an async function.",
+      "resolution": "Captured the checked ID in an explicitly typed string constant before the async function. Forced local TypeScript validation passed.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped AI review found no unresolved material blocker after targeted technical preflight. Hosted release certification and independently confirmed production promotion remain separate."
+  }
+}

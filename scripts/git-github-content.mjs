@@ -12,9 +12,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { gitLessons } from '../src/programmes/git-github/source.mjs';
+import { gitM02Lessons } from '../src/programmes/git-github/m02.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const sourcePath = 'src/programmes/git-github/source.mjs';
+const sourcePaths = [
+  'src/programmes/git-github/source.mjs',
+  'src/programmes/git-github/m02.mjs',
+];
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 function canonical(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -28,138 +32,182 @@ function canonical(value) {
     '}'
   );
 }
-const sourceBytes = readFileSync(resolve(root, sourcePath));
+const sourceBytes = Buffer.concat(
+  sourcePaths.map((path) => readFileSync(resolve(root, path))),
+);
 const sourceSha256 = hash(sourceBytes);
-const moduleId = 'GIT-M01';
-const programmeId = 'git-github';
-const common = { programmeId, contentVersion: 1, evaluatorContractVersion: 1 };
-const units = gitLessons.map((lesson, order) => ({
-  unit_id: 'GIT-M01-L0' + (order + 1),
-  kind: 'L',
-  title_nb: lesson.title,
-  goal_nb: lesson.goal,
-  optional: false,
-  mission: lesson.missionId,
-  flow: lesson.flow.flat().map((block) => {
-    if (!block.id) return block;
-    const selfReport = ['checklist', 'reflect'].includes(block.type);
-    const { type, ...authored } = block;
-    return {
-      t: 'exercise',
-      ...authored,
-      type,
-      response_mode: type,
-      role: order === 4 ? 'quest' : 'formative',
-      activity: order === 4 ? 'independent' : 'guided',
-      optional: block.optional ?? false,
-      evaluable: !selfReport,
-      evidence_trust: selfReport
-        ? 'optional-reflection'
-        : type === 'evidence'
-          ? 'self-reported-paste'
-          : 'deterministic-evaluator',
-      evidence_layer: selfReport ? 'C' : type === 'evidence' ? 'B' : 'A',
-      feedback: {
-        correct:
-          type === 'evidence'
-            ? 'Teksten inneholder bare plan.txt. Det passer med utvalget oppgaven ber om; kjøring og filinnhold er ikke bekreftet.'
-            : 'Svaret passer med situasjonen som er beskrevet.',
-        incorrect:
-          type === 'evidence'
-            ? 'Teksten skal bare inneholde filnavnlisten med plan.txt. Undersøk utvalget og kopier bare utskriften fra riktig kommando.'
-            : 'Les forklaringen til valget og prøv igjen.',
-      },
-      hints: block.hints ?? [],
-      checkpoint_task: null,
-      unit: 'GIT-M01-L0' + (order + 1),
-      required_practice: !selfReport && !block.optional,
-      mastery_gate: false,
-      skill_ids: [lesson.skillId],
-      ...(type === 'mcq'
-        ? {
-            code: null,
-            code_lang: 'text',
-            multi: false,
-            evaluator: {
-              mode: 'choice',
-              correct: block.options
-                .filter((option) => option.correct)
-                .map((option) => option.id),
-              shuffle: true,
-            },
-          }
-        : {}),
-      ...(selfReport
-        ? {
-            evaluator: {
-              mode: type === 'checklist' ? 'self-check' : 'self-report',
-              mastery_gate: false,
-            },
-          }
-        : {}),
-    };
-  }),
-}));
-const missions = gitLessons.map((lesson, order) => ({
-  missionId: lesson.missionId,
-  itemId: lesson.missionId.toLowerCase(),
-  surface: 'mission',
-  title: lesson.title,
-  goal: lesson.goal,
-  minutes: 0,
-  optional: false,
-  order,
-  unitIds: [units[order].unit_id],
-}));
-const modules = [
+const authoredModules = [
   {
-    moduleId,
-    catalogueUnitId: 'git-m01',
+    moduleId: 'GIT-M01',
     title: 'Fra null til din første commit',
     order: 0,
-    checkpoint: { missionId: null, criticalGateSkillIds: [], tasks: [] },
-    missions,
+    lessons: gitLessons,
+  },
+  {
+    moduleId: 'GIT-M02',
+    title: 'Finn og forstå tidligere versjoner',
+    order: 1,
+    lessons: gitM02Lessons,
   },
 ];
-const skills = gitLessons.map((lesson, order) => ({
-  skillId: lesson.skillId,
-  gatingRole: 'developmental',
-  prerequisiteSkillIds: order === 0 ? [] : [gitLessons[order - 1].skillId],
-  introducedInModule: moduleId,
-  introducingMissionId: lesson.missionId,
-  stateTargetModule: moduleId,
-  retention: { target: false, gate: false, opportunityUnits: [] },
-  integrationTarget: false,
-}));
-const exercises = units.flatMap((unit) =>
-  unit.flow
-    .filter((block) => block.t === 'exercise')
-    .map((exercise, order) => ({
-      exerciseId: exercise.id,
-      subjectId: exercise.id.toLowerCase(),
-      moduleId,
-      missionId: unit.mission,
-      unitId: unit.unit_id,
-      unitKind: unit.kind,
-      order,
-      responseMode: exercise.response_mode,
-      evaluatorMode: exercise.evaluator.mode,
-      role: exercise.role,
-      activity: exercise.activity,
-      optional: exercise.optional,
-      evaluable: exercise.evaluable,
-      requiredPractice: exercise.required_practice,
-      masteryGate: false,
-      evidenceTrust: exercise.evidence_trust,
-      evidenceLayer: exercise.evidence_layer,
-      checkpointTask: null,
-      skillIds: exercise.skill_ids,
-      needsRuntime: false,
-      hintCount: exercise.hints.length,
-      rewardEventId: null,
-      contentHash: hash(canonical(exercise)),
-    })),
-);
+const programmeId = 'git-github';
+const common = { programmeId, contentVersion: 1, evaluatorContractVersion: 1 };
+function buildModule(
+  { moduleId, title, order: moduleOrder, lessons },
+  previousSkillId,
+) {
+  const units = lessons.map((lesson, order) => ({
+    unit_id: moduleId + '-L0' + (order + 1),
+    kind: 'L',
+    title_nb: lesson.title,
+    goal_nb: lesson.goal,
+    optional: false,
+    mission: lesson.missionId,
+    flow: lesson.flow.flat().map((block) => {
+      if (!block.id) return block;
+      const selfReport = ['checklist', 'reflect'].includes(block.type);
+      const { type, ...authored } = block;
+      return {
+        t: 'exercise',
+        ...authored,
+        type,
+        response_mode: type,
+        role: order === lessons.length - 1 ? 'quest' : 'formative',
+        activity: order === lessons.length - 1 ? 'independent' : 'guided',
+        optional: block.optional ?? false,
+        evaluable: !selfReport,
+        evidence_trust: selfReport
+          ? 'optional-reflection'
+          : type === 'evidence'
+            ? 'self-reported-paste'
+            : 'deterministic-evaluator',
+        evidence_layer: selfReport ? 'C' : type === 'evidence' ? 'B' : 'A',
+        feedback: {
+          correct:
+            type === 'evidence'
+              ? 'Teksten inneholder bare plan.txt. Det passer med utvalget oppgaven ber om; kjøring og filinnhold er ikke bekreftet.'
+              : 'Svaret passer med situasjonen som er beskrevet.',
+          incorrect:
+            type === 'evidence'
+              ? 'Teksten skal bare inneholde filnavnlisten med plan.txt. Undersøk utvalget og kopier bare utskriften fra riktig kommando.'
+              : 'Les forklaringen til valget og prøv igjen.',
+        },
+        hints: block.hints ?? [],
+        checkpoint_task: null,
+        unit: moduleId + '-L0' + (order + 1),
+        required_practice: !selfReport && !block.optional,
+        mastery_gate: false,
+        skill_ids: [lesson.skillId],
+        ...(type === 'mcq'
+          ? {
+              code: null,
+              code_lang: 'text',
+              multi: false,
+              evaluator: {
+                mode: 'choice',
+                correct: block.options
+                  .filter((option) => option.correct)
+                  .map((option) => option.id),
+                shuffle: true,
+              },
+            }
+          : {}),
+        ...(selfReport
+          ? {
+              evaluator: {
+                mode: type === 'checklist' ? 'self-check' : 'self-report',
+                mastery_gate: false,
+              },
+            }
+          : {}),
+      };
+    }),
+  }));
+  const missions = lessons.map((lesson, order) => ({
+    missionId: lesson.missionId,
+    itemId: lesson.missionId.toLowerCase(),
+    surface: 'mission',
+    title: lesson.title,
+    goal: lesson.goal,
+    minutes: 0,
+    optional: false,
+    order,
+    unitIds: [units[order].unit_id],
+  }));
+  const module = {
+    moduleId,
+    catalogueUnitId: moduleId.toLowerCase(),
+    title,
+    order: moduleOrder,
+    checkpoint: { missionId: null, criticalGateSkillIds: [], tasks: [] },
+    missions,
+  };
+  const skills = lessons.map((lesson, order) => ({
+    skillId: lesson.skillId,
+    gatingRole: 'developmental',
+    prerequisiteSkillIds:
+      order === 0
+        ? previousSkillId === null
+          ? []
+          : [previousSkillId]
+        : [lessons[order - 1].skillId],
+    introducedInModule: moduleId,
+    introducingMissionId: lesson.missionId,
+    stateTargetModule: moduleId,
+    retention: { target: false, gate: false, opportunityUnits: [] },
+    integrationTarget: false,
+  }));
+  const exercises = units.flatMap((unit) =>
+    unit.flow
+      .filter((block) => block.t === 'exercise')
+      .map((exercise, order) => ({
+        exerciseId: exercise.id,
+        subjectId: exercise.id.toLowerCase(),
+        moduleId,
+        missionId: unit.mission,
+        unitId: unit.unit_id,
+        unitKind: unit.kind,
+        order,
+        responseMode: exercise.response_mode,
+        evaluatorMode: exercise.evaluator.mode,
+        role: exercise.role,
+        activity: exercise.activity,
+        optional: exercise.optional,
+        evaluable: exercise.evaluable,
+        requiredPractice: exercise.required_practice,
+        masteryGate: false,
+        evidenceTrust: exercise.evidence_trust,
+        evidenceLayer: exercise.evidence_layer,
+        checkpointTask: null,
+        skillIds: exercise.skill_ids,
+        needsRuntime: false,
+        hintCount: exercise.hints.length,
+        rewardEventId: null,
+        contentHash: hash(canonical(exercise)),
+      })),
+  );
+  const unitMeta = units.map((unit, order) => ({
+    unitId: unit.unit_id,
+    kind: unit.kind,
+    missionId: unit.mission,
+    moduleId,
+    optional: false,
+    teaches: [lessons[order].skillId],
+    practises: [lessons[order].skillId],
+    models: [],
+    retrieves: [],
+  }));
+  return { module, skills, exercises, units, unitMeta };
+}
+let lastSkill = null;
+const built = authoredModules.map((definition) => {
+  const result = buildModule(definition, lastSkill);
+  lastSkill = definition.lessons.at(-1).skillId;
+  return result;
+});
+const modules = built.map((entry) => entry.module);
+const skills = built.flatMap((entry) => entry.skills);
+const exercises = built.flatMap((entry) => entry.exercises);
 const index = {
   format: 'progresspal-programme-content',
   formatVersion: 1,
@@ -167,7 +215,7 @@ const index = {
   language: 'nb',
   technicalLanguage: 'en',
   source: {
-    artefact: sourcePath,
+    artefact: sourcePaths.join(' + '),
     schema: 'progresspal-git-pilot-authoring',
     schemaVersion: '1',
     sha256: sourceSha256,
@@ -183,17 +231,7 @@ const index = {
   modules,
   skills,
   exercises,
-  units: units.map((unit, order) => ({
-    unitId: unit.unit_id,
-    kind: unit.kind,
-    missionId: unit.mission,
-    moduleId,
-    optional: false,
-    teaches: [gitLessons[order].skillId],
-    practises: [gitLessons[order].skillId],
-    models: [],
-    retrieves: [],
-  })),
+  units: built.flatMap((entry) => entry.unitMeta),
 };
 function asset(stem, value) {
   const text = JSON.stringify(value) + '\n';
@@ -208,14 +246,17 @@ function asset(stem, value) {
   };
 }
 const indexAsset = asset('index', index);
-const moduleAsset = asset('git-m01', {
-  format: 'progresspal-programme-lessons',
-  formatVersion: 1,
-  ...common,
-  moduleId,
-  sourceSha256,
-  units,
-});
+const moduleAssets = built.map(({ module, units }) => ({
+  moduleId: module.moduleId,
+  asset: asset(module.catalogueUnitId, {
+    format: 'progresspal-programme-lessons',
+    formatVersion: 1,
+    ...common,
+    moduleId: module.moduleId,
+    sourceSha256,
+    units,
+  }),
+}));
 const catalogue = {
   format: 'progresspal-programme-catalogue',
   formatVersion: 1,
@@ -224,11 +265,11 @@ const catalogue = {
   technicalLanguage: 'en',
   sourceSha256,
   modules: modules.map((module) => ({
-    moduleId,
+    moduleId: module.moduleId,
     catalogueUnitId: module.catalogueUnitId,
     title: module.title,
     order: module.order,
-    missions: missions.map((mission) => ({
+    missions: module.missions.map((mission) => ({
       missionId: mission.missionId,
       itemId: mission.itemId,
       surface: mission.surface,
@@ -241,14 +282,17 @@ const catalogue = {
   subjectIds: exercises.map((exercise) => exercise.subjectId),
   assets: {
     index: indexAsset.descriptor,
-    modules: { [moduleId]: moduleAsset.descriptor },
+    modules: Object.fromEntries(
+      moduleAssets.map(({ moduleId, asset }) => [moduleId, asset.descriptor]),
+    ),
   },
 };
 const offlinePath = resolve(root, 'public/content/offline.json');
 const offline = JSON.parse(readFileSync(offlinePath, 'utf8'));
+const generatedAssets = [indexAsset, ...moduleAssets.map((item) => item.asset)];
 offline.assets = [
   ...offline.assets.filter((path) => !path.startsWith('/content/git-github/')),
-  ...[indexAsset, moduleAsset].map((entry) => '/' + entry.descriptor.path),
+  ...generatedAssets.map((entry) => '/' + entry.descriptor.path),
 ].sort();
 const config = await prettier.resolveConfig(resolve(root, 'package.json'));
 const outputs = [
@@ -266,7 +310,7 @@ const outputs = [
       parser: 'json',
     }),
   ],
-  ...[indexAsset, moduleAsset].map((entry) => [
+  ...generatedAssets.map((entry) => [
     'public/' + entry.descriptor.path,
     entry.text,
   ]),
@@ -274,16 +318,14 @@ const outputs = [
 const check = process.argv.includes('--check');
 const assetDirectory = resolve(root, 'public/content/git-github');
 const expectedNames = new Set(
-  [indexAsset, moduleAsset].map((entry) =>
-    entry.descriptor.path.split('/').at(-1),
-  ),
+  generatedAssets.map((entry) => entry.descriptor.path.split('/').at(-1)),
 );
 if (existsSync(assetDirectory)) {
   for (const name of readdirSync(assetDirectory)) {
     if (expectedNames.has(name)) continue;
     const path = resolve(assetDirectory, name);
     if (
-      !/^(index|git-m01)\.[a-f0-9]{16}\.json$/.test(name) ||
+      !/^(index|git-m0[1-7])\.[a-f0-9]{16}\.json$/.test(name) ||
       JSON.parse(readFileSync(path, 'utf8')).programmeId !== programmeId
     ) {
       throw new Error(
@@ -312,7 +354,10 @@ console.log(
   JSON.stringify({
     check,
     sourceSha256,
-    lessons: missions.length,
+    lessons: modules.reduce(
+      (total, module) => total + module.missions.length,
+      0,
+    ),
     exercises: exercises.length,
     assets: outputs.slice(2).map(([path]) => path),
   }),

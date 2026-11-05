@@ -339,8 +339,8 @@ export function RpgHomePage() {
                 </RpgButton>
                 <RpgInfoNote label="Om Pathways" size="md">
                   Sammenhengende læringsløp med forklaringer, praktiske oppgaver
-                  og egen framdrift. Git &amp; GitHub har fem tilgjengelige
-                  leksjoner i M01.
+                  og egen framdrift. Git &amp; GitHub har fem leksjoner i M01 og
+                  seks i M02.
                 </RpgInfoNote>
               </div>
               <div className="rpg-hub__entry">

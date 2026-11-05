@@ -27,58 +27,45 @@ type PlannedModule = {
   buildsOn: string;
 };
 
-// Only M01 has registered lessons. These are orientation text, not course nodes.
+// M01 and M02 are real lessons. These cards describe only later plans.
 const plannedModules: readonly PlannedModule[] = [
   {
-    id: 'M02',
-    name: 'Forstå og organisere historikken',
-    learns:
-      'Sammenligne versjoner, undersøke hvem som endret hva, og velge hvilke filer Git skal følge.',
-    value:
-      'Finne årsaken til en feil og forstå hvordan programmet har utviklet seg.',
-    buildsOn: 'Du kan allerede lage og undersøke lokale commits fra M01.',
-  },
-  {
     id: 'M03',
-    name: 'Arbeide på egne grener',
+    name: 'Brancher og merge',
     learns:
-      'Lage, bytte mellom og forstå branches uten å forstyrre hovedarbeidet.',
-    value:
-      'Prøve en ny funksjon mens en fungerende versjon fortsatt er tilgjengelig.',
-    buildsOn: 'Du forstår commits og historikken fra M01–M02.',
+      'Lage og bruke branches, samle endringer og løse en enkel konflikt.',
+    value: 'Prøve løsninger uten å blande alt med hovedarbeidet med én gang.',
+    buildsOn: 'Du kan lese og sammenligne commits fra M02.',
   },
   {
     id: 'M04',
-    name: 'Samle endringer',
-    learns: 'Flette grener og forstå og løse en enkel merge-konflikt.',
-    value: 'Samle funksjoner og feilrettinger fra flere utviklingsspor.',
-    buildsOn: 'Du har jobbet med flere grener i M03.',
+    name: 'Fra lokal Git til GitHub',
+    learns: 'Forstå remotes, clone, fetch, push, pull, publisering og tilgang.',
+    value: 'Dele og hente prosjekter uten å forveksle lokal og delt historikk.',
+    buildsOn: 'Du kjenner branches og merge fra M03.',
   },
   {
     id: 'M05',
-    name: 'Dele prosjekter med GitHub',
-    learns:
-      'Forstå remote, clone, push, fetch og pull, og hva som faktisk blir delt.',
+    name: 'Samarbeid med pull requests',
+    learns: 'Bruke issues, PR, review, nye commits og merge i samarbeid.',
     value:
-      'Ha en felles kopi av prosjektet og hente eller publisere endringer bevisst.',
-    buildsOn: 'Du kan arbeide trygt med lokal historikk og grener.',
+      'Foreslå og gjennomgå endringer før de blir en del av hovedprosjektet.',
+    buildsOn: 'Du kan dele endringer på GitHub fra M04.',
   },
   {
     id: 'M06',
-    name: 'Samarbeide om kode',
+    name: 'Feil og trygg gjenoppretting',
     learns:
-      'Bruke pull requests, gjennomgang og issues til å foreslå og diskutere endringer.',
-    value:
-      'La flere utviklere bidra uten at alle endringer går rett inn i hovedversjonen.',
-    buildsOn: 'Du kan dele en branch på GitHub fra M05.',
+      'Undersøke før du velger mellom restore, revert, reset, stash og reflog.',
+    value: 'Rette vanlige Git-feil uten å ødelegge viktig eller delt arbeid.',
+    buildsOn: 'Du kjenner lokale og delte utviklingslinjer fra M01–M05.',
   },
   {
     id: 'M07',
-    name: 'Bruke Git i et eget prosjekt',
+    name: 'Git og GitHub i et utviklingsprosjekt',
     learns:
-      'Planlegge tydelige commits, undersøke feil, velge trygg gjenoppretting og fullføre en sammenhengende arbeidsflyt.',
-    value:
-      'Bruke versjonskontroll som et naturlig verktøy i videre programmeringsarbeid.',
+      'Gjennomføre en hel arbeidsflyt med kravendring, historikk, branch, PR og kontroll.',
+    value: 'Bruke Git selvstendig i et vanlig lite programvareprosjekt.',
     buildsOn: 'Du kombinerer ferdighetene fra M01–M06.',
   },
 ];
@@ -95,6 +82,10 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     () => scope.catalogue.units.flatMap((unit) => unit.items),
     [scope],
   );
+  const m01Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m01')?.items ?? [];
+  const m02Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m02')?.items ?? [];
   const item = items.find((candidate) => candidate.id === itemId);
   const [state, setState] = useState<
     'loading' | 'ready' | 'read-only' | 'error'
@@ -111,12 +102,14 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
   useEffect(() => {
     // Exploring the orientation and roadmap is read-only. Never enrol a
     // learner, create catalogue rows or mutate their active programme here.
-    if (itemId === undefined || item === undefined) return;
+    const selectedItemId = item?.id;
+    if (itemId === undefined || selectedItemId === undefined) return;
+    const stableItemId: string = selectedItemId;
     let current = true;
     async function prepare() {
       const [enrolments, storedItem] = await Promise.all([
         listProgrammeEnrolments(),
-        getCourseItem(items[0]!.id),
+        getCourseItem(stableItemId),
       ]);
       const enrolled = enrolments.some(
         (row) => row.programmeId === scope.programmeId,
@@ -214,7 +207,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             <p>
               Lær å ta vare på endringer, finne igjen fungerende kode og etter
               hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner; M02–M07 er planlagt.
+              leksjoner og M02 har seks. M03–M07 er planlagt.
             </p>
             <p>
               Du kan lese oversikten før du begynner. Ingen installasjon kreves.
@@ -224,7 +217,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
       ) : itemId !== undefined && item === undefined ? (
         <>
           <h1>Leksjonen finnes ikke</h1>
-          <p>Velg en av de fem tilgjengelige leksjonene i Git &amp; GitHub.</p>
+          <p>Velg en av de tilgjengelige leksjonene i Git &amp; GitHub.</p>
         </>
       ) : itemId === undefined ? (
         <div className="pathways-track">
@@ -296,8 +289,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. Bare M01 er tilgjengelig nå.
-              De øvrige viser retningen videre, men har ingen leksjoner eller
+              Hver modul bygger videre på forrige. M01 og M02 er tilgjengelige.
+              M03–M07 viser retningen videre, men har ingen leksjoner eller
               registrert framdrift ennå.
             </p>
             <ol className="pathways-track__roadmap">
@@ -320,7 +313,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 </p>
                 <h4>Fem leksjoner i M01</h4>
                 <ol>
-                  {items.map((lesson) => (
+                  {m01Items.map((lesson) => (
                     <li key={lesson.id}>
                       <Link to={getPathwayLessonPath(lesson.id, rpg)}>
                         {lesson.title}
@@ -330,10 +323,37 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 </ol>
                 <Link
                   className="pathways-track__start"
-                  to={getPathwayLessonPath(items[0]!.id, rpg)}
+                  to={getPathwayLessonPath(m01Items[0]!.id, rpg)}
                 >
                   Begynn med første leksjon
                 </Link>
+              </li>
+              <li className="pathways-track__current">
+                <div className="pathways-track__module-head">
+                  <h3>M02 · Finn og forstå tidligere versjoner</h3>
+                  <span className="pathways-track__availability">
+                    Tilgjengelig
+                  </span>
+                </div>
+                <p>
+                  Les historikk, finn endringen som innførte en feil, sammenlign
+                  versjoner og rett bare det som er feil. Senere nyttig arbeid
+                  skal beholdes. Du får en separat øvingsmappe og en oppgave der
+                  det riktige valget kan være å la koden stå.
+                </p>
+                <p className="pathways-track__builds-on">
+                  Bygger på: M01s repository, status, staging og commits.
+                </p>
+                <h4>Seks leksjoner i M02</h4>
+                <ol>
+                  {m02Items.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                        {lesson.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
               </li>
               {plannedModules.map((module) => (
                 <li key={module.id}>

@@ -30,9 +30,9 @@ const provider = () =>
   });
 async function exercises() {
   const bundles = await Promise.all(
-    catalogue.modules[0]!.missions.map((mission) =>
-      provider().loadLesson(mission.itemId),
-    ),
+    catalogue.modules
+      .flatMap((module) => module.missions)
+      .map((mission) => provider().loadLesson(mission.itemId)),
   );
   return bundles.flatMap((bundle) => {
     expect(bundle.status).toBe('ready');
@@ -60,7 +60,19 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
       itemMilestones: [],
     });
     expect(gitGithubDefinition.content.microlearning).toBeUndefined();
-    expect(gitGithubDefinition.catalogue.units).toHaveLength(1);
+    expect(gitGithubDefinition.catalogue.units).toHaveLength(2);
+    expect(gitGithubDefinition.catalogue.dataVersion).toBe(2);
+    expect(catalogue.contentVersion).toBe(1);
+    expect(
+      gitGithubDefinition.catalogue.units[1]!.items.map((item) => item.id),
+    ).toEqual([
+      'git-m02-o01',
+      'git-m02-o02',
+      'git-m02-o03',
+      'git-m02-o04',
+      'git-m02-o05',
+      'git-m02-o06',
+    ]);
     expect(
       gitGithubDefinition.catalogue.units[0]!.items.map((item) => item.id),
     ).toEqual([
@@ -74,7 +86,10 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
 
   it('loads every real lesson through current validation and binds every exercise to its actual hash', async () => {
     const entries = await exercises();
-    expect(entries).toHaveLength(7);
+    expect(entries).toHaveLength(19);
+    expect(
+      catalogue.subjectIds.filter((id) => id.startsWith('git-m02-')),
+    ).toHaveLength(12);
     for (const { exercise, meta } of entries) {
       expect(meta.contentHash).toBe(await sha256Hex(canonicalJson(exercise)));
       expect(meta.masteryGate).toBe(false);
@@ -82,7 +97,12 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
     }
     expect(catalogue.sourceSha256).toBe(
       await sha256Hex(
-        readFileSync(resolve('src/programmes/git-github/source.mjs'), 'utf8'),
+        [
+          'src/programmes/git-github/source.mjs',
+          'src/programmes/git-github/m02.mjs',
+        ]
+          .map((path) => readFileSync(resolve(path), 'utf8'))
+          .join(''),
       ),
     );
   });
