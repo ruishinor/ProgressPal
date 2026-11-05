@@ -13,11 +13,13 @@ import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { gitLessons } from '../src/programmes/git-github/source.mjs';
 import { gitM02Lessons } from '../src/programmes/git-github/m02.mjs';
+import { gitM03Lessons } from '../src/programmes/git-github/m03.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourcePaths = [
   'src/programmes/git-github/source.mjs',
   'src/programmes/git-github/m02.mjs',
+  'src/programmes/git-github/m03.mjs',
 ];
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 function canonical(value) {
@@ -48,6 +50,12 @@ const authoredModules = [
     title: 'Finn og forstå tidligere versjoner',
     order: 1,
     lessons: gitM02Lessons,
+  },
+  {
+    moduleId: 'GIT-M03',
+    title: 'Brancher og merge',
+    order: 2,
+    lessons: gitM03Lessons,
   },
 ];
 const programmeId = 'git-github';

@@ -60,9 +60,19 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
       itemMilestones: [],
     });
     expect(gitGithubDefinition.content.microlearning).toBeUndefined();
-    expect(gitGithubDefinition.catalogue.units).toHaveLength(2);
-    expect(gitGithubDefinition.catalogue.dataVersion).toBe(2);
+    expect(gitGithubDefinition.catalogue.units).toHaveLength(3);
+    expect(gitGithubDefinition.catalogue.dataVersion).toBe(3);
     expect(catalogue.contentVersion).toBe(1);
+    expect(
+      gitGithubDefinition.catalogue.units[2]!.items.map((item) => item.id),
+    ).toEqual([
+      'git-m03-o01',
+      'git-m03-o02',
+      'git-m03-o03',
+      'git-m03-o04',
+      'git-m03-o05',
+      'git-m03-o06',
+    ]);
     expect(
       gitGithubDefinition.catalogue.units[1]!.items.map((item) => item.id),
     ).toEqual([
@@ -86,10 +96,13 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
 
   it('loads every real lesson through current validation and binds every exercise to its actual hash', async () => {
     const entries = await exercises();
-    expect(entries).toHaveLength(19);
+    expect(entries).toHaveLength(32);
     expect(
       catalogue.subjectIds.filter((id) => id.startsWith('git-m02-')),
     ).toHaveLength(12);
+    expect(
+      catalogue.subjectIds.filter((id) => id.startsWith('git-m03-')),
+    ).toHaveLength(13);
     for (const { exercise, meta } of entries) {
       expect(meta.contentHash).toBe(await sha256Hex(canonicalJson(exercise)));
       expect(meta.masteryGate).toBe(false);
@@ -100,6 +113,7 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
         [
           'src/programmes/git-github/source.mjs',
           'src/programmes/git-github/m02.mjs',
+          'src/programmes/git-github/m03.mjs',
         ]
           .map((path) => readFileSync(resolve(path), 'utf8'))
           .join(''),

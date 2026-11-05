@@ -96,7 +96,21 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Planlagt');
-  await expect(page.getByRole('table')).toContainText('M03–M07');
+  await expect(page.getByRole('table')).toContainText('M04–M07');
+  await page.goto('/rpg/pathways/git-github');
+  await expect(
+    page.getByRole('link', { name: 'Hvorfor arbeide med branches?' }),
+  ).toBeVisible();
+  await page
+    .getByRole('link', { name: 'Hvorfor arbeide med branches?' })
+    .click();
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Hvorfor arbeide med branches?',
+    }),
+  ).toBeVisible();
+  await page.goto(route(1));
   const first = exercise(page, 1);
   await first
     .getByRole('radio', { name: /Git registrerer automatisk/ })
