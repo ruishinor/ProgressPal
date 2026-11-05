@@ -61,7 +61,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     page.getByRole('heading', { name: 'Hvorfor lære dette?' }),
   ).toBeVisible();
   await expect(
-    page.getByText('M07 · Bruke Git i et eget prosjekt'),
+    page.getByText('M07 · Git og GitHub i et utviklingsprosjekt'),
   ).toBeVisible();
   await expect(
     page.getByText('GitLab og Bitbucket er andre slike'),
@@ -70,8 +70,18 @@ test('starts from zero, explains wrong answers, records external reports honestl
     page.getByRole('link', { name: 'Begynn med første leksjon' }),
   ).toBeVisible();
   await expect(
-    page.getByRole('link', { name: 'M02', exact: false }),
-  ).toHaveCount(0);
+    page.getByRole('link', { name: 'Når en gammel versjon er riktig' }),
+  ).toBeVisible();
+  await page
+    .getByRole('link', { name: 'Når en gammel versjon er riktig' })
+    .click();
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Når en gammel versjon er riktig',
+    }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
   await page
     .getByRole('link', { name: 'Start her: hvorfor bruke Git?', exact: true })
     .click();
@@ -86,7 +96,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Planlagt');
-  await expect(page.getByRole('table')).toContainText('M02–M07');
+  await expect(page.getByRole('table')).toContainText('M03–M07');
   const first = exercise(page, 1);
   await first
     .getByRole('radio', { name: /Git registrerer automatisk/ })

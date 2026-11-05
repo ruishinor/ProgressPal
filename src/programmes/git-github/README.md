@@ -42,3 +42,26 @@ Technical references checked 2026-11-03: official
 [status](https://git-scm.com/docs/git-status), and
 [PowerShell 5.1 paths](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_path_syntax?view=powershell-5.1).
 Real reproduction and limitations are recorded in the pilot handoff.
+
+## M02 and compatibility (2026-11-05)
+
+M02 is authored in m02.mjs (six lessons, 12 exercises). M01 stays in source.mjs
+(five lessons, seven unchanged exercise IDs and evaluators). Both feed the
+existing git-github-content.mjs exporter. Only real lessons become catalogue
+nodes. Future M03–M07 are text-only roadmap; no extra schema or learning engine.
+
+Course catalogue dataVersion advances from 1 to 2 so an already enrolled
+learner gets new M02 rows when the selected M02 lesson is opened. The separate
+contentVersion remains 1: saved M01 positions and attempt bindings retain
+their original version and stable ID. M01 source copy changes affect the global
+source/asset hashes, not the unchanged M01 exercise hashes. The exporter
+recalculates the index and both module assets and checks them for consistency.
+
+After applying the source patch and formatting changed files:
+
+    node scripts/git-github-content.mjs
+    node scripts/git-github-content.mjs --check
+
+The PowerShell 5.1 learner fixture must also be executed on Windows; a Git
+fixture on another OS is not equivalent. No GitHub login, live Git inspection,
+new XP mechanism or certification is added.

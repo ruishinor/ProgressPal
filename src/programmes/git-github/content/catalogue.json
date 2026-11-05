@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "99aca9bb6469f01496f7969bc8fdb23be4da425925533c6536bdfb690b1764ce",
+  "sourceSha256": "b2d38dde5c54f31bde9c42611d6993bde31ebe31706f4a9da281e9b97edefb8e",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -60,6 +60,68 @@
           "order": 4
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M02",
+      "catalogueUnitId": "git-m02",
+      "title": "Finn og forstå tidligere versjoner",
+      "order": 1,
+      "missions": [
+        {
+          "missionId": "GIT-M02-O01",
+          "itemId": "git-m02-o01",
+          "surface": "mission",
+          "title": "Når en gammel versjon er riktig",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M02-O02",
+          "itemId": "git-m02-o02",
+          "surface": "mission",
+          "title": "Lag en egen historikk å undersøke",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M02-O03",
+          "itemId": "git-m02-o03",
+          "surface": "mission",
+          "title": "Les commits, HEAD og tidligere filer",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M02-O04",
+          "itemId": "git-m02-o04",
+          "surface": "mission",
+          "title": "Sammenlign før du velger tiltak",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M02-O05",
+          "itemId": "git-m02-o05",
+          "surface": "mission",
+          "title": "Rett feilen og behold senere arbeid",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M02-O06",
+          "itemId": "git-m02-o06",
+          "surface": "mission",
+          "title": "Prøv selv: Skal du egentlig endre noe?",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -69,19 +131,36 @@
     "git-m01-e04",
     "git-m01-e05",
     "git-m01-e06",
-    "git-m01-e07"
+    "git-m01-e07",
+    "git-m02-e01",
+    "git-m02-e02",
+    "git-m02-e03",
+    "git-m02-e04",
+    "git-m02-e05",
+    "git-m02-e06",
+    "git-m02-e07",
+    "git-m02-e08",
+    "git-m02-e09",
+    "git-m02-e10",
+    "git-m02-e11",
+    "git-m02-e12"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.4a39c6e9a4b18d06.json",
-      "sha256": "4a39c6e9a4b18d06366f0b067207c0c4766e7f8ad9cb1c55f82fe8fa81e7547a",
-      "bytes": 8651
+      "path": "content/git-github/index.25d8d14d958481d4.json",
+      "sha256": "25d8d14d958481d49bc6a3b032854e08908b9130e1de1b6c97fe6829c3ca9b8c",
+      "bytes": 20342
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.eeef4072e23b780b.json",
-        "sha256": "eeef4072e23b780ba1fd03ed2d4e1626ac7624b3a427db932c017545e1e95c1c",
-        "bytes": 41984
+        "path": "content/git-github/git-m01.a4a6119916dd74f6.json",
+        "sha256": "a4a6119916dd74f698579a46bb861482226208e4e0ae2f832d33d31913aa3735",
+        "bytes": 42177
+      },
+      "GIT-M02": {
+        "path": "content/git-github/git-m02.8a541d20296b571c.json",
+        "sha256": "8a541d20296b571c3e740a64bafd3cde1bfddf60797c96d88f79ffe7d88657aa",
+        "bytes": 36400
       }
     }
   }
