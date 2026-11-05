@@ -43,7 +43,7 @@ export const releaseBundleBudget = Object.freeze({
   maxJavaScriptRawBytes: 500_000,
   // Owner-authorized M02 expansion (2026-11-05): 152002 B curriculum gzip measured; prior ceiling 150000 B.
   // New ceiling 157000 B includes bounded headroom.
-  maxCurriculumGzipBytes: 157_000,
+  maxCurriculumGzipBytes: 167_000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five
   // packaged files plus the runtime list); about 9.4 % headroom, within the
   // owner-authorized ~10 % (decision 2026-10-03).

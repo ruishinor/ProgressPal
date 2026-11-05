@@ -1,3 +1,11 @@
+**2026-11-05 Pathways Git M03 — release candidate pending validation.**
+M01/M02 were merged in PR #71/#72, with master f9a1a30c and curriculum
+budget 157000 B gzip. M03 adds six local-branch/merge lessons and 13 exercises
+using the existing exporter, course dataVersion 3, and existing test oracles.
+Earlier module IDs, evaluator content version, XP, backup and DB schema remain.
+Release status MUST be established separately for exact PR HEAD, master
+Final candidate, Vercel deployment and alias. No automatic promotion assumed.
+
 # ProgressPal current state
 
 **2026-11-04 Pathways Foundations — pedagogisk konsolidering (lokal kandidat, ikke sertifisert).**

@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "b2d38dde5c54f31bde9c42611d6993bde31ebe31706f4a9da281e9b97edefb8e",
+  "sourceSha256": "098943b80fdaef55efa865d2eda7645c4a2ae71a3ca5ef0eee83584482533231",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -122,6 +122,68 @@
           "order": 5
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M03",
+      "catalogueUnitId": "git-m03",
+      "title": "Brancher og merge",
+      "order": 2,
+      "missions": [
+        {
+          "missionId": "GIT-M03-O01",
+          "itemId": "git-m03-o01",
+          "surface": "mission",
+          "title": "Hvorfor arbeide med branches?",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M03-O02",
+          "itemId": "git-m03-o02",
+          "surface": "mission",
+          "title": "Lag en trygg branch i en egen mappe",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M03-O03",
+          "itemId": "git-m03-o03",
+          "surface": "mission",
+          "title": "Gjør en endring utenfor main",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M03-O04",
+          "itemId": "git-m03-o04",
+          "surface": "mission",
+          "title": "Samle to utviklingslinjer med merge",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M03-O05",
+          "itemId": "git-m03-o05",
+          "surface": "mission",
+          "title": "Forstå og løse en reell merge-konflikt",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M03-O06",
+          "itemId": "git-m03-o06",
+          "surface": "mission",
+          "title": "Prøv selv: Når automatisk merge ikke er nok",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -143,24 +205,42 @@
     "git-m02-e09",
     "git-m02-e10",
     "git-m02-e11",
-    "git-m02-e12"
+    "git-m02-e12",
+    "git-m03-e01",
+    "git-m03-e02",
+    "git-m03-e03",
+    "git-m03-e04",
+    "git-m03-e05",
+    "git-m03-e06",
+    "git-m03-e07",
+    "git-m03-e08",
+    "git-m03-e09",
+    "git-m03-e10",
+    "git-m03-e11",
+    "git-m03-e12",
+    "git-m03-e13"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.25d8d14d958481d4.json",
-      "sha256": "25d8d14d958481d49bc6a3b032854e08908b9130e1de1b6c97fe6829c3ca9b8c",
-      "bytes": 20342
+      "path": "content/git-github/index.d9b3808feaa774ab.json",
+      "sha256": "d9b3808feaa774ab6ccda4afcc8261977f7448e8a2bd2ac9439e841e12acf87c",
+      "bytes": 32594
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.a4a6119916dd74f6.json",
-        "sha256": "a4a6119916dd74f698579a46bb861482226208e4e0ae2f832d33d31913aa3735",
-        "bytes": 42177
+        "path": "content/git-github/git-m01.9a56a490f69ef0f4.json",
+        "sha256": "9a56a490f69ef0f462282ad209337ebc0e4bbab9b70bd922fd6649aac10b0388",
+        "bytes": 42287
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.8a541d20296b571c.json",
-        "sha256": "8a541d20296b571c3e740a64bafd3cde1bfddf60797c96d88f79ffe7d88657aa",
-        "bytes": 36400
+        "path": "content/git-github/git-m02.debaa17e675935e0.json",
+        "sha256": "debaa17e675935e02231ce03158d182418c809248876db516c2ac87ff5c6f168",
+        "bytes": 36374
+      },
+      "GIT-M03": {
+        "path": "content/git-github/git-m03.649edaafdb679383.json",
+        "sha256": "649edaafdb679383ee7873d7c855be526b22953ab5e078788612562db82a0905",
+        "bytes": 49871
       }
     }
   }

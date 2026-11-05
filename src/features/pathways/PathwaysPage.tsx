@@ -27,16 +27,8 @@ type PlannedModule = {
   buildsOn: string;
 };
 
-// M01 and M02 are real lessons. These cards describe only later plans.
+// M01–M03 have real lessons; these cards describe only later plans.
 const plannedModules: readonly PlannedModule[] = [
-  {
-    id: 'M03',
-    name: 'Brancher og merge',
-    learns:
-      'Lage og bruke branches, samle endringer og løse en enkel konflikt.',
-    value: 'Prøve løsninger uten å blande alt med hovedarbeidet med én gang.',
-    buildsOn: 'Du kan lese og sammenligne commits fra M02.',
-  },
   {
     id: 'M04',
     name: 'Fra lokal Git til GitHub',
@@ -86,6 +78,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     scope.catalogue.units.find((unit) => unit.id === 'git-m01')?.items ?? [];
   const m02Items =
     scope.catalogue.units.find((unit) => unit.id === 'git-m02')?.items ?? [];
+  const m03Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m03')?.items ?? [];
   const item = items.find((candidate) => candidate.id === itemId);
   const [state, setState] = useState<
     'loading' | 'ready' | 'read-only' | 'error'
@@ -207,7 +201,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             <p>
               Lær å ta vare på endringer, finne igjen fungerende kode og etter
               hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner og M02 har seks. M03–M07 er planlagt.
+              leksjoner, M02 har seks og M03 har seks. M04–M07 er planlagt.
             </p>
             <p>
               Du kan lese oversikten før du begynner. Ingen installasjon kreves.
@@ -289,8 +283,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. M01 og M02 er tilgjengelige.
-              M03–M07 viser retningen videre, men har ingen leksjoner eller
+              Hver modul bygger videre på forrige. M01–M03 er tilgjengelige.
+              M04–M07 viser retningen videre, men har ingen leksjoner eller
               registrert framdrift ennå.
             </p>
             <ol className="pathways-track__roadmap">
@@ -347,6 +341,32 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <h4>Seks leksjoner i M02</h4>
                 <ol>
                   {m02Items.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                        {lesson.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </li>
+              <li className="pathways-track__current">
+                <div className="pathways-track__module-head">
+                  <h3>M03 · Brancher og merge</h3>
+                  <span className="pathways-track__availability">
+                    Tilgjengelig
+                  </span>
+                </div>
+                <p>
+                  Arbeid på en egen branch, samle endringer med merge og løs en
+                  reell konflikt. Se også hvorfor en konfliktfri merge kan gi
+                  feil resultat og krever kontroll av funksjonaliteten.
+                </p>
+                <p className="pathways-track__builds-on">
+                  Bygger på: Commits fra M01 og historikk/diff fra M02.
+                </p>
+                <h4>Seks leksjoner i M03</h4>
+                <ol>
+                  {m03Items.map((lesson) => (
                     <li key={lesson.id}>
                       <Link to={getPathwayLessonPath(lesson.id, rpg)}>
                         {lesson.title}
