@@ -16,6 +16,7 @@ export const gitTerminology: ProgrammeTerminology = {
     'git-m04': '4',
     'git-m05': '5',
     'git-m06': '6',
+    'git-m07': '7',
   },
   copy: {
     startupLoadingSummary:
@@ -32,11 +33,11 @@ export const gitTerminology: ProgrammeTerminology = {
     courseMapLoadingDescription: 'Åpner den første Git-modulen.',
     courseMapErrorDescription: 'Modulen og framdriften kunne ikke vises.',
     catalogueDescription:
-      'Begynn med hvorfor utviklere trenger Git. M01 har fem leksjoner om commits, M02 seks om historikk og feilretting, M03 seks om branches og merge, M04 sju om GitHub og remotes, og M05 åtte om samarbeid med pull requests og M06 sju om trygg gjenoppretting. M07 er planlagt.',
+      'Fra første commit til et lite utviklingsprosjekt: M01 har fem leksjoner, M02 seks, M03 seks, M04 sju, M05 åtte og M06 sju. M07 avslutter Foundations med åtte leksjoner om en sammenhengende Git- og GitHub-arbeidsflyt.',
     insightsDescription: 'Se når du har arbeidet med leksjonene.',
     insightsErrorDescription: 'Innsikt leser lagrede studieøkter og framdrift.',
     rpgRequiredCompleteNote:
-      'Du har gått gjennom de tilgjengelige Git-leksjonene i M01–M06. M07 er planlagt.',
+      'Du har gått gjennom M01–M07 i Git & GitHub Foundations. Du kan åpne leksjonene igjen og bruke ferdighetene i egne prosjekter.',
     rpgHeroProgressNote:
       'Her finner du leksjonene og framdriften din. Du kan øve på nytt når som helst.',
     settingsBoundaryTitle: 'Git-praksis og lagring',
