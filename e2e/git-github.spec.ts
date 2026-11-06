@@ -8,6 +8,20 @@ const exercise = (page: Page, number: number) =>
   page.getByRole('group', {
     name: new RegExp('^Oppgave ' + number + ' · '),
   });
+// The roadmap opens the current module automatically, but other modules
+// remain collapsed. Never toggle a module closed when it is already open.
+async function showModuleLessons(page: Page, label: string) {
+  await expect(
+    page.getByText(/av 47 leksjoner markert fullført/),
+  ).toBeVisible();
+  const summary = page.getByText(label, { exact: true });
+  const details = summary.locator('xpath=..');
+  if ((await details.getAttribute('open')) === null) {
+    await summary.click();
+  }
+  await expect(details).toHaveAttribute('open', '');
+}
+
 async function switchProgramme(page: Page, id: string) {
   await page.goto('/settings');
   await page.getByLabel('Programme to switch to').selectOption(id);
@@ -53,7 +67,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await pathwaysInfo.focus();
   await page.keyboard.press('Enter');
   await expect(
-    page.getByText('Sammenhengende læringsløp med forklaringer, praktiske'),
+    page.getByText('Lær ferdigheter du kan bruke uansett studieprogram'),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Pathways', exact: true }).click();
   await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
@@ -63,15 +77,28 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await expect(
     page.getByText('M07 · Git og GitHub i et utviklingsprosjekt'),
   ).toBeVisible();
+  await showModuleLessons(page, 'Leksjoner i M07 (8)');
+  const m07Lessons = page
+    .getByText('Leksjoner i M07 (8)', { exact: true })
+    .locator('xpath=..');
+  await expect(m07Lessons.getByRole('link')).toHaveCount(8);
+  await expect(
+    m07Lessons.getByRole('link', {
+      name: 'Du overtar et lite utviklingsprosjekt',
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     page.getByText('GitLab og Bitbucket er andre slike'),
   ).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'Begynn med første leksjon' }),
   ).toBeVisible();
+  await showModuleLessons(page, 'Leksjoner i M02 (6)');
   await expect(
     page.getByRole('link', { name: 'Når en gammel versjon er riktig' }),
   ).toBeVisible();
+  await showModuleLessons(page, 'Leksjoner i M05 (8)');
   await expect(
     page.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
   ).toBeVisible();
@@ -98,6 +125,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
   });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
+  await showModuleLessons(page, 'Leksjoner i M02 (6)');
   await page
     .getByRole('link', { name: 'Når en gammel versjon er riktig' })
     .click();
@@ -108,6 +136,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
+  await showModuleLessons(page, 'Leksjoner i M01 (5)');
   await page
     .getByRole('link', { name: 'Start her: hvorfor bruke Git?', exact: true })
     .click();
@@ -121,11 +150,8 @@ test('starts from zero, explains wrong answers, records external reports honestl
       name: 'Start her: hvorfor bruke Git?',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('table')).toContainText(
-    'Tilgjengelig: åtte leksjoner.',
-  );
-  await expect(page.getByRole('table')).toContainText('M07');
   await page.goto('/rpg/pathways/git-github');
+  await showModuleLessons(page, 'Leksjoner i M03 (6)');
   await expect(
     page.getByRole('link', { name: 'Hvorfor arbeide med branches?' }),
   ).toBeVisible();
@@ -400,6 +426,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await track.focus();
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/\/pathways\/git-github$/);
+      await showModuleLessons(page, 'Leksjoner i M01 (5)');
       await page
         .getByRole('link', {
           name: 'Start her: hvorfor bruke Git?',
@@ -518,4 +545,47 @@ test('a read-only peer cannot prepare or save Pathways and reads existing Git wo
   ).toBeDisabled();
   expect(await pathwayState(reader)).toEqual(saved);
   await reader.close();
+});
+
+test('RPG Home groups available learning actions with keyboard-operated individual help', async ({
+  page,
+}) => {
+  await completeOnboarding(page, { theme: 'dark' });
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto('/rpg');
+  const section = page.locator('.rpg-hub__learning');
+  await expect(
+    section.getByRole('heading', { name: 'Lær og utforsk' }),
+  ).toBeVisible();
+  await expect(section.getByRole('link', { name: 'Pathways' })).toHaveAttribute(
+    'href',
+    '/rpg/pathways',
+  );
+  await expect(
+    section.getByRole('link', { name: 'Teknologioppslag' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Lær mer ved siden av studieprogrammet'),
+  ).toHaveCount(0);
+  const info = section.getByRole('button', { name: 'Om Pathways' });
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await info.focus();
+  await page.keyboard.press('Enter');
+  await expect(info).toHaveAttribute('aria-expanded', 'true');
+  await expect(
+    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
+  ).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(info).toHaveAttribute('aria-expanded', 'false');
+  await expect(
+    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
+  ).toHaveCount(0);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
 });

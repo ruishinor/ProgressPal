@@ -98,27 +98,6 @@ function useMicroOffer(scope: ProgrammeScope, summary: RpgHubSummary | null) {
     : null;
 }
 
-/**
- * Shown only on request, behind the (i) of an entry. True to the app: these
- * surfaces write nothing, and XP comes from Campaign work (tasks, focus
- * sessions and content within them).
- */
-const campaignRewards =
-  'XP, nivåer og Achievements får du gjennom arbeidet i kampanjen.';
-
-/** What Mikroøkt offers right now, from the same answer as its link. */
-function getMicroNow(offer: { primer: boolean; repeat: boolean }) {
-  if (offer.primer && offer.repeat) {
-    return 'Nå kan du både forberede deg og øve igjen.';
-  }
-  if (offer.primer) {
-    return 'Nå kan du forberede deg på neste oppgave.';
-  }
-  return offer.repeat
-    ? 'Nå kan du øve igjen på det du har jobbet med.'
-    : 'Akkurat nå er det ingen mikroøkt.';
-}
-
 export function RpgHomePage() {
   const scope = requireProgrammeScope(useAppState().programmeScope);
   const { copy, notesOnDemand } = scope.content.terminology;
@@ -277,42 +256,55 @@ export function RpgHomePage() {
             </div>
           )}
 
-          {/* Secondary, contextual ways in, after the quest above and never
-              instead of it. Mikroøkt: only a programme that ships
-              microlearning has it, and the link exists only while the picker
-              would list a session; some Campaign phases (Lab, Oppdrag)
-              honestly have none, and Home then says so and links nowhere.
-              Tracks are open whatever the Campaign position, so their
-              entries need no progress read. Each entry is a link with its own
-              (i) beside it, never inside it; side by side where there is
-              room, stacked where not. */}
-          {microOffer === null && tracks.length === 0 ? null : (
-            <div
-              className="rpg-hub__module-context rpg-hub__entries"
-              // An open (i) makes its own entry taller, never moves the other.
-              style={{ alignItems: 'start' }}
-            >
+          {/* Secondary learning surfaces; actual programme availability owns
+              whether Microlearning/tracks are offered. Independent (i)
+              disclosures never nest inside navigation links. */}
+          <div className="rpg-hub__module-context rpg-hub__learning" lang="nb">
+            <h3>Lær og utforsk</h3>
+            <div className="rpg-hub__entries rpg-hub__learning-grid">
+              <div className="rpg-hub__entry rpg-hub__entry--pathways">
+                <RpgButton href={rpgPathwaysPath} variant="secondary">
+                  Pathways
+                </RpgButton>
+                <RpgInfoNote label="Om Pathways" size="md">
+                  Lær ferdigheter du kan bruke uansett studieprogram. Git &amp;
+                  GitHub er det første tilgjengelige læringsløpet.
+                </RpgInfoNote>
+              </div>
+              <div className="rpg-hub__entry rpg-hub__entry--reference">
+                <RpgButton href={rpgReferencePath} variant="secondary">
+                  Teknologioppslag
+                </RpgButton>
+                <RpgInfoNote label="Om Teknologioppslag" size="md">
+                  Finn forklaringer på begreper, verktøy og sammenhenger når du
+                  trenger dem.
+                </RpgInfoNote>
+              </div>
               {microOffer === null ? null : (
-                <div className="rpg-hub__entry">
+                <div className="rpg-hub__entry rpg-hub__entry--micro">
                   {microOffer.primer || microOffer.repeat ? (
-                    <RpgButton href={rpgMicroPath} variant="secondary">
-                      Mikroøkt
-                    </RpgButton>
+                    <>
+                      <RpgButton href={rpgMicroPath} variant="secondary">
+                        Mikroøkt
+                      </RpgButton>
+                      <RpgInfoNote label="Om Mikroøkt" size="md">
+                        Korte oppgaver som hjelper deg å forberede deg på nytt
+                        stoff eller repetere det du har lært.
+                      </RpgInfoNote>
+                    </>
                   ) : (
                     <p className="rpg-hub__note">
-                      Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes
+                      Ingen mikroøkt akkurat nå. Fortsett i Campaign for å åpne
                       flere.
                     </p>
                   )}
-                  <RpgInfoNote label="Om Mikroøkt" size="md">
-                    I Mikroøkt kan du forberede deg på kommende oppgaver og øve
-                    på det du allerede har jobbet med, gjennom korte oppgaver.{' '}
-                    {getMicroNow(microOffer)} {campaignRewards}
-                  </RpgInfoNote>
                 </div>
               )}
               {tracks.map((track) => (
-                <div className="rpg-hub__entry" key={track.id}>
+                <div
+                  className="rpg-hub__entry rpg-hub__entry--track"
+                  key={track.id}
+                >
                   <RpgButton
                     href={getRpgTrackPath(track.id)}
                     variant="secondary"
@@ -320,39 +312,10 @@ export function RpgHomePage() {
                     {track.title}
                   </RpgButton>
                   <RpgInfoNote label={`Om ${track.title}`} size="md">
-                    {track.about ?? track.summary} {campaignRewards}
+                    {track.about ?? track.summary}
                   </RpgInfoNote>
                 </div>
               ))}
-            </div>
-          )}
-          <div className="rpg-hub__module-context" lang="nb">
-            <h3>Lær mer ved siden av studieprogrammet</h3>
-            <p className="rpg-hub__note">
-              Fortsett hovedstudieprogrammet i Campaign. Her finner du egne
-              læringsløp og et oppslagsverk som kan brukes når du trenger det.
-            </p>
-            <div className="rpg-hub__entries">
-              <div className="rpg-hub__entry">
-                <RpgButton href={rpgPathwaysPath} variant="secondary">
-                  Pathways
-                </RpgButton>
-                <RpgInfoNote label="Om Pathways" size="md">
-                  Sammenhengende læringsløp med forklaringer, praktiske oppgaver
-                  og egen framdrift. Git &amp; GitHub har fem leksjoner i M01,
-                  seks i M02 og seks i M03.
-                </RpgInfoNote>
-              </div>
-              <div className="rpg-hub__entry">
-                <RpgButton href={rpgReferencePath} variant="secondary">
-                  Teknologioppslag
-                </RpgButton>
-                <RpgInfoNote label="Om Teknologioppslag" size="md">
-                  Slå opp et begrep eller verktøy, se et konkret eksempel og
-                  finn sammenhenger. Dette er et oppslagsverk, ikke et
-                  undervisningsløp.
-                </RpgInfoNote>
-              </div>
             </div>
           </div>
         </RpgPanel>

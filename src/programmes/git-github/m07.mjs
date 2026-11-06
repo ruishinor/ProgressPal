@@ -466,6 +466,9 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-OPPDRAG',
     flow: [
       text(
+        'Du skal ikke lære hele JavaScript her. I dette prosjektet betyr `function` at en navngitt del av koden kan brukes flere ganger. `String(navn).trim()` gjør inndata om til tekst og fjerner mellomrom i starten og slutten. `return` gir resultatet tilbake til koden som kaller funksjonen. I testfilen henter `require(...)` funksjonen og Node.js sitt innebygde testverktøy, mens `assert.equal(faktisk, forventet)` undersøker om en konkret regel oppfører seg som bestilt. En bestått test betyr at akkurat de beskrevne tilfellene stemmer, ikke at alle feil er utelukket.',
+      ),
+      text(
         '### Fra enkeltkommandoer til en arbeidsflyt\n\nI M01–M06 lærte du å registrere versjoner, undersøke historikk, arbeide på branches, dele endringer, behandle en pull request og rette Git-feil. Nå skal du bruke dette i sammenheng. Du overtar en enkel påmeldingsside for et arrangement sammen med en annen utvikler. Den første versjonen fungerer med navn. Telefonfeltet vises, men blir ennå ikke validert. Arrangøren har bedt om en endring: Hvis noen oppgir telefon, skal nummeret inneholde nøyaktig åtte siffer. Et tomt telefonfelt skal fortsatt være tillatt.',
       ),
       text(
@@ -539,6 +542,9 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-OVERSIKT',
     flow: [
       text(
+        'Før oppsett: åpne vanlig **Windows PowerShell 5.1** og kjør `git --version` og `node --version` hver for seg. Begge må gi en versjon; Git må være 2.28 eller nyere for oppsettkommandoen. Hvis en kommando ikke finnes, stopp her, følg den offisielle installasjonsveiledningen for Git eller Node.js, åpne en ny terminal og kontroller på nytt. På en administrert maskin følger du skolens eller arbeidsgiverens regler. Du trenger ingen GitHub-konto. Øvingen bruker `node.exe` til lokale JavaScript-tester; PowerShell-blokkene rundt `git.exe` og `node.exe` sjekker mapper, branch og feil før de fortsetter.',
+      ),
+      text(
         '### Tre mapper, to utviklere, ett felles Git-repository\n\nDu skal arbeide i `ProgressPal-Git-M07` under Dokumenter. `utvikler-A` og `utvikler-B` er to arbeidskopier. `felles.git` er en lokal **bare remote** som lagrer Git-objekter og branches, men ingen vanlig arbeidsfilvisning. Begge utviklerne kan sende og hente commits via den. Ingen av mappene har forbindelse til GitHub. Kommandoene bruker absolutte mappebaner og lokale Git-identiteter slik at eksisterende prosjekter ikke berøres.',
       ),
       text(
@@ -596,6 +602,9 @@ export const gitM07Lessons = [
     goal: 'Gjennomføre en liten kodeendring, kontrollere staging og opprette en ærlig, avgrenset commit.',
     skillId: 'GIT-M07-ENDRING',
     flow: [
+      text(
+        'Fortsetter du etter å ha lukket terminalen, åpner du Windows PowerShell på nytt og undersøker den eksisterende `ProgressPal-Git-M07`-mappen. `utvikler-A` og `utvikler-B` har hver sin branch og Git-status, mens `felles.git` er den lokale delte historikken. Kjør ikke oppsettet igjen når mappen finnes. Hvis du ble avbrutt midt i en blokk, bruk Git-status og logg for å finne siste gjennomførte steg før du velger neste handling. Ikke gjenta en push, branch-opprettelse eller commit uten å vite om den allerede lyktes.',
+      ),
       text(
         '### Løs én oppgave om gangen\n\nUtvikler A skal begynne på telefonvalideringen. `main` representerer den delte grunnversjonen; `feature/telefon` brukes for arbeidet som ennå ikke er integrert. I første forsøk kontrollerer A bare lengden. Vi lar en svakhet stå igjen med vilje, slik at en senere review kan avdekke den. Dette er en **øvingskandidat**, ikke en anbefaling om å integrere kjent ufullstendig kode.',
       ),
@@ -983,7 +992,7 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-OVERLEVERING',
     flow: [
       text(
-        '### Hva ville vært annerledes på GitHub?\n\nI den lokale øvingen brukte du `felles.git` for push, fetch og merge. En GitHub pull request ville i tillegg gitt et eget forslag med base/head, samtale, reviewtråder og eventuelle automatiserte status checks. Disse mekanismene oppstår **ikke** bare fordi du pusher en branch til en lokal Git-remote. Når et team har regler om godkjenning, må de følges før merge. En godkjent PR eller grønn CI er fremdeles ikke et bevis på at produktet er feilfritt.',
+        '### Hva ville vært annerledes på GitHub?\n\nI den lokale øvingen brukte du `felles.git` for push, fetch og merge. Dette er en simulering av samarbeid på din egen datamaskin, ikke en GitHub pull request. En GitHub pull request ville i tillegg gitt et eget forslag med base/head, samtale, reviewtråder og eventuelle automatiserte status checks. Disse mekanismene oppstår **ikke** bare fordi du pusher en branch til en lokal Git-remote. Når et team har regler om godkjenning, må de følges før merge. En godkjent PR eller grønn CI er fremdeles ikke et bevis på at produktet er feilfritt.',
       ),
       text(
         '### Valgfri GitHub-praksis med eget syntetisk repository\n\nHvis du har en GitHub-konto og ønsker å prøve dette med en faktisk PR, bruk et eget repository med bare syntetiske øvingsfiler. Les gjeldende GitHub-veiledning for opprettelse, autentisering og PR. Opprett en feature branch, push den, åpne en PR med `main` som base og feature-branchen som head, beskriv konkrete akseptansekriterier og hvilke kontroller du faktisk har kjørt. Undersøk endrede filer og reviewstatus. Hvis du gjør en egen gjennomgang, kall den egen gjennomgang; ikke påstå at en uavhengig person har godkjent den. Merge bare når du har tilgang, har vurdert innholdet og repositoryreglene tillater det. Du behøver ikke gjennomføre dette for å fullføre M07.',

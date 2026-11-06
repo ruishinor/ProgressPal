@@ -246,6 +246,9 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-WORKFLOW',
     flow: [
       text(
+        'Øvingen bruker ekte lokal Git for endringer og gjennomgang, men simulerer et forslag om pull request; den oppretter ingen PR på GitHub. Se etter `git diff`, `fetch`, `merge` og `status` som Git-handlinger. PowerShell-linjene sjekker at du bruker de syntetiske arbeidskopiene, og nekter å overskrive en gammel mappe. Hvis du allerede har gjennomført et steg, undersøk branch, logg og arbeidsfiler i stedet for å kjøre hele oppsettet om igjen.',
+      ),
+      text(
         '### Dette er nytt etter M04\n\nI M01–M04 lærte du å registrere, undersøke, samle og dele Git-historikk. Nå kan du sende commits til en remote. Men **deling er ikke det samme som å beslutte at endringen hører hjemme i hovedversjonen**. To utviklere arbeider på en enkel påmeldingsside. Den ene vil rette en feil i navnefeltet. Den andre må undersøke om rettelsen løser problemet uten å skape nye. Her lærer du samarbeidsprosessen rundt selve endringen, ikke bare nye Git-kommandoer.',
       ),
       text(
@@ -341,6 +344,9 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-LOCAL-SETUP',
     flow: [
       text(
+        'Øvingen bruker ekte lokal Git for endringer og gjennomgang, men simulerer et forslag om pull request; den oppretter ingen PR på GitHub. Se etter `git diff`, `fetch`, `merge` og `status` som Git-handlinger. PowerShell-linjene sjekker at du bruker de syntetiske arbeidskopiene, og nekter å overskrive en gammel mappe. Hvis du allerede har gjennomført et steg, undersøk branch, logg og arbeidsfiler i stedet for å kjøre hele oppsettet om igjen.',
+      ),
+      text(
         '### Her skal du faktisk bruke Git\n\nVi fortsetter med en ufarlig påmeldingsløsning, men lager **en helt ny M05-mappe**. I `utvikler` lager du endringen. I `gjennomgang` skal du lese forslaget som en annen deltaker ville gjort. `felles.git` er en lokal *bare remote* uten vanlig arbeidskopi, akkurat som i prinsippet fra M04. Du trenger verken internett, GitHub-konto eller en annen person for obligatorisk M05.',
       ),
       note(
@@ -395,6 +401,9 @@ export const gitM05Lessons = [
     goal: 'Lage en bevisst ufullstendig endring, pushe en branch og forstå PR-base og PR-head.',
     skillId: 'GIT-M05-PROPOSAL',
     flow: [
+      text(
+        'Hvis du fortsetter M05 senere, finn den eksisterende `ProgressPal-Git-M05`-mappen med `utvikler`, `gjennomgang` og den lokale remoten `felles.git`. Kontroller branch, status og logg i riktig arbeidskopi før du gjør neste endring eller push. Oppsettet skal ikke kjøres på nytt i samme mappe. Dette simulerer en review-arbeidsflyt med lokal Git, ikke en faktisk pull request på GitHub.',
+      ),
       text(
         "### En branch beskytter hovedarbeidet\n\nI M03 brukte du en branch for å holde pågående arbeid adskilt fra `main`. Nå gjør du det fordi en annen utvikler skal vurdere forslaget. Du lager `feature/valider-navn` og en første commit som avviser `navn === ''`. Den er **bevisst ufullstendig**: navn med bare mellomrom blir fortsatt godkjent. Dette er øvingsmateriale for review, ikke en anbefalt løsning.",
       ),

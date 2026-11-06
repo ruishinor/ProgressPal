@@ -93,6 +93,9 @@ export const gitM02Lessons = [
     skillId: 'GIT-M02-PROBLEM',
     flow: [
       text(
+        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+      ),
+      text(
         '### Fra M01 til M02\n\nI M01 opprettet du et repository, valgte endringer med staging og lagde commits. Nå bruker vi historikken til å løse et problem. Du trenger ikke GitHub eller et nytt studieprogram. Vi lager en **egen M02-mappe**, slik at arbeidet ditt fra M01 blir liggende urørt.',
       ),
       text(
@@ -140,6 +143,9 @@ export const gitM02Lessons = [
     goal: 'Opprette et ufarlig øvingsrepository med tre meningsfulle commits uten å berøre egne prosjekter.',
     skillId: 'GIT-M02-FIXTURE',
     flow: [
+      text(
+        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+      ),
       text(
         'Vi lager en liten, oppdiktet påmeldingsløsning. Du trenger **Windows PowerShell 5.1** og Git (fra M01). Kommandoen lager mappen `ProgressPal-Git-M02` i Dokumenter, med sin egen `.git`-historikk. Hvis mappen allerede finnes, stopper oppsettet. Du må aldri slette en eksisterende mappe bare for å kjøre eksemplet på nytt.',
       ),
@@ -207,6 +213,9 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
     goal: 'Finne relevant commit i historikken og skille mellom historisk lesing og endring av nåværende filer.',
     skillId: 'GIT-M02-HISTORY',
     flow: [
+      text(
+        'Etter en pause går du tilbake til den eksisterende `ProgressPal-Git-M02`-mappen. Kontroller mappe og `git status`, og les `git log --oneline` før du fortsetter fra riktig commit. Oppsettet i første leksjon skal ikke kjøres en gang til når øvingsmappen finnes. Hvis historikken ikke stemmer med forventningen, stopp i stedet for å opprette nye commits.',
+      ),
       text(
         '### Commits er spor, ikke fasit\n\n`git log --oneline` viser en forkortet oversikt med nyeste commit først. Git viser en kort hash og commit-meldingen. En melding forteller hva forfatteren mente å gjøre, men er ikke et bevis for at koden ble riktig. For å se hva som faktisk er registrert, bruker du `git show`.',
       ),

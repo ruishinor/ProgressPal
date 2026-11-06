@@ -7,10 +7,16 @@ import {
   ensureCourseCatalogFromSeed,
   getCourseItem,
   getProgress,
+  listLessonPositions,
+  listProgressEntries,
   listProgrammeEnrolments,
   upsertProgress,
 } from '@/lib/db';
-import type { ProgrammeScope, ProgressEntry } from '@/lib/domain';
+import type {
+  LessonPosition,
+  ProgrammeScope,
+  ProgressEntry,
+} from '@/lib/domain';
 import {
   getGitPathwayPath,
   getPathwayLessonPath,
@@ -18,6 +24,40 @@ import {
   rpgPathwaysPath,
 } from '@/lib/routing/pathwaysPaths';
 import './pathways.css';
+
+type ProgressOverview = {
+  status: 'loading' | 'ready' | 'error';
+  entries: readonly ProgressEntry[];
+  positions: readonly LessonPosition[];
+};
+
+function lessonStatus(
+  row: ProgressEntry | undefined,
+  position: LessonPosition | undefined,
+) {
+  if (row?.status === 'completed') return 'Fullført';
+  return row !== undefined || position !== undefined
+    ? 'Påbegynt'
+    : 'Ikke påbegynt';
+}
+
+function moduleStatus(
+  lessons: readonly { id: string }[],
+  byId: ReadonlyMap<string, ProgressEntry>,
+  positions: ReadonlyMap<string, LessonPosition>,
+) {
+  if (
+    lessons.length > 0 &&
+    lessons.every((lesson) => byId.get(lesson.id)?.status === 'completed')
+  ) {
+    return 'Fullført';
+  }
+  return lessons.some(
+    (lesson) => byId.has(lesson.id) || positions.has(lesson.id),
+  )
+    ? 'Påbegynt'
+    : 'Ikke påbegynt';
+}
 
 export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
   const { pathname } = useLocation();
@@ -53,10 +93,120 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
   const [progress, setProgress] = useState<ProgressEntry | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [overviewProgress, setOverviewProgress] = useState<ProgressOverview>({
+    status: 'loading',
+    entries: [],
+    positions: [],
+  });
   // StrictMode/effect re-entry shares one preparation, including the refresh
   // between the two coordinated writes. Each repository remains idempotent.
   const preparation = useRef<Promise<void> | null>(null);
   const isOverview = pathname === overview;
+
+  // Both overview routes read existing records only. No enrolment or catalogue
+  // synchronization can occur here, including when the tab cannot write.
+  useEffect(() => {
+    if (itemId !== undefined) return;
+    let active = true;
+    void Promise.all([listProgressEntries(), listLessonPositions()])
+      .then(([entries, positions]) => {
+        if (active)
+          setOverviewProgress({ status: 'ready', entries, positions });
+      })
+      .catch(() => {
+        if (active) {
+          setOverviewProgress({ status: 'error', entries: [], positions: [] });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [itemId, pathname]);
+
+  const progressById = useMemo(() => {
+    const ids = new Set(items.map((lesson) => lesson.id));
+    return new Map(
+      overviewProgress.entries
+        .filter((entry) => ids.has(entry.itemId))
+        .map((entry) => [entry.itemId, entry] as const),
+    );
+  }, [items, overviewProgress.entries]);
+  const positionById = useMemo(() => {
+    const ids = new Set(items.map((lesson) => lesson.id));
+    return new Map(
+      overviewProgress.positions
+        .filter(
+          (position) =>
+            position.programmeId === scope.programmeId &&
+            ids.has(position.itemId),
+        )
+        .map((position) => [position.itemId, position] as const),
+    );
+  }, [items, overviewProgress.positions, scope.programmeId]);
+  const completedCount = items.filter(
+    (lesson) => progressById.get(lesson.id)?.status === 'completed',
+  ).length;
+  const latestActivity = (id: string) => {
+    const rowTime = progressById.get(id)?.updatedAt ?? '';
+    const positionTime = positionById.get(id)?.updatedAt ?? '';
+    return rowTime > positionTime ? rowTime : positionTime;
+  };
+  const startedLessons = items
+    .filter((lesson) => {
+      const row = progressById.get(lesson.id);
+      return (
+        row?.status !== 'completed' &&
+        (row !== undefined || positionById.has(lesson.id))
+      );
+    })
+    .sort((a, b) => latestActivity(b.id).localeCompare(latestActivity(a.id)));
+  const allCompleted = items.length > 0 && completedCount === items.length;
+  // Resume the latest unfinished lesson; otherwise suggest the first not
+  // completed. The lesson surface independently restores saved step position.
+  const continuation = allCompleted
+    ? undefined
+    : (startedLessons[0] ??
+      items.find(
+        (lesson) => progressById.get(lesson.id)?.status !== 'completed',
+      ));
+  const hasProgress = progressById.size > 0 || positionById.size > 0;
+  const activeModuleId = scope.catalogue.units.find((unit) =>
+    unit.items.some((lesson) => lesson.id === continuation?.id),
+  )?.id;
+  const overviewSummary =
+    overviewProgress.status === 'loading' ? (
+      <p role="status">Leser lokal framdrift…</p>
+    ) : overviewProgress.status === 'error' ? (
+      <p role="status">
+        Lokal framdrift er ikke tilgjengelig nå. Du kan fortsatt åpne
+        leksjonene.
+      </p>
+    ) : (
+      <div className="pathways-track__progress-summary">
+        <p>
+          {completedCount} av {items.length} leksjoner markert fullført.
+          Fullføring er selvregistrert, ikke en ferdighetstest. «Påbegynt» betyr
+          lagret aktivitet eller leksjonsposisjon.
+        </p>
+        {allCompleted ? (
+          <p>
+            Alle leksjonene er markert fullført. Du kan åpne dem igjen når du
+            vil.
+          </p>
+        ) : continuation ? (
+          <Link
+            className="pathways-track__start"
+            to={getPathwayLessonPath(continuation.id, rpg)}
+          >
+            {startedLessons.length > 0
+              ? `Fortsett: ${continuation.title}`
+              : hasProgress
+                ? `Neste leksjon: ${continuation.title}`
+                : 'Begynn med første leksjon'}
+          </Link>
+        ) : null}
+      </div>
+    );
 
   useEffect(() => {
     // Exploring the orientation and roadmap is read-only. Never enrol a
@@ -169,9 +319,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
               leksjoner, M02 har seks, M03 har seks, M04 har sju, M05 har åtte,
               M06 har sju og M07 har åtte. Hele Foundations er tilgjengelig.
             </p>
-            <p>
-              Du kan lese oversikten før du begynner. Ingen installasjon kreves.
-            </p>
+            <p>Du kan lese oversikten før du installerer Git eller Node.js.</p>
+            {overviewSummary}
           </div>
         </>
       ) : itemId !== undefined && item === undefined ? (
@@ -246,6 +395,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
               </p>
             </details>
           </section>
+          {overviewSummary}
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
@@ -259,7 +409,11 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <div className="pathways-track__module-head">
                   <h3>M01 · Din første lokale versjon</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m01Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -272,28 +426,41 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   Windows PowerShell og en separat øvingsmappe til å lage og
                   rette dine første commits.
                 </p>
-                <h4>Fem leksjoner i M01</h4>
-                <ol>
-                  {m01Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
-                <Link
-                  className="pathways-track__start"
-                  to={getPathwayLessonPath(m01Items[0]!.id, rpg)}
+                <details
+                  className="pathways-track__lesson-list"
+                  open={
+                    activeModuleId === 'git-m01' || activeModuleId === undefined
+                  }
                 >
-                  Begynn med første leksjon
-                </Link>
+                  <summary>Leksjoner i M01 ({m01Items.length})</summary>
+                  <ol>
+                    {m01Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M02 · Finn og forstå tidligere versjoner</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m02Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -305,22 +472,39 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: M01s repository, status, staging og commits.
                 </p>
-                <h4>Seks leksjoner i M02</h4>
-                <ol>
-                  {m02Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m02'}
+                >
+                  <summary>Leksjoner i M02 ({m02Items.length})</summary>
+                  <ol>
+                    {m02Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M03 · Brancher og merge</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m03Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -331,22 +515,39 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: Commits fra M01 og historikk/diff fra M02.
                 </p>
-                <h4>Seks leksjoner i M03</h4>
-                <ol>
-                  {m03Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m03'}
+                >
+                  <summary>Leksjoner i M03 ({m03Items.length})</summary>
+                  <ol>
+                    {m03Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M04 · Fra lokal Git til GitHub</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m04Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -357,22 +558,39 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: Branches og merge fra M03.
                 </p>
-                <h4>Sju leksjoner i M04</h4>
-                <ol>
-                  {m04Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m04'}
+                >
+                  <summary>Leksjoner i M04 ({m04Items.length})</summary>
+                  <ol>
+                    {m04Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M05 · Samarbeid med pull requests</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m05Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -383,22 +601,39 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: Deling av Git-historikk fra M04.
                 </p>
-                <h4>Åtte leksjoner i M05</h4>
-                <ol>
-                  {m05Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m05'}
+                >
+                  <summary>Leksjoner i M05 ({m05Items.length})</summary>
+                  <ol>
+                    {m05Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M06 · Feil og trygg gjenoppretting</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m06Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -409,22 +644,39 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: Lokalt arbeid, historikk og samarbeid fra M01–M05.
                 </p>
-                <h4>Sju leksjoner i M06</h4>
-                <ol>
-                  {m06Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m06'}
+                >
+                  <summary>Leksjoner i M06 ({m06Items.length})</summary>
+                  <ol>
+                    {m06Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
               <li className="pathways-track__current">
                 <div className="pathways-track__module-head">
                   <h3>M07 · Git og GitHub i et utviklingsprosjekt</h3>
                   <span className="pathways-track__availability">
-                    Tilgjengelig
+                    {overviewProgress.status === 'ready'
+                      ? moduleStatus(m07Items, progressById, positionById)
+                      : overviewProgress.status === 'error'
+                        ? 'Status utilgjengelig'
+                        : 'Leser status…'}
                   </span>
                 </div>
                 <p>
@@ -435,16 +687,29 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <p className="pathways-track__builds-on">
                   Bygger på: M01–M06, inkludert samarbeid og trygg feilretting.
                 </p>
-                <h4>Åtte leksjoner i M07</h4>
-                <ol>
-                  {m07Items.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
-                        {lesson.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ol>
+                <details
+                  className="pathways-track__lesson-list"
+                  open={activeModuleId === 'git-m07'}
+                >
+                  <summary>Leksjoner i M07 ({m07Items.length})</summary>
+                  <ol>
+                    {m07Items.map((lesson) => (
+                      <li key={lesson.id}>
+                        <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                          {lesson.title}
+                        </Link>
+                        {overviewProgress.status === 'ready' && (
+                          <span className="pathways-track__lesson-status">
+                            {lessonStatus(
+                              progressById.get(lesson.id),
+                              positionById.get(lesson.id),
+                            )}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
               </li>
             </ol>
           </section>

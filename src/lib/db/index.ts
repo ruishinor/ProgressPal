@@ -99,6 +99,7 @@ export {
   XpAwardPlanningError,
   findUnresolvedAttempts,
   getLessonPosition,
+  listLessonPositions,
   listLearnerEvidence,
   listUnresolvedAttempts,
   recordEvaluationResult,

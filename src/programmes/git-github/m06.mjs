@@ -265,6 +265,9 @@ export const gitM06Lessons = [
     skillId: 'GIT-M06-DIAGNOSE',
     flow: [
       text(
+        'Før du angrer noe, skill mellom filene på disken, staging og commit-historikken. Kommandoene `git status` og `git diff` hjelper deg å undersøke; `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige konsekvenser. PowerShell-kontrollene beskytter den separate M06-øvingen. Avbryter du, skal du tilbake til den samme mappen og lese tilstanden; aldri slette `.git` eller bruke `reset --hard` for å rydde en uventet situasjon.',
+      ),
+      text(
         '### En god reparasjon begynner med en undersøkelse\n\nI M05 gjennomgikk to utviklere en forbedring av påmeldingssiden. Nå kan brukere fortsatt skrive ugyldige opplysninger i et bestemt tilfelle. En utvikler sier: «Vi kan bare angre siste commit.» Men feilen kan ligge i en arbeidsfil, en staget endring, en lokal commit eller en commit som allerede er delt. Å velge kommando før dette er kjent, kan fjerne arbeid uten å løse problemet.',
       ),
       text(
@@ -331,6 +334,9 @@ export const gitM06Lessons = [
     goal: 'Skille unstage fra å forkaste ikke-stagede endringer og utføre trygg filrettet praksis.',
     skillId: 'GIT-M06-RESTORE',
     flow: [
+      text(
+        'Før du angrer noe, skill mellom filene på disken, staging og commit-historikken. Kommandoene `git status` og `git diff` hjelper deg å undersøke; `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige konsekvenser. PowerShell-kontrollene beskytter den separate M06-øvingen. Avbryter du, skal du tilbake til den samme mappen og lese tilstanden; aldri slette `.git` eller bruke `reset --hard` for å rydde en uventet situasjon.',
+      ),
       text(
         '### «Angre» er to forskjellige oppgaver\n\nTenk at du retter teksten i `melding.txt`, men legger filen i staging ved en feil. Hvis du vil beholde teksten og bare ta den ut av staging, er `git restore --staged -- melding.txt` relevant. Den tar utgangspunkt i HEAD for staging, men lar arbeidsfilen være. Derimot kan `git restore -- melding.txt` erstatte ikke-staget innhold i arbeidsfilen med innholdet fra staging. Det siste kan forkaste arbeid.',
       ),
@@ -413,6 +419,9 @@ export const gitM06Lessons = [
     goal: 'Skille soft, mixed og hard og forstå hvorfor delt historikk krever andre vurderinger.',
     skillId: 'GIT-M06-RESET',
     flow: [
+      text(
+        'Når du gjenopptar M06, gå tilbake til `ProgressPal-Git-M06` og undersøk repositoryet `pamelding` før du gjør noe: `git status`, aktuell branch og relevant `git log`/`git reflog` forklarer mye av tilstanden. Ikke kjør oppsettet på nytt, og ikke gjenta `reset`, `stash` eller `revert` uten å se om steget allerede er gjennomført. Ikke bruk `reset --hard` som opprydding.',
+      ),
       text(
         '### En commit er registrert, men ennå ikke delt\n\nDu har laget en lokal commit som kombinerer to endringer du heller vil organisere separat. `git reset --soft HEAD~1` flytter den aktive branchens referanse én commit bakover, men beholder både staging og arbeidsfiler. Du kan da kontrollere og omorganisere endringene før ny commit. `--mixed` flytter også referansen, men tilpasser staging til målet; arbeidsfilene beholdes.',
       ),

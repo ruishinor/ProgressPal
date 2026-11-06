@@ -12,9 +12,12 @@ import { router } from '@/app/router/router';
 import {
   defaultLearnerProfileValues,
   enrolAndSwitchActiveProgramme,
+  enrolInProgramme,
+  ensureCourseCatalogFromSeed,
   getDatabaseSnapshot,
   getProgress,
   initializeDatabase,
+  saveLessonPosition,
   saveLearnerProfile,
   upsertProgress,
 } from '@/lib/db';
@@ -68,6 +71,8 @@ it('opens the Git roadmap without enrolment or programme changes', async () => {
   await screen.findByRole('heading', {
     name: /Git & GitHub: fra første endring/,
   });
+  await screen.findByText(/av 47 leksjoner markert fullført/);
+  fireEvent.click(screen.getByText('Leksjoner i M05 (8)'));
   expect(
     screen.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
   ).toBeVisible();
@@ -266,6 +271,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/rpg/pathways');
     await router.navigate('/rpg/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
+    await screen.findByText(/av 47 leksjoner markert fullført/);
     const first = await screen.findByRole('link', {
       name: 'Start her: hvorfor bruke Git?',
     });
@@ -289,6 +295,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/pathways');
     await router.navigate('/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
+    await screen.findByText(/av 47 leksjoner markert fullført/);
     fireEvent.click(
       await screen.findByRole('link', {
         name: 'Start her: hvorfor bruke Git?',
@@ -345,3 +352,74 @@ it('rejects another programme item at the direct Pathway route without preparing
     before.progressEntries,
   );
 });
+
+it('shows one next action, bookmarks and manual progress without writing on the overview', async () => {
+  await learner('programvareutvikling');
+  await ensureCourseCatalogFromSeed(git.catalogue);
+  await enrolInProgramme(git.programmeId);
+  await upsertProgress({
+    itemId: 'git-m01-o01',
+    status: 'completed',
+    confidence: 0,
+  });
+  await saveLessonPosition({
+    itemId: 'git-m02-o03',
+    programmeId: git.programmeId,
+    contentVersion: 1,
+    unitId: 'git-m02-l03',
+    stepIndex: 2,
+  });
+  const before = await getDatabaseSnapshot();
+  await renderAppAtRoute('/pathways/git-github');
+  expect(
+    await screen.findByRole('link', {
+      name: 'Fortsett: Les commits, HEAD og tidligere filer',
+    }),
+  ).toHaveAttribute('href', '/pathways/git-github/git-m02-o03');
+  expect(screen.getByText(/1 av 47 leksjoner markert fullført/)).toBeVisible();
+  expect(screen.getByText('Leksjoner i M02 (6)')).toBeVisible();
+  const m02 = screen.getByText('Leksjoner i M02 (6)').closest('li');
+  expect(m02).toHaveTextContent('Påbegynt');
+  expect(await getDatabaseSnapshot()).toEqual(before);
+});
+
+it('prefers the latest unfinished lesson when several have started', async () => {
+  await learner('cs50x');
+  await upsertProgress({
+    itemId: 'git-m01-o02',
+    status: 'started',
+    confidence: 0,
+  });
+  await upsertProgress({
+    itemId: 'git-m03-o01',
+    status: 'started',
+    confidence: 0,
+  });
+  const before = await getDatabaseSnapshot();
+  await renderAppAtRoute('/rpg/pathways/git-github');
+  expect(
+    await screen.findByRole('link', {
+      name: 'Fortsett: Hvorfor arbeide med branches?',
+    }),
+  ).toHaveAttribute('href', '/rpg/pathways/git-github/git-m03-o01');
+  expect(await getDatabaseSnapshot()).toEqual(before);
+});
+
+it('shows completion without a misleading continuation after all lessons are marked done', async () => {
+  await learner('cs50x');
+  for (const lesson of git.catalogue.units.flatMap((unit) => unit.items)) {
+    await upsertProgress({
+      itemId: lesson.id,
+      status: 'completed',
+      confidence: 0,
+    });
+  }
+  const before = await getDatabaseSnapshot();
+  await renderAppAtRoute('/pathways/git-github');
+  await screen.findByText(/47 av 47 leksjoner markert fullført/);
+  expect(screen.getByText(/Alle leksjonene er markert fullført/)).toBeVisible();
+  expect(
+    screen.queryByRole('link', { name: /^(Fortsett:|Neste leksjon:)/ }),
+  ).toBeNull();
+  expect(await getDatabaseSnapshot()).toEqual(before);
+}, 20_000);

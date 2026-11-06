@@ -1,12 +1,44 @@
-**2026-11-05 Pathways Git M03 — release candidate pending validation.**
+# ProgressPal current state
+
+**Gjeldende verifisert utgangspunkt — 2026-11-06:** `master`
+`90810c23e253f97a561d0937915eaa18ac8bb461` (PR #77/M07).
+Applikasjonspakke `1.10.0`, lokal IndexedDB schema v5. Aktive
+primærstudieprogrammer er CS50x og Programvareutvikling. Pathways gir
+Git & GitHub Foundations som et tverrprogram-spor, M01–M07 med 47 leksjoner
+og 113 oppgaver. Git-katalog `dataVersion: 7`, innholds-/evaluatorversjon 1.
+Eksisterende Pathways bruker kanoniske `source.mjs`/`m02.mjs`–`m07.mjs`,
+generatoren `scripts/git-github-content.mjs` og hashadresserte offline-assets.
+Progress entries, leksjonsposisjoner og learner evidence lagres lokalt;
+Pathways gir ikke XP eller automatisk verifisert praktisk kompetanse.
+
+**F1–F8 konsolidering — lokal implementeringskandidat, ikke utgitt:**
+Kandidaten korrigerer eldre RPG Home-kopi, samler støttefunksjonene under
+«Lær og utforsk», gir Pathways en samlet, skrivebeskyttet fremdriftsvisning
+med gjenopptakelse fra eksisterende registreringer/bokmerker, og organiserer
+M01–M07 per modul. Reviderte pedagogiske tekster tydeliggjør PowerShell-
+sikkerhetsinnpakning, Node.js/JavaScript i M07 og trygg gjenopptakelse.
+Kanoniske øvelses-ID-er, evaluator-/content-versjon, dataversjon, database,
+backup, XP-policy, eksisterende rutestier og releasekontroller beholdes.
+Innhold genereres fra kanonisk kilde; endrede globale kilde- og asset-hasher
+er forventet, mens oppgaveinnholdets hashes skal være stabile.
+
+**Sertifiseringsgrense:** På dette stadiet er F1–F8 kun en lokal kandidat fra
+kildearkivet, ikke en GitHub-commit, PR, hosted `Final candidate`, merge,
+master-sertifisering eller Vercel-promotering. Native Windows PowerShell 5.1,
+pinnet Node 24/npm 11, full TypeScript/Vitest/Playwright/build og
+produksjonsalias er ikke verifisert for denne kandidaten. En senere
+implementerings- og releaseoppføring må bruke faktiske SHA-er og egne
+observasjoner; ingen historisk grønn gate gjelder automatisk for denne diffen.
+
+## Historiske hendelser (ikke aktive oppdrag)
+
+**2026-11-05 Pathways Git M03 — historisk kandidatstatus.**
 M01/M02 were merged in PR #71/#72, with master f9a1a30c and curriculum
 budget 157000 B gzip. M03 adds six local-branch/merge lessons and 13 exercises
 using the existing exporter, course dataVersion 3, and existing test oracles.
 Earlier module IDs, evaluator content version, XP, backup and DB schema remain.
 Release status MUST be established separately for exact PR HEAD, master
 Final candidate, Vercel deployment and alias. No automatic promotion assumed.
-
-# ProgressPal current state
 
 **2026-11-04 Pathways Foundations — pedagogisk konsolidering (lokal kandidat, ikke sertifisert).**
 Utgangspunkt: verifisert master 2832d1c6645f243b8a31e7509adadf6f54e2ad28.
