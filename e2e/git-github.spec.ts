@@ -390,12 +390,14 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await expect(
         page.getByRole('heading', { name: 'Pathways', exact: true }),
       ).toBeVisible();
+      await expect(page.getByRole('main')).toBeFocused();
       const track = page.getByRole('link', {
         name: 'Git & GitHub',
         exact: true,
       });
       await track.focus();
       await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/\/pathways\/git-github$/);
       await page
         .getByRole('link', {
           name: 'Start her: hvorfor bruke Git?',
