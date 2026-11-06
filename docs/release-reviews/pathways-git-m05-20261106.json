@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6 (bounded same-session multi-perspective AI source review; not independent human QA)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "8f0db3adc48d4c68118211a13ea2b0c969857c53",
+    "payloadTree": "a7613b91862f3c43172acd2aa5bb32868b7b1a85",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
