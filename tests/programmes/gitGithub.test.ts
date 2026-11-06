@@ -60,8 +60,8 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
       itemMilestones: [],
     });
     expect(gitGithubDefinition.content.microlearning).toBeUndefined();
-    expect(gitGithubDefinition.catalogue.units).toHaveLength(6);
-    expect(gitGithubDefinition.catalogue.dataVersion).toBe(6);
+    expect(gitGithubDefinition.catalogue.units).toHaveLength(7);
+    expect(gitGithubDefinition.catalogue.dataVersion).toBe(7);
     expect(catalogue.contentVersion).toBe(1);
     expect(
       gitGithubDefinition.catalogue.units[2]!.items.map((item) => item.id),
@@ -108,6 +108,18 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
       'git-m06-o07',
     ]);
     expect(
+      gitGithubDefinition.catalogue.units[6]!.items.map((item) => item.id),
+    ).toEqual([
+      'git-m07-o01',
+      'git-m07-o02',
+      'git-m07-o03',
+      'git-m07-o04',
+      'git-m07-o05',
+      'git-m07-o06',
+      'git-m07-o07',
+      'git-m07-o08',
+    ]);
+    expect(
       gitGithubDefinition.catalogue.units[1]!.items.map((item) => item.id),
     ).toEqual([
       'git-m02-o01',
@@ -130,7 +142,7 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
 
   it('loads every real lesson through current validation and binds every exercise to its actual hash', async () => {
     const entries = await exercises();
-    expect(entries).toHaveLength(90);
+    expect(entries).toHaveLength(113);
     expect(
       catalogue.subjectIds.filter((id) => id.startsWith('git-m02-')),
     ).toHaveLength(12);
@@ -146,6 +158,9 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
     expect(
       catalogue.subjectIds.filter((id) => id.startsWith('git-m06-')),
     ).toHaveLength(16);
+    expect(
+      catalogue.subjectIds.filter((id) => id.startsWith('git-m07-')),
+    ).toHaveLength(23);
     for (const { exercise, meta } of entries) {
       expect(meta.contentHash).toBe(await sha256Hex(canonicalJson(exercise)));
       expect(meta.masteryGate).toBe(false);
@@ -160,6 +175,7 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
           'src/programmes/git-github/m04.mjs',
           'src/programmes/git-github/m05.mjs',
           'src/programmes/git-github/m06.mjs',
+          'src/programmes/git-github/m07.mjs',
         ]
           .map((path) => readFileSync(resolve(path), 'utf8'))
           .join(''),

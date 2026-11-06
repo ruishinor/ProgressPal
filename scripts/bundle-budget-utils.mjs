@@ -49,7 +49,8 @@ export const releaseBundleBudget = Object.freeze({
   // Raised from 186,000 B with approximately 2.5% measured headroom, rounded to 1 kB.
   // M06 measured 212628 B curriculum gzip (2026-11-06).
   // Bounded 2.5% headroom, rounded to 1 kB; other caps unchanged.
-  maxCurriculumGzipBytes: 218_000,
+  // M07 measured 232460 B curriculum gzip; bounded 2.5% headroom, rounded up to 1 kB.
+  maxCurriculumGzipBytes: 239000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five
   // packaged files plus the runtime list); about 9.4 % headroom, within the
   // owner-authorized ~10 % (decision 2026-10-03).

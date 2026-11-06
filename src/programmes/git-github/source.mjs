@@ -98,7 +98,7 @@ export const gitLessons = [
           [
             'M07 – Git og GitHub i et utviklingsprosjekt',
             'Bruk ferdighetene samlet i et realistisk lite utviklingsprosjekt.',
-            'Planlagt. Ingen leksjoner eller framdrift ennå.',
+            'Tilgjengelig: åtte leksjoner.',
           ],
         ],
         nb: 'Du begynner med egne, lokale endringer. Senere skal du bruke samme forståelse når flere utviklere arbeider sammen.',

@@ -19,26 +19,6 @@ import {
 } from '@/lib/routing/pathwaysPaths';
 import './pathways.css';
 
-type PlannedModule = {
-  id: string;
-  name: string;
-  learns: string;
-  value: string;
-  buildsOn: string;
-};
-
-// M01–M06 have real lessons; these cards describe only later plans.
-const plannedModules: readonly PlannedModule[] = [
-  {
-    id: 'M07',
-    name: 'Git og GitHub i et utviklingsprosjekt',
-    learns:
-      'Gjennomføre en hel arbeidsflyt med kravendring, historikk, branch, PR og kontroll.',
-    value: 'Bruke Git selvstendig i et vanlig lite programvareprosjekt.',
-    buildsOn: 'Du kombinerer ferdighetene fra M01–M06.',
-  },
-];
-
 export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
   const { pathname } = useLocation();
   const { itemId } = useParams();
@@ -63,6 +43,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     scope.catalogue.units.find((unit) => unit.id === 'git-m05')?.items ?? [];
   const m06Items =
     scope.catalogue.units.find((unit) => unit.id === 'git-m06')?.items ?? [];
+  const m07Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m07')?.items ?? [];
   const item = items.find((candidate) => candidate.id === itemId);
   const [state, setState] = useState<
     'loading' | 'ready' | 'read-only' | 'error'
@@ -184,8 +166,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             <p>
               Lær å ta vare på endringer, finne igjen fungerende kode og etter
               hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner, M02 har seks, M03 har seks, M04 har sju og M05 har åtte
-              og M06 har sju. M07 er planlagt.
+              leksjoner, M02 har seks, M03 har seks, M04 har sju, M05 har åtte,
+              M06 har sju og M07 har åtte. Hele Foundations er tilgjengelig.
             </p>
             <p>
               Du kan lese oversikten før du begynner. Ingen installasjon kreves.
@@ -267,9 +249,10 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. M01–M06 er tilgjengelige. M07
-              viser retningen videre, men har ingen leksjoner eller registrert
-              framdrift ennå.
+              Hver modul bygger videre på forrige. Alle M01–M07 er
+              tilgjengelige. M07 samler ferdighetene i ett lite
+              utviklingsprosjekt og avslutter Foundations. Du kan åpne
+              leksjonene igjen når du vil.
             </p>
             <ol className="pathways-track__roadmap">
               <li className="pathways-track__current">
@@ -437,24 +420,32 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   ))}
                 </ol>
               </li>
-              {plannedModules.map((module) => (
-                <li key={module.id}>
-                  <div className="pathways-track__module-head">
-                    <h3>
-                      {module.id} · {module.name}
-                    </h3>
-                    <span className="pathways-track__availability">
-                      Planlagt
-                    </span>
-                  </div>
-                  <p>
-                    {module.learns} {module.value}
-                  </p>
-                  <p className="pathways-track__builds-on">
-                    Bygger på: {module.buildsOn}
-                  </p>
-                </li>
-              ))}
+              <li className="pathways-track__current">
+                <div className="pathways-track__module-head">
+                  <h3>M07 · Git og GitHub i et utviklingsprosjekt</h3>
+                  <span className="pathways-track__availability">
+                    Tilgjengelig
+                  </span>
+                </div>
+                <p>
+                  Gjennomfør et lite påmeldingsprosjekt fra oppgave og branch
+                  til funksjonskontroll, review, integrering og overlevering.
+                  Lokal Git-praksis krever ikke GitHub-konto.
+                </p>
+                <p className="pathways-track__builds-on">
+                  Bygger på: M01–M06, inkludert samarbeid og trygg feilretting.
+                </p>
+                <h4>Åtte leksjoner i M07</h4>
+                <ol>
+                  {m07Items.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                        {lesson.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </li>
             </ol>
           </section>
           <p>

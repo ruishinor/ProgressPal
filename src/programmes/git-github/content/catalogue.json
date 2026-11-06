@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "4e0a1d02de2fd475843b8543c0e446e253a70983326f40d533bfff7464e1704d",
+  "sourceSha256": "f21cba5e54c9f3fac0432be08299c38a65dc1ce181b5b3b4c145f6b5d44eae68",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -406,6 +406,86 @@
           "order": 6
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M07",
+      "catalogueUnitId": "git-m07",
+      "title": "Git og GitHub i et utviklingsprosjekt",
+      "order": 6,
+      "missions": [
+        {
+          "missionId": "GIT-M07-O01",
+          "itemId": "git-m07-o01",
+          "surface": "mission",
+          "title": "Du overtar et lite utviklingsprosjekt",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M07-O02",
+          "itemId": "git-m07-o02",
+          "surface": "mission",
+          "title": "Lag og undersøk prosjektet",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M07-O03",
+          "itemId": "git-m07-o03",
+          "surface": "mission",
+          "title": "Fra oppgave til forslag på egen branch",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M07-O04",
+          "itemId": "git-m07-o04",
+          "surface": "mission",
+          "title": "En review som fører til bedre kode",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M07-O05",
+          "itemId": "git-m07-o05",
+          "surface": "mission",
+          "title": "To utviklere, én felles historikk",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M07-O06",
+          "itemId": "git-m07-o06",
+          "surface": "mission",
+          "title": "En regresjon i felles historikk",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        },
+        {
+          "missionId": "GIT-M07-O07",
+          "itemId": "git-m07-o07",
+          "surface": "mission",
+          "title": "Fra lokal øving til GitHub og overlevering",
+          "minutes": 0,
+          "optional": false,
+          "order": 6
+        },
+        {
+          "missionId": "GIT-M07-O08",
+          "itemId": "git-m07-o08",
+          "surface": "mission",
+          "title": "Prøv selv: en ny endring fra start til slutt",
+          "minutes": 0,
+          "optional": false,
+          "order": 7
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -498,44 +578,72 @@
     "git-m06-e13",
     "git-m06-e14",
     "git-m06-e15",
-    "git-m06-e16"
+    "git-m06-e16",
+    "git-m07-e01",
+    "git-m07-e02",
+    "git-m07-e03",
+    "git-m07-e04",
+    "git-m07-e05",
+    "git-m07-e06",
+    "git-m07-e07",
+    "git-m07-e08",
+    "git-m07-e09",
+    "git-m07-e10",
+    "git-m07-e11",
+    "git-m07-e12",
+    "git-m07-e13",
+    "git-m07-e14",
+    "git-m07-e15",
+    "git-m07-e16",
+    "git-m07-e17",
+    "git-m07-e18",
+    "git-m07-e19",
+    "git-m07-e20",
+    "git-m07-e21",
+    "git-m07-e22",
+    "git-m07-e23"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.6d108f94bd5ce0d4.json",
-      "sha256": "6d108f94bd5ce0d4de6dcde39825e6e55639f517fd83bef2f83da69daca438c0",
-      "bytes": 83080
+      "path": "content/git-github/index.dceca1ce3616db3f.json",
+      "sha256": "dceca1ce3616db3fe6044ec8adc97ddd4d771afe3d9027d3f501cb59cdffc239",
+      "bytes": 102588
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.21d3e6ee67e44db2.json",
-        "sha256": "21d3e6ee67e44db29b36a756b8c7c553f87190c97fc8fbd6b95de7fbf0f8fbe9",
-        "bytes": 42773
+        "path": "content/git-github/git-m01.f66f0bbfc72804db.json",
+        "sha256": "f66f0bbfc72804dbd8615960daeb3a4f983180eec412524fcacb070b133f6fb4",
+        "bytes": 42755
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.aad3d864051aef9e.json",
-        "sha256": "aad3d864051aef9e72a130deac7566de1db43c47eab80de3887c40df03865fdf",
+        "path": "content/git-github/git-m02.fbdd97eee300963d.json",
+        "sha256": "fbdd97eee300963d14596d5ab3ddf7255eb5940ce524157ca159de53b5ae77b1",
         "bytes": 36374
       },
       "GIT-M03": {
-        "path": "content/git-github/git-m03.0e80c6c38e3ed805.json",
-        "sha256": "0e80c6c38e3ed805b7a87a536db751936505691d39c251d9e09b3c2c2e3d0d1b",
+        "path": "content/git-github/git-m03.267e3e2360f131ca.json",
+        "sha256": "267e3e2360f131ca131da81124b8522d525b56d6b4c5e3d9a3750fbb759198f5",
         "bytes": 49871
       },
       "GIT-M04": {
-        "path": "content/git-github/git-m04.4be0a6a93cdd67ef.json",
-        "sha256": "4be0a6a93cdd67ef073ce3c10a54a8625064013c57e29615910f66bfee0f5e8e",
+        "path": "content/git-github/git-m04.38a64b042fd50fda.json",
+        "sha256": "38a64b042fd50fda09072dd0cb23ed6367f98f94657f8c81ec965ca941288d86",
         "bytes": 83066
       },
       "GIT-M05": {
-        "path": "content/git-github/git-m05.6584704267db9e6f.json",
-        "sha256": "6584704267db9e6f033e82bbcda797a6897d89a077232cb2ff8f85129e358236",
+        "path": "content/git-github/git-m05.867b945da6e16f64.json",
+        "sha256": "867b945da6e16f64a7bcced66c20f8ada28db3fdb97b2cd6f03e65a4c65193de",
         "bytes": 64830
       },
       "GIT-M06": {
-        "path": "content/git-github/git-m06.3243788b6bf78b8c.json",
-        "sha256": "3243788b6bf78b8c1bc457af4233850d97ff038a6fdac8752368bd8b6ff2b09c",
+        "path": "content/git-github/git-m06.3b2ff4a26c70c6db.json",
+        "sha256": "3b2ff4a26c70c6dbf170c34f02881779e7abc25246f6cd976a6066a0fb042f3a",
         "bytes": 55680
+      },
+      "GIT-M07": {
+        "path": "content/git-github/git-m07.c2ecfd720535f17f.json",
+        "sha256": "c2ecfd720535f17f6d76f075c46e5bd3d8782f903e9e350b9965912ac1089176",
+        "bytes": 92827
       }
     }
   }

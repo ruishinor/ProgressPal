@@ -121,7 +121,9 @@ test('starts from zero, explains wrong answers, records external reports honestl
       name: 'Start her: hvorfor bruke Git?',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('table')).toContainText('Planlagt');
+  await expect(page.getByRole('table')).toContainText(
+    'Tilgjengelig: åtte leksjoner.',
+  );
   await expect(page.getByRole('table')).toContainText('M07');
   await page.goto('/rpg/pathways/git-github');
   await expect(
