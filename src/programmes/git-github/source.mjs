@@ -86,8 +86,13 @@ export const gitLessons = [
             'Tilgjengelig: sju leksjoner.',
           ],
           [
-            'M05–M07 – videre arbeid',
-            'Pull requests, gjenoppretting og et utviklingsprosjekt.',
+            'M05 – samarbeid med pull requests',
+            'Issues, review, status checks, tilbakemeldinger og integrering.',
+            'Tilgjengelig: åtte leksjoner.',
+          ],
+          [
+            'M06–M07 – videre arbeid',
+            'Trygg gjenoppretting og et samlet utviklingsprosjekt.',
             'Planlagt. Ingen leksjoner eller framdrift ennå.',
           ],
         ],

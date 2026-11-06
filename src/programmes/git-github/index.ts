@@ -16,7 +16,7 @@ const content = parseProgrammeContentCatalogue(catalogueJson);
 const catalogue: CourseSeed = {
   courseId: 'git-github-2026',
   title: 'Git & GitHub',
-  dataVersion: 4, // New M04 catalogue module; preserve M01–M03 contentVersion, IDs and progression.
+  dataVersion: 5, // M05 catalogue expansion; preserve M01–M04 IDs, contentVersion and progression.
   sourceCheckedDate: '2026-11-03',
   units: content.modules.map((module) => ({
     id: module.catalogueUnitId,
@@ -92,7 +92,7 @@ export const gitGithubDefinition = validateProgrammeDefinition({
           completionDisclaimer:
             'Du kan øve igjen når du vil. Ingen XP tildeles i dette læringsløpet.',
           whereNextModuleRule:
-            'Når du har markert de fem leksjonene fullført, kan du se tilbake på det du har gjort. Videre moduler er planlagt.',
+            'Når du har gått gjennom de tilgjengelige modulene M01–M05, kan du bruke dem igjen. M06–M07 er planlagt.',
         },
       },
     }),

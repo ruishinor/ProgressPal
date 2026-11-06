@@ -72,6 +72,32 @@ test('starts from zero, explains wrong answers, records external reports honestl
   await expect(
     page.getByRole('link', { name: 'Når en gammel versjon er riktig' }),
   ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
+  ).toBeVisible();
+  await page
+    .getByRole('link', { name: 'Fra behov til et samarbeid om endring' })
+    .click();
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Fra behov til et samarbeid om endring',
+    }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '200%';
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '';
+  });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
   await page
     .getByRole('link', { name: 'Når en gammel versjon er riktig' })
     .click();
@@ -96,7 +122,7 @@ test('starts from zero, explains wrong answers, records external reports honestl
     }),
   ).toBeVisible();
   await expect(page.getByRole('table')).toContainText('Planlagt');
-  await expect(page.getByRole('table')).toContainText('M05–M07');
+  await expect(page.getByRole('table')).toContainText('M06–M07');
   await page.goto('/rpg/pathways/git-github');
   await expect(
     page.getByRole('link', { name: 'Hvorfor arbeide med branches?' }),
@@ -364,12 +390,14 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await expect(
         page.getByRole('heading', { name: 'Pathways', exact: true }),
       ).toBeVisible();
+      await expect(page.getByRole('main')).toBeFocused();
       const track = page.getByRole('link', {
         name: 'Git & GitHub',
         exact: true,
       });
       await track.focus();
       await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/\/pathways\/git-github$/);
       await page
         .getByRole('link', {
           name: 'Start her: hvorfor bruke Git?',

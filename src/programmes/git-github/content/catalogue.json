@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "7fbdbf9750f22aca86118a081663d3eec38b2d513d2bbcab52899628a4c1e1ad",
+  "sourceSha256": "c6dfb4f874eee732fecf1ad6fb891fc6df52d8f243deceba84ef9b9333c7fe19",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -255,6 +255,86 @@
           "order": 6
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M05",
+      "catalogueUnitId": "git-m05",
+      "title": "Samarbeid med pull requests",
+      "order": 4,
+      "missions": [
+        {
+          "missionId": "GIT-M05-O01",
+          "itemId": "git-m05-o01",
+          "surface": "mission",
+          "title": "Fra behov til et samarbeid om endring",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M05-O02",
+          "itemId": "git-m05-o02",
+          "surface": "mission",
+          "title": "Et eget prosjekt med to arbeidskopier",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M05-O03",
+          "itemId": "git-m05-o03",
+          "surface": "mission",
+          "title": "Fra feature branch til et forslag",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M05-O04",
+          "itemId": "git-m05-o04",
+          "surface": "mission",
+          "title": "Review er mer enn en kommentar",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M05-O05",
+          "itemId": "git-m05-o05",
+          "surface": "mission",
+          "title": "Svar på review med en ny commit",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M05-O06",
+          "itemId": "git-m05-o06",
+          "surface": "mission",
+          "title": "Status checks, merge og sluttkontroll",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        },
+        {
+          "missionId": "GIT-M05-O07",
+          "itemId": "git-m05-o07",
+          "surface": "mission",
+          "title": "Fork, rettigheter og trygg gjennomgang",
+          "minutes": 0,
+          "optional": false,
+          "order": 6
+        },
+        {
+          "missionId": "GIT-M05-O08",
+          "itemId": "git-m05-o08",
+          "surface": "mission",
+          "title": "Prøv selv: Er dette klart for merge?",
+          "minutes": 0,
+          "optional": false,
+          "order": 7
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -309,34 +389,61 @@
     "git-m04-e17",
     "git-m04-e18",
     "git-m04-e19",
-    "git-m04-e20"
+    "git-m04-e20",
+    "git-m05-e01",
+    "git-m05-e02",
+    "git-m05-e03",
+    "git-m05-e04",
+    "git-m05-e05",
+    "git-m05-e06",
+    "git-m05-e07",
+    "git-m05-e08",
+    "git-m05-e09",
+    "git-m05-e10",
+    "git-m05-e11",
+    "git-m05-e12",
+    "git-m05-e13",
+    "git-m05-e14",
+    "git-m05-e15",
+    "git-m05-e16",
+    "git-m05-e17",
+    "git-m05-e18",
+    "git-m05-e19",
+    "git-m05-e20",
+    "git-m05-e21",
+    "git-m05-e22"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.8311ec1a2fc3e546.json",
-      "sha256": "8311ec1a2fc3e54692029a6bed9b4c2e3e3a842a2c483e80ddc06bd299a4dd46",
-      "bytes": 49627
+      "path": "content/git-github/index.d2e352f0bea14401.json",
+      "sha256": "d2e352f0bea144017fd0d31ad9f9d8001d088b3ef5007f3cef1bb55199b49310",
+      "bytes": 68458
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.51856e8e9c3c04eb.json",
-        "sha256": "51856e8e9c3c04eb509f2ecc0e9aa21b83214940838ce6a999a2b78951d79a21",
-        "bytes": 42412
+        "path": "content/git-github/git-m01.109d5c0bb39fcd20.json",
+        "sha256": "109d5c0bb39fcd20b9e393e2ffacfef76805a6f335b7b0d0f38efdf837d416d4",
+        "bytes": 42549
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.28cbd3b47aab9fda.json",
-        "sha256": "28cbd3b47aab9fda58d0e8abf8ff191e2d2c551e2a107990365a967c9715b4de",
+        "path": "content/git-github/git-m02.af3ca34a3d63465a.json",
+        "sha256": "af3ca34a3d63465a3d64d8de45b8d90ef3e569caf4aa1676f687e8bb5a0e79b0",
         "bytes": 36374
       },
       "GIT-M03": {
-        "path": "content/git-github/git-m03.4b22309cb32d0353.json",
-        "sha256": "4b22309cb32d0353c5728b62b24ddcc31e775510a2c52bc61905b0298a8421de",
+        "path": "content/git-github/git-m03.a25e324d7c027674.json",
+        "sha256": "a25e324d7c0276745a0af3413c4b456c2478561203ca1d56f022d7a3532a94b8",
         "bytes": 49871
       },
       "GIT-M04": {
-        "path": "content/git-github/git-m04.1f0e1405747c5e4d.json",
-        "sha256": "1f0e1405747c5e4d1c9f5407181e1611485c9f0f4f1d031a3d445c5f101b6c06",
+        "path": "content/git-github/git-m04.5f9d48b71fab6359.json",
+        "sha256": "5f9d48b71fab63596f11fc4fb330e416ac0b9537001d61be25d7e8af347c832d",
         "bytes": 83066
+      },
+      "GIT-M05": {
+        "path": "content/git-github/git-m05.78b86174b773c2e5.json",
+        "sha256": "78b86174b773c2e53c4a7628d022a2f85d6e8a2e9aba60c5205380015b1f58df",
+        "bytes": 64830
       }
     }
   }

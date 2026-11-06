@@ -76,3 +76,24 @@ manifest cover M04. M05–M07 are planned only.
 
 Release review, CI, master certification and production alias require separate
 verification. Git fixture on Linux does not establish PowerShell 5.1 success.
+
+## M05 — Samarbeid med pull requests (2026-11-06)
+
+Eight authored lessons and 22 exercises in `m05.mjs`. The mandatory practice
+uses a separate synthetic `ProgressPal-Git-M05` folder with a local bare remote
+and two Git working copies. It demonstrates Git commits, diff, review reasoning,
+revision, merge and post-merge checks; it is **not** a GitHub PR or approval.
+The optional GitHub practice requires the learner's own synthetic repository.
+No account, network connection or external verification is needed for completion.
+
+Course catalogue dataVersion advances from 4 to 5, with contentVersion still 1.
+All M01–M04 exercise IDs and evaluators remain unchanged. New global source and
+content-addressed asset hashes are expected. Preserve old exercise content
+hashes when evaluating the generated index. M06–M07 remain planned. No new DB,
+XP, backend, account, telemetry, runtime or release infrastructure is involved.
+
+The exporter must be run from the real repository under its pinned Node 24/npm
+11 and with the locked Prettier installation. The PowerShell commands require
+actual Windows PowerShell 5.1 validation; Unix Git reproduction is only partial
+evidence. Measure the curriculum gzip build before changing any budget, and
+keep independent review, hosted certification and production verification separate.
