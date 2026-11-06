@@ -16,7 +16,7 @@ const content = parseProgrammeContentCatalogue(catalogueJson);
 const catalogue: CourseSeed = {
   courseId: 'git-github-2026',
   title: 'Git & GitHub',
-  dataVersion: 3, // Catalogue sync version; preserve M01/M02 contentVersion/positions = 1.
+  dataVersion: 4, // New M04 catalogue module; preserve M01–M03 contentVersion, IDs and progression.
   sourceCheckedDate: '2026-11-03',
   units: content.modules.map((module) => ({
     id: module.catalogueUnitId,

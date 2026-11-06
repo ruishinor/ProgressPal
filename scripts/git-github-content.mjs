@@ -14,12 +14,14 @@ import prettier from 'prettier';
 import { gitLessons } from '../src/programmes/git-github/source.mjs';
 import { gitM02Lessons } from '../src/programmes/git-github/m02.mjs';
 import { gitM03Lessons } from '../src/programmes/git-github/m03.mjs';
+import { gitM04Lessons } from '../src/programmes/git-github/m04.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourcePaths = [
   'src/programmes/git-github/source.mjs',
   'src/programmes/git-github/m02.mjs',
   'src/programmes/git-github/m03.mjs',
+  'src/programmes/git-github/m04.mjs',
 ];
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 function canonical(value) {
@@ -56,6 +58,12 @@ const authoredModules = [
     title: 'Brancher og merge',
     order: 2,
     lessons: gitM03Lessons,
+  },
+  {
+    moduleId: 'GIT-M04',
+    title: 'Fra lokal Git til GitHub',
+    order: 3,
+    lessons: gitM04Lessons,
   },
 ];
 const programmeId = 'git-github';

@@ -48,7 +48,7 @@ Real reproduction and limitations are recorded in the pilot handoff.
 M02 is authored in m02.mjs (six lessons, 12 exercises). M01 stays in source.mjs
 (five lessons, seven unchanged exercise IDs and evaluators). Both feed the
 existing git-github-content.mjs exporter. Only real lessons become catalogue
-nodes. Future M04–M07 are text-only roadmap; no extra schema or learning engine.
+nodes. Future M05–M07 are text-only roadmap; no extra schema or learning engine.
 
 Course catalogue dataVersion advances from 1 to 2 so an already enrolled
 learner gets new M02 rows when the selected M02 lesson is opened. The separate
@@ -72,7 +72,7 @@ Six lessons and 13 exercises are authored in m03.mjs. Course catalogue
 dataVersion advances to 3. Content/evaluator version remains 1, and M01/M02
 exercise IDs stay stable. No new tests, schema, services, XP rules or external
 GitHub validation. Existing content generator, integrity checks and offline
-manifest cover M03. M04–M07 are planned only.
+manifest cover M04. M05–M07 are planned only.
 
 Release review, CI, master certification and production alias require separate
 verification. Git fixture on Linux does not establish PowerShell 5.1 success.

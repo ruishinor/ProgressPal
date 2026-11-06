@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "098943b80fdaef55efa865d2eda7645c4a2ae71a3ca5ef0eee83584482533231",
+  "sourceSha256": "7fbdbf9750f22aca86118a081663d3eec38b2d513d2bbcab52899628a4c1e1ad",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -184,6 +184,77 @@
           "order": 5
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M04",
+      "catalogueUnitId": "git-m04",
+      "title": "Fra lokal Git til GitHub",
+      "order": 3,
+      "missions": [
+        {
+          "missionId": "GIT-M04-O01",
+          "itemId": "git-m04-o01",
+          "surface": "mission",
+          "title": "Hvorfor dele et Git-prosjekt?",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M04-O02",
+          "itemId": "git-m04-o02",
+          "surface": "mission",
+          "title": "Opprett et trygt, delt øvingsrepository",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M04-O03",
+          "itemId": "git-m04-o03",
+          "surface": "mission",
+          "title": "Push og clone: fra én til to arbeidskopier",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M04-O04",
+          "itemId": "git-m04-o04",
+          "surface": "mission",
+          "title": "En endring fra B: push og fetch",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M04-O05",
+          "itemId": "git-m04-o05",
+          "surface": "mission",
+          "title": "Pull når historikken kan flyttes rett fram",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M04-O06",
+          "itemId": "git-m04-o06",
+          "surface": "mission",
+          "title": "Når to lokale endringer konkurrerer",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        },
+        {
+          "missionId": "GIT-M04-O07",
+          "itemId": "git-m04-o07",
+          "surface": "mission",
+          "title": "Fra lokal remote til GitHub i praksis",
+          "minutes": 0,
+          "optional": false,
+          "order": 6
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -218,29 +289,54 @@
     "git-m03-e10",
     "git-m03-e11",
     "git-m03-e12",
-    "git-m03-e13"
+    "git-m03-e13",
+    "git-m04-e01",
+    "git-m04-e02",
+    "git-m04-e03",
+    "git-m04-e04",
+    "git-m04-e05",
+    "git-m04-e06",
+    "git-m04-e07",
+    "git-m04-e08",
+    "git-m04-e09",
+    "git-m04-e10",
+    "git-m04-e11",
+    "git-m04-e12",
+    "git-m04-e13",
+    "git-m04-e14",
+    "git-m04-e15",
+    "git-m04-e16",
+    "git-m04-e17",
+    "git-m04-e18",
+    "git-m04-e19",
+    "git-m04-e20"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.d9b3808feaa774ab.json",
-      "sha256": "d9b3808feaa774ab6ccda4afcc8261977f7448e8a2bd2ac9439e841e12acf87c",
-      "bytes": 32594
+      "path": "content/git-github/index.8311ec1a2fc3e546.json",
+      "sha256": "8311ec1a2fc3e54692029a6bed9b4c2e3e3a842a2c483e80ddc06bd299a4dd46",
+      "bytes": 49627
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.9a56a490f69ef0f4.json",
-        "sha256": "9a56a490f69ef0f462282ad209337ebc0e4bbab9b70bd922fd6649aac10b0388",
-        "bytes": 42287
+        "path": "content/git-github/git-m01.51856e8e9c3c04eb.json",
+        "sha256": "51856e8e9c3c04eb509f2ecc0e9aa21b83214940838ce6a999a2b78951d79a21",
+        "bytes": 42412
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.debaa17e675935e0.json",
-        "sha256": "debaa17e675935e02231ce03158d182418c809248876db516c2ac87ff5c6f168",
+        "path": "content/git-github/git-m02.28cbd3b47aab9fda.json",
+        "sha256": "28cbd3b47aab9fda58d0e8abf8ff191e2d2c551e2a107990365a967c9715b4de",
         "bytes": 36374
       },
       "GIT-M03": {
-        "path": "content/git-github/git-m03.649edaafdb679383.json",
-        "sha256": "649edaafdb679383ee7873d7c855be526b22953ab5e078788612562db82a0905",
+        "path": "content/git-github/git-m03.4b22309cb32d0353.json",
+        "sha256": "4b22309cb32d0353c5728b62b24ddcc31e775510a2c52bc61905b0298a8421de",
         "bytes": 49871
+      },
+      "GIT-M04": {
+        "path": "content/git-github/git-m04.1f0e1405747c5e4d.json",
+        "sha256": "1f0e1405747c5e4d1c9f5407181e1611485c9f0f4f1d031a3d445c5f101b6c06",
+        "bytes": 83066
       }
     }
   }

@@ -81,8 +81,13 @@ export const gitLessons = [
             'Tilgjengelig: seks leksjoner.',
           ],
           [
-            'M04–M07 – videre arbeid',
-            'GitHub, pull requests, gjenoppretting og et utviklingsprosjekt.',
+            'M04 – fra lokal Git til GitHub',
+            'Forstå remotes, clone, fetch, pull og push i trygge øvelser.',
+            'Tilgjengelig: sju leksjoner.',
+          ],
+          [
+            'M05–M07 – videre arbeid',
+            'Pull requests, gjenoppretting og et utviklingsprosjekt.',
             'Planlagt. Ingen leksjoner eller framdrift ennå.',
           ],
         ],
