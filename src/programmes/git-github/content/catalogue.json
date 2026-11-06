@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "c6dfb4f874eee732fecf1ad6fb891fc6df52d8f243deceba84ef9b9333c7fe19",
+  "sourceSha256": "4e0a1d02de2fd475843b8543c0e446e253a70983326f40d533bfff7464e1704d",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -335,6 +335,77 @@
           "order": 7
         }
       ]
+    },
+    {
+      "moduleId": "GIT-M06",
+      "catalogueUnitId": "git-m06",
+      "title": "Feil og trygg gjenoppretting",
+      "order": 5,
+      "missions": [
+        {
+          "missionId": "GIT-M06-O01",
+          "itemId": "git-m06-o01",
+          "surface": "mission",
+          "title": "Før du angrer: finn ut hva som skjedde",
+          "minutes": 0,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "GIT-M06-O02",
+          "itemId": "git-m06-o02",
+          "surface": "mission",
+          "title": "Restore: behold eller forkast riktig endring",
+          "minutes": 0,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "GIT-M06-O03",
+          "itemId": "git-m06-o03",
+          "surface": "mission",
+          "title": "Reset: hva skjer med en lokal commit?",
+          "minutes": 0,
+          "optional": false,
+          "order": 2
+        },
+        {
+          "missionId": "GIT-M06-O04",
+          "itemId": "git-m06-o04",
+          "surface": "mission",
+          "title": "Stash: legg arbeid til side, og hent det tilbake",
+          "minutes": 0,
+          "optional": false,
+          "order": 3
+        },
+        {
+          "missionId": "GIT-M06-O05",
+          "itemId": "git-m06-o05",
+          "surface": "mission",
+          "title": "Reflog: finn en commit som ikke lenger vises",
+          "minutes": 0,
+          "optional": false,
+          "order": 4
+        },
+        {
+          "missionId": "GIT-M06-O06",
+          "itemId": "git-m06-o06",
+          "surface": "mission",
+          "title": "Revert: korriger uten å skrive om delt historie",
+          "minutes": 0,
+          "optional": false,
+          "order": 5
+        },
+        {
+          "missionId": "GIT-M06-O07",
+          "itemId": "git-m06-o07",
+          "surface": "mission",
+          "title": "Velg trygg handling i en ny situasjon",
+          "minutes": 0,
+          "optional": false,
+          "order": 6
+        }
+      ]
     }
   ],
   "subjectIds": [
@@ -411,39 +482,60 @@
     "git-m05-e19",
     "git-m05-e20",
     "git-m05-e21",
-    "git-m05-e22"
+    "git-m05-e22",
+    "git-m06-e01",
+    "git-m06-e02",
+    "git-m06-e03",
+    "git-m06-e04",
+    "git-m06-e05",
+    "git-m06-e06",
+    "git-m06-e07",
+    "git-m06-e08",
+    "git-m06-e09",
+    "git-m06-e10",
+    "git-m06-e11",
+    "git-m06-e12",
+    "git-m06-e13",
+    "git-m06-e14",
+    "git-m06-e15",
+    "git-m06-e16"
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.d2e352f0bea14401.json",
-      "sha256": "d2e352f0bea144017fd0d31ad9f9d8001d088b3ef5007f3cef1bb55199b49310",
-      "bytes": 68458
+      "path": "content/git-github/index.6d108f94bd5ce0d4.json",
+      "sha256": "6d108f94bd5ce0d4de6dcde39825e6e55639f517fd83bef2f83da69daca438c0",
+      "bytes": 83080
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.109d5c0bb39fcd20.json",
-        "sha256": "109d5c0bb39fcd20b9e393e2ffacfef76805a6f335b7b0d0f38efdf837d416d4",
-        "bytes": 42549
+        "path": "content/git-github/git-m01.21d3e6ee67e44db2.json",
+        "sha256": "21d3e6ee67e44db29b36a756b8c7c553f87190c97fc8fbd6b95de7fbf0f8fbe9",
+        "bytes": 42773
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.af3ca34a3d63465a.json",
-        "sha256": "af3ca34a3d63465a3d64d8de45b8d90ef3e569caf4aa1676f687e8bb5a0e79b0",
+        "path": "content/git-github/git-m02.aad3d864051aef9e.json",
+        "sha256": "aad3d864051aef9e72a130deac7566de1db43c47eab80de3887c40df03865fdf",
         "bytes": 36374
       },
       "GIT-M03": {
-        "path": "content/git-github/git-m03.a25e324d7c027674.json",
-        "sha256": "a25e324d7c0276745a0af3413c4b456c2478561203ca1d56f022d7a3532a94b8",
+        "path": "content/git-github/git-m03.0e80c6c38e3ed805.json",
+        "sha256": "0e80c6c38e3ed805b7a87a536db751936505691d39c251d9e09b3c2c2e3d0d1b",
         "bytes": 49871
       },
       "GIT-M04": {
-        "path": "content/git-github/git-m04.5f9d48b71fab6359.json",
-        "sha256": "5f9d48b71fab63596f11fc4fb330e416ac0b9537001d61be25d7e8af347c832d",
+        "path": "content/git-github/git-m04.4be0a6a93cdd67ef.json",
+        "sha256": "4be0a6a93cdd67ef073ce3c10a54a8625064013c57e29615910f66bfee0f5e8e",
         "bytes": 83066
       },
       "GIT-M05": {
-        "path": "content/git-github/git-m05.78b86174b773c2e5.json",
-        "sha256": "78b86174b773c2e53c4a7628d022a2f85d6e8a2e9aba60c5205380015b1f58df",
+        "path": "content/git-github/git-m05.6584704267db9e6f.json",
+        "sha256": "6584704267db9e6f033e82bbcda797a6897d89a077232cb2ff8f85129e358236",
         "bytes": 64830
+      },
+      "GIT-M06": {
+        "path": "content/git-github/git-m06.3243788b6bf78b8c.json",
+        "sha256": "3243788b6bf78b8c1bc457af4233850d97ff038a6fdac8752368bd8b6ff2b09c",
+        "bytes": 55680
       }
     }
   }
