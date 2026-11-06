@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-m05-20261106",
+  "reviewer": "ChatGPT GPT-6 (bounded same-session multi-perspective AI source review; not independent human QA)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "8f0db3adc48d4c68118211a13ea2b0c969857c53",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped educational, technical, security and integration assessment of M05 PR collaboration content; existing exporter, catalogue, UI, offline and progress contracts. Same-session AI review, not independent human QA or hosted certification.",
+    "evidence": [
+      "Candidate 8ee93f139fc71eb915e1b70b0b125bb4e09d7db4 descends from verified M04 master 91876b7a0d4331eea9b3ecf85e416395b04458c8; M05 authored in one cohesive local candidate.",
+      "Eight lessons and 22 unique exercises follow the existing M01–M04 programme model; Git local remote explicitly distinguished from real GitHub reviews.",
+      "Previously reproduced synthetic Git branch, incomplete input validation, reviewer diff, second feature commit and merge on Linux with isolated Git 2.47.3 / Node 22; Windows PowerShell 5.1 reproduction requires separate verification.",
+      "Existing exporter --check and production build budget inspection passed at review writing; other local test commands and hosted certification are not claimed by this file.",
+      "Measured curriculum 199367 B gzip / 205000 B limit. JS 440785 B, max raw JS 494191 B, CSS 16868 B and runtime 6398912 B within existing unchanged ceilings.",
+      "Earlier M01–M04 IDs/contentVersion and programme scope are intended to remain unchanged; separate distribution verifier and existing automated tests establish mechanical coverage when actually run.",
+      "No new permanent test file, runtime, schema, XP, authentication, backend or dependency required. No merge, master certification or production alias result claimed."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "M05-01",
+      "severity": "P2",
+      "description": "Declared Windows PowerShell 5.1 practice not executed in this ChatGPT Linux tool environment.",
+      "resolution": "Instructional blocks are fail-closed, use explicit git.exe and a separate M05 sandbox. The owner can execute the included Windows fixture check; Linux reproduction is not represented as Windows testing.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M05-02",
+      "severity": "P2",
+      "description": "Module expansion regenerates content-addressed files and introduces a new curriculum budget demand.",
+      "resolution": "Existing exporter and offline manifest used; baseline exercise hashes are verified separately, with only a measurement-based curriculum ceiling adjustment and its original test oracle when necessary.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M05-03",
+      "severity": "P2",
+      "description": "Implementation and source review have the same AI provenance and cannot substitute for independent review or direct learner observation.",
+      "resolution": "Provenance is stated explicitly. Release CI and eventual user testing are separate; no independent human QA or learner success is asserted.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Bounded same-session source review PASS for the exact candidate payload. No verified P0/P1 finding remains in inspected source. This does not replace targeted local validation, hosted Final candidate or production certification."
+  }
+}
