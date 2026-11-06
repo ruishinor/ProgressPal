@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-m06-20261106",
+  "reviewer": "ChatGPT GPT-6 (bounded same-session AI source review; not independent human QA)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "9ad906b86b5c20b9c9c59d710ebd24d5eace64b8",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped educational, technical, security and integration review of the M06 candidate against the merged M05 baseline.",
+    "evidence": [
+      "Reviewed uploaded FinalReview archive SHA256 3308D9354C04499E610D4B3263133963F3C855DD24BA3CB30435A34439398261.",
+      "M06 adds 7 lessons and 16 exercises, reaching 39 lessons and 90 exercises across M01-M06.",
+      "All 74 previous exercise IDs and content hashes remain unchanged against the M05 index.",
+      "Generated Git asset SHA256, byte lengths, source hash and offline references were inspected and consistent.",
+      "Owner-provided local output: 20/20 targeted Vitest, 6/6 existing budget tests and 2/2 managed Playwright passed.",
+      "Owner-provided production build and budget results: curriculum 212628/218000 B, largest JavaScript raw 494764/500000 B.",
+      "No new permanent tests, database migration, XP rules, runtime dependency or GitHub account requirement.",
+      "This review is bounded source assessment, not native Windows learner-command validation, independent human QA or hosted release certification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "M06-01",
+      "severity": "P2",
+      "description": "Learner PowerShell 5.1 Git exercise sequence has not been independently executed on native Windows.",
+      "resolution": "Commands use an isolated synthetic repository and guarded operations. No native Windows execution success is claimed.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M06-02",
+      "severity": "P2",
+      "description": "M06 does not include a dedicated aborted-merge, rebase or cherry-pick practical exercise.",
+      "resolution": "M03 introduces merge --abort; M06 provides bounded practice in restore, reset, stash, reflog and revert. Further interrupted-operation practice remains a pedagogical improvement, not claimed coverage.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M06-03",
+      "severity": "P2",
+      "description": "Selected browser scenarios exercise shared Pathways and offline flows rather than an independently completed M06 journey.",
+      "resolution": "Existing provider and lesson-contract tests load and validate all 39 lessons. Hosted CI remains separate and no M06 learner-acceptance claim is made.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M06-04",
+      "severity": "P2",
+      "description": "Curriculum and raw JavaScript build margins are approximately 5.3 kB each.",
+      "resolution": "Curriculum ceiling raised only after actual measurement. All other release ceilings remain unchanged; future expansions require separate measurement.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped same-session AI source review PASS on the inspected M06 candidate. No confirmed P0/P1 finding remains in this scope. Hosted Final candidate, merge, master certification and production alias are not claimed."
+  }
+}
