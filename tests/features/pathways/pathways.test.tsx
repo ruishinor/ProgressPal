@@ -68,6 +68,9 @@ it('opens the Git roadmap without enrolment or programme changes', async () => {
   await screen.findByRole('heading', {
     name: /Git & GitHub: fra første endring/,
   });
+  expect(
+    screen.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
+  ).toBeVisible();
   expect(await getDatabaseSnapshot()).toEqual(before);
 });
 
