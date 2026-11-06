@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-m07-20261106",
+  "reviewer": "ChatGPT GPT-6 (bounded same-session AI source review; not independent human QA)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "c27eeaa2c1a0bfb198fd384bdfb9177b9157992b",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped educational, technical, security and integration review of M07 against merged M06.",
+    "evidence": [
+      "Exact payload commit e531dbd945eb836ab57fb56f7a2ff4dd91ef2fd5 verified against master b569b3e375d63d081e736b4155f77a349fecf9bf.",
+      "Reviewed eight M07 lessons and 23 exercises, generator registration, catalogue version 7, terminology, navigation and existing test changes.",
+      "Direct comparison of generated indexes confirmed all 90 earlier exercise IDs and content hashes unchanged; 113 exercises total.",
+      "Owner Windows output: deterministic content export, lint, forced TypeScript, production build, 20/20 Vitest and 20/20 managed Playwright PASS.",
+      "Existing bundle-budget tests 6/6 PASS. Curriculum measured 232460/239000 bytes gzip; JavaScript gzip 441466/470000; largest raw JS 495056/500000.",
+      "No new permanent test cases, runtime dependencies, persistence schema, XP policy or mandatory GitHub account.",
+      "Hosted certification, production alias and native Windows execution of all student commands are not claimed."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "M07-01",
+      "severity": "P2",
+      "description": "The complete student-facing PowerShell 5.1 exercise has not been independently replayed on Windows.",
+      "resolution": "Exercises use isolated synthetic repositories and guarded operations. Native student-command success remains unclaimed.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M07-02",
+      "severity": "P2",
+      "description": "Largest raw JavaScript chunk has only 4944 bytes of headroom.",
+      "resolution": "JavaScript limits remain unchanged. Curriculum remains packaged as separate content assets.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M07-03",
+      "severity": "P2",
+      "description": "Existing Playwright scenarios do not constitute an independent complete M07 learner journey.",
+      "resolution": "Existing provider tests validate all exercises; representative navigation, accessibility and offline scenarios passed. No redundant permanent test cases added.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped same-session AI source review PASS for the exact M07 payload. No confirmed P0/P1 defect. Hosted certification and publication remain separate."
+  }
+}
