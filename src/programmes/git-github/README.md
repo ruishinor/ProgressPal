@@ -97,3 +97,20 @@ The exporter must be run from the real repository under its pinned Node 24/npm
 actual Windows PowerShell 5.1 validation; Unix Git reproduction is only partial
 evidence. Measure the curriculum gzip build before changing any budget, and
 keep independent review, hosted certification and production verification separate.
+
+## M06 — Feil og trygg gjenoppretting (2026-11-06)
+
+Seven authored lessons and 16 exercises in `m06.mjs`, continuing the
+synthetic sign-up scenario from M05. Local Windows PowerShell 5.1 practice
+covers status/diffs, file-directed restore, unstage, soft reset, stash/apply,
+reflog/recovery branch, and revert against a local bare remote. No GitHub
+account, live repositories, dangerous hard reset or force push are required.
+
+The M06 catalogue uses dataVersion 6; contentVersion remains 1. Existing
+M01–M05 IDs, XP policy, persistence, offline manifest, and backup model are
+unchanged. Only current content is generated; M07 remains roadmap.
+
+Verify all learner commands on native Windows PowerShell 5.1; Linux Git
+reproduction is not equivalent. Review, hosted certification, master, and
+production alias are independent evidence classes. Curriculum budget changes
+only after measured production output exceeds the existing cap.

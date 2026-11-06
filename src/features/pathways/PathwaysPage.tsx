@@ -27,16 +27,8 @@ type PlannedModule = {
   buildsOn: string;
 };
 
-// M01–M05 have real lessons; these cards describe only later plans.
+// M01–M06 have real lessons; these cards describe only later plans.
 const plannedModules: readonly PlannedModule[] = [
-  {
-    id: 'M06',
-    name: 'Feil og trygg gjenoppretting',
-    learns:
-      'Undersøke før du velger mellom restore, revert, reset, stash og reflog.',
-    value: 'Rette vanlige Git-feil uten å ødelegge viktig eller delt arbeid.',
-    buildsOn: 'Du kjenner lokale og delte utviklingslinjer fra M01–M05.',
-  },
   {
     id: 'M07',
     name: 'Git og GitHub i et utviklingsprosjekt',
@@ -69,6 +61,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     scope.catalogue.units.find((unit) => unit.id === 'git-m04')?.items ?? [];
   const m05Items =
     scope.catalogue.units.find((unit) => unit.id === 'git-m05')?.items ?? [];
+  const m06Items =
+    scope.catalogue.units.find((unit) => unit.id === 'git-m06')?.items ?? [];
   const item = items.find((candidate) => candidate.id === itemId);
   const [state, setState] = useState<
     'loading' | 'ready' | 'read-only' | 'error'
@@ -190,8 +184,8 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             <p>
               Lær å ta vare på endringer, finne igjen fungerende kode og etter
               hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner, M02 har seks, M03 har seks, M04 har sju og M05 har
-              åtte. M06–M07 er planlagt.
+              leksjoner, M02 har seks, M03 har seks, M04 har sju og M05 har åtte
+              og M06 har sju. M07 er planlagt.
             </p>
             <p>
               Du kan lese oversikten før du begynner. Ingen installasjon kreves.
@@ -273,9 +267,9 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. M01–M05 er tilgjengelige.
-              M06–M07 viser retningen videre, men har ingen leksjoner eller
-              registrert framdrift ennå.
+              Hver modul bygger videre på forrige. M01–M06 er tilgjengelige. M07
+              viser retningen videre, men har ingen leksjoner eller registrert
+              framdrift ennå.
             </p>
             <ol className="pathways-track__roadmap">
               <li className="pathways-track__current">
@@ -409,6 +403,32 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 <h4>Åtte leksjoner i M05</h4>
                 <ol>
                   {m05Items.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link to={getPathwayLessonPath(lesson.id, rpg)}>
+                        {lesson.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </li>
+              <li className="pathways-track__current">
+                <div className="pathways-track__module-head">
+                  <h3>M06 · Feil og trygg gjenoppretting</h3>
+                  <span className="pathways-track__availability">
+                    Tilgjengelig
+                  </span>
+                </div>
+                <p>
+                  Undersøk hva som gikk galt før du endrer filer eller
+                  historikk. Lær forskjellen på restore, reset, stash, reflog og
+                  revert, og øv i et eget ufarlig repository.
+                </p>
+                <p className="pathways-track__builds-on">
+                  Bygger på: Lokalt arbeid, historikk og samarbeid fra M01–M05.
+                </p>
+                <h4>Sju leksjoner i M06</h4>
+                <ol>
+                  {m06Items.map((lesson) => (
                     <li key={lesson.id}>
                       <Link to={getPathwayLessonPath(lesson.id, rpg)}>
                         {lesson.title}

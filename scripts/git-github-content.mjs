@@ -16,6 +16,7 @@ import { gitM02Lessons } from '../src/programmes/git-github/m02.mjs';
 import { gitM03Lessons } from '../src/programmes/git-github/m03.mjs';
 import { gitM04Lessons } from '../src/programmes/git-github/m04.mjs';
 import { gitM05Lessons } from '../src/programmes/git-github/m05.mjs';
+import { gitM06Lessons } from '../src/programmes/git-github/m06.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourcePaths = [
@@ -24,6 +25,7 @@ const sourcePaths = [
   'src/programmes/git-github/m03.mjs',
   'src/programmes/git-github/m04.mjs',
   'src/programmes/git-github/m05.mjs',
+  'src/programmes/git-github/m06.mjs',
 ];
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 function canonical(value) {
@@ -72,6 +74,12 @@ const authoredModules = [
     title: 'Samarbeid med pull requests',
     order: 4,
     lessons: gitM05Lessons,
+  },
+  {
+    moduleId: 'GIT-M06',
+    title: 'Feil og trygg gjenoppretting',
+    order: 5,
+    lessons: gitM06Lessons,
   },
 ];
 const programmeId = 'git-github';
