@@ -159,7 +159,7 @@ describe('the way in', () => {
     expect(info).toHaveAttribute('aria-expanded', 'true');
     expect(
       screen.getByText(new RegExp(track.about!.replace('.', '\\.'))),
-    ).toHaveTextContent(/XP, nivåer og Achievements/);
+    ).not.toHaveTextContent(/XP, nivåer og Achievements/);
   });
 
   it('gives CS50x no entry and no track', async () => {
