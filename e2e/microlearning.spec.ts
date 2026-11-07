@@ -1243,7 +1243,7 @@ test.describe('the way into microlearning from Home', () => {
     await expect(entry).toBeVisible();
     await page.getByRole('button', { name: 'Om Mikroøkt' }).click();
     await expect(
-      page.getByText(/Nå kan du forberede deg på neste oppgave\./),
+      page.getByText(/Korte oppgaver.*forberede deg.*repetere det du har lært/),
     ).toBeVisible();
     expect(await overflow(page)).toBeLessThanOrEqual(0);
     await entry.click();
@@ -1252,7 +1252,7 @@ test.describe('the way into microlearning from Home', () => {
   });
 
   // The Build phase of Module 1 has no primer on purpose, but the topics the
-  // learner has reached repeat: Home offers them, says only that, and the
+  // learner has reached repeat: Home offers the picker link, and the
   // Campaign stays the first and primary thing to do.
   for (const complete of [7, 10]) {
     test(`offers repetition of reached topics after ${complete} complete (the Build phase), and fits`, async ({
@@ -1269,7 +1269,9 @@ test.describe('the way into microlearning from Home', () => {
       await expect(line).toBeVisible();
       await page.getByRole('button', { name: 'Om Mikroøkt' }).click();
       await expect(
-        page.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
+        page.getByText(
+          /Korte oppgaver.*forberede deg.*repetere det du har lært/,
+        ),
       ).toBeVisible();
       await expect(
         page.locator('.rpg-hub__quest-panel a[href*="/rpg/resource/"]'),
@@ -2019,7 +2021,9 @@ test.describe('the two ways in on Home', () => {
       await info.click();
       await expect(info).toHaveAttribute('aria-expanded', 'true');
       await expect(
-        page.getByText(/I Mikroøkt kan du forberede deg/),
+        page.getByText(
+          /Korte oppgaver.*forberede deg.*repetere det du har lært/,
+        ),
       ).toBeVisible();
       // One open note makes its own entry taller; the other link stays put.
       expect(
