@@ -1,3 +1,30 @@
+# Git & GitHub Foundations — M01–M07
+
+This is the cross-programme Git & GitHub Pathways curriculum (`git-github-2026`).
+All seven modules are implemented: **47 lessons, 113 exercises**, catalogue
+`dataVersion: 7`, content/evaluator `contentVersion: 1`. M01–M06 teach safe,
+synthetic local Git exercises; M07 integrates these skills in a small Node.js
+project. The optional GitHub track is not required for core completion.
+
+`source.mjs` and `m02.mjs`–`m07.mjs` are canonical build-time authoring files.
+After any content change, run the existing `scripts/git-github-content.mjs`
+generator, then its `--check` mode. Do not hand-edit generated, hash-addressed
+assets. Preserve stable exercise IDs/hashes unless an activity genuinely
+changes. Use the `git-github-2026` catalogue and existing Pathways/progress,
+lesson-position, backup, offline and XP contracts; no new schema or engine.
+
+The required learner environment for PowerShell exercises is **native Windows
+PowerShell 5.1**, Git 2.28+ and, for M07, Node.js. Successful reproduction on
+Linux is not evidence of native PowerShell 5.1 compatibility. A local `felles.git`
+remote is not GitHub PR approval. Do not equate self-reported completion with
+verified practical execution.
+
+See `docs/CURRENT_STATE.md` and `AGENTS.md` for current status and controlling
+release/review policy. Historical module-specific notes are retained below as
+historical implementation records, **not as current implementation plans**.
+
+## Historical implementation notes (M01–M06)
+
 # Git & GitHub local pilot
 
 Independent programme git-github, catalogue/definition git-github-2026.

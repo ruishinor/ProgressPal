@@ -1285,15 +1285,57 @@
   padding: var(--space-3);
 }
 
-/* Mikroøkt and Utviklerblikk side by side where there is room, stacked
-   where not; each launch link keeps its own (i) beside it (an entry is laid
-   out like the action rows above). */
-.rpg-hub__entries {
+/* One secondary learning section. A programme can offer fewer or more than
+   four entries; the layout must reflow rather than manufacture dead actions. */
+.rpg-hub__learning h3 {
+  margin: 0;
+}
+
+.rpg-hub__learning-grid {
+  display: grid;
+  gap: var(--space-2);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
 }
 
-.rpg-hub__entry > :first-child {
-  flex: 1;
+.rpg-hub__learning-grid .rpg-hub__entry {
+  align-content: start;
+  border: 1px solid var(--rpg-border);
+  border-inline-start: 3px solid var(--rpg-border-strong);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+  padding: var(--space-2);
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry--pathways {
+  border-inline-start-color: var(--rpg-accent);
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry--reference {
+  background: color-mix(
+    in srgb,
+    var(--rpg-surface) 88%,
+    var(--rpg-surface-raised)
+  );
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry--micro {
+  background: var(--rpg-surface);
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rpg-hub__learning-grid .rpg-button > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry > p {
+  flex: 1 0 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .rpg-hub__details--summary {

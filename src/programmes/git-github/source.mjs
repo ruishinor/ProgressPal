@@ -44,6 +44,9 @@ export const gitLessons = [
     skillId: 'GIT-VERSIONING',
     flow: [
       text(
+        "Før kommandoene: Du skal lære hva Git gjør, ikke lære en lang PowerShell-oppskrift utenat. Se etter selve `git`-kommandoen i hver boks. Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` kontrollerer at du er i din egen øvingsmappe. «Forventet utskrift» er et eksempel på hva du skal undersøke, ikke noe du skal skrive inn. Hvis en kontroll stopper, ikke slett mappen eller kjør oppsettet på nytt: finn ut hvilken mappe og Git-tilstand du faktisk har. Du kan komme tilbake etter en pause med navigasjonsblokken lenger nede.",
+      ),
+      text(
         'Du trenger ikke kunne programmere, Git eller terminal fra før. I denne modulen går vi fra å forstå et vanlig utviklingsproblem til å registrere og kontrollere egne versjoner. De praktiske øvelsene bruker ufarlige tekstfiler om en tur, slik at du kan lære Git uten samtidig å måtte feilsøke programkode. Du trenger ingen GitHub-konto.',
       ),
       text(
@@ -61,48 +64,9 @@ export const gitLessons = [
       note(
         'Git-historikk på samme disk er ikke en sikkerhetskopi: forsvinner hele prosjektmappen, kan også .git og historikken gå tapt. Ta en separat sikkerhetskopi av verdifullt arbeid. ProgressPal lagrer svar og framdrift i nettleseren; Git lagrer filene og historikken i din øvingsmappe. Appens sikkerhetskopi tar ikke med Git-mappen.',
       ),
-      {
-        t: 'table',
-        columns: ['Del', 'Hva er hensikten?', 'Status'],
-        rows: [
-          [
-            'M01 – din første lokale versjon',
-            'Forstå og bruke Git lokalt, fra prosjektmappe til kontrollert commit.',
-            'Tilgjengelig: fem leksjoner.',
-          ],
-          [
-            'M02 – finn og forstå tidligere versjoner',
-            'Undersøk commits, sammenlign filer og rett en feil uten å miste nyttig senere arbeid.',
-            'Tilgjengelig: seks leksjoner.',
-          ],
-          [
-            'M03 – brancher og merge',
-            'Opprett en egen branch, samle endringer og løs en reell konflikt.',
-            'Tilgjengelig: seks leksjoner.',
-          ],
-          [
-            'M04 – fra lokal Git til GitHub',
-            'Forstå remotes, clone, fetch, pull og push i trygge øvelser.',
-            'Tilgjengelig: sju leksjoner.',
-          ],
-          [
-            'M05 – samarbeid med pull requests',
-            'Issues, review, status checks, tilbakemeldinger og integrering.',
-            'Tilgjengelig: åtte leksjoner.',
-          ],
-          [
-            'M06 – feil og trygg gjenoppretting',
-            'Undersøk Git-tilstander, og velg trygt mellom restore, reset, stash, reflog og revert.',
-            'Tilgjengelig: sju leksjoner.',
-          ],
-          [
-            'M07 – Git og GitHub i et utviklingsprosjekt',
-            'Bruk ferdighetene samlet i et realistisk lite utviklingsprosjekt.',
-            'Tilgjengelig: åtte leksjoner.',
-          ],
-        ],
-        nb: 'Du begynner med egne, lokale endringer. Senere skal du bruke samme forståelse når flere utviklere arbeider sammen.',
-      },
+      text(
+        'I M01 lærer du å forstå og registrere egne endringer. Når du senere arbeider med historikk, brancher og samarbeid, bruker du samme grunnlag videre. Hele M01–M07-løpet og rekkefølgen finner du i Pathways-oversikten; du trenger ikke lære alle begrepene før første øvelse.',
+      ),
       question(
         'GIT-M01-E01',
         'Du har lagret turplanen i Notisblokk og vil nå registrere en lokal versjon du kan finne igjen senere. Hva beskriver forskjellen riktig?',
@@ -139,6 +103,9 @@ export const gitLessons = [
     goal: 'Åpne PowerShell, sjekke Git og finne fram til en ny, trygg mappe uten å berøre egne prosjekter.',
     skillId: 'GIT-TOOLS',
     flow: [
+      text(
+        "Før kommandoene: Du skal lære hva Git gjør, ikke lære en lang PowerShell-oppskrift utenat. Se etter selve `git`-kommandoen i hver boks. Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` kontrollerer at du er i din egen øvingsmappe. «Forventet utskrift» er et eksempel på hva du skal undersøke, ikke noe du skal skrive inn. Hvis en kontroll stopper, ikke slett mappen eller kjør oppsettet på nytt: finn ut hvilken mappe og Git-tilstand du faktisk har. Du kan komme tilbake etter en pause med navigasjonsblokken lenger nede.",
+      ),
       text(
         '**Du trenger:** Windows PowerShell 5.1, Git 2.28 eller nyere og Notisblokk på en Windows-maskin. PowerShell og Notisblokk følger med Windows. Du trenger nett bare hvis Git må installeres; selve øvingen fungerer uten nett. GitHub-konto, VS Code og programmeringskunnskap er ikke nødvendig. Bruker du en administrert skole- eller jobbmaskin, følger du installasjonsreglene der.',
       ),
@@ -220,6 +187,9 @@ export const gitLessons = [
     goal: 'Opprette et repository med ufarlige tekstfiler og registrere det første snapshotet.',
     skillId: 'GIT-SNAPSHOT',
     flow: [
+      text(
+        'Hvis du gjenopptar M01 etter en pause, åpner du PowerShell og går tilbake til din eksisterende `ProgressPal Git oving`-mappe via navigasjonsblokken fra forrige leksjon. Undersøk først `Get-Location` og, hvis repoet allerede er opprettet, `git status` og `git log --oneline`. Ikke gjenta `git init` eller første commit bare fordi du har åpnet terminalen på nytt. Et avvik er grunn til å stoppe og undersøke, ikke til å slette mappen.',
+      ),
       text(
         'I et utviklingsprosjekt kan den første commiten beskrive en fungerende grunnversjon av programmet. Da har teamet et kjent utgangspunkt å sammenligne senere endringer med. Her øver vi på akkurat den arbeidsmåten med små tekstfiler: én beskrivelse, én huskeliste og en kladd som ikke skal inn i historikken. Fortsett i den tomme mappen ProgressPal Git oving fra forrige leksjon. Sjekk hvor du står før du kjører kommandoer. Har du gjort dette før, skal du undersøke filene og historikken, ikke lage dem på nytt.',
       ),
@@ -538,7 +508,7 @@ export const gitLessons = [
           'Velge innhold med add, kontrollere det med diff --cached og registrere det med commit.',
           'Ta en fil ut av staging uten å slette arbeidsfilen og forstå hvorfor samme fil kan ha både staged og unstaged innhold.',
         ],
-        next: 'Dette er starten, ikke Git- eller GitHub-mestring. M02 er tilgjengelig og lærer deg å lese historikk, sammenligne versjoner og gjøre en målrettet rettelse. M03 er nå tilgjengelig med branches, merge og konflikter. M04–M06 bygger videre med GitHub, samarbeid og trygg gjenoppretting. M07 er planlagt. M01 har fortsatt fem deler. Du kan øve igjen i en ny, separat mappe med et nytt navn.',
+        next: 'Dette er starten, ikke Git- eller GitHub-mestring. M02 er tilgjengelig og lærer deg å lese historikk, sammenligne versjoner og gjøre en målrettet rettelse. M03 er nå tilgjengelig med branches, merge og konflikter. M04–M06 bygger videre med GitHub, samarbeid og trygg gjenoppretting. M07 avslutter nå Foundations med et lite utviklingsprosjekt. M01 har fortsatt fem deler. Du kan øve igjen i en ny, separat mappe med et nytt navn.',
       },
     ],
   },

@@ -318,6 +318,9 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-WHY-REMOTE',
     flow: [
       text(
+        'Du lærer forskjellen på `clone`, `fetch`, `pull` og `push` ved å dele historie gjennom en *lokal* remote. Den heter «remote» fordi den er en annen Git-plassering, ikke fordi den ligger på GitHub. PowerShell-koden kontrollerer at bare øvingskopiene brukes; `git.exe` er selve Git-kommandoen. Se hvilken branch og remote du arbeider mot før du deler noe. Ved en pause: behold mappene, åpne samme øving igjen og undersøk status før neste blokk.',
+      ),
+      text(
         '### Når flere trenger den samme historikken\n\nI M03 arbeidet du med branches og merge i et lite prosjekt for en påmeldingsside. Forestill deg nå at du skal arbeide videre hjemme, mens en medstudent gjør en endring på skolen. Dere trenger begge tilgang til prosjektets commits. Å lagre en fil på hver maskin gir ikke automatisk den andre maskinen oppdatert Git-historikk.',
       ),
       text(
@@ -391,6 +394,9 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-REMOTE-SETUP',
     flow: [
       text(
+        'Du lærer forskjellen på `clone`, `fetch`, `pull` og `push` ved å dele historie gjennom en *lokal* remote. Den heter «remote» fordi den er en annen Git-plassering, ikke fordi den ligger på GitHub. PowerShell-koden kontrollerer at bare øvingskopiene brukes; `git.exe` er selve Git-kommandoen. Se hvilken branch og remote du arbeider mot før du deler noe. Ved en pause: behold mappene, åpne samme øving igjen og undersøk status før neste blokk.',
+      ),
+      text(
         '### Tre mapper med hver sin rolle\n\nVi lager et nytt eksempel på kurssiden fra M03, ikke en kopi av dine gamle øvingsfiler. I `ProgressPal-Git-M04` kommer `arbeidskopi-A` til å inneholde nettsidens filer og commit-historikk. `delt-repo.git` blir et **bare repository**: det lagrer Git-objekter og referanser, men har ikke en vanlig mappe der du redigerer nettsiden. Senere lager vi `arbeidskopi-B` ved å klone det delte repositoryet.',
       ),
       text(
@@ -445,6 +451,9 @@ export const gitM04Lessons = [
     goal: 'Sende historikk, klone den og forstå lokal main, remote main, origin/main, HEAD og upstream.',
     skillId: 'GIT-M04-PUSH-CLONE',
     flow: [
+      text(
+        'Etter en pause åpner du igjen `ProgressPal-Git-M04` og undersøker de eksisterende `arbeidskopi-A`, `arbeidskopi-B` og `delt-repo.git`. Bruk status, branch og logg i riktig arbeidskopi for å se om forrige push eller clone allerede lyktes. Ikke kjør oppsettet på nytt, og ikke gjenta en push før tilstanden er kontrollert. Remoten her er lokal, ikke GitHub.',
+      ),
       text(
         '### Først sende, så hente en ny arbeidskopi\n\nA har en lokal commit. Den delte mappen er tom. `git push origin main` ber mottakeren oppdatere sin branch `main` med commits fra A. En push er normalt tillatt når du har skrivetilgang og mottakerens historikk ikke må overskrives. Vi legger til `-u` ved første push: det gir A sin lokale `main` en **upstream**, altså en registrert branch å sammenligne og vanligvis synkronisere med. Det skaper ikke automatisk synkronisering.',
       ),

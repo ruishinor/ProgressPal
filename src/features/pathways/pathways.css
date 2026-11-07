@@ -94,6 +94,8 @@
   min-height: 2.75rem;
   align-items: center;
   margin-top: 0.4rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 0.5rem 0.9rem;
   background: var(--rpg-surface, var(--color-surface));
   border: 1px solid var(--rpg-border-strong, var(--color-border-strong));
@@ -106,4 +108,24 @@
 .pathways-track summary:focus-visible {
   outline: 3px solid var(--rpg-focus-ring, var(--color-focus));
   outline-offset: 3px;
+}
+
+.pathways-track__progress-summary {
+  border-inline-start: 3px solid var(--rpg-accent, var(--color-border-strong));
+  margin-block: 1rem;
+  padding-inline-start: 1rem;
+}
+
+.pathways-track__lesson-list {
+  margin-top: 0.8rem;
+}
+
+.pathways-track__lesson-list li {
+  overflow-wrap: anywhere;
+}
+
+.pathways-track__lesson-status {
+  color: var(--rpg-text-muted, var(--color-text-muted));
+  display: block;
+  font-size: 0.875rem;
 }

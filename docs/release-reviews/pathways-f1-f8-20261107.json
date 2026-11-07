@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-f1-f8-20261107",
+  "reviewer": "OpenAI GPT-6; same-session AI review; owner-authorized independence exception",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "d9d10dfe72103ec62ea5e7ef2ba04052c3495a6f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped review of the committed F1-F8 implementation; owner-authorized PASS policy. AI review is not independent.",
+    "evidence": [
+      "Candidate 7c76844fe5c9d608a4789fa0b3f832ec5408a55c; base 90810c23e253f97a561d0937915eaa18ac8bb461; 34 changed files",
+      "Owner-reported TypeScript, lint, formatting, generator and stable exercise identity checks PASS",
+      "Owner-reported Pathways Vitest 14/14 and targeted Playwright 27/27 PASS",
+      "Owner-reported production build and bundle budget PASS",
+      "Reviewed progress semantics, navigation, content, IndexedDB boundaries and release constraints"
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "R1",
+      "severity": "P2",
+      "description": "No separate independent reviewer is available for this candidate.",
+      "resolution": "Owner expressly authorized a scoped AI review with PASS as the default. Provenance and the departure from the documented independence process are disclosed. Technical release gates remain mandatory.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "R2",
+      "severity": "P3",
+      "description": "Largest JavaScript chunk has only 1372 bytes remaining under the raw size budget.",
+      "resolution": "Measured build passes the unchanged budget. Future growth requires separate evaluation; no threshold change is justified.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "R3",
+      "severity": "P3",
+      "description": "Some historical current-state documentation is stale.",
+      "resolution": "Nonblocking historical documentation debt; avoid a separate corrective release.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "No concrete unresolved material finding from the scoped review. Proceed through normal hosted certification and Deployment Checks. Independence exception is explicitly owner-authorized."
+  }
+}

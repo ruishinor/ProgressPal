@@ -1052,6 +1052,17 @@ export async function saveLessonPosition(
   });
 }
 
+/** One read-only inventory for Pathways orientation; avoids per-lesson queries. */
+export async function listLessonPositions(
+  options: BaseDatabaseOptions = {},
+): Promise<LessonPosition[]> {
+  const database = await ensureOpen(resolveDatabase(options.db));
+  const rows = await database.lessonPositions.toArray();
+  return rows.map((row) =>
+    parseWithSchema(LessonPositionSchema, row, 'Stored lesson position'),
+  );
+}
+
 export async function getLessonPosition(
   itemId: string,
   options: BaseDatabaseOptions = {},

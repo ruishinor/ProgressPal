@@ -515,6 +515,7 @@ describe('the way in from Home', () => {
 });
 
 describe('Home only advertises a session that exists', () => {
+  const microHelp = /Korte oppgaver.*forberede deg.*repetere det du har lært/;
   const homeEntry = () => screen.queryByRole('link', { name: 'Mikroøkt' });
   const campaignAction = () =>
     screen
@@ -529,13 +530,9 @@ describe('Home only advertises a session that exists', () => {
     return renderAppAtRoute('/rpg');
   }
 
-  it.each([
-    [0, 'Nå kan du forberede deg på neste oppgave.'],
-    [3, 'Nå kan du forberede deg på neste oppgave.'],
-    [13, 'Nå kan du både forberede deg og øve igjen.'],
-  ])(
-    'offers an active entry, with copy that matches, when %i required tasks are complete',
-    async (complete, copy) => {
+  it.each([0, 3, 13])(
+    'offers an active entry with accurate help when %i required tasks are complete',
+    async (complete) => {
       await homeAt(complete);
 
       const entry = await screen.findByRole('link', { name: 'Mikroøkt' });
@@ -545,7 +542,7 @@ describe('Home only advertises a session that exists', () => {
       await userEvent.click(
         screen.getByRole('button', { name: 'Om Mikroøkt' }),
       );
-      expect(screen.getByText(new RegExp(copy))).toBeInTheDocument();
+      expect(screen.getByText(microHelp)).toBeInTheDocument();
       expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
       // The Campaign's own action stays first and stays the primary one.
       expect(campaignAction()).toBeDefined();
@@ -555,15 +552,13 @@ describe('Home only advertises a session that exists', () => {
     },
   );
 
-  it('offers repetition alone, with copy that says so, once the whole Campaign is reached', async () => {
+  it('offers the repetition entry after the whole Campaign is reached', async () => {
     await homeAt(24);
 
     await userEvent.click(
       await screen.findByRole('button', { name: 'Om Mikroøkt' }),
     );
-    expect(
-      screen.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
-    ).toBeInTheDocument();
+    expect(screen.getByText(microHelp)).toBeInTheDocument();
     expect(homeEntry()).toHaveAttribute('href', '/rpg/micro');
     expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
   });
@@ -582,9 +577,7 @@ describe('Home only advertises a session that exists', () => {
       await userEvent.click(
         screen.getByRole('button', { name: 'Om Mikroøkt' }),
       );
-      expect(
-        screen.getByText(/Nå kan du øve igjen på det du har jobbet med\./),
-      ).toBeInTheDocument();
+      expect(screen.getByText(microHelp)).toBeInTheDocument();
       // The Campaign is still the one thing to do, and comes first.
       expect(campaignAction()).toHaveAttribute(
         'href',
@@ -602,7 +595,7 @@ describe('Home only advertises a session that exists', () => {
 
     expect(
       await screen.findByText(
-        'Ingen mikroøkt akkurat nå. Fortsett kampanjen, så åpnes flere.',
+        'Ingen mikroøkt akkurat nå. Fortsett i Campaign for å åpne flere.',
       ),
     ).toBeInTheDocument();
     expect(homeEntry()).toBeNull();
