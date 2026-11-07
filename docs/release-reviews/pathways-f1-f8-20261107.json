@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6; same-session AI review; owner-authorized independence exception",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "05d0aa9b440893ccaa7b6c3e2279a71b641ea025",
+    "payloadTree": "2b83658e738bfb2fe5465936d0b4da27c564aca0",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
