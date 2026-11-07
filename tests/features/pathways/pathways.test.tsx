@@ -385,16 +385,24 @@ it('shows one next action, bookmarks and manual progress without writing on the 
 
 it('prefers the latest unfinished lesson when several have started', async () => {
   await learner('cs50x');
-  await upsertProgress({
-    itemId: 'git-m01-o02',
-    status: 'started',
-    confidence: 0,
-  });
-  await upsertProgress({
-    itemId: 'git-m03-o01',
-    status: 'started',
-    confidence: 0,
-  });
+  // Two writes may share one millisecond on a fast runner; make recency
+  // explicit rather than depending on wall-clock precision.
+  await upsertProgress(
+    {
+      itemId: 'git-m01-o02',
+      status: 'started',
+      confidence: 0,
+    },
+    { now: () => '2026-11-01T08:00:00.000Z' },
+  );
+  await upsertProgress(
+    {
+      itemId: 'git-m03-o01',
+      status: 'started',
+      confidence: 0,
+    },
+    { now: () => '2026-11-01T08:00:01.000Z' },
+  );
   const before = await getDatabaseSnapshot();
   await renderAppAtRoute('/rpg/pathways/git-github');
   expect(
