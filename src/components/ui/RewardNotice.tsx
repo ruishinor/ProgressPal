@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import type { ReactNode } from 'react';
 
 import { classNames } from '@/components/ui/utils';
@@ -46,8 +47,8 @@ export function RewardNoticeRegion({
           <span className="reward-notice__text">
             <span className="reward-notice__label">
               {notification.kind === 'level-up'
-                ? 'Level up!'
-                : 'Achievement earned'}
+                ? uiCopy.surfaces.rewardNotice.levelUp
+                : uiCopy.surfaces.rewardNotice.achievementEarned}
             </span>{' '}
             <span className="reward-notice__title">
               {notification.kind === 'level-up'

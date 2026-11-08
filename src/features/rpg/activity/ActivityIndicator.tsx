@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Link } from 'react-router-dom';
 
 import { readActivityParticipation } from '@/lib/db/activity';
@@ -17,8 +18,8 @@ export function ActivityIndicator() {
       <span className="activity-indicator__level">
         {error
           ? norwegian
-            ? 'utilgjengelig'
-            : 'unavailable'
+            ? uiCopy.surfaces.rpgActivityActivityIndicator.utilgjengelig
+            : uiCopy.surfaces.rpgActivityActivityIndicator.unavailable
           : (data?.level ?? '…')}
       </span>
     </Link>

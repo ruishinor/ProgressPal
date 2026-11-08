@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { MovementReminder } from '@/features/rpg/activity/MovementReminder';
 import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
 
@@ -84,7 +85,7 @@ function SettingsLink({ inHud = false }: { inHud?: boolean }) {
   return (
     <Link
       aria-current={location.pathname === rpgSettingsPath ? 'page' : undefined}
-      aria-label="Open Settings"
+      aria-label={uiCopy.surfaces.rpgShellRpgShell.openSettings}
       className="rpg-shell__settings-link"
       to={rpgSettingsPath}
     >
@@ -98,7 +99,7 @@ function SettingsLink({ inHud = false }: { inHud?: boolean }) {
         <circle cx="12" cy="12.4" r="2.8" />
       </svg>
       <span className={inHud ? 'sr-only' : 'rpg-shell__settings-text'}>
-        Settings
+        {uiCopy.surfaces.rpgShellRpgShell.settings}
       </span>
     </Link>
   );
@@ -128,17 +129,20 @@ function RpgHeroHud({
     if (state.status === 'error') {
       return (
         <section
-          aria-label="Persistent hero HUD"
+          aria-label={uiCopy.surfaces.rpgShellRpgShell.persistentHeroHUD}
           className="rpg-hero-hud rpg-hero-hud--compact"
         >
           <div aria-hidden="true" className="rpg-hero-hud__avatar">
             !
           </div>
           <div className="rpg-hero-hud__identity">
-            <p className="rpg-hero-hud__name">Hero state unavailable</p>
+            <p className="rpg-hero-hud__name">
+              {uiCopy.surfaces.rpgShellRpgShell.heroStateUnavailable}
+            </p>
             <p className="rpg-hero-hud__meta">
               {state.error ??
-                'Local RPG summary could not be loaded from this browser.'}
+                uiCopy.surfaces.rpgShellRpgShell
+                  .localRPGSummaryCouldNotBeLoadedFrom}
             </p>
           </div>
           <SettingsLink inHud />
@@ -147,7 +151,7 @@ function RpgHeroHud({
             onClick={onRetry}
             type="button"
           >
-            Retry
+            {uiCopy.surfaces.rpgShellRpgShell.retry}
           </button>
         </section>
       );
@@ -155,15 +159,15 @@ function RpgHeroHud({
 
     return (
       <section
-        aria-label="Persistent hero HUD"
+        aria-label={uiCopy.surfaces.rpgShellRpgShell.persistentHeroHUD}
         className="rpg-hero-hud rpg-hero-hud--compact"
       >
         <div aria-hidden="true" className="rpg-hero-hud__avatar">
-          L
+          {uiCopy.surfaces.rpgShellRpgShell.l}
         </div>
         <div className="rpg-hero-hud__identity">
           <p className="rpg-hero-hud__name" role="status">
-            Loading your Hero
+            {uiCopy.surfaces.rpgShellRpgShell.loadingYourHero}
           </p>
         </div>
         <SettingsLink inHud />
@@ -203,7 +207,7 @@ function RpgHeroHud({
 
   return (
     <section
-      aria-label="Persistent hero HUD"
+      aria-label={uiCopy.surfaces.rpgShellRpgShell.persistentHeroHUD}
       className={`rpg-hero-hud${showQuest ? '' : ' rpg-hero-hud--overview'}`}
     >
       <RpgHeroIdentity
@@ -218,7 +222,11 @@ function RpgHeroHud({
       <RpgLevelProgress xp={summary.xpSummary} />
       {mobile && (
         <details className="rpg-hero-hud__details">
-          <summary aria-label="Character details">Details</summary>
+          <summary
+            aria-label={uiCopy.surfaces.rpgShellRpgShell.characterDetails}
+          >
+            {uiCopy.surfaces.rpgShellRpgShell.details}
+          </summary>
           <div className="rpg-hero-hud__detail-content">
             {programmeTitle && (
               <p>
@@ -236,15 +244,15 @@ function RpgHeroHud({
           <div className="rpg-hero-hud__quest-copy">
             <p className="rpg-hero-hud__quest-label">
               {recommendation.state === 'needs_attention'
-                ? 'Blocked work needs attention'
-                : 'Current quest'}
+                ? uiCopy.surfaces.rpgShellRpgShell.blockedWorkNeedsAttention
+                : uiCopy.surfaces.rpgShellRpgShell.currentQuest}
             </p>
             <strong>{currentQuestLabel}</strong>
             {!mobile && questMetadata}
           </div>
           <Link className="rpg-hero-hud__quest-link" to={currentQuestHref}>
             {currentQuest === null
-              ? 'Open Campaign'
+              ? uiCopy.surfaces.rpgShellRpgShell.openCampaign
               : getQuestActionLabel(currentQuest.status)}
           </Link>
         </div>
@@ -396,14 +404,14 @@ export function RpgShell() {
   return (
     <section className="rpg-shell" data-testid="rpg-shell">
       <a className="rpg-shell__skip-link" href="#rpg-main-content">
-        Skip to RPG content
+        {uiCopy.surfaces.rpgShellRpgShell.skipToRPGContent}
       </a>
       <div className="rpg-shell__frame">
         {/* Reuse the HUD-free reading layout; navigation and coordination
             notices remain available on both reference routes. */}
         {withoutHud ? (
           <nav
-            aria-label="RPG utility navigation"
+            aria-label={uiCopy.surfaces.rpgShellRpgShell.rPGUtilityNavigation}
             className="rpg-shell__utility-bar"
           >
             <SettingsLink />
@@ -448,26 +456,36 @@ export function RpgShell() {
         >
           {coordination.blockReason === 'peer-active' ? (
             <RpgPanel
-              description="Another ProgressPal tab is open for editing."
+              description={
+                uiCopy.surfaces.rpgShellRpgShell
+                  .anotherProgressPalTabIsOpenForEditing
+              }
               role="alert"
-              title="This ProgressPal tab is read-only"
+              title={
+                uiCopy.surfaces.rpgShellRpgShell.thisProgressPalTabIsReadOnly
+              }
             >
               <p>
-                You can still review saved progress and navigate here. Close the
-                other tab; this tab will reload saved data before enabling
-                changes.
+                {
+                  uiCopy.surfaces.rpgShellRpgShell
+                    .youCanStillReviewSavedProgressAndNavigate
+                }
               </p>
             </RpgPanel>
           ) : null}
           {coordination.blockReason === 'stale' ? (
             <RpgPanel
-              description="Saved data changed in another tab."
+              description={
+                uiCopy.surfaces.rpgShellRpgShell.savedDataChangedInAnotherTab
+              }
               role="alert"
-              title="Reload changed local data"
+              title={uiCopy.surfaces.rpgShellRpgShell.reloadChangedLocalData}
             >
               <p>
-                Reload before making changes. This tab will remain read-only if
-                another tab is still open for editing.
+                {
+                  uiCopy.surfaces.rpgShellRpgShell
+                    .reloadBeforeMakingChangesThisTabWillRemain
+                }
               </p>
               <RpgButton
                 onClick={() => {
@@ -475,19 +493,24 @@ export function RpgShell() {
                 }}
                 variant="secondary"
               >
-                Reload local state
+                {uiCopy.surfaces.rpgShellRpgShell.reloadLocalState}
               </RpgButton>
             </RpgPanel>
           ) : null}
           {coordination.blockReason === 'unavailable' ? (
             <RpgPanel
-              description="ProgressPal cannot safely coordinate edits in this browser right now."
+              description={
+                uiCopy.surfaces.rpgShellRpgShell
+                  .progressPalCannotSafelyCoordinateEditsInThisBrowser
+              }
               role="alert"
-              title="Local writing is unavailable"
+              title={uiCopy.surfaces.rpgShellRpgShell.localWritingIsUnavailable}
             >
               <p>
-                You can still review saved progress. Editing stays paused until
-                ProgressPal can protect your data from conflicting changes.
+                {
+                  uiCopy.surfaces.rpgShellRpgShell
+                    .youCanStillReviewSavedProgressEditingStays
+                }
               </p>
             </RpgPanel>
           ) : null}

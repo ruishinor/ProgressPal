@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { InlineInfo } from '@/components/ui/InlineInfo';
 import {
   getQuestActionLabel,
@@ -174,13 +175,15 @@ function RpgResourceLoadingState() {
     <section className="page-section rpg-study-resource">
       <div className="rpg-study-resource__header rpg-page-header">
         <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
-          Study Resource
+          {uiCopy.surfaces.rpgResource.studyResource}
         </p>
-        <h1>RPG Resource</h1>
+        <h1>{uiCopy.surfaces.rpgResource.rPGResource}</h1>
       </div>
       <LoadingState
-        description="Building the RPG resource from local progress."
-        title="Loading RPG resource"
+        description={
+          uiCopy.surfaces.rpgResource.buildingTheRPGResourceFromLocalProgress
+        }
+        title={uiCopy.surfaces.rpgResource.loadingRPGResource}
       />
     </section>
   );
@@ -561,9 +564,9 @@ export function RpgResourcePage() {
         <section className="page-section rpg-study-resource">
           <div className="rpg-study-resource__header rpg-page-header">
             <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
-              Study Resource
+              {uiCopy.surfaces.rpgResource.studyResource}
             </p>
-            <h1>RPG Resource</h1>
+            <h1>{uiCopy.surfaces.rpgResource.rPGResource}</h1>
           </div>
           <ErrorState
             action={
@@ -578,12 +581,14 @@ export function RpgResourcePage() {
                   }}
                   variant="secondary"
                 >
-                  Try again
+                  {uiCopy.surfaces.rpgResource.tryAgain}
                 </RpgButton>
               ) : null
             }
-            description={state.error ?? 'Unknown RPG resource error.'}
-            title="RPG resource not found"
+            description={
+              state.error ?? uiCopy.surfaces.rpgResource.unknownRPGResourceError
+            }
+            title={uiCopy.surfaces.rpgResource.rPGResourceNotFound}
           />
         </section>
       );
@@ -606,7 +611,7 @@ export function RpgResourcePage() {
     selectedProgressStatus === 'accepted';
 
   const saveProgressPanel = (
-    <RpgPanel title="Save progress" titleAs="h2">
+    <RpgPanel title={uiCopy.surfaces.rpgResource.saveProgress} titleAs="h2">
       {summary.savedProgress ? (
         <div>
           <RpgButton
@@ -618,13 +623,15 @@ export function RpgResourcePage() {
             }}
           >
             {correctingStatus
-              ? 'Cancel status correction'
-              : 'Correct saved status'}
+              ? uiCopy.surfaces.rpgResource.cancelStatusCorrection
+              : uiCopy.surfaces.rpgResource.correctSavedStatus}
           </RpgButton>
           {correctingStatus ? (
             <p role="note">
-              Correcting the saved status changes your current ProgressPal
-              status. XP and achievements already earned are not removed.
+              {
+                uiCopy.surfaces.rpgResource
+                  .correctingTheSavedStatusChangesYourCurrentProgressPal
+              }
             </p>
           ) : null}
         </div>
@@ -635,7 +642,7 @@ export function RpgResourcePage() {
         onSubmit={handleProgressSubmit}
       >
         <label className="rpg-study-resource__field">
-          <span>Progress</span>
+          <span>{uiCopy.surfaces.rpgResource.progress}</span>
           <select
             aria-describedby={
               formState?.errors.status ? resourceErrorIds.status : undefined
@@ -671,9 +678,11 @@ export function RpgResourcePage() {
         summary.progressStatus !== 'blocked' ? (
           <span>
             Blocked{' '}
-            <InlineInfo label="What does Blocked mean?">
-              Blocked means you started this task but cannot continue right now.
-              It stays available until you change its status.
+            <InlineInfo label={uiCopy.surfaces.rpgResource.whatDoesBlockedMean}>
+              {
+                uiCopy.surfaces.rpgResource
+                  .blockedMeansYouStartedThisTaskButCannot
+              }
             </InlineInfo>
           </span>
         ) : null}
@@ -688,7 +697,7 @@ export function RpgResourcePage() {
         ) : null}
 
         <label className="rpg-study-resource__field">
-          <span>Add study note</span>
+          <span>{uiCopy.surfaces.rpgResource.addStudyNote}</span>
           <textarea
             onChange={(event) => {
               setFormState((currentForm) =>
@@ -706,14 +715,16 @@ export function RpgResourcePage() {
                 current?.refreshStatus === 'ready' ? null : current,
               );
             }}
-            placeholder="What changed, where you got stuck, or what to do next."
+            placeholder={
+              uiCopy.surfaces.rpgResource.whatChangedWhereYouGotStuckOrWhat
+            }
             value={formValues.notes}
           />
         </label>
 
         {showEvidenceField ? (
           <label className="rpg-study-resource__field">
-            <span>Submission note</span>
+            <span>{uiCopy.surfaces.rpgResource.submissionNote}</span>
             <textarea
               aria-describedby={
                 formState?.errors.evidenceText
@@ -738,7 +749,9 @@ export function RpgResourcePage() {
                   current?.refreshStatus === 'ready' ? null : current,
                 );
               }}
-              placeholder="Where did you submit this work?"
+              placeholder={
+                uiCopy.surfaces.rpgResource.whereDidYouSubmitThisWork
+              }
               value={formValues.evidenceText}
             />
           </label>
@@ -757,10 +770,10 @@ export function RpgResourcePage() {
           className="form-details"
           open={Boolean(formState?.errors.confidence)}
         >
-          <summary>More details</summary>
+          <summary>{uiCopy.surfaces.rpgResource.moreDetails}</summary>
           <div className="form-details__content">
             <label className="rpg-study-resource__field rpg-study-resource__field--short">
-              <span>How sure are you?</span>
+              <span>{uiCopy.surfaces.rpgResource.howSureAreYou}</span>
               <select
                 aria-describedby={
                   formState?.errors.confidence
@@ -830,7 +843,9 @@ export function RpgResourcePage() {
             }
             type="submit"
           >
-            {correctingStatus ? 'Save status correction' : 'Save progress'}
+            {correctingStatus
+              ? uiCopy.surfaces.rpgResource.saveStatusCorrection
+              : uiCopy.surfaces.rpgResource.saveProgress}
           </RpgButton>
           <RpgButton
             disabled={
@@ -849,13 +864,15 @@ export function RpgResourcePage() {
             type="button"
             variant="secondary"
           >
-            Mark locally complete
+            {uiCopy.surfaces.rpgResource.markLocallyComplete}
           </RpgButton>
         </div>
         {saveResult !== null ? (
           <div className="rpg-study-resource__save-result" role="status">
             <h2>
-              {saveResult.isUpdate ? 'Progress updated' : 'Progress saved'}
+              {saveResult.isUpdate
+                ? uiCopy.surfaces.rpgResource.progressUpdated
+                : uiCopy.surfaces.rpgResource.progressSaved}
             </h2>
             <p>{`Local status: ${saveResult.statusLabel}`}</p>
             {saveResult.xpAdded > 0 ? (
@@ -876,9 +893,10 @@ export function RpgResourcePage() {
             {saveResult.refreshStatus === 'error' ? (
               <>
                 <p>
-                  Progress is saved locally. Resource details and the next quest
-                  could not be refreshed; the other details on this page may be
-                  out of date. Refresh the summary to continue.
+                  {
+                    uiCopy.surfaces.rpgResource
+                      .progressIsSavedLocallyResourceDetailsAndThe
+                  }
                 </p>
                 <RpgButton
                   onClick={() => {
@@ -887,11 +905,16 @@ export function RpgResourcePage() {
                   type="button"
                   variant="secondary"
                 >
-                  Refresh progress summary
+                  {uiCopy.surfaces.rpgResource.refreshProgressSummary}
                 </RpgButton>
               </>
             ) : saveResult.refreshStatus === 'loading' ? (
-              <p>Progress is saved locally. Refreshing the summary…</p>
+              <p>
+                {
+                  uiCopy.surfaces.rpgResource
+                    .progressIsSavedLocallyRefreshingTheSummary
+                }
+              </p>
             ) : saveResult.nextActionHref !== null ? (
               <RpgButton href={saveResult.nextActionHref} variant="secondary">
                 {saveResult.nextActionLabel}
@@ -927,7 +950,7 @@ export function RpgResourcePage() {
       <div className="rpg-study-resource__header rpg-page-header">
         <div>
           <p className="rpg-study-resource__eyebrow rpg-page-eyebrow">
-            Study Resource
+            {uiCopy.surfaces.rpgResource.studyResource}
           </p>
           <h1>{summary.title}</h1>
           <p className="rpg-quest-reward">{summary.rewardLabel}</p>
@@ -939,13 +962,19 @@ export function RpgResourcePage() {
               {summary.statusLabel}
             </RpgStatusPill>
             {summary.progressStatus === 'blocked' ? (
-              <InlineInfo label="What does Blocked mean?">
-                Blocked means you started this task but cannot continue right
-                now. It stays available until you change its status.
+              <InlineInfo
+                label={uiCopy.surfaces.rpgResource.whatDoesBlockedMean}
+              >
+                {
+                  uiCopy.surfaces.rpgResource
+                    .blockedMeansYouStartedThisTaskButCannot
+                }
               </InlineInfo>
             ) : null}
             <RpgStatusPill tone={summary.required ? 'progress' : 'neutral'}>
-              {summary.required ? 'Required' : 'Optional'}
+              {summary.required
+                ? uiCopy.surfaces.rpgResource.required
+                : uiCopy.surfaces.rpgResource.optional}
             </RpgStatusPill>
             <span>{`${summary.typeLabel} - ${summary.estimatedMinutesLabel}`}</span>
           </div>
@@ -963,7 +992,7 @@ export function RpgResourcePage() {
             </RpgButton>
           ) : null}
           <RpgButton href={getRpgFocusPath(summary.itemId)} variant="secondary">
-            Start focus session
+            {uiCopy.surfaces.rpgResource.startFocusSession}
           </RpgButton>
           <RpgButton href={getRpgWeekPath(summary.unitId)} variant="quiet">
             {`Back to ${unitNoun.lowercase}`}
@@ -975,11 +1004,11 @@ export function RpgResourcePage() {
         <RpgResourceCard
           className="rpg-study-resource__card"
           meta={null}
-          title="Saved work"
+          title={uiCopy.surfaces.rpgResource.savedWork}
         >
           {summary.savedProgress?.notes ? (
             <div className="rpg-study-resource__saved-note">
-              <p>Saved note</p>
+              <p>{uiCopy.surfaces.rpgResource.savedNote}</p>
               <p>{summary.savedProgress.notes}</p>
             </div>
           ) : null}

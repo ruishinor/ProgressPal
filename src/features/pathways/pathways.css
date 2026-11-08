@@ -116,6 +116,35 @@
   padding-inline-start: 1rem;
 }
 
+.pathways-track__progress-info {
+  display: inline-block;
+  max-width: 100%;
+  margin-block: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--rpg-surface, var(--color-surface));
+  border: 1px solid var(--rpg-border, var(--color-border));
+  border-radius: var(--radius-sm);
+}
+
+.pathways-track__progress-info[open] {
+  display: block;
+}
+
+.pathways-track__progress-info summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.pathways-track__progress-info summary::-webkit-details-marker {
+  display: none;
+}
+
+.pathways-track__progress-info summary:focus-visible {
+  outline: 3px solid var(--rpg-focus-ring, var(--color-focus));
+  outline-offset: 3px;
+}
+
 .pathways-track__lesson-list {
   margin-top: 0.8rem;
 }

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Link, useLocation } from 'react-router-dom';
 
 import {
@@ -129,7 +130,10 @@ export function RpgPrimaryNav() {
   const location = useLocation();
 
   return (
-    <nav aria-label="RPG primary navigation" className="rpg-primary-nav">
+    <nav
+      aria-label={uiCopy.surfaces.rpgShellRpgPrimaryNav.rPGPrimaryNavigation}
+      className="rpg-primary-nav"
+    >
       <div className="rpg-primary-nav__list">
         {navItems.map((item) => (
           <Link

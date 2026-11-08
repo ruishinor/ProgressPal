@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import {
   getQuestActionLabel,
   getLevelProgressDisplay,
@@ -135,7 +136,7 @@ export function RpgFocusPage() {
       <RpgPanel
         className="rpg-focus__save-result"
         role="status"
-        title="Session saved"
+        title={uiCopy.surfaces.rpgRpgFocusPage.sessionSaved}
         titleAs="h2"
         variant="raised"
       >
@@ -158,8 +159,10 @@ export function RpgFocusPage() {
         {saveFeedback.refreshStatus === 'error' ? (
           <>
             <p>
-              Your session is saved locally. The current progression and next
-              quest could not be refreshed.
+              {
+                uiCopy.surfaces.rpgRpgFocusPage
+                  .yourSessionIsSavedLocallyTheCurrentProgression
+              }
             </p>
             <RpgButton
               onClick={() => {
@@ -167,11 +170,11 @@ export function RpgFocusPage() {
               }}
               variant="secondary"
             >
-              Refresh progress summary
+              {uiCopy.surfaces.rpgRpgFocusPage.refreshProgressSummary}
             </RpgButton>
           </>
         ) : saveFeedback.refreshStatus === 'loading' ? (
-          <p>Refreshing the progress summary…</p>
+          <p>{uiCopy.surfaces.rpgRpgFocusPage.refreshingTheProgressSummary}</p>
         ) : saveFeedback.nextActionHref !== null ? (
           <RpgButton href={saveFeedback.nextActionHref} variant="secondary">
             {saveFeedback.nextActionLabel}

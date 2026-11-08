@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { pathwaysPath } from '@/lib/routing/pathwaysPaths';
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -183,7 +184,7 @@ export function DashboardPage() {
       <section className="page-section">
         <PageHeader
           description={copy.dashboardErrorDescription}
-          title="Dashboard"
+          title={uiCopy.surfaces.classicDashboard.dashboard}
         />
         <ErrorState
           action={
@@ -197,11 +198,14 @@ export function DashboardPage() {
               }}
               type="button"
             >
-              Try again
+              {uiCopy.surfaces.classicDashboard.tryAgain}
             </button>
           }
-          description={state.error ?? 'Unknown local dashboard error.'}
-          title="Local data could not be read"
+          description={
+            state.error ??
+            uiCopy.surfaces.classicDashboard.unknownLocalDashboardError
+          }
+          title={uiCopy.surfaces.classicDashboard.localDataCouldNotBeRead}
         />
       </section>
     );
@@ -211,12 +215,15 @@ export function DashboardPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="The app is reading your local progress, sessions, XP, and achievements."
-          title="Dashboard"
+          description={
+            uiCopy.surfaces.classicDashboard
+              .theAppIsReadingYourLocalProgressSessions
+          }
+          title={uiCopy.surfaces.classicDashboard.dashboard}
         />
         <LoadingState
-          description="Building your dashboard."
-          title="Loading your local data"
+          description={uiCopy.surfaces.classicDashboard.buildingYourDashboard}
+          title={uiCopy.surfaces.classicDashboard.loadingYourLocalData}
         />
       </section>
     );
@@ -242,28 +249,28 @@ export function DashboardPage() {
               className="button button--secondary button--md"
               to={pathwaysPath}
             >
-              Pathways
+              {uiCopy.surfaces.classicDashboard.pathways}
             </Link>
             <Link className="button button--secondary button--md" to="/course">
-              Course map
+              {uiCopy.surfaces.classicDashboard.courseMap}
             </Link>
             <Link
               className="button button--secondary button--md"
               to="/sessions"
             >
-              Sessions
+              {uiCopy.surfaces.classicDashboard.sessions}
             </Link>
             <Link
               className="button button--secondary button--md"
               to="/achievements"
             >
-              Achievements
+              {uiCopy.surfaces.classicDashboard.achievements}
             </Link>
             <Link
               className="button button--secondary button--md"
               to={rpgRoutePath}
             >
-              Open RPG
+              {uiCopy.surfaces.classicDashboard.openRPG}
             </Link>
           </div>
         }
@@ -276,14 +283,14 @@ export function DashboardPage() {
             <Badge tone="accent">{`Level ${xpSummary.level}`}</Badge>
           </>
         }
-        title="Dashboard"
+        title={uiCopy.surfaces.classicDashboard.dashboard}
       />
 
       <div className="dashboard-grid">
-        <Card title="Course progress">
+        <Card title={uiCopy.surfaces.classicDashboard.courseProgress}>
           <ProgressBar
             helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
-            label="Required course progress"
+            label={uiCopy.surfaces.classicDashboard.requiredCourseProgress}
             tone={
               courseProgress.blockedItemCount > 0
                 ? 'warning'
@@ -295,17 +302,17 @@ export function DashboardPage() {
           />
           <dl className="profile-summary-list">
             <div>
-              <dt>Units complete</dt>
+              <dt>{uiCopy.surfaces.classicDashboard.unitsComplete}</dt>
               <dd>{`${courseProgress.completedUnitCount} of ${courseProgress.unitCount}`}</dd>
             </div>
             <div>
-              <dt>Blocked</dt>
+              <dt>{uiCopy.surfaces.classicDashboard.blocked}</dt>
               <dd>{courseProgress.blockedItemCount}</dd>
             </div>
           </dl>
         </Card>
 
-        <Card title="What's next?">
+        <Card title={uiCopy.surfaces.classicDashboard.whatSNext}>
           {continueNext.kind === 'recommended' ? (
             <>
               <p className="dashboard-metric">
@@ -319,23 +326,35 @@ export function DashboardPage() {
                   className="button button--primary button--sm"
                   to={getCourseItemDetailPath(continueNext.itemId)}
                 >
-                  Start
+                  {uiCopy.surfaces.classicDashboard.start}
                 </Link>
               </div>
             </>
           ) : continueNext.kind === 'course_complete' ? (
-            <p>All required items are complete. Nice work.</p>
+            <p>
+              {
+                uiCopy.surfaces.classicDashboard
+                  .allRequiredItemsAreCompleteNiceWork
+              }
+            </p>
           ) : continueNext.kind === 'blocked_only' ? (
             <p>
-              Every remaining required item is blocked. See &ldquo;Needs
-              attention&rdquo; below.
+              {
+                uiCopy.surfaces.classicDashboard
+                  .everyRemainingRequiredItemIsBlockedSeeNeeds
+              }
             </p>
           ) : (
-            <p>No required items are in the local catalog.</p>
+            <p>
+              {
+                uiCopy.surfaces.classicDashboard
+                  .noRequiredItemsAreInTheLocalCatalog
+              }
+            </p>
           )}
         </Card>
 
-        <Card title="XP">
+        <Card title={uiCopy.surfaces.classicDashboard.xP}>
           <p className="dashboard-metric">
             <strong>{`Level ${xpSummary.level}`}</strong>
             <span>{`${xpSummary.totalXp} XP total`}</span>
@@ -348,14 +367,14 @@ export function DashboardPage() {
           {xpSummary.isEmpty ? (
             <>
               <p className="card__description">
-                No XP earned yet. Save progress on a task to start earning.
+                {uiCopy.surfaces.classicDashboard.noXPEarnedYetSaveProgressOnA}
               </p>
               <div className="action-row">
                 <Link
                   className="button button--secondary button--sm"
                   to="/course"
                 >
-                  Open course map
+                  {uiCopy.surfaces.classicDashboard.openCourseMap}
                 </Link>
               </div>
             </>
@@ -366,21 +385,21 @@ export function DashboardPage() {
                 to="/achievements"
               >
                 {achievements.unlockedCount === 1
-                  ? '1 achievement unlocked'
+                  ? uiCopy.surfaces.classicDashboard.text1AchievementUnlocked
                   : `${achievements.unlockedCount} achievements unlocked`}
               </Link>
             </div>
           ) : null}
         </Card>
 
-        <Card title="Achievements">
+        <Card title={uiCopy.surfaces.classicDashboard.achievements}>
           <p className="dashboard-metric">
             <strong>{`${achievements.unlockedCount} of ${achievements.totalCount}`}</strong>
-            <span>unlocked</span>
+            <span>{uiCopy.surfaces.classicDashboard.unlocked}</span>
           </p>
           <p className="card__description">
             {achievements.latestUnlockTitle === null
-              ? 'No achievements unlocked yet.'
+              ? uiCopy.surfaces.classicDashboard.noAchievementsUnlockedYet
               : `Most recent: ${achievements.latestUnlockTitle} (${achievements.latestUnlockDate})`}
           </p>
           <div className="action-row">
@@ -388,12 +407,12 @@ export function DashboardPage() {
               className="button button--secondary button--sm"
               to="/achievements"
             >
-              View achievements
+              {uiCopy.surfaces.classicDashboard.viewAchievements}
             </Link>
           </div>
         </Card>
 
-        <Card title="Resume lecture">
+        <Card title={uiCopy.surfaces.classicDashboard.resumeLecture}>
           {resume.kind === 'resume' ? (
             <>
               <p className="dashboard-metric">
@@ -407,20 +426,22 @@ export function DashboardPage() {
                   className="button button--secondary button--sm"
                   to={getCourseItemDetailPath(resume.itemId)}
                 >
-                  Resume
+                  {uiCopy.surfaces.classicDashboard.resume}
                 </Link>
               </div>
             </>
           ) : (
             <p className="card__description">
-              No long-form item is in progress right now.
+              {uiCopy.surfaces.classicDashboard.noLongFormItemIsInProgressRight}
             </p>
           )}
         </Card>
 
-        <Card title="Needs attention">
+        <Card title={uiCopy.surfaces.classicDashboard.needsAttention}>
           {blockedItems.isEmpty ? (
-            <p className="card__description">Nothing is blocked right now.</p>
+            <p className="card__description">
+              {uiCopy.surfaces.classicDashboard.nothingIsBlockedRightNow}
+            </p>
           ) : (
             <>
               {/*
@@ -447,19 +468,22 @@ export function DashboardPage() {
           )}
         </Card>
 
-        <Card title="Study sessions">
+        <Card title={uiCopy.surfaces.classicDashboard.studySessions}>
           <dl className="profile-summary-list">
             <div>
-              <dt>Sessions logged</dt>
+              <dt>{uiCopy.surfaces.classicDashboard.sessionsLogged}</dt>
               <dd>{studySummary.sessionCount}</dd>
             </div>
             <div>
-              <dt>Total time</dt>
+              <dt>{uiCopy.surfaces.classicDashboard.totalTime}</dt>
               <dd>{studySummary.totalMinutesLabel}</dd>
             </div>
             <div>
-              <dt>Last session</dt>
-              <dd>{studySummary.lastSessionDate ?? 'None yet'}</dd>
+              <dt>{uiCopy.surfaces.classicDashboard.lastSession}</dt>
+              <dd>
+                {studySummary.lastSessionDate ??
+                  uiCopy.surfaces.classicDashboard.noneYet}
+              </dd>
             </div>
           </dl>
           <div className="action-row">
@@ -467,16 +491,18 @@ export function DashboardPage() {
               className="button button--secondary button--sm"
               to="/sessions"
             >
-              Open sessions
+              {uiCopy.surfaces.classicDashboard.openSessions}
             </Link>
           </div>
         </Card>
 
-        <Card title="Recent activity">
+        <Card title={uiCopy.surfaces.classicDashboard.recentActivity}>
           {recentActivity.isEmpty ? (
             <p className="card__description">
-              No local activity recorded yet. Your explicit saves — progress,
-              study sessions, XP, and achievements — will appear here.
+              {
+                uiCopy.surfaces.classicDashboard
+                  .noLocalActivityRecordedYetYourExplicitSaves
+              }
             </p>
           ) : (
             <ul className="dashboard-activity-list">

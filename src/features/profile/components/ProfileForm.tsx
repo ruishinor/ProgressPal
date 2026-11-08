@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -168,16 +169,25 @@ export function ProfileForm({
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
       <div className="profile-page-grid">
         <Card
-          description="Everything here is stored on this device. You can revise it later in settings."
-          title={mode === 'onboarding' ? 'Profile setup' : 'Edit profile'}
+          description={
+            uiCopy.surfaces.profileForm.everythingHereIsStoredOnThisDeviceYou
+          }
+          title={
+            mode === 'onboarding'
+              ? uiCopy.surfaces.profileForm.profileSetup
+              : uiCopy.surfaces.profileForm.editProfile
+          }
           titleAs={cardTitleAs}
         >
           <div className="form-grid">
             <FormField
               controlId={`${fieldPrefix}-display-name`}
-              description="The name shown in ProgressPal on this device."
+              description={
+                uiCopy.surfaces.profileForm
+                  .theNameShownInProgressPalOnThisDevice
+              }
               error={errors.displayName}
-              label="Display name"
+              label={uiCopy.surfaces.profileForm.displayName}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -192,16 +202,19 @@ export function ProfileForm({
                       displayName: event.target.value,
                     }))
                   }
-                  placeholder="Learner"
+                  placeholder={uiCopy.surfaces.profileForm.learner}
                   value={values.displayName}
                 />
               )}
             </FormField>
             <FormField
               controlId={`${fieldPrefix}-target-minutes`}
-              description="Keep the weekly target practical enough to survive low-energy weeks."
+              description={
+                uiCopy.surfaces.profileForm
+                  .keepTheWeeklyTargetPracticalEnoughToSurvive
+              }
               error={errors.targetMinutesPerWeek}
-              label="Target minutes per week"
+              label={uiCopy.surfaces.profileForm.targetMinutesPerWeek}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -226,12 +239,17 @@ export function ProfileForm({
             aria-describedby={`${fieldPrefix}-study-days-description ${errors.targetStudyDays ? `${fieldPrefix}-study-days-error` : ''}`.trim()}
             className="profile-fieldset"
           >
-            <legend className="profile-fieldset__legend">Study days</legend>
+            <legend className="profile-fieldset__legend">
+              {uiCopy.surfaces.profileForm.studyDays}
+            </legend>
             <p
               className="profile-fieldset__description"
               id={`${fieldPrefix}-study-days-description`}
             >
-              Pick the days you realistically expect to show up.
+              {
+                uiCopy.surfaces.profileForm
+                  .pickTheDaysYouRealisticallyExpectToShow
+              }
             </p>
             <div className="checkbox-grid">
               {studyDayOptions.map((option) => (
@@ -266,14 +284,19 @@ export function ProfileForm({
           </fieldset>
         </Card>
         <Card
-          description="Choose one of the bundled ProgressPal characters. Profile preferences are stored on this device."
-          title="Avatar and preferences"
+          description={
+            uiCopy.surfaces.profileForm
+              .chooseOneOfTheBundledProgressPalCharactersProfile
+          }
+          title={uiCopy.surfaces.profileForm.avatarAndPreferences}
           titleAs={cardTitleAs}
         >
           <fieldset className="profile-fieldset">
-            <legend className="profile-fieldset__legend">Avatar</legend>
+            <legend className="profile-fieldset__legend">
+              {uiCopy.surfaces.profileForm.avatar}
+            </legend>
             <p className="profile-fieldset__description">
-              The same character is used in Classic and RPG views.
+              {uiCopy.surfaces.profileForm.theSameCharacterIsUsedInClassicAnd}
             </p>
             <div
               style={{
@@ -326,16 +349,20 @@ export function ProfileForm({
           <div className="profile-preview-card">
             <ProfileAvatar
               avatarConfig={createAvatarConfig(values)}
-              label="Avatar preview"
+              label={uiCopy.surfaces.profileForm.avatarPreview}
             />
             <dl className="profile-summary-list">
               <div>
-                <dt>Theme</dt>
+                <dt>{uiCopy.surfaces.profileForm.theme}</dt>
                 <dd>{values.preferredTheme}</dd>
               </div>
               <div>
-                <dt>Motion</dt>
-                <dd>{values.reducedMotion ? 'Reduced' : 'Standard'}</dd>
+                <dt>{uiCopy.surfaces.profileForm.motion}</dt>
+                <dd>
+                  {values.reducedMotion
+                    ? uiCopy.surfaces.profileForm.reduced
+                    : uiCopy.surfaces.profileForm.standard}
+                </dd>
               </div>
             </dl>
           </div>
@@ -344,10 +371,12 @@ export function ProfileForm({
               controlId={`${fieldPrefix}-theme`}
               description={
                 mode === 'onboarding'
-                  ? 'System follows the device preference. Light and dark stay local to this app.'
-                  : 'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.'
+                  ? uiCopy.surfaces.profileForm
+                      .systemFollowsTheDevicePreferenceLightAndDark
+                  : uiCopy.surfaces.profileForm
+                      .appliesToBothTheClassicAndRPGInterfaces
               }
-              label="Theme"
+              label={uiCopy.surfaces.profileForm.theme}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -370,9 +399,12 @@ export function ProfileForm({
           </div>
           <Checkbox
             checked={values.reducedMotion}
-            description="Suppress extra transitions even if the device preference does not request it."
+            description={
+              uiCopy.surfaces.profileForm
+                .suppressExtraTransitionsEvenIfTheDevicePreference
+            }
             id={`${fieldPrefix}-reduced-motion`}
-            label="Reduce motion in this app"
+            label={uiCopy.surfaces.profileForm.reduceMotionInThisApp}
             onChange={(event) =>
               setValues((currentValues) => ({
                 ...currentValues,

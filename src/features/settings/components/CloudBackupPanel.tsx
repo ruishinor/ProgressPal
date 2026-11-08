@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Fragment, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -202,7 +203,10 @@ export function CloudBackupPanel({
             </Fragment>
           ))}
         </strong>
-        .{staysSignedIn ? ' This device stays signed in.' : ''}
+        .
+        {staysSignedIn
+          ? uiCopy.surfaces.settingsCloudBackupPanel.thisDeviceStaysSignedIn
+          : ''}
       </p>
       <p className="card__description">
         Back up now sends a full copy of your ProgressPal data to the cloud
@@ -220,7 +224,7 @@ export function CloudBackupPanel({
           }}
           variant="primary"
         >
-          Back up now
+          {uiCopy.surfaces.settingsCloudBackupPanel.backUpNow}
         </Button>
         <Button
           disabled={working}
@@ -230,7 +234,9 @@ export function CloudBackupPanel({
           }}
           variant="secondary"
         >
-          {inventory === null ? 'Show backups' : 'Refresh list'}
+          {inventory === null
+            ? uiCopy.surfaces.settingsCloudBackupPanel.showBackups
+            : uiCopy.surfaces.settingsCloudBackupPanel.refreshList}
         </Button>
         <Button
           disabled={working}
@@ -240,7 +246,7 @@ export function CloudBackupPanel({
           }}
           variant="quiet"
         >
-          Sign out
+          {uiCopy.surfaces.settingsCloudBackupPanel.signOut}
         </Button>
       </div>
       {backupNotice ? (
@@ -257,7 +263,7 @@ export function CloudBackupPanel({
                 }}
                 variant="secondary"
               >
-                Check again
+                {uiCopy.surfaces.settingsCloudBackupPanel.checkAgain}
               </Button>
             </div>
           ) : null}
@@ -265,7 +271,9 @@ export function CloudBackupPanel({
       ) : null}
       {inventory ? (
         <div className="backup-preview">
-          <p className="backup-verify__title">Backups on the server</p>
+          <p className="backup-verify__title">
+            {uiCopy.surfaces.settingsCloudBackupPanel.backupsOnTheServer}
+          </p>
           <p className="backup-preview__heading">{inventoryScopeNote}</p>
           <p
             className={

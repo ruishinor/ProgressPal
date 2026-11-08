@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -455,7 +456,7 @@ export function ActivityPage() {
           </div>
           <dl className="activity-overview__stats">
             <div>
-              <dt>Streak</dt>
+              <dt>{uiCopy.surfaces.rpgActivityActivityPage.streak}</dt>
               <dd>{daysLabel(participation.currentStreak)}</dd>
             </div>
             <div className="activity-overview__level">

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import {
   useEffect,
   useId,
@@ -127,7 +128,7 @@ export function Dialog({
           </div>
           <IconButton
             icon="x"
-            label="Close dialog"
+            label={uiCopy.surfaces.dialog.closeDialog}
             onClick={onClose}
             variant="quiet"
           />

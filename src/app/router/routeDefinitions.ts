@@ -1,4 +1,5 @@
 import { cloudCallbackPath } from '@/lib/cloud';
+import uiCopy from '@/ui-copy/interface.json';
 import {
   getRpgResourcePath as buildRpgResourcePath,
   getRpgWeekPath as buildRpgWeekPath,
@@ -115,7 +116,7 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'profile',
     segment: 'profile',
     to: '/profile',
-    label: 'Profile',
+    label: uiCopy.navigation.profile,
     end: true,
     includeInPrimaryNavigation: true,
   },
@@ -123,21 +124,21 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'onboarding',
     segment: 'onboarding',
     to: '/onboarding',
-    label: 'Setup',
+    label: uiCopy.navigation.setup,
     includeInPrimaryNavigation: false,
   },
   {
     id: 'dashboard',
     segment: 'dashboard',
     to: '/dashboard',
-    label: 'Dashboard',
+    label: uiCopy.navigation.dashboard,
     includeInPrimaryNavigation: true,
   },
   {
     id: 'course',
     segment: 'course',
     to: '/course',
-    label: 'Course Map',
+    label: uiCopy.navigation.courseMap,
     includeInPrimaryNavigation: true,
   },
   {
@@ -223,7 +224,7 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'sessions',
     segment: 'sessions',
     to: '/sessions',
-    label: 'Sessions',
+    label: uiCopy.navigation.sessions,
     includeInPrimaryNavigation: true,
   },
   {
@@ -242,21 +243,21 @@ export const routeDefinitions: AppRouteDefinition[] = [
     id: 'achievements',
     segment: 'achievements',
     to: '/achievements',
-    label: 'Achievements',
+    label: uiCopy.navigation.achievements,
     includeInPrimaryNavigation: true,
   },
   {
     id: 'insights',
     segment: 'insights',
     to: '/insights',
-    label: 'Insights',
+    label: uiCopy.navigation.insights,
     includeInPrimaryNavigation: true,
   },
   {
     id: 'settings',
     segment: 'settings',
     to: '/settings',
-    label: 'Settings',
+    label: uiCopy.navigation.settings,
     includeInPrimaryNavigation: true,
   },
   {

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Link } from 'react-router-dom';
 
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -7,18 +8,22 @@ export function NotFoundPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="This path does not exist in the current local app shell."
+        description={
+          uiCopy.surfaces.notFoundPage.thisPathDoesNotExistInTheCurrent
+        }
         eyebrow="Unknown route"
-        title="Page not found"
+        title={uiCopy.surfaces.notFoundPage.pageNotFound}
       />
       <EmptyState
         action={
           <Link className="button button--secondary button--md" to="/dashboard">
-            Go to dashboard
+            {uiCopy.surfaces.notFoundPage.goToDashboard}
           </Link>
         }
-        description="Use the primary navigation to return to a known route."
-        title="No route matches this address"
+        description={
+          uiCopy.surfaces.notFoundPage.useThePrimaryNavigationToReturnToA
+        }
+        title={uiCopy.surfaces.notFoundPage.noRouteMatchesThisAddress}
       />
     </section>
   );

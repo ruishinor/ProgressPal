@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -26,8 +27,12 @@ export function PlaceholderPage({
         eyebrow={routeLabel}
         meta={
           <>
-            <StatusPill variant="planned">Feature placeholder</StatusPill>
-            <Badge tone="neutral">Real logic deferred</Badge>
+            <StatusPill variant="planned">
+              {uiCopy.surfaces.placeholderPage.featurePlaceholder}
+            </StatusPill>
+            <Badge tone="neutral">
+              {uiCopy.surfaces.placeholderPage.realLogicDeferred}
+            </Badge>
           </>
         }
         title={title}
@@ -35,19 +40,28 @@ export function PlaceholderPage({
       <div className="placeholder-grid">
         <Card
           className="placeholder-card"
-          description="These routes now inherit the shared visual system without pretending their domain workflows are complete."
-          title="Why this stays minimal"
+          description={
+            uiCopy.surfaces.placeholderPage
+              .theseRoutesNowInheritTheSharedVisualSystem
+          }
+          title={uiCopy.surfaces.placeholderPage.whyThisStaysMinimal}
           variant="accent"
         >
           <div className="placeholder-card__support">
             <p>
-              The shell, forms, statuses, and progress primitives are ready for
-              later modules. Route-specific metrics and controls remain out of
-              scope until their assigned modules land.
+              {
+                uiCopy.surfaces.placeholderPage
+                  .theShellFormsStatusesAndProgressPrimitivesAre
+              }
             </p>
             <ProgressBar
-              helperText="Foundation work complete. Feature work intentionally deferred."
-              label="This route's implementation depth"
+              helperText={
+                uiCopy.surfaces.placeholderPage
+                  .foundationWorkCompleteFeatureWorkIntentionallyDeferred
+              }
+              label={
+                uiCopy.surfaces.placeholderPage.thisRouteSImplementationDepth
+              }
               tone="neutral"
               value={18}
             />
@@ -56,12 +70,12 @@ export function PlaceholderPage({
         <EmptyState
           action={
             <Button disabled variant="secondary">
-              Later module required
+              {uiCopy.surfaces.placeholderPage.laterModuleRequired}
             </Button>
           }
           description={nextAction}
           eyebrow="Next action"
-          title="The route stays honest for now"
+          title={uiCopy.surfaces.placeholderPage.theRouteStaysHonestForNow}
         />
       </div>
     </section>

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -153,7 +154,10 @@ export function CloudSignInPanel({
     <div ref={root}>
       {view === 'sign-in' ? (
         <form className="profile-form" onSubmit={handleSubmit}>
-          <FormField controlId={emailId} label="Email">
+          <FormField
+            controlId={emailId}
+            label={uiCopy.surfaces.settingsCloudSignInPanel.email}
+          >
             {({ inputId }) => (
               <TextInput
                 autoComplete="username"
@@ -170,7 +174,7 @@ export function CloudSignInPanel({
           <FormField
             controlId={passwordId}
             description={`${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`}
-            label="Password"
+            label={uiCopy.surfaces.settingsCloudSignInPanel.password}
           >
             {({ describedBy, inputId }) => (
               <TextInput
@@ -186,9 +190,14 @@ export function CloudSignInPanel({
           </FormField>
           <Checkbox
             checked={stayLoggedIn}
-            description="Keeps the sign-in after this tab closes. Off by default."
+            description={
+              uiCopy.surfaces.settingsCloudSignInPanel
+                .keepsTheSignInAfterThisTabCloses
+            }
             disabled={working}
-            label="Stay signed in on this device"
+            label={
+              uiCopy.surfaces.settingsCloudSignInPanel.staySignedInOnThisDevice
+            }
             onChange={(event) => setStayLoggedIn(event.target.checked)}
           />
           {notice ? <CloudNotice notice={notice} /> : null}
@@ -199,7 +208,7 @@ export function CloudSignInPanel({
               type="submit"
               variant="primary"
             >
-              Sign in
+              {uiCopy.surfaces.settingsCloudSignInPanel.signIn}
             </Button>
             <Button
               disabled={working}
@@ -209,7 +218,7 @@ export function CloudSignInPanel({
               }}
               variant="secondary"
             >
-              Create account
+              {uiCopy.surfaces.settingsCloudSignInPanel.createAccount}
             </Button>
             <Button
               disabled={working}
@@ -219,7 +228,7 @@ export function CloudSignInPanel({
               {resetRequestText.forgot}
             </Button>
             <Button disabled={working} onClick={onTurnOff} variant="quiet">
-              Turn off cloud backup
+              {uiCopy.surfaces.settingsCloudSignInPanel.turnOffCloudBackup}
             </Button>
           </div>
         </form>

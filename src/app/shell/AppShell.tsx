@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
@@ -69,15 +70,18 @@ export function AppShell() {
           // Before the persisted programme is known this is the default
           // programme's wording; a failed composition has no programme at all.
           programmeScope?.content.terminology.copy.startupLoadingSummary ??
-          'Preparing local profile data.'
+          uiCopy.surfaces.classicShell.preparingLocalProfileData
         }
         brand={brand}
         title={brand}
       >
         <section className="page-section">
           <LoadingState
-            description="Opening local data stores and reading the learner profile."
-            title="Preparing your workspace"
+            description={
+              uiCopy.surfaces.classicShell
+                .openingLocalDataStoresAndReadingTheLearner
+            }
+            title={uiCopy.surfaces.classicShell.preparingYourWorkspace}
           />
         </section>
       </AppShellLayout>
@@ -108,7 +112,10 @@ export function AppShell() {
             value: 'Load failed',
           },
         ]}
-        summary="ProgressPal could not finish checking or repairing its local storage."
+        summary={
+          uiCopy.surfaces.classicShell
+            .progressPalCouldNotFinishCheckingOrRepairingIts
+        }
         brand={brand}
         title={brand}
       >
@@ -125,11 +132,13 @@ export function AppShell() {
                   void refresh();
                 }}
               >
-                Retry local data load
+                {uiCopy.surfaces.classicShell.retryLocalDataLoad}
               </Button>
             }
-            description={error ?? 'Local data could not be loaded.'}
-            title="Local startup failed"
+            description={
+              error ?? uiCopy.surfaces.classicShell.localDataCouldNotBeLoaded
+            }
+            title={uiCopy.surfaces.classicShell.localStartupFailed}
           />
           {isLocalCoordinationRevisionExhausted(coordination) ? (
             <CoordinationRepairControl
@@ -212,7 +221,8 @@ export function AppShell() {
       }
       summary={
         requiresOnboarding
-          ? 'Create the local learner profile before opening the rest of the app. Nothing is uploaded automatically.'
+          ? uiCopy.surfaces.classicShell
+              .createTheLocalLearnerProfileBeforeOpeningThe
           : requireProgrammeScope(programmeScope).content.terminology.copy
               .shellActiveSummary
       }
@@ -223,13 +233,14 @@ export function AppShell() {
         <section className="page-section">
           <Card
             role="alert"
-            title="This ProgressPal tab is read-only"
+            title={uiCopy.surfaces.classicShell.thisProgressPalTabIsReadOnly}
             variant="danger"
           >
             <p className="card__description">
-              Another participating ProgressPal tab owns local writing. You can
-              still review your saved data and navigate here. Close the writer
-              tab; this tab will reread IndexedDB before it enables changes.
+              {
+                uiCopy.surfaces.classicShell
+                  .anotherParticipatingProgressPalTabOwnsLocalWritingYou
+              }
             </p>
           </Card>
         </section>
@@ -238,13 +249,14 @@ export function AppShell() {
         <section className="page-section">
           <Card
             role="alert"
-            title="This tab has stale local data"
+            title={uiCopy.surfaces.classicShell.thisTabHasStaleLocalData}
             variant="danger"
           >
             <p className="card__description">
-              ProgressPal detected a newer local revision. Reload it before
-              making changes. If another tab still owns writing, this tab will
-              remain available for reading after the reload.
+              {
+                uiCopy.surfaces.classicShell
+                  .progressPalDetectedANewerLocalRevisionReloadIt
+              }
             </p>
             <div className="action-row">
               <Button
@@ -252,7 +264,7 @@ export function AppShell() {
                   void refresh();
                 }}
               >
-                Reload local state
+                {uiCopy.surfaces.classicShell.reloadLocalState}
               </Button>
             </div>
           </Card>
@@ -262,14 +274,14 @@ export function AppShell() {
         <section className="page-section">
           <Card
             role="alert"
-            title="Local tab safety is unavailable"
+            title={uiCopy.surfaces.classicShell.localTabSafetyIsUnavailable}
             variant="danger"
           >
             <p className="card__description">
-              This browser context cannot provide the required Web Locks
-              ownership guard. ProgressPal keeps local writes blocked because
-              advisory tab notifications alone cannot prevent concurrent
-              IndexedDB writes.
+              {
+                uiCopy.surfaces.classicShell
+                  .thisBrowserContextCannotProvideTheRequiredWeb
+              }
             </p>
           </Card>
           {isLocalCoordinationRevisionExhausted(coordination) ? (

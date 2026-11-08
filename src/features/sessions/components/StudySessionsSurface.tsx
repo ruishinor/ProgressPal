@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import {
   startTransition,
   useEffect,
@@ -318,15 +319,17 @@ export function StudySessionsSurface({
           {isRpgVariant ? (
             <div className="rpg-focus__header rpg-page-header">
               <div>
-                <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
-                <h1>Focus</h1>
+                <p className="rpg-focus__eyebrow rpg-page-eyebrow">
+                  {uiCopy.surfaces.studySessions.rPG}
+                </p>
+                <h1>{uiCopy.surfaces.studySessions.focus}</h1>
               </div>
               <div className="rpg-focus__actions">
                 <Link
                   className="button button--secondary button--md"
                   to={rpgRoutePath}
                 >
-                  Back to Home
+                  {uiCopy.surfaces.studySessions.backToHome}
                 </Link>
               </div>
             </div>
@@ -338,12 +341,14 @@ export function StudySessionsSurface({
                     className="button button--secondary button--md"
                     to={courseMapPath}
                   >
-                    Back to course map
+                    {uiCopy.surfaces.studySessions.backToCourseMap}
                   </Link>
                 </div>
               }
-              description="Log study effort against a task from the course."
-              title="Study sessions"
+              description={
+                uiCopy.surfaces.studySessions.logStudyEffortAgainstATaskFromThe
+              }
+              title={uiCopy.surfaces.studySessions.studySessions}
             />
           )}
           <ErrorState
@@ -354,11 +359,14 @@ export function StudySessionsSurface({
                 }}
                 variant="secondary"
               >
-                Try again
+                {uiCopy.surfaces.studySessions.tryAgain}
               </Button>
             }
-            description={pageState.error ?? 'Unknown sessions-route error.'}
-            title="Study sessions could not be opened"
+            description={
+              pageState.error ??
+              uiCopy.surfaces.studySessions.unknownSessionsRouteError
+            }
+            title={uiCopy.surfaces.studySessions.studySessionsCouldNotBeOpened}
           />
         </section>
       );
@@ -369,19 +377,27 @@ export function StudySessionsSurface({
         {isRpgVariant ? (
           <div className="rpg-focus__header rpg-page-header">
             <div>
-              <p className="rpg-focus__eyebrow rpg-page-eyebrow">RPG</p>
-              <h1>Focus</h1>
+              <p className="rpg-focus__eyebrow rpg-page-eyebrow">
+                {uiCopy.surfaces.studySessions.rPG}
+              </p>
+              <h1>{uiCopy.surfaces.studySessions.focus}</h1>
             </div>
           </div>
         ) : (
           <PageHeader
-            description="Opening the local course catalog and your saved study sessions."
-            title="Study sessions"
+            description={
+              uiCopy.surfaces.studySessions
+                .openingTheLocalCourseCatalogAndYourSaved
+            }
+            title={uiCopy.surfaces.studySessions.studySessions}
           />
         )}
         <LoadingState
-          description="Reading saved study sessions and available tasks."
-          title="Loading study sessions"
+          description={
+            uiCopy.surfaces.studySessions
+              .readingSavedStudySessionsAndAvailableTasks
+          }
+          title={uiCopy.surfaces.studySessions.loadingStudySessions}
         />
       </section>
     );
@@ -621,7 +637,7 @@ export function StudySessionsSurface({
       {isRpgVariant ? (
         <div className="rpg-focus__header rpg-page-header">
           <div>
-            <h1>Focus</h1>
+            <h1>{uiCopy.surfaces.studySessions.focus}</h1>
             <p className="rpg-focus__lede rpg-page-lede">{headerDescription}</p>
           </div>
         </div>
@@ -633,14 +649,14 @@ export function StudySessionsSurface({
                 className="button button--secondary button--md"
                 to={courseMapPath}
               >
-                Back to course map
+                {uiCopy.surfaces.studySessions.backToCourseMap}
               </Link>
               {lockedItemPath ? (
                 <Link
                   className="button button--secondary button--md"
                   to={lockedItemPath}
                 >
-                  View task
+                  {uiCopy.surfaces.studySessions.viewTask}
                 </Link>
               ) : null}
             </div>
@@ -648,19 +664,25 @@ export function StudySessionsSurface({
           description={headerDescription}
           meta={
             <>
-              <Badge tone="accent">Logged effort only</Badge>
-              <Badge tone="neutral">Unfinished timers are not saved</Badge>
+              <Badge tone="accent">
+                {uiCopy.surfaces.studySessions.loggedEffortOnly}
+              </Badge>
+              <Badge tone="neutral">
+                {uiCopy.surfaces.studySessions.unfinishedTimersAreNotSaved}
+              </Badge>
             </>
           }
-          title="Study sessions"
+          title={uiCopy.surfaces.studySessions.studySessions}
         />
       )}
       {saveFeedback}
       {historyRefreshStatus === 'error' ? (
         <div className="course-detail-note" role="status">
           <p>
-            Your session is saved locally. Session history could not be
-            refreshed and may be out of date.
+            {
+              uiCopy.surfaces.studySessions
+                .yourSessionIsSavedLocallySessionHistoryCould
+            }
           </p>
           <Button
             onClick={() => {
@@ -668,27 +690,31 @@ export function StudySessionsSurface({
             }}
             variant="secondary"
           >
-            Refresh session history
+            {uiCopy.surfaces.studySessions.refreshSessionHistory}
           </Button>
         </div>
       ) : historyRefreshStatus === 'loading' ? (
-        <p role="status">Refreshing saved session history…</p>
+        <p role="status">
+          {uiCopy.surfaces.studySessions.refreshingSavedSessionHistory}
+        </p>
       ) : null}
       <div className="sessions-layout">
         <div className="sessions-layout__forms">
           <Card
             description={
               isRpgVariant
-                ? 'Start your timer, pause when needed, then finish and save your study time.'
-                : 'Start one live study session, pause it if needed, then save exactly one immutable effort record.'
+                ? uiCopy.surfaces.studySessions
+                    .startYourTimerPauseWhenNeededThenFinish
+                : uiCopy.surfaces.studySessions
+                    .startOneLiveStudySessionPauseItIf
             }
-            title="Live focus session"
+            title={uiCopy.surfaces.studySessions.liveFocusSession}
             titleAs={isRpgVariant ? 'h2' : 'h3'}
             variant="accent"
           >
             {isRpgVariant && selectedTaskTitle !== null ? (
               <div className="rpg-focus__selected-task">
-                <span>Selected task</span>
+                <span>{uiCopy.surfaces.studySessions.selectedTask}</span>
                 <Link to={getRpgResourcePath(liveSession.itemId)}>
                   {selectedTaskTitle}
                 </Link>
@@ -715,7 +741,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="live-session-mode"
                     error={liveErrors.mode}
-                    label="Mode"
+                    label={uiCopy.surfaces.studySessions.mode}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -739,7 +765,9 @@ export function StudySessionsSurface({
                           );
                         }}
                         options={getStudySessionModeOptions()}
-                        placeholder="Choose a session mode"
+                        placeholder={
+                          uiCopy.surfaces.studySessions.chooseASessionMode
+                        }
                         value={liveSession.mode}
                       />
                     )}
@@ -747,7 +775,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="live-session-unit"
                     error={liveErrors.unitId}
-                    label="Unit"
+                    label={uiCopy.surfaces.studySessions.unit}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -780,7 +808,7 @@ export function StudySessionsSurface({
                           );
                         }}
                         options={unitOptions}
-                        placeholder="Choose a unit"
+                        placeholder={uiCopy.surfaces.studySessions.chooseAUnit}
                         value={liveSession.unitId}
                       />
                     )}
@@ -788,7 +816,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="live-session-item"
                     error={liveErrors.itemId}
-                    label="What were you working on?"
+                    label={uiCopy.surfaces.studySessions.whatWereYouWorkingOn}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -815,8 +843,8 @@ export function StudySessionsSurface({
                         options={liveItemOptions}
                         placeholder={
                           liveSession.unitId.trim().length === 0
-                            ? 'Choose a unit first'
-                            : 'Choose a lecture or task'
+                            ? uiCopy.surfaces.studySessions.chooseAUnitFirst
+                            : uiCopy.surfaces.studySessions.chooseALectureOrTask
                         }
                         value={liveSession.itemId}
                       />
@@ -826,8 +854,10 @@ export function StudySessionsSurface({
                 <div className="course-detail-note">
                   <p>
                     {isRpgVariant
-                      ? 'Finish and save before leaving. Unfinished timers are not saved.'
-                      : 'Unfinished live sessions are not saved. Only explicit finish and save writes one study-session row.'}
+                      ? uiCopy.surfaces.studySessions
+                          .finishAndSaveBeforeLeavingUnfinishedTimersAre
+                      : uiCopy.surfaces.studySessions
+                          .unfinishedLiveSessionsAreNotSavedOnlyExplicit}
                   </p>
                 </div>
                 <div className="course-detail-form__actions">
@@ -836,7 +866,7 @@ export function StudySessionsSurface({
                     size="lg"
                     type="submit"
                   >
-                    Start live session
+                    {uiCopy.surfaces.studySessions.startLiveSession}
                   </Button>
                 </div>
               </form>
@@ -846,7 +876,9 @@ export function StudySessionsSurface({
               <div className="sessions-timer">
                 <div className="sessions-timer__header">
                   <div>
-                    <p className="sessions-timer__label">Active timer</p>
+                    <p className="sessions-timer__label">
+                      {uiCopy.surfaces.studySessions.activeTimer}
+                    </p>
                     <p
                       aria-live="polite"
                       className="sessions-timer__value"
@@ -860,24 +892,28 @@ export function StudySessionsSurface({
                       {getModeLabel(liveSession.mode)}
                     </Badge>
                     <Badge tone="neutral">
-                      {liveSession.phase === 'running' ? 'Running' : 'Paused'}
+                      {liveSession.phase === 'running'
+                        ? uiCopy.surfaces.studySessions.running
+                        : uiCopy.surfaces.studySessions.paused}
                     </Badge>
                   </div>
                 </div>
                 <dl className="course-map-stat-list">
                   <div>
-                    <dt>Unit</dt>
+                    <dt>{uiCopy.surfaces.studySessions.unit}</dt>
                     <dd>{catalog.unitById.get(liveSession.unitId)?.title}</dd>
                   </div>
                   <div>
-                    <dt>Working on</dt>
+                    <dt>{uiCopy.surfaces.studySessions.workingOn}</dt>
                     <dd>{catalog.itemById.get(liveSession.itemId)?.title}</dd>
                   </div>
                 </dl>
                 <div className="course-detail-note">
                   <p>
-                    Unfinished sessions stay in memory only. Reloading or
-                    discarding this timer writes nothing.
+                    {
+                      uiCopy.surfaces.studySessions
+                        .unfinishedSessionsStayInMemoryOnlyReloadingOr
+                    }
                   </p>
                 </div>
                 {liveSession.error ? (
@@ -895,7 +931,7 @@ export function StudySessionsSurface({
                       }}
                       variant="secondary"
                     >
-                      Pause
+                      {uiCopy.surfaces.studySessions.pause}
                     </Button>
                   ) : (
                     <Button
@@ -907,7 +943,7 @@ export function StudySessionsSurface({
                       }}
                       variant="secondary"
                     >
-                      Resume
+                      {uiCopy.surfaces.studySessions.resume}
                     </Button>
                   )}
                   <Button
@@ -918,13 +954,13 @@ export function StudySessionsSurface({
                       setTimerTickMilliseconds(Date.now());
                     }}
                   >
-                    Finish
+                    {uiCopy.surfaces.studySessions.finish}
                   </Button>
                   <Button
                     onClick={() => setShowDiscardDialog(true)}
                     variant="danger"
                   >
-                    Discard
+                    {uiCopy.surfaces.studySessions.discard}
                   </Button>
                 </div>
               </div>
@@ -933,7 +969,9 @@ export function StudySessionsSurface({
               <div className="course-detail-form">
                 <div className="sessions-review">
                   <div>
-                    <p className="sessions-review__label">Time logged</p>
+                    <p className="sessions-review__label">
+                      {uiCopy.surfaces.studySessions.timeLogged}
+                    </p>
                     <p className="sessions-review__value">
                       {liveSession.durationMinutes} min logged effort
                     </p>
@@ -949,9 +987,12 @@ export function StudySessionsSurface({
                 </div>
                 <FormField
                   controlId="live-session-notes"
-                  description="Optional local note about what happened during the session."
+                  description={
+                    uiCopy.surfaces.studySessions
+                      .optionalLocalNoteAboutWhatHappenedDuringThe
+                  }
                   error={liveErrors.notes}
-                  label="Notes"
+                  label={uiCopy.surfaces.studySessions.notes}
                 >
                   {({ describedBy, inputId, invalid }) => (
                     <TextArea
@@ -973,16 +1014,21 @@ export function StudySessionsSurface({
                               },
                         );
                       }}
-                      placeholder="Optional local note about what changed, what stalled, or what you finished."
+                      placeholder={
+                        uiCopy.surfaces.studySessions
+                          .optionalLocalNoteAboutWhatChangedWhatStalled
+                      }
                       value={liveSession.notes}
                     />
                   )}
                 </FormField>
                 <FormField
                   controlId="live-session-blockers"
-                  description="Optional. Enter one blocker per line."
+                  description={
+                    uiCopy.surfaces.studySessions.optionalEnterOneBlockerPerLine
+                  }
                   error={liveErrors.blockers}
-                  label="Blockers"
+                  label={uiCopy.surfaces.studySessions.blockers}
                 >
                   {({ describedBy, inputId, invalid }) => (
                     <TextArea
@@ -1004,7 +1050,10 @@ export function StudySessionsSurface({
                               },
                         );
                       }}
-                      placeholder="Context switch&#10;Unclear lab instruction"
+                      placeholder={
+                        uiCopy.surfaces.studySessions
+                          .contextSwitchUnclearLabInstruction
+                      }
                       value={liveSession.blockersText}
                     />
                   )}
@@ -1023,24 +1072,27 @@ export function StudySessionsSurface({
                     }}
                     size="lg"
                   >
-                    Save study session
+                    {uiCopy.surfaces.studySessions.saveStudySession}
                   </Button>
                   <Button
                     disabled={liveIsSaving}
                     onClick={() => setShowDiscardDialog(true)}
                     variant="danger"
                   >
-                    Discard
+                    {uiCopy.surfaces.studySessions.discard}
                   </Button>
                 </div>
               </div>
             ) : null}
           </Card>
           <RpgFocusDisclosureCard
-            description="Add one completed study session manually when you already know the item, start time, and duration."
+            description={
+              uiCopy.surfaces.studySessions
+                .addOneCompletedStudySessionManuallyWhenYou
+            }
             enabled={isRpgVariant}
-            label="Log a past session manually"
-            title="Manual session entry"
+            label={uiCopy.surfaces.studySessions.logAPastSessionManually}
+            title={uiCopy.surfaces.studySessions.manualSessionEntry}
             titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
             {manualForm ? (
@@ -1055,7 +1107,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="manual-session-mode"
                     error={manualErrors.mode}
-                    label="Mode"
+                    label={uiCopy.surfaces.studySessions.mode}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -1079,7 +1131,9 @@ export function StudySessionsSurface({
                           );
                         }}
                         options={getStudySessionModeOptions()}
-                        placeholder="Choose a session mode"
+                        placeholder={
+                          uiCopy.surfaces.studySessions.chooseASessionMode
+                        }
                         value={manualForm.mode}
                       />
                     )}
@@ -1087,7 +1141,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="manual-session-unit"
                     error={manualErrors.unitId}
-                    label="Unit"
+                    label={uiCopy.surfaces.studySessions.unit}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -1119,7 +1173,7 @@ export function StudySessionsSurface({
                           );
                         }}
                         options={unitOptions}
-                        placeholder="Choose a unit"
+                        placeholder={uiCopy.surfaces.studySessions.chooseAUnit}
                         value={manualForm.unitId}
                       />
                     )}
@@ -1127,7 +1181,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="manual-session-item"
                     error={manualErrors.itemId}
-                    label="What were you working on?"
+                    label={uiCopy.surfaces.studySessions.whatWereYouWorkingOn}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -1156,8 +1210,8 @@ export function StudySessionsSurface({
                         options={manualItemOptions}
                         placeholder={
                           manualForm.unitId.trim().length === 0
-                            ? 'Choose a unit first'
-                            : 'Choose a lecture or task'
+                            ? uiCopy.surfaces.studySessions.chooseAUnitFirst
+                            : uiCopy.surfaces.studySessions.chooseALectureOrTask
                         }
                         value={manualForm.itemId}
                       />
@@ -1166,7 +1220,7 @@ export function StudySessionsSurface({
                   <FormField
                     controlId="manual-session-started-at"
                     error={manualErrors.startedAtLocal}
-                    label="Start date and time"
+                    label={uiCopy.surfaces.studySessions.startDateAndTime}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -1196,9 +1250,12 @@ export function StudySessionsSurface({
                   </FormField>
                   <FormField
                     controlId="manual-session-duration"
-                    description="Whole minutes only. Minimum 1, maximum 720."
+                    description={
+                      uiCopy.surfaces.studySessions
+                        .wholeMinutesOnlyMinimum1Maximum720
+                    }
                     error={manualErrors.durationMinutes}
-                    label="Duration"
+                    label={uiCopy.surfaces.studySessions.duration}
                     required
                   >
                     {({ describedBy, inputId, invalid }) => (
@@ -1232,9 +1289,12 @@ export function StudySessionsSurface({
                 </div>
                 <FormField
                   controlId="manual-session-notes"
-                  description="Optional local note about what the effort covered."
+                  description={
+                    uiCopy.surfaces.studySessions
+                      .optionalLocalNoteAboutWhatTheEffortCovered
+                  }
                   error={manualErrors.notes}
-                  label="Notes"
+                  label={uiCopy.surfaces.studySessions.notes}
                 >
                   {({ describedBy, inputId, invalid }) => (
                     <TextArea
@@ -1256,16 +1316,21 @@ export function StudySessionsSurface({
                               },
                         );
                       }}
-                      placeholder="Optional local note about the effort you logged."
+                      placeholder={
+                        uiCopy.surfaces.studySessions
+                          .optionalLocalNoteAboutTheEffortYouLogged
+                      }
                       value={manualForm.notes}
                     />
                   )}
                 </FormField>
                 <FormField
                   controlId="manual-session-blockers"
-                  description="Optional. Enter one blocker per line."
+                  description={
+                    uiCopy.surfaces.studySessions.optionalEnterOneBlockerPerLine
+                  }
                   error={manualErrors.blockers}
-                  label="Blockers"
+                  label={uiCopy.surfaces.studySessions.blockers}
                 >
                   {({ describedBy, inputId, invalid }) => (
                     <TextArea
@@ -1287,7 +1352,10 @@ export function StudySessionsSurface({
                               },
                         );
                       }}
-                      placeholder="Context switch&#10;Unclear lab instruction"
+                      placeholder={
+                        uiCopy.surfaces.studySessions
+                          .contextSwitchUnclearLabInstruction
+                      }
                       value={manualForm.blockersText}
                     />
                   )}
@@ -1299,7 +1367,7 @@ export function StudySessionsSurface({
                     size="lg"
                     type="submit"
                   >
-                    Save session
+                    {uiCopy.surfaces.studySessions.saveSession}
                   </Button>
                 </div>
               </form>
@@ -1309,19 +1377,23 @@ export function StudySessionsSurface({
         <RpgFocusDisclosureCard
           description={
             isRpgVariant
-              ? 'Your study time, newest first. Saving a session does not mark a task complete.'
-              : 'Saved sessions are listed newest first. Each row is effort history only, not course completion.'
+              ? uiCopy.surfaces.studySessions
+                  .yourStudyTimeNewestFirstSavingASession
+              : uiCopy.surfaces.studySessions
+                  .savedSessionsAreListedNewestFirstEachRow
           }
           enabled={isRpgVariant}
           label={`Review saved sessions (${ledgerRows.length})`}
-          title="Your saved sessions"
+          title={uiCopy.surfaces.studySessions.yourSavedSessions}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {ledgerRows.length === 0 ? (
             <EmptyState
-              description="No study sessions have been logged yet."
+              description={
+                uiCopy.surfaces.studySessions.noStudySessionsHaveBeenLoggedYet
+              }
               eyebrow="Sessions"
-              title="No study sessions logged"
+              title={uiCopy.surfaces.studySessions.noStudySessionsLogged}
             />
           ) : (
             <ol className="session-ledger-list">
@@ -1368,7 +1440,7 @@ export function StudySessionsSurface({
               onClick={() => setShowDiscardDialog(false)}
               variant="secondary"
             >
-              Keep session
+              {uiCopy.surfaces.studySessions.keepSession}
             </Button>
             <Button
               onClick={() => {
@@ -1390,18 +1462,23 @@ export function StudySessionsSurface({
               }}
               variant="danger"
             >
-              Discard session
+              {uiCopy.surfaces.studySessions.discardSession}
             </Button>
           </>
         }
-        description="Discarding removes the in-memory timer and writes nothing to local storage."
+        description={
+          uiCopy.surfaces.studySessions
+            .discardingRemovesTheInMemoryTimerAndWrites
+        }
         isOpen={showDiscardDialog}
         onClose={() => setShowDiscardDialog(false)}
-        title="Discard this live session?"
+        title={uiCopy.surfaces.studySessions.discardThisLiveSession}
       >
         <p>
-          This action clears the current live timer, notes, and blockers draft.
-          Nothing is saved until you finish and save explicitly.
+          {
+            uiCopy.surfaces.studySessions
+              .thisActionClearsTheCurrentLiveTimerNotes
+          }
         </p>
       </Dialog>
       {toast ? (

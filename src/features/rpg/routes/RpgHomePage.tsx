@@ -1,4 +1,5 @@
 import { rpgPathwaysPath } from '@/lib/routing/pathwaysPaths';
+import uiCopy from '@/ui-copy/interface.json';
 import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
 import {
@@ -110,7 +111,7 @@ export function RpgHomePage() {
     if (state.status === 'error') {
       return (
         <section className="page-section rpg-hub">
-          <h1 className="sr-only">Home</h1>
+          <h1 className="sr-only">{uiCopy.surfaces.rpgHome.home}</h1>
           <ErrorState
             action={
               <RpgButton
@@ -119,11 +120,13 @@ export function RpgHomePage() {
                 }}
                 variant="secondary"
               >
-                Try again
+                {uiCopy.surfaces.rpgHome.tryAgain}
               </RpgButton>
             }
-            description={state.error ?? 'Unknown Home error.'}
-            title="Home could not be read"
+            description={
+              state.error ?? uiCopy.surfaces.rpgHome.unknownHomeError
+            }
+            title={uiCopy.surfaces.rpgHome.homeCouldNotBeRead}
           />
         </section>
       );
@@ -131,10 +134,10 @@ export function RpgHomePage() {
 
     return (
       <section className="page-section rpg-hub">
-        <h1 className="sr-only">Home</h1>
+        <h1 className="sr-only">{uiCopy.surfaces.rpgHome.home}</h1>
         <LoadingState
-          description="Building Home from local progress."
-          title="Loading Home"
+          description={uiCopy.surfaces.rpgHome.buildingHomeFromLocalProgress}
+          title={uiCopy.surfaces.rpgHome.loadingHome}
         />
       </section>
     );
@@ -149,19 +152,19 @@ export function RpgHomePage() {
     <section className="page-section rpg-hub">
       {/* The persistent HUD and navigation already frame Home; the page
           heading stays for assistive technology without repeating chrome. */}
-      <h1 className="sr-only">Home</h1>
+      <h1 className="sr-only">{uiCopy.surfaces.rpgHome.home}</h1>
 
       <div className="rpg-hub__grid">
         <RpgPanel
           className="rpg-hub__quest-panel"
           title={
             recommendation.state === 'needs_attention'
-              ? 'Blocked work needs attention'
+              ? uiCopy.surfaces.rpgHome.blockedWorkNeedsAttention
               : currentQuest === null
-                ? 'Required progress'
+                ? uiCopy.surfaces.rpgHome.requiredProgress
                 : newUser
-                  ? 'Start with this quest'
-                  : 'Current quest'
+                  ? uiCopy.surfaces.rpgHome.startWithThisQuest
+                  : uiCopy.surfaces.rpgHome.currentQuest
           }
           titleAs="h2"
           variant="raised"
@@ -171,21 +174,23 @@ export function RpgHomePage() {
               <div>
                 <h3>
                   {recommendation.state === 'required_complete'
-                    ? 'Required tasks complete in ProgressPal'
-                    : 'Course data unavailable'}
+                    ? uiCopy.surfaces.rpgHome.requiredTasksCompleteInProgressPal
+                    : uiCopy.surfaces.rpgHome.courseDataUnavailable}
                 </h3>
                 {recommendation.state === 'required_complete' ? (
                   <RpgInfoNote
                     className="rpg-hub__note"
                     inline={!notesOnDemand}
-                    label="About completion"
+                    label={uiCopy.surfaces.rpgHome.aboutCompletion}
                   >
                     {copy.rpgRequiredCompleteNote}
                   </RpgInfoNote>
                 ) : (
                   <p className="rpg-hub__note">
-                    The course could not be summarized. This does not mean your
-                    required work is complete.
+                    {
+                      uiCopy.surfaces.rpgHome
+                        .theCourseCouldNotBeSummarizedThisDoes
+                    }
                   </p>
                 )}
                 {recommendation.state === 'required_complete' &&
@@ -193,7 +198,9 @@ export function RpgHomePage() {
                   <p className="rpg-hub__note">{`${recommendation.optionalRemainingCount} optional tasks remain. You can explore them in Campaign.`}</p>
                 ) : null}
               </div>
-              <RpgButton href={rpgMapPath}>Open Campaign</RpgButton>
+              <RpgButton href={rpgMapPath}>
+                {uiCopy.surfaces.rpgHome.openCampaign}
+              </RpgButton>
             </div>
           ) : (
             <div className="rpg-hub__quest-primary">
@@ -202,8 +209,8 @@ export function RpgHomePage() {
                   {recommendation.state === 'needs_attention'
                     ? `${recommendation.remainingRequiredCount} required ${recommendation.remainingRequiredCount === 1 ? 'task still needs' : 'tasks still need'} attention`
                     : newUser
-                      ? 'Recommended first quest'
-                      : 'Next required quest'}
+                      ? uiCopy.surfaces.rpgHome.recommendedFirstQuest
+                      : uiCopy.surfaces.rpgHome.nextRequiredQuest}
                 </p>
                 <h3>{currentQuest.title}</h3>
                 <p className="rpg-quest-reward">{currentQuest.rewardLabel}</p>
@@ -219,13 +226,14 @@ export function RpgHomePage() {
                     {currentQuest.statusLabel}
                   </RpgStatusPill>
                   <RpgStatusPill tone="neutral">
-                    {currentQuest.required ? 'Required' : 'Optional'}
+                    {currentQuest.required
+                      ? uiCopy.surfaces.rpgHome.required
+                      : uiCopy.surfaces.rpgHome.optional}
                   </RpgStatusPill>
                 </div>
                 {recommendation.state === 'needs_attention' ? (
                   <p className="rpg-hub__note">
-                    Open this task to review your notes and decide how to
-                    continue. Blocked tasks remain available.
+                    {uiCopy.surfaces.rpgHome.openThisTaskToReviewYourNotesAnd}
                   </p>
                 ) : null}
               </div>
@@ -239,11 +247,11 @@ export function RpgHomePage() {
             <div className="rpg-hub__module-context">
               <dl className="rpg-hub__details rpg-hub__details--compact">
                 <div>
-                  <dt>Current module</dt>
+                  <dt>{uiCopy.surfaces.rpgHome.currentModule}</dt>
                   <dd>{summary.currentModule.title}</dd>
                 </div>
                 <div>
-                  <dt>Module status</dt>
+                  <dt>{uiCopy.surfaces.rpgHome.moduleStatus}</dt>
                   <dd>{summary.currentModule.statusLabel}</dd>
                 </div>
               </dl>
@@ -260,24 +268,34 @@ export function RpgHomePage() {
               whether Microlearning/tracks are offered. Independent (i)
               disclosures never nest inside navigation links. */}
           <div className="rpg-hub__module-context rpg-hub__learning" lang="nb">
-            <h3>Lær og utforsk</h3>
+            <h3>{uiCopy.rpg.learnExploreHeading}</h3>
             <div className="rpg-hub__entries rpg-hub__learning-grid">
               <div className="rpg-hub__entry rpg-hub__entry--pathways">
                 <RpgButton href={rpgPathwaysPath} variant="secondary">
-                  Pathways
+                  {uiCopy.surfaces.rpgHome.pathways}
                 </RpgButton>
-                <RpgInfoNote label="Om Pathways" size="md">
-                  Lær ferdigheter du kan bruke uansett studieprogram. Git &amp;
-                  GitHub er det første tilgjengelige læringsløpet.
+                <RpgInfoNote
+                  label={uiCopy.surfaces.rpgHome.omPathways}
+                  size="md"
+                >
+                  {
+                    uiCopy.surfaces.rpgHome
+                      .laerFerdigheterDuKanBrukeUansettStudieprogramGit
+                  }
                 </RpgInfoNote>
               </div>
               <div className="rpg-hub__entry rpg-hub__entry--reference">
                 <RpgButton href={rpgReferencePath} variant="secondary">
-                  Teknologioppslag
+                  {uiCopy.surfaces.rpgHome.teknologioppslag}
                 </RpgButton>
-                <RpgInfoNote label="Om Teknologioppslag" size="md">
-                  Finn forklaringer på begreper, verktøy og sammenhenger når du
-                  trenger dem.
+                <RpgInfoNote
+                  label={uiCopy.surfaces.rpgHome.omTeknologioppslag}
+                  size="md"
+                >
+                  {
+                    uiCopy.surfaces.rpgHome
+                      .finnForklaringerPaBegreperVerktoyOgSammenhengerNar
+                  }
                 </RpgInfoNote>
               </div>
               {microOffer === null ? null : (
@@ -285,17 +303,24 @@ export function RpgHomePage() {
                   {microOffer.primer || microOffer.repeat ? (
                     <>
                       <RpgButton href={rpgMicroPath} variant="secondary">
-                        Mikroøkt
+                        {uiCopy.surfaces.rpgHome.mikrookt}
                       </RpgButton>
-                      <RpgInfoNote label="Om Mikroøkt" size="md">
-                        Korte oppgaver som hjelper deg å forberede deg på nytt
-                        stoff eller repetere det du har lært.
+                      <RpgInfoNote
+                        label={uiCopy.surfaces.rpgHome.omMikrookt}
+                        size="md"
+                      >
+                        {
+                          uiCopy.surfaces.rpgHome
+                            .korteOppgaverSomHjelperDegAForberedeDeg
+                        }
                       </RpgInfoNote>
                     </>
                   ) : (
                     <p className="rpg-hub__note">
-                      Ingen mikroøkt akkurat nå. Fortsett i Campaign for å åpne
-                      flere.
+                      {
+                        uiCopy.surfaces.rpgHome
+                          .ingenMikrooktAkkuratNaFortsettICampaignFor
+                      }
                     </p>
                   )}
                 </div>
@@ -322,19 +347,19 @@ export function RpgHomePage() {
 
         <RpgPanel
           className="rpg-hub__progress-summary"
-          title="Progress snapshot"
+          title={uiCopy.surfaces.rpgHome.progressSnapshot}
           titleAs="h2"
         >
           {recommendation.state !== 'unavailable' ? (
             <RpgProgressBar
               helperText={`${summary.courseProgress.completedRequiredItemCount} of ${summary.courseProgress.requiredItemCount} required tasks complete`}
-              label="Required course progress"
+              label={uiCopy.surfaces.rpgHome.requiredCourseProgress}
               showValue={summary.courseProgress.requiredItemCount > 0}
               value={summary.courseProgress.completionPercent}
             />
           ) : (
             <p className="rpg-hub__note">
-              Required-course totals are unavailable.
+              {uiCopy.surfaces.rpgHome.requiredCourseTotalsAreUnavailable}
             </p>
           )}
           <p className="rpg-hub__note">
@@ -342,36 +367,36 @@ export function RpgHomePage() {
           </p>
           <dl className="rpg-hub__details rpg-hub__details--summary">
             <div>
-              <dt>Tasks last updated</dt>
+              <dt>{uiCopy.surfaces.rpgHome.tasksLastUpdated}</dt>
               <dd>{summary.weeklyProgress.savedProgressCount}</dd>
             </div>
             <div>
-              <dt>Study time</dt>
+              <dt>{uiCopy.surfaces.rpgHome.studyTime}</dt>
               <dd>{formatMinutes(summary.weeklyProgress.totalMinutes)}</dd>
             </div>
             <div>
-              <dt>Sessions</dt>
+              <dt>{uiCopy.surfaces.rpgHome.sessions}</dt>
               <dd>{summary.weeklyProgress.sessionCount}</dd>
             </div>
             <div>
-              <dt>XP</dt>
+              <dt>{uiCopy.surfaces.rpgHome.xP}</dt>
               <dd>{summary.weeklyProgress.xpEarned}</dd>
             </div>
           </dl>
           <details className="rpg-hub__activity-disclosure">
-            <summary>How tasks are counted</summary>
-            <p>Each task is counted once, by its latest saved change.</p>
+            <summary>{uiCopy.surfaces.rpgHome.howTasksAreCounted}</summary>
+            <p>{uiCopy.surfaces.rpgHome.eachTaskIsCountedOnceByItsLatest}</p>
           </details>
           {currentQuest === null ? null : (
             <RpgButton href={rpgMapPath} variant="secondary">
-              Open Campaign
+              {uiCopy.surfaces.rpgHome.openCampaign}
             </RpgButton>
           )}
         </RpgPanel>
 
         {summary.recentActivity.length === 0 ? null : (
           <details className="rpg-hub__activity-disclosure">
-            <summary>Recent saved activity</summary>
+            <summary>{uiCopy.surfaces.rpgHome.recentSavedActivity}</summary>
             <ol className="rpg-hub__activity-list">
               {summary.recentActivity.map((activity) => (
                 <li key={activity.id}>

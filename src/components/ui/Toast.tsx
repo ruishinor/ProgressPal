@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -38,7 +39,7 @@ export function Toast({
         ) : null}
         {onDismiss ? (
           <Button onClick={onDismiss} size="md" variant="quiet">
-            Dismiss
+            {uiCopy.surfaces.toast.dismiss}
           </Button>
         ) : null}
       </div>

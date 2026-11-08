@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import type { PropsWithChildren, Ref } from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -42,7 +43,7 @@ export function AppShell({
   return (
     <div className="shell-root">
       <a className="shell-skip-link" href="#main-content">
-        Skip to content
+        {uiCopy.surfaces.appShell.skipToContent}
       </a>
       <header className="shell-header">
         <div className="shell-brand-block">
@@ -51,7 +52,11 @@ export function AppShell({
           <p className="shell-summary">{summary}</p>
         </div>
         {statusItems?.length ? (
-          <Card className="shell-status" title="Current status" titleAs="p">
+          <Card
+            className="shell-status"
+            title={uiCopy.surfaces.appShell.currentStatus}
+            titleAs="p"
+          >
             <dl className="shell-status__list">
               {statusItems.map((item) => (
                 <div className="shell-status__item" key={item.label}>
@@ -65,7 +70,7 @@ export function AppShell({
           </Card>
         ) : null}
       </header>
-      <nav aria-label="Primary" className="shell-nav">
+      <nav aria-label={uiCopy.surfaces.appShell.primary} className="shell-nav">
         {navigationItems.map((item) => (
           <NavLink
             className={({ isActive }) =>

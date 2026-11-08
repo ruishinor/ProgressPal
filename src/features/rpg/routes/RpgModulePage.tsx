@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 
@@ -210,7 +211,7 @@ export function RpgModulePage() {
               <h1>{`RPG ${unitNoun.capitalized}`}</h1>
             </div>
             <RpgButton href={rpgMapPath} variant="secondary">
-              Back to Campaign
+              {uiCopy.surfaces.rpgRpgModulePage.backToCampaign}
             </RpgButton>
           </div>
           <ErrorState
@@ -225,7 +226,7 @@ export function RpgModulePage() {
                   }}
                   variant="secondary"
                 >
-                  Try again
+                  {uiCopy.surfaces.rpgRpgModulePage.tryAgain}
                 </RpgButton>
               ) : null
             }
@@ -257,7 +258,7 @@ export function RpgModulePage() {
         </div>
         <div className="rpg-week__actions">
           <RpgButton href={rpgMapPath} variant="secondary">
-            Back to Campaign
+            {uiCopy.surfaces.rpgRpgModulePage.backToCampaign}
           </RpgButton>
           {summary.officialLink !== null ? (
             <RpgButton
@@ -275,7 +276,7 @@ export function RpgModulePage() {
       <div className="rpg-week__grid">
         <RpgPanel
           className="rpg-week__progress-panel"
-          title="Module progress"
+          title={uiCopy.surfaces.rpgRpgModulePage.moduleProgress}
           titleAs="h2"
           variant="raised"
         >
@@ -286,7 +287,7 @@ export function RpgModulePage() {
             <span>{`${summary.completedRequiredItemCount} of ${summary.requiredItemCount} required complete`}</span>
           </div>
           <RpgProgressBar
-            helperText="Required tasks only"
+            helperText={uiCopy.surfaces.rpgRpgModulePage.requiredTasksOnly}
             label={`${summary.title} progress`}
             showValue={summary.requiredItemCount > 0}
             tone={getProgressTone(summary.statusVariant)}
@@ -296,8 +297,10 @@ export function RpgModulePage() {
 
         <RpgPanel
           className="rpg-week__task-panel"
-          description="Choose a task to study, then save your progress when you are ready."
-          title="Tasks and resources"
+          description={
+            uiCopy.surfaces.rpgRpgModulePage.chooseATaskToStudyThenSaveYour
+          }
+          title={uiCopy.surfaces.rpgRpgModulePage.tasksAndResources}
           titleAs="h2"
         >
           <ol className="rpg-week__task-list" ref={taskListRef}>
@@ -319,7 +322,7 @@ export function RpgModulePage() {
                       size="sm"
                       variant="secondary"
                     >
-                      Start focus session
+                      {uiCopy.surfaces.rpgRpgModulePage.startFocusSession}
                     </RpgButton>
                   </div>
                 }

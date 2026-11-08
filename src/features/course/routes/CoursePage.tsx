@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -131,7 +132,7 @@ export function CoursePage() {
           <PageHeader
             description={copy.courseMapErrorDescription}
             eyebrow={copy.courseMapEyebrow}
-            title="Course Map"
+            title={uiCopy.surfaces.courseCoursePage.courseMap}
           />
           <ErrorState
             action={
@@ -145,11 +146,14 @@ export function CoursePage() {
                 }}
                 type="button"
               >
-                Try again
+                {uiCopy.surfaces.courseCoursePage.tryAgain}
               </button>
             }
-            description={state.error ?? 'Unknown local course-map error.'}
-            title="Course data could not be read"
+            description={
+              state.error ??
+              uiCopy.surfaces.courseCoursePage.unknownLocalCourseMapError
+            }
+            title={uiCopy.surfaces.courseCoursePage.courseDataCouldNotBeRead}
           />
         </section>
       );
@@ -160,11 +164,11 @@ export function CoursePage() {
         <PageHeader
           description={copy.courseMapLoadingDescription}
           eyebrow={copy.courseMapEyebrow}
-          title="Course Map"
+          title={uiCopy.surfaces.courseCoursePage.courseMap}
         />
         <LoadingState
-          description="Building your course map."
-          title="Loading course map"
+          description={uiCopy.surfaces.courseCoursePage.buildingYourCourseMap}
+          title={uiCopy.surfaces.courseCoursePage.loadingCourseMap}
         />
       </section>
     );
@@ -176,14 +180,16 @@ export function CoursePage() {
         actions={
           <div className="action-row">
             <Link className="button button--secondary button--md" to="/">
-              Back to profile
+              {uiCopy.surfaces.courseCoursePage.backToProfile}
             </Link>
             <Link className="button button--primary button--md" to="/dashboard">
-              Open dashboard
+              {uiCopy.surfaces.courseCoursePage.openDashboard}
             </Link>
           </div>
         }
-        description="Open any task to save your progress, notes, and video history. Saves update your course map, dashboard, and insights."
+        description={
+          uiCopy.surfaces.courseCoursePage.openAnyTaskToSaveYourProgressNotes
+        }
         eyebrow={copy.courseMapEyebrow}
         meta={
           <>
@@ -200,14 +206,14 @@ export function CoursePage() {
               }
             >
               {state.courseMap.blockedItemCount > 0
-                ? 'Blocked items present'
+                ? uiCopy.surfaces.courseCoursePage.blockedItemsPresent
                 : state.courseMap.completionPercent === 100
-                  ? 'Course complete'
-                  : 'Course in progress'}
+                  ? uiCopy.surfaces.courseCoursePage.courseComplete
+                  : uiCopy.surfaces.courseCoursePage.courseInProgress}
             </StatusPill>
           </>
         }
-        title="Course Map"
+        title={uiCopy.surfaces.courseCoursePage.courseMap}
       />
       <CourseMapSummary courseMap={state.courseMap} />
       <div className="course-unit-list">

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -180,8 +181,13 @@ export function CloudRestorePanel({
 
   return (
     <div className="backup-preview">
-      <p className="backup-verify__title">Restore a backup</p>
-      <FormField controlId={selectId} label="Backup to restore">
+      <p className="backup-verify__title">
+        {uiCopy.surfaces.settingsCloudRestorePanel.restoreABackup}
+      </p>
+      <FormField
+        controlId={selectId}
+        label={uiCopy.surfaces.settingsCloudRestorePanel.backupToRestore}
+      >
         {({ inputId }) => (
           <Select
             disabled={working || blockedReason !== null || prepared !== null}
@@ -208,7 +214,7 @@ export function CloudRestorePanel({
             }}
             variant="secondary"
           >
-            Download and check
+            {uiCopy.surfaces.settingsCloudRestorePanel.downloadAndCheck}
           </Button>
         </div>
       ) : (
@@ -217,8 +223,10 @@ export function CloudRestorePanel({
             Backup from slot {prepared.slot.slot + 1} is ready to restore
           </p>
           <p className="backup-preview__heading">
-            Downloaded, matched against the server&apos;s checksum and read
-            successfully. Nothing has been changed yet.
+            {
+              uiCopy.surfaces.settingsCloudRestorePanel
+                .downloadedMatchedAgainstTheServerSChecksumAnd
+            }
           </p>
           <dl className="backup-preview__list">
             {slotRow(
@@ -255,19 +263,27 @@ export function CloudRestorePanel({
           {needsAcknowledgement ? (
             <>
               <p className="data-action__error" role="alert">
-                Restoring replaces all learner data on this device with this
-                backup. This is destructive and cannot be undone.
+                {
+                  uiCopy.surfaces.settingsCloudRestorePanel
+                    .restoringReplacesAllLearnerDataOnThisDevice
+                }
               </p>
               <Checkbox
                 checked={acknowledged}
                 disabled={working}
-                label="Replace this device's data with this backup"
+                label={
+                  uiCopy.surfaces.settingsCloudRestorePanel
+                    .replaceThisDeviceSDataWithThisBackup
+                }
                 onChange={(event) => setAcknowledged(event.target.checked)}
               />
             </>
           ) : (
             <p className="card__description">
-              This device holds no learner data, so nothing here is replaced.
+              {
+                uiCopy.surfaces.settingsCloudRestorePanel
+                  .thisDeviceHoldsNoLearnerDataSoNothing
+              }
             </p>
           )}
           <div className="action-row">
@@ -280,7 +296,10 @@ export function CloudRestorePanel({
                 }}
                 variant="secondary"
               >
-                Export local backup first
+                {
+                  uiCopy.surfaces.settingsCloudRestorePanel
+                    .exportLocalBackupFirst
+                }
               </Button>
             ) : null}
             <Button
@@ -291,10 +310,13 @@ export function CloudRestorePanel({
               }}
               variant="danger"
             >
-              Replace local data with this backup
+              {
+                uiCopy.surfaces.settingsCloudRestorePanel
+                  .replaceLocalDataWithThisBackup
+              }
             </Button>
             <Button disabled={working} onClick={discard} variant="quiet">
-              Cancel
+              {uiCopy.surfaces.settingsCloudRestorePanel.cancel}
             </Button>
           </div>
         </div>

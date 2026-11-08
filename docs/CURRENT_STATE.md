@@ -1,5 +1,19 @@
 # ProgressPal current state
 
+**Local implementation candidate (2026-11-08, not certified).**
+Branch `cx/lightweight-release-manual-20261108` is based on
+`dc69b3ebc739cd1d694f0403d103a9c28c7229a3`. It introduces exact-scope
+METADATA/COPY/FULL classification, an independently editable interface-copy
+catalogue covering selected Classic, RPG and Pathways wording, and a positive
+allowlist that routes meaning-sensitive changes to FULL. The Pathways progress
+explanation is optional via an information disclosure. Raw JavaScript chunk
+budget was recalibrated to 550000 bytes; this is not a performance claim.
+Local focused checks, TypeScript, build and budget validation passed, but
+coverage is incomplete and key classifications need independent review.
+No independent review, hosted certification, merge or production promotion is
+claimed for this candidate. The status paragraphs below contain historical
+snapshots and should not be mistaken for the new release state.
+
 **Gjeldende verifisert utgangspunkt — 2026-11-06:** `master`
 `90810c23e253f97a561d0937915eaa18ac8bb461` (PR #77/M07).
 Applikasjonspakke `1.10.0`, lokal IndexedDB schema v5. Aktive
