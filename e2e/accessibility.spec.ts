@@ -707,27 +707,37 @@ test('key classic routes pass axe in light theme', async ({ page }) => {
   }
 });
 
+const rpgAxeRouteGroups = [
+  rpgAxeRoutes.slice(0, 3),
+  rpgAxeRoutes.slice(3, 6),
+  rpgAxeRoutes.slice(6),
+];
+
 for (const theme of ['dark', 'light'] as const) {
-  test(`RPG routes pass axe in the ${theme} theme`, async ({ page }) => {
-    if (theme === 'light') {
-      await completeOnboardingLight(page);
-    } else {
-      await completeOnboardingDark(page);
-    }
+  for (const [groupIndex, routes] of rpgAxeRouteGroups.entries()) {
+    test(`RPG routes group ${groupIndex + 1} pass axe in the ${theme} theme`, async ({
+      page,
+    }) => {
+      if (theme === 'light') {
+        await completeOnboardingLight(page);
+      } else {
+        await completeOnboardingDark(page);
+      }
 
-    for (const route of rpgAxeRoutes) {
-      await page.goto(route.path);
-      await expect(
-        page.getByRole('heading', { exact: true, name: route.heading }),
-      ).toBeVisible({ timeout: 15000 });
+      for (const route of routes) {
+        await page.goto(route.path);
+        await expect(
+          page.getByRole('heading', { exact: true, name: route.heading }),
+        ).toBeVisible({ timeout: 15000 });
 
-      await expect(page.locator('.loading-state')).toHaveCount(0, {
-        timeout: 15000,
-      });
-      const scan = await new AxeBuilder({ page }).analyze();
-      expect(scan.violations).toEqual([]);
-    }
-  });
+        await expect(page.locator('.loading-state')).toHaveCount(0, {
+          timeout: 15000,
+        });
+        const scan = await new AxeBuilder({ page }).analyze();
+        expect(scan.violations).toEqual([]);
+      }
+    });
+  }
 }
 
 test('route changes move focus to the main content region', async ({
