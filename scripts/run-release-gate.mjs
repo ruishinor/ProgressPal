@@ -399,6 +399,7 @@ try {
         'scripts/release-gate-utils.test.mjs',
         'scripts/release-review-binding.test.mjs',
         'scripts/release-reuse.test.mjs',
+        'scripts/release-change-classification.test.mjs',
       ],
       label: 'release gate unit tests',
       validate: validateNodeTests,

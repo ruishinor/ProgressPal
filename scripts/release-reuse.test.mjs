@@ -13,6 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { crc32, deflateRawSync } from 'node:zlib';
 import {
   ARTIFACT,
+  controlFingerprint,
   COMMANDS,
   REPOSITORY,
   REPOSITORY_ID,
@@ -884,5 +885,85 @@ test('actual workflow bootstrap carries imported decisions and import failures',
     }
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('FULL gate authentic command profile includes classifier policy tests', () => {
+  const profile = COMMANDS.find(([name]) => name === 'release gate unit tests');
+  assert.ok(profile, 'mandatory full gate tests missing');
+  assert.ok(
+    profile[1].includes('scripts/release-change-classification.test.mjs'),
+    'classifier test absent from authenticated command contract',
+  );
+  const runner = readFileSync(
+    new URL('./run-release-gate.mjs', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    runner,
+    /'scripts\/release-change-classification\.test\.mjs',/,
+    'classifier test absent from executing full gate',
+  );
+});
+
+test('COPY authority changes invalidate authenticated control fingerprint', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'progresspal-ui-copy-control-'));
+  const checkGit = (...args) => {
+    const result = spawnSync('git', ['-C', dir, ...args], {
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 10_000,
+    });
+    assert.equal(result.status, 0, result.stderr || result.error?.message);
+  };
+  try {
+    mkdirSync(join(dir, 'scripts'));
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({
+        scripts: {},
+        engines: {},
+        packageManager: 'npm@11.10.1',
+      }),
+    );
+    const policy = join(dir, 'scripts', 'ui-copy-change-policy.mjs');
+    writeFileSync(
+      policy,
+      "export const lightweightUiCopyPaths = ['navigation.profile'];\n",
+    );
+    checkGit('init', '-q');
+    checkGit('add', '--', 'package.json', 'scripts/ui-copy-change-policy.mjs');
+    checkGit(
+      '-c',
+      'user.name=Probe',
+      '-c',
+      'user.email=probe@example.invalid',
+      'commit',
+      '-qm',
+      'Initial policy',
+    );
+    const before = controlFingerprint(dir, 'HEAD');
+    writeFileSync(
+      policy,
+      "export const lightweightUiCopyPaths = ['navigation.settings'];\n",
+    );
+    checkGit('add', '--', 'scripts/ui-copy-change-policy.mjs');
+    checkGit(
+      '-c',
+      'user.name=Probe',
+      '-c',
+      'user.email=probe@example.invalid',
+      'commit',
+      '-qm',
+      'Change COPY authority',
+    );
+    const after = controlFingerprint(dir, 'HEAD');
+    assert.notEqual(
+      after,
+      before,
+      'COPY authority change did not invalidate control identity',
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
