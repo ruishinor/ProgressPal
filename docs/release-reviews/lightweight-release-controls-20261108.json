@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6; same-session multidisciplinary technical, adversarial, UX and retrospective review; owner-authorized independence exception; not an independent human reviewer",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "7c1dca7127618897f7fdb02a97814e08887f2d4a",
+    "payloadTree": "1297e35f07e0e7052dd5838f4e1321bf179fcabc",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -15,7 +15,8 @@
       "Owner-reported successful targeted catalogue tests, TypeScript, production build, calibrated budget, 10/10 classifier tests and 60/60 release contract tests.",
       "Nine additional factual/concurrency/save-state claims removed from COPY authority; corrected classifier tests, formatting and diff checks passed in this exact local candidate.",
       "The FULL gate, review-binding requirement, Vercel check identity and fallback for mixed/unknown changes are preserved; hosted FULL certification and real lightweight pilots remain mandatory release evidence.",
-      "Pathways practical work remains self-reported; no new evidence bureaucracy or user-facing disclaimers about formal assessment are added."
+      "Pathways practical work remains self-reported; no new evidence bureaucracy or user-facing disclaimers about formal assessment are added.",
+      "Hosted PR #82 gate run 42531663773 passed 128 release-control tests and dependency audit, then found one intentional-regex ESLint no-control-regex violation. Source commit 3239e5803893e01227fa3f6ef298e740891ddce2 adds only a scoped lint explanation; no executable logic changed. Targeted ESLint and formatting passed. Review remains owner-authorized AI PASS."
     ]
   },
   "adversarialFindings": [
