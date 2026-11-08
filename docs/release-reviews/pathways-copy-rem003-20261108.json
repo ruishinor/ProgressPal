@@ -4,18 +4,21 @@
     "reviewer":  "OpenAI GPT-6; same-session AI review; owner-authorized independence exception",
     "binding":  {
                     "kind":  "payload-tree",
-                    "payloadTree":  "76823067f320bb361a2575eab77df2dc311475aa",
+                    "payloadTree":  "807f2b41148fda6ceb599f95e78879278ec63ac7",
                     "excludedPath":  "docs/release-reviews"
                 },
     "reviewScope":  {
-                        "summary":  "Scoped review of PP-REM-003: seven copy removals in four canonical source files, regenerated content assets and unchanged programme contracts. Not an independent review.",
+                        "summary":  "Scoped same-session review of PP-REM-003: seven direct learner-copy removals and the exact LICENSE change from PR #79. No independent review.",
                         "evidence":  [
                                          "Candidate commit 77d508d36f33fcc408d5d20fe318a0ae6b943d61; parent dc69b3ebc739cd1d694f0403d103a9c28c7229a3",
                                          "Canonical source diff inspected: one Pathways overview removal and six reflection-prompt removals",
                                          "Prettier and generated-content integrity checks PASS for the committed candidate",
                                          "Focused tests PASS: 20/20 across Git content and Pathways",
                                          "47 lessons and 113 exercises retained; no changed exercise IDs, evaluator contract or database schema",
-                                         "Six changed prompt hashes retain earlier learner evidence as history, not current answers"
+                                         "Six changed prompt hashes retain earlier learner evidence as history, not current answers",
+                                         "LICENSE-only commit: 36ae9887c68f687e89628616640dff2b6cddc5f2",
+                                         "LICENSE blob from PR #79: d74d76c1785b1e4d5f606d458a1a93e5c5194a99",
+                                         "No new application tests were run for the LICENSE-only change."
                                      ]
                     },
     "adversarialFindings":  [
@@ -32,10 +35,17 @@
                                     "description":  "Six edited reflection prompts receive new content hashes. Previously recorded answers remain stored but are not presented as current answers.",
                                     "resolution":  "This follows the existing content-versioning model. The owner was informed before retaining the direct-copy candidate. No evidence deletion or schema change is part of this remediation.",
                                     "status":  "accepted-risk"
+                                },
+                                {
+                                    "id":  "R3",
+                                    "severity":  "P2",
+                                    "description":  "The proprietary terms cannot revoke permissions previously granted under MIT, or override third-party rights.",
+                                    "resolution":  "Sections 1 and 4 explicitly preserve previously granted rights and third-party ownership. The review is not a legal opinion.",
+                                    "status":  "accepted-risk"
                                 }
                             ],
     "retrospective":  {
                           "decision":  "proceed",
-                          "summary":  "The scoped copy remediation has no remaining identified blocking defect. Proceed through the normal hosted release gate, subject to the disclosed review-independence exception and existing content-hash behavior."
+                          "summary":  "Proceed with the scoped copy and LICENSE changes through the normal hosted release gate. Same-session AI review is explicitly disclosed; no independent review or new local full-suite testing is claimed."
                       }
 }
