@@ -219,6 +219,16 @@ test('sensitive state and action wording requires FULL', () => {
     ),
   );
   const cases = [
+    'surfaces.onboardingScreen.storedOnThisDevice',
+    'surfaces.rpgShellRpgShell.anotherProgressPalTabIsOpenForEditing',
+    'surfaces.rpgActivityMovementReminder.kunneIkkeLagreInnstillingenProvIgjen',
+    'surfaces.courseDetail.sessionRecorded',
+    'surfaces.courseDetail.progressUpdated',
+    'surfaces.rpgResource.progressUpdated',
+    'surfaces.courseDetail.allSegmentsLogged',
+    'surfaces.pathwaysScreen.alleLeksjoneneErMarkertFullfortDuKanApne',
+    'surfaces.rpgActivityMovementReminder.pausevarselErUtilgjengeligApneAktivitetForAProve',
+
     'pathways.statusCompleted',
     'surfaces.rpgResource.markLocallyComplete',
     'surfaces.pathwaysScreen.leksjonenKunneIkkeApnesLagretArbeidErBevart',
