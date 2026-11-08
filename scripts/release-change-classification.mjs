@@ -52,6 +52,7 @@ export function compareCopy(baseText, candidateText) {
         if (
           item.trim().length === 0 ||
           item.length > 1500 ||
+          // eslint-disable-next-line no-control-regex -- Intentionally reject control characters in UI copy.
           /[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(item)
         ) {
           throw new Error(`Invalid plain-text content: ${path}`);
