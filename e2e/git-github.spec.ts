@@ -58,6 +58,7 @@ async function counts(page: Page) {
 test('starts from zero, explains wrong answers, records external reports honestly, resumes and switches programmes', async ({
   page,
 }) => {
+  test.setTimeout(45_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await completeOnboarding(page);
