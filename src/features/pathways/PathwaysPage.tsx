@@ -185,8 +185,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
       <div className="pathways-track__progress-summary">
         <p>
           {completedCount} av {items.length} leksjoner markert fullført.
-          Fullføring er selvregistrert, ikke en ferdighetstest. «Påbegynt» betyr
-          lagret aktivitet eller leksjonsposisjon.
+          «Påbegynt» betyr lagret aktivitet eller leksjonsposisjon.
         </p>
         {allCompleted ? (
           <p>

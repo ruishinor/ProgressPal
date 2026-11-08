@@ -592,7 +592,7 @@ export const gitM07Lessons = [
       ),
       reflection(
         'GIT-M07-E04',
-        'Forklar med egne ord hva `utvikler-A`, `utvikler-B` og `felles.git` brukes til. Hva viser ren status? Beskriv også hva som faktisk skjedde i nettleseren med telefonverdien `abcdefgh`. Dette er din egen rapport; ProgressPal har ikke undersøkt din øvingsmappe.',
+        'Forklar med egne ord hva `utvikler-A`, `utvikler-B` og `felles.git` brukes til. Hva viser ren status? Beskriv også hva som faktisk skjedde i nettleseren med telefonverdien `abcdefgh`.',
       ),
     ],
   },
@@ -751,7 +751,7 @@ export const gitM07Lessons = [
       ),
       reflection(
         'GIT-M07-E09',
-        'Beskriv reviewfunnet i egne ord: Hvilket krav var ikke oppfylt, hvilket eksempel avslørte det, hvordan ble endringen kontrollert, og hvorfor er en ny korrigerende commit mer informativ enn å late som første forslag var feilfritt? Det er egenrapportering, ikke verifisert review fra en annen person.',
+        'Beskriv reviewfunnet i egne ord: Hvilket krav var ikke oppfylt, hvilket eksempel avslørte det, hvordan ble endringen kontrollert, og hvorfor er en ny korrigerende commit mer informativ enn å late som første forslag var feilfritt?',
       ),
     ],
   },
@@ -1154,7 +1154,7 @@ export const gitM07Lessons = [
       ),
       reflection(
         'GIT-M07-E23',
-        'Forklar hvordan du valgte arbeidsmåte for navnelengdeendringen. Oppgi hvilke Git-tilstander du undersøkte, hvilke testtilfeller du brukte, hva du committet, om du delte eller integrerte endringen, og hvilken usikkerhet som gjenstår. Hvis noe stoppet, forklar hva du observerte og hvorfor du ikke brukte destruktiv opprydding. Dette er egenrapportering, ikke en teknisk inspeksjon av repositoryet ditt.',
+        'Forklar hvordan du valgte arbeidsmåte for navnelengdeendringen. Oppgi hvilke Git-tilstander du undersøkte, hvilke testtilfeller du brukte, hva du committet, om du delte eller integrerte endringen, og hvilken usikkerhet som gjenstår. Hvis noe stoppet, forklar hva du observerte og hvorfor du ikke brukte destruktiv opprydding.',
       ),
       {
         t: 'recap',
