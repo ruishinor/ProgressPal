@@ -210,3 +210,39 @@ test('each protected claim falls back to FULL even when it is the only edited le
     );
   }
 });
+
+test('sensitive state and action wording requires FULL', () => {
+  const original = JSON.parse(
+    readFileSync(
+      new URL('../src/ui-copy/interface.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const cases = [
+    'pathways.statusCompleted',
+    'surfaces.rpgResource.markLocallyComplete',
+    'surfaces.pathwaysScreen.leksjonenKunneIkkeApnesLagretArbeidErBevart',
+    'surfaces.rpgActivityMovementReminder.disableReminders',
+    'surfaces.studySessions.keepSession',
+    'surfaces.pathwaysScreen.duStyrerSelvNarDuVilMarkereLeksjonen',
+    'surfaces.pathwaysScreen.markerSomFullfortLokalt',
+  ];
+  for (const path of cases) {
+    assert.equal(lightweightUiCopyPathSet.has(path), false, path);
+    const changed = structuredClone(original);
+    const parts = path.split('.');
+    const key = parts.pop();
+    let parent = changed;
+    for (const part of parts) parent = parent[part];
+    parent[key] = 'An unsupported claim about this state or action';
+    assert.throws(
+      () =>
+        compareLightweightCopy(
+          JSON.stringify(original),
+          JSON.stringify(changed),
+        ),
+      /COPY_KEY_REQUIRES_FULL/,
+      path,
+    );
+  }
+});
