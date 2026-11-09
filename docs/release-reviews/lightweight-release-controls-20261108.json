@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6; same-session multidisciplinary technical, adversarial, UX and retrospective review; owner-authorized independence exception; not an independent human reviewer",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "a0148815a36fd261c4fa755debbda622f665313c",
+    "payloadTree": "f49afaf59c3921494df23e15e8fd82cec4ca3102",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
