@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useRef, type ReactNode } from 'react';
 
 import type { ActivityNarrativeNotification } from '@/lib/rewards';
@@ -33,7 +34,9 @@ export function ActivityNarrativePanel({
     <div
       role="group"
       ref={regionRef}
-      aria-label="New activity achievements"
+      aria-label={
+        uiCopy.surfaces.activityNarrativePanel.newActivityAchievements
+      }
       className="activity-narrative-region"
       data-testid="activity-narrative-panel"
     >
@@ -41,20 +44,24 @@ export function ActivityNarrativePanel({
         <div className="activity-narrative-panel__header">
           <h2>
             New activity{' '}
-            {notifications.length === 1 ? 'achievement' : 'achievements'}
+            {notifications.length === 1
+              ? uiCopy.surfaces.activityNarrativePanel.achievement
+              : uiCopy.surfaces.activityNarrativePanel.achievements}
           </h2>
           <button
             className="button button--quiet button--sm"
             onClick={onDismiss}
             type="button"
           >
-            Dismiss stories
+            {uiCopy.surfaces.activityNarrativePanel.dismissStories}
           </button>
         </div>
         <p className="activity-narrative-panel__summary" role="status">
           {notifications.length} new{' '}
-          {notifications.length === 1 ? 'story' : 'stories'}. Read now or find
-          them later in Achievements.
+          {notifications.length === 1
+            ? uiCopy.surfaces.activityNarrativePanel.story
+            : uiCopy.surfaces.activityNarrativePanel.stories}
+          . Read now or find them later in Achievements.
         </p>
         <ul className="activity-narrative-panel__list">
           {notifications.map((item) => (

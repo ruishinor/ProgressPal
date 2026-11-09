@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useId, useRef, useState, type ChangeEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -121,12 +122,14 @@ export function ImportBackupControl({
   return (
     <Card title={heading} titleAs="h3">
       <p className="card__description">
-        Importing replaces all local data on this device with the contents of
-        the backup file. This is destructive, local-only, and cannot be undone.
+        {
+          uiCopy.surfaces.importBackupControl
+            .importingReplacesAllLocalDataOnThisDevice
+        }
       </p>
       <div className="data-action">
         <label className="form-field__label" htmlFor={inputId}>
-          Backup file
+          {uiCopy.surfaces.importBackupControl.backupFile}
         </label>
         <input
           accept="application/json,.json"
@@ -160,59 +163,85 @@ export function ImportBackupControl({
           </p>
           <dl className="backup-preview__list">
             <div className="backup-preview__row">
-              <dt>Profile</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.profile}</dt>
               <dd>
                 {preview.summary.hasProfile
-                  ? (preview.summary.profileName ?? 'Included')
-                  : 'Not included'}
+                  ? (preview.summary.profileName ??
+                    uiCopy.surfaces.importBackupControl.included)
+                  : uiCopy.surfaces.importBackupControl.notIncluded}
               </dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Exported</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.exported}</dt>
               <dd>{preview.summary.exportedAt}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>App version</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.appVersion}</dt>
               <dd>{preview.summary.appVersion}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Course units</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.courseUnits}</dt>
               <dd>{preview.summary.counts.courseUnits}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Progress entries</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.progressEntries}</dt>
               <dd>{preview.summary.counts.progressEntries}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Study sessions</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.studySessions}</dt>
               <dd>{preview.summary.counts.studySessions}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>XP transactions</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.xPTransactions}</dt>
               <dd>{preview.summary.counts.xpTransactions}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Achievements</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.achievements}</dt>
               <dd>{preview.summary.counts.achievementUnlocks}</dd>
             </div>
             <div className="backup-preview__row">
-              <dt>Activity entries</dt>
+              <dt>{uiCopy.surfaces.importBackupControl.activityEntries}</dt>
               <dd>{preview.summary.counts.activityEntries}</dd>
             </div>
           </dl>
           <div className="backup-verify">
             <p className="backup-verify__title">
-              After importing, verify your restore:
+              {
+                uiCopy.surfaces.importBackupControl
+                  .afterImportingVerifyYourRestore
+              }
             </p>
             <ul className="detail-list">
-              <li>Confirm the dashboard progress looks right.</li>
-              <li>Confirm task statuses and notes are present.</li>
-              <li>Confirm XP and achievements look expected.</li>
               <li>
-                Confirm recent sessions, Activity records and goals, and media
-                progress are present.
+                {
+                  uiCopy.surfaces.importBackupControl
+                    .confirmTheDashboardProgressLooksRight
+                }
               </li>
-              <li>Reload once and confirm the restored state remains.</li>
+              <li>
+                {
+                  uiCopy.surfaces.importBackupControl
+                    .confirmTaskStatusesAndNotesArePresent
+                }
+              </li>
+              <li>
+                {
+                  uiCopy.surfaces.importBackupControl
+                    .confirmXPAndAchievementsLookExpected
+                }
+              </li>
+              <li>
+                {
+                  uiCopy.surfaces.importBackupControl
+                    .confirmRecentSessionsActivityRecordsAndGoalsAnd
+                }
+              </li>
+              <li>
+                {
+                  uiCopy.surfaces.importBackupControl
+                    .reloadOnceAndConfirmTheRestoredStateRemains
+                }
+              </li>
             </ul>
           </div>
           <Button

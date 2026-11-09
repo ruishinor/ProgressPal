@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import {
   startTransition,
   useEffect,
@@ -160,22 +161,27 @@ export function AchievementsSurface({
         {isRpgVariant ? (
           <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
-              <h1>Achievements</h1>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">
+                {uiCopy.surfaces.achievementsScreen.rPG}
+              </p>
+              <h1>{uiCopy.surfaces.achievementsScreen.achievements}</h1>
             </div>
             <div className="rpg-badges__actions">
               <Link
                 className="button button--secondary button--md"
                 to={rpgRoutePath}
               >
-                Back to Home
+                {uiCopy.surfaces.achievementsScreen.backToHome}
               </Link>
             </div>
           </div>
         ) : (
           <PageHeader
-            description="This page shows your earned and locked achievements."
-            title="Achievements"
+            description={
+              uiCopy.surfaces.achievementsScreen
+                .thisPageShowsYourEarnedAndLockedAchievements
+            }
+            title={uiCopy.surfaces.achievementsScreen.achievements}
           />
         )}
         <ErrorState
@@ -190,11 +196,14 @@ export function AchievementsSurface({
               }}
               type="button"
             >
-              Try again
+              {uiCopy.surfaces.achievementsScreen.tryAgain}
             </button>
           }
-          description={state.error ?? 'Unknown local achievements error.'}
-          title="Achievements could not be read"
+          description={
+            state.error ??
+            uiCopy.surfaces.achievementsScreen.unknownLocalAchievementsError
+          }
+          title={uiCopy.surfaces.achievementsScreen.achievementsCouldNotBeRead}
         />
       </section>
     );
@@ -206,19 +215,25 @@ export function AchievementsSurface({
         {isRpgVariant ? (
           <div className="rpg-badges__header rpg-page-header">
             <div>
-              <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
-              <h1>Achievements</h1>
+              <p className="rpg-badges__eyebrow rpg-page-eyebrow">
+                {uiCopy.surfaces.achievementsScreen.rPG}
+              </p>
+              <h1>{uiCopy.surfaces.achievementsScreen.achievements}</h1>
             </div>
           </div>
         ) : (
           <PageHeader
-            description="Loading your achievements."
-            title="Achievements"
+            description={
+              uiCopy.surfaces.achievementsScreen.loadingYourAchievements
+            }
+            title={uiCopy.surfaces.achievementsScreen.achievements}
           />
         )}
         <LoadingState
-          description="Opening your achievements."
-          title="Loading achievements"
+          description={
+            uiCopy.surfaces.achievementsScreen.openingYourAchievements
+          }
+          title={uiCopy.surfaces.achievementsScreen.loadingAchievements}
         />
       </section>
     );
@@ -245,8 +260,10 @@ export function AchievementsSurface({
       {isRpgVariant ? (
         <div className="rpg-badges__header rpg-page-header">
           <div>
-            <p className="rpg-badges__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Achievements</h1>
+            <p className="rpg-badges__eyebrow rpg-page-eyebrow">
+              {uiCopy.surfaces.achievementsScreen.rPG}
+            </p>
+            <h1>{uiCopy.surfaces.achievementsScreen.achievements}</h1>
             <p className="rpg-badges__lede rpg-page-lede">
               {headerDescription}
             </p>
@@ -257,20 +274,20 @@ export function AchievementsSurface({
         <PageHeader
           description={headerDescription}
           meta={headerMeta}
-          title="Achievements"
+          title={uiCopy.surfaces.achievementsScreen.achievements}
         />
       )}
 
       <Card
         className="achievements-filters"
-        title="Filter achievements"
+        title={uiCopy.surfaces.achievementsScreen.filterAchievements}
         titleAs={isRpgVariant ? 'h2' : 'h3'}
         variant="subtle"
       >
         <div className="achievements-filters__controls">
           <div className="form-field">
             <label className="form-field__label" htmlFor={statusFilterId}>
-              Status
+              {uiCopy.surfaces.achievementsScreen.status}
             </label>
             <Select
               id={statusFilterId}
@@ -283,7 +300,7 @@ export function AchievementsSurface({
           </div>
           <div className="form-field">
             <label className="form-field__label" htmlFor={categoryFilterId}>
-              Category
+              {uiCopy.surfaces.achievementsScreen.category}
             </label>
             <Select
               id={categoryFilterId}
@@ -301,9 +318,12 @@ export function AchievementsSurface({
 
       {visibleAchievements.length === 0 ? (
         <EmptyState
-          description="No achievements match the current filters. Try widening the status or category filter."
+          description={
+            uiCopy.surfaces.achievementsScreen
+              .noAchievementsMatchTheCurrentFiltersTryWidening
+          }
           eyebrow="No matches"
-          title="Nothing to show here yet"
+          title={uiCopy.surfaces.achievementsScreen.nothingToShowHereYet}
         />
       ) : (
         <ul className="achievements-grid" role="list">
@@ -326,9 +346,9 @@ export function AchievementsSurface({
                   >
                     {achievement.unlocked
                       ? isRpgVariant
-                        ? 'Earned'
-                        : 'Unlocked'
-                      : 'Locked'}
+                        ? uiCopy.surfaces.achievementsScreen.earned
+                        : uiCopy.surfaces.achievementsScreen.unlocked
+                      : uiCopy.surfaces.achievementsScreen.locked}
                   </StatusPill>
                 </div>
 
@@ -337,11 +357,11 @@ export function AchievementsSurface({
                     <span className="achievement-card__how-label">
                       {achievement.unlocked
                         ? isRpgVariant
-                          ? 'Requirement met: '
-                          : 'Earned for: '
+                          ? uiCopy.surfaces.achievementsScreen.requirementMet
+                          : uiCopy.surfaces.achievementsScreen.earnedFor
                         : isRpgVariant
-                          ? 'Requirement: '
-                          : 'How to unlock: '}
+                          ? uiCopy.surfaces.achievementsScreen.requirement
+                          : uiCopy.surfaces.achievementsScreen.howToUnlock}
                     </span>
                   ) : null}
                   {achievement.description}
@@ -367,7 +387,12 @@ export function AchievementsSurface({
                         </p>
                       ) : null}
                       <details className="achievement-card__adventure">
-                        <summary>Requirements and reward</summary>
+                        <summary>
+                          {
+                            uiCopy.surfaces.achievementsScreen
+                              .requirementsAndReward
+                          }
+                        </summary>
                         <p>{row.condition}</p>
                         {!achievement.unlocked ? <p>{row.fiction}</p> : null}
                       </details>

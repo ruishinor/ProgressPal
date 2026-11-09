@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useState } from 'react';
 import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
 
@@ -104,8 +105,10 @@ export function RpgHeroPage() {
       return (
         <section className="page-section rpg-hero">
           <div className="rpg-hero__header rpg-page-header">
-            <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Hero Profile</h1>
+            <p className="rpg-hero__eyebrow rpg-page-eyebrow">
+              {uiCopy.surfaces.rpgHero.rPG}
+            </p>
+            <h1>{uiCopy.surfaces.rpgHero.heroProfile}</h1>
           </div>
           <ErrorState
             action={
@@ -118,11 +121,13 @@ export function RpgHeroPage() {
                 }}
                 variant="secondary"
               >
-                Try again
+                {uiCopy.surfaces.rpgHero.tryAgain}
               </RpgButton>
             }
-            description={state.error ?? 'Unknown Hero Profile error.'}
-            title="Hero Profile could not be read"
+            description={
+              state.error ?? uiCopy.surfaces.rpgHero.unknownHeroProfileError
+            }
+            title={uiCopy.surfaces.rpgHero.heroProfileCouldNotBeRead}
           />
         </section>
       );
@@ -131,11 +136,14 @@ export function RpgHeroPage() {
     return (
       <section className="page-section rpg-hero">
         <div className="rpg-hero__header rpg-page-header">
-          <h1>Hero Profile</h1>
+          <h1>{uiCopy.surfaces.rpgHero.heroProfile}</h1>
         </div>
         <LoadingState
-          description="Building the profile from local progress, XP, sessions, and badges."
-          title="Loading Hero Profile"
+          description={
+            uiCopy.surfaces.rpgHero
+              .buildingTheProfileFromLocalProgressXPSessions
+          }
+          title={uiCopy.surfaces.rpgHero.loadingHeroProfile}
         />
       </section>
     );
@@ -147,15 +155,20 @@ export function RpgHeroPage() {
     <section className="page-section rpg-hero">
       <div className="rpg-hero__header rpg-page-header">
         <div>
-          <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
-          <h1>Hero Profile</h1>
+          <p className="rpg-hero__eyebrow rpg-page-eyebrow">
+            {uiCopy.surfaces.rpgHero.rPG}
+          </p>
+          <h1>{uiCopy.surfaces.rpgHero.heroProfile}</h1>
           <p className="rpg-hero__lede rpg-page-lede">
-            Your study progress, milestones, and saved activity.
+            {
+              uiCopy.surfaces.rpgHero
+                .yourStudyProgressMilestonesAndSavedActivity
+            }
           </p>
         </div>
         <div className="rpg-hero__actions">
           <RpgButton href={rpgSettingsPath} variant="secondary">
-            Edit profile
+            {uiCopy.surfaces.rpgHero.editProfile}
           </RpgButton>
         </div>
       </div>
@@ -163,7 +176,7 @@ export function RpgHeroPage() {
       <div className="rpg-hero__grid">
         <RpgPanel
           className="rpg-hero__identity"
-          aria-label="Learner identity and progression"
+          aria-label={uiCopy.surfaces.rpgHero.learnerIdentityAndProgression}
           variant="raised"
         >
           <div className="rpg-hero__identity-layout">
@@ -180,12 +193,12 @@ export function RpgHeroPage() {
 
         <RpgPanel
           className="rpg-hero__recent"
-          title="Recent badges"
+          title={uiCopy.surfaces.rpgHero.recentBadges}
           titleAs="h2"
         >
           {summary.recentBadges.length === 0 ? (
             <p className="rpg-hero__note">
-              The badges you earn will appear here.
+              {uiCopy.surfaces.rpgHero.theBadgesYouEarnWillAppearHere}
             </p>
           ) : (
             <ul className="rpg-hero__badges">
@@ -199,7 +212,7 @@ export function RpgHeroPage() {
           )}
           <div className="rpg-hero__actions">
             <RpgButton href={rpgBadgesPath} size="sm" variant="quiet">
-              View all badges
+              {uiCopy.surfaces.rpgHero.viewAllBadges}
             </RpgButton>
           </div>
         </RpgPanel>
@@ -207,66 +220,80 @@ export function RpgHeroPage() {
         {summary.hasLocalActivity ? null : (
           <RpgEmptyState
             className="rpg-hero__recent"
-            action={<RpgButton href={rpgRoutePath}>Open Home</RpgButton>}
-            description="Save progress or finish a Focus Session to build your XP, study time, and achievements."
-            title="No saved Hero activity yet"
+            action={
+              <RpgButton href={rpgRoutePath}>
+                {uiCopy.surfaces.rpgHero.openHome}
+              </RpgButton>
+            }
+            description={
+              uiCopy.surfaces.rpgHero.saveProgressOrFinishAFocusSessionTo
+            }
+            title={uiCopy.surfaces.rpgHero.noSavedHeroActivityYet}
           />
         )}
 
-        <RpgPanel title="Required course progress" titleAs="h2">
+        <RpgPanel
+          title={uiCopy.surfaces.rpgHero.requiredCourseProgress}
+          titleAs="h2"
+        >
           <RpgProgressBar
             helperText={`${summary.courseProgress.completedRequiredItemCount} of ${summary.courseProgress.requiredItemCount} required tasks complete`}
-            label="Required progress"
+            label={uiCopy.surfaces.rpgHero.requiredProgress}
             showValue={summary.courseProgress.requiredItemCount > 0}
             value={summary.courseProgress.completionPercent}
           />
           <RpgInfoNote
             className="rpg-hero__note"
             inline={!notesOnDemand}
-            label="About required progress"
+            label={uiCopy.surfaces.rpgHero.aboutRequiredProgress}
           >
             {copy.rpgHeroProgressNote}
           </RpgInfoNote>
         </RpgPanel>
 
-        <RpgPanel title="Local activity totals" titleAs="h2">
+        <RpgPanel
+          title={uiCopy.surfaces.rpgHero.localActivityTotals}
+          titleAs="h2"
+        >
           <dl className="rpg-hero__details rpg-hero__details--compact">
             <div>
-              <dt>Study sessions</dt>
+              <dt>{uiCopy.surfaces.rpgHero.studySessions}</dt>
               <dd>{summary.studySummary.sessionCount}</dd>
             </div>
             <div>
-              <dt>Study time</dt>
+              <dt>{uiCopy.surfaces.rpgHero.studyTime}</dt>
               <dd>{formatMinutes(summary.studySummary.totalMinutes)}</dd>
             </div>
             <div>
-              <dt>XP to next level</dt>
+              <dt>{uiCopy.surfaces.rpgHero.xPToNextLevel}</dt>
               <dd>{summary.xpSummary.xpToNextLevel}</dd>
             </div>
             <div>
-              <dt>Badges</dt>
+              <dt>{uiCopy.surfaces.rpgHero.badges}</dt>
               <dd>{`${summary.badges.earnedBadgeCount} of ${summary.badges.totalBadgeCount}`}</dd>
             </div>
           </dl>
           <div className="rpg-hero__actions">
             <RpgButton href={rpgBadgesPath} size="sm" variant="quiet">
-              Open Badge Gallery
+              {uiCopy.surfaces.rpgHero.openBadgeGallery}
             </RpgButton>
             <RpgButton href={rpgLogPath} size="sm" variant="quiet">
-              Open Insights
+              {uiCopy.surfaces.rpgHero.openInsights}
             </RpgButton>
           </div>
         </RpgPanel>
 
         <RpgPanel
           className="rpg-hero__recent"
-          title="Recent saved activity"
+          title={uiCopy.surfaces.rpgHero.recentSavedActivity}
           titleAs="h2"
         >
           {summary.recentActivity.length === 0 ? (
             <p className="rpg-hero__note">
-              Your saved progress, study sessions, and achievements will appear
-              here.
+              {
+                uiCopy.surfaces.rpgHero
+                  .yourSavedProgressStudySessionsAndAchievementsWill
+              }
             </p>
           ) : (
             <ol className="rpg-hero__activity-list">

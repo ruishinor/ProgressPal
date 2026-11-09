@@ -48,6 +48,7 @@ export const COMMANDS = [
       'scripts/release-gate-utils.test.mjs',
       'scripts/release-review-binding.test.mjs',
       'scripts/release-reuse.test.mjs',
+      'scripts/release-change-classification.test.mjs',
     ],
   ],
   ['dependency tree', ['npm', 'ls', '--depth=0']],
@@ -123,6 +124,7 @@ export function controlFingerprint(cwd, ref) {
           '.prettierignore',
           'npm-shrinkwrap.json',
           'tests/architecture/releaseWorkflow.test.ts',
+          'scripts/ui-copy-change-policy.mjs',
         ].includes(path) ||
         /^scripts\/(?:release-|run-release-|run-e2e|check-build-budget|bundle-budget)/.test(
           path,

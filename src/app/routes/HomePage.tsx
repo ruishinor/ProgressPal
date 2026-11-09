@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -37,13 +38,13 @@ export function HomePage() {
               className="button button--secondary button--md"
               to="/settings"
             >
-              Edit profile
+              {uiCopy.surfaces.homePage.editProfile}
             </Link>
             <Link className="button button--secondary button--md" to="/course">
-              Open course map
+              {uiCopy.surfaces.homePage.openCourseMap}
             </Link>
             <Link className="button button--primary button--md" to="/dashboard">
-              Open dashboard
+              {uiCopy.surfaces.homePage.openDashboard}
             </Link>
           </div>
         }
@@ -51,7 +52,9 @@ export function HomePage() {
         eyebrow="Local profile"
         meta={
           <>
-            <StatusPill variant="completed">Onboarding complete</StatusPill>
+            <StatusPill variant="completed">
+              {uiCopy.surfaces.homePage.onboardingComplete}
+            </StatusPill>
             <Badge tone="accent">{profile.targetMinutesPerWeek} min/week</Badge>
           </>
         }
@@ -59,53 +62,65 @@ export function HomePage() {
       />
       <div className="profile-page-grid">
         <Card
-          description="This record is the local source of truth for the learner shell."
-          title="Saved profile"
+          description={
+            uiCopy.surfaces.homePage.thisRecordIsTheLocalSourceOfTruth
+          }
+          title={uiCopy.surfaces.homePage.savedProfile}
           variant="accent"
         >
           <div className="profile-preview-card">
             <ProfileAvatar avatarConfig={profile.avatarConfig} />
             <dl className="profile-summary-list">
               <div>
-                <dt>Display name</dt>
+                <dt>{uiCopy.surfaces.homePage.displayName}</dt>
                 <dd>{profile.displayName}</dd>
               </div>
               <div>
-                <dt>Study days</dt>
+                <dt>{uiCopy.surfaces.homePage.studyDays}</dt>
                 <dd>{formatStudyDays(profile.targetStudyDays)}</dd>
               </div>
               <div>
-                <dt>Theme</dt>
+                <dt>{uiCopy.surfaces.homePage.theme}</dt>
                 <dd>{getThemeLabel(profile.preferredTheme)}</dd>
               </div>
               <div>
-                <dt>Motion</dt>
-                <dd>{profile.reducedMotion ? 'Reduced' : 'Standard'}</dd>
+                <dt>{uiCopy.surfaces.homePage.motion}</dt>
+                <dd>
+                  {profile.reducedMotion
+                    ? uiCopy.surfaces.homePage.reduced
+                    : uiCopy.surfaces.homePage.standard}
+                </dd>
               </div>
             </dl>
           </div>
         </Card>
         <Card
-          description="ProgressPal stores your progress in this browser. It does not sync to a server, send analytics, or back up data automatically. The optional remote backup in Settings sends a copy only when you press Back up now, and needs an account. Exported backup files are your responsibility."
-          title="Privacy boundary"
+          description={
+            uiCopy.surfaces.homePage
+              .progressPalStoresYourProgressInThisBrowserIt
+          }
+          title={uiCopy.surfaces.homePage.privacyBoundary}
         >
           {null}
         </Card>
       </div>
       <Card
-        description="Your learning identity, theme, motion, and study schedule are stored on this device. They leave it only in a backup that you make."
-        title="Current local state"
+        description={
+          uiCopy.surfaces.homePage
+            .yourLearningIdentityThemeMotionAndStudySchedule
+        }
+        title={uiCopy.surfaces.homePage.currentLocalState}
       >
         <dl className="profile-summary-list">
           <div>
-            <dt>Weekly target</dt>
+            <dt>{uiCopy.surfaces.homePage.weeklyTarget}</dt>
             <dd>{profile.targetMinutesPerWeek} minutes</dd>
           </div>
           <div>
-            <dt>Onboarding completed</dt>
+            <dt>{uiCopy.surfaces.homePage.onboardingCompleted}</dt>
             <dd>
               {appMeta?.onboardingCompletedAt ??
-                'Recovered from local defaults'}
+                uiCopy.surfaces.homePage.recoveredFromLocalDefaults}
             </dd>
           </div>
         </dl>

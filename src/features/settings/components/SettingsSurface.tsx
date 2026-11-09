@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { gitPathwayProgrammeId } from '@/lib/routing/pathwaysPaths';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -269,12 +270,15 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
       {isRpgVariant ? (
         <div className="rpg-settings__header rpg-page-header">
           <div>
-            <p className="rpg-settings__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Settings</h1>
+            <p className="rpg-settings__eyebrow rpg-page-eyebrow">
+              {uiCopy.surfaces.settingsScreen.rPG}
+            </p>
+            <h1>{uiCopy.surfaces.settingsScreen.settings}</h1>
             <p className="rpg-settings__lede rpg-page-lede">
-              Edit your local profile and manage on-device data: export a
-              backup, import one, or reset everything. Your working data is
-              stored in this browser on this device.
+              {
+                uiCopy.surfaces.settingsScreen
+                  .editYourLocalProfileAndManageOnDevice
+              }
             </p>
           </div>
           <div className="rpg-settings__actions">
@@ -282,7 +286,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
               className="button button--secondary button--md"
               to={rpgRoutePath}
             >
-              Back to Home
+              {uiCopy.surfaces.settingsScreen.backToHome}
             </Link>
           </div>
         </div>
@@ -294,63 +298,86 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                 className="button button--secondary button--md"
                 to="/profile"
               >
-                Back to profile
+                {uiCopy.surfaces.settingsScreen.backToProfile}
               </Link>
             </div>
           }
-          description="Edit your local profile and manage your on-device data: export a backup, restore one, or reset everything."
+          description={
+            uiCopy.surfaces.settingsScreen.editYourLocalProfileAndManageYourOn
+          }
           eyebrow="Data controls"
           meta={
             <>
-              <StatusPill variant="completed">Settings active</StatusPill>
-              <Badge tone="accent">Local data controls</Badge>
+              <StatusPill variant="completed">
+                {uiCopy.surfaces.settingsScreen.settingsActive}
+              </StatusPill>
+              <Badge tone="accent">
+                {uiCopy.surfaces.settingsScreen.localDataControls}
+              </Badge>
             </>
           }
-          title="Settings"
+          title={uiCopy.surfaces.settingsScreen.settings}
         />
       )}
-      <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+      <Card
+        title={uiCopy.surfaces.settingsScreen.interface}
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
         <p className="card__description">
           {isRpgVariant
-            ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
-            : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
+            ? uiCopy.surfaces.settingsScreen
+                .rPGInterfaceIsActiveProgressPalAlsoIncludesThe
+            : uiCopy.surfaces.settingsScreen
+                .classicInterfaceIsActiveItUsesTheSame}
         </p>
         <div className="action-row">
           <Link
             className="button button--secondary button--md"
             to={isRpgVariant ? '/dashboard' : rpgRoutePath}
           >
-            {isRpgVariant ? 'Open Classic interface' : 'Open RPG interface'}
+            {isRpgVariant
+              ? uiCopy.surfaces.settingsScreen.openClassicInterface
+              : uiCopy.surfaces.settingsScreen.openRPGInterface}
           </Link>
         </div>
       </Card>
       {activeProgramme?.programmeId === gitPathwayProgrammeId ? (
         <p role="status">
-          Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er bevart.
-          Velg CS50x eller Programvareutvikling nedenfor for å fortsette med et
-          studieprogram.
+          {
+            uiCopy.surfaces.settingsScreen
+              .gitGitHubLiggerNaUnderPathwaysArbeidetDitt
+          }
         </p>
       ) : null}
-      <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+      <Card
+        title={uiCopy.surfaces.settingsScreen.programme}
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
         <p className="card__description">
           Active programme:{' '}
-          <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
+          <strong>
+            {activeProgramme?.title ??
+              uiCopy.surfaces.settingsScreen.unavailable}
+          </strong>
         </p>
         {switchTarget === undefined ? (
           <p className="card__description">
-            This is the only programme available in this version of ProgressPal.
+            {
+              uiCopy.surfaces.settingsScreen
+                .thisIsTheOnlyProgrammeAvailableInThis
+            }
           </p>
         ) : (
           <>
             <p className="card__description">
-              Switching changes the course, wording, and rewards ProgressPal
-              shows. Your XP, achievements, study sessions, and profile stay
-              shared across programmes and nothing is deleted. Nothing changes
-              until you press the button.
+              {
+                uiCopy.surfaces.settingsScreen
+                  .switchingChangesTheCourseWordingAndRewardsProgressPal
+              }
             </p>
             <FormField
               controlId="programme-switch-target"
-              label="Programme to switch to"
+              label={uiCopy.surfaces.settingsScreen.programmeToSwitchTo}
             >
               {({ inputId }) => (
                 <Select
@@ -377,14 +404,16 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                 variant="secondary"
               >
                 {switchTarget.enrolled
-                  ? 'Switch programme'
-                  : 'Enrol and switch'}
+                  ? uiCopy.surfaces.settingsScreen.switchProgramme
+                  : uiCopy.surfaces.settingsScreen.enrolAndSwitch}
               </Button>
             </div>
             {switchFailed ? (
               <p className="form-field__error" role="alert">
-                The programme could not be switched. Your active programme is
-                unchanged.
+                {
+                  uiCopy.surfaces.settingsScreen
+                    .theProgrammeCouldNotBeSwitchedYourActive
+                }
               </p>
             ) : null}
           </>
@@ -408,24 +437,30 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         submitLabel="Save local settings"
       />
       <Card
-        title="Browser storage durability"
+        title={uiCopy.surfaces.settingsScreen.browserStorageDurability}
         titleAs={isRpgVariant ? 'h2' : 'h3'}
       >
         <p className="card__description">
           {persistenceStatus === 'persistent'
-            ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
+            ? uiCopy.surfaces.settingsScreen
+                .thisBrowserReportsPersistentStorageForThisSite
             : persistenceStatus === 'best-effort'
-              ? 'This browser currently treats ProgressPal storage as best-effort and may evict it under storage pressure.'
+              ? uiCopy.surfaces.settingsScreen
+                  .thisBrowserCurrentlyTreatsProgressPalStorageAsBest
               : persistenceStatus === 'unsupported'
-                ? 'This browser does not expose a persistent-storage request to ProgressPal.'
+                ? uiCopy.surfaces.settingsScreen
+                    .thisBrowserDoesNotExposeAPersistentStorage
                 : persistenceStatus === 'error'
-                  ? 'The browser did not provide a reliable persistent-storage status.'
-                  : 'Checking the browser storage policy…'}
+                  ? uiCopy.surfaces.settingsScreen
+                      .theBrowserDidNotProvideAReliablePersistent
+                  : uiCopy.surfaces.settingsScreen
+                      .checkingTheBrowserStoragePolicy}
         </p>
         <p className="card__description">
-          Persistent permission is not a backup. You, the browser, or device
-          failure can still remove local data, and nothing is synced to another
-          device.
+          {
+            uiCopy.surfaces.settingsScreen
+              .persistentPermissionIsNotABackupYouThe
+          }
         </p>
         {persistenceStatus === 'best-effort' ||
         persistenceStatus === 'error' ? (
@@ -436,23 +471,21 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
               }}
               variant="secondary"
             >
-              Request persistent storage
+              {uiCopy.surfaces.settingsScreen.requestPersistentStorage}
             </Button>
           </div>
         ) : null}
       </Card>
-      <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+      <Card
+        title={uiCopy.surfaces.settingsScreen.exportABackup}
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
         <p className="card__description">
-          Download a full local backup as a JSON file. It contains your learning
-          history and progress, notes and saved blockers, XP transactions and
-          achievement unlocks, media progress and resume points, and your
-          Activity records and goals, settings, profile, and app metadata. Keep
-          exported files somewhere private; they are created and stored only by
-          you.
+          {uiCopy.surfaces.settingsScreen.downloadAFullLocalBackupAsAJSON}
         </p>
         <div className="action-row">
           <Button loading={exporting} onClick={handleExport} variant="primary">
-            Export local backup
+            {uiCopy.surfaces.settingsScreen.exportLocalBackup}
           </Button>
         </div>
       </Card>
@@ -469,7 +502,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         onExportLocal={handleExport}
         titleAs={isRpgVariant ? 'h2' : 'h3'}
       />
-      <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+      <Card
+        title={uiCopy.surfaces.settingsScreen.resetLocalData}
+        titleAs={isRpgVariant ? 'h2' : 'h3'}
+      >
         <p className="card__description">
           Permanently delete all local ProgressPal data on this device and start
           fresh. This removes your progress, sessions, XP, achievements, notes,
@@ -479,7 +515,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </p>
         <div className="data-action">
           <label className="form-field__label" htmlFor="reset-confirmation">
-            Confirmation phrase
+            {uiCopy.surfaces.settingsScreen.confirmationPhrase}
           </label>
           <TextInput
             autoComplete="off"
@@ -499,7 +535,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             onClick={handleReset}
             variant="danger"
           >
-            Reset all local data
+            {uiCopy.surfaces.settingsScreen.resetAllLocalData}
           </Button>
         </div>
       </Card>

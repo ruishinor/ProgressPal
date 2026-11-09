@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -22,13 +23,16 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
   return (
     <div className="course-map-summary-grid">
       <Card
-        description="Required progress stays honest: only completed, submitted, and accepted required items move the main course rollup."
-        title="Required progress"
+        description={
+          uiCopy.surfaces.courseCourseMapSummary
+            .requiredProgressStaysHonestOnlyCompletedSubmittedAnd
+        }
+        title={uiCopy.surfaces.courseCourseMapSummary.requiredProgress}
         variant="accent"
       >
         <ProgressBar
           helperText={`${courseMap.completedRequiredItemCount} of ${courseMap.requiredItemCount} required tasks complete`}
-          label="Course completion"
+          label={uiCopy.surfaces.courseCourseMapSummary.courseCompletion}
           tone={courseMap.blockedItemCount > 0 ? 'warning' : 'accent'}
           value={courseMap.completionPercent}
         />
@@ -40,39 +44,50 @@ export function CourseMapSummary({ courseMap }: CourseMapSummaryProps) {
           ) : null}
         </div>
       </Card>
-      <Card description={copy.catalogueDescription} title="Catalog">
+      <Card
+        description={copy.catalogueDescription}
+        title={uiCopy.surfaces.courseCourseMapSummary.catalog}
+      >
         <dl className="course-map-stat-list">
           <div>
-            <dt>Units</dt>
+            <dt>{uiCopy.surfaces.courseCourseMapSummary.units}</dt>
             <dd>{courseMap.unitCount}</dd>
           </div>
           <div>
-            <dt>Tasks</dt>
+            <dt>{uiCopy.surfaces.courseCourseMapSummary.tasks}</dt>
             <dd>{courseMap.itemCount}</dd>
           </div>
           <div>
-            <dt>Planned time</dt>
+            <dt>{uiCopy.surfaces.courseCourseMapSummary.plannedTime}</dt>
             <dd>{formatEstimatedMinutes(courseMap.estimatedMinutes)}</dd>
           </div>
         </dl>
       </Card>
       <Card
-        description="Open any task to track your progress. Your dashboard and insights update from your saved records."
-        title="Current focus"
+        description={
+          uiCopy.surfaces.courseCourseMapSummary
+            .openAnyTaskToTrackYourProgressYour
+        }
+        title={uiCopy.surfaces.courseCourseMapSummary.currentFocus}
       >
         <div className="course-map-focus-card">
           <StatusPill
             variant={courseMap.blockedItemCount > 0 ? 'blocked' : 'inProgress'}
           >
-            {courseMap.blockedItemCount > 0 ? 'Needs attention' : 'Next target'}
+            {courseMap.blockedItemCount > 0
+              ? uiCopy.surfaces.courseCourseMapSummary.needsAttention
+              : uiCopy.surfaces.courseCourseMapSummary.nextTarget}
           </StatusPill>
           <p className="course-map-focus-card__title">
-            {courseMap.nextUnitTitle ?? 'All required units resolved'}
+            {courseMap.nextUnitTitle ??
+              uiCopy.surfaces.courseCourseMapSummary.allRequiredUnitsResolved}
           </p>
           <p className="course-map-focus-card__description">
             {courseMap.blockedItemCount > 0
-              ? 'At least one item is marked blocked. Resolve it before moving the required rollup forward.'
-              : 'The next unfinished required unit is shown here so you always know where to pick up.'}
+              ? uiCopy.surfaces.courseCourseMapSummary
+                  .atLeastOneItemIsMarkedBlockedResolve
+              : uiCopy.surfaces.courseCourseMapSummary
+                  .theNextUnfinishedRequiredUnitIsShownHere}
           </p>
         </div>
       </Card>

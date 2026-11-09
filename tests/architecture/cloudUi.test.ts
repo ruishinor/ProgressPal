@@ -80,7 +80,7 @@ describe('cloud UI: made of what already exists', () => {
 
   it('imports only the public entries it is allowed to', () => {
     const allowed =
-      /^(?:\.{1,2}\/|react$|react-router-dom$|@\/components\/ui\/|@\/lib\/(?:cloud|cloudBackup|backup|appState|routing\/rpgRoutePaths|db|db\/database)$)/;
+      /^(?:\.{1,2}\/|react$|react-router-dom$|@\/ui-copy\/interface\.json$|@\/components\/ui\/|@\/lib\/(?:cloud|cloudBackup|backup|appState|routing\/rpgRoutePaths|db|db\/database)$)/;
     const offenders = cloudUiFiles.flatMap((file) =>
       importsOf(file.text)
         .filter((spec) => !allowed.test(spec))
@@ -229,8 +229,11 @@ describe('cloud UI: how Settings mounts the card', () => {
     expect(surface.indexOf('<ImportBackupControl')).toBeLessThan(
       surface.indexOf('<CloudBackupCard'),
     );
+    expect(surface).toContain(
+      'title={uiCopy.surfaces.settingsScreen.resetLocalData}',
+    );
     expect(surface.indexOf('<CloudBackupCard')).toBeLessThan(
-      surface.indexOf('title="Reset local data"'),
+      surface.indexOf('title={uiCopy.surfaces.settingsScreen.resetLocalData}'),
     );
     // One component for both shells: no variant-specific cloud branch.
     expect(surface).not.toMatch(/isRpgVariant\s*\?\s*<CloudBackupCard/);

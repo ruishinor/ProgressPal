@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { gitPathwayProgrammeId } from '@/lib/routing/pathwaysPaths';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -113,15 +114,21 @@ export function OnboardingPage() {
   return (
     <section className="page-section">
       <PageHeader
-        description="Choose a programme and set up a local learner profile. Your data is stored on this device."
+        description={
+          uiCopy.surfaces.onboardingScreen.chooseAProgrammeAndSetUpALocal
+        }
         eyebrow="Setup"
         meta={
           <>
-            <StatusPill variant="planned">First run required</StatusPill>
-            <Badge tone="accent">Stored on this device</Badge>
+            <StatusPill variant="planned">
+              {uiCopy.surfaces.onboardingScreen.firstRunRequired}
+            </StatusPill>
+            <Badge tone="accent">
+              {uiCopy.surfaces.onboardingScreen.storedOnThisDevice}
+            </Badge>
           </>
         }
-        title="Start with ProgressPal"
+        title={uiCopy.surfaces.onboardingScreen.startWithProgressPal}
       />
       <fieldset
         aria-describedby={programmeDescriptionId}
@@ -129,14 +136,13 @@ export function OnboardingPage() {
         role="radiogroup"
       >
         <legend className="profile-fieldset__legend">
-          Choose your programme
+          {uiCopy.surfaces.onboardingScreen.chooseYourProgramme}
         </legend>
         <p
           className="profile-fieldset__description"
           id={programmeDescriptionId}
         >
-          Pick the programme you want to start with. You can add or switch
-          programmes later in Settings.
+          {uiCopy.surfaces.onboardingScreen.pickTheProgrammeYouWantToStartWith}
         </p>
         <div className="checkbox-grid checkbox-grid--programmes">
           {programmeChoices
@@ -158,11 +164,15 @@ export function OnboardingPage() {
       </fieldset>
       {mode === 'quick' ? (
         <Card
-          description="Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later."
-          title="Start now"
+          description={
+            uiCopy.surfaces.onboardingScreen.yourDataIsStoredInThisBrowserNo
+          }
+          title={uiCopy.surfaces.onboardingScreen.startNow}
         >
           <div className="onboarding-quick">
-            <p>Start now with a local profile you can change later.</p>
+            <p>
+              {uiCopy.surfaces.onboardingScreen.startNowWithALocalProfileYouCan}
+            </p>
             <div className="action-row">
               <Button
                 disabled={programmeId === null || !coordination.canWrite}
@@ -172,7 +182,7 @@ export function OnboardingPage() {
                 }}
                 size="lg"
               >
-                Use default learner
+                {uiCopy.surfaces.onboardingScreen.useDefaultLearner}
               </Button>
               <Button
                 disabled={
@@ -183,12 +193,15 @@ export function OnboardingPage() {
                 onClick={() => setMode('customize')}
                 variant="secondary"
               >
-                Customize first
+                {uiCopy.surfaces.onboardingScreen.customizeFirst}
               </Button>
             </div>
             {quickStartError ? (
               <p className="form-field__error" role="alert">
-                The default learner could not be saved locally. Try again.
+                {
+                  uiCopy.surfaces.onboardingScreen
+                    .theDefaultLearnerCouldNotBeSavedLocally
+                }
               </p>
             ) : null}
           </div>
@@ -201,10 +214,10 @@ export function OnboardingPage() {
               ref={customizeTitleRef}
               tabIndex={-1}
             >
-              Create your local learner profile
+              {uiCopy.surfaces.onboardingScreen.createYourLocalLearnerProfile}
             </h3>
             <Button onClick={() => setMode('quick')} variant="quiet">
-              Back to quick start
+              {uiCopy.surfaces.onboardingScreen.backToQuickStart}
             </Button>
           </div>
           <ProfileForm
@@ -232,16 +245,19 @@ export function OnboardingPage() {
         disabled={!coordination.canWrite || coordination.peerActive}
         confirmLabel="Restore this backup"
         expectedSchemaVersion={currentDatabaseSchemaVersion}
-        heading="Already have a backup?"
+        heading={uiCopy.surfaces.onboardingScreen.alreadyHaveABackup}
         migrationContext={getSharedDatabase().migrationContext}
         onConfirmImport={handleImport}
       />
       {importError ? (
         <ToastStack>
           <Toast
-            description="The backup could not be restored. Local data is unchanged."
+            description={
+              uiCopy.surfaces.onboardingScreen
+                .theBackupCouldNotBeRestoredLocalData
+            }
             onDismiss={() => setImportError(false)}
-            title="Import failed"
+            title={uiCopy.surfaces.onboardingScreen.importFailed}
             tone="danger"
           />
         </ToastStack>

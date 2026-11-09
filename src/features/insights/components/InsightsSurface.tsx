@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -202,22 +203,24 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
         {isRpgVariant ? (
           <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
-              <h1>Insights</h1>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">
+                {uiCopy.surfaces.insightsScreen.rPG}
+              </p>
+              <h1>{uiCopy.surfaces.insightsScreen.insights}</h1>
             </div>
             <div className="rpg-log__actions">
               <Link
                 className="button button--secondary button--md"
                 to={rpgRoutePath}
               >
-                Back to Home
+                {uiCopy.surfaces.insightsScreen.backToHome}
               </Link>
             </div>
           </div>
         ) : (
           <PageHeader
             description={copy.insightsErrorDescription}
-            title="Insights"
+            title={uiCopy.surfaces.insightsScreen.insights}
           />
         )}
         <ErrorState
@@ -232,11 +235,14 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               }}
               type="button"
             >
-              Try again
+              {uiCopy.surfaces.insightsScreen.tryAgain}
             </button>
           }
-          description={state.error ?? 'Unknown local insights error.'}
-          title="Local data could not be read"
+          description={
+            state.error ??
+            uiCopy.surfaces.insightsScreen.unknownLocalInsightsError
+          }
+          title={uiCopy.surfaces.insightsScreen.localDataCouldNotBeRead}
         />
       </section>
     );
@@ -248,19 +254,23 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
         {isRpgVariant ? (
           <div className="rpg-log__header rpg-page-header">
             <div>
-              <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
-              <h1>Insights</h1>
+              <p className="rpg-log__eyebrow rpg-page-eyebrow">
+                {uiCopy.surfaces.insightsScreen.rPG}
+              </p>
+              <h1>{uiCopy.surfaces.insightsScreen.insights}</h1>
             </div>
           </div>
         ) : (
           <PageHeader
-            description="The app is reading your local sessions, XP, and achievements."
-            title="Insights"
+            description={
+              uiCopy.surfaces.insightsScreen.theAppIsReadingYourLocalSessionsXP
+            }
+            title={uiCopy.surfaces.insightsScreen.insights}
           />
         )}
         <LoadingState
-          description="Building your insights."
-          title="Loading your local data"
+          description={uiCopy.surfaces.insightsScreen.buildingYourInsights}
+          title={uiCopy.surfaces.insightsScreen.loadingYourLocalData}
         />
       </section>
     );
@@ -280,63 +290,75 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
       {isRpgVariant ? (
         <div className="rpg-log__header rpg-page-header">
           <div>
-            <p className="rpg-log__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Insights</h1>
+            <p className="rpg-log__eyebrow rpg-page-eyebrow">
+              {uiCopy.surfaces.insightsScreen.rPG}
+            </p>
+            <h1>{uiCopy.surfaces.insightsScreen.insights}</h1>
             <p className="rpg-log__lede rpg-page-lede">
-              Study time, progress, and earned rewards. Dates use your device’s
-              local time.
+              {
+                uiCopy.surfaces.insightsScreen
+                  .studyTimeProgressAndEarnedRewardsDatesUse
+              }
             </p>
           </div>
         </div>
       ) : (
-        <PageHeader description={copy.insightsDescription} title="Insights" />
+        <PageHeader
+          description={copy.insightsDescription}
+          title={uiCopy.surfaces.insightsScreen.insights}
+        />
       )}
 
       <div className="insights-grid">
         <InsightsSection
           rpg={isRpgVariant}
-          title="Course progress"
+          title={uiCopy.surfaces.insightsScreen.courseProgress}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           <ProgressBar
             helperText={`${courseProgress.completedRequiredItemCount} of ${courseProgress.requiredItemCount} required tasks complete`}
-            label="Required course progress (current)"
+            label={uiCopy.surfaces.insightsScreen.requiredCourseProgressCurrent}
             tone={
               courseProgress.completionPercent === 100 ? 'success' : 'accent'
             }
             value={courseProgress.completionPercent}
           />
           <p className="card__description">
-            A current snapshot of required-item completion, not a historical
-            trend.
+            {
+              uiCopy.surfaces.insightsScreen
+                .aCurrentSnapshotOfRequiredItemCompletionNot
+            }
           </p>
         </InsightsSection>
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="Effort over time"
+          title={uiCopy.surfaces.insightsScreen.effortOverTime}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
-              No sessions or video logged yet. Weekly effort will appear here
-              once you save some.
+              {
+                uiCopy.surfaces.insightsScreen
+                  .noSessionsOrVideoLoggedYetWeeklyEffort
+              }
             </p>
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                Study minutes and watched minutes logged per local week. Watched
-                minutes logged sums each saved range, so overlapping ranges are
-                counted as logged effort rather than unique coverage.
+                {
+                  uiCopy.surfaces.insightsScreen
+                    .studyMinutesAndWatchedMinutesLoggedPerLocal
+                }
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Week</th>
+                  <th scope="col">{uiCopy.surfaces.insightsScreen.week}</th>
                   <th className="insights-table__numeric" scope="col">
-                    Study
+                    {uiCopy.surfaces.insightsScreen.study}
                   </th>
                   <th className="insights-table__numeric" scope="col">
-                    Watched (logged)
+                    {uiCopy.surfaces.insightsScreen.watchedLogged}
                   </th>
                 </tr>
               </thead>
@@ -365,7 +387,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tbody>
               <tfoot>
                 <tr>
-                  <th scope="row">Total</th>
+                  <th scope="row">{uiCopy.surfaces.insightsScreen.total}</th>
                   <td className="insights-table__numeric">
                     {weeklyActivity.totalStudyMinutesLabel}
                   </td>
@@ -380,27 +402,29 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="XP over time"
+          title={uiCopy.surfaces.insightsScreen.xPOverTime}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {weeklyActivity.isEmpty ? (
             <p className="card__description">
-              No XP earned yet. Saving progress or a study session starts
-              earning XP.
+              {uiCopy.surfaces.insightsScreen.noXPEarnedYetSavingProgressOrA}
             </p>
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                XP earned per local week and the running cumulative total.
+                {
+                  uiCopy.surfaces.insightsScreen
+                    .xPEarnedPerLocalWeekAndTheRunning
+                }
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Week</th>
+                  <th scope="col">{uiCopy.surfaces.insightsScreen.week}</th>
                   <th className="insights-table__numeric" scope="col">
-                    XP earned
+                    {uiCopy.surfaces.insightsScreen.xPEarned}
                   </th>
                   <th className="insights-table__numeric" scope="col">
-                    Cumulative XP
+                    {uiCopy.surfaces.insightsScreen.cumulativeXP}
                   </th>
                 </tr>
               </thead>
@@ -420,7 +444,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tbody>
               <tfoot>
                 <tr>
-                  <th scope="row">Total</th>
+                  <th scope="row">{uiCopy.surfaces.insightsScreen.total}</th>
                   <td className="insights-table__numeric">
                     {`${weeklyActivity.totalXp} XP`}
                   </td>
@@ -433,30 +457,35 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="Study mode breakdown"
+          title={uiCopy.surfaces.insightsScreen.studyModeBreakdown}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {modeBreakdown.isEmpty ? (
             <p className="card__description">
-              No study sessions logged yet. Your effort by mode will appear
-              here.
+              {
+                uiCopy.surfaces.insightsScreen
+                  .noStudySessionsLoggedYetYourEffortBy
+              }
             </p>
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                Logged study time grouped by session mode.
+                {
+                  uiCopy.surfaces.insightsScreen
+                    .loggedStudyTimeGroupedBySessionMode
+                }
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Mode</th>
+                  <th scope="col">{uiCopy.surfaces.insightsScreen.mode}</th>
                   <th className="insights-table__numeric" scope="col">
-                    Sessions
+                    {uiCopy.surfaces.insightsScreen.sessions}
                   </th>
                   <th className="insights-table__numeric" scope="col">
-                    Time
+                    {uiCopy.surfaces.insightsScreen.time}
                   </th>
                   <th className="insights-table__numeric" scope="col">
-                    Share
+                    {uiCopy.surfaces.insightsScreen.share}
                   </th>
                 </tr>
               </thead>
@@ -483,13 +512,15 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="Active days"
+          title={uiCopy.surfaces.insightsScreen.activeDays}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {activeDays.isEmpty ? (
             <p className="card__description">
-              No study sessions logged yet. Active-day counts appear once you
-              save a session.
+              {
+                uiCopy.surfaces.insightsScreen
+                  .noStudySessionsLoggedYetActiveDayCounts
+              }
             </p>
           ) : (
             <dl className="profile-summary-list">
@@ -498,12 +529,15 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
                 <dd>{activeDays.activeDaysInWindow}</dd>
               </div>
               <div>
-                <dt>Most recent active run</dt>
+                <dt>{uiCopy.surfaces.insightsScreen.mostRecentActiveRun}</dt>
                 <dd>{activeDays.consecutiveActiveDays}</dd>
               </div>
               <div>
-                <dt>Most recent active day</dt>
-                <dd>{activeDays.lastActiveDate ?? 'None yet'}</dd>
+                <dt>{uiCopy.surfaces.insightsScreen.mostRecentActiveDay}</dt>
+                <dd>
+                  {activeDays.lastActiveDate ??
+                    uiCopy.surfaces.insightsScreen.noneYet}
+                </dd>
               </div>
             </dl>
           )}
@@ -511,28 +545,29 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="Recorded completion awards"
+          title={uiCopy.surfaces.insightsScreen.recordedCompletionAwards}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {completionAwards.isEmpty ? (
             <p className="card__description">
-              No completion awards recorded yet.
+              {uiCopy.surfaces.insightsScreen.noCompletionAwardsRecordedYet}
             </p>
           ) : (
             <table className="insights-table">
               <caption className="insights-table__caption">
-                Counts of completion XP awards per local week. These are
-                recorded awards; task-completion and unit-completion awards are
-                counted separately.
+                {
+                  uiCopy.surfaces.insightsScreen
+                    .countsOfCompletionXPAwardsPerLocalWeek
+                }
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Week</th>
+                  <th scope="col">{uiCopy.surfaces.insightsScreen.week}</th>
                   <th className="insights-table__numeric" scope="col">
-                    Task awards
+                    {uiCopy.surfaces.insightsScreen.taskAwards}
                   </th>
                   <th className="insights-table__numeric" scope="col">
-                    Unit awards
+                    {uiCopy.surfaces.insightsScreen.unitAwards}
                   </th>
                 </tr>
               </thead>
@@ -551,7 +586,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </tbody>
               <tfoot>
                 <tr>
-                  <th scope="row">Total</th>
+                  <th scope="row">{uiCopy.surfaces.insightsScreen.total}</th>
                   <td className="insights-table__numeric">
                     {completionAwards.totalItemAwards}
                   </td>
@@ -566,13 +601,15 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
 
         <InsightsSection
           rpg={isRpgVariant}
-          title="Achievement timeline"
+          title={uiCopy.surfaces.insightsScreen.achievementTimeline}
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           {achievementTimeline.isEmpty ? (
             <p className="card__description">
-              No achievements unlocked yet. Unlocks will appear here in the
-              order you earned them.
+              {
+                uiCopy.surfaces.insightsScreen
+                  .noAchievementsUnlockedYetUnlocksWillAppearHere
+              }
             </p>
           ) : (
             <table className="insights-table">
@@ -581,8 +618,10 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Unlocked</th>
-                  <th scope="col">Achievement</th>
+                  <th scope="col">{uiCopy.surfaces.insightsScreen.unlocked}</th>
+                  <th scope="col">
+                    {uiCopy.surfaces.insightsScreen.achievement}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -600,7 +639,7 @@ export function InsightsSurface({ variant = 'classic' }: InsightsSurfaceProps) {
               className="button button--secondary button--sm"
               to={isRpgVariant ? rpgBadgesPath : '/achievements'}
             >
-              View achievements
+              {uiCopy.surfaces.insightsScreen.viewAchievements}
             </Link>
           </div>
         </InsightsSection>

@@ -34,11 +34,16 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+      - name: Classify change
+        id: scope
+        run: node scripts/release-change-classification.mjs
       - name: Pin npm 11
+        if: steps.scope.outputs.category != 'METADATA'
         run: npm install --global npm@11.10.1
       # Publish an ATTEST output only after verified evidence and a durable record.
       # A private, fresh output file prevents partial/crashed selector output reuse.
       - name: Select certification path
+        if: steps.scope.outputs.category != 'METADATA' && steps.scope.outputs.category != 'COPY'
         id: reuse
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -69,19 +74,32 @@ jobs:
             20) echo 'Confirmed mandatory violation; certification blocked.'; exit 1 ;;
             *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
           esac
+      - name: Verify lightweight control integrity
+        if: steps.scope.outputs.category == 'METADATA' || steps.scope.outputs.category == 'COPY'
+        run: git diff --quiet HEAD^1 HEAD -- .github/workflows scripts/release-change-classification.mjs scripts/release-reuse-contract.mjs
       - name: Install locked dependencies
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        if: steps.reuse.outputs.decision != 'ATTEST' && steps.scope.outputs.category != 'METADATA'
         run: npm ci
       - name: Install Chromium
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        if: steps.reuse.outputs.decision != 'ATTEST' && steps.scope.outputs.category != 'METADATA' && steps.scope.outputs.category != 'COPY'
         run: npx playwright install --with-deps chromium
       # Review evidence is not selected here. The gate resolves it from
       # docs/release-reviews/ by its binding to this exact payload tree.
       - name: Run immutable release gate
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        if: steps.reuse.outputs.decision != 'ATTEST' && steps.scope.outputs.category != 'METADATA' && steps.scope.outputs.category != 'COPY'
         env:
           RELEASE_PASS: '1'
         run: npm run verify:release
+      - name: Validate copy and production build
+        if: steps.scope.outputs.category == 'COPY'
+        run: |
+          npx prettier --check src/ui-copy/interface.json
+          npm run build
+          npm run check:bundle
+          node scripts/release-change-classification.mjs --assert COPY
+      - name: Validate metadata
+        if: steps.scope.outputs.category == 'METADATA'
+        run: node scripts/release-change-classification.mjs --assert METADATA
       - name: Upload release evidence
         if: always()
         uses: actions/upload-artifact@v5

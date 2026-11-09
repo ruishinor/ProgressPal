@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -44,15 +45,23 @@ export function CoordinationRepairControl({
   }
 
   return (
-    <Card title="Repair local tab safety" titleAs="h3">
+    <Card
+      title={uiCopy.surfaces.coordinationRepairControl.repairLocalTabSafety}
+      titleAs="h3"
+    >
       <p className="card__description">
-        Local tab-coordination metadata is corrupt. Repair resets only the
-        tab-safety counter; your study data is not touched.
+        {
+          uiCopy.surfaces.coordinationRepairControl
+            .localTabCoordinationMetadataIsCorruptRepairResets
+        }
       </p>
       <div className="data-action">
         {blocked ? (
           <p className="data-action__error" role="alert">
-            Close every other ProgressPal tab, then try again.
+            {
+              uiCopy.surfaces.coordinationRepairControl
+                .closeEveryOtherProgressPalTabThenTryAgain
+            }
           </p>
         ) : null}
         <Button
@@ -62,7 +71,7 @@ export function CoordinationRepairControl({
           }}
           variant="primary"
         >
-          Repair local tab safety
+          {uiCopy.surfaces.coordinationRepairControl.repairLocalTabSafety}
         </Button>
       </div>
     </Card>

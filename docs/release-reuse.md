@@ -2,7 +2,7 @@
 
 The existing Release validation workflow retains one native final-candidate
 job/check named **Final candidate**, its triggers, read-only permissions and upload.
-PR and manual events run FULL. A master push may run ATTEST only after authenticating
+PRs and master pushes select METADATA only for an exact license-only diff, COPY only for a structurally safe, approved single-catalogue-file diff, otherwise FULL. Manual dispatch and release-control transitions run FULL. A master push may run ATTEST only after authenticating
 the comprehensive certificate of its exact tested PR synthetic merge. Activation,
 rollback and other release-control transitions run FULL on both PR and master.
 

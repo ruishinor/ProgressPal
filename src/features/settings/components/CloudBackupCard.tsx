@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -125,8 +126,10 @@ export function CloudBackupCard({
         {state.status === 'disabled' ? (
           <>
             <p className="card__description">
-              Off on this device. While it is off, nothing is sent to any cloud
-              service.
+              {
+                uiCopy.surfaces.settingsCloudBackupCard
+                  .offOnThisDeviceWhileItIsOff
+              }
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <div className="action-row">
@@ -135,21 +138,26 @@ export function CloudBackupCard({
                 onClick={() => setEnabled(true)}
                 variant="secondary"
               >
-                Turn on cloud backup
+                {uiCopy.surfaces.settingsCloudBackupCard.turnOnCloudBackup}
               </Button>
             </div>
           </>
         ) : null}
         {state.status === 'unavailable' ? (
           <p className="data-action__error" role="alert">
-            Cloud backup is unavailable in this browser.
+            {
+              uiCopy.surfaces.settingsCloudBackupCard
+                .cloudBackupIsUnavailableInThisBrowser
+            }
           </p>
         ) : null}
         {state.status === 'signed-out' ? (
           <>
             <p className="card__description">
-              Sign in to back up to, or restore from, your cloud account.
-              Backups are manual.
+              {
+                uiCopy.surfaces.settingsCloudBackupCard
+                  .signInToBackUpToOrRestore
+              }
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <CloudSignInPanel

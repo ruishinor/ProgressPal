@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -11,11 +12,14 @@ export function RpgStubPage({ description, title }: RpgStubPageProps) {
     <section className="page-section">
       <PageHeader description={description} eyebrow="RPG shell" title={title} />
       <Card
-        description="This route is intentionally present for RPG shell navigation only. Feature implementation is deferred to its own module."
-        title="Stub route"
+        description={
+          uiCopy.surfaces.rpgRpgStubPage
+            .thisRouteIsIntentionallyPresentForRPGShell
+        }
+        title={uiCopy.surfaces.rpgRpgStubPage.stubRoute}
       >
         <p className="course-item-row__detail">
-          No RPG feature data is loaded or written on this shell route.
+          {uiCopy.surfaces.rpgRpgStubPage.noRPGFeatureDataIsLoadedOrWritten}
         </p>
       </Card>
     </section>

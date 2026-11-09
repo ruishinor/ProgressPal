@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -58,7 +59,7 @@ export function RpgHeroIdentity({
         portrait
       ) : (
         <Link
-          aria-label="Open Hero Profile"
+          aria-label={uiCopy.surfaces.rpgRpgHeroIdentity.openHeroProfile}
           className="rpg-identity__profile-link"
           to={profileHref}
         >
@@ -78,8 +79,11 @@ export function RpgHeroIdentity({
           (variant === 'profile' ? (
             <div className="action-row">
               <RpgRankBadge rank={identity.rankLabel} />
-              <RpgInfoNote label="About rank">
-                Rank follows how much of the required course you have completed.
+              <RpgInfoNote label={uiCopy.surfaces.rpgRpgHeroIdentity.aboutRank}>
+                {
+                  uiCopy.surfaces.rpgRpgHeroIdentity
+                    .rankFollowsHowMuchOfTheRequiredCourse
+                }
               </RpgInfoNote>
             </div>
           ) : (
@@ -117,11 +121,11 @@ function IdentityTraits({ identity }: { identity: RpgHubIdentity }) {
         <dd>{identity.guildLabel}</dd>
       </div>
       <div className="rpg-identity__class">
-        <dt>Class</dt>
+        <dt>{uiCopy.surfaces.rpgRpgHeroIdentity.class}</dt>
         <dd>{identity.classLabel}</dd>
       </div>
       <div className="rpg-identity__path">
-        <dt>Path</dt>
+        <dt>{uiCopy.surfaces.rpgRpgHeroIdentity.path}</dt>
         <dd>{identity.pathLabel}</dd>
       </div>
     </dl>

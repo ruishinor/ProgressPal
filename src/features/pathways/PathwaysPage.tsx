@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { LessonView } from '@/features/lessons';
@@ -35,10 +36,10 @@ function lessonStatus(
   row: ProgressEntry | undefined,
   position: LessonPosition | undefined,
 ) {
-  if (row?.status === 'completed') return 'Fullført';
+  if (row?.status === 'completed') return uiCopy.pathways.statusCompleted;
   return row !== undefined || position !== undefined
-    ? 'Påbegynt'
-    : 'Ikke påbegynt';
+    ? uiCopy.pathways.statusStarted
+    : uiCopy.pathways.statusNotStarted;
 }
 
 function moduleStatus(
@@ -50,13 +51,13 @@ function moduleStatus(
     lessons.length > 0 &&
     lessons.every((lesson) => byId.get(lesson.id)?.status === 'completed')
   ) {
-    return 'Fullført';
+    return uiCopy.pathways.statusCompleted;
   }
   return lessons.some(
     (lesson) => byId.has(lesson.id) || positions.has(lesson.id),
   )
-    ? 'Påbegynt'
-    : 'Ikke påbegynt';
+    ? uiCopy.pathways.statusStarted
+    : uiCopy.pathways.statusNotStarted;
 }
 
 export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
@@ -175,23 +176,26 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
   )?.id;
   const overviewSummary =
     overviewProgress.status === 'loading' ? (
-      <p role="status">Leser lokal framdrift…</p>
+      <p role="status">{uiCopy.surfaces.pathwaysScreen.leserLokalFramdrift}</p>
     ) : overviewProgress.status === 'error' ? (
       <p role="status">
-        Lokal framdrift er ikke tilgjengelig nå. Du kan fortsatt åpne
-        leksjonene.
+        {uiCopy.surfaces.pathwaysScreen.lokalFramdriftErIkkeTilgjengeligNaDuKan}
       </p>
     ) : (
       <div className="pathways-track__progress-summary">
         <p>
           {completedCount} av {items.length} leksjoner markert fullført.
-          Fullføring er selvregistrert, ikke en ferdighetstest. «Påbegynt» betyr
-          lagret aktivitet eller leksjonsposisjon.
         </p>
+        <details className="pathways-track__progress-info">
+          <summary aria-label={uiCopy.pathways.progressInfoLabel}>(i)</summary>
+          <p>{uiCopy.pathways.progressInfoBody}</p>
+        </details>
         {allCompleted ? (
           <p>
-            Alle leksjonene er markert fullført. Du kan åpne dem igjen når du
-            vil.
+            {
+              uiCopy.surfaces.pathwaysScreen
+                .alleLeksjoneneErMarkertFullfortDuKanApne
+            }
           </p>
         ) : continuation ? (
           <Link
@@ -202,7 +206,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
               ? `Fortsett: ${continuation.title}`
               : hasProgress
                 ? `Neste leksjon: ${continuation.title}`
-                : 'Begynn med første leksjon'}
+                : uiCopy.surfaces.pathwaysScreen.begynnMedForsteLeksjon}
           </Link>
         ) : null}
       </div>
@@ -291,42 +295,59 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
 
   return (
     <section className="page-section pathways-page" lang="nb">
-      <nav aria-label="Pathways">
+      <nav aria-label={uiCopy.surfaces.pathwaysScreen.pathways}>
         <div className="action-row">
           <Link to={home}>
-            Tilbake til {programmeScope?.title ?? 'studieprogrammet'}
+            Tilbake til{' '}
+            {programmeScope?.title ??
+              uiCopy.surfaces.pathwaysScreen.studieprogrammet}
           </Link>
-          {!isOverview && <Link to={overview}>Alle Pathways</Link>}
+          {!isOverview && (
+            <Link to={overview}>
+              {uiCopy.surfaces.pathwaysScreen.allePathways}
+            </Link>
+          )}
           {itemId !== undefined && (
-            <Link to={track}>Git &amp; GitHub — oversikt</Link>
+            <Link to={track}>
+              {uiCopy.surfaces.pathwaysScreen.gitGitHubOversikt}
+            </Link>
           )}
         </div>
       </nav>
       {isOverview ? (
         <>
-          <h1>Pathways</h1>
+          <h1>{uiCopy.surfaces.pathwaysScreen.pathways}</h1>
           <p>
-            Lær praktiske ferdigheter ved siden av studieprogrammet ditt, uten å
-            bytte studieprogram eller miste framdriften der.
+            {
+              uiCopy.surfaces.pathwaysScreen
+                .laerPraktiskeFerdigheterVedSidenAvStudieprogrammetDitt
+            }
           </p>
           <div className="pathways-page__offer">
             <h2>
-              <Link to={track}>Git &amp; GitHub</Link>
+              <Link to={track}>{uiCopy.surfaces.pathwaysScreen.gitGitHub}</Link>
             </h2>
             <p>
-              Lær å ta vare på endringer, finne igjen fungerende kode og etter
-              hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner, M02 har seks, M03 har seks, M04 har sju, M05 har åtte,
-              M06 har sju og M07 har åtte. Hele Foundations er tilgjengelig.
+              {uiCopy.surfaces.pathwaysScreen.laerATaVarePaEndringerFinneIgjen}
             </p>
-            <p>Du kan lese oversikten før du installerer Git eller Node.js.</p>
+            <p>
+              {
+                uiCopy.surfaces.pathwaysScreen
+                  .duKanLeseOversiktenForDuInstallererGit
+              }
+            </p>
             {overviewSummary}
           </div>
         </>
       ) : itemId !== undefined && item === undefined ? (
         <>
-          <h1>Leksjonen finnes ikke</h1>
-          <p>Velg en av de tilgjengelige leksjonene i Git &amp; GitHub.</p>
+          <h1>{uiCopy.surfaces.pathwaysScreen.leksjonenFinnesIkke}</h1>
+          <p>
+            {
+              uiCopy.surfaces.pathwaysScreen
+                .velgEnAvDeTilgjengeligeLeksjoneneIGit
+            }
+          </p>
         </>
       ) : itemId === undefined ? (
         <div className="pathways-track">
@@ -337,7 +358,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
             Deretter prøver du det selv, med små, ufarlige tekstfiler.
           </p>
           <section aria-labelledby="pathways-why">
-            <h2 id="pathways-why">Hvorfor lære dette?</h2>
+            <h2 id="pathways-why">{uiCopy.pathways.whyLearnHeading}</h2>
             <p>
               Du bygger et lite program. Det virker. Du endrer koden for å legge
               til en funksjon, men nå slutter noe annet å fungere. Hva endret
@@ -721,15 +742,19 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
         </div>
       ) : state !== 'ready' ? (
         <>
-          <h1>Git &amp; GitHub</h1>
+          <h1>{uiCopy.surfaces.pathwaysScreen.gitGitHub}</h1>
           {state === 'loading' ? (
-            <p role="status">Åpner lokal framdrift…</p>
+            <p role="status">
+              {uiCopy.surfaces.pathwaysScreen.apnerLokalFramdrift}
+            </p>
           ) : (
             <>
               <p role={state === 'error' ? 'alert' : 'status'}>
                 {state === 'error'
-                  ? 'Leksjonen kunne ikke åpnes. Lagret arbeid er bevart. Prøv igjen.'
-                  : 'Åpne leksjonen i fanen som kan lagre, før du bruker den i denne skrivebeskyttede fanen.'}
+                  ? uiCopy.surfaces.pathwaysScreen
+                      .leksjonenKunneIkkeApnesLagretArbeidErBevart
+                  : uiCopy.surfaces.pathwaysScreen
+                      .apneLeksjonenIFanenSomKanLagreFor}
               </p>
               <button
                 type="button"
@@ -740,13 +765,15 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   setRetry((value) => value + 1);
                 }}
               >
-                Prøv igjen
+                {uiCopy.surfaces.pathwaysScreen.provIgjen}
               </button>
             </>
           )}
         </>
       ) : item === undefined ? (
-        <p role="alert">Leksjonen finnes ikke i denne utgaven.</p>
+        <p role="alert">
+          {uiCopy.surfaces.pathwaysScreen.leksjonenFinnesIkkeIDenneUtgaven}
+        </p>
       ) : (
         <LessonView
           key={item.id}
@@ -755,15 +782,20 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           lessonPath={(id) => getPathwayLessonPath(id, rpg)}
           presentation={rpg ? 'rpg' : 'classic'}
           footer={
-            <section aria-label="Lokal leksjonsstatus">
+            <section
+              aria-label={uiCopy.surfaces.pathwaysScreen.lokalLeksjonsstatus}
+            >
               <p role="status">
                 Lokal status:{' '}
                 {progress?.status === 'completed'
-                  ? 'Fullført'
-                  : 'Ikke fullført'}
+                  ? uiCopy.surfaces.pathwaysScreen.fullfort
+                  : uiCopy.surfaces.pathwaysScreen.ikkeFullfort}
               </p>
               <p>
-                Du styrer selv når du vil markere leksjonen som gjennomgått.
+                {
+                  uiCopy.surfaces.pathwaysScreen
+                    .duStyrerSelvNarDuVilMarkereLeksjonen
+                }
               </p>
               <button
                 type="button"
@@ -771,12 +803,15 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 onClick={() => void saveCompletion()}
               >
                 {progress?.status === 'completed'
-                  ? 'Åpne leksjonen igjen'
-                  : 'Marker som fullført lokalt'}
+                  ? uiCopy.surfaces.pathwaysScreen.apneLeksjonenIgjen
+                  : uiCopy.surfaces.pathwaysScreen.markerSomFullfortLokalt}
               </button>
               {saveFailed && (
                 <p role="alert">
-                  Status kunne ikke lagres. Prøv igjen. Lagrede svar er bevart.
+                  {
+                    uiCopy.surfaces.pathwaysScreen
+                      .statusKunneIkkeLagresProvIgjenLagredeSvar
+                  }
                 </p>
               )}
             </section>

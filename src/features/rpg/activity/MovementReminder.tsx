@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useState } from 'react';
 
 import { useAppState } from '@/lib/appState';
@@ -67,8 +68,10 @@ export function MovementReminder() {
     return (
       <p role="status">
         {nb
-          ? 'Pausevarsel er utilgjengelig. Åpne Aktivitet for å prøve igjen.'
-          : 'Movement reminders are unavailable. Open Activity to retry.'}
+          ? uiCopy.surfaces.rpgActivityMovementReminder
+              .pausevarselErUtilgjengeligApneAktivitetForAProve
+          : uiCopy.surfaces.rpgActivityMovementReminder
+              .movementRemindersAreUnavailableOpenActivityToRetry}
       </p>
     );
   if (!due || !data) return null;
@@ -80,30 +83,44 @@ export function MovementReminder() {
   };
   return (
     <RpgPanel
-      title={nb ? 'Tid for en bevegelsespause?' : 'Time for a movement break?'}
+      title={
+        nb
+          ? uiCopy.surfaces.rpgActivityMovementReminder.tidForEnBevegelsespause
+          : uiCopy.surfaces.rpgActivityMovementReminder.timeForAMovementBreak
+      }
       titleAs="h2"
     >
       <p role="status">
         {nb
-          ? 'Du har brukt ProgressPal en stund. Ta en pause hvis det passer.'
-          : 'You have been using ProgressPal for a while. Take a break if it suits you.'}
+          ? uiCopy.surfaces.rpgActivityMovementReminder
+              .duHarBruktProgressPalEnStundTaEn
+          : uiCopy.surfaces.rpgActivityMovementReminder
+              .youHaveBeenUsingProgressPalForAWhile}
       </p>
       {failed && (
         <p role="alert">
           {nb
-            ? 'Kunne ikke lagre innstillingen. Prøv igjen.'
-            : 'Could not save the preference. Please retry.'}
+            ? uiCopy.surfaces.rpgActivityMovementReminder
+                .kunneIkkeLagreInnstillingenProvIgjen
+            : uiCopy.surfaces.rpgActivityMovementReminder
+                .couldNotSaveThePreferencePleaseRetry}
         </p>
       )}
       <div className="action-row">
         <RpgButton href={rpgActivityPath} variant="quiet">
-          {nb ? 'Åpne Aktivitet' : 'Open Activity'}
+          {nb
+            ? uiCopy.surfaces.rpgActivityMovementReminder.apneAktivitet
+            : uiCopy.surfaces.rpgActivityMovementReminder.openActivity}
         </RpgButton>
         <RpgButton variant="quiet" onClick={() => restart(false)}>
-          {nb ? 'Lukk varsel' : 'Dismiss reminder'}
+          {nb
+            ? uiCopy.surfaces.rpgActivityMovementReminder.lukkVarsel
+            : uiCopy.surfaces.rpgActivityMovementReminder.dismissReminder}
         </RpgButton>
         <RpgButton variant="quiet" onClick={() => restart(true)}>
-          {nb ? 'Utsett 5 min' : 'Postpone 5 min'}
+          {nb
+            ? uiCopy.surfaces.rpgActivityMovementReminder.utsett5Min
+            : uiCopy.surfaces.rpgActivityMovementReminder.postpone5Min}
         </RpgButton>
         <RpgButton
           variant="quiet"
@@ -122,7 +139,9 @@ export function MovementReminder() {
               .finally(() => setSaving(false));
           }}
         >
-          {nb ? 'Slå av pausevarsel' : 'Disable reminders'}
+          {nb
+            ? uiCopy.surfaces.rpgActivityMovementReminder.slaAvPausevarsel
+            : uiCopy.surfaces.rpgActivityMovementReminder.disableReminders}
         </RpgButton>
       </div>
     </RpgPanel>

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { Link } from 'react-router-dom';
 
 import { getCourseItemDetailPath } from '@/features/course/paths';
@@ -70,7 +71,9 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
               <div className="course-item-row__title-row">
                 <p className="course-item-row__title">{item.title}</p>
                 <Badge tone={item.required ? 'accent' : 'neutral'}>
-                  {item.required ? 'Required' : 'Optional'}
+                  {item.required
+                    ? uiCopy.surfaces.courseCourseUnitCard.required
+                    : uiCopy.surfaces.courseCourseUnitCard.optional}
                 </Badge>
               </div>
               <p className="course-item-row__eyebrow">
@@ -92,7 +95,7 @@ export function CourseUnitCard({ unit }: CourseUnitCardProps) {
                 className="button button--quiet button--md"
                 to={getCourseItemDetailPath(item.id)}
               >
-                Open
+                {uiCopy.surfaces.courseCourseUnitCard.open}
               </Link>
             </div>
           </li>

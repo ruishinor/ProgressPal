@@ -104,7 +104,7 @@ Running the ordinary commands above directly validates a candidate without revie
 
 ## Pipeline
 
-One workflow, `Release validation`, with one job whose check name is `Final candidate`. It runs on pushes to `master`, pull requests to `master` and manual dispatch, checks out `github.sha`. PRs, manual dispatch and master control transitions install the locked environment and run `npm run verify:release` once. An eligible master merge can instead authenticate the completed comprehensive PR certificate and perform a fresh lockfile audit; see [release reuse](release-reuse.md). ATTEST never claims to rerun tests or writes a comprehensive manifest. There is no sharding, no retry and no deployment stage. `npm test` uses at most two isolated file workers instead of unconstrained parallelism. Hosted performance and resource stability must be checked before merging this change.
+One workflow, `Release validation`, with one job whose check name is `Final candidate`. It runs on pushes to `master`, pull requests to `master` and manual dispatch, checks out `github.sha`. Unsupported, mixed, control and manual candidates run `npm run verify:release` once. An exact license-only candidate uses METADATA validation; a structurally valid edit limited to explicitly approved UI copy uses COPY validation, dependency installation, production build and budget checks without the functional suites. The comprehensive release gate still requires independently reviewed, payload-bound evidence. An eligible master merge can instead authenticate the completed comprehensive PR certificate and perform a fresh lockfile audit; see [release reuse](release-reuse.md). ATTEST never claims to rerun tests or writes a comprehensive manifest. There is no sharding, no retry and no deployment stage. `npm test` uses at most two isolated file workers instead of unconstrained parallelism. Hosted performance and resource stability must be checked before merging this change.
 
 Timeout ladder: `20m Playwright → 21m managed wrapper → 22m release command → 40m GitHub job`. The inner three were widened from 13/14/15 minutes after a measured hosted timeout (v1.5.1). The green v1.5.1 job then took 27 m 42 s, leaving only 2 m 18 s under its former 30-minute ceiling, so the owner raised the job ceiling to 40 minutes as an outer safety envelope, not a runtime target (2026-10-04).
 
@@ -135,7 +135,7 @@ restoring FULL; this task does not authorize removal/bypass of the provider chec
 
 ### Release sequence
 
-With Deployment Checks active, every `master` commit needs its own passing `Final candidate` check before it is promoted, and that check needs an applicable review:
+With Deployment Checks active, every `master` commit needs its own passing `Final candidate` check. FULL candidates require independent payload-bound review; verified METADATA and COPY candidates instead produce narrowly scoped lightweight evidence and do not claim comprehensive certification. The following sequence applies to FULL candidates:
 
 1. The candidate commit `C` is frozen and independently reviewed (`npm run review:payload-tree -- C` names the payload).
 2. The reviewer commits `docs/release-reviews/<module>.json` on top of `C` as an **evidence-only** commit `E`. `E` has the same payload tree as `C`.

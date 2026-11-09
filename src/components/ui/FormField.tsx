@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import type { ReactNode } from 'react';
 
 type FormFieldRenderProps = {
@@ -37,7 +38,9 @@ export function FormField({
           {label}
         </label>
         {required ? (
-          <span className="form-field__required">Required</span>
+          <span className="form-field__required">
+            {uiCopy.surfaces.formField.required}
+          </span>
         ) : supportingText ? (
           <span className="form-field__supporting">{supportingText}</span>
         ) : null}

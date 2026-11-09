@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -102,12 +103,16 @@ function RpgMapLoadingState() {
   return (
     <section className="page-section rpg-map">
       <div className="rpg-map__header rpg-page-header">
-        <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
-        <h1>Campaign</h1>
+        <p className="rpg-map__eyebrow rpg-page-eyebrow">
+          {uiCopy.surfaces.rpgMap.rPG}
+        </p>
+        <h1>{uiCopy.surfaces.rpgMap.campaign}</h1>
       </div>
       <LoadingState
-        description="Building the campaign map from local course progress."
-        title="Loading campaign map"
+        description={
+          uiCopy.surfaces.rpgMap.buildingTheCampaignMapFromLocalCourseProgress
+        }
+        title={uiCopy.surfaces.rpgMap.loadingCampaignMap}
       />
     </section>
   );
@@ -177,8 +182,10 @@ export function RpgMapPage() {
       return (
         <section className="page-section rpg-map">
           <div className="rpg-map__header rpg-page-header">
-            <p className="rpg-map__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Campaign</h1>
+            <p className="rpg-map__eyebrow rpg-page-eyebrow">
+              {uiCopy.surfaces.rpgMap.rPG}
+            </p>
+            <h1>{uiCopy.surfaces.rpgMap.campaign}</h1>
           </div>
           <ErrorState
             action={
@@ -191,11 +198,13 @@ export function RpgMapPage() {
                 }}
                 variant="secondary"
               >
-                Try again
+                {uiCopy.surfaces.rpgMap.tryAgain}
               </RpgButton>
             }
-            description={state.error ?? 'Unknown RPG campaign map error.'}
-            title="Campaign map could not be read"
+            description={
+              state.error ?? uiCopy.surfaces.rpgMap.unknownRPGCampaignMapError
+            }
+            title={uiCopy.surfaces.rpgMap.campaignMapCouldNotBeRead}
           />
         </section>
       );
@@ -211,20 +220,23 @@ export function RpgMapPage() {
       <div className="rpg-map__header rpg-page-header">
         <div>
           <p className="rpg-map__eyebrow rpg-page-eyebrow">
-            Your learning campaign
+            {uiCopy.surfaces.rpgMap.yourLearningCampaign}
           </p>
-          <h1>Campaign</h1>
+          <h1>{uiCopy.surfaces.rpgMap.campaign}</h1>
           <p className="rpg-map__lede rpg-page-lede">
             {`Pick up where you left off, or open any ${unitNoun.lowercase}.`}
           </p>
         </div>
-        <div className="rpg-map__summary" aria-label="Campaign map summary">
+        <div
+          className="rpg-map__summary"
+          aria-label={uiCopy.surfaces.rpgMap.campaignMapSummary}
+        >
           <strong className="rpg-map__completion">
             {`${summary.completionPercent}% complete`}
           </strong>
           <RpgProgressBar
             className="rpg-map__course-progress"
-            label="Required course progress"
+            label={uiCopy.surfaces.rpgMap.requiredCourseProgress}
             showValue={false}
             value={summary.completionPercent}
           />
@@ -242,19 +254,22 @@ export function RpgMapPage() {
 
       {summary.modules.length === 0 ? (
         <RpgEmptyState
-          description="The course could not be found. Reload the app to try again."
+          description={uiCopy.surfaces.rpgMap.theCourseCouldNotBeFoundReloadThe}
           eyebrow="No modules"
-          title="Campaign map is empty"
+          title={uiCopy.surfaces.rpgMap.campaignMapIsEmpty}
         />
       ) : (
         <div className="rpg-map__content">
           <RpgPanel
             className="rpg-map__visual-panel"
             padding="compact"
-            title="Course route"
+            title={uiCopy.surfaces.rpgMap.courseRoute}
             titleAs="h2"
           >
-            <ol className="rpg-map__node-list" aria-label="Campaign map nodes">
+            <ol
+              className="rpg-map__node-list"
+              aria-label={uiCopy.surfaces.rpgMap.campaignMapNodes}
+            >
               {summary.modules.map((module) => {
                 const currentLabel = getCurrentLabel(
                   module,
@@ -436,7 +451,7 @@ export function RpgMapPage() {
                             }
                             size="sm"
                           >
-                            Continue learning
+                            {uiCopy.surfaces.rpgMap.continueLearning}
                           </RpgButton>
                         </div>
                       ) : null}

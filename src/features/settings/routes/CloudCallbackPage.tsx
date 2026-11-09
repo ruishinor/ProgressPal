@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -92,11 +93,18 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
       tabIndex={-1}
     >
       <div className="shell-brand-block">
-        <p className="shell-brand">ProgressPal</p>
-        <h1 className="shell-title">Cloud sign-in</h1>
+        <p className="shell-brand">
+          {uiCopy.surfaces.settingsCloudCallbackPage.progressPal}
+        </p>
+        <h1 className="shell-title">
+          {uiCopy.surfaces.settingsCloudCallbackPage.cloudSignIn}
+        </h1>
       </div>
       {view.kind === 'working' ? (
-        <LoadingState description="Please wait." title="Finishing sign-in" />
+        <LoadingState
+          description={uiCopy.surfaces.settingsCloudCallbackPage.pleaseWait}
+          title={uiCopy.surfaces.settingsCloudCallbackPage.finishingSignIn}
+        />
       ) : view.kind === 'new-password' ? (
         <Card title={newPasswordText.title} titleAs="h2">
           <p className="card__description">{newPasswordText.lead}</p>
@@ -107,7 +115,7 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
               replace
               to={rpgSettingsPath}
             >
-              Open Settings
+              {uiCopy.surfaces.settingsCloudCallbackPage.openSettings}
             </Link>
           </div>
         </Card>
@@ -131,7 +139,7 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
               replace
               to={rpgSettingsPath}
             >
-              Open Settings
+              {uiCopy.surfaces.settingsCloudCallbackPage.openSettings}
             </Link>
           </div>
         </Card>

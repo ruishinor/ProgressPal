@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { RpgProgressBar } from '@/features/rpg/components/RpgProgressBar';
 import type { RpgHubSummary } from '@/features/rpg/model/types';
 
@@ -5,7 +6,7 @@ export function RpgLevelProgress({ xp }: { xp: RpgHubSummary['xpSummary'] }) {
   return (
     <div
       className="rpg-level-progress"
-      aria-label="Hero progression"
+      aria-label={uiCopy.surfaces.rpgRpgLevelProgress.heroProgression}
       role="group"
     >
       <div
@@ -15,7 +16,7 @@ export function RpgLevelProgress({ xp }: { xp: RpgHubSummary['xpSummary'] }) {
         <svg aria-hidden="true" viewBox="0 0 64 76" focusable="false">
           <path d="M32 3 60 13v31c0 12-16 22-28 29C20 66 4 56 4 44V13Z" />
         </svg>
-        <span>Level</span>
+        <span>{uiCopy.surfaces.rpgRpgLevelProgress.level}</span>
         <strong>{xp.level}</strong>
       </div>
       <div className="rpg-level-progress__xp">

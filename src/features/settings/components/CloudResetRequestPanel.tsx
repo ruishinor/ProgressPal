@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useId, useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -98,7 +99,10 @@ export function CloudResetRequestPanel({
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
       <p className="backup-verify__title">{resetRequestText.title}</p>
       <p className="card__description">{resetRequestText.lead}</p>
-      <FormField controlId={emailId} label="Email">
+      <FormField
+        controlId={emailId}
+        label={uiCopy.surfaces.settingsCloudResetRequestPanel.email}
+      >
         {({ inputId }) => (
           <TextInput
             autoComplete="email"

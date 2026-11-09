@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
@@ -66,12 +67,18 @@ export function SessionAssignmentCorrection({
           setOpen(true);
         }}
       >
-        Correct session
+        {uiCopy.surfaces.sessionsSessionAssignmentCorrection.correctSession}
       </Button>
       {message ? <p role="status">{message}</p> : null}
       <Dialog
-        title="Correct session assignment"
-        description="This changes which task the session belongs to. Time, mode, dates, earned XP, and earned achievements stay unchanged."
+        title={
+          uiCopy.surfaces.sessionsSessionAssignmentCorrection
+            .correctSessionAssignment
+        }
+        description={
+          uiCopy.surfaces.sessionsSessionAssignmentCorrection
+            .thisChangesWhichTaskTheSessionBelongsTo
+        }
         isOpen={open}
         onClose={() => {
           if (!inFlight.current) setOpen(false);
@@ -83,7 +90,7 @@ export function SessionAssignmentCorrection({
               variant="secondary"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {uiCopy.surfaces.sessionsSessionAssignmentCorrection.cancel}
             </Button>
             <Button
               disabled={saving || !coordination.canWrite || target === itemId}
@@ -92,7 +99,10 @@ export function SessionAssignmentCorrection({
                 void save();
               }}
             >
-              Save assignment
+              {
+                uiCopy.surfaces.sessionsSessionAssignmentCorrection
+                  .saveAssignment
+              }
             </Button>
           </>
         }

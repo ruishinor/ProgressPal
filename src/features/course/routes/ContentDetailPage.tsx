@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import {
   startTransition,
   useEffect,
@@ -368,9 +369,9 @@ function PreviousSessionNotes({
     .filter((event) => Boolean(event.notes));
 
   return (
-    <Card title="Previous notes from this lecture">
+    <Card title={uiCopy.surfaces.courseDetail.previousNotesFromThisLecture}>
       {notedEvents.length === 0 ? (
-        <p>No notes yet. Save your first session to start a history.</p>
+        <p>{uiCopy.surfaces.courseDetail.noNotesYetSaveYourFirstSessionTo}</p>
       ) : (
         <ol className="lecture-previous-notes">
           {notedEvents.map((event) => (
@@ -391,7 +392,7 @@ function PreviousSessionNotes({
         className="button button--secondary button--md"
         to={getStudySessionsPath(itemId)}
       >
-        View all saved sessions
+        {uiCopy.surfaces.courseDetail.viewAllSavedSessions}
       </Link>
     </Card>
   );
@@ -401,13 +402,17 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
   return (
     <Card
       data-testid="item-guide-card"
-      description="A short, local guide for this task. Reading it does not change your progress."
-      title="How to approach this"
+      description={
+        uiCopy.surfaces.courseDetail.aShortLocalGuideForThisTaskReading
+      }
+      title={uiCopy.surfaces.courseDetail.howToApproachThis}
     >
       <p>{guide.summary}</p>
       {guide.whatToDo && guide.whatToDo.length > 0 ? (
         <div className="course-detail-note">
-          <p className="course-detail-note__label">What to do</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.whatToDo}
+          </p>
           <ul className="course-guide-list">
             {guide.whatToDo.map((step) => (
               <li key={step}>{step}</li>
@@ -417,7 +422,9 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
       ) : null}
       {guide.doneLooksLike && guide.doneLooksLike.length > 0 ? (
         <div className="course-detail-note">
-          <p className="course-detail-note__label">Done looks like</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.doneLooksLike}
+          </p>
           <ul className="course-guide-list">
             {guide.doneLooksLike.map((mark) => (
               <li key={mark}>{mark}</li>
@@ -427,7 +434,9 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
       ) : null}
       {guide.checklist && guide.checklist.length > 0 ? (
         <div className="course-detail-note">
-          <p className="course-detail-note__label">Checklist</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.checklist}
+          </p>
           <ul className="course-guide-list">
             {guide.checklist.map((entry) => (
               <li key={entry}>{entry}</li>
@@ -437,7 +446,9 @@ function ItemGuideCard({ guide }: { guide: ItemGuide }) {
       ) : null}
       {guide.reflectionPrompt ? (
         <div className="course-detail-note">
-          <p className="course-detail-note__label">Reflect</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.reflect}
+          </p>
           <p>{guide.reflectionPrompt}</p>
         </div>
       ) : null}
@@ -580,12 +591,14 @@ export function ContentDetailPage() {
                   className="button button--secondary button--md"
                   to={courseMapPath}
                 >
-                  Back to course map
+                  {uiCopy.surfaces.courseDetail.backToCourseMap}
                 </Link>
               </div>
             }
-            description="This page reads your local catalog and saved progress."
-            title="Course content"
+            description={
+              uiCopy.surfaces.courseDetail.thisPageReadsYourLocalCatalogAndSaved
+            }
+            title={uiCopy.surfaces.courseDetail.courseContent}
           />
           <ErrorState
             action={
@@ -595,13 +608,14 @@ export function ContentDetailPage() {
                 }}
                 variant="secondary"
               >
-                Try again
+                {uiCopy.surfaces.courseDetail.tryAgain}
               </Button>
             }
             description={
-              pageState.error ?? 'Unknown local content-detail error.'
+              pageState.error ??
+              uiCopy.surfaces.courseDetail.unknownLocalContentDetailError
             }
-            title="Course content could not be opened"
+            title={uiCopy.surfaces.courseDetail.courseContentCouldNotBeOpened}
           />
         </section>
       );
@@ -610,12 +624,18 @@ export function ContentDetailPage() {
     return (
       <section className="page-section">
         <PageHeader
-          description="Opening this course task and your saved progress."
-          title="Course content"
+          description={
+            uiCopy.surfaces.courseDetail
+              .openingThisCourseTaskAndYourSavedProgress
+          }
+          title={uiCopy.surfaces.courseDetail.courseContent}
         />
         <LoadingState
-          description="Reading this course task and your saved progress."
-          title="Loading course content"
+          description={
+            uiCopy.surfaces.courseDetail
+              .readingThisCourseTaskAndYourSavedProgress
+          }
+          title={uiCopy.surfaces.courseDetail.loadingCourseContent}
         />
       </section>
     );
@@ -1015,7 +1035,10 @@ export function ContentDetailPage() {
     detail.longFormDetail !== null &&
     logForm !== null ? (
       <Card
-        description="Enter the video timestamps you watched. Duplicate exact ranges are blocked, and overlapping ranges are merged."
+        description={
+          uiCopy.surfaces.courseDetail
+            .enterTheVideoTimestampsYouWatchedDuplicateExact
+        }
         title={getLogCardTitle(detail.item.type)}
         variant={isLecture ? 'accent' : 'default'}
       >
@@ -1028,7 +1051,9 @@ export function ContentDetailPage() {
         >
           {detail.longFormDetail.progress?.summaryLine ? (
             <div className="course-detail-note">
-              <p className="course-detail-note__label">Video progress</p>
+              <p className="course-detail-note__label">
+                {uiCopy.surfaces.courseDetail.videoProgress}
+              </p>
               <p>{detail.longFormDetail.progress.summaryLine}</p>
             </div>
           ) : null}
@@ -1059,7 +1084,7 @@ export function ContentDetailPage() {
               }}
               variant="secondary"
             >
-              Use next segment
+              {uiCopy.surfaces.courseDetail.useNextSegment}
             </Button>
             <Button
               onClick={() => {
@@ -1081,7 +1106,7 @@ export function ContentDetailPage() {
               }}
               variant="quiet"
             >
-              +10 min
+              {uiCopy.surfaces.courseDetail.text10Min}
             </Button>
             <Button
               onClick={() => {
@@ -1103,14 +1128,14 @@ export function ContentDetailPage() {
               }}
               variant="quiet"
             >
-              +20 min
+              {uiCopy.surfaces.courseDetail.text20Min}
             </Button>
           </div>
           <div className="form-grid">
             <FormField
               controlId="content-log-start"
-              description="Use m:ss or h:mm:ss."
-              label="Started at"
+              description={uiCopy.surfaces.courseDetail.useMSsOrHMmSs}
+              label={uiCopy.surfaces.courseDetail.startedAt}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -1136,8 +1161,11 @@ export function ContentDetailPage() {
             </FormField>
             <FormField
               controlId="content-log-end"
-              description="The saved range cannot exceed the asset duration."
-              label="Stopped at"
+              description={
+                uiCopy.surfaces.courseDetail
+                  .theSavedRangeCannotExceedTheAssetDuration
+              }
+              label={uiCopy.surfaces.courseDetail.stoppedAt}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -1164,8 +1192,10 @@ export function ContentDetailPage() {
           </div>
           <FormField
             controlId="content-log-notes"
-            description="Optional note for this session."
-            label="Session Notes"
+            description={
+              uiCopy.surfaces.courseDetail.optionalNoteForThisSession
+            }
+            label={uiCopy.surfaces.courseDetail.sessionNotes}
           >
             {({ describedBy, inputId, invalid }) => (
               <TextArea
@@ -1182,26 +1212,33 @@ export function ContentDetailPage() {
                         },
                   )
                 }
-                placeholder="What clicked, what confused you, or where you left off."
+                placeholder={
+                  uiCopy.surfaces.courseDetail
+                    .whatClickedWhatConfusedYouOrWhereYou
+                }
                 value={logForm.notes}
               />
             )}
           </FormField>
           <div className="course-detail-note">
-            <p className="course-detail-note__label">Watched</p>
+            <p className="course-detail-note__label">
+              {uiCopy.surfaces.courseDetail.watched}
+            </p>
             <p>
               {watchedRangeSeconds === null
-                ? 'Enter a valid start and end timestamp to preview the range.'
+                ? uiCopy.surfaces.courseDetail.enterAValidStartAndEndTimestampTo
                 : `${formatLoggedMinutes(watchedRangeSeconds)} will be logged.`}
             </p>
           </div>
           <details className="form-details">
-            <summary>More details (energy, stop reason)</summary>
+            <summary>
+              {uiCopy.surfaces.courseDetail.moreDetailsEnergyStopReason}
+            </summary>
             <div className="form-details__content">
               <div className="form-grid">
                 <FormField
                   controlId="content-log-energy-before"
-                  label="Energy before"
+                  label={uiCopy.surfaces.courseDetail.energyBefore}
                   required
                 >
                   {({ describedBy, inputId, invalid }) => (
@@ -1226,7 +1263,7 @@ export function ContentDetailPage() {
                 </FormField>
                 <FormField
                   controlId="content-log-energy-after"
-                  label="Energy after"
+                  label={uiCopy.surfaces.courseDetail.energyAfter}
                   required
                 >
                   {({ describedBy, inputId, invalid }) => (
@@ -1252,7 +1289,7 @@ export function ContentDetailPage() {
               </div>
               <FormField
                 controlId="content-log-stop-reason"
-                label="Why did you stop?"
+                label={uiCopy.surfaces.courseDetail.whyDidYouStop}
                 required
               >
                 {({ describedBy, inputId, invalid }) => (
@@ -1290,7 +1327,7 @@ export function ContentDetailPage() {
               size="lg"
               type="submit"
             >
-              Save session
+              {uiCopy.surfaces.courseDetail.saveSession}
             </Button>
           </div>
         </form>
@@ -1300,16 +1337,20 @@ export function ContentDetailPage() {
   const videoSegmentsSection =
     detail.asset !== null && detail.longFormDetail !== null ? (
       <Card
-        description="This shows only the video time you saved. It does not guess what you watched."
-        title="Video segments"
+        description={
+          uiCopy.surfaces.courseDetail.thisShowsOnlyTheVideoTimeYouSaved
+        }
+        title={uiCopy.surfaces.courseDetail.videoSegments}
       >
         {isLecture ? (
           <div className="course-detail-note">
-            <p className="course-detail-note__label">Progress</p>
+            <p className="course-detail-note__label">
+              {uiCopy.surfaces.courseDetail.progress}
+            </p>
             <p>
               {nextSegment !== null
                 ? `Next: ${nextSegment.label}`
-                : 'All segments logged'}
+                : uiCopy.surfaces.courseDetail.allSegmentsLogged}
               {totalSegmentCount > 0
                 ? ` · ${completedSegmentCount} of ${totalSegmentCount} complete`
                 : null}
@@ -1319,9 +1360,9 @@ export function ContentDetailPage() {
         <SliceProgressBar
           helperText={
             detail.longFormDetail.progress?.summaryLine ??
-            'No video progress saved yet.'
+            uiCopy.surfaces.courseDetail.noVideoProgressSavedYet
           }
-          label="Video progress"
+          label={uiCopy.surfaces.courseDetail.videoProgress}
           segments={detail.longFormDetail.slices.map((slice) => ({
             completion: slice.completionPercent / 100,
             id: slice.id,
@@ -1335,7 +1376,9 @@ export function ContentDetailPage() {
           </Badge>
           <Badge tone="accent">
             {detail.longFormDetail.eventCount} saved event
-            {detail.longFormDetail.eventCount === 1 ? '' : 's'}
+            {detail.longFormDetail.eventCount === 1
+              ? ''
+              : uiCopy.surfaces.courseDetail.s}
           </Badge>
           {detail.longFormDetail.lastLoggedRangeLabel ? (
             <Badge tone="neutral">
@@ -1356,7 +1399,9 @@ export function ContentDetailPage() {
               }}
               variant="quiet"
             >
-              {isSegmentsOpen ? 'Hide all segments' : 'Show all segments'}
+              {isSegmentsOpen
+                ? uiCopy.surfaces.courseDetail.hideAllSegments
+                : uiCopy.surfaces.courseDetail.showAllSegments}
             </Button>
           </div>
         ) : null}
@@ -1367,7 +1412,11 @@ export function ContentDetailPage() {
                 <div className="slice-detail-list__copy">
                   <div className="slice-detail-list__title-row">
                     <p className="slice-detail-list__title">{slice.label}</p>
-                    {slice.isNext ? <Badge tone="accent">Next</Badge> : null}
+                    {slice.isNext ? (
+                      <Badge tone="accent">
+                        {uiCopy.surfaces.courseDetail.next}
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="course-item-row__eyebrow">
                     {formatMediaTimestamp(slice.startSecond)}-
@@ -1391,8 +1440,11 @@ export function ContentDetailPage() {
 
   const progressFormSection = (
     <Card
-      description="Saved here. Updates your progress, XP, achievements, and dashboard."
-      title="Your progress"
+      description={
+        uiCopy.surfaces.courseDetail
+          .savedHereUpdatesYourProgressXPAchievementsAnd
+      }
+      title={uiCopy.surfaces.courseDetail.yourProgress}
     >
       <form
         className="course-detail-form"
@@ -1405,7 +1457,7 @@ export function ContentDetailPage() {
           <FormField
             controlId="course-detail-status"
             error={progressForm?.errors.status}
-            label="Status"
+            label={uiCopy.surfaces.courseDetail.status}
             required
           >
             {({ describedBy, inputId, invalid }) => (
@@ -1437,9 +1489,11 @@ export function ContentDetailPage() {
           {!isLecture ? (
             <FormField
               controlId="course-detail-confidence"
-              description="0 means unset. 5 means very sure."
+              description={
+                uiCopy.surfaces.courseDetail.text0MeansUnset5MeansVerySure
+              }
               error={progressForm?.errors.confidence}
-              label="How sure are you?"
+              label={uiCopy.surfaces.courseDetail.howSureAreYou}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -1469,8 +1523,11 @@ export function ContentDetailPage() {
         </div>
         <FormField
           controlId="course-detail-notes"
-          description="Use notes for friction, blockers, or what changed."
-          label="Notes"
+          description={
+            uiCopy.surfaces.courseDetail
+              .useNotesForFrictionBlockersOrWhatChanged
+          }
+          label={uiCopy.surfaces.courseDetail.notes}
         >
           {({ describedBy, inputId, invalid }) => (
             <TextArea
@@ -1490,7 +1547,7 @@ export function ContentDetailPage() {
                       },
                 )
               }
-              placeholder="Local notes about this task."
+              placeholder={uiCopy.surfaces.courseDetail.localNotesAboutThisTask}
               value={progressForm?.values.notes ?? ''}
             />
           )}
@@ -1498,9 +1555,11 @@ export function ContentDetailPage() {
         {!isLecture ? (
           <FormField
             controlId="course-detail-evidence"
-            description="Required when a problem set or lab is marked accepted."
+            description={
+              uiCopy.surfaces.courseDetail.requiredWhenAProblemSetOrLabIs
+            }
             error={progressForm?.errors.evidenceText}
-            label="Submission note"
+            label={uiCopy.surfaces.courseDetail.submissionNote}
           >
             {({ describedBy, inputId, invalid }) => (
               <TextArea
@@ -1520,7 +1579,10 @@ export function ContentDetailPage() {
                         },
                   )
                 }
-                placeholder="Example: submitted with submit50, or completed in the gradebook."
+                placeholder={
+                  uiCopy.surfaces.courseDetail
+                    .exampleSubmittedWithSubmit50OrCompletedInThe
+                }
                 value={progressForm?.values.evidenceText ?? ''}
               />
             )}
@@ -1538,7 +1600,7 @@ export function ContentDetailPage() {
             size="lg"
             type="submit"
           >
-            Save progress
+            {uiCopy.surfaces.courseDetail.saveProgress}
           </Button>
         </div>
       </form>
@@ -1549,23 +1611,23 @@ export function ContentDetailPage() {
     <Card title={getItemContextTitle(detail.item.type)}>
       <dl className="course-map-stat-list">
         <div>
-          <dt>Unit</dt>
+          <dt>{uiCopy.surfaces.courseDetail.unit}</dt>
           <dd>{detail.unit.title}</dd>
         </div>
         <div>
-          <dt>Type</dt>
+          <dt>{uiCopy.surfaces.courseDetail.type}</dt>
           <dd>{detailView.typeLabel}</dd>
         </div>
         <div>
-          <dt>Planned time</dt>
+          <dt>{uiCopy.surfaces.courseDetail.plannedTime}</dt>
           <dd>{detailView.estimatedMinutesLabel}</dd>
         </div>
         {!isLecture ? (
           <div>
-            <dt>Content type</dt>
+            <dt>{uiCopy.surfaces.courseDetail.contentType}</dt>
             <dd>
               {detail.asset === null
-                ? 'Not applicable'
+                ? uiCopy.surfaces.courseDetail.notApplicable
                 : getAssetSummaryDescription(detail.asset)}
             </dd>
           </div>
@@ -1573,7 +1635,9 @@ export function ContentDetailPage() {
       </dl>
       {detail.longFormDetail?.progress?.summaryLine && !isLecture ? (
         <div className="course-detail-note">
-          <p className="course-detail-note__label">Saved progress summary</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.savedProgressSummary}
+          </p>
           <p>{detail.longFormDetail.progress.summaryLine}</p>
         </div>
       ) : null}
@@ -1601,7 +1665,8 @@ export function ContentDetailPage() {
     <Card
       description={
         lessonCompletionNote ??
-        'Saved here. Updates your progress, XP, achievements, and dashboard.'
+        uiCopy.surfaces.courseDetail
+          .savedHereUpdatesYourProgressXPAchievementsAnd
       }
       title={getProgressCardTitle(detail.item.type)}
       variant="accent"
@@ -1616,7 +1681,7 @@ export function ContentDetailPage() {
         <FormField
           controlId="course-detail-status"
           error={progressForm?.errors.status}
-          label="Progress"
+          label={uiCopy.surfaces.courseDetail.progress}
           required
         >
           {({ describedBy, inputId, invalid }) => (
@@ -1646,8 +1711,11 @@ export function ContentDetailPage() {
         </FormField>
         <FormField
           controlId="course-detail-notes"
-          description="Use notes for friction, blockers, or what changed."
-          label="Notes"
+          description={
+            uiCopy.surfaces.courseDetail
+              .useNotesForFrictionBlockersOrWhatChanged
+          }
+          label={uiCopy.surfaces.courseDetail.notes}
         >
           {({ describedBy, inputId, invalid }) => (
             <TextArea
@@ -1667,19 +1735,23 @@ export function ContentDetailPage() {
                       },
                 )
               }
-              placeholder="What you worked on, where you got stuck, or what you figured out."
+              placeholder={
+                uiCopy.surfaces.courseDetail.whatYouWorkedOnWhereYouGotStuck
+              }
               value={progressForm?.values.notes ?? ''}
             />
           )}
         </FormField>
         <details className="form-details">
-          <summary>More details</summary>
+          <summary>{uiCopy.surfaces.courseDetail.moreDetails}</summary>
           <div className="form-details__content">
             <FormField
               controlId="course-detail-confidence"
-              description="0 means unset. 5 means very sure."
+              description={
+                uiCopy.surfaces.courseDetail.text0MeansUnset5MeansVerySure
+              }
               error={progressForm?.errors.confidence}
-              label="How sure are you?"
+              label={uiCopy.surfaces.courseDetail.howSureAreYou}
               required
             >
               {({ describedBy, inputId, invalid }) => (
@@ -1719,7 +1791,7 @@ export function ContentDetailPage() {
             size="lg"
             type="submit"
           >
-            Save progress
+            {uiCopy.surfaces.courseDetail.saveProgress}
           </Button>
         </div>
       </form>
@@ -1732,16 +1804,20 @@ export function ContentDetailPage() {
         aria-live="polite"
         role="status"
         title={
-          progressSaveResult.isUpdate ? 'Progress updated' : 'Progress saved'
+          progressSaveResult.isUpdate
+            ? uiCopy.surfaces.courseDetail.progressUpdated
+            : uiCopy.surfaces.courseDetail.progressSaved
         }
         variant="accent"
       >
         <div className="course-detail-note">
-          <p className="course-detail-note__label">What was saved</p>
+          <p className="course-detail-note__label">
+            {uiCopy.surfaces.courseDetail.whatWasSaved}
+          </p>
           <p>
             {progressSaveResult.isUpdate
-              ? 'Progress updated'
-              : 'Progress saved'}
+              ? uiCopy.surfaces.courseDetail.progressUpdated
+              : uiCopy.surfaces.courseDetail.progressSaved}
           </p>
           {progressSaveResult.xpAdded > 0 ? (
             <p>
@@ -1753,15 +1829,15 @@ export function ContentDetailPage() {
           ) : null}
         </div>
         <p>
-          <strong>What&apos;s next?</strong> Check your course map to see what
-          comes next.
+          <strong>{uiCopy.surfaces.courseDetail.whatSNext}</strong> Check your
+          course map to see what comes next.
         </p>
         <div className="inline-actions">
           <Link
             className="button button--secondary button--md"
             to={courseMapPath}
           >
-            Back to course map
+            {uiCopy.surfaces.courseDetail.backToCourseMap}
           </Link>
           <Button
             onClick={() => {
@@ -1769,7 +1845,7 @@ export function ContentDetailPage() {
             }}
             variant="quiet"
           >
-            Dismiss
+            {uiCopy.surfaces.courseDetail.dismiss}
           </Button>
         </div>
       </Card>
@@ -1788,7 +1864,7 @@ export function ContentDetailPage() {
             className="button button--secondary button--md"
             to={courseMapPath}
           >
-            Back to course map
+            {uiCopy.surfaces.courseDetail.backToCourseMap}
           </Link>
         </div>
         <LessonView
@@ -1826,17 +1902,20 @@ export function ContentDetailPage() {
                 className="button button--secondary button--md"
                 to={courseMapPath}
               >
-                Back to course map
+                {uiCopy.surfaces.courseDetail.backToCourseMap}
               </Link>
               <Link
                 className="button button--secondary button--md"
                 to={getStudySessionsPath(detail.item.id)}
               >
-                Log a study session
+                {uiCopy.surfaces.courseDetail.logAStudySession}
               </Link>
             </div>
           }
-          description="Save your progress here. Updates your course map, dashboard, XP, and achievements."
+          description={
+            uiCopy.surfaces.courseDetail
+              .saveYourProgressHereUpdatesYourCourseMap
+          }
           eyebrow={detailView.typeLabel}
           meta={
             <>
@@ -1845,7 +1924,9 @@ export function ContentDetailPage() {
               </StatusPill>
               <Badge tone="accent">{detailView.typeLabel}</Badge>
               <Badge tone={detailView.required ? 'accent' : 'neutral'}>
-                {detailView.required ? 'Required' : 'Optional'}
+                {detailView.required
+                  ? uiCopy.surfaces.courseDetail.required
+                  : uiCopy.surfaces.courseDetail.optional}
               </Badge>
               <Badge tone="neutral">{detailView.estimatedMinutesLabel}</Badge>
             </>
@@ -1858,15 +1939,17 @@ export function ContentDetailPage() {
           <Card
             aria-live="polite"
             role="status"
-            title="Session saved"
+            title={uiCopy.surfaces.courseDetail.sessionSaved}
             variant="accent"
           >
             <div className="course-detail-note">
-              <p className="course-detail-note__label">What was logged</p>
+              <p className="course-detail-note__label">
+                {uiCopy.surfaces.courseDetail.whatWasLogged}
+              </p>
               <p>
                 {saveResult.minutesWatched > 0
                   ? `${saveResult.minutesWatched} min added`
-                  : 'Session recorded'}
+                  : uiCopy.surfaces.courseDetail.sessionRecorded}
               </p>
               {saveResult.xpAdded > 0 ? (
                 <p>
@@ -1878,15 +1961,14 @@ export function ContentDetailPage() {
               ) : null}
             </div>
             <p>
-              Ready to log your next segment, or save your overall progress
-              below.
+              {uiCopy.surfaces.courseDetail.readyToLogYourNextSegmentOrSave}
             </p>
             <div className="inline-actions">
               <Link
                 className="button button--secondary button--md"
                 to={courseMapPath}
               >
-                Course map
+                {uiCopy.surfaces.courseDetail.courseMap}
               </Link>
               <Button
                 onClick={() => {
@@ -1894,7 +1976,7 @@ export function ContentDetailPage() {
                 }}
                 variant="quiet"
               >
-                Dismiss
+                {uiCopy.surfaces.courseDetail.dismiss}
               </Button>
             </div>
           </Card>
@@ -1926,13 +2008,13 @@ export function ContentDetailPage() {
               className="button button--secondary button--md"
               to={courseMapPath}
             >
-              Back to course map
+              {uiCopy.surfaces.courseDetail.backToCourseMap}
             </Link>
             <Link
               className="button button--secondary button--md"
               to={getStudySessionsPath(detail.item.id)}
             >
-              Log a study session
+              {uiCopy.surfaces.courseDetail.logAStudySession}
             </Link>
             {cs50Link !== null ? (
               <a
@@ -1946,7 +2028,9 @@ export function ContentDetailPage() {
             ) : null}
           </div>
         }
-        description="Save your progress here. Updates your course map, XP, and achievements."
+        description={
+          uiCopy.surfaces.courseDetail.saveYourProgressHereUpdatesYourCourseMap2
+        }
         eyebrow={detailView.typeLabel}
         meta={
           <>
@@ -1955,7 +2039,9 @@ export function ContentDetailPage() {
             </StatusPill>
             <Badge tone="accent">{detailView.typeLabel}</Badge>
             <Badge tone={detailView.required ? 'accent' : 'neutral'}>
-              {detailView.required ? 'Required' : 'Optional'}
+              {detailView.required
+                ? uiCopy.surfaces.courseDetail.required
+                : uiCopy.surfaces.courseDetail.optional}
             </Badge>
             <Badge tone="neutral">{detailView.estimatedMinutesLabel}</Badge>
           </>
@@ -1964,10 +2050,10 @@ export function ContentDetailPage() {
       />
       {guideCardSection}
       {detail.progressEntry !== null && progressSaveResult === null ? (
-        <Card title="Saved progress">
+        <Card title={uiCopy.surfaces.courseDetail.savedProgress}>
           <div className="course-detail-note">
             <p className="course-detail-note__label">
-              {'Saved '}
+              {uiCopy.surfaces.courseDetail.saved}
               {new Date(detail.progressEntry.updatedAt).toLocaleDateString()}
             </p>
             <p>{detailView.statusLabel}</p>
@@ -1976,22 +2062,24 @@ export function ContentDetailPage() {
             ) : null}
             {detail.progressEntry.evidenceText ? (
               <p>
-                <strong>Submission note:</strong>{' '}
+                <strong>{uiCopy.surfaces.courseDetail.submissionNote2}</strong>{' '}
                 {detail.progressEntry.evidenceText}
               </p>
             ) : null}
           </div>
-          <p>Edit the fields below to save a correction.</p>
+          <p>
+            {uiCopy.surfaces.courseDetail.editTheFieldsBelowToSaveACorrection}
+          </p>
         </Card>
       ) : null}
       {progressCard}
       {showSubmissionCard ? (
-        <Card title="Submission">
+        <Card title={uiCopy.surfaces.courseDetail.submission}>
           <FormField
             controlId="course-detail-evidence"
-            description="Where you submitted this work."
+            description={uiCopy.surfaces.courseDetail.whereYouSubmittedThisWork}
             error={progressForm?.errors.evidenceText}
-            label="Where did you submit it?"
+            label={uiCopy.surfaces.courseDetail.whereDidYouSubmitIt}
           >
             {({ describedBy, inputId, invalid }) => (
               <TextArea
@@ -2011,7 +2099,10 @@ export function ContentDetailPage() {
                         },
                   )
                 }
-                placeholder="Example: submitted with submit50, or completed in the gradebook."
+                placeholder={
+                  uiCopy.surfaces.courseDetail
+                    .exampleSubmittedWithSubmit50OrCompletedInThe
+                }
                 value={progressForm?.values.evidenceText ?? ''}
               />
             )}

@@ -1,3 +1,4 @@
+import uiCopy from '@/ui-copy/interface.json';
 import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
@@ -39,8 +40,11 @@ export function RpgRouteShell() {
         <div className="rpg-shell__frame">
           <main className="rpg-shell__main">
             <LoadingState
-              description="Opening local data stores and reading the learner profile."
-              title="Preparing RPG"
+              description={
+                uiCopy.surfaces.rpgRouteShell
+                  .openingLocalDataStoresAndReadingTheLearner
+              }
+              title={uiCopy.surfaces.rpgRouteShell.preparingRPG}
             />
           </main>
         </div>
@@ -65,11 +69,13 @@ export function RpgRouteShell() {
                     void refresh();
                   }}
                 >
-                  Retry local data load
+                  {uiCopy.surfaces.rpgRouteShell.retryLocalDataLoad}
                 </Button>
               }
-              description={error ?? 'Local data could not be loaded.'}
-              title="RPG startup failed"
+              description={
+                error ?? uiCopy.surfaces.rpgRouteShell.localDataCouldNotBeLoaded
+              }
+              title={uiCopy.surfaces.rpgRouteShell.rPGStartupFailed}
             />
             {isLocalCoordinationRevisionExhausted(coordination) ? (
               <CoordinationRepairControl
