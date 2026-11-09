@@ -493,7 +493,7 @@ export const gitLessons = [
         id: 'GIT-M01-E07',
         type: 'reflect',
         prompt:
-          'Skriv en kort egenrapport: Hva fikk du gjort i den virkelige øvingsmappen, hva viste at bare huskelisten ble registrert, og hva lå igjen? Fortell også hvis noe ikke lyktes eller du brukte hjelp. Du kan skrive en delvis gjennomføring. Ingen personlige stier eller sensitive data. Dette lagrer din beskrivelse; det bedømmes ikke som riktig eller som bekreftet praktisk kompetanse.',
+          'Skriv en kort egenrapport: Hva fikk du gjort i den virkelige øvingsmappen, hva viste at bare huskelisten ble registrert, og hva lå igjen? Fortell også hvis noe ikke lyktes eller du brukte hjelp. Du kan skrive en delvis gjennomføring. Ingen personlige stier eller sensitive data.',
         choices: null,
         hints: [],
       },

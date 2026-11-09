@@ -391,7 +391,7 @@ export const gitM05Lessons = [
       ),
       reflect(
         'GIT-M05-E05',
-        'Forklar med egne ord hva mappene `utvikler`, `gjennomgang` og `felles.git` brukes til. Noter også om opprettelsen stoppet og hva du da undersøkte. Dette er egenrapportering; ProgressPal kontrollerer ikke øvingsmappen.',
+        'Forklar med egne ord hva mappene `utvikler`, `gjennomgang` og `felles.git` brukes til. Noter også om opprettelsen stoppet og hva du da undersøkte.',
       ),
     ],
   },
@@ -915,7 +915,7 @@ export const gitM05Lessons = [
       ),
       reflect(
         'GIT-M05-E22',
-        'Skriv en kort, selvstendig beslutning: problem og avgrensning, head/base, hva diffen viser, hvilken review-kommentar som krever oppfølging, relevante kontroller, hvorfor du vil merge eller vente, og hva du ville kontrollert etterpå. Skill lokal Git-øving fra ekte GitHub-PR. Dette er egenrapportering, ikke teknisk eller menneskelig sertifisering.',
+        'Skriv en kort, selvstendig beslutning: problem og avgrensning, head/base, hva diffen viser, hvilken review-kommentar som krever oppfølging, relevante kontroller, hvorfor du vil merge eller vente, og hva du ville kontrollert etterpå. Skill lokal Git-øving fra ekte GitHub-PR.',
       ),
       text(
         '### Videre til M06\n\nDu kan nå forklare hvordan utviklere foreslår, undersøker, forbedrer og integrerer endringer. Men hva gjør du dersom du oppdager en feil før commit, etter commit eller etter deling? M06 handler om å undersøke situasjonen først og velge trygg gjenoppretting. `restore`, `revert`, `reset`, `stash` og `reflog` kommer der – vi bruker dem ikke som snarveier i M05.',

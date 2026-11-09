@@ -1,21 +1,48 @@
-MIT License
+ ProgressPal — Proprietary Source License
 
-Copyright (c) 2026 Alexander Hjelvik Holf
+Copyright © 2026 Alexander Hjelvik Holf. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the “Software”), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ 1. Ownership and scope
+ProgressPal is independently developed software. Except where otherwise stated, the original source code, documentation, designs, and other copyrightable materials are protected by copyright.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+This license applies to material that the copyright holder is legally entitled to license under these terms. It does not supersede existing third-party licenses or rights previously granted under earlier licenses.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ 2. Limited permission for review and development
+Permission is granted to view, inspect, clone, and run the repository locally solely for the following purposes:
+
+- Evaluating ProgressPal.
+- Reviewing its code, design, functionality, accessibility, and security.
+- Performing local testing and analysis.
+- Developing and proposing contributions intended for inclusion in ProgressPal.
+- Using automated development and code-review tools for these purposes.
+
+All copyright notices and existing attribution must be preserved.
+
+This limited permission does not authorize redistribution, commercial exploitation, publication of modified versions, public deployment, or incorporation into other software products.
+Forking and other uses expressly permitted by GitHub's Terms of Service remain subject to those terms.
+
+ 3. Restrictions
+Except where explicitly permitted by this license, applicable law, previously granted licenses, or written authorization from the copyright holder, no permission is granted to:
+
+- Redistribute or republish ProgressPal or substantial portions of its protected materials.
+- Sell, sublicense, or commercially exploit the software.
+- Incorporate protected materials into another application, service, or product.
+- Publish or distribute modified or derivative versions.
+- Remove or misrepresent copyright notices, ownership information, or attribution.
+
+Additional permissions may be requested from the copyright holder.
+
+ 4. Third-party materials and contributions
+Third-party software, libraries, assets, educational materials, and trademarks remain subject to their respective licenses and ownership rights.
+
+Nothing in this document transfers ownership of third-party contributions to the ProgressPal copyright holder. Acceptance and distribution of externally contributed material may require separate licensing permission.
+
+ 5. Disclaimer of warranty
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.
+
+THE COPYRIGHT HOLDER SHALL NOT BE LIABLE FOR DAMAGES ARISING FROM USE OF THE SOFTWARE, EXCEPT WHERE SUCH LIABILITY CANNOT LAWFULLY BE EXCLUDED.
+
+ 6. Additional permissions
+For authorization beyond the permissions explicitly granted here, contact the ProgressPal repository owner.
+
+Repository: https://github.com/ruishinor/ProgressPal
