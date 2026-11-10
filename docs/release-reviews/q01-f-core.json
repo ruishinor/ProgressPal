@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6; separate implementation reviewer; prior authoring contributor",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "7ce4927bf668714ef1061ffdc7f92aac46162a9e",
+    "payloadTree": "6af73b186ae0efe2c826fae6ccfdf97ab28da5c5",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,8 @@
       "Compared full before/after M01, M02 and programme index JSON structures.",
       "M01 changes only the shared source SHA. M02 changes the intended teaching, explanation and feedback fields.",
       "Programme index changes source identity, O06 time estimate and four exercise content hashes only.",
-      "Implementer reports 60 existing tests, two targeted integration probes, Python checks and production build passing. Not independently rerun."
+      "Implementer reports 60 existing tests, two targeted integration probes, Python checks and production build passing. Not independently rerun.",
+      "Q01 follow-up: three stale test expectations aligned with the verified canonical source and required lesson-minute total. Owner-executed focused Vitest run: 22/22 PASS. Original reviewer also supplied the correction instructions; this is not claimed as a separate external review."
     ]
   },
   "adversarialFindings": [
