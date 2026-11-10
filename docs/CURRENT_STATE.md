@@ -30,6 +30,46 @@ produksjonsalias er ikke verifisert for denne kandidaten. En senere
 implementerings- og releaseoppføring må bruke faktiske SHA-er og egne
 observasjoner; ingen historisk grønn gate gjelder automatisk for denne diffen.
 
+**Q01-F-CORE — PASS local, 2026-11-10.** Utgangspunkt `2e6e37c30bb3b62de3269ecd15c56ff8d6ffb38d`.
+Kanonisk pilot `a6bb3ce185abbe2350839f099152c611df4996d449a9f6149fa7e30d6a4a5fe1` (1 477 793 byte).
+F-01, F-02, F-03 og F-06 er implementert i `m02_b.js` og `m02_c.js`.
+Oppfølgingen delte L07-undervisningen i fire meningsfulle blokker. L07 har
+igjen ti blokker, og `m02_missions.js` er identisk med utgangspunktet.
+Alle 35 O06-posisjoner samsvarer med gammel rekkefølge og er innenfor
+grensene. O06 har et regenerert estimat på 115 minutter, tidligere 110.
+Fire syntetiske bokmerker fra gammel sekvens traff riktig rendret innhold
+i begge fasene, fra det tidligere fjernede blokkområdet og videre.
+
+Eksporten oppdaterer `catalogue.json`, `offline.json`,
+`evaluator-vectors.json`, `source-ledger.json` og de tre hashadresserte
+filene `index.946a1192b215f95b.json`,
+`s1-m01.0f0b4dbb45000f71.json` og
+`s1-m02.0413c350bfea9d4a.json`.
+Eksportørens kildepinne og den eksisterende innholdstestens forventede
+kildeidentitet er oppdatert. Kanoniske genererte pilotfiler og elevvisning
+er synkronisert. M01-innhold og evaluatorvektorer er uendret utover felles
+kildehash. Innholdsversjon 4 og evaluatorkontrakt 1 er uendret.
+
+De fire oppgavene har samme ID, fasit, evaluering og obligatoriske
+øvingsstatus. Ingen er modulsjekkporter. Gamle og nye bindinger
+(SHA-256-prefiks) er `P05-E02` `404c6ffc` → `d8a6da4f`,
+`P06-E01` `5f055be2` → `cd8482ec`, `P06-E04` `d39c4585` →
+`b986d8da` og `P07-E01` `2e22bc32` → `b6789372`.
+Den etablerte hashkontrakten beholder de gamle radene som lesbar historikk.
+De teller ikke som aktuell øving eller mestring. En ny korrekt besvarelse
+teller igjen. Syntetiske data med alle fire gamle bindinger viste uendret
+manuell fullføring, modulsjekk og modulstatus. Beregning av nye økt- og
+modulbonuser krever aktuelle svar på obligatoriske øvinger. Allerede
+opptjente transaksjoner ble bevart, og nye korrekte forsøk ga ingen doble
+oppgave- eller bonusutbetalinger. Ingen migrering var nødvendig.
+
+Verifisert lokalt med 60 eksisterende tester og to målrettede
+integrasjonsprober, sju Python-kontroller, kanonisk eksport- og
+rendringskontroll, typesjekk, endret-fil lint og format, produksjonsbygg
+og buntbudsjett. Den upubliserte kandidaten er klar for den eksisterende
+releaseprosessen. Uavhengig gjennomgang, hosted sertifisering og
+produksjonsverifisering gjenstår. Ingen nettleser-E2E ble kjørt.
+
 ## Historiske hendelser (ikke aktive oppdrag)
 
 **2026-11-05 Pathways Git M03 — historisk kandidatstatus.**

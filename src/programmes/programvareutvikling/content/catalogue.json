@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "706b110504135b4bb03de65bcd4593793d51902f5729c541955e1000085c3fac",
+  "sourceSha256": "a6bb3ce185abbe2350839f099152c611df4996d449a9f6149fa7e30d6a4a5fe1",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -180,7 +180,7 @@
           "itemId": "s1-m02-o06",
           "surface": "mission",
           "title": "Pen utskrift og = eller ==",
-          "minutes": 110,
+          "minutes": 115,
           "optional": false,
           "order": 5
         },
@@ -546,20 +546,20 @@
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.df8eb7c92c1803ea.json",
-      "sha256": "df8eb7c92c1803eac70a81b7af9942199830890825cce55eb6ab1668026eedea",
+      "path": "content/programvareutvikling/index.946a1192b215f95b.json",
+      "sha256": "946a1192b215f95bfdedf2a02800a7a96f059659affc623a391228949f8f46c3",
       "bytes": 197992
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.b4476bd60c2b6626.json",
-        "sha256": "b4476bd60c2b6626e61e47c75af779ffbcc0bc073a0c6086ebb785729e387be4",
+        "path": "content/programvareutvikling/s1-m01.0f0b4dbb45000f71.json",
+        "sha256": "0f0b4dbb45000f7183345dd98db75935248f13864b2565c773685f0324be3a2c",
         "bytes": 280245
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.a24b14c0132b0f4c.json",
-        "sha256": "a24b14c0132b0f4ce2ab8dab8e8994cb1f0e33cfa58e02482446fca32b3b3d18",
-        "bytes": 266152
+        "path": "content/programvareutvikling/s1-m02.0413c350bfea9d4a.json",
+        "sha256": "0413c350bfea9d4a3b5020efddec5461764c05cf5e1799ae3408e029cb8f5196",
+        "bytes": 266679
       }
     }
   }

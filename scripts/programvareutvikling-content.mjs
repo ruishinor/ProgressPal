@@ -55,7 +55,7 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  * wording, copy and paste, quotation marks and `print()` arguments, first
  * wrong answers that no longer print the answer, Task 6 and Task 7).
  *
- * The pin is the pilot as the authoring pipeline generated it on 2026-10-10.
+ * The pin includes the 2026-11-10 Q01-F-CORE corrections to S1-M02.
  * Since 2026-10-09 that file also carries S1-M03, an authoring candidate under
  * independent review that is not product content; see PRODUCT_MODULE_IDS.
  * The previous pin (4334588c…, 1,125,575 bytes) held S1-M01 and S1-M02 only;
@@ -63,8 +63,8 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: '706b110504135b4bb03de65bcd4593793d51902f5729c541955e1000085c3fac',
-  bytes: 1_477_510,
+  sha256: 'a6bb3ce185abbe2350839f099152c611df4996d449a9f6149fa7e30d6a4a5fe1',
+  bytes: 1_477_793,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';

@@ -18,7 +18,7 @@ import { p2Index as manifest } from './p2Content';
  */
 
 const pilotSha256 =
-  '706b110504135b4bb03de65bcd4593793d51902f5729c541955e1000085c3fac';
+  'a6bb3ce185abbe2350839f099152c611df4996d449a9f6149fa7e30d6a4a5fe1';
 
 const definition: ProgrammeDefinition = programvareutviklingDefinition;
 const units = definition.catalogue.units;
@@ -129,7 +129,7 @@ describe('registration', () => {
 describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () => {
   it('binds the snapshot to the authoritative pilot source hash', () => {
     expect(manifest.source.sha256).toBe(pilotSha256);
-    expect(manifest.source.bytes).toBe(1_477_510);
+    expect(manifest.source.bytes).toBe(1_477_793);
     expect(manifest.programmeId).toBe('programvareutvikling');
   });
 
@@ -181,7 +181,7 @@ describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () 
       items
         .filter((item) => item.required)
         .reduce((total, item) => total + item.estimatedMinutes, 0),
-    ).toBe(1_985);
+    ).toBe(1_990);
   });
 
   it('has no ID collision with the CS50 catalogue', () => {

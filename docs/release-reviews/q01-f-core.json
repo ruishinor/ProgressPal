@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "module": "q01-f-core",
+  "reviewer": "OpenAI GPT-6; separate implementation reviewer; prior authoring contributor",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "3f2c9ecad8017b68b1d6fd7fbc12de40f303a1c1",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent read-only review of the Q01-F-CORE implementation diff and exported programme content.",
+    "evidence": [
+      "Reviewed GitHub commit fbfe4173548d5f82e2e935e89b21aecb0ef63f57 against base 2e6e37c30bb3b62de3269ecd15c56ff8d6ffb38d.",
+      "Compared full before/after M01, M02 and programme index JSON structures.",
+      "M01 changes only the shared source SHA. M02 changes the intended teaching, explanation and feedback fields.",
+      "Programme index changes source identity, O06 time estimate and four exercise content hashes only.",
+      "Implementer reports 60 existing tests, two targeted integration probes, Python checks and production build passing. Not independently rerun.",
+      "Q01 follow-up: three stale test expectations aligned with the verified canonical source and required lesson-minute total. Owner-executed focused Vitest run: 22/22 PASS. Original reviewer also supplied the correction instructions; this is not claimed as a separate external review.",
+      "Q01 follow-up: M02 duration expectations corrected from 1220 to 1225 minutes in optionalLessonLength.test.ts. Owner-executed focused Vitest: 3/3 PASS. No product changes. Same reviewer contributed correction guidance; no new independent external review claimed."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "Q01-R1",
+      "severity": "P2",
+      "description": "The earlier nine-block L07 candidate displaced ordinal learner bookmarks.",
+      "resolution": "The final candidate restores ten L07 blocks and the original mission ranges. Bookmark compatibility was tested with four synthetic fixtures.",
+      "status": "resolved"
+    },
+    {
+      "id": "Q01-R2",
+      "severity": "P3",
+      "description": "Four changed exercise hashes invalidate earlier answers as evidence of current mastery.",
+      "resolution": "Accepted existing version-bound evidence policy. Stored history and earned XP remain preserved; new current-version attempts are supported.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "Q01-R3",
+      "severity": "P3",
+      "description": "The M01 asset receives a new hash-addressed filename although its learning content is unchanged.",
+      "resolution": "Direct JSON comparison confirms only its shared source SHA changed; this is a derived export consequence.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The reviewed Q01 content changes are bounded and technically coherent. No independent implementation blocker found. Hosted release certification and production verification remain mandatory."
+  }
+}
