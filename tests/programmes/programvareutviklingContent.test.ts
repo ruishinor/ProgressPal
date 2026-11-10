@@ -35,7 +35,7 @@ import {
  */
 
 const pilotSha256 =
-  'a6bb3ce185abbe2350839f099152c611df4996d449a9f6149fa7e30d6a4a5fe1';
+  'ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -108,7 +108,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_477_793,
+      bytes: 1_478_593,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
