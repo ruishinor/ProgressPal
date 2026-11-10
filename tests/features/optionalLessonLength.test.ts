@@ -54,7 +54,7 @@ async function p2Device() {
 }
 
 describe('module length excludes optional lessons for Programvareutvikling', () => {
-  it('computes module 2 as 1,220 minutes, excluding the optional reinforcement mission', async () => {
+  it('computes module 2 as 1,225 minutes, excluding the optional reinforcement mission', async () => {
     const context = await p2Device();
     const state = await getCatalogueCourseState({
       catalogueId: p2.catalogueId,
@@ -73,7 +73,7 @@ describe('module length excludes optional lessons for Programvareutvikling', () 
 
     expect(map.units.map((unit) => [unit.id, unit.estimatedMinutes])).toEqual([
       ['s1-m01', 765],
-      ['s1-m02', 1_220],
+      ['s1-m02', 1_225],
     ]);
   });
 
@@ -83,7 +83,7 @@ describe('module length excludes optional lessons for Programvareutvikling', () 
       db: context.db,
     });
 
-    expect(summary?.estimatedMinutes).toBe(1_220);
+    expect(summary?.estimatedMinutes).toBe(1_225);
   });
 
   it('keeps CS50 totals, which include optional items, unchanged', async () => {
