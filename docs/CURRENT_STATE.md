@@ -1,5 +1,13 @@
 # ProgressPal current state
 
+**Q02-F-FEEDBACK — lokal kandidat, 2026-11-10.** Utgangspunkt er Q01 på
+`master` (`a166c45fbf6c970562672a8e23fc54840d044d85`). Åtte oppgaver om
+variabelverdier og forutsigelse av utskrift i S1-M02 L01/P01 har fått
+konkrete forklaringer i den kanoniske `m02_a.js`. De åtte oppgavehashene
+endres. Tidligere besvarelser beholdes som historikk etter eksisterende
+regler for versjonsbundet evidens. Rekkefølge, estimater, ID-er og fasiter
+er uendret. Resten av F-04 håndteres i egne batcher.
+
 **Gjeldende verifisert utgangspunkt — 2026-11-06:** `master`
 `90810c23e253f97a561d0937915eaa18ac8bb461` (PR #77/M07).
 Applikasjonspakke `1.10.0`, lokal IndexedDB schema v5. Aktive
