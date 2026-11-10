@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "programvareutvikling-autumn",
+  "reviewer": "OpenAI GPT-6 (AI; separat, lesebasert release-review 2026-11-11; ingen implementering eller Git-mutasjon i denne gjennomgangen)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "fcde73a62210d0114db77e3ded3b99da985f0de1",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Avgrenset release-review av ProgressPal-kandidat b7a3af612d5f3437e193adb20d332f05e0863d2c, basert på vedlagt diff, kandidatfiler og kanonisk pilot; faktisk diff, eksport, evaluator, datasikkerhet, offline-ressurser og review-/release-kontrakt. Review utført separat fra implementeringen. Ingen fullsuite, kodeendring, Git-mutasjon eller publisering.",
+    "evidence": [
+      "Proveniens: egen AI-gjennomgang 2026-11-11 av brukerlevert release-review-packet-20261111-002326.zip og tematiske Lessons Learned v1.1; kun lesing/analyse av kandidat og generering av dette review-dokumentet. Tidligere AI-bistand i prosjektet er ikke et verifiserbart bevis på organisatorisk uavhengighet.",
+      "Git/bytes: alle 31 endrede filstier i candidate.patch stemmer med faktiske Git-blob-SHA-er i kandidatarkivet (31/31). Den uendrede basen er 899762073f240a3f8d6bc0c1d67e891f1a3dc167. Basens Git-tre ble rekonstruert fra GitHub Git-data til 31deab41b3bfded5e967f0cd66babcf175c65fff (eksakt match). Med kandidatens 31 endringer og docs/release-reviews ekskludert ble payload-treet uavhengig rekonstruert til fcde73a62210d0114db77e3ded3b99da985f0de1 (eksakt match).",
+      "Kanonisk pilot: vedlagt canonical-pilot.json er 1400171 byte og har SHA-256 82391cfcc7fd11af0727a083cf2558007c7d4bad606b6629548a0432b53be158; dette samsvarer med eksportscript, kildeindeks og katalog.",
+      "Eksportintegritet: 8 innholdsressurser stemmer med SHA-256, byteantall og hash-filnavn; katalog, publisert modulrekkefølge, indeks, offline-manifest og publiserte filer er konsistente. Innholdsoversikten omfatter 7 moduler, 36 oppdrag, 73 enheter, 346 oppgaver, 331 evaluerbare oppgaver og 45 mastery-gates.",
+      "Avgrensning i eksportreproduksjon: eksterne authoring-filer 05_OUTPUT/04_SKILL_GRAPH.json og 05_OUTPUT/06_SEMESTER_1_STRUCTURE.json fulgte ikke med reviewpakken; generatorens --check kunne derfor ikke kjøres uavhengig mot hele authoring-workspacet. Eksportens tilgjengelige canonical-pilot, publiserte felter, indeks, hashes og ledgere ble kontrollert direkte; --check PASS er kun produsentrapportert evidens.",
+      "Identiteter og kildekonsistens: alle publiserte oppgaver har unik ID og korrekt SHA-256 for kanonisk JSON; eksporterte oppgavefelt og evaluatorfelt er kontrollert mot vedlagt pilot. 36/36 oppdrags-ledger-hasher er uavhengig kontrollert. Ferdighetsreferanser og oppgave-/modul-eierskap er innenfor publisert omfang.",
+      "Evaluator: egen statisk kontroll av alle 346 oppgaver fant ingen avvik i flervalgfasit, forventet utskrift, programtestenes forventningsformat, duplikate testinput eller kompilerbarhet av struktur-regex; de 5 nye modulsjekkene har nøyaktig én kvalifiserende oppgave for hver av c/d/r/x.",
+      "Datakontroll: ingen nye lagringsskjemaer, API-er, nettverkskall eller migrasjoner i faktisk diff; endringen i learnerEvidence.ts er kun en kommentar. Publiserte innholdsressurser er kontrollert for kjente study-only-felt, forfatterfasiter og vanlige secret-markører uten funn. Dette er en endringsavgrenset statisk kontroll, ikke generell sikkerhetssertifisering.",
+      "Størrelsesgrense: Node zlib.gzipSync på alle 17 publiserte JSON-filer under public/content gir 265822 byte; den nye curriculum-grensen er 273000 byte (7178 byte margin). Uendrede JavaScript-, CSS- og runtime-budsjetter er ikke uavhengig målt uten produksjonsbuild.",
+      "Tidligere kontrollbevis fra REVIEW_HANDOFF.txt (ikke kjørt på nytt av denne revieweren): Vitest 508/508, bundle-budget-tester 6/6, Playwright 3/3, canonical export/check, typecheck, endret-fil lint/Prettier, production build og bundle budget oppgis som PASS. Disse resultatene er rapportert av kandidatprodusenten, ikke uavhengig sertifisering.",
+      "Uavklart utover denne avgrensede gjennomgangen: kandidat-commitobjektet b7a3af6... var ikke tilgjengelig fra GitHub ved lesetidspunkt; eksakt payload-tre er likevel rekonstruert fra base og kandidatens blob-innhold. Ingen ny fullsuite, hosted Final candidate, merge/master, Vercel-deploy, live-alias eller offentlig smoke er bekreftet. Gjeldende releasegate må håndheves separat.",
+      "Styrende kontrakt: docs/ci.md og scripts/release-review-binding.mjs er gjennomgått. Schema v2 binder til payload-tree og reviewbevis legges bare under docs/release-reviews/<module>.json. En evidence-only-commit, separat hosted gate og senere produksjonspublisering omfattes ikke av denne beslutningen."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "RR-AUTUMN-01",
+      "severity": "P3",
+      "description": "Ni eksisterende S1-M02-oppgaver fikk nye innholdshasher etter endringer i broken_run/terminal/err-illustrasjoner, selv om evaluatorkontraktene og evaluatorfeltene er uendret. Besvarelser lagret mot tidligere innholdshash ville ikke lenger være gjeldende mestringsbevis for disse oppgavene.",
+      "resolution": "Brukeren opplyste eksplisitt 2026-11-11 at det ikke vil eksistere slike tidligere lagrede besvarelser og aksepterte konsekvensen. Dermed ingen migrerings- eller release-blokkering for den aktuelle førstegangsutgivelsen. Forutsetningen må vurderes på nytt dersom kandidaten brukes mot eksisterende S1-M02-elevdata.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RR-AUTUMN-02",
+      "severity": "P3",
+      "description": "src/programmes/programvareutvikling/index.ts beholder sourceCheckedDate=2026-10-03 og kommentaren om kildeverifisering på denne datoen, mens det bundne pilotinnholdet for høstutvidelsen er nyere (2026-11-10). Dette er foreldet revisjonsmetadata. Ingen bruk av datoen i evaluator, lagringskontrakt eller studentrettet programflyt ble funnet i kildegjennomgangen.",
+      "resolution": "Akseptert som ikke-blokkerende metadataavvik for denne payloaden: eksport- og innholdsidentiteten verifiseres av eksakt SHA-256 og payload-tree, ikke av datoen. Rett kildekontroll-datoen ved en senere ordinær innholdsendring; en eventuell endring nå vil kreve ny payload-binding og ny avgrenset review.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PROCEED for eksakt payload fcde73a62210d0114db77e3ded3b99da985f0de1 på grunnlag av avgrenset, egen kontroll; ingen åpne P0/P1/P2 eller demonstrert release-blokkerende feil. To faktiske P3-avvik er eksplisitt akseptert i scope. Dette er kun uavhengig AI-reviewbevis, ikke full release-sertifisering eller autorisasjon til merge/publisering. Kandidatens rapporterte lokale PASS-kontroller videreføres som separat produsentbevis; gjeldende hosted Final candidate-gate og deploy/alias-kontroller gjenstår."
+  }
+}
