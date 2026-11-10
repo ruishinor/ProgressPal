@@ -55,30 +55,35 @@ const FIXTURE_DIR = join(ROOT, 'tests/fixtures/programvareutvikling');
  * wording, copy and paste, quotation marks and `print()` arguments, first
  * wrong answers that no longer print the answer, Task 6 and Task 7).
  *
- * The pin includes the Q01-F-CORE and Q02-F-FEEDBACK corrections to S1-M02.
- * Since 2026-10-09 that file also carries S1-M03, an authoring candidate under
- * independent review that is not product content; see PRODUCT_MODULE_IDS.
- * The previous pin (4334588c…, 1,125,575 bytes) held S1-M01 and S1-M02 only;
- * both modules were verified deep-equal to that file before they were edited.
+ * The pin includes the Q01-F-CORE and Q02-F-FEEDBACK corrections, the Q03
+ * source correction, and the reviewed autumn slices Q07/Q09/Q10/Q11. The
+ * producer keeps the broader historical M03 source separately, while this
+ * pilot carries only the approved product-scoped M03 slice.
  */
 const EXPECTED_PILOT = {
   path: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
-  sha256: 'ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790',
-  bytes: 1_478_593,
+  sha256: '82391cfcc7fd11af0727a083cf2558007c7d4bad606b6629548a0432b53be158',
+  bytes: 1_400_171,
 };
 const SKILL_GRAPH_PATH = '05_OUTPUT/04_SKILL_GRAPH.json';
 const STRUCTURE_PATH = '05_OUTPUT/06_SEMESTER_1_STRUCTURE.json';
 
 /**
- * The modules that ship. The authoring pilot may carry modules that are not
- * product content yet (S1-M03 is an unreviewed candidate); they are neither
- * exported nor hashed into the product ledgers, and the export fails if a
- * shipped module is missing from the source.
+ * The modules that ship, in learner-visible order. Plan IDs remain stable even
+ * where their numeric suffix differs from the visible module ordinal.
  */
-const PRODUCT_MODULE_IDS = ['S1-M01', 'S1-M02'];
+const PRODUCT_MODULE_IDS = [
+  'S1-M01',
+  'S1-M02',
+  'S1-M03',
+  'S1-M05',
+  'S1-M07',
+  'S1-M06',
+  'S1-M08',
+];
 
 const PROGRAMME_ID = 'programvareutvikling';
-const CONTENT_VERSION = 4;
+const CONTENT_VERSION = 5;
 const EVALUATOR_CONTRACT_VERSION = 1;
 
 /**
@@ -138,6 +143,7 @@ const MODULE_FIELDS = {
   module_id: 'index',
   title_nb: 'index',
   missions: 'index',
+  checkpoint: 'index',
   units: 'keep',
 };
 const MISSION_FIELDS = {
@@ -219,7 +225,12 @@ const BLOCK_FIELDS = {
     nb: 'keep',
   },
   table: { t: 'keep', columns: 'keep', rows: 'keep', nb: 'keep' },
-  recap: { t: 'keep', can: 'keep', next: 'keep' },
+  recap: {
+    t: 'keep',
+    can: 'keep',
+    next: 'keep',
+    practice_only: 'exclude:authoring',
+  },
   worked: { t: 'keep', title: 'keep', steps: 'keep' },
   'doc-terminal': {
     t: 'keep',
@@ -323,6 +334,7 @@ const EXERCISE_FIELDS = {
   _time: 'exclude:authoring',
   scaffold: 'exclude:authoring',
   retry: 'exclude:authoring',
+  retry_variant: 'exclude:authoring',
   misconception_tags: 'exclude:analytics',
   reward: 'index',
   counts_with_observer_verification: 'exclude:study',
@@ -752,7 +764,7 @@ const modulesIndex = pilot.modules.map((module, moduleOrder) => {
   const checkpointMission = module.missions.find(
     (mission) => mission.surface === 'checkpoint',
   );
-  const checkpoint = structureModule?.checkpoint ?? {};
+  const checkpoint = module.checkpoint ?? structureModule?.checkpoint ?? {};
 
   return {
     moduleId: module.module_id,
@@ -859,10 +871,24 @@ const skills = [...usedSkillIds].sort().map((skillId) => {
     fail(`skill ${skillId} is referenced but not in the skill graph`);
     return null;
   }
+  // Only the published skill scope may enter the runtime index. The global
+  // skill graph includes one known prerequisite outside this autumn slice.
+  // Fail closed for any other unpublished prerequisite edge.
+  const scopedPrerequisiteSkillIds = skill.prerequisite_skill_ids.filter(
+    (prerequisiteId) => {
+      if (usedSkillIds.has(prerequisiteId)) return true;
+      if (skillId === 'SK-DBG-04' && prerequisiteId === 'SK-DBG-03')
+        return false;
+      fail(
+        `published skill ${skillId} has out-of-scope prerequisite ${prerequisiteId}`,
+      );
+      return false;
+    },
+  );
   return {
     skillId,
     gatingRole: skill.gating_role,
-    prerequisiteSkillIds: skill.prerequisite_skill_ids,
+    prerequisiteSkillIds: scopedPrerequisiteSkillIds,
     introducedInModule: skill.introduced_in_module,
     introducingMissionId: introducingMission(skillId),
     stateTargetModule: skill.state_target_module,
@@ -935,16 +961,14 @@ const counts = {
   hints: exerciseIndex.reduce((total, entry) => total + entry.hintCount, 0),
 };
 const expectedCounts = {
-  modules: 2,
-  missions: 25,
-  units: 47,
-  exercises: 291,
-  evaluable: 276,
-  needsRuntime: 49,
-  masteryGate: 25,
-  // 245 before the 2026-10-10 remediation; it added eight hints (pwd 2, ls,
-  // git init, int, :.2f, Task 6, Task 7) and nothing else changed a count.
-  hints: 253,
+  modules: 7,
+  missions: 36,
+  units: 73,
+  exercises: 346,
+  evaluable: 331,
+  needsRuntime: 61,
+  masteryGate: 45,
+  hints: 324,
 };
 for (const [key, value] of Object.entries(expectedCounts)) {
   if (counts[key] !== value)

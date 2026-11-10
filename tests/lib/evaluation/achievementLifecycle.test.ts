@@ -28,7 +28,7 @@ import { p2Index as manifest, p2Modules } from '../../programmes/p2Content';
  */
 
 const index = manifest as unknown as ProgrammeContentIndex;
-const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
+const exercises = Object.values(p2Modules)
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })

@@ -13,7 +13,7 @@ import { p2Modules } from '../../programmes/p2Content';
  * input over the bound is refused at the input surface.
  */
 
-const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
+const exercises = Object.values(p2Modules)
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })

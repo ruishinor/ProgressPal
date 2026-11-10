@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790",
-  "contentVersion": 4,
+  "sourceSha256": "82391cfcc7fd11af0727a083cf2558007c7d4bad606b6629548a0432b53be158",
+  "contentVersion": 5,
   "units": [
     {
       "unitId": "S1-M01-L01",
@@ -80,7 +80,7 @@
     {
       "unitId": "S1-M01-L08",
       "stringCount": 101,
-      "sha256": "6ab61a8b30c55dbd45123f08e326c098c2811166265cd5a8f07322dfe0c55412"
+      "sha256": "b9b1c21f25233da717f46cad6b173c1b7dd0efa30574821b6634cda87587444f"
     },
     {
       "unitId": "S1-M01-P08",
@@ -140,7 +140,7 @@
     {
       "unitId": "S1-M02-L03",
       "stringCount": 97,
-      "sha256": "08d39813a9ec4da205c5a04b1a7b0c6b92dd44e68c0bd4cb523231b1b97f1468"
+      "sha256": "476da03187a2e42f0af92bd531c75090c24e833d242b84166455a1b9e35cb50d"
     },
     {
       "unitId": "S1-M02-L04",
@@ -165,17 +165,17 @@
     {
       "unitId": "S1-M02-L06",
       "stringCount": 64,
-      "sha256": "61ce6157b1f0ccccd841d2baa85793359f19515b496d867d59d893f4e96f9a8a"
+      "sha256": "9a173d3944fb9fe96dc9ec15dcb3032e304c85a806bb6d6473acf674d67747c1"
     },
     {
       "unitId": "S1-M02-W01",
       "stringCount": 32,
-      "sha256": "038f4f2adb3dcc22fe3f24be6fb61b8e6d7dcf376c6a487ca1368d1038aa3758"
+      "sha256": "c08d4048418fd14f894efb8c5b269ffede48792bdc6ab397a4c8f2c7fd0975a2"
     },
     {
       "unitId": "S1-M02-P05",
       "stringCount": 404,
-      "sha256": "581501df86121591520302d12ce8eba5d641ccaf5ec09448763649020cc74226"
+      "sha256": "962d2f25389eeaa3b98170907e68d7ff3cd0718a9d601e582621e25c81303f07"
     },
     {
       "unitId": "S1-M02-L07",
@@ -190,7 +190,7 @@
     {
       "unitId": "S1-M02-P06",
       "stringCount": 419,
-      "sha256": "217ac7057d50ec8ed256620dd92ef5758578f821fe7f3bb0db05a562fe97f46d"
+      "sha256": "020fa68752875888f650ac638bd45890acd4bfb89bf457091fd5429da52a6e73"
     },
     {
       "unitId": "S1-M02-L09",
@@ -205,7 +205,7 @@
     {
       "unitId": "S1-M02-P08",
       "stringCount": 211,
-      "sha256": "f5852bda482d4c960abbdc9c55786612571615bca852c55a16f6bdbcce89f1de"
+      "sha256": "d93930cb4ad4c09ce3221c01a84542d960fdb567decd4c00be2f9c57b1db4c14"
     },
     {
       "unitId": "S1-M02-P09",
@@ -215,7 +215,7 @@
     {
       "unitId": "S1-M02-LAB",
       "stringCount": 313,
-      "sha256": "d1516ddbb6e40aa568ac09c93609d929c6797b49a577aa476189b464399d989d"
+      "sha256": "dc195015e4f28a2a018a9444d178dc3be108223ac6ce8982f6b8a9be90c6e4f5"
     },
     {
       "unitId": "S1-M02-LAB2",
@@ -225,7 +225,7 @@
     {
       "unitId": "S1-M02-Q01",
       "stringCount": 378,
-      "sha256": "6a554088a8b97b4dc329373f8f197e46304fa7b17600573ae66c178cd9c90dcd"
+      "sha256": "3b9ed0533e78436834432e93f4e38c15ca598af824b7935bc04efd8a0873756f"
     },
     {
       "unitId": "S1-M02-RET",
@@ -235,7 +235,137 @@
     {
       "unitId": "S1-M02-CHK",
       "stringCount": 578,
-      "sha256": "d6075cb6ef237dfe88325a1dd72c5c73ad40eec4cb3321f3a2283f5afaf0b146"
+      "sha256": "3643110a3c2fa101a329f2f0657847e476e174bbf8d67f6f57b7f102b9dba8ea"
+    },
+    {
+      "unitId": "S1-M03-L01",
+      "stringCount": 71,
+      "sha256": "21cba7c16bca951b6057b048248971d2f57abbce4e4b6836826646ff9a33956b"
+    },
+    {
+      "unitId": "S1-M03-P01",
+      "stringCount": 154,
+      "sha256": "7dfe90750547c2493bb1ffbbd946db1725432feb6b71240219fa91bc9055fab3"
+    },
+    {
+      "unitId": "S1-M03-L02",
+      "stringCount": 90,
+      "sha256": "d14b99908ff977a9c1852aa72c477a1fc9d816776dca83bc1b46bb12572a6484"
+    },
+    {
+      "unitId": "S1-M03-P02",
+      "stringCount": 246,
+      "sha256": "a8495a6ce21bac3460554d529970a6489ef4ad95efd10a2081c170ec01603c2c"
+    },
+    {
+      "unitId": "S1-M03-L03",
+      "stringCount": 103,
+      "sha256": "212410c1272255a2a679b84c4201307b642072e40a7b342d27d1e234c5e84a2c"
+    },
+    {
+      "unitId": "S1-M03-P03",
+      "stringCount": 206,
+      "sha256": "64bc8ec599ed02232a15c086d2c9d0983b6df130dc39214e55a23d57d9e5b0aa"
+    },
+    {
+      "unitId": "S1-M03-CHK",
+      "stringCount": 180,
+      "sha256": "5504859fc23b2e88148749690b929530f640c1dc692cd81ec40ab0f29db5cfee"
+    },
+    {
+      "unitId": "S1-M05-L01",
+      "stringCount": 20,
+      "sha256": "0868e45169879e642cba7491797b461324316db3ad5bd2099fc91ccb7b60c012"
+    },
+    {
+      "unitId": "S1-M05-L02",
+      "stringCount": 20,
+      "sha256": "e9749fd801d0494e3b8a5211756edc564ae0d9ba9cd85ab6825671655261a895"
+    },
+    {
+      "unitId": "S1-M05-P01",
+      "stringCount": 60,
+      "sha256": "c43dd7b012eded3bc2f7351566d01011c423c5efe21e900ca0ec33ff276ccfc9"
+    },
+    {
+      "unitId": "S1-M05-P02",
+      "stringCount": 67,
+      "sha256": "ba598a1dba8f406f07349d8d473fd8c75670bab98dc3dec53ee8a746bba6b30a"
+    },
+    {
+      "unitId": "S1-M05-CHK",
+      "stringCount": 146,
+      "sha256": "4495e05a566f8d0d6dae757fa8900cd4f53a7b8523092e002559d65e6cec7a4c"
+    },
+    {
+      "unitId": "S1-M07-L01",
+      "stringCount": 20,
+      "sha256": "0ef9244dc3b0fdec757c6f8adb68f75a4be9388b3830984055aef8abda1cc559"
+    },
+    {
+      "unitId": "S1-M07-P01",
+      "stringCount": 31,
+      "sha256": "1ec9dd58229f8edff26effba1fdcfd9e46eecfd832286a6364921407fe7650f1"
+    },
+    {
+      "unitId": "S1-M07-L02",
+      "stringCount": 20,
+      "sha256": "1b6d5bd50aa9252d9a6f86597995833e44a5f31767015b784362bedb68332486"
+    },
+    {
+      "unitId": "S1-M07-L03",
+      "stringCount": 20,
+      "sha256": "9f8b38766f0ac400a2e302afb5a6c46bb877c352edd7bbf928f4098a6af91c23"
+    },
+    {
+      "unitId": "S1-M07-P02",
+      "stringCount": 102,
+      "sha256": "f1a9b2ec6a6981e62c29e4d5119574c0804fcb0eef41d598ac193b010f6df895"
+    },
+    {
+      "unitId": "S1-M07-CHK",
+      "stringCount": 158,
+      "sha256": "a613676ce4cb5f2f80170ace1e9f855222318a70315773d0c7efeedb3104c686"
+    },
+    {
+      "unitId": "S1-M06-L01",
+      "stringCount": 21,
+      "sha256": "2000f559f3aab722b7da950cd34cc401cb85b8cc250f8a7c0249c1cc72ec9b0e"
+    },
+    {
+      "unitId": "S1-M06-L02",
+      "stringCount": 21,
+      "sha256": "e1cfb40ce2c9997732b2e580559011d428cb01b29c2634018045ccaf5e43e21a"
+    },
+    {
+      "unitId": "S1-M06-P01",
+      "stringCount": 33,
+      "sha256": "82178bdccc530d449d13831987b0eba89aaf49f06524973da27f7dcd4ff3e98d"
+    },
+    {
+      "unitId": "S1-M06-P02",
+      "stringCount": 70,
+      "sha256": "31c54113cdc95e220891b3e382032f3206d1d69deb1bd12620c96069e1f2dabf"
+    },
+    {
+      "unitId": "S1-M06-CHK",
+      "stringCount": 158,
+      "sha256": "97ef72a99bf3721a4762e96048f96fe6d95287aedc10fc20ec69e47ef64117e4"
+    },
+    {
+      "unitId": "S1-M08-L01",
+      "stringCount": 30,
+      "sha256": "2dd52c80099e26a50fc4f3e85aea5477bb2c4e224484f7325befda0918f420d7"
+    },
+    {
+      "unitId": "S1-M08-P01",
+      "stringCount": 100,
+      "sha256": "a5c4a24f057c5b47e2cd35f49403b6a83c40437d63e543a7608b2c2fed6cd683"
+    },
+    {
+      "unitId": "S1-M08-CHK",
+      "stringCount": 157,
+      "sha256": "7588bfd8dd515e2e343cdb3e6edb85d2a13e6da998cc3288c2042094c3677825"
     }
   ],
   "missions": [
@@ -338,6 +468,50 @@
     {
       "missionId": "S1-M02-CHK",
       "sha256": "110c613b210ba890209381b8b2e2c4479d6616d2f6cf6a3de2b7f9aa3f779794"
+    },
+    {
+      "missionId": "S1-M03-O01",
+      "sha256": "627a7a676b527f34490231e1f8ba9f6e9d8d1f12c75a22a88bdf73dae31d006a"
+    },
+    {
+      "missionId": "S1-M03-O02",
+      "sha256": "02c5f20d37b59e07546aa69e3625c56fb8333b837bc632ea01f00ed49a38c664"
+    },
+    {
+      "missionId": "S1-M03-CHK",
+      "sha256": "3ee1fdecd72e5763b22a0b28738475eeb069110e820b308fb0f42d212acb6b9c"
+    },
+    {
+      "missionId": "S1-M05-O01",
+      "sha256": "76f54f906c6df439138405c9073a02b96b73bcc8e8d3375c925cfe705eb27ebc"
+    },
+    {
+      "missionId": "S1-M05-CHK",
+      "sha256": "09dc937e640738cbd4d8e7d1b4482a791baeecac150e3bc695862247c3a7cab0"
+    },
+    {
+      "missionId": "S1-M07-O01",
+      "sha256": "a084fe533e20aa23f81d00ef702ad07152f6db75c554a92d2a718fcba7ff6df9"
+    },
+    {
+      "missionId": "S1-M07-CHK",
+      "sha256": "4bfe6308c6ce583ede1ec0810c09e45022e7e084c3edc730fa86ffd253d2104e"
+    },
+    {
+      "missionId": "S1-M06-O01",
+      "sha256": "945a042c0b0a07949d6f502133a6f4d1832e9e157ee28e95f327162c7796f330"
+    },
+    {
+      "missionId": "S1-M06-CHK",
+      "sha256": "7088a7d689987ba05cc4e2814455c05725a8bbddb83eadf9017ad1bc80530185"
+    },
+    {
+      "missionId": "S1-M08-O01",
+      "sha256": "118904b402b30a1e10cc034c8099986f8b86b5c41d05df5ef341eba05d54a0db"
+    },
+    {
+      "missionId": "S1-M08-CHK",
+      "sha256": "5e96084bbd89d7344314d4b2cd0994d8fa22cc1cba109fb58a274b72d0fb1d2f"
     }
   ]
 }

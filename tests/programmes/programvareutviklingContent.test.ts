@@ -22,20 +22,20 @@ import {
 
 /**
  * Epic E §3 items 4–5 and 16, §5 (E0) and §6 (sanitation): the committed
- * content of the authored M01/M02 slice — the bundled catalogue and the
+ * content of the authored autumn slice — the bundled catalogue and the
  * packaged content assets (owner decision 2026-10-03). The source workspace
  * is absent in CI, so source fidelity is proven through the exporter's source
  * ledger (digests of the source objects taken from `pilot.json` at the
  * recorded hash) plus the exporter's own `--check` run against the real
- * source before freeze. Content version 4 follows the learner-feedback
- * remediation of 2026-10-10 (the pilot also carries S1-M03 since 2026-10-09;
- * the exporter ships S1-M01 and S1-M02 only). Version 3 followed the
+ * source before freeze. Content version 5 adds the reviewed Q07–Q11 modules
+ * in one catalogue generation. Content version 4 followed the learner-feedback
+ * remediation of 2026-10-10. Version 3 followed the
  * learner-feedback corrections of 2026-10-06 (version 2: the source corrections of 2026-10-03, D-2 and the
  * authored interleaving).
  */
 
 const pilotSha256 =
-  'ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790';
+  '82391cfcc7fd11af0727a083cf2558007c7d4bad606b6629548a0432b53be158';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -76,10 +76,7 @@ function allKeys(value: Json, keys = new Set<string>()): Set<string> {
   return keys;
 }
 
-const modules = [
-  p2Modules['S1-M01']!,
-  p2Modules['S1-M02']!,
-] as unknown as Array<{
+const modules = Object.values(p2Modules) as unknown as Array<{
   moduleId: string;
   units: Array<{ unit_id: string; flow: Array<Record<string, Json>> }>;
 }>;
@@ -89,15 +86,14 @@ const exercises = units.flatMap((unit) =>
 );
 const allSnapshotJson = [
   manifest,
-  p2Modules['S1-M01']!,
-  p2Modules['S1-M02']!,
+  ...Object.values(p2Modules),
 ] as unknown as Json[];
 
 describe('E0: source identity and re-derived counts', () => {
   it('records the authoritative source identity, content version and language metadata', () => {
     expect(manifest.format).toBe('progresspal-programme-content');
     expect(manifest.formatVersion).toBe(1);
-    expect(manifest.contentVersion).toBe(4);
+    expect(manifest.contentVersion).toBe(5);
     expect(manifest.evaluatorContractVersion).toBe(
       lessonEvaluatorContractVersion,
     );
@@ -108,7 +104,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_478_593,
+      bytes: 1_400_171,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
@@ -117,24 +113,24 @@ describe('E0: source identity and re-derived counts', () => {
     }
   });
 
-  it('re-derives 2 modules, 25 missions, 47 units and 291 exercises from the snapshot', () => {
+  it('re-derives 7 modules, 36 missions, 73 units and 346 exercises from the snapshot', () => {
     expect(manifest.modules.map((module) => module.missions.length)).toEqual([
-      12, 13,
+      12, 13, 3, 2, 2, 2, 2,
     ]);
-    expect(units).toHaveLength(47);
-    expect(exercises).toHaveLength(291);
-    expect(manifest.exercises).toHaveLength(291);
+    expect(units).toHaveLength(73);
+    expect(exercises).toHaveLength(346);
+    expect(manifest.exercises).toHaveLength(346);
     expect(exercises.filter((exercise) => exercise.evaluable)).toHaveLength(
-      276,
+      331,
     );
     expect(
       manifest.exercises.filter((exercise) => exercise.needsRuntime),
-    ).toHaveLength(49);
+    ).toHaveLength(61);
     expect(
       manifest.exercises
         .filter((exercise) => exercise.masteryGate)
         .map((exercise) => exercise.exerciseId),
-    ).toHaveLength(25);
+    ).toHaveLength(45);
     expect(
       manifest.exercises
         .filter((exercise) => exercise.masteryGate && exercise.needsRuntime)
@@ -144,6 +140,11 @@ describe('E0: source identity and re-derived counts', () => {
       'S1-M02-CHK-E01',
       'S1-M02-CHK-E02',
       'S1-M02-CHK-E03',
+      'S1-M03-CHK-E01',
+      'S1-M05-CHK-E01',
+      'S1-M07-CHK-E01',
+      'S1-M06-CHK-E01',
+      'S1-M08-CHK-E01',
     ]);
   });
 
@@ -267,8 +268,8 @@ describe('source fidelity: authored strings reach the snapshot unchanged', () =>
   it('binds the ledger to the same source and content version', () => {
     expect(ledger.sourceSha256).toBe(pilotSha256);
     expect(ledger.contentVersion).toBe(manifest.contentVersion);
-    expect(ledger.units).toHaveLength(47);
-    expect(ledger.missions).toHaveLength(25);
+    expect(ledger.units).toHaveLength(73);
+    expect(ledger.missions).toHaveLength(36);
   });
 
   it('matches every unit string leaf by path and text', () => {
@@ -330,7 +331,7 @@ describe('content binding: contentVersion, source hash and per-exercise content 
       ).toBe(entry.contentHash);
       subjects.add(entry.subjectId);
     }
-    expect(subjects.size).toBe(291);
+    expect(subjects.size).toBe(346);
   });
 
   it('keeps exercise subject IDs disjoint from every registered catalogue identity', () => {
@@ -351,7 +352,7 @@ describe('content binding: contentVersion, source hash and per-exercise content 
       id: 'attempt-1',
       kind: 'exercise_attempt',
       programmeId: 'programvareutvikling',
-      contentVersion: 4,
+      contentVersion: 5,
       subjectId: manifest.exercises[0]!.subjectId,
       contentHash: manifest.exercises[0]!.contentHash,
       recordedAt: '2026-10-03T10:00:00.000Z',
@@ -410,8 +411,19 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
       }
     };
     place(catalogue.assets.index, copies.index);
-    place(catalogue.assets.modules['S1-M01']!, copies.m1);
-    place(catalogue.assets.modules['S1-M02']!, copies.m2);
+    // Every published asset must be available even when one is tampered with.
+    for (const [moduleId, entry] of Object.entries(catalogue.assets.modules)) {
+      const moduleCopy =
+        moduleId === 'S1-M01'
+          ? copies.m1
+          : moduleId === 'S1-M02'
+            ? copies.m2
+            : (p2Modules[moduleId] as unknown as Json | undefined);
+      if (moduleCopy === undefined) {
+        throw new Error(`Missing module fixture: ${moduleId}`);
+      }
+      place(entry, moduleCopy);
+    }
     options.catalogue?.(catalogue);
 
     return createContentAssetProvider({
@@ -438,7 +450,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
       expect(Buffer.byteLength(text), asset.path).toBe(asset.bytes);
       expect(asset.path, asset.path).toContain(asset.sha256.slice(0, 16));
     }
-    expect(p2Catalogue.contentVersion).toBe(4);
+    expect(p2Catalogue.contentVersion).toBe(5);
     expect(p2Catalogue.sourceSha256).toBe(pilotSha256);
     expect(p2Catalogue.subjectIds).toEqual(
       manifest.exercises.map((entry) => entry.subjectId),
@@ -452,7 +464,7 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
       expect(result.status, itemId).toBe('ready');
       if (result.status === 'ready') {
         expect(result.value.itemId).toBe(itemId);
-        expect(result.value.contentVersion).toBe(4);
+        expect(result.value.contentVersion).toBe(5);
         expect(result.value.sourceSha256).toBe(pilotSha256);
         expect(result.value.language).toBe('nb');
         expect(result.value.units.length).toBeGreaterThan(0);
@@ -465,9 +477,9 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
 
     expect(result.status).toBe('ready');
     if (result.status === 'ready') {
-      expect(result.value.exercises).toHaveLength(291);
+      expect(result.value.exercises).toHaveLength(346);
       expect(result.value.skills.length).toBeGreaterThanOrEqual(18);
-      expect(result.value.modules).toHaveLength(2);
+      expect(result.value.modules).toHaveLength(7);
     }
   });
 
@@ -516,7 +528,8 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
 
   it('returns version_mismatch when a module carries another content version or source', async () => {
     const otherVersion = tamperedProvider(({ m1 }) => {
-      (m1 as { contentVersion: number }).contentVersion = 5;
+      (m1 as { contentVersion: number }).contentVersion =
+        manifest.contentVersion + 1;
     });
     const otherSource = tamperedProvider(({ m2 }) => {
       (m2 as { sourceSha256: string }).sourceSha256 = 'f'.repeat(64);
@@ -532,7 +545,8 @@ describe('§3 item 4 and owner decision 2026-10-03: the content-asset provider',
 
   it('returns version_mismatch when the index disagrees with the bundled catalogue', async () => {
     const otherIndex = tamperedProvider(({ index }) => {
-      (index as { contentVersion: number }).contentVersion = 5;
+      (index as { contentVersion: number }).contentVersion =
+        manifest.contentVersion + 1;
     });
     const otherCatalogue = tamperedProvider(() => undefined, {
       catalogue: (copy) => {

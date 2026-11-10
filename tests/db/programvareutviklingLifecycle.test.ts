@@ -131,7 +131,7 @@ describe('registration is not enrolment', () => {
 });
 
 describe('enrol-and-switch and switching with the real definition', () => {
-  it('materializes exactly 2 modules and 25 lessons and makes Programvareutvikling active', async () => {
+  it('materializes exactly 7 modules and 36 lessons and makes Programvareutvikling active', async () => {
     const context = await p2ActiveDevice('p2-enrol-switch');
     const snapshot = await getDatabaseSnapshot({ db: context.db });
 
@@ -142,11 +142,16 @@ describe('enrol-and-switch and switching with the real definition', () => {
     expect(p2Units.map((unit) => [unit.id, unit.type])).toEqual([
       ['s1-m01', 'module'],
       ['s1-m02', 'module'],
+      ['s1-m03', 'module'],
+      ['s1-m05', 'module'],
+      ['s1-m07', 'module'],
+      ['s1-m06', 'module'],
+      ['s1-m08', 'module'],
     ]);
     const p2Items = snapshot.courseItems.filter((item) =>
       p2Units.some((unit) => unit.id === item.unitId),
     );
-    expect(p2Items).toHaveLength(25);
+    expect(p2Items).toHaveLength(36);
     expect(new Set(p2Items.map((item) => item.type))).toEqual(
       new Set(['lesson']),
     );

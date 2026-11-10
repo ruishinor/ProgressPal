@@ -8,7 +8,7 @@ Current responsibilities:
 - two production definitions: `cs50x-2026` (`cs50x-2026/`, the default),
   whose definition key equals its catalogue identity for compatibility
   through C5, and `programvareutvikling-2026` (`programvareutvikling/`,
-  Epic E), the authored Bokmål S1-M01/S1-M02 slice;
+  Epic E), the authored Bokmål autumn slice across S1-M01, S1-M02, S1-M03, S1-M05, S1-M07, S1-M06 and S1-M08;
 - the owner-authorized local Git & GitHub pilot (git-github/): five complete
   beginner lessons, an independent programme identity, no XP policy and no
   change to the default; see git-github/README.md and the current-state handoff;
