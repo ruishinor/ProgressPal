@@ -32,6 +32,16 @@ const completeLabel = 'Marker som fullført lokalt';
 const reopenLabel = 'Åpne leksjonen igjen';
 const oldTimestamp = '2026-11-01T08:00:00.000Z';
 
+function loadedOverview() {
+  return waitFor(() => {
+    const summary = document.querySelector<HTMLElement>(
+      '.pathways-track__progress-summary',
+    );
+    expect(summary).toBeVisible();
+    return summary!;
+  });
+}
+
 async function toggleCompletion(name: string) {
   const button = await screen.findByRole('button', { name });
   await waitFor(() => expect(button).toBeEnabled());
@@ -71,11 +81,13 @@ it('opens the Git roadmap without enrolment or programme changes', async () => {
   await screen.findByRole('heading', {
     name: /Git & GitHub: fra første endring/,
   });
-  await screen.findByText(/av 47 leksjoner markert fullført/);
-  fireEvent.click(screen.getByText('Leksjoner i M05 (8)'));
-  expect(
-    screen.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
-  ).toBeVisible();
+  await loadedOverview();
+  const module = document
+    .querySelector<HTMLAnchorElement>('a[href$="/git-m05-o01"]')!
+    .closest('details')!;
+  fireEvent.click(module.querySelector('summary')!);
+  expect(within(module).getAllByRole('link')).toHaveLength(8);
+  expect(within(module).getAllByRole('link')[0]).toBeVisible();
   expect(await getDatabaseSnapshot()).toEqual(before);
 });
 
@@ -137,11 +149,6 @@ it('records matching start and completion times on initial manual completion', a
     'Lokal status: Fullført',
   );
   expect(localStatus.closest('[lang]')).toHaveAttribute('lang', 'nb');
-  expect(
-    within(localStatus).getByText(
-      'Du styrer selv når du vil markere leksjonen som gjennomgått.',
-    ),
-  ).toBeVisible();
 });
 
 it('clears the completion timestamp when reopening and retains the original start', async () => {
@@ -271,7 +278,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/rpg/pathways');
     await router.navigate('/rpg/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
-    await screen.findByText(/av 47 leksjoner markert fullført/);
+    await loadedOverview();
     const first = await screen.findByRole('link', {
       name: 'Start her: hvorfor bruke Git?',
     });
@@ -295,7 +302,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/pathways');
     await router.navigate('/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
-    await screen.findByText(/av 47 leksjoner markert fullført/);
+    await loadedOverview();
     fireEvent.click(
       await screen.findByRole('link', {
         name: 'Start her: hvorfor bruke Git?',
@@ -335,7 +342,11 @@ it('retains legacy active Git work and offers both study programmes as recovery 
       'cs50x',
     ),
   );
-  await screen.findByText('Active programme:', { exact: false });
+  await waitFor(() =>
+    expect(screen.getByLabelText('Programme to switch to')).not.toHaveValue(
+      'cs50x',
+    ),
+  );
   expect((await getDatabaseSnapshot()).progressEntries).toEqual(
     before.progressEntries,
   );
@@ -372,14 +383,17 @@ it('shows one next action, bookmarks and manual progress without writing on the 
   const before = await getDatabaseSnapshot();
   await renderAppAtRoute('/pathways/git-github');
   expect(
-    await screen.findByRole('link', {
-      name: 'Fortsett: Les commits, HEAD og tidligere filer',
-    }),
+    within(await loadedOverview()).getByRole('link', { name: /\S/ }),
   ).toHaveAttribute('href', '/pathways/git-github/git-m02-o03');
-  expect(screen.getByText(/1 av 47 leksjoner markert fullført/)).toBeVisible();
-  expect(screen.getByText('Leksjoner i M02 (6)')).toBeVisible();
-  const m02 = screen.getByText('Leksjoner i M02 (6)').closest('li');
-  expect(m02).toHaveTextContent('Påbegynt');
+  const summary = await loadedOverview();
+  expect(
+    summary.querySelector('p')?.textContent?.match(/\d+/g)?.map(Number),
+  ).toEqual([1, 47]);
+  const module = document
+    .querySelector('a[href$="/git-m02-o03"]:not(.pathways-track__start)')!
+    .closest('details')!;
+  expect(module).toHaveAttribute('open');
+  expect(within(module).getAllByRole('link')).toHaveLength(6);
   expect(await getDatabaseSnapshot()).toEqual(before);
 });
 
@@ -406,9 +420,7 @@ it('prefers the latest unfinished lesson when several have started', async () =>
   const before = await getDatabaseSnapshot();
   await renderAppAtRoute('/rpg/pathways/git-github');
   expect(
-    await screen.findByRole('link', {
-      name: 'Fortsett: Hvorfor arbeide med branches?',
-    }),
+    within(await loadedOverview()).getByRole('link', { name: /\S/ }),
   ).toHaveAttribute('href', '/rpg/pathways/git-github/git-m03-o01');
   expect(await getDatabaseSnapshot()).toEqual(before);
 });
@@ -424,10 +436,10 @@ it('shows completion without a misleading continuation after all lessons are mar
   }
   const before = await getDatabaseSnapshot();
   await renderAppAtRoute('/pathways/git-github');
-  await screen.findByText(/47 av 47 leksjoner markert fullført/);
-  expect(screen.getByText(/Alle leksjonene er markert fullført/)).toBeVisible();
+  const summary = await loadedOverview();
   expect(
-    screen.queryByRole('link', { name: /^(Fortsett:|Neste leksjon:)/ }),
-  ).toBeNull();
+    summary.querySelector('p')?.textContent?.match(/\d+/g)?.map(Number),
+  ).toEqual([47, 47]);
+  expect(within(summary).queryByRole('link')).toBeNull();
   expect(await getDatabaseSnapshot()).toEqual(before);
 }, 20_000);

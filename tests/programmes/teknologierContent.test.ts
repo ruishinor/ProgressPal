@@ -27,7 +27,6 @@ describe('EDU-04 authored reasoning and integration', () => {
         'scaffold',
         'application',
       ]);
-      expect(s.cards.at(-1)!.title).toMatch(/^Ny situasjon:/);
       expect(s.takeaway).toBeTruthy();
       for (const c of s.cards) {
         expect(c.source).toEqual({
@@ -56,7 +55,6 @@ describe('EDU-04 authored reasoning and integration', () => {
     for (const c of decisions) {
       expect(c.context, c.id).toBeTruthy();
       expect(c.question, c.id).toBeTruthy();
-      expect(c.hint, c.id).not.toBe(c.explanation);
       expect(c.options.filter((o) => o.id === c.correctId)).toHaveLength(1);
       const feedback = c.options
         .filter((o) => o.id !== c.correctId)
@@ -64,21 +62,5 @@ describe('EDU-04 authored reasoning and integration', () => {
       expect(feedback.every(Boolean), c.id).toBe(true);
       expect(new Set(feedback).size, c.id).toBe(feedback.length);
     }
-  });
-
-  it('states the premises that make the contextual choices defensible', () => {
-    const context = (id: string) => decisions.find((c) => c.id === id)!.context;
-    expect(context('tsu-tek-01-overfor')).toMatch(
-      /Ingen innlogging eller deling/,
-    );
-    expect(context('tsu-tek-03-valg')).toMatch(/direkte til API/);
-    expect(context('tsu-tek-03-overfor')).toMatch(
-      /nettleserlagring kan slettes/,
-    );
-    expect(context('tsu-tek-04-valg')).toMatch(/kjenner Vue/);
-    expect(context('tsu-tek-04-valg')).toMatch(/beholde resten/);
-    expect(context('tsu-tek-04-overfor')).toMatch(/støttes fortsatt/);
-    expect(context('tsu-tek-05-valg')).toMatch(/samle ruting og serverkode/);
-    expect(context('tsu-tek-05-overfor')).toMatch(/ingen nye serverfunksjoner/);
   });
 });

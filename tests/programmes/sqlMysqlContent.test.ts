@@ -52,7 +52,6 @@ describe('SQL/MySQL authored assessment contract', () => {
     for (const [index, session] of sessions.entries()) {
       expect(session.cards).toHaveLength([6, 6, 5, 6, 6, 6][index]!);
       expect(session.cards[0]!.kind).toBe('learn');
-      expect(session.cards.at(-1)!.title).toMatch(/^Ny situasjon:/);
       expect(session.takeaway).toBeTruthy();
       for (const card of session.cards) {
         expect(card.source.lessonUnitIds).toEqual([`SQL84-0${index + 1}`]);
@@ -141,14 +140,8 @@ describe('SQL/MySQL authored assessment contract', () => {
     expect(answer('06-overfor')).toMatch(
       /WHERE navn = \?.*separat parameterverdi/,
     );
-    expect(select('06-overfor').context).toMatch(
-      /Databasebiblioteket støtter \?.*separat verdi/,
-    );
     expect(answer('06-transaksjon')).toMatch(
       /START TRANSACTION.*DELETE.*kontroller.*COMMIT/,
-    );
-    expect(select('06-transaksjon').context).toMatch(
-      /Utenfor en transaksjon er automatisk lagring på/,
     );
   });
 
@@ -166,11 +159,6 @@ describe('SQL/MySQL authored assessment contract', () => {
     const parameters = session.cards[4]!;
     if (recovery.kind !== 'learn' || parameters.kind !== 'learn')
       throw new Error('SQL06 needs teaching before recovery and binding');
-    expect(recovery.idea).toMatch(/InnoDB/);
-    expect(recovery.idea).toMatch(/DROP TABLE.*ikke angres/);
-    expect(recovery.idea).toMatch(/automatisk lagring.*endelig med en gang/);
-    expect(parameters.idea).toMatch(/SQL-mønster og søkeverdi separat/);
-    expect(parameters.idea).toMatch(/MySQL-konsollen/);
     const transaction = select('06-transaksjon');
     expect(
       transaction.options.find((option) => option.id === 'drop')!.label,

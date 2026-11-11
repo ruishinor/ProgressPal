@@ -213,12 +213,11 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
     }
   });
 
-  it('checks the taught misconceptions and offers an explained wrong answer for each choice', async () => {
+  it('evaluates each offered choice against its authored answer key', async () => {
     const entries = await exercises();
     for (const { exercise } of entries) {
       if (exercise.type !== 'mcq') continue;
       for (const option of exercise.options) {
-        expect(option.feedback.length).toBeGreaterThan(40);
         expect(
           (await evaluate(exercise, { selected: [option.id] })).outcome,
         ).toBe(option.correct ? 'correct' : 'incorrect');

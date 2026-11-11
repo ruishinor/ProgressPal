@@ -144,8 +144,6 @@ describe('catalogue mapping (7 modules, 36 lessons, from the bound source)', () 
     expect(units.map((unit) => unit.title)).toEqual(
       manifest.modules.map((module) => module.title),
     );
-    expect(units[0]!.title).toBe('Kom i gang: kjør, les feil, commit');
-    expect(units[1]!.title).toBe('Verdier, typer og input');
   });
 
   it('maps 36 lesson items with deterministic lowercase IDs in source order', () => {
@@ -262,13 +260,9 @@ describe('programme-owned content and language identity', () => {
     });
   });
 
-  it('authors its terminology in Bokmål without CS50 wording', () => {
+  it('maps active programme units to their Campaign ordinals', () => {
     const terminology = definition.content.terminology;
 
-    expect(terminology.unitNoun).toEqual({
-      lowercase: 'modul',
-      capitalized: 'Modul',
-    });
     expect(terminology.unitMapOrdinals).toEqual({
       's1-m01': '1',
       's1-m02': '2',
@@ -278,15 +272,6 @@ describe('programme-owned content and language identity', () => {
       's1-m06': '6',
       's1-m08': '7',
     });
-
-    for (const [key, text] of Object.entries(terminology.copy)) {
-      expect(text, key).not.toMatch(
-        /CS50|Harvard|edX|OpenCourseWare|\bweek\b/i,
-      );
-    }
-    for (const text of Object.values(terminology.rpgIdentity)) {
-      expect(text).not.toMatch(/CS50/i);
-    }
   });
 
   // Owner correction 2026-10-03: the guild and class are the product's RPG
@@ -300,19 +285,10 @@ describe('programme-owned content and language identity', () => {
     });
   });
 
-  // Owner correction 2026-10-11: one learner-facing name, from one owner. The
-  // stable identities above stay as they are.
-  it('shows one display name, Programvareutvikling 1, in every learner-facing programme string', () => {
-    const { terminology } = definition.content;
-    const strings = [
+  it('uses the active programme title as its RPG path identity', () => {
+    expect(definition.content.terminology.rpgIdentity.pathLabel).toBe(
       definition.title,
-      terminology.rpgIdentity.pathLabel,
-      ...Object.values(terminology.copy),
-    ].filter((text): text is string => typeof text === 'string');
-
-    expect(strings.join(' ')).not.toMatch(/semester/i);
-    expect(strings.join(' ')).not.toMatch(/Programvareutvikling(?! 1)/);
-    expect(terminology.rpgIdentity.pathLabel).toBe(definition.title);
+    );
   });
 
   it('serves every lesson item through the content provider and nothing else', () => {

@@ -30,34 +30,21 @@ function getPrimaryNav() {
 
 describe('RPG navigation consolidation', () => {
   describe('persistent primary navigation', () => {
-    it('is exactly Home, Campaign, Focus, Awards, Insights, in that order', async () => {
+    it('keeps the primary destinations in route order', async () => {
       await seedOnboardedLearner();
       await renderAppAtRoute('/rpg');
       await screen.findByTestId('rpg-shell');
 
       const links = within(getPrimaryNav()).getAllByRole('link');
 
-      expect(
-        links.map((link) => [link.textContent, link.getAttribute('href')]),
-      ).toEqual([
-        ['Home', '/rpg'],
-        ['Campaign', '/rpg/map'],
-        ['Focus', '/rpg/focus'],
-        ['Awards', '/rpg/badges'],
-        ['Insights', '/rpg/log'],
+      expect(links.map((link) => link.getAttribute('href'))).toEqual([
+        '/rpg',
+        '/rpg/map',
+        '/rpg/focus',
+        '/rpg/badges',
+        '/rpg/log',
       ]);
-    });
-
-    it('does not carry Hero, Profile or the old Map label', async () => {
-      await seedOnboardedLearner();
-      await renderAppAtRoute('/rpg');
-      await screen.findByTestId('rpg-shell');
-
-      for (const label of [/hero/i, /profile/i, /^map$/i]) {
-        expect(
-          within(getPrimaryNav()).queryByRole('link', { name: label }),
-        ).not.toBeInTheDocument();
-      }
+      for (const link of links) expect(link).toHaveAccessibleName();
     });
 
     it.each([

@@ -1,12 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { buildCategoryOptions } from '@/features/achievements/model';
-import { achievementCategoryLabels } from '@/features/achievements/model';
-import { buildCourseMap, courseItemTypeLabels } from '@/features/course/model';
 import { getCs50ItemLink, getCs50UnitLink } from '@/features/course/cs50Links';
 import { getItemGuide, getUnitGuide } from '@/features/course/guideContent';
 import { loadRpgHubSummary } from '@/features/rpg';
@@ -14,7 +9,6 @@ import { getStudySessionModeOptions } from '@/features/sessions/model';
 import {
   defaultLearnerProfileValues,
   getAchievementsView,
-  getCourseMapReadData,
   initializeDatabase,
   saveLearnerProfile,
   upsertProgress,
@@ -24,28 +18,7 @@ import { bundledCourseSeed } from '@/seed';
 
 import committedLinksAndGuides from '../fixtures/preservation/c1-links-guides.json';
 import { createIncrementingClock, createSeededDatabase } from './c1Support';
-import {
-  cs50CatalogueId,
-  cs50Policy,
-  cs50Scope,
-} from '../programmes/cs50Policy';
-
-/**
- * Epic C / C1 evidence area 8 — links, guides, labels and CS50 copy.
- *
- * Family: SEMANTIC ORACLE. Authorities: src/features/course/cs50Links.ts and
- * src/features/course/guideContent.ts (content), the label tables in their
- * feature modules, and the rendered routes. Each label row records its owner
- * after C3/C4 (C0 contract section 4c): canonical vocabulary labels and rank
- * labels stay SHARED; RPG identity, map ordinals, CS50 copy and the
- * curriculum-unit noun are CS50-OWNED. Ownership never changes the family.
- *
- * Existing strong coverage is not duplicated: `tests/features/cs50Links.test.ts`
- * and `guideContent.test.ts` pin URL shape and keying; `tests/app/App.test.tsx`
- * pins the onboarding heading, "RPG week", "Back to week", "Open
- * official CS50x resource", "Log Lecture" and "Problem Set Progress";
- * `tests/features/rpg/readModels.test.ts` pins the RPG identity tuple.
- */
+import { cs50Policy, cs50Scope } from '../programmes/cs50Policy';
 
 const seedUnitIds = bundledCourseSeed.units.map((unit) => unit.id);
 const seedItemIds = bundledCourseSeed.units.flatMap((unit) =>
@@ -64,70 +37,40 @@ async function onboardSharedDatabase() {
   );
 }
 
-function listRuntimeSources(directory: string): string[] {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) return listRuntimeSources(full);
-    return /\.(ts|tsx)$/.test(entry.name) &&
-      !/\.(test|spec)\.(ts|tsx)$/.test(entry.name)
-      ? [full]
-      : [];
-  });
-}
-
-/** Whitespace-normalized runtime source, used only for transient-state copy. */
-const runtimeSourceText = listRuntimeSources(path.resolve('src'))
-  .map((file) => readFileSync(file, 'utf8'))
-  .join('\n')
-  .replace(/\s+/g, ' ');
-
 describe('C1 CS50 links and study guides (semantic)', () => {
   it('reproduces the committed total lookup table for every seed unit and item', () => {
     expect({
       items: seedItemIds.map((id) => ({
-        guide: getItemGuide(id),
+        hasGuide: getItemGuide(id) !== null,
         id,
-        link: getCs50ItemLink(id),
+        url: getCs50ItemLink(id)?.url ?? null,
       })),
       units: seedUnitIds.map((id) => ({
-        guide: getUnitGuide(id),
+        hasGuide: getUnitGuide(id) !== null,
         id,
-        link: getCs50UnitLink(id),
+        url: getCs50UnitLink(id)?.url ?? null,
       })),
     }).toEqual(committedLinksAndGuides);
   });
 
   it('keeps the table total and within the CS50 content authority', () => {
-    const table = committedLinksAndGuides as {
-      items: Array<{
-        guide: unknown;
-        id: string;
-        link: { url: string } | null;
-      }>;
-      units: Array<{
-        guide: unknown;
-        id: string;
-        link: { url: string } | null;
-      }>;
-    };
+    const table = committedLinksAndGuides;
     const rows = [...table.units, ...table.items];
 
     expect(table.units.map((row) => row.id)).toEqual(seedUnitIds);
     expect(table.items.map((row) => row.id)).toEqual(seedItemIds);
     for (const row of rows) {
-      if (row.link !== null) {
-        expect(row.link.url, row.id).toMatch(
-          /^https:\/\/cs50\.harvard\.edu\/x\//,
-        );
+      if (row.url !== null) {
+        expect(row.url, row.id).toMatch(/^https:\/\/cs50\.harvard\.edu\/x\//);
       }
     }
-    expect(table.units.filter((row) => row.link !== null)).toHaveLength(14);
-    expect(table.items.filter((row) => row.link !== null)).toHaveLength(15);
+    expect(table.units.filter((row) => row.url !== null)).toHaveLength(14);
+    expect(table.items.filter((row) => row.url !== null)).toHaveLength(15);
     expect(
-      table.units.filter((row) => row.guide !== null).map((row) => row.id),
+      table.units.filter((row) => row.hasGuide).map((row) => row.id),
     ).toEqual(['week-0', 'week-1']);
     expect(
-      table.items.filter((row) => row.guide !== null).map((row) => row.id),
+      table.items.filter((row) => row.hasGuide).map((row) => row.id),
     ).toEqual([
       'week-0-lecture',
       'week-0-problem-set',
@@ -138,96 +81,42 @@ describe('C1 CS50 links and study guides (semantic)', () => {
 });
 
 describe('C1 shared vocabulary labels (semantic, shared)', () => {
-  it('pins the item-type labels', () => {
-    // Pre-E oracle evolution (additive only): the ten C1 labels below are
-    // unchanged; `lesson` was appended to the shared item-type vocabulary for
-    // non-weekly programmes. The pin stays exact, so any other added, removed
-    // or changed label still fails.
-    expect(courseItemTypeLabels).toEqual({
-      lab: 'Lab',
-      lecture: 'Lecture',
-      lesson: 'Lesson',
-      notes: 'Notes',
-      practice: 'Practice',
-      problem_set: 'Problem set',
-      project_task: 'Project task',
-      reading: 'Reading',
-      reflection: 'Reflection',
-      section: 'Section',
-      shorts: 'Shorts',
-    });
-  });
-
-  it('pins the unit-type labels as rendered by the course map', async () => {
-    const context = await createSeededDatabase('labels-unit-types');
-    try {
-      const data = await getCourseMapReadData({
-        catalogueId: cs50CatalogueId,
-        policy: cs50Policy,
-        db: context.db,
-      });
-      const map = buildCourseMap(data.courseUnits, data.courseItems, []);
-      const labelsByType = Object.fromEntries(
-        map.units.map((unit) => [
-          data.courseUnits.find((candidate) => candidate.id === unit.id)!.type,
-          unit.typeLabel,
-        ]),
-      );
-      expect(labelsByType).toEqual({
-        final_project: 'Final project',
-        special: 'Special',
-        week: 'Week',
-      });
-    } finally {
-      await context.cleanup();
-    }
-  });
-
-  it('pins the achievement category labels and the Classic filter order', async () => {
-    expect(achievementCategoryLabels).toEqual({
-      consistency: 'Consistency',
-      course_progress: 'Course progress',
-      debugging: 'Debugging',
-      final_project: 'Final project',
-      problem_sets: 'Problem sets',
-      recovery: 'Recovery',
-      reflection: 'Reflection',
-    });
+  it('keeps the Classic achievement category filter order', async () => {
     const context = await createSeededDatabase('labels-categories');
     try {
       expect(
         buildCategoryOptions(
           await getAchievementsView({ policy: cs50Policy, db: context.db }),
-        ),
+        ).map(({ value }) => value),
       ).toEqual([
-        { label: 'All categories', value: 'all' },
-        { label: 'Course progress', value: 'course_progress' },
-        { label: 'Problem sets', value: 'problem_sets' },
-        { label: 'Consistency', value: 'consistency' },
-        { label: 'Debugging', value: 'debugging' },
-        { label: 'Final project', value: 'final_project' },
-        { label: 'Recovery', value: 'recovery' },
+        'all',
+        'course_progress',
+        'problem_sets',
+        'consistency',
+        'debugging',
+        'final_project',
+        'recovery',
       ]);
     } finally {
       await context.cleanup();
     }
   });
 
-  it('pins the session-mode labels and order', () => {
+  it('keeps the session-mode order', () => {
     // Authority: `modeLabels` declaration order in src/features/sessions/model.ts.
-    expect(getStudySessionModeOptions()).toEqual([
-      { label: 'Coding', value: 'coding' },
-      { label: 'Debugging', value: 'debugging' },
-      { label: 'Final project', value: 'final_project' },
-      { label: 'Note review', value: 'note_review' },
-      { label: 'Reading', value: 'reading' },
-      { label: 'Reflection', value: 'reflection' },
-      { label: 'Watching', value: 'watching' },
+    expect(getStudySessionModeOptions().map(({ value }) => value)).toEqual([
+      'coding',
+      'debugging',
+      'final_project',
+      'note_review',
+      'reading',
+      'reflection',
+      'watching',
     ]);
   });
 
   it(
-    'pins the rank labels at their completion thresholds (shared) with the CS50 identity tuple',
+    'assigns distinct ranks at the shared completion thresholds',
     { timeout: 60_000 },
     async () => {
       const required = bundledCourseSeed.units
@@ -236,21 +125,9 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
         .map((item) => item.id);
       expect(required).toHaveLength(26);
 
-      // Completed required items -> expected rank (20% / 50% / 70% / 100% of 26).
-      const expected: Array<[number, string]> = [
-        [0, 'New Learner'],
-        [1, 'Initiate'],
-        [5, 'Initiate'],
-        [6, 'Apprentice'],
-        [12, 'Apprentice'],
-        [13, 'Builder'],
-        [18, 'Builder'],
-        [19, 'Capstone Candidate'],
-        [25, 'Capstone Candidate'],
-        [26, 'Course Finisher'],
-      ];
-
-      for (const [completed, rank] of expected) {
+      const thresholds = [[0], [1, 5], [6, 12], [13, 18], [19, 25], [26]];
+      const ranks = new Map<number, string>();
+      for (const completed of thresholds.flat()) {
         const context = await createSeededDatabase(`rank-${completed}`);
         const now = createIncrementingClock();
         try {
@@ -264,48 +141,26 @@ describe('C1 shared vocabulary labels (semantic, shared)', () => {
             db: context.db,
             now: () => '2026-09-19T12:00:00.000Z',
           });
-          expect(hub.identity.rankLabel, `${completed} completed`).toBe(rank);
-          // CS50-owned identity tuple (already pinned in readModels.test.ts).
-          expect([
-            hub.identity.guildLabel,
-            hub.identity.classLabel,
-            hub.identity.pathLabel,
-          ]).toEqual(['Code Knights', 'Generalist', 'CS Foundations']);
+          ranks.set(completed, hub.identity.rankLabel);
+          const { guildLabel, classLabel, pathLabel } =
+            cs50Scope.content.terminology.rpgIdentity;
+          expect(hub.identity).toMatchObject({
+            guildLabel,
+            classLabel,
+            pathLabel,
+          });
         } finally {
           await context.cleanup();
         }
       }
+      for (const threshold of thresholds) {
+        expect(new Set(threshold.map((count) => ranks.get(count))).size).toBe(
+          1,
+        );
+      }
+      expect(new Set(ranks.values()).size).toBe(thresholds.length);
     },
   );
-});
-
-/** Item-context titles and asset labels as rendered on Classic content detail. */
-const renderedDetailLabels: Array<[itemId: string, strings: string[]]> = [
-  ['week-0-lecture', ['About this lecture']],
-  ['week-0-problem-set', ['About this problem set']],
-  ['week-1-shorts', ['About this content']],
-  ['week-1-section', ['About this content', 'Video - 1h 30m planned']],
-  ['week-10-seminars', ['About this content', 'Reading - 2h planned']],
-  ['practice-debug', ['About this content']],
-  ['final-project-build', ['About this content']],
-];
-
-describe('C1 shared content-detail labels (semantic, shared)', () => {
-  for (const [itemId, strings] of renderedDetailLabels) {
-    it(`renders the frozen item-context and asset labels for ${itemId}`, async () => {
-      await onboardSharedDatabase();
-      await renderAppAtRoute(`/course/${itemId}`);
-      await waitFor(
-        () => {
-          const text = (document.body.textContent ?? '').replace(/\s+/g, ' ');
-          for (const value of strings) {
-            expect(text, itemId).toContain(value);
-          }
-        },
-        { timeout: 15_000 },
-      );
-    }, 30_000);
-  }
 });
 
 describe('C1 CS50-owned map ordinals (semantic, CS50-owned)', () => {
@@ -347,86 +202,12 @@ describe('C1 CS50-owned map ordinals (semantic, CS50-owned)', () => {
   );
 });
 
-/** CS50 copy not already pinned by existing rendered-text tests (CS50-owned). */
-const renderedCs50Copy: Array<[route: string, strings: string[]]> = [
-  [
-    '/dashboard',
-    [
-      'ProgressPal CS50 Edition',
-      // Epic G repair 01 (owner-authorized): the pre-C4 wording said backup,
-      // restore and reset "all run on this device" and that nothing is "stored
-      // remotely". Both stopped being true with the optional remote backup, so
-      // they now state what holds in every state.
-      'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, and offline support all run on this device. Backups are manual.',
-      'Your CS50 progress on this device. Nothing is synced; backups are manual.',
-    ],
-  ],
-  [
-    '/course',
-    [
-      'CS50 course map',
-      'The CS50x 2026 course list is built in and ready to track.',
-      'Week progress',
-    ],
-  ],
-  [
-    '/insights',
-    [
-      "Your CS50 study activity over time. Saved sessions, watched video, and earned XP appear here. Days and weeks use this device's local time.",
-    ],
-  ],
-  [
-    '/profile',
-    ['Your local CS50 profile is the starting point for ProgressPal.'],
-  ],
-  ['/rpg/map', ['Pick up where you left off, or open any week.']],
-  ['/rpg/hero', ['Local ProgressPal progress, not official CS50 completion.']],
-  [
-    '/rpg/settings',
-    [
-      'RPG ranks, badges, and profile summaries are local ProgressPal interpretations, not CS50, Harvard, edX, or OpenCourseWare status.',
-    ],
-  ],
-];
-
-/**
- * SECONDARY CHARACTERIZATION ONLY (source evidence, not the semantic oracle):
- * the same transient-state CS50 strings must still exist verbatim somewhere in
- * runtime source. The semantic oracle for these strings is their real rendered
- * state in c1TransientCopy.test.tsx.
- */
-const transientCs50Copy = [
-  'Preparing local profile data and the bundled CS50 catalog.',
-  // The CS50 first-run description left with the programme-neutral first run
-  // (owner decision 2026-10-03: a fresh learner explicitly chooses a
-  // programme, and none is presented as already chosen).
-  'This page shows your CS50 progress on this device.',
-  'This page uses the built-in CS50 course list and your saved progress.',
-  'This page shows your CS50 study activity.',
-  'All required tasks are marked complete locally. This does not confirm official CS50 completion.',
-  'Review official CS50x resource',
-];
-
-describe('C1 CS50 copy and curriculum-unit noun (semantic, CS50-owned)', () => {
-  for (const [route, strings] of renderedCs50Copy) {
-    it(`renders the frozen CS50 copy on ${route}`, async () => {
-      await onboardSharedDatabase();
-      await renderAppAtRoute(route);
-      await waitFor(
-        () => {
-          const text = (document.body.textContent ?? '').replace(/\s+/g, ' ');
-          for (const value of strings) {
-            expect(text, route).toContain(value);
-          }
-        },
-        { timeout: 15_000 },
-      );
-    }, 30_000);
-  }
-
-  it('keeps the transient-state CS50 copy verbatim in runtime source (characterization)', () => {
-    for (const value of transientCs50Copy) {
-      expect(runtimeSourceText, value).toContain(value);
-    }
-  });
+it.each([
+  ['week-1-section', /\b1h\s+30m\b/],
+  ['week-10-seminars', /\b2h\b/],
+])('shows the planned asset duration for %s', async (itemId, duration) => {
+  await onboardSharedDatabase();
+  await renderAppAtRoute('/course/' + itemId);
+  const term = await screen.findByText('Content type', { selector: 'dt' });
+  expect(term.nextElementSibling).toHaveTextContent(duration);
 });

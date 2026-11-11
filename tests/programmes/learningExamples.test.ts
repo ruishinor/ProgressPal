@@ -12,7 +12,6 @@ describe('EDU-03 focused examples', () => {
     if (lesson?.kind !== 'learn') throw new Error('Missing type lesson');
     expect(lesson.idea).toContain('print(type(45))');
     expect(lesson.idea).toContain("<class 'int'>");
-    expect(lesson.idea).toContain('type() viser typen');
 
     const practice = typerOgInputSession.cards.find(
       (card) => card.id === 'typer-type-av',
@@ -24,15 +23,13 @@ describe('EDU-03 focused examples', () => {
     expect(practice.options.map(({ id }) => id)).toEqual(['int', 'str', 'sju']);
   });
 
-  it('explains image-only information without changing the accessibility task', () => {
+  it('keeps the accessibility lesson and authored answer key', () => {
     const session = uxUuSessions.find((entry) => entry.id === 'tsu-ux-uu-u03');
     const lesson = session?.cards.find(
       (card) => card.id === 'tsu-ux-uu-u03-flere',
     );
     expect(lesson?.kind).toBe('learn');
     if (lesson?.kind !== 'learn') throw new Error('Missing UX/UU lesson');
-    expect(lesson.idea).toContain('Avgang 08.30');
-    expect(lesson.idea).toContain('lesbar tekst');
 
     const practice = session?.cards.find(
       (card) => card.id === 'tsu-ux-uu-u03-ny',

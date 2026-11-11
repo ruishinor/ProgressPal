@@ -99,6 +99,7 @@ describe('E0: source identity and re-derived counts', () => {
     );
     expect(manifest.language).toBe('nb');
     expect(manifest.technicalLanguage).toBe('en');
+    expect(manifest.source.knownSourceDefects).toEqual([]);
     expect(manifest.source).toMatchObject({
       artefact: '05_OUTPUT/07_VERTICAL_SLICE/pilot.json',
       schema: 'progresspal-pilot-content',
@@ -216,51 +217,6 @@ describe('field disposition: study-only, authoring-only and reward fields never 
     ]) {
       expect(keys.has(forbidden), forbidden).toBe(false);
     }
-  });
-});
-
-describe('§6 Programme #2 sanitation', () => {
-  const studyOnly = [
-    /observatør/i,
-    /\bobserver\b/i,
-    /samtykke/i,
-    /participant consent/i,
-    /\bTrack [AB]\b/,
-    /intervensjonsnivå|intervention level/i,
-    /PRB-SET/,
-    /study baseline|studiebaseline/i,
-    /utprøvingsversjon/i,
-    /Du får hjelp hvis du står fast/i,
-    /counts_with_observer_verification/,
-  ];
-
-  it('finds no study-only language: D-2 is corrected at the source with the owner-given sentence', () => {
-    const violations = allSnapshotJson
-      .flatMap((json, index) =>
-        stringLeaves(json).map(([path, text]) => [`${index}${path}`, text]),
-      )
-      .filter(([, text]) => studyOnly.some((pattern) => pattern.test(text)));
-    const d2 = exercises.find((exercise) => exercise.id === 'S1-M01-CHK-E05');
-
-    expect(violations).toEqual([]);
-    expect(d2!.prompt).toBe(
-      'Lag commit-en på din egen maskin. Lim inn `git log --oneline`. Øverst skal den nye commit-en stå. ProgressPal kan sjekke teksten du limer inn, men kan ikke se Git-historikken på maskinen din.',
-    );
-    expect(manifest.source.knownSourceDefects).toEqual([]);
-  });
-
-  it('carries no "klinikk" or "clinic" naming in any shipped string, and keeps "Feilsøking av oppsett"', () => {
-    const everything: Json[] = [
-      ...allSnapshotJson,
-      manifest as unknown as Json,
-      p2Catalogue as unknown as Json,
-    ];
-    const strings = everything.flatMap((json) =>
-      stringLeaves(json).map(([, text]) => text),
-    );
-
-    expect(strings.filter((text) => /klinikk|clinic/i.test(text))).toEqual([]);
-    expect(strings).toContain('Feilsøking av oppsett');
   });
 });
 

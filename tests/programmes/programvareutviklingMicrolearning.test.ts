@@ -7,7 +7,6 @@ import {
   listSessionCampaignItems,
   mapLessonUnitsToCampaignItems,
   selectPrimer,
-  type MicroCard,
   type MicroCardKind,
   type MicroSession,
 } from '@/lib/domain';
@@ -26,7 +25,7 @@ import { p2Index, p2Modules } from './p2Content';
  */
 
 // The 24 reinforcement cards, and every card including the six that exist only
-// in a primer. Wording, tone and traceability rules apply to all of them.
+// in a primer. Source traceability applies to every card.
 const reinforcementCards = listMicroCards(bank);
 const cards = [...reinforcementCards, ...listPrimerOnlyCards(bank)];
 
@@ -90,9 +89,6 @@ describe('learning arcs', () => {
           ),
           card.id,
         ).toBe(true);
-        expect(card.kind === 'learn' && card.bridge, card.id).toMatch(
-          /^Neste: /,
-        );
       });
     }
   });
@@ -138,57 +134,6 @@ describe('learning arcs', () => {
           'title',
         ].sort(),
       );
-    }
-  });
-});
-
-describe('instruction clarity', () => {
-  const action =
-    /^(Hva|Hvilken|Hvilket|Hvilke|Sett|Trykk|Koble|Bygg|Velg|Finn)\b/;
-
-  it('opens every interactive title with the thing to do', () => {
-    for (const card of cards.filter((entry) => entry.kind !== 'learn')) {
-      expect(card.title, card.id).toMatch(action);
-    }
-  });
-
-  it('never names only the topic', () => {
-    const topicOnly =
-      /^(Les en feilmelding|Variabler|Typer|Feilmeldinger|Git|Input)$/i;
-
-    for (const card of cards) {
-      expect(card.title, card.id).not.toMatch(topicOnly);
-    }
-  });
-
-  it('keeps every title short enough for two lines of a phone card', () => {
-    for (const card of cards) {
-      expect(card.title.length, card.id).toBeLessThanOrEqual(52);
-    }
-  });
-});
-
-describe('feedback fits the fixed footer', () => {
-  // The footer shows three lines at 360 px: the first-miss line is "Ikke
-  // helt." plus the hint, the closing line the label plus the explanation.
-  const practice = cards.filter(
-    (card): card is Exclude<MicroCard, { kind: 'learn' }> =>
-      card.kind !== 'learn',
-  );
-
-  it('keeps hints and explanations to what three lines hold', () => {
-    for (const card of practice) {
-      expect(card.hint.length, `${card.id} hint`).toBeLessThanOrEqual(80);
-      expect(
-        card.explanation.length,
-        `${card.id} explanation`,
-      ).toBeLessThanOrEqual(100);
-    }
-  });
-
-  it('does not let a hint repeat the answer it protects', () => {
-    for (const card of practice) {
-      expect(card.hint, card.id).not.toBe(card.explanation);
     }
   });
 });
@@ -538,13 +483,9 @@ describe('availability against the real Campaign order', () => {
     );
 
     expect(feilNow!.cards.map((card) => card.id)).not.toContain('feil-arsak');
-    expect(feilNow!.summary).toBe('Les feilen nedenfra og finn linjen.');
     expect(feilNow!.minutes).toBe(4);
     expect(feilNow!.takeaway).toBeUndefined();
     expect(tenkNow!.cards.map((card) => card.id)).toEqual(['tenk-kjede']);
-    expect(tenkNow!.summary).toBe(
-      'Fra problem til løsning, i riktig rekkefølge.',
-    );
     expect(tenkNow!.minutes).toBe(1);
     // Each open card comes from a mission already reached.
     for (const session of [feilNow!, tenkNow!]) {

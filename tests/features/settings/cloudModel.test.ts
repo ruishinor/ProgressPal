@@ -163,7 +163,7 @@ const prepareRefusals: PrepareRestoreResult[] = [
         reason,
         failure,
         message:
-          reason === 'invalid-backup' ? 'This file is not a backup.' : null,
+          reason === 'invalid-backup' ? 'Synthetic parser diagnostic' : null,
       }),
     ),
   ),
@@ -327,26 +327,16 @@ function everySentence(): string[] {
   return text;
 }
 
-describe('the cloud model never invents freshness, completeness or confidence', () => {
+describe('cloud model redaction', () => {
   const sentences = everySentence();
 
-  it('covers a large, real set of sentences', () => {
-    expect(sentences.length).toBeGreaterThan(300);
-  });
-
-  it('says nothing is current, latest, newer, older, synced or up to date, and nothing is "everything backed up"', () => {
-    const banned =
-      /\b(latest|current|currently|up[- ]to[- ]date|newer|older|newest|oldest|fresh(er)?|synced?|syncing|in sync|changes since|everything is backed up|all (your )?data is (safe|backed up)|backup is current)\b/i;
-
-    expect(sentences.filter((line) => banned.test(line))).toEqual([]);
-  });
-
-  it('never prints a code, token, address or full checksum', () => {
+  it('redacts credential-like values, URLs and full checksums', () => {
     const offenders = sentences.filter(
       (line) =>
         /[0-9a-f]{16,}/i.test(line) ||
-        /https?:\/\//i.test(line) ||
-        /\b(token|code=|ticket|bearer)\b/i.test(line),
+        /https?:\/\/|\b[\w.+-]+@[\w.-]+\.\w+|\b(?:token|code|ticket)\s*=|\bbearer\s+[\w.-]+/i.test(
+          line,
+        ),
     );
 
     expect(offenders).toEqual([]);
@@ -363,19 +353,7 @@ describe('outcome-unknown is its own state', () => {
 
     for (const view of unknowns) {
       expect(view.tone).toBe('warning');
-      expect(view.title).toBe('Backup outcome unknown');
       expect(view.attempt).toEqual(attempt);
-    }
-  });
-
-  it('never claims the backup exists and never claims nothing was changed', () => {
-    for (const view of unknowns) {
-      const text = [view.title, ...view.lines].join(' ');
-
-      expect(text).not.toMatch(/Backed up|Stored by the server/);
-      expect(text).not.toMatch(/Nothing was changed on the server/);
-      expect(text).not.toMatch(/Not backed up/);
-      expect(text).toMatch(/not known whether/);
     }
   });
 
@@ -395,24 +373,20 @@ describe('a backup is reported stored only when the server confirmed it', () => 
       .map(describeBackupOutcome);
 
     expect(plain?.tone).toBe('success');
-    expect(plain?.lines[0]).toBe(
-      'Stored by the server at 2026-10-08 12:00 UTC, 332 KiB, slot 1.',
-    );
-    expect(plain?.lines).toHaveLength(1);
-    expect(reconciled?.lines).toContain(
-      'The first request did not answer; the server confirmed this backup afterwards.',
-    );
-    expect(reconciled?.lines).toContain('It replaced one earlier backup.');
+    expect(reconciled?.tone).toBe('success');
+    for (const value of ['2026-10-08 12:00 UTC', '332 KiB', '1']) {
+      expect(plain?.lines.join(' ')).toContain(value);
+    }
+    expect(reconciled?.lines.join(' ')).toContain('10 B');
   });
 
-  it('every confirmed refusal says nothing was changed on the server', () => {
+  it('marks every confirmed refusal as a failure', () => {
     for (const outcome of backupOutcomes.filter(
       (candidate) => candidate.kind === 'not-stored',
     )) {
       const view = describeBackupOutcome(outcome);
 
       expect(view.tone).toBe('danger');
-      expect(view.lines.at(-1)).toBe('Nothing was changed on the server.');
     }
   });
 
@@ -421,8 +395,7 @@ describe('a backup is reported stored only when the server confirmed it', () => 
       backupOutcomes.find((outcome) => outcome.kind === 'integrity-violation')!,
     );
 
-    expect(view.title).toBe('Backup stopped');
-    expect(view.lines).toContain('Nothing was deleted, replaced or retried.');
+    expect(view.tone).toBe('danger');
     expect(view.lines.join(' ')).toContain('abababab');
     expect(view.lines.join(' ')).toContain('cdcdcdcd');
   });
@@ -434,26 +407,21 @@ describe('the inventory states server facts only', () => {
       const view = describeInventory({ kind: 'unavailable', failure });
 
       expect(view.kind).toBe('unavailable');
-      expect(view.summary).not.toMatch(/No backups/);
-      expect(view.summary).toMatch(/could not be read/);
+      expect(view).not.toHaveProperty('rows');
     }
   });
 
-  it('describes empty, nothing restorable, and some restorable, with the most recently stored caveat', () => {
+  it('keeps inventory size and restorable choices across compatibility states', () => {
     const [empty, none, some, caveat] = inventories
       .slice(0, 4)
       .map(describeInventory);
 
-    expect(empty?.summary).toBe('No backups are stored on the server.');
-    expect(none?.summary).toBe(
-      '1 backup is stored on the server; none can be restored by this version.',
-    );
-    expect(some?.summary).toBe(
-      '2 backups are stored on the server; 2 can be restored by this version.',
-    );
-    expect(caveat?.summary).toBe(
-      '2 backups are stored on the server; 1 can be restored by this version. The backup stored most recently by the server cannot be restored by this version.',
-    );
+    expect(
+      [empty, none, some, caveat].map(
+        (view) =>
+          view?.kind === 'ok' && view.rows.map(({ restorable }) => restorable),
+      ),
+    ).toEqual([[], [false], [true, true], [true, false]]);
   });
 
   it('rows carry stored time, size, app version and restorability, and nothing about this device', () => {
@@ -462,21 +430,14 @@ describe('the inventory states server facts only', () => {
     expect(
       view.kind === 'ok' && view.rows.map((row) => row.restorable),
     ).toEqual([true, false]);
-    expect(view.kind === 'ok' && view.rows[0]?.detail).toBe(
-      'Stored 2026-10-08 12:00 UTC, 1.2 MiB, app 1.7.1. Can be restored by this version.',
-    );
-    expect(view.kind === 'ok' && view.rows[1]?.detail).toMatch(
-      /Cannot be restored by this version\.$/,
-    );
-  });
-
-  it('states that the list is details only', () => {
-    expect(inventoryScopeNote).toMatch(/not downloaded or checked/);
+    for (const value of ['2026-10-08 12:00 UTC', '1.2 MiB', '1.7.1']) {
+      expect(view.kind === 'ok' && view.rows[0]?.detail).toContain(value);
+    }
   });
 });
 
-describe('restore refusals always say what happened to this device', () => {
-  it('a refused preparation or restore says nothing was changed on this device', () => {
+describe('restore refusal and parser details', () => {
+  it('announces a refused preparation or restore as a failure', () => {
     const prepared = prepareRefusals
       .filter((result) => result.kind === 'refused')
       .map((result) => describePrepareRefusal(result as never));
@@ -486,26 +447,7 @@ describe('restore refusals always say what happened to this device', () => {
 
     for (const view of [...prepared, ...confirmed]) {
       expect(view.tone).toBe('danger');
-      expect(view.lines.at(-1)).toBe('Nothing was changed on this device.');
     }
-  });
-
-  it('a hash mismatch and a missing checksum capability are different messages', () => {
-    const mismatch = describePrepareRefusal({
-      kind: 'refused',
-      reason: 'hash-mismatch',
-      failure: null,
-      message: null,
-    });
-    const unverifiable = describePrepareRefusal({
-      kind: 'refused',
-      reason: 'verification-unavailable',
-      failure: null,
-      message: null,
-    });
-
-    expect(mismatch.lines[0]).not.toBe(unverifiable.lines[0]);
-    expect(unverifiable.lines[0]).toMatch(/HTTPS or localhost/);
   });
 
   it('shows the parser message for an invalid backup', () => {
@@ -513,10 +455,10 @@ describe('restore refusals always say what happened to this device', () => {
       kind: 'refused',
       reason: 'invalid-backup',
       failure: null,
-      message: 'This file is not a backup.',
+      message: 'Synthetic parser diagnostic',
     });
 
-    expect(view.lines[0]).toBe('This file is not a backup.');
+    expect(view.lines[0]).toBe('Synthetic parser diagnostic');
   });
 });
 
@@ -595,16 +537,7 @@ describe('the email-link landing result', () => {
     expect(views[1]).toEqual({ kind: 'new-password' });
   });
 
-  it('mentions being signed in only as a fact read from the account', () => {
-    expect(
-      describeCallbackOutcome({ kind: 'invalid-link' }, true),
-    ).toMatchObject({ detail: expect.stringContaining('You are signed in') });
-    expect(
-      describeCallbackOutcome({ kind: 'invalid-link' }, false),
-    ).toMatchObject({ detail: 'Nothing was changed.' });
-  });
-
-  it('turns every failure, including an unexpected one, into a calm sign-in instruction', () => {
+  it('classifies callback failures without leaking unexpected error details', () => {
     const off = describeCallbackFailure(new CloudError('disabled', 'x'));
     const expired = describeCallbackFailure(
       new CloudError(
@@ -616,81 +549,11 @@ describe('the email-link landing result', () => {
       new Error('SDK blew up: secret-detail'),
     );
 
-    expect(off).toMatchObject({ title: 'Cloud backup is off' });
-    expect(expired).toMatchObject({ title: 'This link has expired' });
-    expect(unknown).toMatchObject({ title: 'Sign-in could not be completed' });
+    expect(off).toMatchObject({ kind: 'done', tone: 'warning' });
+    expect(expired).toMatchObject({ kind: 'done', tone: 'danger' });
+    expect(unknown).toMatchObject({ kind: 'done', tone: 'danger' });
     // An unexpected error's own text never reaches the learner.
     expect(JSON.stringify(unknown)).not.toMatch(/secret-detail|SDK/);
-  });
-
-  it('adds the way to ask again to the failures a reset link can end in, and only to those', () => {
-    const again = 'choose Forgot password? in Settings';
-    const detail = (view: ReturnType<typeof describeCallbackOutcome>) =>
-      view.kind === 'done' ? view.detail : '';
-
-    expect(
-      detail(
-        describeCallbackOutcome(
-          { kind: 'sign-in-required', purpose: 'unknown' },
-          false,
-        ),
-      ),
-    ).toContain(again);
-    expect(
-      detail(
-        describeCallbackOutcome(
-          { kind: 'sign-in-required', purpose: 'reset' },
-          false,
-        ),
-      ),
-    ).toContain(again);
-    expect(
-      detail(
-        describeCallbackOutcome(
-          { kind: 'sign-in-required', purpose: 'signup' },
-          false,
-        ),
-      ),
-    ).not.toContain(again);
-    expect(
-      detail(
-        describeCallbackFailure(
-          new CloudError('link-expired', 'This link has expired.'),
-        ),
-      ),
-    ).toContain(again);
-    expect(
-      detail(describeCallbackFailure(new CloudError('unavailable', 'x'))),
-    ).not.toContain(again);
-    expect(
-      detail(describeCallbackOutcome({ kind: 'invalid-link' }, false)),
-    ).not.toContain(again);
-  });
-});
-
-describe('the heading and the disclosure', () => {
-  it('name the capability and say what it is, who can read it and what it is not', () => {
-    expect(cloudCardTitle).toBe('Remote backup — Alpha');
-    expect(remoteBackupDisclosure).toHaveLength(3);
-
-    const all = remoteBackupDisclosure.join(' ');
-
-    expect(all).toMatch(/experimental/);
-    expect(all).toMatch(/manual backup, not automatic synchronization/);
-    expect(all).toMatch(
-      /nothing is uploaded when you open Settings or sign in/,
-    );
-    expect(all).toMatch(/working data stays on this device/);
-    expect(all).toMatch(
-      /cloud provider and the service operator can read the backups you upload/,
-    );
-    expect(all).toMatch(/Exporting a backup file .* separate way/);
-  });
-
-  it('make no claim of encryption, privacy, protection, legal standing or retention', () => {
-    expect([cloudCardTitle, ...remoteBackupDisclosure].join(' ')).not.toMatch(
-      /end-to-end|encrypt|private|privacy|secure|safe|protect|confidential|only you|no one else|GDPR|legal|guarantee|retention|retained/i,
-    );
   });
 });
 
@@ -714,7 +577,7 @@ describe('asking for a password reset link', () => {
       if (independent.includes(code)) {
         expect(result.kind).toBe('failed');
         expect(result).toMatchObject({
-          notice: { title: 'Reset link not requested', tone: 'danger' },
+          notice: { tone: 'danger' },
         });
       } else {
         // The answer to a refusal that could reflect the account is the
@@ -729,20 +592,11 @@ describe('asking for a password reset link', () => {
       new Error('SDK internals: bearer abc.def.ghi'),
     );
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       kind: 'failed',
-      notice: {
-        tone: 'danger',
-        title: 'Reset link not requested',
-        lines: ['Something went wrong. Local data is unaffected.'],
-      },
+      notice: { tone: 'danger' },
     });
-  });
-
-  it('the generic answer does not mention an address, an account state or a provider', () => {
-    expect(JSON.stringify(passwordResetSent)).not.toMatch(
-      /@|nhost|unverified|disabled|not found|no such|does not exist|isn't|not registered/i,
-    );
+    expect(JSON.stringify(result)).not.toMatch(/SDK internals|abc\.def\.ghi/);
   });
 
   it.each([
@@ -762,21 +616,19 @@ describe('asking for a password reset link', () => {
 
 describe('choosing the new password', () => {
   it('checks in a fixed order and reports what is wrong, never the password', () => {
-    expect(checkNewPassword('', '')?.lines).toEqual([
-      'Enter the new password twice.',
-    ]);
-    expect(checkNewPassword('a-fine-passphrase-9', '')?.lines).toEqual([
-      'Enter the new password twice.',
-    ]);
-    expect(checkNewPassword('short', 'short')?.lines).toEqual([
-      'Passwords are 9 to 50 characters.',
-    ]);
-    expect(checkNewPassword('y'.repeat(51), 'y'.repeat(51))?.lines).toEqual([
-      'Passwords are 9 to 50 characters.',
-    ]);
-    expect(
-      checkNewPassword('a-fine-passphrase-9', 'a-different-one-9')?.lines,
-    ).toEqual(['The two passwords do not match.']);
+    const empty = checkNewPassword('', '');
+    const tooShort = checkNewPassword('short', 'short');
+    expect(empty?.tone).toBe('danger');
+    expect(tooShort?.tone).toBe('danger');
+    expect(checkNewPassword('a-fine-passphrase-9', '')).toEqual(empty);
+    expect(checkNewPassword('y'.repeat(51), 'y'.repeat(51))).toEqual(tooShort);
+    const mismatch = checkNewPassword(
+      'a-fine-passphrase-9',
+      'a-different-one-9',
+    );
+    expect(mismatch?.tone).toBe('danger');
+    expect(mismatch).not.toEqual(empty);
+    expect(mismatch).not.toEqual(tooShort);
     expect(checkNewPassword('a-fine-passphrase-9', 'a-fine-passphrase-9')).toBe(
       null,
     );
@@ -792,17 +644,11 @@ describe('choosing the new password', () => {
     expect(checkNewPassword('x'.repeat(51), 'x'.repeat(51))).not.toBe(null);
   });
 
-  it('success is worded as a signed-out device and nothing about any other session', () => {
-    expect(passwordChangedView).toEqual({
+  it('reports the acknowledged password change as a successful terminal state', () => {
+    expect(passwordChangedView).toMatchObject({
       kind: 'done',
       tone: 'success',
-      title: 'Password changed',
-      detail:
-        'You were signed out on this device. Sign in with your new password.',
     });
-    expect(JSON.stringify(passwordChangedView)).not.toMatch(
-      /other|all |every|revoke|invalidat/i,
-    );
   });
 
   it.each(everyErrorCode)(
@@ -825,17 +671,9 @@ describe('choosing the new password', () => {
           'not-permitted',
         ];
 
-        expect(result.notice.title).toBe(
-          refused.includes(code)
-            ? 'Password not changed'
-            : 'Password change not confirmed',
+        expect(result.notice.tone).toBe(
+          refused.includes(code) ? 'danger' : 'warning',
         );
-        // A doubt never says "not changed" and never says "changed".
-        if (!refused.includes(code)) {
-          expect(JSON.stringify(result.notice)).not.toMatch(
-            /Password not changed|Password changed/,
-          );
-        }
       }
     },
   );

@@ -139,21 +139,13 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Setup' })).toBeInTheDocument();
   });
 
-  it('shows the quick-start first run with local-first copy and actions', async () => {
+  it('offers quick start, customization and import on first run', async () => {
     await renderAppAtRoute('/');
 
     expect(
       await screen.findByRole('heading', {
         name: 'Start with ProgressPal',
       }),
-    ).toBeInTheDocument();
-    // Epic G repair 01: true with the optional remote backup off AND on (the
-    // earlier "Everything stays in this browser. No account, no cloud sync …"
-    // is replaced by statements that hold in both states).
-    expect(
-      screen.getByText(
-        'Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later.',
-      ),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Use default learner' }),
@@ -714,35 +706,6 @@ describe('App', () => {
     },
   );
 
-  it('does not render forbidden learner-facing terms during onboarding', async () => {
-    const user = userEvent.setup();
-    await renderAppAtRoute('/');
-
-    await screen.findByRole('heading', {
-      name: 'Start with ProgressPal',
-    });
-    await user.click(await screen.findByRole('radio', { name: /CS50x/ }));
-    await user.click(screen.getByRole('button', { name: 'Customize first' }));
-    await screen.findByRole('heading', {
-      name: 'Create your local learner profile',
-    });
-
-    const body = document.body.textContent ?? '';
-
-    expect(body).not.toMatch(/\bledger\b/i);
-    expect(body).not.toMatch(/\baudit\b/i);
-    expect(body).not.toMatch(/\bschema-backed\b/i);
-    expect(body).not.toMatch(/\bevidence\b/i);
-    expect(body).not.toMatch(/\bConfidence\b/);
-    expect(body).not.toMatch(/\bwatched range\b/i);
-    expect(body).not.toMatch(/\bProgress record\b/i);
-    expect(body).not.toMatch(/\bCourse item\b/i);
-    expect(body).not.toMatch(/\bContent detail\b/i);
-    expect(body).not.toMatch(/\bmutable surface\b/i);
-    expect(body).not.toMatch(/\bgranular asset timeline\b/i);
-    expect(body).not.toMatch(/\bdemo\b/i);
-  });
-
   it('exposes the primary quick-start action to keyboard users', async () => {
     const user = userEvent.setup();
     await renderAppAtRoute('/');
@@ -1157,34 +1120,6 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
-  it('lecture page does not render forbidden learner-facing terms', async () => {
-    await initializeDatabase({ seed: bundledCourseSeed });
-    await saveLearnerProfile(
-      {
-        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
-        displayName: 'Alex',
-        preferredTheme: 'dark',
-        reducedMotion: true,
-        targetMinutesPerWeek: 360,
-        targetStudyDays: ['monday', 'thursday'],
-      },
-      { completeOnboarding: true },
-    );
-
-    await renderAppAtRoute('/course/week-0-lecture');
-    await screen.findByRole('heading', { name: 'Log Lecture' });
-
-    const body = document.body.textContent ?? '';
-    expect(body).not.toMatch(/\bwatched range\b/i);
-    expect(body).not.toMatch(/\bslice timeline\b/i);
-    expect(body).not.toMatch(/\bUse next slice\b/i);
-    expect(body).not.toMatch(/\bProgress record\b/i);
-    expect(body).not.toMatch(/\bCourse item\b/i);
-    expect(body).not.toMatch(/\bContent detail\b/i);
-    expect(body).not.toMatch(/\bHow sure are you\b/i);
-    expect(body).not.toMatch(/\bSubmission note\b/i);
-  });
-
   it('saving a lecture session shows inline confirmation with minutes and XP', async () => {
     const user = userEvent.setup();
 
@@ -1359,30 +1294,6 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: 'Save progress' }),
     ).toBeInTheDocument();
-  });
-
-  it('problem set page does not render forbidden learner-facing terms', async () => {
-    await initializeDatabase({ seed: bundledCourseSeed });
-    await saveLearnerProfile(
-      {
-        avatarConfig: { face: 'square', hair: 'parted', topColor: 'ocean' },
-        displayName: 'Alex',
-        preferredTheme: 'dark',
-        reducedMotion: true,
-        targetMinutesPerWeek: 360,
-        targetStudyDays: ['monday', 'thursday'],
-      },
-      { completeOnboarding: true },
-    );
-
-    await renderAppAtRoute('/course/week-0-problem-set');
-    await screen.findByRole('heading', { name: 'Problem Set Progress' });
-
-    const body = document.body.textContent ?? '';
-    expect(body).not.toMatch(/\bEvidence\b/);
-    expect(body).not.toMatch(/\bProgress record\b/i);
-    expect(body).not.toMatch(/\bCourse item\b/i);
-    expect(body).not.toMatch(/\bContent detail\b/i);
   });
 
   it('problem set page hides submission field when status is started', async () => {
@@ -2111,7 +2022,7 @@ describe('App', () => {
     expect(await screen.findByText(/Level \d+/)).toBeInTheDocument();
   });
 
-  it('problem set save confirmation shows XP on its own line with "earned" wording', async () => {
+  it('problem set save confirmation exposes the awarded XP', async () => {
     const user = userEvent.setup();
 
     await initializeDatabase({ seed: bundledCourseSeed });
@@ -2133,8 +2044,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Save progress' }));
 
     await screen.findByRole('heading', { name: 'Progress saved' });
-    // problem_set_started awards +20 XP; confirm it uses the new "earned" wording
-    expect(screen.getByText(/\+20 XP earned/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/\+20 XP\b/, { selector: 'strong' }),
+    ).toBeInTheDocument();
   });
 
   it('problem set save confirmation shows achievement name on its own line', async () => {
@@ -2640,21 +2552,6 @@ describe('RPG routes', () => {
     expect(
       screen.getByText(/Saved progress - Lecture 4: Memory/),
     ).toBeInTheDocument();
-
-    const forbiddenCopy = [
-      /daily reward/i,
-      /energy/i,
-      /streak/i,
-      /locked adventure/i,
-      /official cs50 completion/i,
-      /customize guild/i,
-      /choose your path/i,
-      /CS50 Knights/i,
-    ];
-
-    for (const pattern of forbiddenCopy) {
-      expect(screen.queryByText(pattern)).not.toBeInTheDocument();
-    }
   });
 
   it('renders a useful empty RPG hub state for a new local user', async () => {
@@ -2807,21 +2704,6 @@ describe('RPG routes', () => {
       expect(link.getAttribute('href')).toMatch(
         /^\/rpg\/resource\/[a-z0-9-]+$/,
       );
-    }
-
-    const forbiddenCopy = [
-      /CS50P/i,
-      /CS50AI/i,
-      /CS50W/i,
-      /CS50SQL/i,
-      /locked adventure/i,
-      /official CS50 campaign/i,
-      /Harvard campaign/i,
-      /course art/i,
-    ];
-
-    for (const pattern of forbiddenCopy) {
-      expect(screen.queryByText(pattern)).not.toBeInTheDocument();
     }
   });
 
@@ -3184,17 +3066,6 @@ describe('RPG routes', () => {
     expect(confidenceControl).toHaveAccessibleDescription(
       confidenceError?.textContent ?? '',
     );
-  });
-
-  it('keeps tracker jargon out of the RPG study resource surface', async () => {
-    await seedOnboardedLearner();
-
-    await renderAppAtRoute('/rpg/resource/week-4-problem-set');
-    await screen.findByRole('heading', { name: 'Problem Set 4: Memory' });
-
-    const body = document.body.textContent ?? '';
-    expect(body).not.toMatch(/\bConfidence\b/);
-    expect(body).not.toMatch(/Save local progress/);
   });
 
   it('applies the RPG body class on /rpg routes and removes it when leaving', async () => {

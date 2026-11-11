@@ -10,10 +10,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-debug"
   },
   {
@@ -27,10 +23,6 @@
         "xp": 250
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +250 XP",
-    "freshLabelDetailed": "Up to 250 XP remaining for this task",
     "itemId": "final-project-build"
   },
   {
@@ -44,10 +36,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-0-lecture"
   },
   {
@@ -61,10 +49,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-1-lecture"
   },
   {
@@ -86,10 +70,6 @@
         "xp": 150
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task · +150 XP when Week 10: The End is complete",
     "itemId": "week-10-lecture"
   },
   {
@@ -103,10 +83,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-2-lecture"
   },
   {
@@ -120,10 +96,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-3-lecture"
   },
   {
@@ -137,10 +109,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-4-lecture"
   },
   {
@@ -154,10 +122,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-5-lecture"
   },
   {
@@ -171,10 +135,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-6-lecture"
   },
   {
@@ -188,10 +148,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-7-lecture"
   },
   {
@@ -205,10 +161,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-8-lecture"
   },
   {
@@ -222,10 +174,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "week-9-lecture"
   },
   {
@@ -239,10 +187,6 @@
         "xp": 40
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +40 XP",
-    "freshLabelDetailed": "Up to 40 XP remaining for this task",
     "itemId": "artificial-intelligence-lecture"
   },
   {
@@ -256,10 +200,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-half"
   },
   {
@@ -289,10 +229,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-0-problem-set"
   },
   {
@@ -306,18 +242,10 @@
         "xp": 200
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +200 XP",
-    "freshLabelDetailed": "Up to 200 XP remaining for this task (shared with README + demo)",
     "itemId": "final-project-video-demo"
   },
   {
     "awards": [],
-    "earnedLabel": "No task XP",
-    "earnedLabelDetailed": "No task XP",
-    "freshLabel": "No task XP",
-    "freshLabelDetailed": "No task XP",
     "itemId": "week-10-seminars"
   },
   {
@@ -331,10 +259,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-3-shorts"
   },
   {
@@ -348,10 +272,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-2-shorts"
   },
   {
@@ -365,10 +285,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-1-shorts"
   },
   {
@@ -382,10 +298,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-5-shorts"
   },
   {
@@ -399,10 +311,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-9-shorts"
   },
   {
@@ -416,10 +324,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-8-shorts"
   },
   {
@@ -433,10 +337,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-4-shorts"
   },
   {
@@ -450,10 +350,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-6-shorts"
   },
   {
@@ -467,10 +363,6 @@
         "xp": 15
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +15 XP",
-    "freshLabelDetailed": "Up to 15 XP remaining for this task",
     "itemId": "week-7-shorts"
   },
   {
@@ -484,10 +376,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-prime"
   },
   {
@@ -501,10 +389,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-3-section"
   },
   {
@@ -518,10 +402,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-2-section"
   },
   {
@@ -535,10 +415,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-1-section"
   },
   {
@@ -552,10 +428,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-5-section"
   },
   {
@@ -569,10 +441,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-9-section"
   },
   {
@@ -586,10 +454,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-8-section"
   },
   {
@@ -603,10 +467,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-4-section"
   },
   {
@@ -620,10 +480,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-6-section"
   },
   {
@@ -637,10 +493,6 @@
         "xp": 20
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +20 XP",
-    "freshLabelDetailed": "Up to 20 XP remaining for this task",
     "itemId": "week-7-section"
   },
   {
@@ -654,10 +506,6 @@
         "xp": 200
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +200 XP",
-    "freshLabelDetailed": "Up to 200 XP remaining for this task (shared with README + demo)",
     "itemId": "final-project-readme"
   },
   {
@@ -671,10 +519,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-hours"
   },
   {
@@ -704,10 +548,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-1-problem-set"
   },
   {
@@ -737,10 +577,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-2-problem-set"
   },
   {
@@ -770,10 +606,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-3-problem-set"
   },
   {
@@ -803,10 +635,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-4-problem-set"
   },
   {
@@ -836,10 +664,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-5-problem-set"
   },
   {
@@ -869,10 +693,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-6-problem-set"
   },
   {
@@ -902,10 +722,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-7-problem-set"
   },
   {
@@ -935,10 +751,6 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-8-problem-set"
   },
   {
@@ -968,18 +780,10 @@
         "xp": 125
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +220 XP",
-    "freshLabelDetailed": "Up to 220 XP remaining for this task",
     "itemId": "week-9-problem-set"
   },
   {
     "awards": [],
-    "earnedLabel": "No task XP",
-    "earnedLabelDetailed": "No task XP",
-    "freshLabel": "No task XP",
-    "freshLabelDetailed": "No task XP",
     "itemId": "final-project-submit50"
   },
   {
@@ -993,18 +797,10 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-no-vowels"
   },
   {
     "awards": [],
-    "earnedLabel": "No task XP",
-    "earnedLabelDetailed": "No task XP",
-    "freshLabel": "No task XP",
-    "freshLabelDetailed": "No task XP",
     "itemId": "final-project-gradebook-check"
   },
   {
@@ -1018,10 +814,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-password"
   },
   {
@@ -1035,10 +827,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-recursive-atoi"
   },
   {
@@ -1052,10 +840,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-average-temperatures"
   },
   {
@@ -1069,10 +853,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-max"
   },
   {
@@ -1086,10 +866,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-snackbar"
   },
   {
@@ -1103,10 +879,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-bottom-up"
   },
   {
@@ -1120,10 +892,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-license"
   },
   {
@@ -1137,10 +905,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-trie"
   },
   {
@@ -1154,10 +918,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-bank"
   },
   {
@@ -1171,10 +931,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-frank-ian-and-glens-letters"
   },
   {
@@ -1188,10 +944,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-jar"
   },
   {
@@ -1205,10 +957,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-seven-day-average"
   },
   {
@@ -1222,10 +970,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-taqueria"
   },
   {
@@ -1239,10 +983,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-favorites"
   },
   {
@@ -1256,10 +996,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-hall-of-prophecy"
   },
   {
@@ -1273,10 +1009,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-radio-shack-redo"
   },
   {
@@ -1290,10 +1022,6 @@
         "xp": 30
       }
     ],
-    "earnedLabel": "Task XP earned",
-    "earnedLabelDetailed": "Task XP earned",
-    "freshLabel": "Up to +30 XP",
-    "freshLabelDetailed": "Up to 30 XP remaining for this task",
     "itemId": "practice-hello-flask"
   }
 ]

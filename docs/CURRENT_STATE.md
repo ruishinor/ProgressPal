@@ -1,5 +1,13 @@
 # ProgressPal current state
 
+**Editorial test cleanup — local candidate, 2026-11-11.** Based on
+master at f72d67677000ed4379faf3def157341ed2e029cf. The owner decision
+retires tests that freeze or police learner-facing copy. Functional tests
+continue to check learning outcomes, persistence, programme isolation,
+accessibility and release controls. The patch touches tests, their fixtures
+and this record. Release requires an independent review of the candidate
+payload and the existing hosted Final candidate check.
+
 **Læringslaget, kildekandidat 2026-11-11.** Arbeidet startet ved PR #85
 (`06983dcd2dc5f9f3f6673e36ebfc388c8d501904`) og inkluderer PR #86
 (`5a40960ee01324a9b4b0490ed402fbed9c982c6d`). Personlig uke leser
