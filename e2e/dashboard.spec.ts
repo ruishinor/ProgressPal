@@ -524,10 +524,9 @@ test('renders an accessible dashboard derived from a real saved activity flow', 
   );
 
   // Actionable card links point at the right local routes.
-  await expect(page.getByRole('link', { name: 'Start' })).toHaveAttribute(
-    'href',
-    '/course/week-0-lecture',
-  );
+  await expect(
+    page.getByRole('link', { name: 'Start', exact: true }),
+  ).toHaveAttribute('href', '/course/week-0-lecture');
   await expect(page.getByRole('link', { name: 'Resume' })).toHaveAttribute(
     'href',
     '/course/week-0-lecture',

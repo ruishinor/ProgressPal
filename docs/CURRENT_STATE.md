@@ -10,6 +10,11 @@ Databaseskjema v5, sikkerhetskopier, pensum og XP følger eksisterende
 kontrakter. [Migreringen for Læringslaget](../infra/nhost/social/README.md)
 krever egen, autorisert provider-validering før bruk i produksjon.
 
+PR #87, kjøring #168, stoppet da dashbordtesten matchet både «Start» og
+«Start eller loggfør en økt». Testen bruker nå eksakt lenkenavn og sjekker
+fortsatt leksjonens adresse. Alle ti nettlesertester i dashbord- og
+presentasjonsfilene besto lokalt, inkludert programbyttet i begge temaer.
+
 **PR #85 — flettet til master, 2026-11-11.** Kandidaten inneholder
 sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
 er kontrollert og bundet til versjon 5. Mestring viser bare en
