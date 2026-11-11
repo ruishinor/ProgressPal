@@ -83,8 +83,16 @@ function runNotes(bundle: LessonBundle): Map<string, string> {
 }
 
 describe('Programme #2 teaching missions interleave practice with teaching', () => {
-  it('covers every M01/M02 teaching mission', () => {
-    expect(teachingMissions).toHaveLength(15);
+  it('covers all published teaching missions, including the original 15 in M01/M02', () => {
+    const published = programvareutviklingDefinition.catalogue.units.flatMap(
+      (unit) => unit.items.filter((item) => item.type === 'lesson'),
+    );
+    expect(
+      teachingMissions.filter((id) => /^s1-m0[12]-/.test(id)),
+    ).toHaveLength(15);
+    expect(published.map((item) => item.id)).toEqual(
+      expect.arrayContaining(teachingMissions),
+    );
   });
 
   it.each(teachingMissions)(

@@ -15,6 +15,7 @@ import { getProgrammeRegistry } from '@/programmes';
 import { gitGithubDefinition } from '@/programmes/git-github';
 import catalogueJson from '@/programmes/git-github/content/catalogue.json';
 import offline from '../../public/content/offline.json';
+import { p2Catalogue } from './p2Content';
 
 const catalogue = parseProgrammeContentCatalogue(catalogueJson);
 const readAsset = async (path: string) =>
@@ -193,17 +194,22 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
     expect((await tampered.loadLesson('git-m01-o01')).status).toBe(
       'version_mismatch',
     );
-    expect(
-      offline.assets.filter((path) =>
-        path.startsWith('/content/programvareutvikling/'),
-      ),
-    ).toHaveLength(3);
-    for (const asset of [
-      catalogue.assets.index,
-      ...Object.values(catalogue.assets.modules),
-    ]) {
-      expect(offline.assets).toContain('/' + asset.path);
-      expect(Buffer.byteLength(await readAsset(asset.path))).toBe(asset.bytes);
+    for (const [programmeId, { assets }] of [
+      ['git-github', catalogue],
+      ['programvareutvikling', p2Catalogue],
+    ] as const) {
+      const expected = [assets.index, ...Object.values(assets.modules)];
+      expect(
+        offline.assets
+          .filter((path) => path.startsWith(`/content/${programmeId}/`))
+          .sort(),
+      ).toEqual(expected.map(({ path }) => '/' + path).sort());
+
+      for (const asset of expected) {
+        const content = await readAsset(asset.path);
+        expect(Buffer.byteLength(content), asset.path).toBe(asset.bytes);
+        expect(await sha256Hex(content), asset.path).toBe(asset.sha256);
+      }
     }
   });
 

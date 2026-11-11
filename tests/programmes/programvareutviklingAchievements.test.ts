@@ -5,6 +5,7 @@ import {
   sharedAchievementDefinitions,
 } from '@/lib/achievements';
 import type {
+  AchievementDefinition,
   EvaluationResultRecord,
   ExerciseAttemptRecord,
   LearnerEvidence,
@@ -249,18 +250,23 @@ describe('P2 achievements are bound to the content version they describe', () =>
     return [attempt, result] as const;
   }
 
-  function planFor(liveVersion: number) {
-    const code = programvareutviklingAchievementDefinitions.find(
-      (entry) => entry.id === 'p2-code-reader',
-    )!;
-    const rows = (code.ruleConfig.subjectIds as string[]).map((id, tick) =>
-      solved(id, liveVersion, tick),
-    );
+  function planFor(definition: AchievementDefinition, liveVersion: number) {
+    const subjectIds =
+      definition.ruleType === 'checkpoint_cleared'
+        ? index.exercises
+            .filter(
+              (entry) =>
+                entry.moduleId === definition.ruleConfig.moduleId &&
+                entry.masteryGate,
+            )
+            .map((entry) => entry.subjectId)
+        : (definition.ruleConfig.subjectIds as string[]);
+    const rows = subjectIds.map((id, tick) => solved(id, liveVersion, tick));
     const last = rows.at(-1)!;
 
     return planEvidenceAchievementUnlocks(
       {
-        definitions: programvareutviklingAchievementDefinitions,
+        definitions: [definition],
         index: { ...index, contentVersion: liveVersion },
         runtimeAvailable: true,
       },
@@ -269,13 +275,19 @@ describe('P2 achievements are bound to the content version they describe', () =>
         result: last[1],
         evidence: rows.flat() as LearnerEvidence[],
       },
-    ).map((entry) => entry.achievementId);
+    );
   }
 
-  it('awards at the bound version and awards nothing when the content version moves on', () => {
-    // Control: the same complete, correct evidence unlocks at the bound version.
-    expect(planFor(index.contentVersion)).toContain('p2-code-reader');
-    // A changed content version fails closed: no false unlock, no throw.
-    expect(planFor(index.contentVersion + 1)).toEqual([]);
-  });
+  it.each(programvareutviklingAchievementDefinitions)(
+    '$id awards at the bound version and fails closed for a future version',
+    (definition) => {
+      expect(planFor(definition, index.contentVersion)).toEqual([
+        {
+          achievementId: definition.id,
+          triggerSourceId: definition.ruleConfig.triggerSourceId,
+        },
+      ]);
+      expect(planFor(definition, index.contentVersion + 1)).toEqual([]);
+    },
+  );
 });

@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**PR #85 — lokal releasekandidat, 2026-11-11.** Kandidaten inneholder
+sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
+er kontrollert og bundet til versjon 5. Mestring viser bare en
+repetisjonsmulighet når en egnet oppgave for ferdigheten finnes. Oppdraget
+«Sammenlign og velg en vei» deler åtte øvinger i to etapper med fire i hver.
+Regenereringen bevarer oppgaverekkefølgen, leseposisjonene og alle 346
+oppgavehashene fra PR-kandidaten. Lokal kandidatstatus gir ingen
+bekreftelse på GitHub-validering eller publisering.
+
 **Q02-F-FEEDBACK — lokal kandidat, 2026-11-10.** Utgangspunkt er Q01 på
 `master` (`a166c45fbf6c970562672a8e23fc54840d044d85`). Åtte oppgaver om
 variabelverdier og forutsigelse av utskrift i S1-M02 L01/P01 har fått

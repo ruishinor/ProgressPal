@@ -377,8 +377,20 @@ export function deriveProgrammeMastery(input: MasteryInput): ProgrammeMastery {
       );
     const demonstrated =
       ruleAvailable && (demonstratedByCheckpoint || retained);
-    const opportunity = skill.retention.opportunityUnits.some((unitId) =>
-      contentUnitIds.has(unitId),
+    // A named opportunity unit is not enough: it must actually carry a
+    // countable retrieval task for this skill in the published catalogue.
+    const opportunity = skill.retention.opportunityUnits.some(
+      (unitId) =>
+        contentUnitIds.has(unitId) &&
+        index.exercises.some(
+          (entry) =>
+            entry.unitId === unitId &&
+            entry.skillIds.includes(skill.skillId) &&
+            entry.evaluable &&
+            trustedEvidence.has(entry.evidenceTrust) &&
+            entry.evidenceLayer !== 'C' &&
+            (entry.role === 'retrieval' || entry.checkpointTask === 'r'),
+        ),
     )
       ? 'available'
       : 'none_authored';

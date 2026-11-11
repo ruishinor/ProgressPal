@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { presentResult } from '@/features/lessons/model';
-import type { EvaluationResultRecord, LessonExercise } from '@/lib/domain';
+import type { EvaluationResultRecord } from '@/lib/domain';
 import { programvareutviklingDefinition } from '@/programmes/programvareutvikling';
 
-import { p2Modules } from '../../programmes/p2Content';
+import { p2Index, p2Modules } from '../../programmes/p2Content';
 
 /**
  * Owner instruction 2026-10-03: an incorrect answer keeps its truthful state
@@ -17,13 +17,9 @@ import { p2Modules } from '../../programmes/p2Content';
 
 const copy = programvareutviklingDefinition.content.lessons!.copy!;
 const exercises = Object.values(p2Modules)
-  .flatMap(
-    (module) =>
-      (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })
-        .units,
-  )
+  .flatMap((module) => module.units)
   .flatMap((unit) => unit.flow)
-  .filter((block) => block.t === 'exercise') as unknown as LessonExercise[];
+  .filter((block) => block.t === 'exercise');
 
 function incorrectResult(matchedFeedbackKey?: string): EvaluationResultRecord {
   return {
@@ -44,7 +40,14 @@ describe('incorrect answers lead to an explanation, not a bare judgement', () =>
   const evaluable = exercises.filter((exercise) => exercise.evaluable);
 
   it('covers the real evaluable exercises', () => {
-    expect(evaluable).toHaveLength(276);
+    const indexed = p2Index.exercises
+      .filter((exercise) => exercise.evaluable)
+      .map((exercise) => exercise.exerciseId);
+
+    expect(indexed.length).toBeGreaterThan(0);
+    expect(evaluable.map((exercise) => exercise.id).sort()).toEqual(
+      indexed.sort(),
+    );
   });
 
   it.each(evaluable.map((exercise) => [exercise.id, exercise] as const))(
