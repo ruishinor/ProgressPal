@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 import { writeCloudPreferences } from '@/lib/cloud';
-import { nhostGraphqlUrl } from '@/lib/cloud/nhost/endpoints';
+import { nhostAuthUrl, nhostGraphqlUrl } from '@/lib/cloud/nhost/endpoints';
 import { cloudSessionStorageKey } from '@/lib/cloud/nhost/sessionBackends';
 
 import {
   createCloud,
   enableCloud,
+  fakeSession,
   installFetchStub,
   jsonResponse,
   signInThroughStub,
@@ -52,7 +53,7 @@ it('only sends an explicit, bounded social command under the expected authentica
   expect(await cloud.social.execute(share, 'user-1', signal)).toEqual({
     status: 'unauthenticated',
   });
-  await signInThroughStub(cloud, stub, 5);
+  await signInThroughStub(cloud, stub);
   expect(await cloud.social.execute(share, 'different-user', signal)).toEqual({
     status: 'unauthenticated',
   });
@@ -128,4 +129,94 @@ it('rejects an invite on a read, malformed scores, and expired authorization', a
     jsonResponse(200, { errors: [{ extensions: { code: 'invalid-jwt' } }] }),
   );
   expect(await read()).toEqual({ status: 'unauthenticated' });
+});
+
+it.each([-60, 5])(
+  'refreshes a usable session with %i seconds of access remaining before the social action',
+  async (seconds) => {
+    const stub = installFetchStub();
+    const cloud = createCloud();
+    enableCloud();
+    const original = await signInThroughStub(cloud, stub, seconds);
+    const renewed = { ...fakeSession(), refreshToken: 'renewed-refresh-token' };
+    stub.respond((call) => {
+      if (call.url === nhostAuthUrl + '/token') {
+        expect(call.body).toEqual({ refreshToken: original.refreshToken });
+        return jsonResponse(200, renewed);
+      }
+      expect(call.url).toBe(nhostGraphqlUrl);
+      return call.headers.get('authorization') ===
+        'Bearer ' + renewed.accessToken
+        ? answer(board)
+        : jsonResponse(200, {
+            errors: [{ extensions: { code: 'invalid-jwt' } }],
+          });
+    });
+
+    expect(
+      await cloud.social.execute(
+        { operation: 'read' },
+        'user-1',
+        new AbortController().signal,
+      ),
+    ).toEqual(board);
+    expect(stub.calls.map((call) => call.url)).toEqual([
+      nhostAuthUrl + '/token',
+      nhostGraphqlUrl,
+    ]);
+    expect(
+      JSON.parse(sessionStorage.getItem(cloudSessionStorageKey) ?? '{}'),
+    ).toMatchObject({
+      accessToken: renewed.accessToken,
+      refreshToken: renewed.refreshToken,
+    });
+  },
+);
+
+it('does not overwrite a replacement account or send its social request after renewal starts', async () => {
+  const stub = installFetchStub();
+  const cloud = createCloud();
+  enableCloud();
+  await signInThroughStub(cloud, stub, -60);
+  const replacement = {
+    ...fakeSession(),
+    user: { ...fakeSession().user, id: 'user-2' },
+  };
+  stub.respond((call) => {
+    expect(call.url).toBe(nhostAuthUrl + '/token');
+    sessionStorage.setItem(cloudSessionStorageKey, JSON.stringify(replacement));
+    return jsonResponse(200, {
+      ...fakeSession(),
+      refreshToken: 'renewed-refresh-token',
+    });
+  });
+
+  expect(
+    await cloud.social.execute(
+      { operation: 'read' },
+      'user-1',
+      new AbortController().signal,
+    ),
+  ).toEqual({ status: 'unauthenticated' });
+  expect(stub.calls.map((call) => call.url)).toEqual([nhostAuthUrl + '/token']);
+  expect(
+    JSON.parse(sessionStorage.getItem(cloudSessionStorageKey) ?? '{}'),
+  ).toEqual(replacement);
+});
+
+it('does not send a social request when the provider refuses renewal', async () => {
+  const stub = installFetchStub();
+  const cloud = createCloud();
+  enableCloud();
+  await signInThroughStub(cloud, stub, -60);
+  stub.respond(() => jsonResponse(401, { error: 'invalid-refresh-token' }));
+
+  expect(
+    await cloud.social.execute(
+      { operation: 'read' },
+      'user-1',
+      new AbortController().signal,
+    ),
+  ).toEqual({ status: 'unauthenticated' });
+  expect(stub.calls.map((call) => call.url)).toEqual([nhostAuthUrl + '/token']);
 });

@@ -1,4 +1,6 @@
 import type { NhostClient } from '@nhost/nhost-js';
+import { createAPIClient } from '@nhost/nhost-js/auth';
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { z } from 'zod';
 
 import type { SocialGroupPort, SocialResult } from '../socialPort';
@@ -59,6 +61,58 @@ const reply = z.object({
   }),
 });
 
+function isSameSession(current: StoredSession | null, expected: StoredSession) {
+  return (
+    current?.user?.id === expected.user?.id &&
+    current?.accessToken === expected.accessToken &&
+    current.refreshToken === expected.refreshToken
+  );
+}
+
+function needsRefresh(session: StoredSession) {
+  return (session.decodedToken?.exp ?? 0) - Date.now() <= 60_000;
+}
+
+async function renewSocialSession(
+  getClient: () => NhostClient,
+  client: NhostClient,
+  original: StoredSession,
+  signal: AbortSignal,
+) {
+  const renew = async () => {
+    if (signal.aborted || getClient() !== client) return null;
+    const current = client.getUserSession();
+    if (current?.user?.id !== original.user?.id || !current?.accessToken)
+      return null;
+    if (!needsRefresh(current)) return current;
+    if (!current.refreshToken || !isSameSession(current, original)) return null;
+
+    // The SDK's session response middleware writes /token replies
+    // unconditionally. Use its unconfigured Auth client for this exchange.
+    const { body } = await createAPIClient(client.auth.baseURL).refreshToken(
+      { refreshToken: current.refreshToken },
+      { signal },
+    );
+    if (
+      signal.aborted ||
+      getClient() !== client ||
+      !isSameSession(client.getUserSession(), current) ||
+      body?.user?.id !== current.user?.id ||
+      !body?.accessToken ||
+      !body?.refreshToken
+    )
+      return null;
+
+    client.sessionStorage.set(body);
+    return client.getUserSession();
+  };
+
+  // Serialize with the SDK refresh used by the other cloud actions.
+  return (
+    navigator.locks?.request('nhostSessionLock', { signal }, renew) ?? renew()
+  );
+}
+
 export function createNhostSocialGroup(
   getClient: () => NhostClient,
 ): SocialGroupPort {
@@ -70,14 +124,25 @@ export function createNhostSocialGroup(
     ): Promise<SocialResult> {
       try {
         const client = getClient();
-        const session = client.getUserSession();
+        const original = client.getUserSession();
         if (signal.aborted) return { status: 'unavailable' };
-        if (!session?.accessToken || session.user?.id !== expectedUserId) {
+        if (!original?.accessToken || original.user?.id !== expectedUserId) {
           return { status: 'unauthenticated' };
         }
 
-        // Pin the bearer used for this action. SDK auto-refresh can otherwise
-        // read or replace a different session while the request is in flight.
+        const session = needsRefresh(original)
+          ? await renewSocialSession(getClient, client, original, signal)
+          : original;
+        if (signal.aborted) return { status: 'unavailable' };
+        if (
+          session?.user?.id !== expectedUserId ||
+          getClient() !== client ||
+          !isSameSession(client.getUserSession(), session)
+        ) {
+          return { status: 'unauthenticated' };
+        }
+
+        // Pin the renewed or still-current bearer to this request.
         const response = await client.graphql.request(
           { query: socialDocument, variables: { operation, input } },
           {
@@ -86,10 +151,11 @@ export function createNhostSocialGroup(
           },
         );
         if (signal.aborted) return { status: 'unavailable' };
-        const current = getClient().getUserSession();
+        const currentClient = getClient();
+        const current = currentClient.getUserSession();
         if (current?.user?.id !== expectedUserId)
           return { status: 'unauthenticated' };
-        if (current.accessToken !== session.accessToken)
+        if (currentClient !== client || !isSameSession(current, session))
           return { status: 'unavailable' };
 
         const failure = classifyCloudRequest({
