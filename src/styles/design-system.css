@@ -1581,6 +1581,11 @@
   animation-name: reward-notice-fade-out;
 }
 
+.learning-group h2,
+.learning-group li {
+  overflow-wrap: anywhere;
+}
+
 .detail-list {
   color: var(--color-text-muted);
   display: grid;

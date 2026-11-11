@@ -219,7 +219,7 @@ export function CloudSignInPanel({
               {resetRequestText.forgot}
             </Button>
             <Button disabled={working} onClick={onTurnOff} variant="quiet">
-              Turn off cloud backup
+              Turn off cloud services
             </Button>
           </div>
         </form>

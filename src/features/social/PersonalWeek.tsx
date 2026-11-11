@@ -1,0 +1,65 @@
+import { Link } from 'react-router-dom';
+
+import { Card } from '@/components/ui/Card';
+import { rpgFocusPath } from '@/lib/routing/rpgRoutePaths';
+import { rpgSocialPath, socialPath } from '@/lib/routing/socialPaths';
+import { formatCalendarDay, formatWeekRange } from '@/lib/time/osloWeek';
+
+import { useLearningWeek } from './useLearningWeek';
+
+export function PersonalWeek({ rpg }: { rpg: boolean }) {
+  const learning = useLearningWeek();
+  return <PersonalWeekDetails learning={learning} rpg={rpg} />;
+}
+
+export function PersonalWeekDetails({
+  rpg,
+  learning,
+  onGroupPage = false,
+}: {
+  rpg: boolean;
+  learning: ReturnType<typeof useLearningWeek>;
+  onGroupPage?: boolean;
+}) {
+  const { week, days, target } = learning;
+  return (
+    <Card lang="nb" padding="compact" title="Denne uken" titleAs="h2">
+      <p>{formatWeekRange(week)} · norsk tid</p>
+      {days === undefined ? (
+        <p role="status">Henter læringsdager …</p>
+      ) : days === null ? (
+        <p role="status">Kunne ikke lese læringsdagene på denne enheten.</p>
+      ) : (
+        <>
+          <p>
+            {days.length === 0
+              ? 'Klar for ukens første læringsdag?'
+              : `Du har øvd ${days.length} ${days.length === 1 ? 'dag' : 'dager'}.`}
+            {target === undefined
+              ? null
+              : ` Målet ditt er ${target} ${target === 1 ? 'dag' : 'dager'}.`}
+          </p>
+          {days.length === 0 ? (
+            <p>
+              <Link to={rpg ? rpgFocusPath : '/sessions'}>
+                Start eller loggfør en økt
+              </Link>
+            </p>
+          ) : (
+            <p>{days.map(formatCalendarDay).join(', ')}</p>
+          )}
+        </>
+      )}
+      {onGroupPage ? (
+        <p>
+          En lagret økt, en innsendt oppgave eller en registrert fullføring kan
+          telle. Endringer i lokale registreringer kan endre oversikten.
+        </p>
+      ) : (
+        <p>
+          <Link to={rpg ? rpgSocialPath : socialPath}>Læringslaget</Link>
+        </p>
+      )}
+    </Card>
+  );
+}

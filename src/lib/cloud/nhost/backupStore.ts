@@ -14,6 +14,7 @@ import {
 import { cloudError } from './authErrors';
 import {
   classifyCloudRequest,
+  outcomeOfError,
   type CloudRequestOutcome,
 } from './requestFailure';
 
@@ -274,29 +275,6 @@ function readDownload(
 
     return { value: { ...metadata, payload: row.payload, payloadSha256 } };
   };
-}
-
-/**
- * What the SDK throws for a response whose JSON body has `errors` (which is
- * how Hasura reports every database refusal, with HTTP 200): a `FetchError`
- * carrying `status` and `body`. Recognised by shape, not by class identity.
- * Anything else thrown (no response, or a body that is not JSON, such as a
- * gateway error page) carries no usable status.
- */
-function isFetchFailure(
-  error: unknown,
-): error is Error & { status: number; body: unknown } {
-  return (
-    error instanceof Error &&
-    typeof (error as { status?: unknown }).status === 'number' &&
-    'body' in error
-  );
-}
-
-function outcomeOfError(error: unknown): CloudRequestOutcome {
-  return isFetchFailure(error)
-    ? { httpStatus: error.status, body: error.body }
-    : { httpStatus: null };
 }
 
 export function createNhostBackupStore(

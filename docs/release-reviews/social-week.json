@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "module": "social-week",
+  "reviewer": "OpenAI Codex, separate fresh-context reviewer (social_review), 2026-11-11",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "cce721f4e8449c7260d7218bcd2fc4bcdd134d10",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of Social Week candidate 3cd4d1cb832724acd1eedbd6f0a2f805dd6654c0 against integrated master base 5a40960ee01324a9b4b0490ed402fbed9c982c6d. The original review covered the personal week, private group scoring and authorization, account lifecycle, SQL and Hasura metadata, both shell routes, offline behavior, and backup preservation at 2e4966c6403f77b7ae9d77ebec9c94f2139ffa1a. The final three-file delta renews expiring social sessions. The upstream Git Foundations test and evidence are identical to the integrated base.",
+    "evidence": [
+      "Independently inspected all three persisted activity sources and the Oslo calendar boundary, the current-member ranking and goal, the Nhost request and session lifecycle, the SQL and metadata, the cloud-off route entry, the settings focus and backup actions, and the privacy disclosures. No learner database schema, backup envelope, curriculum, XP, service worker, or release control changes occur in the feature diff.",
+      "Independently reran 54 passing Vitest cases across six files covering Oslo dates and actual IndexedDB reads, scoring and ties, the Nhost adapter and stale results, cloud and backup architecture boundaries, and route metadata. Inspected the browser oracles for offline reload and 320 px reflow, keyboard route entry, cloud opt-in, explicit date sharing, and private board removal.",
+      "Independently inspected and reran the disposable PostgreSQL 18.6 PGlite harness. All 58 checks passed, including reciprocal A and B sharing, C and anonymous isolation, forged input, stale membership, date bounds, invite rotation, leave, and direct Auth account deletion by a distinct database role. The harness supplies synthetic session claims directly to SQL. The implementation run also reported a native PostgreSQL 18.6 two-connection race where the second join waited on the lock and only one caller obtained the final seat.",
+      "Reviewed the metadata against Hasura v2 documentation for volatile mutations, function and result-table permissions, and server-injected arguments omitted from the public input. Installed Nhost JS 4.9.0 middleware confirms that an explicit Authorization header pins the bearer and skips automatic refresh. The delta explicitly renews within the SDK's 60-second margin using its Auth client without session middleware, takes the same Web Lock when available, and stores the returned session only after rechecking the originating client, account and both tokens.",
+      "Implementation preflight supplied for review reported 992 passing focused Vitest cases, six final managed Playwright cases with simulated social transport or offline/default-off coverage, eight additional affected cloud Settings browser cases, native Chromium 200% zoom in both group routes at 314 CSS px, TypeScript, changed-file lint and format, build and bundle budgets. Reviewed the zoom harness, which sets Chromium's tab zoom and checks the measured device pixel ratio, CSS viewport width, and overflow.",
+      "Independently reran the seven passing social adapter tests on the final delta, including already-expired and near-expiry access with a usable refresh token, account replacement while renewal is in flight, and provider rejection. The implementation preflight on the delta reported 168 passing focused cases in six files, TypeScript, changed-file lint and formatting, diff checks, build and bundle budgets."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SW-CALENDAR",
+      "severity": "P2",
+      "description": "Multiple programmes, repeated attempts, a reopened completion, or device-local time could inflate or shift a score.",
+      "resolution": "The read model counts qualifying persisted Oslo dates once across programmes and filters to the current week through today. Submitted attempts count independently of outcome. Support records, workouts and incomplete progress are excluded. The server bounds submissions against its Oslo calendar and uses unique date keys for an additive cross-device union. Local edits and retained shared dates are disclosed.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-AUTHORIZATION",
+      "severity": "P2",
+      "description": "Forged identity or group input, a stale membership action, or a late response after a local account change could affect or expose another membership.",
+      "resolution": "The checked-in metadata supplies the authenticated claims to the mutation, and the SQL derives its group from the account and checks the membership reference on changes to existing membership. The response contains nicknames and current-week totals. The adapter verifies the expected account and session before storing a renewal, pins that session's bearer, and rechecks client, account and both tokens before accepting the response. The view drops the board on local account, connectivity, week or leave transitions. SQL and adapter checks covered the source boundaries.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-TOKEN-RENEWAL",
+      "severity": "P2",
+      "description": "An explicitly pinned bearer skips automatic SDK refresh, so an otherwise usable account with an expired access token could fail social actions. A late Auth renewal could overwrite a replacement session if the SDK saved the response automatically.",
+      "resolution": "The final delta renews on demand using the existing Auth endpoint and a session middleware-free client. It checks the same current session and expected account before saving the renewal and uses a pinned bearer for the subsequent social operation. Focused tests demonstrated both expiration cases and confirmed that account replacement or a refused refresh prevents dispatch of the social operation.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-LIVE-PROVIDER",
+      "severity": "P2",
+      "description": "Controlled Nhost and Hasura integration was not run. Actual source privileges and isolation, metadata application, JWT mapping, cross-account sharing and isolation through GraphQL, and provider backup smoke remain unverified.",
+      "resolution": "Accept this gap for the scoped nonproduction PR. The additive migration has a documented provider procedure and the offline personal week operates independently. Before any separately authorized production rollout, exercise the reviewed migration, role isolation and legitimate sharing with synthetic provider accounts, direct Auth deletion, and the existing backup permissions and smoke in an authorized controlled environment.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to a nonproduction PR and its hosted validation. The source, focused test, and disposable SQL evidence support that scope. Live provider behavior and production rollout remain unverified."
+  }
+}

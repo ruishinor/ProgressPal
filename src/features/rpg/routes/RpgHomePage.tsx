@@ -1,3 +1,4 @@
+import { PersonalWeek } from '@/features/social';
 import { rpgPathwaysPath } from '@/lib/routing/pathwaysPaths';
 import { RpgInfoNote } from '@/features/rpg/components/RpgInfoNote';
 import { getQuestActionLabel } from '@/features/rpg/model/presentation';
@@ -368,6 +369,8 @@ export function RpgHomePage() {
             </RpgButton>
           )}
         </RpgPanel>
+
+        <PersonalWeek rpg />
 
         {summary.recentActivity.length === 0 ? null : (
           <details className="rpg-hub__activity-disclosure">

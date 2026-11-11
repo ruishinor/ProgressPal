@@ -28,8 +28,10 @@ import {
   type CloudSignUpResult,
 } from '../port';
 import type { CloudBackupStore } from '../backupPort';
+import type { SocialGroupPort } from '../socialPort';
 import { cloudError, mapAuthError } from './authErrors';
 import { createNhostBackupStore } from './backupStore';
+import { createNhostSocialGroup } from './socialGroup';
 import { nhostAuthUrl, nhostGraphqlUrl } from './endpoints';
 import {
   createSessionScopedBackend,
@@ -93,6 +95,7 @@ export interface NhostAccountDependencies {
 export interface NhostCloud {
   account: CloudAccountPort;
   backups: CloudBackupStore;
+  social: SocialGroupPort;
 }
 
 export function createNhostCloud(
@@ -477,6 +480,7 @@ export function createNhostCloud(
   return {
     account,
     backups: createNhostBackupStore({ getClient: ensureClient }),
+    social: createNhostSocialGroup(ensureClient),
   };
 }
 
@@ -502,4 +506,8 @@ export function getCloudAccount(): CloudAccountPort {
 /** The store that shares the account's session; same laziness, same silence. */
 export function getCloudBackupStore(): CloudBackupStore {
   return getSharedCloud().backups;
+}
+
+export function getSocialGroup(): SocialGroupPort {
+  return getSharedCloud().social;
 }

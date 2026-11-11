@@ -56,6 +56,11 @@ const hubStores = [...hudStores, 'study_sessions'].sort();
 const heroStores = [...hubStores, 'achievement_unlocks'].sort();
 const focusStores = ['course_items', 'course_units', 'study_sessions'].sort();
 const badgeStores = ['achievement_unlocks', 'xp_transactions'];
+const learningWeekStores = [
+  'learner_evidence',
+  'progress_entries',
+  'study_sessions',
+].sort();
 
 const routes = [
   {
@@ -236,6 +241,16 @@ describe('A7 actual route and shell access matrix', () => {
       );
       try {
         await screen.findByRole('heading', { name: route.readyHeading });
+        if (route.name === 'Hub') {
+          const weekHeading = screen.getByRole('heading', {
+            name: 'Denne uken',
+          });
+          const weekCard = weekHeading.closest('section');
+          expect(weekCard).toBeInstanceOf(HTMLElement);
+          await within(weekCard as HTMLElement).findByText(
+            /^(Klar for ukens|Du har)/,
+          );
+        }
         if (route.name !== 'Hero') {
           const hud = screen.getByRole('region', {
             name: 'Persistent hero HUD',
@@ -260,7 +275,29 @@ describe('A7 actual route and shell access matrix', () => {
           (transaction) =>
             !transaction.stores.every((store) => store.startsWith('activity_')),
         );
-        expect(educationalTransactions).toHaveLength(route.hud ? 2 : 1);
+        expect(educationalTransactions).toHaveLength(
+          route.hud || route.name === 'Hub' ? 2 : 1,
+        );
+        if (route.name === 'Hub') {
+          assertLogicalRead(access, learningWeekStores, 3);
+          const learningWeekTransaction = educationalTransactions.find(
+            (transaction) =>
+              JSON.stringify(transaction.stores) ===
+              JSON.stringify(learningWeekStores),
+          );
+          const learningWeekOperations = access.operations.filter(
+            (operation) =>
+              operation.transactionId === learningWeekTransaction?.id,
+          );
+          expect(learningWeekOperations).toHaveLength(3);
+          expect(
+            learningWeekOperations.every(
+              (operation) =>
+                operation.operation === 'cursor' &&
+                operation.materializedRows === 0,
+            ),
+          ).toBe(true);
+        }
         expect(
           access.transactions
             .filter((transaction) =>

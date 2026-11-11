@@ -164,7 +164,7 @@ describe.each([
       headings.indexOf('Reset local data'),
     );
     expect(
-      within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+      within(card).getByRole('button', { name: 'Turn on cloud services' }),
     ).toBeEnabled();
   }, 45_000);
 
@@ -195,7 +195,7 @@ describe.each([
     let card = await openSettings(route);
 
     await userEvent.click(
-      within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+      within(card).getByRole('button', { name: 'Turn on cloud services' }),
     );
     await signInThroughTheForm(card);
     expect(network).toHaveBeenCalledTimes(1); // the sign-in, nothing else
@@ -218,7 +218,7 @@ describe.each([
     const card = await openSettings(route);
 
     await userEvent.click(
-      within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+      within(card).getByRole('button', { name: 'Turn on cloud services' }),
     );
     await signInThroughTheForm(card);
     await userEvent.click(
@@ -262,7 +262,7 @@ describe.each([
     const card = await openSettings(route);
 
     await userEvent.click(
-      within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+      within(card).getByRole('button', { name: 'Turn on cloud services' }),
     );
     await signInThroughTheForm(card);
     await userEvent.click(
@@ -299,7 +299,7 @@ describe.each([
     const card = await openSettings(route);
 
     await userEvent.click(
-      within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+      within(card).getByRole('button', { name: 'Turn on cloud services' }),
     );
     await signInThroughTheForm(card);
     network.mockClear();

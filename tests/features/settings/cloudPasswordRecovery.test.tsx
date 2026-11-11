@@ -133,7 +133,7 @@ describe('the Forgot password? action', () => {
       'Sign in',
       'Create account',
       'Forgot password?',
-      'Turn off cloud backup',
+      'Turn off cloud services',
     ]);
     expect(
       made.within.getByRole('button', { name: 'Forgot password?' }),

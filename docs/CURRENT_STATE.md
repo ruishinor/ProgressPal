@@ -1,5 +1,20 @@
 # ProgressPal current state
 
+**Læringslaget, kildekandidat 2026-11-11.** Arbeidet startet ved PR #85
+(`06983dcd2dc5f9f3f6673e36ebfc388c8d501904`) og inkluderer PR #86
+(`5a40960ee01324a9b4b0490ed402fbed9c982c6d`). Personlig uke leser
+lagrede økter, innsendte oppgaver og registrerte fullføringer på tvers
+av studieprogrammer, med kalenderdager i Europe/Oslo. Frivillig lagdeling
+bruker den valgfrie Nhost-kontoen, avgrenset til ukens datoer og medlemskap.
+Databaseskjema v5, sikkerhetskopier, pensum og XP følger eksisterende
+kontrakter. [Migreringen for Læringslaget](../infra/nhost/social/README.md)
+krever egen, autorisert provider-validering før bruk i produksjon.
+
+PR #87, kjøring #168, stoppet da dashbordtesten matchet både «Start» og
+«Start eller loggfør en økt». Testen bruker nå eksakt lenkenavn og sjekker
+fortsatt leksjonens adresse. Alle ti nettlesertester i dashbord- og
+presentasjonsfilene besto lokalt, inkludert programbyttet i begge temaer.
+
 **PR #85 — flettet til master, 2026-11-11.** Kandidaten inneholder
 sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
 er kontrollert og bundet til versjon 5. Mestring viser bare en

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "social-week-dashboard-start",
+  "reviewer": "OpenAI Codex, separate reviewer agent (release_reviewer), 2026-11-11. No implementation involvement.",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a25263aeffeeae8dd2ea61b8d35bde136a04a90f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of the dashboard test and current-state note in frozen PR #87 candidate d0d4e5be270712ed48b5d0d144a9b61b2193fc25 relative to previously reviewed head 51b5d92135134df3d4d6c253f01b8370bdef8d92. The prior Social Week product, Chromium workflow, A7 and Module 05 boundary reviews supply the scope and limitations for the earlier changes.",
+    "evidence": [
+      "Directly inspected the exact committed delta. The dashboard test now requires the exact accessible link name Start and still checks the original /course/week-0-lecture href. The other dashboard checks, including the saved flow, accessibility scan and console assertions, are intact. The only other delta is the current-state note.",
+      "Directly inspected the release-evidence-final-candidate (14).zip manifest, structured browser results and traces from GitHub Actions run 43089069409 (#168). Its PR head is 51b5d92135134df3d4d6c253f01b8370bdef8d92 and its payload is 51dd4f2ef3341f1f37077cb89fb5fe7d4f2c3311, matching the prior boundary review. The saved-flow dashboard test is the only recorded failure. Its strict-mode error lists Start at /course/week-0-lecture and Start eller loggfør en økt at /sessions. Playwright recorded 75 passed, two interrupted and 262 incomplete.",
+      "Directly inspected the Epic E light trace and the unchanged test and settings code. The runner has maxFailures set to one. The structured report marks Epic E light and the blocked-item dashboard test interrupted, and Epic E dark incomplete. The light trace ends the visibility assertion after about 31 ms against a 5,000 ms budget, with the programme switch controls still disabled during the operation.",
+      "Implementation preflight reported passing diff checks, changed-file ESLint and Prettier, typecheck and all ten managed Chromium cases in dashboard.spec.ts and epic-e-presentation-capture.spec.ts without retries, including the saved and blocked dashboard flows and the actual programme switch in both themes. The reviewer did not rerun tests.",
+      "Inspected the committed Social Week, Chromium, A7 and Module 05 review records. The new delta leaves their reviewed implementation, workflow and test changes in place. Their substantive evidence and scope limits carry forward, with this review supplying the binding for the new payload."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SW-DASHBOARD-START-LINK",
+      "severity": "P2",
+      "description": "The saved-flow dashboard test matched two links with different purposes, so the strict locator failed before it could verify the lesson route.",
+      "resolution": "The exact accessible name selects the recorded lesson link and retains the original href assertion. The sessions link remains outside that selector.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-DASHBOARD-HOSTED",
+      "severity": "P2",
+      "description": "Run #168 stopped during browser testing. The interrupted light-theme trace captures an in-progress programme switch, and the complete Linux browser result remains pending.",
+      "resolution": "Accept for the nonproduction PR to proceed through the ordinary Final candidate gate. The structured interruption, trace timing and reported local passes support leaving the programme switch test in place. Require the hosted gate to complete for this payload.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "SW-DASHBOARD-LIVE-PROVIDER",
+      "severity": "P2",
+      "description": "The earlier Social Week review leaves controlled Nhost and Hasura integration unverified, including migration, authorization isolation and backup smoke.",
+      "resolution": "Carry forward the prior acceptance for the nonproduction PR. Controlled provider verification remains required before any separately authorized production rollout.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to the existing PR and its required hosted Final candidate gate. The selector correction addresses the sole recorded Playwright failure in run #168 while preserving the route assertion. Hosted certification and controlled provider validation remain pending."
+  }
+}

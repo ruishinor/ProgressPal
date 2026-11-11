@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "module": "social-week-ci-chromium",
+  "reviewer": "OpenAI Codex, separate fresh-context reviewer (social_review), 2026-11-11",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "3d14494f16d80a488dd8778041fca342876c1ad2",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of the Chromium installation delta in f87d534134c8fbb58eaa2ae3a3be4f371e4e0840 relative to c4d5f521c88ac1811e3cbe6b7143ab1ca1df17e6 for PR #87. The preceding Social Week product review is retained as committed history.",
+    "evidence": [
+      "Independently inspected the one-line workflow change. The same Final candidate job, GitHub event checkout, review resolver, FULL and ATTEST guards, immutable release gate, managed browser suite and evidence upload remain in place. Reran all ten workflow architecture tests and checked the exact diff for whitespace errors.",
+      "Inspected GitHub Actions run 43042733195, attempt 4. The failing step showed the Chromium shared-library packages already installed on that runner. The nine planned additions were font-related packages. Ubuntu archive DNS errors prevented their download before browser tests could run.",
+      "Inspected the installed Playwright CLI implementation. Dropping the optional system-package installation step still downloads both Chromium executables and calls host validation. Chromium launch enforces host requirements. The release gate still launches default Chromium, and the unchanged installability test exercises full Chromium through the persistent chromium channel.",
+      "Observed both Windows Chromium revision 1223 executables in the clean-cache installation artifact. Implementation verification also reported passing existing managed offline cold-start and PWA installability tests. The revised command and both executable launch paths on the exact GitHub Linux candidate require the hosted run."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SW-CI-COVERAGE",
+      "severity": "P2",
+      "description": "Removing system package installation could inadvertently change the installed browser variant or weaken release certification.",
+      "resolution": "The command installs the same browser selection through the existing locked Playwright package. The ordinary browser project and full Chromium installability oracle retain their executable requirements. The workflow and gate still require their existing release checks.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-CI-LINUX",
+      "severity": "P2",
+      "description": "The clean-cache installation and focused managed journeys were exercised on Windows. Linux runner dependencies and both executable launch paths have not yet been exercised on the revised hosted candidate.",
+      "resolution": "Accept this uncertainty for updating the existing PR and running Final candidate. The failed hosted attempt identified the installed shared libraries and the specific Ubuntu download failure. The required Chromium launch and managed E2E results will establish whether the revised Linux candidate passes.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "SW-CI-LIVE-PROVIDER",
+      "severity": "P2",
+      "description": "The prior independent Social Week review's controlled Nhost and Hasura limitation remains. Live metadata application, source privileges and isolation, JWT mapping, authorized sharing, authorization isolation and provider backup smoke were untested.",
+      "resolution": "Carry forward acceptance for the nonproduction PR only. An authorized controlled provider run remains necessary before a separately authorized production rollout.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed with the existing PR and hosted Final candidate. This review verifies the workflow delta and preserves the earlier provider-validation boundary. Hosted certification remains pending."
+  }
+}

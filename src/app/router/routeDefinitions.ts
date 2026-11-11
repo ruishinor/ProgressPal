@@ -19,7 +19,15 @@ import {
   rpgWeekPathPattern,
 } from '@/lib/routing/rpgRoutePaths';
 
+import {
+  rpgSocialPath,
+  socialPath,
+  socialSegment,
+} from '@/lib/routing/socialPaths';
+
 export type AppRouteId =
+  | 'social'
+  | 'rpgSocial'
   | 'pathways'
   | 'pathwayTrack'
   | 'pathwayLesson'
@@ -68,6 +76,18 @@ type PrimaryNavigationRoute = AppRouteDefinition & {
 };
 
 export const routeDefinitions: AppRouteDefinition[] = [
+  {
+    id: 'social',
+    segment: socialSegment,
+    to: socialPath,
+    includeInPrimaryNavigation: false,
+  },
+  {
+    id: 'rpgSocial',
+    segment: socialSegment,
+    to: rpgSocialPath,
+    includeInPrimaryNavigation: false,
+  },
   {
     id: 'pathways',
     segment: 'pathways',

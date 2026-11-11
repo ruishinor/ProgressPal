@@ -159,7 +159,7 @@ async function openSettings() {
   // The cloud card, found by its one control while cloud is off — not by a
   // title that another test pins.
   return screen
-    .getByRole('button', { name: 'Turn on cloud backup' })
+    .getByRole('button', { name: 'Turn on cloud services' })
     .closest('.card') as HTMLElement;
 }
 
@@ -170,7 +170,7 @@ async function readyToReplace() {
   const card = await openSettings();
 
   await userEvent.click(
-    within(card).getByRole('button', { name: 'Turn on cloud backup' }),
+    within(card).getByRole('button', { name: 'Turn on cloud services' }),
   );
   await userEvent.type(within(card).getByLabelText('Email'), email);
   await userEvent.type(within(card).getByLabelText(/^Password/), password);

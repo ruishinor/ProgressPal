@@ -206,6 +206,9 @@ describe('cloud boundary: the application boots no cloud code and only the revie
     'src/features/settings/components/CloudResetRequestPanel.tsx',
     'src/features/settings/components/CloudSignInPanel.tsx',
     'src/features/settings/routes/CloudCallbackPage.tsx',
+    'src/features/social/GroupPage.tsx',
+    'src/features/social/GroupSession.tsx',
+    'src/features/social/groupModel.ts',
   ];
 
   it('only the G5/G6 domain folder and the listed Settings and route modules import the cloud library', () => {

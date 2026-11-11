@@ -192,6 +192,11 @@ export default defineConfig({
               test: /[\\/]src[\\/]features[\\/]lessons[\\/]/,
               priority: 20,
             },
+            {
+              name: 'social',
+              test: /[\\/]src[\\/]features[\\/]social[\\/]/,
+              priority: 15,
+            },
           ],
         },
       },

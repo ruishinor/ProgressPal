@@ -92,11 +92,11 @@ describe('cloud off (the default)', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Off on this device. While it is off, nothing is sent to any cloud service.',
+        'Cloud services are off on this device. Turn them on to use your account for a learning group or manual remote backups.',
       ),
     ).toBeVisible();
     expect(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     ).toBeEnabled();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/^Password/)).not.toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('cloud off (the default)', () => {
 
     renderCard({ dependencies: dependencies(account) });
     await userEvent.click(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     );
 
     expect(readCloudPreferences().enabled).toBe(true);
@@ -132,15 +132,15 @@ describe('cloud off (the default)', () => {
 
     renderCard({ dependencies: dependencies(account) });
     await userEvent.click(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     );
     await userEvent.click(
-      screen.getByRole('button', { name: 'Turn off cloud backup' }),
+      screen.getByRole('button', { name: 'Turn off cloud services' }),
     );
 
     expect(readCloudPreferences().enabled).toBe(false);
     expect(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     ).toHaveFocus();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
@@ -153,7 +153,7 @@ describe('cloud off (the default)', () => {
       throw new Error('QuotaExceededError');
     });
     await userEvent.click(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     );
 
     // A failure to save is announced assertively, like every failure here.
@@ -161,7 +161,7 @@ describe('cloud off (the default)', () => {
       'This browser did not save the setting.',
     );
     expect(
-      screen.getByRole('button', { name: 'Turn on cloud backup' }),
+      screen.getByRole('button', { name: 'Turn on cloud services' }),
     ).toBeInTheDocument();
     expect(readCloudPreferences().enabled).toBe(false);
   });
@@ -204,9 +204,9 @@ describe('signed out', () => {
       screen.getByRole('button', { name: 'Forgot password?' }),
     ).toBeEnabled();
     expect(
-      screen.getByRole('button', { name: 'Turn off cloud backup' }),
+      screen.getByRole('button', { name: 'Turn off cloud services' }),
     ).toBeEnabled();
-    expect(screen.getByText(/Backups are manual\./)).toBeVisible();
+    expect(screen.getByText(/manual remote backups\./)).toBeVisible();
   });
 
   it('asks for both fields before it contacts anything', async () => {
@@ -410,7 +410,7 @@ describe('signed out', () => {
       () => screen.getByRole('button', { name: 'Create account' }),
       // Epic G repair 01: the one recovery entry sits before "Turn off".
       () => screen.getByRole('button', { name: 'Forgot password?' }),
-      () => screen.getByRole('button', { name: 'Turn off cloud backup' }),
+      () => screen.getByRole('button', { name: 'Turn off cloud services' }),
     ];
 
     for (const control of inOrder) {

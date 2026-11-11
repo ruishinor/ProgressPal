@@ -191,7 +191,7 @@ test.describe('the email-link landing route', () => {
     // Start the sign-up that the emailed link would complete.
     await page.goto('/rpg/settings');
     await card(page)
-      .getByRole('button', { name: 'Turn on cloud backup' })
+      .getByRole('button', { name: 'Turn on cloud services' })
       .click();
     await card(page).getByLabel('Email').fill(learnerEmail);
     await card(page).getByLabel('Password').fill(password);
@@ -341,7 +341,7 @@ test.describe('Settings cloud card in a real browser', () => {
 
     // Turn on with the keyboard; focus lands on the email field.
     const turnOn = card(page).getByRole('button', {
-      name: 'Turn on cloud backup',
+      name: 'Turn on cloud services',
     });
 
     await turnOn.focus();
@@ -457,7 +457,7 @@ test.describe('Settings cloud card in a real browser', () => {
     await expectAccessible(page, 'RPG Settings, cloud off (light)');
 
     await card(page)
-      .getByRole('button', { name: 'Turn on cloud backup' })
+      .getByRole('button', { name: 'Turn on cloud services' })
       .click();
     await expect(card(page).getByLabel('Email')).toBeFocused();
     await expectContained(page, 'signed out');
@@ -512,7 +512,7 @@ test.describe('password recovery in a real browser', () => {
 
     // Turn on, type the address, and reach "Forgot password?" by Tab alone.
     await card(page)
-      .getByRole('button', { name: 'Turn on cloud backup' })
+      .getByRole('button', { name: 'Turn on cloud services' })
       .focus();
     await page.keyboard.press('Enter');
     await expect(card(page).getByLabel('Email')).toBeFocused();
@@ -636,7 +636,7 @@ test.describe('password recovery in a real browser', () => {
     await completeOnboarding(page);
     await page.goto('/settings');
     await card(page)
-      .getByRole('button', { name: 'Turn on cloud backup' })
+      .getByRole('button', { name: 'Turn on cloud services' })
       .click();
 
     const answer = async (address: string) => {
@@ -687,7 +687,7 @@ test.describe('password recovery in a real browser', () => {
       await completeOnboarding(page, { theme });
       await page.goto('/rpg/settings');
       await card(page)
-        .getByRole('button', { name: 'Turn on cloud backup' })
+        .getByRole('button', { name: 'Turn on cloud services' })
         .click();
       await card(page)
         .getByRole('button', { name: 'Forgot password?' })

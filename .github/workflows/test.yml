@@ -74,7 +74,7 @@ jobs:
         run: npm ci
       - name: Install Chromium
         if: steps.reuse.outputs.decision != 'ATTEST'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       # Review evidence is not selected here. The gate resolves it from
       # docs/release-reviews/ by its binding to this exact payload tree.
       - name: Run immutable release gate

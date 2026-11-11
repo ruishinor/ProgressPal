@@ -26,6 +26,8 @@ describe('routeDefinitions', () => {
 
   it('keeps the baseline routes in a single source of truth', () => {
     expect(knownRoutePaths).toEqual([
+      '/laeringslaget',
+      '/rpg/laeringslaget',
       '/pathways',
       '/pathways/git-github',
       '/pathways/git-github/:itemId',

@@ -3,6 +3,7 @@ import { startTransition, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
+import { PersonalWeek } from '@/features/social';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -471,6 +472,8 @@ export function DashboardPage() {
             </Link>
           </div>
         </Card>
+
+        <PersonalWeek rpg={false} />
 
         <Card title="Recent activity">
           {recentActivity.isEmpty ? (
