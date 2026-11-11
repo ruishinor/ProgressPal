@@ -1,13 +1,17 @@
 # ProgressPal current state
 
-**PR #85 — lokal releasekandidat, 2026-11-11.** Kandidaten inneholder
+**PR #85 — flettet til master, 2026-11-11.** Kandidaten inneholder
 sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
 er kontrollert og bundet til versjon 5. Mestring viser bare en
 repetisjonsmulighet når en egnet oppgave for ferdigheten finnes. Oppdraget
 «Sammenlign og velg en vei» deler åtte øvinger i to etapper med fire i hver.
 Regenereringen bevarer oppgaverekkefølgen, leseposisjonene og alle 346
-oppgavehashene fra PR-kandidaten. Lokal kandidatstatus gir ingen
-bekreftelse på GitHub-validering eller publisering.
+oppgavehashene fra PR-kandidaten. PR-kontroll #160 besto. Master-commit
+`06983dcd2dc5f9f3f6673e36ebfc388c8d501904` fikk to tidsavbrudd i den samme
+Git Foundations-nettlesertesten i kjøring #161. Vercel bygget commiten,
+og det offentlige domenet pekte fortsatt på forrige utgivelse ved kontroll.
+Oppfølgingen deler testen ved overgangen fra navigasjon til besvarelse og
+lagring, med samme tidsgrense.
 
 **Q02-F-FEEDBACK — lokal kandidat, 2026-11-10.** Utgangspunkt er Q01 på
 `master` (`a166c45fbf6c970562672a8e23fc54840d044d85`). Åtte oppgaver om
