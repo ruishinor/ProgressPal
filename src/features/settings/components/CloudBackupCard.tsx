@@ -115,7 +115,13 @@ export function CloudBackupCard({
   }
 
   return (
-    <Card title={cloudCardTitle} titleAs={titleAs}>
+    <Card
+      data-route-focus=""
+      id="cloud-account"
+      tabIndex={-1}
+      title={cloudCardTitle}
+      titleAs={titleAs}
+    >
       <div className="card__body" ref={body}>
         {remoteBackupDisclosure.map((paragraph) => (
           <p className="card__description" key={paragraph}>
@@ -125,8 +131,8 @@ export function CloudBackupCard({
         {state.status === 'disabled' ? (
           <>
             <p className="card__description">
-              Off on this device. While it is off, nothing is sent to any cloud
-              service.
+              Cloud services are off on this device. Turn them on to use your
+              account for a learning group or manual remote backups.
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <div className="action-row">
@@ -135,7 +141,7 @@ export function CloudBackupCard({
                 onClick={() => setEnabled(true)}
                 variant="secondary"
               >
-                Turn on cloud backup
+                Turn on cloud services
               </Button>
             </div>
           </>
@@ -148,8 +154,7 @@ export function CloudBackupCard({
         {state.status === 'signed-out' ? (
           <>
             <p className="card__description">
-              Sign in to back up to, or restore from, your cloud account.
-              Backups are manual.
+              Sign in for your learning group or to use manual remote backups.
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <CloudSignInPanel

@@ -15,6 +15,18 @@ export interface CloudRequestOutcome {
   body?: unknown;
 }
 
+export function outcomeOfError(error: unknown): CloudRequestOutcome {
+  if (
+    error instanceof Error &&
+    'status' in error &&
+    typeof error.status === 'number' &&
+    'body' in error
+  ) {
+    return { httpStatus: error.status, body: error.body };
+  }
+  return { httpStatus: null };
+}
+
 interface GraphqlErrorLike {
   message?: unknown;
   extensions?: { code?: unknown } | null;
@@ -67,13 +79,13 @@ export function classifyCloudRequest(
   }
 
   for (const error of errors) {
-    const code = error.extensions?.code;
+    const code = error?.extensions?.code;
 
     if (code === 'invalid-jwt' || code === 'invalid-headers') {
       return { kind: 'unauthenticated' };
     }
 
-    const message = typeof error.message === 'string' ? error.message : '';
+    const message = typeof error?.message === 'string' ? error.message : '';
     const check = message.match(checkViolation);
 
     if (check !== null) {

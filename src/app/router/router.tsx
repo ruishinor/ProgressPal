@@ -26,6 +26,7 @@ import {
   RpgSettingsPage,
   RpgShell,
 } from '@/features/rpg';
+import { GroupPage } from '@/features/social';
 import { SessionsPage } from '@/features/sessions';
 import { ReferencePage } from '@/features/technologyReference';
 import { CloudCallbackPage, SettingsPage } from '@/features/settings';
@@ -83,6 +84,10 @@ export const router = createBrowserRouter([
         element: <OnboardingPage />,
       },
       {
+        path: getRouteDefinition('social').segment,
+        element: <GroupPage rpg={false} />,
+      },
+      {
         path: dashboardRoute.segment,
         element: <DashboardPage />,
       },
@@ -129,6 +134,10 @@ export const router = createBrowserRouter([
             path: getRouteDefinition(id).segment,
             element: <PathwaysRoute />,
           })),
+          {
+            path: getRouteDefinition('rpgSocial').segment,
+            element: <GroupPage rpg />,
+          },
           {
             index: true,
             element: <RpgHomePage />,

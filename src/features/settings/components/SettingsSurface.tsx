@@ -475,7 +475,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           fresh. This removes your progress, sessions, XP, achievements, notes,
           media history, and backup history. It is destructive, local-only, and
           cannot be undone. Type <code>{resetConfirmationPhrase}</code> to
-          enable the reset.
+          enable the reset. Your cloud account, remote backups and learning
+          group membership are managed separately.
         </p>
         <div className="data-action">
           <label className="form-field__label" htmlFor="reset-confirmation">

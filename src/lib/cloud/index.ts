@@ -29,6 +29,13 @@ export {
   writeCloudPreferences,
   type CloudPreferences,
 } from './preferences';
+export type {
+  SocialCommand,
+  SocialFailure,
+  SocialGroup,
+  SocialGroupPort,
+  SocialResult,
+} from './socialPort';
 export { cloudCallbackPath } from './callbackUrl';
 export {
   cloudPasswordMaxLength,
@@ -37,6 +44,7 @@ export {
   createNhostCloudAccount,
   getCloudAccount,
   getCloudBackupStore,
+  getSocialGroup,
   type NhostCloud,
 } from './nhost/account';
 export {

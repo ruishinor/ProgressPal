@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**Læringslaget, kildekandidat 2026-11-11.** Utgangspunktet er PR #85s
+`master`-commit `06983dcd2dc5f9f3f6673e36ebfc388c8d501904`. Personlig uke
+leser lagrede økter, innsendte oppgaver og registrerte fullføringer på tvers
+av studieprogrammer, med kalenderdager i Europe/Oslo. Frivillig lagdeling
+bruker den valgfrie Nhost-kontoen, avgrenset til ukens datoer og medlemskap.
+Databaseskjema v5, sikkerhetskopier, pensum og XP følger eksisterende
+kontrakter. [Migreringen for Læringslaget](../infra/nhost/social/README.md)
+krever egen, autorisert provider-validering før bruk i produksjon.
+
 **PR #85 — lokal releasekandidat, 2026-11-11.** Kandidaten inneholder
 sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
 er kontrollert og bundet til versjon 5. Mestring viser bare en
