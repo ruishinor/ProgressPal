@@ -35,7 +35,7 @@ import {
  */
 
 const pilotSha256 =
-  '3167a831f6c4ea61d854450744bb4b72b1db903e1f41b4bb0851288b54090f1c';
+  '5e32ebd39d1846c64e9742b7f667a577f6249bcfff0d1bd2021c6b8b53317f07';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -104,7 +104,7 @@ describe('E0: source identity and re-derived counts', () => {
       schema: 'progresspal-pilot-content',
       schemaVersion: '0.1',
       sha256: pilotSha256,
-      bytes: 1_400_510,
+      bytes: 1_404_652,
     });
     for (const module of modules) {
       expect((module as unknown as { sourceSha256: string }).sourceSha256).toBe(
@@ -234,7 +234,7 @@ describe('§6 Programme #2 sanitation', () => {
     /counts_with_observer_verification/,
   ];
 
-  it('finds no study-only language: D-2 is corrected at the source with the owner-given sentence', () => {
+  it('ships the approved terminal prompt with no study-only language', () => {
     const violations = allSnapshotJson
       .flatMap((json, index) =>
         stringLeaves(json).map(([path, text]) => [`${index}${path}`, text]),
@@ -244,7 +244,7 @@ describe('§6 Programme #2 sanitation', () => {
 
     expect(violations).toEqual([]);
     expect(d2!.prompt).toBe(
-      'Lag commit-en på din egen maskin. Lim inn `git log --oneline`. Øverst skal den nye commit-en stå. ProgressPal kan sjekke teksten du limer inn, men kan ikke se Git-historikken på maskinen din.',
+      'Lag en *commit* med `skilt.py` i din egen prosjektmappe, og lim inn utskriften fra `git log --oneline`. Den nyeste *commiten* skal stå øverst, med en melding som forteller hva du endret.',
     );
     expect(manifest.source.knownSourceDefects).toEqual([]);
   });

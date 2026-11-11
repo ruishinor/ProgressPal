@@ -837,7 +837,9 @@ function LessonSurface({
             {footer === undefined ? null : <p>{copy.text.whereNextMark}</p>}
           </section>
         ) : null}
-        <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        {copy.text.completionDisclaimer ? (
+          <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        ) : null}
       </article>
       {footer === undefined ? null : <Fragment>{footer}</Fragment>}
     </>

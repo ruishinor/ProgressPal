@@ -12,7 +12,7 @@ const exercise = (page: Page, number: number) =>
 // remain collapsed. Never toggle a module closed when it is already open.
 async function showModuleLessons(page: Page, label: string) {
   await expect(
-    page.getByText(/av 47 leksjoner markert fullført/),
+    page.getByText(/av 47 leksjoner markert som fullført/),
   ).toBeVisible();
   const summary = page.getByText(label, { exact: true });
   const details = summary.locator('xpath=..');
@@ -67,7 +67,7 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
   await pathwaysInfo.focus();
   await page.keyboard.press('Enter');
   await expect(
-    page.getByText('Lær ferdigheter du kan bruke uansett studieprogram'),
+    page.getByText('I Pathways finner du læringsveier fra et sted å begynne'),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Pathways', exact: true }).click();
   await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
@@ -584,12 +584,16 @@ test('RPG Home groups available learning actions with keyboard-operated individu
   await page.keyboard.press('Enter');
   await expect(info).toHaveAttribute('aria-expanded', 'true');
   await expect(
-    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
+    section.getByText(
+      /I Pathways finner du læringsveier fra et sted å begynne/,
+    ),
   ).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(info).toHaveAttribute('aria-expanded', 'false');
   await expect(
-    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
+    section.getByText(
+      /I Pathways finner du læringsveier fra et sted å begynne/,
+    ),
   ).toHaveCount(0);
   await page.evaluate(() => {
     document.documentElement.style.fontSize = '200%';

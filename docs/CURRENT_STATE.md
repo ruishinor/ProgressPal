@@ -1,5 +1,23 @@
 # ProgressPal current state
 
+**Editorial OwnerFirst v1.2 — lokal kandidat, 2026-11-11.** Utgangspunkt
+`5a40960ee01324a9b4b0490ed402fbed9c982c6d`. Eierens 20 tekstendringer er
+verifisert. 25 kanoniske felt er integrert i Programvareutvikling. Tre
+forklaringer i M01 bruker begreper som er introdusert der. Tilbakemeldingen
+for innlimt Git-logg forklarer nytten av en beskrivende melding uten å
+påstå at appen har vurdert den. Q01/Q02 og alle sju høstmoduler er med i
+den byte-reproduserte kilden.
+
+Begge eksportører og deres kontrollmodus besto. Programvareutvikling har
+25 endrede og 321 uendrede oppgavehasher. Alle 113 Git-oppgavehasher og
+begge katalogenes rekkefølge, posisjoner og tidsestimater er uendret.
+Målrettet lokal preflight besto med 476 Vitest-tester, åtte
+Playwright-forløp, typesjekk, format, lint, produksjonsbygg og
+buntbudsjett. En separat rendringskontroll verifiserte 24 riktigsvar,
+den endrede oppgaveteksten og eksisterende valgt-alternativ-feedback.
+Uavhengig gjennomgang, hosted sertifisering og produksjon kontrolleres
+for den faktiske kandidaten.
+
 **PR #85 — flettet til master, 2026-11-11.** Kandidaten inneholder
 sju Programvareutvikling-moduler i innholdsversjon 5. De sju prestasjonsreglene
 er kontrollert og bundet til versjon 5. Mestring viser bare en

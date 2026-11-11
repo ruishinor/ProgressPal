@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 2,
+  "module": "editorial-ownerfirst",
+  "reviewer": "OpenAI Codex, separate non-implementing release reviewer (AI agent /root/editorial_release_review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "0a593cc0fbb20b6b12a9dfa593366491c5ee9561",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independent review of frozen editorial commit 651e866b93600deaf15fc862e3bbe8a2e996025a against base 5a40960ee01324a9b4b0490ed402fbed9c982c6d and the owner-approved Editorial OwnerFirst v1.2 packet.",
+    "evidence": [
+      "Independently computed the payload using the repository's review:payload-tree command. Reviewed the committed delta and ran git diff --check.",
+      "Compared committed Git blobs, the owner patch records and the canonical value ledger. Verified 20 owner-applied COPY IDs across 22 replacements and all 25 canonical IDs. Four targeted corrections retain the intended explanation.",
+      "Verified the owner snapshot checksum, the pinned baseline and regenerated seven-module pilot bytes, the 25-field-only pilot delta, the committed catalogue and offline byte/hash bindings for 16 assets, and identical evaluator vectors apart from source identity. Both indexes retain exercise identity, sequence, positions and time estimates. The 25 authorized Programvareutvikling exercise hashes changed. The other 321 Programvareutvikling hashes and all 113 Git hashes matched.",
+      "Traced shared rendering, the result and selected-option feedback branches, and the two guarded note call sites. Implementation preflight supplied 24 correct-feedback and one prompt renderer checks, two existing MCQ branches, affected Vitest and Chromium checks, exporter checks, type checking, lint, format, a production build and bundle checks.",
+      "Ran a separate synthetic compatibility probe through the production mastery function using the actual old and new indexes. Each old changed binding was classified stale. Both M01 and M02 checkpoint statuses moved from cleared to not_yet and recovered after fresh correct attempts on the new bindings."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "EDITORIAL-01",
+      "severity": "P2",
+      "description": "The originally authored lab feedback implied that the app evaluated how descriptive a pasted Git commit message was. The current pattern accepts abc1234 hello.",
+      "resolution": "The candidate confirms a commit-shaped output with a message and teaches the value of a descriptive message. The evaluator and example vectors are unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "EDITORIAL-02",
+      "severity": "P2",
+      "description": "The three originally authored M01 checkpoint explanations used registry terms introduced in M02. The existing producer rejects those prerequisite violations.",
+      "resolution": "The candidate uses plain M01 wording and keeps the same Python behavior and explanation. The producer, registry and prerequisite checks are preserved.",
+      "status": "resolved"
+    },
+    {
+      "id": "EDITORIAL-03",
+      "severity": "P2",
+      "description": "Prior attempts for the 25 changed Programvareutvikling exercise hashes no longer count as current evidence. This includes checkpoint items in M01 and M02.",
+      "resolution": "Existing hash-binding semantics retain the old attempts as history. The synthetic compatibility probe confirmed that fresh correct answers restore the checkpoint status. No migration, XP rule, award identity or learner data write is introduced by the release.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "EDITORIAL-04",
+      "severity": "P3",
+      "description": "Empty programme-specific strings could leave empty notes, and JSX whitespace around inline commands could concatenate words in the Pathways roadmap.",
+      "resolution": "The existing shared components guard only the two optional notes. The paste privacy warning remains visible. Explicit spaces and regression assertions cover the affected roadmap text. Exercise feedback still uses existing markup and the selected-option MCQ branch.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The committed delta conforms to the scoped editorial request, with the disclosed effect of current exercise hashes on historical evidence. This review supports ordinary hosted certification for the bound payload. Hosted validation, master certification and production promotion require their own observations."
+  }
+}

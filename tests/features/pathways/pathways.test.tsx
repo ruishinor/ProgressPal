@@ -71,7 +71,13 @@ it('opens the Git roadmap without enrolment or programme changes', async () => {
   await screen.findByRole('heading', {
     name: /Git & GitHub: fra første endring/,
   });
-  await screen.findByText(/av 47 leksjoner markert fullført/);
+  await screen.findByText(/av 47 leksjoner markert som fullført/);
+  expect(screen.getByText(/Nå kobler du lokal Git/)).toHaveTextContent(
+    'Du trener på clone, fetch, pull og push',
+  );
+  expect(screen.getByText(/Når noe går galt, skal du først/)).toHaveTextContent(
+    'blant annet restore, stash, reflog og revert',
+  );
   fireEvent.click(screen.getByText('Leksjoner i M05 (8)'));
   expect(
     screen.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
@@ -271,7 +277,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/rpg/pathways');
     await router.navigate('/rpg/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
-    await screen.findByText(/av 47 leksjoner markert fullført/);
+    await screen.findByText(/av 47 leksjoner markert som fullført/);
     const first = await screen.findByRole('link', {
       name: 'Start her: hvorfor bruke Git?',
     });
@@ -295,7 +301,7 @@ it.each(['cs50x', 'programvareutvikling'])(
     ).toHaveAttribute('href', '/pathways');
     await router.navigate('/pathways');
     fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
-    await screen.findByText(/av 47 leksjoner markert fullført/);
+    await screen.findByText(/av 47 leksjoner markert som fullført/);
     fireEvent.click(
       await screen.findByRole('link', {
         name: 'Start her: hvorfor bruke Git?',
@@ -376,7 +382,9 @@ it('shows one next action, bookmarks and manual progress without writing on the 
       name: 'Fortsett: Les commits, HEAD og tidligere filer',
     }),
   ).toHaveAttribute('href', '/pathways/git-github/git-m02-o03');
-  expect(screen.getByText(/1 av 47 leksjoner markert fullført/)).toBeVisible();
+  expect(
+    screen.getByText(/1 av 47 leksjoner markert som fullført/),
+  ).toBeVisible();
   expect(screen.getByText('Leksjoner i M02 (6)')).toBeVisible();
   const m02 = screen.getByText('Leksjoner i M02 (6)').closest('li');
   expect(m02).toHaveTextContent('Påbegynt');
@@ -424,7 +432,7 @@ it('shows completion without a misleading continuation after all lessons are mar
   }
   const before = await getDatabaseSnapshot();
   await renderAppAtRoute('/pathways/git-github');
-  await screen.findByText(/47 av 47 leksjoner markert fullført/);
+  await screen.findByText(/47 av 47 leksjoner markert som fullført/);
   expect(screen.getByText(/Alle leksjonene er markert fullført/)).toBeVisible();
   expect(
     screen.queryByRole('link', { name: /^(Fortsett:|Neste leksjon:)/ }),
