@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "git-foundations-e2e-timing",
+  "reviewer": "OpenAI Codex (AI reviewer, separate from the implementation agent)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "c2228e5fcbd9f1cc190d6ada1bd0e7562c87ad87",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Independently reviewed candidate df9a72f75cb1de2c1053dbb60637517e906098d0 against master base 06983dcd2dc5f9f3f6673e36ebfc388c8d501904. The two changed paths are e2e/git-github.spec.ts and docs/CURRENT_STATE.md.",
+    "evidence": [
+      "Inspected the retained logs and Playwright traces from master run 42990363200, attempts 1 and 2. Each reported the same 30,000 ms per-test timeout. The final count and programme assertions were reached at about 30.7 and 30.8 seconds, respectively. Other affected tests were interrupted by the fail-fast stop.",
+      "Compared the original navigation and answer/persistence blocks against the two cases. Every original step and assertion in those blocks and all subsequent cases are byte-identical. The first case adds checks of app metadata and page errors at the split.",
+      "Inspected the fresh-profile onboarding fixture, IndexedDB snapshot helper, existing four shell/programme entry-to-save cases, and Playwright configuration. Each split case has a separate page and onboards through the UI. The second case visits M01 directly and performs its own answer, reload, and programme-switch flow.",
+      "Examined the managed runner and Chromium configuration. Both cases inherit the ordinary 30-second per-test timeout, three-worker hosted configuration, and fail-fast policy.",
+      "Inspected the implementation agent's managed Chromium log for the changed spec. It records 21 of 21 passing across three workers, with the split cases taking 7.9 and 14.6 seconds. The implementation agent also reported passing TypeScript and changed-file ESLint and Prettier. The independent review used static comparison and prior hosted failure artifacts.",
+      "Independently computed the candidate payload tree with the repository binding script and checked the candidate diff for whitespace errors."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GIT-E2E-1",
+      "severity": "P2",
+      "description": "A single 30-second timer covered both multi-module navigation and exercise persistence. Both master attempts crossed it while reaching the last assertions.",
+      "resolution": "The two cases give navigation and answer persistence their own standard Playwright budgets. The split retains the original checks for keyboard navigation, lesson reflow, assessment feedback, external report wording, persistence, local completion, and programme switching.",
+      "status": "resolved"
+    },
+    {
+      "id": "GIT-E2E-2",
+      "severity": "P3",
+      "description": "Previously, navigation across several Git lessons initialized the track in the same browser context as the assessment. The assessment case now starts in its own browser context with a fresh profile.",
+      "resolution": "The case creates its own evidence and bookmarks and retains the original record-count, reload, and programme-switch checks. The first case checks metadata and page errors after visiting multiple lessons. Four unchanged cases still navigate from each shell into a lesson, save an answer, and check programme and evidence state.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GIT-E2E-3",
+      "severity": "P3",
+      "description": "Timing from a focused Windows run leaves uncertainty about the candidate under the full hosted browser workload.",
+      "resolution": "Proceed to the ordinary hosted Final candidate job for the exact payload. Hosted certification and production verification remain pending at review time.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The logs and traces support splitting at the boundary between navigation and assessment. The candidate keeps the original assertions and exercises the fresh-profile setup in each case. The recorded timing evidence supports proceeding to hosted certification."
+  }
+}
