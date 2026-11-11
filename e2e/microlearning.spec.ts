@@ -402,7 +402,7 @@ const sessionButton = (page: Page, title: string) =>
     name: new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
   });
 
-// The Campaign's own progress records (the ones behind Home's "N of 24
+// The Campaign's own progress records (the ones behind Home's "N of 35
 // required tasks complete"), for a learner who has completed the first `count`
 // required missions in authored order. Raising the count adds rows.
 const requiredOrder = firstRequired(contentIndex, 99);
@@ -616,7 +616,8 @@ const sessionIndexes = bank.sessions.map((_, index) => index);
 
 /**
  * A Programme 2 learner who has completed the first `complete` required
- * missions (all 24 by default: every «Repeter» session open, no primer).
+ * missions (24 by default: all M01/M02 topics reached, but not all 35
+ * required Campaign missions). All «Repeter» sessions open, no primer.
  */
 async function openPicker(
   page: Page,
@@ -1055,7 +1056,7 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
     await assertAccessible(page, 'fresh learner');
   });
 
-  test('the physical-test learner (3 of 24 complete) is not left at a dead end', async ({
+  test('the early learner (3 of 35 complete) is not left at a dead end', async ({
     page,
   }) => {
     await openPicker(page, 'dark', 3);
@@ -1066,8 +1067,8 @@ test.describe('microlearning offers what the Campaign position allows, on one sc
       page.getByText('Flere øvelser kommer når du går videre i programmet.'),
     ).toBeVisible();
     await expect(page.getByText(/Slik leser du en feilmelding/)).toHaveCount(0);
-    await assertFits(page, '3 of 24 complete');
-    await assertAccessible(page, '3 of 24 complete');
+    await assertFits(page, '3 of 35 complete');
+    await assertAccessible(page, '3 of 35 complete');
   });
 
   test('reached topics repeat beside the next primer, and a full «Øv igjen» gets its own screen', async ({
@@ -1229,7 +1230,7 @@ test.describe('the way into microlearning from Home', () => {
     }
   });
 
-  test('the 3-of-24 learner from the physical test is offered an active entry, and it opens that primer', async ({
+  test('the 3-of-35 learner gets an active entry that opens the primer', async ({
     page,
   }) => {
     await completeOnboarding(page, {

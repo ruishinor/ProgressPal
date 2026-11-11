@@ -41,7 +41,7 @@ import {
 /**
  * The real route inside the real app. The active programme decides whether
  * microlearning exists; the Campaign's own progress (the same records behind
- * Home's "N of 24 required tasks complete") decides what is open, so a
+ * Home's "N of 35 required tasks complete") decides what is open, so a
  * direct visit to `/rpg/micro` never previews what the Campaign has not
  * reached; another programme's cards never show up under CS50x; and reading
  * the position and running whole sessions, right or wrong, leave every
@@ -321,7 +321,7 @@ describe('what the picker offers, through the real route', () => {
     expect(screen.queryByText(/Tenk først, så kode/)).toBeNull();
   });
 
-  it('reproduces the physical test: 3 of 24 required tasks complete still gives a primer, and keeps Repeter shut', async () => {
+  it('offers a primer at 3 of 35 required quests but no Repeter', async () => {
     await onboard();
     await activateProgramme2();
     await completeRequired(3);
@@ -411,7 +411,7 @@ describe('what the picker offers, through the real route', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens all four Repeter sessions, and no primer, once everything is reached', async () => {
+  it('offers all Repeter sessions after M01/M02 are reached', async () => {
     await onboard();
     await activateProgramme2();
     await completeRequired(24);
@@ -552,7 +552,7 @@ describe('Home only advertises a session that exists', () => {
     },
   );
 
-  it('offers the repetition entry after the whole Campaign is reached', async () => {
+  it('offers the repetition entry after M01/M02 are reached', async () => {
     await homeAt(24);
 
     await userEvent.click(
