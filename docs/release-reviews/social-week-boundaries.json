@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "module": "social-week-boundaries",
+  "reviewer": "OpenAI GPT-6, focused packet review, 2026-11-11",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "51dd4f2ef3341f1f37077cb89fb5fe7d4f2c3311",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Focused acceptance of the one-line, test-only database directory allowlist correction in local candidate b467bdbe3f708efda336e94faab8fccabbb05754, on PR #87. No change to the Social Week implementation, data model, release gate or production.",
+    "evidence": [
+      "Inspected the supplied committed test and REVIEW_DIFF.patch: one insertion, learningWeek.ts in the exact file allowlist; original assertion logic and the independent bundled-seed check are unchanged. The corrected test file has Git blob 8c0d3e290924fef4b14838173de3a082beb583aa.",
+      "Inspected every TypeScript file name under src/lib/db in the review packet: the corrected allowlist exactly matches all nine tracked TypeScript files in that directory. learningWeek.ts is the existing dedicated weekly read module used by Social Week; src/lib/db/index.ts does not newly re-export it.",
+      "Owner-supplied focused execution log reports six tests/domain files, 93/93 assertions passing, and Prettier passing; no tests were executed in this assessment. The preceding hosted FULL gate reached 3803 passing tests before failing this stale allowlist assertion; subsequent tests and managed browser tests did not complete.",
+      "The local candidate commit and its payload-tree identifier are owner-reported; the repository review resolver must verify the actual committed payload when the evidence-only successor is recorded."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SW-BOUNDARY-ALLOWLIST",
+      "severity": "P2",
+      "description": "The old Module 05 database-directory oracle rejected an intentional addition, learningWeek.ts. A broad relaxation could stop detecting unintended files.",
+      "resolution": "The sole change adds exactly learningWeek.ts to the existing enumerated allowlist; exact directory membership and existing seed assertions remain enforced.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-BOUNDARY-HOSTED",
+      "severity": "P2",
+      "description": "A focused local PASS does not establish completion of the interrupted hosted FULL gate or downstream browser checks.",
+      "resolution": "Proceed on the existing nonproduction PR through the unchanged Final candidate gate. Do not claim full certification, Nhost provider verification, merge or deployment.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS for the bounded one-line test-oracle update. No additional product change, new test or additional local test cycle is justified. Proceed to the unchanged hosted release gate after the exact payload binding is confirmed."
+  }
+}
