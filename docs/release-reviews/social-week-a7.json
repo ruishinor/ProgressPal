@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "module": "social-week-a7",
+  "reviewer": "OpenAI GPT-6, separate A7 packet reviewer, 2026-11-11 (independent source/evidence inspection; no test execution or patch authorship in this review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "ca523e56bed59369af28ab78dea4de3725f1920c",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Focused review of the submitted A7 Hub test-oracle correction, identified by the owner as candidate commit 6bf84b8cf8c38457e3bbf07d99eefda7a1717e92 (parent f6acead2f8b71caae29ed7bebf9e8e09ff8315e2). Covers only the one-file test delta, weekly read transaction, asynchronous completion, preserved route-access and nonmutation assertions, and reported focused verification. This is not a renewed Social Week feature, hosted release, or production review.",
+    "evidence": [
+      "VERIFIED HERE: Compared supplied ORIGINAL and SOURCE a7RouteAccess.test.tsx byte-for-byte and inspected the complete unified diff. The ORIGINAL hashes to Git blob 07091fa4e5fa643ab0a2d7ddc0bab826f34786c5, matching the independently retrieved parent-commit file; SOURCE hashes to 0e2b664585a615e7dd489b9ebe1073c933be36e8, matching the packet. Only learningWeekStores and Hub-specific completion/access assertions change.",
+      "VERIFIED HERE: Inspected readLearningDays and its callers. useLearningWeek starts the asynchronous read from PersonalWeek on the RPG Hub; readLearningDays uses one Dexie readonly transaction over sorted stores learner_evidence, progress_entries and study_sessions, calling each(), where(status).equals(completed).each(), and each() respectively. The matching test requires one readonly transaction, all three stores, exactly three cursor operations, and zero materialized rows.",
+      "VERIFIED HERE: The Hub waits within the Denne uken card for either Klar for ukens... or Du har... text, which PersonalWeekDetails renders only after days resolves successfully; loading and failure messages do not match. The current Card implementation defaults to a section, so closest(section) is valid. The subsequent probe snapshot therefore follows the awaited weekly read.",
+      "VERIFIED HERE: The original aggregate Hub <=11-operation oracle, separate HUD <=10-oracle for applicable child routes, per-route transaction counts and budgets, no-write probe, forbidden-store checks, nonmaterialization checks, and before/after equality over 22 database stores are unchanged and still asserted. The additional weekly transaction is allowed only on Hub.",
+      "OBSERVED IN USER-SUPPLIED TRANSCRIPT, NOT RERUN: A7=7/7, learningWeek=8/8 and A4 composition=5/5; total 20/20 passing in 3 test files. Formatting PASS and tsc -b without reported errors. Independently parsed the seven A7_ROUTE_ACCESS JSON records: Hub has two educational readonly transactions, its aggregate transaction has 11 operations, and its week transaction has three cursor operations with zero materialized rows; all seven records report zero writes and before/after equality.",
+      "PROVENANCE LIMIT: The supplied commit SHA was not retrievable via the repository connector at review time, so its complete committed diff and payload-tree ID could not be independently read back. The payload tree ca523e56bed59369af28ab78dea4de3725f1920c is taken from the owners quoted npm run review:payload-tree output, not independently recalculated. Release binding must still validate the actual committed candidate when evidence is added.",
+      "NOT RUN HERE: Vitest, formatting, typecheck, managed Playwright, hosted Final candidate, provider integration or production smoke. Previous Social Week reviews remain historical evidence only and were not repeated."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SW-A7-HUB-READ",
+      "severity": "P2",
+      "description": "The original A7 Hub test incorrectly required one educational transaction although the new PersonalWeek read adds a second transaction, potentially masking an unintended access expansion if only the count were relaxed.",
+      "resolution": "The correction permits exactly two educational transactions on Hub only, retains one aggregate Hub transaction with its original 11-operation budget, and explicitly requires one separate three-store readonly weekly transaction with exactly three cursor operations and zero row materialization. Other route transaction expectations remain unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-A7-ASYNC",
+      "severity": "P2",
+      "description": "A probe snapshot taken after the Hub aggregate heading but before asynchronous weekly completion could produce a false negative or omit the additional read.",
+      "resolution": "The Hub-specific findByText waits inside the Denne uken section for text emitted only after successful readLearningDays completion. The snapshot is taken subsequently; the source and observed transcript support this ordering.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-A7-NONMUTATION",
+      "severity": "P2",
+      "description": "Accepting the weekly read must not weaken access budgets for other routes, accidentally allow writes, or conceal mutations to persisted learner data.",
+      "resolution": "All original per-route aggregate/HUD assertions, zero-write and forbidden-store checks, nonmaterialization checks, and complete before/after database snapshot equality are preserved. All seven A7 transcript records report readonly access, zero writes and equality; these are observed reported-run artifacts, not independently rerun results.",
+      "status": "resolved"
+    },
+    {
+      "id": "SW-A7-CANDIDATE-IDENTITY",
+      "severity": "P2",
+      "description": "The new commit was available only as an owner-provided local commit/report, not a GitHub-resolvable object; this review cannot independently establish that its full committed tree contains only the inspected test delta.",
+      "resolution": "Accepted for this bounded packet-based review: the parent test was independently matched to repository bytes, the reviewed changed test blob was independently calculated, and the owner supplied the one-file commit summary plus candidate and payload-tree identifiers. The payload identifier is explicitly owner-reported. When the evidence-only successor is created, the repository binding resolver and hosted gate must confirm the actual payload tree equals the recorded value; no additional product/test changes are covered.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "SW-A7-HOSTED",
+      "severity": "P2",
+      "description": "Local focused checks and the packet do not certify the amended candidate under the hosted Final candidate gate or validate live-provider and production behavior.",
+      "resolution": "Accept solely for proceeding to the existing nonproduction PR and required hosted validation. Do not claim a hosted gate, browser suite, controlled Nhost provider verification or deployment PASS. The prior Social Week review boundary is unchanged.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed with the reviewed A7 test-only delta to the existing PR and its normal candidate-bound hosted gate. The corrected transaction and asynchronous oracles are sound, the original access/nonmutation protections remain, and the reported focused results are consistent with inspected evidence. The candidate SHA/payload tree are owner-reported rather than independently fetched; release binding must verify the exact committed payload. No implementation, Git or production changes were made by this reviewer."
+  }
+}
