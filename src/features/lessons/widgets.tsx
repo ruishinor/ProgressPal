@@ -1267,7 +1267,9 @@ function EvidenceWidget({
           <InlineText context={context} text={exercise.how} />
         </p>
       ) : null}
-      <p className="lesson-note">{copy.text.selfReported}</p>
+      {copy.text.selfReported ? (
+        <p className="lesson-note">{copy.text.selfReported}</p>
+      ) : null}
       <p className="lesson-note">{copy.text.privacy}</p>
       <TextAnswer
         disabled={disabled}

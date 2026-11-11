@@ -152,12 +152,15 @@ describe('lesson rendering (DC-01 to DC-07, DC-43)', () => {
     );
   });
 
-  it('never equates lesson completion with competence', async () => {
+  it('shows completion guidance without an empty lesson note', async () => {
     const lesson = await openLesson('s1-m01-o01');
 
-    expect(lesson).toHaveTextContent(
-      /Fullført betyr at du har gått gjennom økta\. Det betyr ikke at du har vist at du mestrer/,
-    );
+    expect(
+      screen.getByText(
+        'Når du har gått gjennom økta, kan du markere den som fullført. Du får poeng ved å løse oppgavene.',
+      ),
+    ).toBeVisible();
+    expect(lesson.querySelector('p.lesson-note:empty')).toBeNull();
   });
 });
 
@@ -224,15 +227,16 @@ describe('hints, submission and feedback (DC-15 to DC-17, DC-23, invariants 5 an
     expect(status).toHaveTextContent(/Riktig|Ikke riktig ennå/);
   });
 
-  it('says plainly what ProgressPal can and cannot check in pasted output', async () => {
+  it('shows the privacy warning beside pasted output without an empty note', async () => {
     await openLesson('s1-m01-o01');
     const group = within(screen.getByRole('article', { name: /./ }))
       .getAllByRole('group', { name: /^Oppgave \d+/ })
       .find((entry) => /py --version/.test(entry.textContent ?? ''))!;
 
     expect(group).toHaveTextContent(
-      /ProgressPal kan sjekke teksten du limer inn, men kan ikke se maskinen din/,
+      'Lim bare inn utskriften fra kommandoen. Ikke lim inn passord eller nøkler.',
     );
+    expect(group.querySelector('p.lesson-note:empty')).toBeNull();
     expect(group.textContent).not.toMatch(/Selvrapportert/);
   });
 

@@ -127,7 +127,7 @@ describe('no internal jargon on rendered Programvareutvikling surfaces', () => {
     ).toEqual([]);
   });
 
-  it('replaces the D-2 observer sentence with the plain statement', async () => {
+  it('asks for terminal output in the module checkpoint using plain language', async () => {
     await renderAppAtRoute('/course/s1-m01-chk');
     const lesson = await screen.findByRole(
       'article',
@@ -136,7 +136,7 @@ describe('no internal jargon on rendered Programvareutvikling surfaces', () => {
     );
 
     expect(lesson).toHaveTextContent(
-      'ProgressPal kan sjekke teksten du limer inn, men kan ikke se Git-historikken på maskinen din.',
+      'Lag en commit med skilt.py i din egen prosjektmappe, og lim inn utskriften fra git log --oneline.',
     );
     expect(lesson.textContent).not.toMatch(/beviset er|Observatøren/);
   });

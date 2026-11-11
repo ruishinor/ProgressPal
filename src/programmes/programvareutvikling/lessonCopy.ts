@@ -134,8 +134,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     runtimeUnavailable:
       'Automatisk kjøring av Python er ikke tilgjengelig i denne nettleseren akkurat nå. Du kan skrive og kjøre programmet på din egen maskin, men appen kan ikke sjekke det her.',
     runtimeLoading: 'Gjør klar Python for den automatiske sjekken …',
-    selfReported:
-      'ProgressPal kan sjekke teksten du limer inn, men kan ikke se maskinen din.',
+    selfReported: '',
     privacy:
       'Lim bare inn utskriften fra kommandoen. Ikke lim inn passord eller nøkler.',
     incomplete: 'Fyll ut hele svaret før du sjekker det.',
@@ -175,12 +174,11 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
       'Du har svart riktig på denne før, så den teller ikke som ny repetisjon.',
     remediation: 'Les om dette igjen: {title}',
     xpEarned: '+{xp} XP',
-    completionDisclaimer:
-      'Fullført betyr at du har gått gjennom økta. Det betyr ikke at du har vist at du mestrer ferdighetene.',
+    completionDisclaimer: '',
     // Shown at the manual completion action of a lesson. Marking a lesson
     // complete stores its status only: XP is earned by solving its tasks.
     localCompletionNote:
-      'Dette markerer økta som gjennomgått. Det gir ikke XP og betyr ikke at ferdigheten er mestret. XP tjenes i oppgavene.',
+      'Når du har gått gjennom økta, kan du markere den som fullført. Du får poeng ved å løse oppgavene.',
     afterSubmitExplanation: 'Forklaring',
     revealedTests: 'Testene du ikke så før du leverte:',
     copyCode: 'Kopier',
@@ -236,7 +234,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     whereNextNoMore:
       'Dette er det siste innholdet som er tilgjengelig i programmet akkurat nå. Flere moduler er ikke tilgjengelige ennå.',
     whereNextModuleRule:
-      'Campaign-kartet viser modulen som fullført først når alle obligatoriske deler er markert som fullført. Modulsjekken viser separat om du har vist at du mestrer ferdighetene.',
+      'Modulen vises som fullført i Campaign når alle obligatoriske deler er markert som fullført. Du kan åpne tidligere deler igjen hvis du vil repetere.',
     whereNextMark:
       'Når du er ferdig, kan du markere denne delen som fullført i panelet under.',
   },

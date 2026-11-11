@@ -267,8 +267,10 @@ export function RpgHomePage() {
                   Pathways
                 </RpgButton>
                 <RpgInfoNote label="Om Pathways" size="md">
-                  Lær ferdigheter du kan bruke uansett studieprogram. Git &amp;
-                  GitHub er det første tilgjengelige læringsløpet.
+                  I Pathways finner du læringsveier fra et sted å begynne til
+                  noe du vil lære å gjøre. Du ser hva som kommer først, hva som
+                  bygger videre på det, og kan følge din egen framdrift.
+                  Foreløpig kan du begynne med Git og GitHub.
                 </RpgInfoNote>
               </div>
               <div className="rpg-hub__entry rpg-hub__entry--reference">
