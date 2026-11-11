@@ -55,7 +55,7 @@ async function counts(page: Page) {
   });
 }
 
-test('starts from zero, explains wrong answers, records external reports honestly, resumes and switches programmes', async ({
+test('opens the Git roadmap from a fresh profile and visits lessons across modules', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -164,6 +164,17 @@ test('starts from zero, explains wrong answers, records external reports honestl
       name: 'Hvorfor arbeide med branches?',
     }),
   ).toBeVisible();
+  expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
+  expect(errors).toEqual([]);
+});
+
+test('explains Git answers and preserves learner evidence through reload and programme switches', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await completeOnboarding(page);
+  const primary = await pathwayState(page);
   await page.goto(route(1));
   const first = exercise(page, 1);
   await first
