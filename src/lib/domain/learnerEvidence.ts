@@ -58,7 +58,7 @@ export const checkpointLevelValues = ['NY', 'D', 'S'] as const;
  * starter or authored failure variant), predicted output 88, pasted output
  * 140, typed command 48, every short structured value well under 100. Each
  * ceiling leaves at least tenfold headroom; at five attempts on every one of
- * the 291 exercises at its ceiling the evidence stays far below the 25 MB
+ * the 346 exercises at its ceiling the evidence stays far below the 25 MB
  * backup cap. Input over a ceiling is refused at the input surface and never
  * becomes an attempt.
  */

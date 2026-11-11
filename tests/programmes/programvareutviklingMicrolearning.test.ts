@@ -200,7 +200,7 @@ describe('traceability to M01 and M02', () => {
       content.units.some((unit) => unit.unit_id === unitId),
     )?.[0];
 
-  it('cites only the two authored modules and lessons that exist', () => {
+  it('cites only the authored M01/M02 source lessons', () => {
     for (const card of cards) {
       expect(['s1-m01', 's1-m02'], card.id).toContain(card.source.moduleId);
       for (const unitId of card.source.lessonUnitIds) {
@@ -280,7 +280,7 @@ describe('traceability to M01 and M02', () => {
   });
 });
 
-// The required Campaign items in authored order: 12 in Module 1, 12 in Module 2.
+// The Campaign includes 35 required items; the first 24 belong to M01/M02.
 const order = firstRequired(p2Index, 99);
 const [variabler, typer, feil, tenk] = bank.sessions;
 const primers = bank.primers ?? [];
@@ -446,15 +446,15 @@ describe('availability against the real Campaign order', () => {
     expect(current(17)).toEqual(['s1-m02-o06', 'forb-test']);
   });
 
-  it('reproduces the physical test: 2 then 3 of 24 required tasks complete', () => {
-    // Home said "2 of 24" and then "3 of 24", and Microlearning showed nothing.
+  it('prepares learners after 2 and 3 of 35 required quests', () => {
+    // The earlier physical test had 24 required quests; this catalogue has 35.
     for (const count of [2, 3]) {
       expect(
         afterCompleting(count).quests.filter((q) => q.complete),
       ).toHaveLength(count);
       expect(
         afterCompleting(count).quests.filter((q) => q.required),
-      ).toHaveLength(24);
+      ).toHaveLength(35);
       // There is something relevant to do...
       expect(primerId(count)).toBeDefined();
       // ...and the reinforcement stays shut, because every one of the four
@@ -630,9 +630,11 @@ describe('availability against the real Campaign order', () => {
     }
   });
 
-  it('offers nothing once every required task is complete except Repeter', () => {
+  it('keeps Repeter available after M01/M02 and at programme completion', () => {
     expect(primerId(24)).toBeUndefined();
     expect(repeatIds(24)).toHaveLength(4);
+    expect(primerId(order.length)).toBeUndefined();
+    expect(repeatIds(order.length)).toHaveLength(4);
   });
 });
 

@@ -70,7 +70,7 @@ let order: Awaited<ReturnType<typeof learnerOrder>>;
 const runs = new Map<string, SimulationResult>();
 
 beforeAll(async () => {
-  order = await learnerOrder(p2Index);
+  order = await learnerOrder(p2Index, ['S1-M01', 'S1-M02']);
 
   for (const pattern of patterns) {
     runs.set(

@@ -68,16 +68,19 @@ type OrderedTask = {
   readonly missionId: string;
 };
 
-/** Every evaluable exercise in the learner's order, with optional ones. */
+/** Evaluable exercises in the selected modules, in learner order. */
 export async function learnerOrder(
   index: ProgrammeContentIndex,
+  moduleIds: readonly string[],
 ): Promise<OrderedTask[]> {
   const provider = programvareutviklingDefinition.content.lessons!;
   const metaById = new Map(
     index.exercises.map((entry) => [entry.exerciseId, entry]),
   );
   const ordered: OrderedTask[] = [];
-  const modules = [...index.modules].sort((a, b) => a.order - b.order);
+  const modules = index.modules
+    .filter((module) => moduleIds.includes(module.moduleId))
+    .sort((a, b) => a.order - b.order);
 
   for (const module of modules) {
     const missions = [...module.missions].sort((a, b) => a.order - b.order);

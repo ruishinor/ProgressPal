@@ -2,11 +2,11 @@
   "format": "progresspal-programme-catalogue",
   "formatVersion": 1,
   "programmeId": "programvareutvikling",
-  "contentVersion": 4,
+  "contentVersion": 5,
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790",
+  "sourceSha256": "3167a831f6c4ea61d854450744bb4b72b1db903e1f41b4bb0851288b54090f1c",
   "modules": [
     {
       "moduleId": "S1-M01",
@@ -247,6 +247,145 @@
           "minutes": 135,
           "optional": false,
           "order": 12
+        }
+      ]
+    },
+    {
+      "moduleId": "S1-M03",
+      "catalogueUnitId": "s1-m03",
+      "title": "Valg og betingelser",
+      "order": 2,
+      "missions": [
+        {
+          "missionId": "S1-M03-O01",
+          "itemId": "s1-m03-o01",
+          "surface": "mission",
+          "title": "Sammenlign og velg en vei",
+          "minutes": 80,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "S1-M03-O02",
+          "itemId": "s1-m03-o02",
+          "surface": "mission",
+          "title": "Kombiner betingelser",
+          "minutes": 55,
+          "optional": false,
+          "order": 1
+        },
+        {
+          "missionId": "S1-M03-CHK",
+          "itemId": "s1-m03-chk",
+          "surface": "checkpoint",
+          "title": "Modulsjekk",
+          "minutes": 30,
+          "optional": false,
+          "order": 2
+        }
+      ]
+    },
+    {
+      "moduleId": "S1-M05",
+      "catalogueUnitId": "s1-m05",
+      "title": "Løkker som stopper",
+      "order": 3,
+      "missions": [
+        {
+          "missionId": "S1-M05-O01",
+          "itemId": "s1-m05-o01",
+          "surface": "mission",
+          "title": "Gjenta og stopp",
+          "minutes": 35,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "S1-M05-CHK",
+          "itemId": "s1-m05-chk",
+          "surface": "checkpoint",
+          "title": "Modulsjekk",
+          "minutes": 25,
+          "optional": false,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "moduleId": "S1-M07",
+      "catalogueUnitId": "s1-m07",
+      "title": "Funksjoner som gir et svar tilbake",
+      "order": 4,
+      "missions": [
+        {
+          "missionId": "S1-M07-O01",
+          "itemId": "s1-m07-o01",
+          "surface": "mission",
+          "title": "Definer, kall og bruk svaret",
+          "minutes": 40,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "S1-M07-CHK",
+          "itemId": "s1-m07-chk",
+          "surface": "checkpoint",
+          "title": "Modulsjekk",
+          "minutes": 25,
+          "optional": false,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "moduleId": "S1-M06",
+      "catalogueUnitId": "s1-m06",
+      "title": "Lister og rekkefølge",
+      "order": 5,
+      "missions": [
+        {
+          "missionId": "S1-M06-O01",
+          "itemId": "s1-m06-o01",
+          "surface": "mission",
+          "title": "En navneliste du kan gå gjennom",
+          "minutes": 35,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "S1-M06-CHK",
+          "itemId": "s1-m06-chk",
+          "surface": "checkpoint",
+          "title": "Modulsjekk",
+          "minutes": 20,
+          "optional": false,
+          "order": 1
+        }
+      ]
+    },
+    {
+      "moduleId": "S1-M08",
+      "catalogueUnitId": "s1-m08",
+      "title": "Ordbøker og nøkkeloppslag",
+      "order": 6,
+      "missions": [
+        {
+          "missionId": "S1-M08-O01",
+          "itemId": "s1-m08-o01",
+          "surface": "mission",
+          "title": "Finn studenten med en fast kode",
+          "minutes": 25,
+          "optional": false,
+          "order": 0
+        },
+        {
+          "missionId": "S1-M08-CHK",
+          "itemId": "s1-m08-chk",
+          "surface": "checkpoint",
+          "title": "Modulsjekk",
+          "minutes": 25,
+          "optional": false,
+          "order": 1
         }
       ]
     }
@@ -542,24 +681,104 @@
     "s1-m02-chk-e12",
     "s1-m02-chk-e13",
     "s1-m02-chk-e14",
-    "s1-m02-chk-e15"
+    "s1-m02-chk-e15",
+    "s1-m03-l01-e01",
+    "s1-m03-p01-e01",
+    "s1-m03-p01-e02",
+    "s1-m03-p01-e03",
+    "s1-m03-p01-e04",
+    "s1-m03-p01-e05",
+    "s1-m03-p01-e06",
+    "s1-m03-l02-e01",
+    "s1-m03-l02-e02",
+    "s1-m03-p02-e01",
+    "s1-m03-p02-e02",
+    "s1-m03-p02-e03",
+    "s1-m03-p02-e04",
+    "s1-m03-p02-e05",
+    "s1-m03-p02-e06",
+    "s1-m03-p02-e07",
+    "s1-m03-p02-e08",
+    "s1-m03-l03-e01",
+    "s1-m03-l03-e02",
+    "s1-m03-p03-e01",
+    "s1-m03-p03-e02",
+    "s1-m03-p03-e03",
+    "s1-m03-p03-e04",
+    "s1-m03-p03-e05",
+    "s1-m03-p03-e06",
+    "s1-m03-chk-e01",
+    "s1-m03-chk-e02",
+    "s1-m03-chk-e03",
+    "s1-m03-chk-e04",
+    "s1-m05-p01-e01",
+    "s1-m05-p01-e02",
+    "s1-m05-p02-e01",
+    "s1-m05-chk-e01",
+    "s1-m05-chk-e02",
+    "s1-m05-chk-e03",
+    "s1-m05-chk-e04",
+    "s1-m07-p01-e01",
+    "s1-m07-p02-e01",
+    "s1-m07-p02-e02",
+    "s1-m07-chk-e01",
+    "s1-m07-chk-e02",
+    "s1-m07-chk-e03",
+    "s1-m07-chk-e04",
+    "s1-m06-p01-e01",
+    "s1-m06-p02-e01",
+    "s1-m06-chk-e01",
+    "s1-m06-chk-e02",
+    "s1-m06-chk-e03",
+    "s1-m06-chk-e04",
+    "s1-m08-p01-e01",
+    "s1-m08-p01-e02",
+    "s1-m08-chk-e01",
+    "s1-m08-chk-e02",
+    "s1-m08-chk-e03",
+    "s1-m08-chk-e04"
   ],
   "assets": {
     "index": {
-      "path": "content/programvareutvikling/index.35b5dcd10eaae706.json",
-      "sha256": "35b5dcd10eaae706f0a33371ae4076a070d010466409baa55725b71d3017a827",
-      "bytes": 197992
+      "path": "content/programvareutvikling/index.0dc9f467c13ca4de.json",
+      "sha256": "0dc9f467c13ca4dec117587a3a190b4bea11d5c24c2569c5dcee67c9b780eb7f",
+      "bytes": 246649
     },
     "modules": {
       "S1-M01": {
-        "path": "content/programvareutvikling/s1-m01.461637457debf396.json",
-        "sha256": "461637457debf396462af3b2f189aaea546a86219d9eee56d822f60129b5f5fd",
-        "bytes": 280245
+        "path": "content/programvareutvikling/s1-m01.42c1a7d587414ee6.json",
+        "sha256": "42c1a7d587414ee6d340a0f0aff374e9defbd87eb53eb3ebf2adcc5b0725948e",
+        "bytes": 281120
       },
       "S1-M02": {
-        "path": "content/programvareutvikling/s1-m02.cef6602dd2174609.json",
-        "sha256": "cef6602dd2174609308b55beea01546deaf8d3f63c0febecf963ec15b3cda1ec",
-        "bytes": 267479
+        "path": "content/programvareutvikling/s1-m02.065b2ca5ba879d7e.json",
+        "sha256": "065b2ca5ba879d7ef80f211d1f1f33366064718f6df94e781294e10552cb6004",
+        "bytes": 267796
+      },
+      "S1-M03": {
+        "path": "content/programvareutvikling/s1-m03.a4c1573a42172703.json",
+        "sha256": "a4c1573a42172703dcb65e4254cbf130a28c1b8d571e412dcc7a61aef3927163",
+        "bytes": 45923
+      },
+      "S1-M05": {
+        "path": "content/programvareutvikling/s1-m05.37be13db3f279ced.json",
+        "sha256": "37be13db3f279ced20ca05c11b5e2308e4f2f174a2d8943b2dad27f86622b0bc",
+        "bytes": 14359
+      },
+      "S1-M07": {
+        "path": "content/programvareutvikling/s1-m07.fffdec00b467bb7b.json",
+        "sha256": "fffdec00b467bb7b0c94f9d748225e6e3bcca54160de402e2a2d85194ba550c6",
+        "bytes": 17061
+      },
+      "S1-M06": {
+        "path": "content/programvareutvikling/s1-m06.89549a87cd065ddd.json",
+        "sha256": "89549a87cd065ddde7b8df46179c5fa174bdcb9c3d80e5f4055ffdc58767a519",
+        "bytes": 14598
+      },
+      "S1-M08": {
+        "path": "content/programvareutvikling/s1-m08.d6e0e5bfbca937c1.json",
+        "sha256": "d6e0e5bfbca937c11715585d2fb66d76f25c07d33621b487b81a61d0298c7c04",
+        "bytes": 14030
       }
     }
   }

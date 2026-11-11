@@ -1,6 +1,6 @@
 {
-  "sourceSha256": "ffecd016023017f06a33234d72ca9eec2305fc5bd7d42594e329127664ccc790",
-  "contentVersion": 4,
+  "sourceSha256": "3167a831f6c4ea61d854450744bb4b72b1db903e1f41b4bb0851288b54090f1c",
+  "contentVersion": 5,
   "exercises": {
     "S1-M01-P01-E01": {
       "examples_ok": ["Python 3.14.4", "Python 3.12.10", "Python 3.13.0"],
@@ -1296,6 +1296,308 @@
         "a1b2c3d (HEAD -> main) Legg til startgebyr på 50 kr i leien"
       ],
       "examples_bad": ["a1b2c3d fix", ""]
+    },
+    "S1-M03-P01-E05": {
+      "solution": "age = 5\nprint(age < 6)\nprint(age >= 18)\nprint(age != 0)"
+    },
+    "S1-M03-P02-E07": {
+      "solution": "age = 6\nif age < 6:\n    print(0)\nelse:\n    print(100)"
+    },
+    "S1-M03-P02-E08": {
+      "reference": "age = int(input(\"Alder: \"))\nif age < 6:\n    price = 0\nelif age < 18:\n    price = 60\nelse:\n    price = 100\nprint(price)",
+      "failure_variants": [
+        {
+          "name": "bred regel først",
+          "code": "age = int(input(\"Alder: \"))\nif age < 18:\n    price = 0\nelif age < 6:\n    price = 60\nelse:\n    price = 100\nprint(price)",
+          "signature": ["0", "0", "100", "0", "0", "100"]
+        },
+        {
+          "name": "likhet ved seks",
+          "code": "age = int(input(\"Alder: \"))\nif age <= 6:\n    price = 0\nelif age < 18:\n    price = 60\nelse:\n    price = 100\nprint(price)",
+          "signature": ["0", "0", "100", "0", "60", "100"]
+        }
+      ]
+    },
+    "S1-M03-P03-E01": {
+      "solution": "age = 18\nhas_ticket = True\nprint(age >= 18 and has_ticket)"
+    },
+    "S1-M03-P03-E02": {
+      "solution": "member = False\nstudent = True\nprint(member or student)"
+    },
+    "S1-M03-P03-E03": { "solution": "blocked = False\nprint(not blocked)" },
+    "S1-M03-P03-E05": {
+      "reference": "age = int(input(\"Alder: \"))\nhas_ticket = input(\"Billett, ja eller nei: \")\nprint(age >= 18 and has_ticket == \"ja\")",
+      "failure_variants": [
+        {
+          "name": "or i stedet for and",
+          "code": "age = int(input(\"Alder: \"))\nhas_ticket = input(\"Billett, ja eller nei: \")\nprint(age >= 18 or has_ticket == \"ja\")",
+          "signature": ["True", "True", "True", "False", "True"]
+        },
+        {
+          "name": "utelater likhet",
+          "code": "age = int(input(\"Alder: \"))\nhas_ticket = input(\"Billett, ja eller nei: \")\nprint(age > 18 and has_ticket == \"ja\")",
+          "signature": ["False", "False", "False", "False", "True"]
+        }
+      ]
+    },
+    "S1-M03-P03-E06": {
+      "reference": "open_today = input(\"Åpent: \")\nmember = input(\"Medlem: \")\nstudent = input(\"Student: \")\nif open_today == \"nei\":\n    print(\"stengt\")\nelif member == \"ja\" or student == \"ja\":\n    print(\"velkommen\")\nelse:\n    print(\"ordinær\")"
+    },
+    "S1-M03-CHK-E01": {
+      "reference": "plasser = int(input())\npaameldt = input()\nif plasser == 0:\n    print(\"fullt\")\nelif paameldt == \"ja\":\n    print(\"kom inn\")\nelse:\n    print(\"vent\")",
+      "failure_variants": [
+        {
+          "name": "påmelding sjekkes før full plass",
+          "code": "plasser = int(input())\npaameldt = input()\nif paameldt == \"ja\":\n    print(\"kom inn\")\nelif plasser == 0:\n    print(\"fullt\")\nelse:\n    print(\"vent\")",
+          "signature": [
+            "0\nja\nkom inn",
+            "1\nnei\nvent",
+            "1\nja\nkom inn",
+            "0\nnei\nfullt",
+            "30\nja\nkom inn",
+            "30\nnei\nvent"
+          ]
+        },
+        {
+          "name": "én ledig plass behandles som full",
+          "code": "plasser = int(input())\npaameldt = input()\nif plasser <= 1:\n    print(\"fullt\")\nelif paameldt == \"ja\":\n    print(\"kom inn\")\nelse:\n    print(\"vent\")",
+          "signature": [
+            "0\nja\nfullt",
+            "1\nnei\nfullt",
+            "1\nja\nfullt",
+            "0\nnei\nfullt",
+            "30\nja\nkom inn",
+            "30\nnei\nvent"
+          ]
+        }
+      ]
+    },
+    "S1-M05-P02-E01": {
+      "reference": "runder = int(input())\nsum_poeng = 0\nfor runde in range(runder):\n    poeng = int(input())\n    sum_poeng = sum_poeng + poeng\nprint(sum_poeng)",
+      "failure_variants": [
+        {
+          "name": "skriver hver delsum",
+          "code": "runder = int(input())\nsum_poeng = 0\nfor runde in range(runder):\n    poeng = int(input())\n    sum_poeng = sum_poeng + poeng\n    print(sum_poeng)",
+          "signature": [
+            "0",
+            "3\n4\n4\n0\n4\n7\n11",
+            "1\n20\n20",
+            "2\n7\n7\n5\n12",
+            "5\n1\n1\n2\n3\n3\n6\n4\n10\n5\n15"
+          ]
+        },
+        {
+          "name": "mangler løkken",
+          "code": "runder = int(input())\nsum_poeng = 0\nprint(sum_poeng)",
+          "signature": [
+            "0\n0",
+            "3\n0",
+            "1\n0",
+            "2\n0",
+            "5\n0",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M05-CHK-E01": {
+      "reference": "rest = int(input())\nrunder = 0\nwhile rest > 0:\n    rest = rest - 1\n    if rest > 0:\n        rest = rest - 1\n    runder = runder + 1\nprint(runder)",
+      "failure_variants": [
+        {
+          "name": "glemmer runde",
+          "code": "rest = int(input())\nrunder = 0\nwhile rest > 0:\n    rest = rest - 1\n    if rest > 0:\n        rest = rest - 1\n    runder = runder\nprint(runder)",
+          "signature": ["0\n0", "3\n0", "1\n0", "2\n0", "7\n0", "8\n0"]
+        }
+      ]
+    },
+    "S1-M07-P02-E02": {
+      "reference": "def rest(total, brukt):\n    return total - brukt\n\ntotal = int(input())\nbrukt = int(input())\nprint(rest(total, brukt) - 5)",
+      "failure_variants": [
+        {
+          "name": "print i stedet for return",
+          "code": "def rest(total, brukt):\n    print(total - brukt)\n\ntotal = int(input())\nbrukt = int(input())\nprint(rest(total, brukt) - 5)",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError"
+          ]
+        },
+        {
+          "name": "print og return",
+          "code": "def rest(total, brukt):\n    print(total - brukt)\n    return total - brukt\n\ntotal = int(input())\nbrukt = int(input())\nprint(rest(total, brukt) - 5)",
+          "signature": [
+            "50\n20\n30\n25",
+            "10\n10\n0\n-5",
+            "0\n0\n0\n-5",
+            "10\n20\n-10\n-15",
+            "200\n5\n195\n190"
+          ]
+        },
+        {
+          "name": "ubrukt hjelpefunksjon",
+          "code": "def rest(total, brukt):\n    return 0\n\ntotal = int(input())\nbrukt = int(input())\nprint(total - brukt - 5)",
+          "signature": [
+            "50\n20\n25",
+            "10\n10\n-5",
+            "0\n0\n-5",
+            "10\n20\n-15",
+            "200\n5\n190",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M07-CHK-E01": {
+      "reference": "def gruppestorrelse(pameldte):\n    if pameldte < 2:\n        return 2\n    return pameldte\n\npameldte = int(input())\nprint(gruppestorrelse(pameldte) * 2)",
+      "failure_variants": [
+        {
+          "name": "print i stedet for return",
+          "code": "def gruppestorrelse(pameldte):\n    if pameldte < 2:\n        print(2)\n    print(pameldte)\n\npameldte = int(input())\nprint(gruppestorrelse(pameldte) * 2)",
+          "signature": [
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError",
+            "ERROR TypeError"
+          ]
+        },
+        {
+          "name": "print og return",
+          "code": "def gruppestorrelse(pameldte):\n    if pameldte < 2:\n        print(2)\n        return 2\n    print(pameldte)\n    return pameldte\n\npameldte = int(input())\nprint(gruppestorrelse(pameldte) * 2)",
+          "signature": [
+            "0\n2\n4",
+            "3\n3\n6",
+            "1\n2\n4",
+            "2\n2\n4",
+            "10\n10\n20"
+          ]
+        },
+        {
+          "name": "ubrukt hjelpefunksjon",
+          "code": "def gruppestorrelse(pameldte):\n    return 0\n\npameldte = int(input())\nif pameldte < 2:\n    pameldte = 2\nprint(pameldte * 2)",
+          "signature": [
+            "0\n4",
+            "3\n6",
+            "1\n4",
+            "2\n4",
+            "10\n20",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M06-P02-E01": {
+      "reference": "studenter = [\"Ada\", \"Bo\", \"Ada\"]\nny = input()\nfjern = input()\nstudenter.append(ny)\nif fjern in studenter:\n    studenter.remove(fjern)\nfor navn in studenter:\n    print(navn)",
+      "failure_variants": [
+        {
+          "name": "fjerner alle like navn",
+          "code": "studenter = [\"Ada\", \"Bo\", \"Ada\"]\nny = input()\nfjern = input()\nstudenter.append(ny)\nif fjern in studenter:\n    studenter = [navn for navn in studenter if navn != fjern]\nfor navn in studenter:\n    print(navn)",
+          "signature": [
+            "Cem\nBo\nAda\nAda\nCem",
+            "Cem\nLiv\nAda\nBo\nAda\nCem",
+            "Cem\nAda\nBo\nCem",
+            "Liv\nLiv\nAda\nBo\nAda",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "fjerner uten medlemskapssjekk",
+          "code": "studenter = [\"Ada\", \"Bo\", \"Ada\"]\nny = input()\nfjern = input()\nstudenter.append(ny)\nstudenter.remove(fjern)\nfor navn in studenter:\n    print(navn)",
+          "signature": [
+            "Cem\nBo\nAda\nAda\nCem",
+            "ERROR ValueError",
+            "Cem\nAda\nBo\nAda\nCem",
+            "Liv\nLiv\nAda\nBo\nAda",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M06-CHK-E01": {
+      "reference": "rom = [\"rom A\", \"rom B\"]\nnytt = input()\nfjern = input()\nrom.append(nytt)\nif fjern in rom:\n    rom.remove(fjern)\nprint(len(rom))\nprint(rom[0])",
+      "failure_variants": [
+        {
+          "name": "viser siste rom",
+          "code": "rom = [\"rom A\", \"rom B\"]\nnytt = input()\nfjern = input()\nrom.append(nytt)\nif fjern in rom:\n    rom.remove(fjern)\nprint(len(rom))\nprint(rom[-1])",
+          "signature": [
+            "rom C\nrom A\n2\nrom C",
+            "rom C\nrom D\n3\nrom C",
+            "rom C\nrom C\n2\nrom B",
+            "rom A\nrom A\n2\nrom A",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "fjerner uten sjekk",
+          "code": "rom = [\"rom A\", \"rom B\"]\nnytt = input()\nfjern = input()\nrom.append(nytt)\nrom.remove(fjern)\nprint(len(rom))\nprint(rom[0])",
+          "signature": [
+            "rom C\nrom A\n2\nrom B",
+            "ERROR ValueError",
+            "rom C\nrom C\n2\nrom A",
+            "rom A\nrom A\n2\nrom B",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
+    },
+    "S1-M08-P01-E02": {
+      "reference": "studenter = {\"S01\": \"Ada\", \"S02\": \"Bo\", \"S03\": \"Ada\"}\nkode = input()\nif kode in studenter:\n    print(studenter[kode])\nelse:\n    print(\"ukjent kode\")",
+      "failure_variants": [
+        {
+          "name": "slår opp uten sjekk",
+          "code": "studenter = {\"S01\": \"Ada\", \"S02\": \"Bo\", \"S03\": \"Ada\"}\nkode = input()\nprint(studenter[kode])",
+          "signature": [
+            "S03\nAda",
+            "ERROR KeyError",
+            "S02\nBo",
+            "S01\nAda",
+            "ERROR KeyError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "normaliserer bokstavstørrelse",
+          "code": "studenter = {\"S01\": \"Ada\", \"S02\": \"Bo\", \"S03\": \"Ada\"}\nkode = input().upper()\nif kode in studenter:\n    print(studenter[kode])\nelse:\n    print(\"ukjent kode\")",
+          "signature": [
+            "S03\nAda",
+            "S04\nukjent kode",
+            "S02\nBo",
+            "S01\nAda",
+            "s03\nAda"
+          ]
+        }
+      ]
+    },
+    "S1-M08-CHK-E01": {
+      "reference": "utstyr = {\"A1\": \"kabel\", \"A2\": \"kabel\", \"B1\": \"adapter\"}\nfor runde in range(2):\n    merke = input()\n    if merke in utstyr:\n        print(utstyr[merke])\n    else:\n        print(\"ukjent merke\")",
+      "failure_variants": [
+        {
+          "name": "bare ett oppslag",
+          "code": "utstyr = {\"A1\": \"kabel\", \"A2\": \"kabel\", \"B1\": \"adapter\"}\nfor runde in range(1):\n    merke = input()\n    if merke in utstyr:\n        print(utstyr[merke])\n    else:\n        print(\"ukjent merke\")",
+          "signature": [
+            "A1\nkabel",
+            "B2\nukjent merke",
+            "A2\nkabel",
+            "B1\nadapter",
+            "Z9\nukjent merke",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        },
+        {
+          "name": "slår opp uten sjekk",
+          "code": "utstyr = {\"A1\": \"kabel\", \"A2\": \"kabel\", \"B1\": \"adapter\"}\nfor runde in range(2):\n    merke = input()\n    print(utstyr[merke])",
+          "signature": [
+            "A1\nkabel\nB1\nadapter",
+            "ERROR KeyError",
+            "A2\nkabel\nA1\nkabel",
+            "ERROR KeyError",
+            "ERROR KeyError",
+            "STRUCTURE-CHECK-FAILS"
+          ]
+        }
+      ]
     }
   }
 }

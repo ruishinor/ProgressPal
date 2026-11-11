@@ -215,7 +215,7 @@ describe('LF-029: the end of a lesson says where the learner is and what is next
     ).toHaveAttribute('href', '/course/s1-m02-o01');
   });
 
-  it('at the last available lesson, says plainly that nothing more exists yet', async () => {
+  it('shows the link from M02 to M03 only after the final checkpoint stage', async () => {
     const lesson = await openLesson('s1-m02-chk');
     stageMutations.enabled = true;
 
@@ -242,6 +242,18 @@ describe('LF-029: the end of a lesson says where the learner is and what is next
       await awaitStageMutation(beforeStage);
     }
 
+    const next = within(lesson).getByRole('region', {
+      name: 'Slik går du videre',
+    });
+
+    expect(next).toHaveTextContent('Neste modul er «Valg og betingelser».');
+    expect(
+      within(next).getByRole('link', { name: 'Sammenlign og velg en vei' }),
+    ).toHaveAttribute('href', '/course/s1-m03-o01');
+  });
+
+  it('at the last available lesson, says plainly that nothing more exists yet', async () => {
+    const lesson = await openLesson('s1-m08-chk');
     const next = within(lesson).getByRole('region', {
       name: 'Slik går du videre',
     });

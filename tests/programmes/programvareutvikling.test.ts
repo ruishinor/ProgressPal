@@ -11,8 +11,8 @@ import { p2Catalogue, p2Index as manifest } from './p2Content';
 /**
  * Epic E §3 items 1–3 and 17: Programvareutvikling is the second production
  * programme, registered through the existing validated registry with CS50x
- * still the explicit default. Its catalogue is exactly 2 `module` units and
- * 25 `lesson` items mapped from the authoritative M01/M02 source (recorded
+ * still the explicit default. Its catalogue includes 7 `module` units and
+ * 36 `lesson` items mapped from the authoritative autumn source (recorded
  * in the committed snapshot manifest, SHA-256-bound to `pilot.json`), and its
  * policy is the minimum neutral valid policy.
  */
@@ -123,18 +123,23 @@ describe('registration', () => {
   });
 });
 
-describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () => {
+describe('catalogue mapping (7 modules, 36 lessons, from the bound source)', () => {
   it('binds the packaged content index to the source hash in the bundled catalogue', () => {
     expect(manifest.source.sha256).toBe(p2Catalogue.sourceSha256);
     expect(manifest.programmeId).toBe('programvareutvikling');
   });
 
-  it('maps exactly two module units in source order', () => {
+  it('maps exactly seven module units in source order', () => {
     expect(
       units.map((unit) => [unit.id, unit.type, unit.order, unit.required]),
     ).toEqual([
       ['s1-m01', 'module', 0, true],
       ['s1-m02', 'module', 1, true],
+      ['s1-m03', 'module', 2, true],
+      ['s1-m05', 'module', 3, true],
+      ['s1-m07', 'module', 4, true],
+      ['s1-m06', 'module', 5, true],
+      ['s1-m08', 'module', 6, true],
     ]);
     expect(units.map((unit) => unit.title)).toEqual(
       manifest.modules.map((module) => module.title),
@@ -143,8 +148,10 @@ describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () 
     expect(units[1]!.title).toBe('Verdier, typer og input');
   });
 
-  it('maps 25 lesson items (12 and 13) with deterministic lowercase IDs in source order', () => {
-    expect(units.map((unit) => unit.items.length)).toEqual([12, 13]);
+  it('maps 36 lesson items with deterministic lowercase IDs in source order', () => {
+    expect(units.map((unit) => unit.items.length)).toEqual([
+      12, 13, 3, 2, 2, 2, 2,
+    ]);
     expect(items.every((item) => item.type === 'lesson')).toBe(true);
 
     const missions = manifest.modules.flatMap((module) => module.missions);
@@ -154,10 +161,10 @@ describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () 
     expect(items.map((item) => item.title)).toEqual(
       missions.map((mission) => mission.title),
     );
-    expect(new Set(items.map((item) => item.id)).size).toBe(25);
+    expect(new Set(items.map((item) => item.id)).size).toBe(36);
   });
 
-  it('keeps 24 required lessons and the one optional reinforcement mission', () => {
+  it('keeps 35 required lessons and the one optional reinforcement mission', () => {
     expect(
       items.filter((item) => !item.required).map((item) => item.id),
     ).toEqual(['s1-m02-o08']);
@@ -177,7 +184,7 @@ describe('catalogue mapping (2 modules, 25 lessons, from the bound source)', () 
       items
         .filter((item) => item.required)
         .reduce((total, item) => total + item.estimatedMinutes, 0),
-    ).toBe(1_990);
+    ).toBe(2_385);
   });
 
   it('has no ID collision with the CS50 catalogue', () => {
@@ -265,6 +272,11 @@ describe('programme-owned content and language identity', () => {
     expect(terminology.unitMapOrdinals).toEqual({
       's1-m01': '1',
       's1-m02': '2',
+      's1-m03': '3',
+      's1-m05': '4',
+      's1-m07': '5',
+      's1-m06': '6',
+      's1-m08': '7',
     });
 
     for (const [key, text] of Object.entries(terminology.copy)) {

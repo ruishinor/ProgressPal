@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "module": "programvareutvikling-autumn",
+  "reviewer": "OpenAI Codex (implementerens egen gjennomgang av deltaet 2026-11-11; tidligere separat innholdsreview gjelder den opprinnelige payloaden)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "36dfad0b7c5c077a0a0a63226c1efa3d70ffd156",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Gjennomgang av PR #85-rettelsene i 9fdbc4081103ae56c45c1b8f35a6ae124f2bc518. Opprinnelig innholdsreview er bevart i Git-historikken, og de to aksepterte P3-funnene videreføres.",
+    "evidence": [
+      "Prestasjonsregler: alle sju verifisert med gjeldende oppgavehash eller modulsjekk i versjon 5 og avvist ved en ukjent fremtidig versjon. ID-er, utløser-ID-er og krav er bevart. Eksisterende tester bekrefter førstegangsutløsning, gjenoppretting og idempotens.",
+      "Mestring: de to eksisterende endringene er bevart byte for byte. En publisert enhet gir bare en repetisjonsmulighet for ferdigheter med en kvalifiserende oppgave.",
+      "M03: den kanoniske kilden deler øvingene 1–4 og 5–8 i to etapper. Eksport og reproduksjonssjekk passerte. Alle 346 oppgavehashene, oppgaveinnholdet og evaluatorvektorene er bevart. Chromium viste begge etapper og gjenåpnet lagret trinn 28 på etappe 4.",
+      "Testdekning: begge programmene har komplett offline-liste med korrekte byteantall og SHA-256, 331 aktive evaluerbare oppgaver har feilfeedback, XP-simuleringen er avgrenset til M01/M02, og ruten fra M02 til M03 og siste publiserte modul er kontrollert.",
+      "Lokal kontroll: 478 målrettede tester og tre administrerte Chromium-tester passerte. Hel Vitest-kjøring ga 3 842 beståtte og én feil fra testens eget tidlige IndexedDB-oppslag. Feilen ble gjenskapt med utsatt oppstart, deretter besto den rettede testen både normalt og med samme forsinkelse. Typekontroll, format, lint, bygg og buntbudsjett passerte."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "RR-AUTUMN-01",
+      "severity": "P3",
+      "description": "Ni eksisterende S1-M02-oppgaver fikk nye innholdshasher etter endringer i broken_run/terminal/err-illustrasjoner, selv om evaluatorkontraktene og evaluatorfeltene er uendret. Besvarelser lagret mot tidligere innholdshash ville ikke lenger være gjeldende mestringsbevis for disse oppgavene.",
+      "resolution": "Brukeren opplyste eksplisitt 2026-11-11 at det ikke vil eksistere slike tidligere lagrede besvarelser og aksepterte konsekvensen. Dermed ingen migrerings- eller release-blokkering for den aktuelle førstegangsutgivelsen. Forutsetningen må vurderes på nytt dersom kandidaten brukes mot eksisterende S1-M02-elevdata.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RR-AUTUMN-02",
+      "severity": "P3",
+      "description": "src/programmes/programvareutvikling/index.ts beholder sourceCheckedDate=2026-10-03 og kommentaren om kildeverifisering på denne datoen, mens det bundne pilotinnholdet for høstutvidelsen er nyere (2026-11-10). Dette er foreldet revisjonsmetadata. Ingen bruk av datoen i evaluator, lagringskontrakt eller studentrettet programflyt ble funnet i kildegjennomgangen.",
+      "resolution": "Akseptert som ikke-blokkerende metadataavvik for denne payloaden: eksport- og innholdsidentiteten verifiseres av eksakt SHA-256 og payload-tree, ikke av datoen. Rett kildekontroll-datoen ved en senere ordinær innholdsendring; en eventuell endring nå vil kreve ny payload-binding og ny avgrenset review.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Avgrenset egenkontroll støtter videre hosted validering av den eksakte payloaden. Tidligere P3-risikoer er videreført."
+  }
+}

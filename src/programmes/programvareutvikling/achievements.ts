@@ -32,10 +32,15 @@ import {
  * predicates and their meaning are unchanged; only this binding moved from 3
  * to 4.
  *
+ * Re-reviewed for content version 5 (2026-11-11): all seven rules retain
+ * their subjects and checkpoint criteria. The current hashes of
+ * `s1-m02-q01-e05` and the gate task `s1-m02-chk-e09` changed with
+ * illustration edits. Earlier evidence for those tasks remains history.
+ *
  * Ids are global (unlocks are keyed by achievement id alone), so every
  * Programvareutvikling-specific id carries the `p2-` namespace.
  */
-export const programvareutviklingAchievementContentVersion = 4;
+export const programvareutviklingAchievementContentVersion = 5;
 export const programvareutviklingAchievementIdPrefix = 'p2-';
 
 const contentVersion = programvareutviklingAchievementContentVersion;

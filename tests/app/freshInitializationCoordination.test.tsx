@@ -1,11 +1,7 @@
-import { waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  getDatabaseSnapshot,
-  listProgrammeEnrolments,
-  type DatabaseSnapshot,
-} from '@/lib/db';
+import { getDatabaseSnapshot, listProgrammeEnrolments } from '@/lib/db';
 import { closeSharedDatabase } from '@/lib/db/database';
 import { renderAppAtRoute } from '@/lib/testing/renderAppAtRoute';
 import {
@@ -46,34 +42,30 @@ describe('fresh application initialization under active coordination', () => {
 
     await renderAppAtRoute('/onboarding');
 
-    let snapshot: DatabaseSnapshot | null = null;
-
-    await waitFor(
-      async () => {
-        snapshot = await getDatabaseSnapshot();
-        const status = getLocalCoordinationStatus();
-
-        expect(snapshot.appMeta?.activeProgrammeId).toBe(cs50ProgrammeId);
-        expect(snapshot.courseUnits).toHaveLength(
-          bundledCourseSeed.units.length,
-        );
-        // The tab acknowledged its own startup write and may write again.
-        expect(status.stale).toBe(false);
-        expect(status.canWrite).toBe(true);
-      },
+    // A snapshot read can create an absent database. Wait for the app to
+    // publish its startup state before inspecting it from the test.
+    await screen.findByRole(
+      'heading',
+      { name: 'Start with ProgressPal' },
       { timeout: 15_000 },
     );
 
-    const settled = snapshot as DatabaseSnapshot | null;
+    const settled = await getDatabaseSnapshot();
+    const status = getLocalCoordinationStatus();
+    expect(settled.appMeta?.activeProgrammeId).toBe(cs50ProgrammeId);
+    expect(settled.courseUnits).toHaveLength(bundledCourseSeed.units.length);
+    // The tab acknowledged its own startup write and may write again.
+    expect(status.stale).toBe(false);
+    expect(status.canWrite).toBe(true);
 
     // The default programme is active and enrolled, with only its catalogue.
     expect(
       (await listProgrammeEnrolments()).map((row) => row.programmeId),
     ).toEqual([cs50ProgrammeId]);
-    expect(new Set(settled?.courseUnits.map((unit) => unit.courseId))).toEqual(
+    expect(new Set(settled.courseUnits.map((unit) => unit.courseId))).toEqual(
       new Set([bundledCourseSeed.courseId]),
     );
-    expect(settled?.courseItems).toHaveLength(
+    expect(settled.courseItems).toHaveLength(
       bundledCourseSeed.units.reduce(
         (total, unit) => total + unit.items.length,
         0,

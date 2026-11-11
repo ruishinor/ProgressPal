@@ -36,6 +36,11 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
   unitMapOrdinals: {
     's1-m01': '1',
     's1-m02': '2',
+    's1-m03': '3',
+    's1-m05': '4',
+    's1-m07': '5',
+    's1-m06': '6',
+    's1-m08': '7',
   },
   copy: {
     startupLoadingSummary: `Gjør klar den lokale profilen og innholdet i ${programvareutviklingDisplayName}.`,
@@ -49,7 +54,7 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
       'Appen åpner modulene og den lagrede framdriften din.',
     courseMapErrorDescription:
       'Denne siden bruker de innebygde modulene og den lagrede framdriften din.',
-    catalogueDescription: `Modul 1 og 2 i ${programvareutviklingDisplayName} er innebygd. Verktøyene i modulene forutsetter Windows (PowerShell, py-startprogrammet og VS Code).`,
+    catalogueDescription: `Modulene i ${programvareutviklingDisplayName} følger med appen. For øvelsene på egen maskin bruker vi Windows, PowerShell, Python-startprogrammet py og VS Code.`,
     insightsDescription:
       'Studieaktiviteten din over tid. Lagrede økter og opptjent XP vises her. Dager og uker følger lokal tid på denne enheten.',
     insightsErrorDescription: `Denne siden viser studieaktiviteten din i ${programvareutviklingDisplayName}.`,

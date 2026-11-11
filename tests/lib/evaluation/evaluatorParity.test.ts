@@ -32,7 +32,7 @@ type Vectors = {
 };
 
 const vectors = vectorsFile.exercises as Record<string, Vectors>;
-const exercises = [p2Modules['S1-M01']!, p2Modules['S1-M02']!]
+const exercises = Object.values(p2Modules)
   .flatMap(
     (module) =>
       (module as unknown as { units: Array<{ flow: Array<{ t: string }> }> })
@@ -371,11 +371,11 @@ const runtimeFree = exercises.filter(
 );
 
 describe('EV-11 parity on every runtime-free evaluable exercise', () => {
-  it('covers exactly the 227 runtime-free evaluable exercises', () => {
-    expect(runtimeFree).toHaveLength(227);
+  it('covers exactly the 270 runtime-free evaluable exercises', () => {
+    expect(runtimeFree).toHaveLength(270);
     expect(
       exercises.filter((exercise) => exerciseNeedsRuntime(exercise)),
-    ).toHaveLength(49);
+    ).toHaveLength(61);
   });
 
   it.each(runtimeFree.map((exercise) => [exercise.id, exercise] as const))(
@@ -582,8 +582,8 @@ function replayRuntime(exercise: LessonExercise): PythonRuntime {
 describe('program comparison logic agrees with the authored failure signatures (replayed record)', () => {
   const programs = exercises.filter((exercise) => exercise.type === 'program');
 
-  it('covers the 42 program exercises', () => {
-    expect(programs).toHaveLength(42);
+  it('covers the 54 program exercises', () => {
+    expect(programs).toHaveLength(54);
   });
 
   it.each(programs.map((exercise) => [exercise.id, exercise] as const))(

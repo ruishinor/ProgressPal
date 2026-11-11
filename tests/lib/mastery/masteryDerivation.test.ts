@@ -542,13 +542,24 @@ describe('§3 item 14: curriculum-spaced retrieval', () => {
     ).toBe(false);
   });
 
-  it('shows no retrieval opportunity, and no failure, for a skill without one authored (K-5)', () => {
+  it('does not advertise retrieval from a published unit without a matching skill task (K-5)', () => {
     const mastery = derive(solved(practiceItemFor('SK-TST-01')));
 
-    expect(mastery.skills['SK-TST-01']!.retentionOpportunity).toBe(
-      'none_authored',
-    );
-    expect(mastery.skills['SK-TST-01']!.retrievalDue).toBe(false);
+    // S1-M06-CHK exists but its retrieval task does not test SK-TST-01.
+    // The same false-positive opportunity affected SK-OPS-01 and SK-OPS-02.
+    for (const skillId of ['SK-TST-01', 'SK-OPS-01', 'SK-OPS-02']) {
+      expect(mastery.skills[skillId]!.retentionOpportunity, skillId).toBe(
+        'none_authored',
+      );
+      expect(mastery.skills[skillId]!.retrievalDue, skillId).toBe(false);
+    }
+  });
+
+  it('advertises a real authored retrieval task for a skill with prior practice', () => {
+    const mastery = derive(solved(practiceItemFor('SK-THK-01')));
+
+    expect(mastery.skills['SK-THK-01']!.retentionOpportunity).toBe('available');
+    expect(mastery.skills['SK-THK-01']!.retrievalDue).toBe(true);
   });
 
   it('presents a repetition set in authored order and marks items already answered correctly', () => {
