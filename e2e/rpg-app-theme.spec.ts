@@ -593,8 +593,23 @@ const learningEntryLinks = [
 ];
 
 async function expectLearningActionsOnOneRow(entry: Locator) {
-  const link = (await entry.getByRole('link').boundingBox())!;
-  const info = (await entry.getByRole('button').boundingBox())!;
+  const { info, link } = await entry.evaluate((element) => {
+    const link = element.querySelector('a');
+    const info = element.querySelector('button');
+    if (link === null || info === null) {
+      throw new Error('Learning entry is missing an action.');
+    }
+    const rectangle = ({ height, width, x, y }: DOMRect) => ({
+      height,
+      width,
+      x,
+      y,
+    });
+    return {
+      info: rectangle(info.getBoundingClientRect()),
+      link: rectangle(link.getBoundingClientRect()),
+    };
+  });
   expect(Math.abs(link.y - info.y)).toBeLessThanOrEqual(1);
   expect(link.x + link.width).toBeLessThanOrEqual(info.x);
   expect(info.height).toBeGreaterThanOrEqual(44);
