@@ -1307,19 +1307,73 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--pathways {
-  border-inline-start-color: var(--rpg-accent);
+  --learning-entry-accent: #0f574d;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--reference {
-  background: color-mix(
-    in srgb,
-    var(--rpg-surface) 88%,
-    var(--rpg-surface-raised)
-  );
+  --learning-entry-accent: #184d7b;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--micro {
-  background: var(--rpg-surface);
+  --learning-entry-accent: #572c79;
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry--utviklerblikk {
+  --learning-entry-accent: #76501e;
+}
+
+.rpg-hub__learning-grid
+  :is(
+    .rpg-hub__entry--pathways,
+    .rpg-hub__entry--reference,
+    .rpg-hub__entry--micro,
+    .rpg-hub__entry--utviklerblikk
+  ) {
+  --learning-entry-border: color-mix(
+    in srgb,
+    var(--learning-entry-accent),
+    white var(--learning-entry-border-tint, 0%)
+  );
+
+  background: color-mix(
+    in srgb,
+    var(--learning-entry-accent) var(--learning-entry-tint, 18%),
+    var(--rpg-surface)
+  );
+  border-color: var(--learning-entry-border);
+
+  & .rpg-button--secondary {
+    background: var(--learning-entry-accent);
+    border-color: var(--learning-entry-border);
+    color: white;
+  }
+
+  & .rpg-button--secondary:hover:not(:disabled, [aria-disabled='true']) {
+    background: color-mix(in srgb, var(--learning-entry-accent), black 14%);
+  }
+
+  & .rpg-button--secondary:active:not(:disabled, [aria-disabled='true']) {
+    background: color-mix(in srgb, var(--learning-entry-accent), black 28%);
+  }
+
+  & .rpg-button--quiet {
+    border-color: var(--learning-entry-border);
+    color: var(--rpg-text);
+  }
+
+  & .rpg-button--quiet:hover,
+  & .rpg-button--quiet[aria-expanded='true'] {
+    background: var(--rpg-surface);
+  }
+
+  & .rpg-button:focus-visible {
+    outline-color: var(--rpg-text);
+  }
+}
+
+:root[data-theme='dark'] .rpg-hub__learning-grid {
+  --learning-entry-tint: 54%;
+  --learning-entry-border-tint: 42%;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry > :first-child {

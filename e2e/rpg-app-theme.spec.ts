@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
@@ -18,6 +19,10 @@ interface ThemeScope {
   };
   getComputedStyle(element: unknown): {
     backgroundColor: string;
+    borderColor: string;
+    color: string;
+    outlineColor: string;
+    outlineStyle: string;
     getPropertyValue(name: string): string;
   };
 }
@@ -65,7 +70,21 @@ function channelsOf(color: string) {
       Number.parseInt(color.slice(offset, offset + 2), 16),
     );
   }
-  return (color.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number);
+  const channels = (color.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number);
+  return color.startsWith('color(srgb')
+    ? channels.map((channel) => channel * 255)
+    : channels;
+}
+
+function contrastBetween(foreground: string, background: string) {
+  const luminances = [foreground, background].map((color) => {
+    const [r, g, b] = channelsOf(color).map((value) => {
+      const c = value / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  });
+  return (Math.max(...luminances) + 0.05) / (Math.min(...luminances) + 0.05);
 }
 
 /**
@@ -563,3 +582,105 @@ test('a system preference drives both interfaces and follows device changes', as
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await classicCanvas()).toBe('rgb(31, 36, 39)');
 });
+
+const learningEntryLinks = [
+  '/rpg/pathways',
+  '/rpg/oppslag',
+  '/rpg/micro',
+  '/rpg/track/tenk-som-en-utvikler',
+];
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`RPG Home learning entries have distinct accessible surfaces in ${theme}`, async ({
+    page,
+  }, testInfo) => {
+    await completeOnboarding(page, {
+      theme,
+      programme: 'Programvareutvikling',
+    });
+    await page.goto('/rpg');
+    const grid = page.locator('.rpg-hub__learning-grid');
+    const entries = grid.locator('.rpg-hub__entry');
+    await expect(entries).toHaveCount(4);
+
+    for (const width of [1280, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      const samples = [];
+      for (const href of learningEntryLinks) {
+        const target = page.locator(`a[href="${href}"]`);
+        const entry = entries.filter({ has: target });
+        const link = entry.getByRole('link');
+        const info = entry.getByRole('button');
+        await expect(link).toBeVisible();
+        await expect(info).toHaveAccessibleName(/\S/);
+        await link.focus();
+        const sample = await entry.evaluate((card) => {
+          const scope = globalThis as unknown as ThemeScope;
+          const target = card as unknown as {
+            querySelector(selector: string): unknown;
+          };
+          const surface = scope.getComputedStyle(card);
+          const action = scope.getComputedStyle(target.querySelector('a'));
+          const disclosure = scope.getComputedStyle(
+            target.querySelector('button'),
+          );
+          return {
+            card: surface.backgroundColor,
+            button: action.backgroundColor,
+            buttonText: action.color,
+            infoText: disclosure.color,
+            infoBorder: disclosure.borderColor,
+            focus: action.outlineColor,
+            focusStyle: action.outlineStyle,
+          };
+        });
+        expect(
+          contrastBetween(sample.buttonText, sample.button),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastBetween(sample.infoText, sample.card),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastBetween(sample.infoBorder, sample.card),
+        ).toBeGreaterThanOrEqual(3);
+        expect(
+          contrastBetween(sample.focus, sample.card),
+        ).toBeGreaterThanOrEqual(3);
+        expect(sample.focusStyle).toBe('solid');
+        samples.push({ href, ...sample });
+      }
+      expect(new Set(samples.map(({ card }) => card)).size).toBe(4);
+      expect(new Set(samples.map(({ button }) => button)).size).toBe(4);
+      await writeFile(
+        testInfo.outputPath(`computed-colours-${theme}-${width}.json`),
+        JSON.stringify(samples, null, 2),
+      );
+      await grid.screenshot({
+        path: testInfo.outputPath(`learning-${theme}-${width}.png`),
+      });
+    }
+
+    const info = entries.first().getByRole('button');
+    await info.focus();
+    await page.keyboard.press('Enter');
+    await expect(info).toHaveAttribute('aria-expanded', 'true');
+    await expect(page).toHaveURL(/\/rpg$/);
+    const controlledId = await info.getAttribute('aria-controls');
+    await expect(page.locator(`[id="${controlledId}"]`)).toBeVisible();
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    expect(
+      await page.evaluate('document.documentElement.scrollWidth <= innerWidth'),
+    ).toBe(true);
+    const gridBounds = (await grid.boundingBox())!;
+    for (const control of await grid
+      .getByRole('link')
+      .or(grid.getByRole('button'))
+      .all()) {
+      const bounds = (await control.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(gridBounds.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+        gridBounds.x + gridBounds.width + 1,
+      );
+    }
+  });
+}

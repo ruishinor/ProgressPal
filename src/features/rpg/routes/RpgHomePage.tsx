@@ -303,7 +303,11 @@ export function RpgHomePage() {
               )}
               {tracks.map((track) => (
                 <div
-                  className="rpg-hub__entry rpg-hub__entry--track"
+                  className={
+                    track.id === 'tenk-som-en-utvikler'
+                      ? 'rpg-hub__entry rpg-hub__entry--utviklerblikk'
+                      : 'rpg-hub__entry rpg-hub__entry--track'
+                  }
                   key={track.id}
                 >
                   <RpgButton

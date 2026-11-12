@@ -19,6 +19,11 @@ authorized genuine implementer self-review on 2026-11-12. Record its actual
 provenance in schema-v2 evidence bound to the final payload. The hosted
 Final candidate check must pass on the exact PR candidate before merge.
 
+**RPG Home, local candidate 2026-11-12.** Pathways, Teknologioppslag,
+Mikroøkt and Utviklerblikk have distinct card and action colours in both
+themes. Managed Chromium checked contrast, focus, 320 px reflow and 200%
+root text. The existing C1 palette checks and bundle budget passed.
+
 **Læringslaget, kildekandidat 2026-11-11.** Arbeidet startet ved PR #85
 (`06983dcd2dc5f9f3f6673e36ebfc388c8d501904`) og inkluderer PR #86
 (`5a40960ee01324a9b4b0490ed402fbed9c982c6d`). Personlig uke leser
