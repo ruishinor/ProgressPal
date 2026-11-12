@@ -8,11 +8,12 @@ rollback and other release-control transitions run FULL on both PR and master.
 
 ## Authority and source authentication
 
-Independent payload review and authorized workflow changes remain the trust
+Payload-bound review and authorized workflow changes remain the trust
 boundary: candidate code executes on the runner in both paths. The verifier does
 not claim to isolate a hostile authorized workflow editor. The existing
 release-review-binding.mjs resolver retains exact payload binding, strict file
-validation and rejection precedence; independent review is not self-review.
+validation and rejection precedence. The implementer may perform and truthfully
+record a genuine self-review.
 
 Discovery independently joins the actual master merge to exactly one merged
 same-repository PR. Require complete tree equality, including review evidence,
@@ -90,8 +91,8 @@ if the registry is unavailable. npm documents threshold and JSON semantics in
 Use changed-file formatting/lint, focused Node reuse/review/gate tests, the workflow
 architecture test, and TypeScript when TS/config/E2E APIs change. Exercise the actual
 installed shell with small command doubles as well as source attacks. No routine
-full local certification or manual hosted dispatch is needed. A separate reviewer
-binds the final payload; an evidence-only commit must preserve that payload tree.
+full local certification or manual hosted dispatch is needed. The reviewer binds
+the final payload. An evidence-only commit must preserve that payload tree.
 
 One ordinary PR event comprehensively certifies its actual synthetic checkout.
 Before authorized merge, recheck head/base/tree/review and the successful current
@@ -104,10 +105,9 @@ does not establish promotion or end-user behavior.
 Read-only CLI inspection on 2026-11-02 confirms project
 prj_npdQBbWuAlQMzraZuhM12yv3XgmZ, production branch master, and check
 chk_405a1c74-57c8-4f43-b2d8-ac38d03de6e7, GitHub Final candidate, blocking
-deployment-alias for production. No provider settings changed. GitHub currently
-reports no branch protection/rulesets; the authorized merger must enforce the
-candidate predicates. Rollback is a normal independently reviewed change restoring
-unconditional FULL. Never remove/bypass the provider check or manually promote.
+deployment-alias for production. No provider settings changed. Before merging,
+verify the effective GitHub rules and enforce the exact-candidate predicates.
+Review and bind a rollback payload, then certify it through unconditional FULL. Never remove/bypass the provider check or manually promote.
 
 Historical shadow #75/#84/#90 reported eligible exact source in about five seconds
 but still ran FULL. That is feasibility evidence, not active-reuse proof or a

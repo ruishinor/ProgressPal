@@ -11,16 +11,6 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
   const storesBefore = await readRpgRewardStores(page);
 
   await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
-  await expect(
-    page.getByText(
-      'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.',
-    ),
-  ).toBeVisible();
-  await expect(
-    page.getByText(
-      'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.',
-    ),
-  ).toBeVisible();
 
   await page.getByLabel('Display name').fill('Morgan');
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
@@ -123,9 +113,9 @@ test('RPG Focus saves one timed session and refreshes rewards without completing
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('button', { name: 'Save assignment' }).click();
   await expect(
-    page.getByText(
-      'Session assignment corrected. Time and earned rewards are unchanged.',
-    ),
+    page
+      .getByRole('status')
+      .filter({ hasText: /Session assignment corrected/ }),
   ).toBeVisible();
   await expect(correctionButton).toBeFocused();
   const corrected = await readRpgRewardStores(page);

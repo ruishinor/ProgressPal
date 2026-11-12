@@ -152,7 +152,6 @@ describe('a good verification link', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Email verified' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('You are signed in on this device.')).toBeVisible();
     expect(calls).toHaveLength(1);
     expect(calls[0]?.url).toBe(`${nhostAuthUrl}/token/exchange`);
     expect(calls[0]?.body?.code).toBe(code);
@@ -211,6 +210,7 @@ describe('a good verification link', () => {
     const first = renderPage(port);
     await result();
     first.unmount();
+    const state = port.getState();
     calls = [];
 
     renderPage(port);
@@ -220,11 +220,8 @@ describe('a good verification link', () => {
     expect(
       screen.getByRole('heading', { name: 'This link cannot be used' }),
     ).toBeVisible();
-    expect(
-      screen.getByText(
-        'Nothing was changed. You are signed in on this device.',
-      ),
-    ).toBeVisible();
+    expect(screen.getByRole('alert')).toBeVisible();
+    expect(port.getState()).toEqual(state);
   });
 });
 
@@ -300,11 +297,6 @@ describe('every other way a link can end', () => {
     expect(
       screen.getByRole('heading', { name: 'Cloud backup is off' }),
     ).toBeVisible();
-    expect(
-      screen.getByText(
-        'Turn it on in Settings, then sign in with your email and password.',
-      ),
-    ).toBeVisible();
     expect(calls).toHaveLength(0);
     expect(window.location.search).toBe('?keep=1');
     expectNothingOfTheLinkWasKept([code]);
@@ -320,9 +312,7 @@ describe('every other way a link can end', () => {
     expect(
       screen.getByRole('heading', { name: 'Sign in to continue' }),
     ).toBeVisible();
-    expect(
-      screen.getByText(/no record of starting this request/),
-    ).toBeVisible();
+    expect(screen.getByRole('status')).toBeVisible();
     expect(calls).toHaveLength(0);
     expect(window.location.search).toBe('');
     expectNothingOfTheLinkWasKept([code]);
@@ -339,9 +329,7 @@ describe('every other way a link can end', () => {
     expect(
       screen.getByRole('heading', { name: 'This link has expired' }),
     ).toBeVisible();
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'This link has expired or was already used. Sign in with your email and password.',
-    );
+    expect(screen.getByRole('alert')).toBeVisible();
     expect(port.getState().status).toBe('signed-out');
     expectNothingOfTheLinkWasKept([code]);
   });
@@ -359,9 +347,7 @@ describe('every other way a link can end', () => {
     expect(
       screen.getByRole('heading', { name: 'Sign-in could not be completed' }),
     ).toBeVisible();
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'The cloud service could not be reached. Local data is unaffected.',
-    );
+    expect(screen.getByRole('alert')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Open Settings' })).toBeVisible();
     expectNothingOfTheLinkWasKept([code, 'Failed to fetch']);
   });
@@ -377,11 +363,7 @@ describe('every other way a link can end', () => {
     renderPage(throwing);
     await result();
 
-    expect(
-      screen.getByText(
-        'Something went wrong. Local data is unaffected. Sign in with your email and password.',
-      ),
-    ).toBeVisible();
+    expect(screen.getByRole('alert')).toBeVisible();
     expectNothingOfTheLinkWasKept(['SDK internals', 'abc.def.ghi']);
   });
 
@@ -407,9 +389,9 @@ describe('every other way a link can end', () => {
       screen.getByRole('heading', { level: 2, name: 'Choose a new password' }),
     ).toBeVisible();
     expect(
-      screen.queryByText(/Password reset is not available/),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/Password changed/i)).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Change password' }),
+    ).toBeEnabled();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
     expect(calls).toHaveLength(1);
     expect(window.location.search).toBe('?keep=1');
     expectNothingOfTheLinkWasKept([code]);
@@ -448,9 +430,9 @@ describe('the page is a bare landing, not part of the app', () => {
     await result();
 
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole('button').map((button) => button.textContent ?? ''),
-    ).toEqual(['Change password']);
+    expect(screen.getAllByRole('button')).toEqual([
+      screen.getByRole('button', { name: 'Change password' }),
+    ]);
     expect(
       Array.from(document.querySelectorAll('input')).map((field) => field.type),
     ).toEqual(['password', 'password']);

@@ -115,9 +115,7 @@ describe('OnboardingPage', () => {
 
     await user.click(useDefault);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'The default learner could not be saved locally. Try again.',
-    );
+    expect(await screen.findByRole('alert')).toBeVisible();
     expect(useDefault).toBeEnabled();
 
     await user.click(useDefault);

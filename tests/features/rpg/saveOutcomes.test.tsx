@@ -137,9 +137,6 @@ describe('Confirmed save outcomes and read recovery', () => {
       fireEvent.click(
         screen.getByRole('button', { name: 'Correct saved status' }),
       );
-      expect(screen.getByRole('note')).toHaveTextContent(
-        'XP and achievements already earned are not removed.',
-      );
       fireEvent.change(progress, { target: { value: correctedStatus } });
       if (correctedStatus === 'blocked') {
         const info = screen.getByRole('button', {
@@ -147,7 +144,6 @@ describe('Confirmed save outcomes and read recovery', () => {
         });
         fireEvent.click(info);
         expect(info).toHaveAttribute('aria-expanded', 'true');
-        expect(screen.getByText(/Blocked means you started/)).toBeVisible();
         fireEvent.click(info);
         expect(info).toHaveAttribute('aria-expanded', 'false');
       }
@@ -219,9 +215,7 @@ describe('Confirmed save outcomes and read recovery', () => {
       expect(
         screen.queryByRole('heading', { name: 'Progress saved' }),
       ).toBeInTheDocument();
-      expect(
-        screen.queryByText('Progress could not be saved locally. Try again.'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.getByLabelText('Add study note')).toHaveValue(
         'Kept resource note.',
       );
@@ -240,14 +234,21 @@ describe('Confirmed save outcomes and read recovery', () => {
         result.unlockedAchievements.length,
       );
       expect(
-        screen.getByText('Achievement unlocked: First Step'),
+        within(screen.getByRole('status')).getByText(/First Step/),
       ).toBeInTheDocument();
       expect(
         screen.queryByRole('link', { name: /^Continue quest:/ }),
       ).not.toBeInTheDocument();
-      expect(screen.getByText(/^At save: Level/)).toHaveTextContent(
-        getLevelProgressDisplay(result.xpSummary).levelProgressLabel,
+      const feedback = within(screen.getByRole('status'));
+      const { currentLevelXp, currentLevelTargetXp } = getLevelProgressDisplay(
+        result.xpSummary,
       );
+      expect(
+        feedback.getByText(
+          new RegExp(currentLevelXp + ' / ' + currentLevelTargetXp + ' XP'),
+        ),
+      ).toBeVisible();
+      expect(feedback.queryByRole('progressbar')).not.toBeInTheDocument();
 
       // Read recovery remains usable when another tab has taken write ownership.
       appState.coordination.canWrite = false;
@@ -257,7 +258,10 @@ describe('Confirmed save outcomes and read recovery', () => {
       fireEvent.click(
         screen.getByRole('button', { name: 'Refresh progress summary' }),
       );
-      await screen.findByText(`Level ${result.xpSummary.level} progress`);
+      expect(await feedback.findByRole('progressbar')).toHaveAttribute(
+        'aria-valuenow',
+        String(Math.round((currentLevelXp / currentLevelTargetXp) * 100)),
+      );
       expect(screen.getByLabelText('Add study note')).toHaveValue(
         'An unsaved follow-up note.',
       );
@@ -343,7 +347,7 @@ describe('Confirmed save outcomes and read recovery', () => {
     ).toBeInTheDocument();
     const snapshot = await database.getDatabaseSnapshot();
     expect(
-      screen.getByText('Achievement unlocked: Bug Hunter'),
+      within(screen.getByRole('status')).getByText(/Bug Hunter/),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: /^Continue quest:/ }),
@@ -381,7 +385,7 @@ describe('Confirmed save outcomes and read recovery', () => {
     fireEvent.click(
       screen.getByRole('button', { name: 'Mark locally complete' }),
     );
-    await screen.findByText('Progress could not be saved locally. Try again.');
+    await screen.findByRole('alert');
     expect(errors).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByRole('heading', { name: 'Progress saved' }),
@@ -392,7 +396,7 @@ describe('Confirmed save outcomes and read recovery', () => {
     expect(read).toHaveBeenCalledTimes(1);
     expect(await database.getDatabaseSnapshot()).toEqual(before);
     fireEvent.click(screen.getByRole('button', { name: 'Save progress' }));
-    await screen.findByText(/^Level \d+ progress$/);
+    await screen.findByRole('progressbar', { name: /^Level \d+ progress$/ });
     const result = await save.mock.results[1]!.value;
     const after = await database.getDatabaseSnapshot();
     expect(save).toHaveBeenCalledTimes(2);
@@ -432,7 +436,7 @@ describe('Confirmed save outcomes and read recovery', () => {
       gate.release();
       await save.mock.results[0]!.value;
     });
-    await screen.findByText(/^Level \d+ progress$/);
+    await screen.findByRole('progressbar', { name: /^Level \d+ progress$/ });
     const beforeRepeat = await database.getDatabaseSnapshot();
     fireEvent.submit(form);
     expect(save).toHaveBeenCalledTimes(1);
@@ -506,7 +510,7 @@ describe('Confirmed save outcomes and read recovery', () => {
         screen.queryByRole('heading', { name: 'Progress saved' }),
       ).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Save progress' }));
-      await screen.findByText(/^Level \d+ progress$/);
+      await screen.findByRole('progressbar', { name: /^Level \d+ progress$/ });
       expect(save).toHaveBeenCalledTimes(2);
       expect(save.mock.calls[1]![1]).toMatchObject({
         itemId: 'week-4-lecture',

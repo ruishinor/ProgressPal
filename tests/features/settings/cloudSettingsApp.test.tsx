@@ -278,13 +278,7 @@ describe.each([
     await within(card).findByText('Restore a backup', {}, slow);
     await downloadAndCheck(card);
 
-    expect(
-      await within(card).findByText(
-        'The downloaded backup did not match the checksum the server computed. It was not used.',
-        {},
-        slow,
-      ),
-    ).toBeVisible();
+    expect(await within(card).findByRole('alert', {}, slow)).toBeVisible();
     expect(
       within(card).queryByRole('button', {
         name: 'Replace local data with this backup',

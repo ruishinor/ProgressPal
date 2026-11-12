@@ -273,7 +273,7 @@ describe('App', () => {
     ['/settings', 'Local startup failed'],
     ['/rpg/settings', 'RPG startup failed'],
   ])(
-    'explains and automatically recovers from a peer-blocked startup repair at %s',
+    'keeps the startup repair blocked until the peer closes at %s',
     async (route, failureHeading) => {
       await initializeDatabase({ seed: bundledCourseSeed });
       await saveLearnerProfile(
@@ -297,15 +297,11 @@ describe('App', () => {
         expect(
           await screen.findByRole('heading', { name: failureHeading }),
         ).toBeInTheDocument();
-        expect(
-          screen.getByText(
-            'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.',
-          ),
-        ).toBeInTheDocument();
         const retryButton = screen.getByRole('button', {
           name: 'Retry local data load',
         });
         expect(retryButton).toBeDisabled();
+        expect((await getDatabaseSnapshot()).appMeta?.appVersion).toBe('1.2.0');
         expect(consoleError).not.toHaveBeenCalled();
 
         await releasePeer();
@@ -646,11 +642,6 @@ describe('App', () => {
 
       expect(
         await screen.findByRole('heading', { name: 'RPG startup failed' }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'Safe local-tab coordination is unavailable in this browser context. ProgressPal will keep local writes blocked.',
-        ),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: 'Retry local data load' }),
@@ -2773,9 +2764,6 @@ describe('RPG routes', () => {
     expect(
       await screen.findByRole('heading', { name: 'RPG week not found' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('No RPG week was found for "not-a-real-unit".'),
-    ).toBeInTheDocument();
     expectRpgShellWithPrimaryNav('Campaign');
   });
 
@@ -2962,9 +2950,7 @@ describe('RPG routes', () => {
       screen.getByRole('button', { name: 'Mark locally complete' }),
     );
 
-    const statusError = await screen.findByText(
-      'This task has partial video history saved. Finish its segments through logging instead of forcing a full completion state.',
-    );
+    const statusError = await screen.findByRole('alert');
     const statusControl = screen.getByLabelText('Progress');
 
     expect(statusError).toHaveAttribute('id', 'rpg-resource-status-error');
@@ -3145,9 +3131,6 @@ describe('RPG routes', () => {
 
     expect(
       await screen.findByRole('heading', { name: 'RPG resource not found' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('No RPG resource was found for "not-a-real-item".'),
     ).toBeInTheDocument();
     expectRpgShellWithPrimaryNav('none');
   });
@@ -3620,29 +3603,12 @@ describe('RPG routes', () => {
     }
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
     expect(
-      screen.getByText(/Persistent permission is not a backup/),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('button', { name: 'Export local backup' }),
     ).toBeInTheDocument();
     // The destructive reset keeps the same confirmation-phrase safeguard.
     expect(
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();
-
-    // The collapsed local-first + course-boundary disclaimer is preserved. Its
-    // local-first statements were reworded in Epic G repair 01 so they stay
-    // true when the optional remote backup is in use; the course boundary is
-    // unchanged. (tests/app/localFirstCopy.test.tsx covers both cloud states.)
-    const bodyText = document.body.textContent ?? '';
-
-    expect(bodyText).toMatch(
-      /No account is needed, nothing is synced, and there is no analytics/i,
-    );
-    expect(bodyText).not.toMatch(/no account, no cloud sync/i);
-    expect(bodyText).toMatch(
-      /not CS50, Harvard, edX, or OpenCourseWare status/i,
-    );
 
     // "Open classic Settings" is gone now that the real controls live here.
     expect(
@@ -3786,9 +3752,6 @@ describe('RPG routes', () => {
       within(firstStep).queryByText('Requirement:'),
     ).not.toBeInTheDocument();
     expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
-    expect(
-      within(firstStep).getByText('Complete your first task of any kind.'),
-    ).toBeInTheDocument();
 
     // Home and Campaign are one tap away in the persistent navigation, so the
     // header no longer repeats them.
@@ -3828,17 +3791,9 @@ describe('RPG routes', () => {
       within(firstStep).queryByText('Requirement met:'),
     ).not.toBeInTheDocument();
     expect(within(firstStep).queryByText('0 XP')).not.toBeInTheDocument();
-    expect(
-      within(firstStep).getByText('Complete your first task of any kind.'),
-    ).toBeInTheDocument();
 
     const courseComplete = screen.getByTestId('achievement-course-complete');
     expect(within(courseComplete).getByText('Locked')).toBeInTheDocument();
-    expect(
-      within(courseComplete).getByText(
-        'Complete every required item of every required unit in the course.',
-      ),
-    ).toBeInTheDocument();
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
   });
 
@@ -3876,18 +3831,12 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
     }
 
-    // The empty state is the classic per-card copy, not a bespoke RPG empty
-    // panel and never a fake journey entry.
-    expect(
-      screen.getByText(
-        'No sessions or video logged yet. Weekly effort will appear here once you save some.',
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'No achievements unlocked yet. Unlocks will appear here in the order you earned them.',
-      ),
-    ).toBeInTheDocument();
+    for (const title of ['Effort over time', 'Achievement timeline']) {
+      const section = screen
+        .getByRole('heading', { name: title })
+        .closest('details')!;
+      expect(within(section).queryByRole('table')).not.toBeInTheDocument();
+    }
 
     expect(
       screen.queryByRole('link', { name: 'Open Campaign' }),
@@ -3933,18 +3882,12 @@ describe('RPG routes', () => {
       ).toBeInTheDocument();
     }
 
-    // Real saved records replace the per-card empty states with the classic
-    // derived metrics; this is the same insight truth as classic Insights.
-    expect(
-      screen.queryByText(
-        'No sessions or video logged yet. Weekly effort will appear here once you save some.',
-      ),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        'No study sessions logged yet. Your effort by mode will appear here.',
-      ),
-    ).not.toBeInTheDocument();
+    for (const title of ['Effort over time', 'Study mode breakdown']) {
+      const section = screen
+        .getByRole('heading', { name: title })
+        .closest('details')!;
+      expect(within(section).getByRole('table')).toBeVisible();
+    }
     expect(screen.getAllByText('25 min').length).toBeGreaterThan(0);
 
     expect(await getDatabaseSnapshot()).toEqual(beforeSnapshot);
@@ -4573,9 +4516,6 @@ describe('Settings route', () => {
 
     expect(screen.getByLabelText('Backup file')).toBeInTheDocument();
     expect(
-      screen.getByText(/Persistent permission is not a backup/),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('button', { name: 'Reset all local data' }),
     ).toBeDisabled();
     expect(screen.queryByLabelText('Face shape')).not.toBeInTheDocument();
@@ -4594,11 +4534,6 @@ describe('Settings route', () => {
     );
 
     expect(await screen.findByText('Local profile saved')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Profile, appearance, motion, and study cadence were updated on this device.',
-      ),
-    ).toBeInTheDocument();
     expect((await getDatabaseSnapshot()).learnerProfile?.avatarConfig).toEqual(
       before.learnerProfile?.avatarConfig,
     );

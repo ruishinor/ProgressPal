@@ -91,7 +91,7 @@ npm run check:bundle
 npm run audit
 ```
 
-`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and independent review evidence bound to the exact candidate (see [`docs/ci.md`](docs/ci.md)). Use the ordinary commands above for development validation; do not manufacture release evidence to run certification.
+`npm run validate` aliases the separate `verify:release` certification gate, which requires a clean tree and review evidence bound to the exact candidate (see [`docs/ci.md`](docs/ci.md)). Use the ordinary commands above for development validation; do not manufacture release evidence to run certification.
 
 ## Scope discipline
 

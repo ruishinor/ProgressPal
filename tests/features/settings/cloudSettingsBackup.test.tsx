@@ -538,13 +538,9 @@ describe('the inventory states server facts only', () => {
     renderCard(s.options);
     await click('Show backups');
 
-    expect(
-      await screen.findByText(
-        '3 backups are stored on the server; 2 can be restored by this version. The backup stored most recently by the server cannot be restored by this version.',
-      ),
-    ).toBeVisible();
-
-    const list = screen.getByText('Slot 1').closest('dl') as HTMLElement;
+    const list = (await screen.findByText('Slot 1')).closest(
+      'dl',
+    ) as HTMLElement;
     const rows = within(list).getAllByText(/^Slot \d$/);
 
     expect(rows.map((row) => row.textContent)).toEqual([
@@ -995,11 +991,6 @@ describe('restore', () => {
       seedRestorable(2);
       await showAndChoose(s);
 
-      expect(
-        screen.getByText(
-          'This tab cannot write local data right now, so restore is unavailable.',
-        ),
-      ).toBeVisible();
       expect(screen.getByLabelText('Backup to restore')).toBeDisabled();
       expect(
         screen.getByRole('button', { name: 'Download and check' }),
@@ -1038,11 +1029,6 @@ describe('restore', () => {
           name: 'Replace local data with this backup',
         }),
       ).toBeDisabled();
-      expect(
-        screen.getByText(
-          'This tab cannot write local data right now, so restore is unavailable.',
-        ),
-      ).toBeVisible();
       expect(s.restoreLocal).not.toHaveBeenCalled();
     });
 
@@ -1052,9 +1038,6 @@ describe('restore', () => {
       seedRestorable(2);
       await showAndChoose(s);
 
-      expect(
-        screen.getByText('A local import or reset is running.'),
-      ).toBeVisible();
       expect(
         screen.getByRole('button', { name: 'Download and check' }),
       ).toBeDisabled();

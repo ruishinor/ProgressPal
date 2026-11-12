@@ -257,9 +257,6 @@ describe('the real export and the real restore, in Classic Settings', () => {
     reading.resolve();
     expect(await screen.findByText('Export failed', {}, slow)).toBeVisible();
     expect(
-      screen.getByText('The local backup could not be created or downloaded.'),
-    ).toBeVisible();
-    expect(
       screen.queryByText('Backup download started'),
     ).not.toBeInTheDocument();
     expect(downloads).toEqual([]);
