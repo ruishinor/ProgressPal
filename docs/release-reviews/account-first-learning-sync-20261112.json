@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 2,
+  "module": "account-first-learning-sync-20261112",
+  "reviewer": "OpenAI Codex (implementing agent, self-review, 2026-11-12)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "524895e06982b11bcbcee660c6d4e1dd24902eac",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Six-pass review of implementation 80be950adfb6dfb99957083959a668a4a3189caf on master base 61bcb593b9194e6b1092e495d28465a2cf091a90. This candidate is suitable for hosted verification with rollout disabled.",
+    "evidence": [
+      "Product and scope. The flag-on browser journey starts at sign-in and programme choice. A study session saved in one Chromium context reached a second, and the second context's edit reached the first through polling. Recovery backup and Læringslaget still use their existing contracts.",
+      "Data correctness and distributed systems. Fake IndexedDB suites covered stale compare-and-swap, local writes during download and upload, lost acknowledgments with subsequent edits, deterministic transfer of cross-programme progress, Pathways, evidence, XP, achievements and Activity, and duplicate-award prevention. The browser recovered an offline edit after reload and a simulated 503. A two-device conflict preserved both exported copies before the learner chose.",
+      "Security and privacy. The disposable PostgreSQL probe exercised account isolation, role and ownership rejection, stale revisions, payload size and checksum, exact UTF-8 preservation, and Auth deletion. The SDK tests rejected partial GraphQL success and late replies after sign-out. The flag-off browser verified zero unintended external traffic and preserved sign-in isolation during password recovery after rollback. Live Hasura JWT enforcement and provider registration policy are rollout prerequisites.",
+      "UX and accessibility. Sync-enabled Chromium covered registration, sign-in, recovery, screen width at 320 and 390 pixels, 200 percent text sizing, focus and axe. Existing flag-off tests passed recovery in both themes and keyboard-only backup and restore.",
+      "QA, reliability and release. Locked dependencies installed with Node 24.19.0 and npm 11.10.1. TypeScript, ESLint, Prettier, circular dependencies and git diff --check passed. The rebased focused Vitest run passed 958 cases. After the callback and rollback repair, 127 affected Vitest cases passed. The exact payload passed 14 flag-off and 2 flag-on Chromium cases. Both builds passed the bundle budget, with 456189 and 455894 bytes of JavaScript gzip respectively.",
+      "Retrospective. The final protocol polls a revision and digest, excludes bundled curriculum and audit records from the wire, and retains the existing IndexedDB schema and dependency lock. PostgreSQL was exercised locally through PGlite, with real Hasura permissions, account configuration and email delivery reserved for the separately authorized rollout."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P1",
+      "description": "A remote snapshot or stale writer could otherwise replace local learning changes made after an earlier comparison.",
+      "resolution": "Use server-side compare-and-swap, write a durable pending hash, and compare the current IndexedDB projection inside the destructive write transaction. Both conflict copies are exportable before replacement.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P1",
+      "description": "A password-recovery token could be treated as a normal account session, including in a disabled rollout after a browser has been bound.",
+      "resolution": "Use an isolated recovery bearer for the enabled build and for previously bound browsers. Require the matching signed-in account before mounting the learning app. Verify recovery isolation in both builds.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-3",
+      "severity": "P2",
+      "description": "PostgreSQL JSON field extraction rejected escaped characters that can be present in learner answers. The first callback implementation also lost the saved theme in the disabled build.",
+      "resolution": "Validate a normalized structural copy while storing and hashing the exact snapshot. Preserve the pre-existing callback theme path for unbound browsers and verify both themes in Chromium.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-4",
+      "severity": "P2",
+      "description": "Reset followed by a new local profile could replace the last acknowledged account state. Recovery imports can have effects on other devices.",
+      "resolution": "Keep the standalone reset available for unbound browsers, provide account-bound device removal instructions, and disclose cross-device effects before file or cloud recovery import.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-5",
+      "severity": "P2",
+      "description": "The live Nhost registration policy, migration permissions, real JWT isolation and gateway limits have yet to be verified against progresspal-g0.",
+      "resolution": "Keep the rollout flag disabled. The provider runbook requires authorized read-only preflight, additive application, two-account checks, baseline regressions and reversible metadata rollback before activation.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to the ordinary hosted release gate for this flag-off draft. The candidate includes controlled evidence for account-first sync and an explicit provider activation boundary. A production rollout requires separately authorized Nhost application and live verification."
+  }
+}
