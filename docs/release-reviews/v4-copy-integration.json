@@ -9,7 +9,8 @@
       "TypeScript typecheck and Vite production build passed.",
       "Focused Vitest: 21 curriculum and 14 Pathways tests passed; 35 total.",
       "Prettier and staged git diff --check passed. Full local release suite not run.",
-      "Hosted run 43325731295 failed at an immediate focus assertion in the backup restore test. The existing focus requirement is preserved using waitFor. The focused suite passed locally after correction."
+      "Hosted run 43325731295 failed at an immediate focus assertion in the backup restore test. The existing focus requirement is preserved using waitFor. The focused suite passed locally after correction.",
+      "Hosted run 43327138968 exposed stale Git/GitHub content assets after approved canonical copy changes. The existing Git/GitHub exporter was rerun and checked. The two affected content suites passed locally."
     ]
   },
   "adversarialFindings": [
@@ -40,18 +41,25 @@
       "description": "Hosted validation exposed a focus assertion that ran before the React focus effect was observed.",
       "resolution": "Await the existing focus requirement instead of removing it or changing unrelated product behavior. Focused suite passed.",
       "status": "resolved"
+    },
+    {
+      "id": "V4-GIT-CONTENT-EXPORT",
+      "severity": "P2",
+      "description": "The Git/GitHub canonical source changed while its content-addressed assets retained the previous source hash.",
+      "resolution": "Regenerated Git/GitHub assets and offline manifest with the existing exporter; verified source identity and focused content tests.",
+      "status": "resolved"
     }
   ],
   "reviewer": "ChatGPT-assisted review of owner-provided implementation and test evidence",
   "module": "v4-copy-integration",
   "schemaVersion": 2,
   "binding": {
-    "payloadTree": "f29150b4054a4ecdfe2ac1e2cfb17f1784744f7e",
+    "payloadTree": "5fee6fb8a741016053db8bd23542572ace4d1821",
     "excludedPath": "docs/release-reviews",
     "kind": "payload-tree"
   },
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to hosted certification with the focused backup focus-test correction. The previous hosted run failed; no complete release PASS is claimed."
+    "summary": "Proceed to hosted certification after regenerating Git/GitHub content assets. Previous hosted runs failed; no complete release PASS is claimed."
   }
 }
