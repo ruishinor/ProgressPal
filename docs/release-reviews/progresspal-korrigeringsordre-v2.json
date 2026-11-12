@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "progresspal-korrigeringsordre-v2",
+  "reviewer": "OpenAI Codex, implementing agent (self-review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "6088bcb231ee908d109b88b0e4ef18b8333fd345",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Reviewed the integrated P0–P2 changes on verified master, the Guild UI and existing membership contract, mobile HUD, rendered styles, and the measured JavaScript limits.",
+    "evidence": [
+      "274 focused Vitest cases and 27 Node cases passed, including cloud boundaries, social session pinning, route access, bundle enforcement and review binding.",
+      "Managed Chromium passed 46 distinct cases across both focused runs, including two offline cases, simulated provider and backup journeys, layout, keyboard navigation and axe checks. The final contrast pass measured minimum ratios of 7.15:1 on Glassmorphic Home and 5.73:1 on Glassmorphic Guild.",
+      "At native Chromium 200% zoom (309 CSS pixels), all eight style and colour combinations kept the four HUD fields visible with Details closed, the Technology Reference controls on one row, and the Guild tabs within the viewport.",
+      "The disposable PostgreSQL probe applied the upgrade over populated tables. It confirmed unchanged function identity, grants, membership, shared days and invitation, checked malformed and unauthorized rename inputs, and exercised ownership transfer and Auth deletion.",
+      "The production build passed lint, formatting, type and circular checks and the bundle budget. The integrated build measured 450670 bytes JavaScript gzip and 497241 bytes for the largest raw JavaScript chunk."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "HUD-REFLOW",
+      "severity": "P2",
+      "description": "The first layout with the Guild name and Path visible exceeded the existing closed HUD height limits at 320 and 390 CSS pixels.",
+      "resolution": "Let the hero name and Activity link share a row when space permits and compact vertical spacing. The existing height and 44px target checks now pass at both widths.",
+      "status": "resolved"
+    },
+    {
+      "id": "GUILD-AUTHORIZATION",
+      "severity": "P1",
+      "description": "A hidden gear alone cannot prevent a forged rename or protect against a stale membership.",
+      "resolution": "The existing session-bound RPC derives the actor and group, verifies the membership reference and checks the existing administrator role under the same database lock. Local SQL exercises rejected calls and preservation of existing group data.",
+      "status": "resolved"
+    },
+    {
+      "id": "GLASS-CONTRAST",
+      "severity": "P2",
+      "description": "The initial brighter canvas brought the light Guild tab text to 4.56:1 in a rendered sample, close to the 4.5:1 minimum.",
+      "resolution": "Strengthened muted text contrast in both Glassmorphic palettes and measured rendered backgrounds again in both modes and widths. The reduced-transparency fallback also passed.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Local evidence supports the integrated candidate. Live Hasura/JWT validation and hosted Final candidate certification are pending in their authorized environments. PR #90 and the current production deployment have their own evidence."
+  }
+}
