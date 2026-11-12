@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-ux-consolidation",
+  "reviewer": "OpenAI Codex, implementing agent (self-review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "747ba0c123c8bf6df7a7242dce60914be1df07ee",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Reviewed the consolidated Guild panel and the explicit share action in Min uke, the inherited v2 prerequisites, and the diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The Guild command model and SQL match v2. The sync implementation, provider files, CI, and bundle limits match master.",
+    "evidence": [
+      "175 focused Vitest cases and 6 Node bundle-budget cases passed. Changed-file Prettier, ESLint, TypeScript, circular dependency analysis and git diff --check passed.",
+      "29 distinct default managed Chromium cases passed across the affected specs, including offline Min uke and cloud Settings. The Guild case passed again on the final CSS, covering keyboard focus, exact read counts, duplicate suppression, a transient failure and retry, rename permissions, explicit sharing, stale membership, and a delayed reply across logout and account switch.",
+      "Both PR #90 account-sync browser journeys passed with the rollout flag enabled. Production builds passed the unchanged master limits at 458064 bytes gzip and 343107 bytes largest raw JS by default, and 457771 and 342903 bytes with sync enabled.",
+      "Inspected the final 320px and desktop Guild screenshots against v2. The shared goal is adjacent to the member count and the ranking is the only roster. Native Chromium at 200% used a 309 CSS-pixel viewport with eight synthetic members. All four styles in both color modes fit without clipping or horizontal overflow, with 44 by 44 pixel controls and no axe violations in the Guild surface."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "REFRESH-PRESERVES-CONFIRMED-BOARD",
+      "severity": "P2",
+      "description": "The inherited command handler discarded the confirmed board after a transient refresh failure. Keyboard reactivation while a read is pending also needs to respect the same in-flight guard as pointer input.",
+      "resolution": "The refresh uses the existing explicit read and in-flight guard, exposes its disabled state while retaining keyboard focus, and preserves the confirmed board on unavailable or rate-limited reads. The browser case holds a request, presses Enter again, returns a 503 and verifies one read, retained rows and a successful retry.",
+      "status": "resolved"
+    },
+    {
+      "id": "SHARE-MEMBERSHIP-AND-PRIVACY",
+      "severity": "P1",
+      "description": "Moving the share action away from Administration could expose it without confirmed membership, omit the privacy explanation or lose feedback when a stale membership is rejected.",
+      "resolution": "Min uke composes the existing account-bound command and nearby disclosure only when sharing is available. Feedback remains visible if the operation clears the board. Browser evidence covers no passive reads, offline and account isolation, exact date-and-membership input, successful RPG and Classic shares and stale membership rejection.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The reviewed payload is ready for hosted certification. The browser uses simulated Nhost transport. The merge remains on hold until authenticated live social_week and its rename support on progresspal-g0 are confirmed. The v2 SQL probe was already passed in a disposable database. This task has not applied a live migration."
+  }
+}
