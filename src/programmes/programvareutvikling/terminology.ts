@@ -59,9 +59,9 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
       'Studieaktiviteten din over tid. Lagrede økter og opptjent XP vises her. Dager og uker følger lokal tid på denne enheten.',
     insightsErrorDescription: `Denne siden viser studieaktiviteten din i ${programvareutviklingDisplayName}.`,
     rpgRequiredCompleteNote:
-      'Alle påkrevde økter er markert som fullført lokalt. Det betyr ikke at du har vist at du mestrer ferdighetene.',
+      'Alle obligatoriske økter er markert som fullført. Du kan gå tilbake til dem hvis du vil repetere.',
     rpgHeroProgressNote:
-      'Lokal framdrift i ProgressPal. Det er ikke en vurdering av hva du kan.',
+      'Her ser du hvor langt du har kommet i de obligatoriske delene av studieprogrammet. Åpne en modul for å fortsette.',
     settingsBoundaryTitle: 'Lagring og framdrift',
     settingsBoundaryText:
       'ProgressPal lagrer arbeidet ditt i nettleseren. Last ned en sikkerhetskopi før du tømmer nettleserlagringen.',

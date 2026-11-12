@@ -53,7 +53,7 @@ export const gitLessons = [
         'Tenk deg at du har laget en enkel nettside som virker. Du endrer koden for å legge til et kontaktskjema, men nå virker ikke menyen. Hva ble endret, og kan du få tilbake versjonen som virket? Det samme blir enda vanskeligere når flere i klassen endrer forskjellige deler av prosjektet. Å lagre en fil eller kopiere prosjektmappen hjelper med å beholde filinnhold, men gir ikke i seg selv en ryddig oversikt over hvilke endringer som hører sammen, eller hvorfor de ble gjort.',
       ),
       text(
-        'Git er et versjonskontrollsystem som organiserer prosjektets endringer. Du bestemmer når en sammenhengende versjon er verdt å registrere. Den registreringen heter en **commit**. En commit bevarer et øyeblikksbilde (snapshot) av det utvalgte filinnholdet, med en melding som forklarer endringen. Du kan sammenligne versjoner og undersøke tidligere arbeid. Dette skjer lokalt på datamaskinen, også uten nett. Git sjekker ikke om programmet faktisk virker: det er ditt og teamets arbeid å teste.',
+        'Git hjelper deg å holde orden på endringer i et prosjekt. Når du vil lagre et bestemt resultat, velger du hvilke endringer som skal være med og lager en *commit*. Det er en registrering i Git-historikken som du senere kan finne tilbake til og sammenligne med andre endringer. Dette kan du gjøre lokalt uten internett. Git sjekker ikke om koden fungerer; det må du teste.',
       ),
       text(
         'Filene i et prosjekt ligger i en mappe. Når Git settes opp for den mappen, blir den et **repository**, ofte kalt et **repo**. Git lagrer historikken i en skjult undermappe som heter .git. Kommandoene du bruker i prosjektmappen, arbeider med dette repositoryet. Ikke endre .git manuelt.',
@@ -508,7 +508,7 @@ export const gitLessons = [
           'Velge innhold med add, kontrollere det med diff --cached og registrere det med commit.',
           'Ta en fil ut av staging uten å slette arbeidsfilen og forstå hvorfor samme fil kan ha både staged og unstaged innhold.',
         ],
-        next: 'Dette er starten, ikke Git- eller GitHub-mestring. M02 er tilgjengelig og lærer deg å lese historikk, sammenligne versjoner og gjøre en målrettet rettelse. M03 er nå tilgjengelig med branches, merge og konflikter. M04–M06 bygger videre med GitHub, samarbeid og trygg gjenoppretting. M07 avslutter nå Foundations med et lite utviklingsprosjekt. M01 har fortsatt fem deler. Du kan øve igjen i en ny, separat mappe med et nytt navn.',
+        next: 'I M02 bruker du Git-historikken til å se hva som ble endret, sammenligne versjoner og rette en feil uten å miste annet arbeid. Du finner M02 i Pathways. Vil du øve mer på *staging* og *commits* først, kan du bruke en ny øvingsmappe.',
       },
     ],
   },

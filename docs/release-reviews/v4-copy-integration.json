@@ -1,0 +1,49 @@
+{
+  "reviewScope": {
+    "summary": "Focused V4 copy integration review. Approved text replacements, preserved seven-module curriculum, generated assets and selected technical checks. No independent runtime execution.",
+    "evidence": [
+      "Canonical pilot compared against published baseline: exactly 25 approved string changes; 7 modules, 73 units and 346 exercises preserved.",
+      "All 28 unrelated authoring rebuild differences excluded.",
+      "Existing product exporter and --check passed for 12 generated files.",
+      "PowerShell copy replacement reported 20 repo copy changes and two Guild copy changes.",
+      "TypeScript typecheck and Vite production build passed.",
+      "Focused Vitest: 21 curriculum and 14 Pathways tests passed; 35 total.",
+      "Prettier and staged git diff --check passed. Full local release suite not run."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "status": "resolved",
+      "resolution": "Restored the published seven-module pilot and applied only 25 approved string differences. Full JSON comparison passed.",
+      "description": "Rebuilding with a different Python runtime changed unrelated transcripts, metadata and timing.",
+      "id": "V4-AUTHORING-DRIFT",
+      "severity": "P1"
+    },
+    {
+      "status": "resolved",
+      "resolution": "Generated assets, old asset removals, catalogue, offline manifest and updated source expectations were staged; content tests passed.",
+      "description": "New content-addressed asset names could be omitted from Git staging.",
+      "id": "V4-CONTENT-ASSETS",
+      "severity": "P2"
+    },
+    {
+      "status": "accepted-risk",
+      "resolution": "Owner explicitly approved forward-looking wording. This change does not implement additional sharing behavior.",
+      "description": "Guild copy describes owner-intended future activity sharing more broadly than the current functionality.",
+      "id": "V4-GUILD-COPY-SCOPE",
+      "severity": "P3"
+    }
+  ],
+  "reviewer": "ChatGPT-assisted review of owner-provided implementation and test evidence",
+  "module": "v4-copy-integration",
+  "schemaVersion": 2,
+  "binding": {
+    "payloadTree": "17e44d328209d2a22d091083804b8e7d02809e92",
+    "excludedPath": "docs/release-reviews",
+    "kind": "payload-tree"
+  },
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to mandatory hosted Final candidate validation. The reviewed local checks passed; no claim of independent execution or complete browser visual review."
+  }
+}

@@ -51,7 +51,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
   summary:
     'Øv på å stille gode spørsmål, forstå krav og se hvordan valgene dine påvirker systemet og andre.',
   about:
-    'I Utviklerblikk øver du på å stille gode spørsmål og se sammenhenger gjennom korte oppgaver uten å skrive kode.',
+    'I Utviklerblikk øver du på å forstå behov, stille gode spørsmål og se hvordan ulike valg påvirker en løsning. Du møter korte situasjoner fra utviklingsarbeid og trener på å begrunne hva du ville gjort. Mange av oppgavene kan løses uten å skrive kode.',
   categories: [
     {
       id: 'generelt',
