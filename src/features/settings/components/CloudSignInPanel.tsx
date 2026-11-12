@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { FormField } from '@/components/ui/FormField';
 import { TextInput } from '@/components/ui/TextInput';
 import {
+  CloudError,
   cloudPasswordMaxLength,
   cloudPasswordMinLength,
   readCloudPreferences,
@@ -26,7 +27,8 @@ type CloudSignInPanelProps = {
   >;
   /** Re-read the account state after something changed it. */
   onChanged: () => void;
-  onTurnOff: () => void;
+  onTurnOff?: () => void;
+  accountFirst?: boolean;
 };
 
 type Attempt = 'sign-in' | 'create';
@@ -42,6 +44,7 @@ type View = 'sign-in' | 'reset' | 'reset-sent';
  */
 export function CloudSignInPanel({
   account,
+  accountFirst = false,
   onChanged,
   onTurnOff,
 }: CloudSignInPanelProps) {
@@ -72,12 +75,23 @@ export function CloudSignInPanel({
 
   async function attempt(kind: Attempt) {
     const address = email.trim();
+    const failureTitle = accountFirst
+      ? kind === 'sign-in'
+        ? 'Innloggingen mislyktes'
+        : 'Kunne ikke opprette konto'
+      : kind === 'sign-in'
+        ? 'Not signed in'
+        : 'Account not created';
 
     if (address === '' || password === '') {
       setNotice({
         tone: 'danger',
-        title: kind === 'sign-in' ? 'Not signed in' : 'Account not created',
-        lines: ['Enter an email address and a password.'],
+        title: failureTitle,
+        lines: [
+          accountFirst
+            ? 'Skriv inn e-postadresse og passord.'
+            : 'Enter an email address and a password.',
+        ],
       });
       return;
     }
@@ -89,9 +103,11 @@ export function CloudSignInPanel({
     ) {
       setNotice({
         tone: 'danger',
-        title: 'Account not created',
+        title: failureTitle,
         lines: [
-          `Passwords are ${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`,
+          accountFirst
+            ? `Bruk ${cloudPasswordMinLength} til ${cloudPasswordMaxLength} tegn.`
+            : `Passwords are ${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`,
         ],
       });
       return;
@@ -113,9 +129,11 @@ export function CloudSignInPanel({
         if (result.kind === 'verification-required') {
           setNotice({
             tone: 'success',
-            title: 'Check your email',
+            title: accountFirst ? 'Sjekk e-posten din' : 'Check your email',
             lines: [
-              'Open the link in the message to verify the address, then sign in here.',
+              accountFirst
+                ? 'Åpne lenken i e-posten for å bekrefte adressen og fortsette.'
+                : 'Open the link in the message to verify the address, then sign in here.',
             ],
           });
         }
@@ -125,8 +143,12 @@ export function CloudSignInPanel({
     } catch (error) {
       setNotice({
         tone: 'danger',
-        title: kind === 'sign-in' ? 'Not signed in' : 'Account not created',
-        lines: [describeCloudError(error)],
+        title: failureTitle,
+        lines: [
+          accountFirst
+            ? describeAccountError(error, kind)
+            : describeCloudError(error),
+        ],
       });
     } finally {
       // The password is never kept longer than the attempt that used it.
@@ -153,7 +175,10 @@ export function CloudSignInPanel({
     <div ref={root}>
       {view === 'sign-in' ? (
         <form className="profile-form" onSubmit={handleSubmit}>
-          <FormField controlId={emailId} label="Email">
+          <FormField
+            controlId={emailId}
+            label={accountFirst ? 'E-post' : 'Email'}
+          >
             {({ inputId }) => (
               <TextInput
                 autoComplete="username"
@@ -169,8 +194,12 @@ export function CloudSignInPanel({
           </FormField>
           <FormField
             controlId={passwordId}
-            description={`${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`}
-            label="Password"
+            description={
+              accountFirst
+                ? `${cloudPasswordMinLength} til ${cloudPasswordMaxLength} tegn.`
+                : `${cloudPasswordMinLength} to ${cloudPasswordMaxLength} characters.`
+            }
+            label={accountFirst ? 'Passord' : 'Password'}
           >
             {({ describedBy, inputId }) => (
               <TextInput
@@ -186,9 +215,17 @@ export function CloudSignInPanel({
           </FormField>
           <Checkbox
             checked={stayLoggedIn}
-            description="Keeps the sign-in after this tab closes. Off by default."
+            description={
+              accountFirst
+                ? 'Velg dette på en enhet bare du bruker.'
+                : 'Keeps the sign-in after this tab closes. Off by default.'
+            }
             disabled={working}
-            label="Stay signed in on this device"
+            label={
+              accountFirst
+                ? 'Forbli innlogget på denne enheten'
+                : 'Stay signed in on this device'
+            }
             onChange={(event) => setStayLoggedIn(event.target.checked)}
           />
           {notice ? <CloudNotice notice={notice} /> : null}
@@ -199,7 +236,7 @@ export function CloudSignInPanel({
               type="submit"
               variant="primary"
             >
-              Sign in
+              {accountFirst ? 'Logg inn' : 'Sign in'}
             </Button>
             <Button
               disabled={working}
@@ -209,23 +246,26 @@ export function CloudSignInPanel({
               }}
               variant="secondary"
             >
-              Create account
+              {accountFirst ? 'Opprett konto' : 'Create account'}
             </Button>
             <Button
               disabled={working}
               onClick={askForResetLink}
               variant="quiet"
             >
-              {resetRequestText.forgot}
+              {accountFirst ? 'Glemt passord?' : resetRequestText.forgot}
             </Button>
-            <Button disabled={working} onClick={onTurnOff} variant="quiet">
-              Turn off cloud services
-            </Button>
+            {onTurnOff ? (
+              <Button disabled={working} onClick={onTurnOff} variant="quiet">
+                Turn off cloud services
+              </Button>
+            ) : null}
           </div>
         </form>
       ) : (
         <CloudResetRequestPanel
           account={account}
+          accountFirst={accountFirst}
           email={email}
           onBack={() => setView('sign-in')}
           onEmailChange={setEmail}
@@ -235,4 +275,28 @@ export function CloudSignInPanel({
       )}
     </div>
   );
+}
+
+function describeAccountError(error: unknown, kind: Attempt) {
+  if (!(error instanceof CloudError)) return 'Prøv igjen om litt.';
+  switch (error.code) {
+    case 'invalid-credentials':
+      return 'Sjekk e-postadressen og passordet.';
+    case 'unverified-email':
+      return 'Bekreft e-postadressen via lenken du fikk.';
+    case 'email-in-use':
+      return 'Prøv å logge inn eller be om et nytt passord.';
+    case 'not-permitted':
+      return kind === 'create'
+        ? 'Tjenesten tillater ikke registrering med disse opplysningene.'
+        : 'Tjenesten avviste innloggingen.';
+    case 'unavailable':
+      return 'Sjekk nettforbindelsen og prøv igjen.';
+    case 'rate-limited':
+      return 'For mange forsøk. Vent litt før du prøver igjen.';
+    case 'invalid-input':
+      return 'Sjekk e-postadressen og passordet.';
+    default:
+      return 'Prøv igjen om litt.';
+  }
 }

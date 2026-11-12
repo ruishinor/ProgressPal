@@ -1,0 +1,48 @@
+{
+  "type": "bulk_atomic",
+  "args": [
+    {
+      "type": "pg_drop_function_permission",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_sync",
+          "name": "sync_learning_v1"
+        },
+        "role": "user"
+      }
+    },
+    {
+      "type": "pg_untrack_function",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_sync",
+          "name": "sync_learning_v1"
+        }
+      }
+    },
+    {
+      "type": "pg_drop_select_permission",
+      "args": {
+        "source": "default",
+        "table": {
+          "schema": "progresspal_sync",
+          "name": "response"
+        },
+        "role": "user"
+      }
+    },
+    {
+      "type": "pg_untrack_table",
+      "args": {
+        "source": "default",
+        "table": {
+          "schema": "progresspal_sync",
+          "name": "response"
+        },
+        "cascade": false
+      }
+    }
+  ]
+}

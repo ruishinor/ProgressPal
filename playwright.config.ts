@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const E2E_PORT = 42_183;
 const E2E_URL = `http://127.0.0.1:${E2E_PORT}`;
 const OFFLINE_SPEC = /offline\.spec\.ts/;
+const ACCOUNT_SYNC_SPEC = /account-sync\.spec\.ts/;
 const VITE_CLI = 'node ./node_modules/vite/bin/vite.js';
 
 export default defineConfig({
@@ -28,16 +29,25 @@ export default defineConfig({
       url: E2E_URL,
     },
   ],
-  projects: [
-    {
-      name: 'chromium',
-      testIgnore: OFFLINE_SPEC,
-      use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
-    },
-    {
-      name: 'offline',
-      testMatch: OFFLINE_SPEC,
-      use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
-    },
-  ],
+  projects:
+    process.env.VITE_PROGRESSPAL_ACCOUNT_SYNC === 'true'
+      ? [
+          {
+            name: 'account-sync',
+            testMatch: ACCOUNT_SYNC_SPEC,
+            use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+          },
+        ]
+      : [
+          {
+            name: 'chromium',
+            testIgnore: [OFFLINE_SPEC, ACCOUNT_SYNC_SPEC],
+            use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+          },
+          {
+            name: 'offline',
+            testMatch: OFFLINE_SPEC,
+            use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+          },
+        ],
 });

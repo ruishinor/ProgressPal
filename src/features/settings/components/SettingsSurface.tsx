@@ -23,6 +23,8 @@ import {
   serializeBackupEnvelope,
 } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
+import { downloadBackupFile } from '@/lib/backup/download';
+import { accountSyncEnabled, hasAccountBinding } from '@/lib/cloudSync/rollout';
 import { requireProgrammeScope } from '@/lib/domain';
 import {
   currentApplicationVersion,
@@ -57,19 +59,6 @@ type SettingsToast = {
 };
 
 const resetConfirmationPhrase = 'RESET';
-
-function downloadJson(fileName: string, contents: string) {
-  const blob = new Blob([contents], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-
-  anchor.href = url;
-  anchor.download = fileName;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-}
 
 export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   const { copy } = requireProgrammeScope(useAppState().programmeScope).content
@@ -119,7 +108,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
 
       const { contents } = serializeBackupEnvelope(envelope);
 
-      downloadJson(fileName, contents);
+      downloadBackupFile(fileName, contents);
 
       setToast({
         title: 'Backup download started',
@@ -210,6 +199,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   }
 
   async function handleReset() {
+    if (accountSyncEnabled || hasAccountBinding()) return;
     setResetting(true);
 
     try {
@@ -423,9 +413,9 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                   : 'Checking the browser storage policy…'}
         </p>
         <p className="card__description">
-          Persistent permission is not a backup. You, the browser, or device
-          failure can still remove local data, and nothing is synced to another
-          device.
+          {accountSyncEnabled
+            ? 'Hvis nettleseren mister lokale data, kan ProgressPal hente den siste synkroniserte kopien fra kontoen din.'
+            : 'Persistent permission is not a backup. You, the browser, or device failure can still remove local data, and nothing is synced to another device.'}
         </p>
         {persistenceStatus === 'best-effort' ||
         persistenceStatus === 'error' ? (
@@ -457,6 +447,11 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </div>
       </Card>
       <ImportBackupControl
+        replacementDescription={
+          accountSyncEnabled
+            ? 'Sikkerhetskopien erstatter studiedataene på denne enheten. Når du er på nett, synkroniseres de gjenopprettede dataene med kontoen din.'
+            : undefined
+        }
         busy={importing}
         disabled={!coordination.canWrite || coordination.peerActive}
         expectedSchemaVersion={currentDatabaseSchemaVersion}
@@ -469,41 +464,55 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         onExportLocal={handleExport}
         titleAs={isRpgVariant ? 'h2' : 'h3'}
       />
-      <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
-        <p className="card__description">
-          Permanently delete all local ProgressPal data on this device and start
-          fresh. This removes your progress, sessions, XP, achievements, notes,
-          media history, and backup history. It is destructive, local-only, and
-          cannot be undone. Type <code>{resetConfirmationPhrase}</code> to
-          enable the reset. Your cloud account, remote backups and learning
-          group membership are managed separately.
-        </p>
-        <div className="data-action">
-          <label className="form-field__label" htmlFor="reset-confirmation">
-            Confirmation phrase
-          </label>
-          <TextInput
-            autoComplete="off"
-            disabled={!coordination.canWrite || coordination.peerActive}
-            id="reset-confirmation"
-            onChange={(event) => setResetPhrase(event.target.value)}
-            placeholder={resetConfirmationPhrase}
-            value={resetPhrase}
-          />
-        </div>
-        <div className="action-row">
-          <Button
-            disabled={
-              !resetReady || !coordination.canWrite || coordination.peerActive
-            }
-            loading={resetting}
-            onClick={handleReset}
-            variant="danger"
-          >
-            Reset all local data
-          </Button>
-        </div>
-      </Card>
+      {accountSyncEnabled || hasAccountBinding() ? (
+        <Card
+          title="Fjern data fra denne enheten"
+          titleAs={isRpgVariant ? 'h2' : 'h3'}
+        >
+          <p className="card__description">
+            Last ned en sikkerhetskopi hvis du har endringer som venter. Logg ut
+            og tøm deretter nettleserlagringen for ProgressPal. Den
+            synkroniserte kopien beholdes på kontoen.
+          </p>
+        </Card>
+      ) : (
+        <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+          <p className="card__description">
+            Permanently delete all local ProgressPal data on this device and
+            start fresh. This removes your progress, sessions, XP, achievements,
+            notes, media history, and backup history. It is destructive,
+            local-only, and cannot be undone. Type{' '}
+            <code>{resetConfirmationPhrase}</code> to enable the reset. Your
+            cloud account, remote backups and learning group membership are
+            managed separately.
+          </p>
+          <div className="data-action">
+            <label className="form-field__label" htmlFor="reset-confirmation">
+              Confirmation phrase
+            </label>
+            <TextInput
+              autoComplete="off"
+              disabled={!coordination.canWrite || coordination.peerActive}
+              id="reset-confirmation"
+              onChange={(event) => setResetPhrase(event.target.value)}
+              placeholder={resetConfirmationPhrase}
+              value={resetPhrase}
+            />
+          </div>
+          <div className="action-row">
+            <Button
+              disabled={
+                !resetReady || !coordination.canWrite || coordination.peerActive
+              }
+              loading={resetting}
+              onClick={handleReset}
+              variant="danger"
+            >
+              Reset all local data
+            </Button>
+          </div>
+        </Card>
+      )}
       {isRpgVariant ? (
         <Card title={copy.settingsBoundaryTitle} titleAs="h2">
           <p className="card__description">{copy.settingsBoundaryText}</p>

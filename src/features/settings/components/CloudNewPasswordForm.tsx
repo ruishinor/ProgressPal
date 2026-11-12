@@ -3,7 +3,12 @@ import { useId, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { TextInput } from '@/components/ui/TextInput';
-import type { CloudAccountPort } from '@/lib/cloud';
+import {
+  cloudPasswordMaxLength,
+  cloudPasswordMinLength,
+  type CloudAccountPort,
+} from '@/lib/cloud';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 
 import {
   checkNewPassword,
@@ -46,7 +51,15 @@ export function CloudNewPasswordForm({
     const problem = checkNewPassword(password, confirmation);
 
     if (problem !== null) {
-      setNotice(problem);
+      setNotice(
+        accountSyncEnabled
+          ? {
+              tone: 'danger',
+              title: 'Sjekk passordet',
+              lines: ['Passordene må være like og ha riktig lengde.'],
+            }
+          : problem,
+      );
       return;
     }
 
@@ -55,14 +68,40 @@ export function CloudNewPasswordForm({
 
     try {
       await account.changePassword(password);
-      onFinished(passwordChangedView);
+      onFinished(
+        accountSyncEnabled
+          ? {
+              kind: 'done',
+              tone: 'success',
+              title: 'Passordet er endret',
+              detail: 'Logg inn med det nye passordet.',
+            }
+          : passwordChangedView,
+      );
     } catch (error) {
       const failure = describePasswordChangeFailure(error);
 
       if (failure.kind === 'closed') {
-        onFinished(failure.view);
+        onFinished(
+          accountSyncEnabled
+            ? {
+                kind: 'done',
+                tone: 'danger',
+                title: 'Lenken kan ikke brukes',
+                detail: 'Be om en ny lenke fra innloggingen.',
+              }
+            : failure.view,
+        );
       } else {
-        setNotice(failure.notice);
+        setNotice(
+          accountSyncEnabled
+            ? {
+                tone: 'danger',
+                title: 'Kunne ikke bekrefte passordendringen',
+                lines: ['Sjekk nettforbindelsen og prøv igjen.'],
+              }
+            : failure.notice,
+        );
       }
     } finally {
       // Neither entry is kept longer than the attempt that used it.
@@ -81,8 +120,12 @@ export function CloudNewPasswordForm({
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
       <FormField
         controlId={passwordId}
-        description={newPasswordText.hint}
-        label={newPasswordText.newLabel}
+        description={
+          accountSyncEnabled
+            ? `${cloudPasswordMinLength} til ${cloudPasswordMaxLength} tegn.`
+            : newPasswordText.hint
+        }
+        label={accountSyncEnabled ? 'Nytt passord' : newPasswordText.newLabel}
       >
         {({ describedBy, inputId }) => (
           <TextInput
@@ -99,7 +142,9 @@ export function CloudNewPasswordForm({
       </FormField>
       <FormField
         controlId={confirmationId}
-        label={newPasswordText.confirmLabel}
+        label={
+          accountSyncEnabled ? 'Gjenta passordet' : newPasswordText.confirmLabel
+        }
       >
         {({ inputId }) => (
           <TextInput
@@ -115,7 +160,7 @@ export function CloudNewPasswordForm({
       {notice ? <CloudNotice notice={notice} /> : null}
       <div className="action-row">
         <Button loading={busy} type="submit" variant="primary">
-          {newPasswordText.submit}
+          {accountSyncEnabled ? 'Lagre nytt passord' : newPasswordText.submit}
         </Button>
       </div>
     </form>

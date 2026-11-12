@@ -1,6 +1,8 @@
 import { createClient, type NhostClient } from '@nhost/nhost-js';
-import { generatePKCEPair } from '@nhost/nhost-js/auth';
+import { createAPIClient, generatePKCEPair } from '@nhost/nhost-js/auth';
 import type { SessionStorageBackend } from '@nhost/nhost-js/session';
+
+import { accountSyncEnabled, hasAccountBinding } from '@/lib/cloudSync/rollout';
 
 import {
   clearPkceFlow,
@@ -29,9 +31,11 @@ import {
 } from '../port';
 import type { CloudBackupStore } from '../backupPort';
 import type { SocialGroupPort } from '../socialPort';
+import type { CloudSyncStore } from '../syncPort';
 import { cloudError, mapAuthError } from './authErrors';
 import { createNhostBackupStore } from './backupStore';
 import { createNhostSocialGroup } from './socialGroup';
+import { createNhostSyncStore } from './syncStore';
 import { nhostAuthUrl, nhostGraphqlUrl } from './endpoints';
 import {
   createSessionScopedBackend,
@@ -85,6 +89,7 @@ export interface NhostAccountDependencies {
   getWindow?: () => CallbackWindow & { location: Location };
   authUrl?: string;
   graphqlUrl?: string;
+  isolateRecoverySession?: () => boolean;
 }
 
 /**
@@ -96,6 +101,7 @@ export interface NhostCloud {
   account: CloudAccountPort;
   backups: CloudBackupStore;
   social: SocialGroupPort;
+  sync: CloudSyncStore;
 }
 
 export function createNhostCloud(
@@ -113,6 +119,8 @@ export function createNhostCloud(
 
   let client: NhostClient | null = null;
   let clientTrusted = false;
+  let signingOut = false;
+  let recoveryAccessToken: string | null = null;
   let stopListening: (() => void) | null = null;
   const listeners = new Set<(state: CloudAccountState) => void>();
 
@@ -178,7 +186,7 @@ export function createNhostCloud(
       return { status: 'disabled' };
     }
 
-    return stateOf(ensureClient());
+    return signingOut ? { status: 'signed-out' } : stateOf(ensureClient());
   }
 
   function callbackUrl(): string {
@@ -203,6 +211,7 @@ export function createNhostCloud(
 
   /** Removes the local session from memory and from both stores; never throws. */
   function removeLocalSession() {
+    recoveryAccessToken = null;
     try {
       client?.clearSession();
     } catch {
@@ -280,6 +289,8 @@ export function createNhostCloud(
     },
 
     async signUp(input: CloudCredentials): Promise<CloudSignUpResult> {
+      if (signingOut) throw cloudError('invalid-state');
+      recoveryAccessToken = null;
       validateEmail(input.email);
       validatePassword(input.password);
 
@@ -308,6 +319,8 @@ export function createNhostCloud(
     },
 
     async signIn(input: CloudCredentials): Promise<void> {
+      if (signingOut) throw cloudError('invalid-state');
+      recoveryAccessToken = null;
       validateEmail(input.email);
       validatePassword(input.password);
 
@@ -337,6 +350,8 @@ export function createNhostCloud(
       let serverInvalidation: CloudSignOutResult['serverInvalidation'] =
         'unconfirmed';
 
+      signingOut = true;
+      emit();
       try {
         // Cloud disabled: there is no client and no request, only local cleanup.
         if (readPreferences().enabled) {
@@ -347,6 +362,8 @@ export function createNhostCloud(
       } finally {
         // Whatever happened above, this device never keeps the session.
         removeLocalSession();
+        signingOut = false;
+        emit();
       }
 
       return { localSessionRemoved: true, serverInvalidation };
@@ -376,6 +393,7 @@ export function createNhostCloud(
       // address that is judged is the one that is scrubbed: a single read of
       // the browser location, with no caller-supplied address to disagree.
       const { callback: parsed, scrubbed } = takeCloudCallback(getWindow());
+      recoveryAccessToken = null;
 
       if (!scrubbed) {
         // A credential that cannot be removed from the address is never used.
@@ -411,10 +429,31 @@ export function createNhostCloud(
       const active = ensureClient();
 
       try {
-        await active.auth.tokenExchange({
+        const request = {
           code: parsed.code,
           codeVerifier: flow.verifier,
-        });
+        };
+        if (
+          flow.purpose === 'reset' &&
+          dependencies.isolateRecoverySession?.()
+        ) {
+          // A recovery link can change a password. Its bearer must never
+          // become the normal session that starts syncing learner data.
+          const { body } = await createAPIClient(
+            active.auth.baseURL,
+          ).tokenExchange(request);
+          const candidate = body.session ?? body;
+          if (
+            !('accessToken' in candidate) ||
+            typeof candidate.accessToken !== 'string' ||
+            !candidate.accessToken
+          ) {
+            throw cloudError('link-expired');
+          }
+          recoveryAccessToken = candidate.accessToken;
+          return { kind: 'password-reset-session' };
+        }
+        await active.auth.tokenExchange(request);
       } catch (error) {
         const mapped = mapAuthError(error);
 
@@ -439,6 +478,19 @@ export function createNhostCloud(
       validatePassword(newPassword);
 
       const active = ensureClient();
+
+      if (recoveryAccessToken !== null) {
+        try {
+          await createAPIClient(active.auth.baseURL).changeUserPassword(
+            { newPassword },
+            { headers: { Authorization: `Bearer ${recoveryAccessToken}` } },
+          );
+        } catch (error) {
+          throw mapAuthError(error);
+        }
+        recoveryAccessToken = null;
+        return;
+      }
 
       if (active.getUserSession() === null) {
         throw cloudError('session-ended');
@@ -481,6 +533,10 @@ export function createNhostCloud(
     account,
     backups: createNhostBackupStore({ getClient: ensureClient }),
     social: createNhostSocialGroup(ensureClient),
+    sync: createNhostSyncStore(() => {
+      if (signingOut) throw cloudError('session-ended');
+      return ensureClient();
+    }),
   };
 }
 
@@ -493,7 +549,9 @@ export function createNhostCloudAccount(
 let sharedCloud: NhostCloud | null = null;
 
 function getSharedCloud(): NhostCloud {
-  sharedCloud ??= createNhostCloud();
+  sharedCloud ??= createNhostCloud({
+    isolateRecoverySession: () => accountSyncEnabled || hasAccountBinding(),
+  });
 
   return sharedCloud;
 }
@@ -510,4 +568,8 @@ export function getCloudBackupStore(): CloudBackupStore {
 
 export function getSocialGroup(): SocialGroupPort {
   return getSharedCloud().social;
+}
+
+export function getCloudSyncStore(): CloudSyncStore {
+  return getSharedCloud().sync;
 }

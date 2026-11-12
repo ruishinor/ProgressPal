@@ -3,6 +3,9 @@ import {
   serializeBackupEnvelope,
   type BackupData,
 } from '@/lib/backup';
+import { sha256Hex } from '@/lib/validation';
+
+export { sha256Hex };
 
 /**
  * The payload of one cloud backup: the exact text the local file backup would
@@ -16,18 +19,6 @@ export interface ProducedPayload {
   /** SHA-256 of the UTF-8 bytes of `contents`, lowercase hex. */
   sha256: string;
   exportedAt: string;
-}
-
-/** SHA-256 (WebCrypto) of the UTF-8 bytes of `text`, as lowercase hex. */
-export async function sha256Hex(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(text),
-  );
-
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, '0'),
-  ).join('');
 }
 
 /**

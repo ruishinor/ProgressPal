@@ -1,4 +1,5 @@
 import type { DatabaseMigrationContext } from '@/lib/db';
+import type { SyncCatalogue } from '@/lib/cloudSync/snapshot';
 import type { ProgrammeScope } from '@/lib/domain';
 import { getProgrammeRegistry, type ProgrammeDefinition } from '@/programmes';
 
@@ -62,5 +63,17 @@ export function resolveDatabaseMigrationContext(): DatabaseMigrationContext {
       courseId: definition.catalogue.courseId,
       programmeId: definition.programmeId,
     })),
+  };
+}
+
+export function resolveSyncCatalogue(): SyncCatalogue {
+  return {
+    context: resolveDatabaseMigrationContext(),
+    seeds: getProgrammeRegistry().definitions.map(
+      ({ programmeId, catalogue }) => ({
+        programmeId,
+        seed: catalogue,
+      }),
+    ),
   };
 }

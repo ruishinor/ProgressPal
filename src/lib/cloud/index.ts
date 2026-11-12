@@ -44,6 +44,7 @@ export {
   createNhostCloudAccount,
   getCloudAccount,
   getCloudBackupStore,
+  getCloudSyncStore,
   getSocialGroup,
   type NhostCloud,
 } from './nhost/account';
@@ -56,3 +57,9 @@ export {
   backupConstraintNames,
   remoteBackupPayloadCeilingBytes,
 } from './nhost/backupConstraints';
+export {
+  maxSyncPayloadBytes,
+  SyncFailure,
+  type CloudSyncStore,
+  type SyncHead,
+} from './syncPort';

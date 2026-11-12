@@ -57,8 +57,13 @@ describe('cloud backup domain: what it may import', () => {
     expect(domainFiles.length).toBeGreaterThan(0);
   });
 
-  it('imports only siblings and the public entries of the cloud, backup and storage libraries', () => {
-    const allowed = new Set(['@/lib/cloud', '@/lib/backup', '@/lib/storage']);
+  it('imports only siblings and the public entries for cloud, backup, storage and validation', () => {
+    const allowed = new Set([
+      '@/lib/cloud',
+      '@/lib/backup',
+      '@/lib/storage',
+      '@/lib/validation',
+    ]);
     const offenders = domainFiles.flatMap((file) =>
       importsOf(file.text)
         .filter((spec) => !spec.startsWith('./') && !allowed.has(spec))

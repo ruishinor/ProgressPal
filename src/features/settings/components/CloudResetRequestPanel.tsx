@@ -16,6 +16,7 @@ import {
 import { CloudNotice } from './CloudNotice';
 
 type CloudResetRequestPanelProps = {
+  accountFirst?: boolean;
   account: Pick<CloudAccountPort, 'requestPasswordReset'>;
   email: string;
   onBack: () => void;
@@ -34,6 +35,7 @@ type CloudResetRequestPanelProps = {
  */
 export function CloudResetRequestPanel({
   account,
+  accountFirst = false,
   email,
   onBack,
   onEmailChange,
@@ -43,6 +45,10 @@ export function CloudResetRequestPanel({
   const emailId = useId();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const title = accountFirst
+    ? 'Tilbakestill passordet'
+    : resetRequestText.title;
+  const back = accountFirst ? 'Tilbake til innlogging' : resetRequestText.back;
 
   async function request() {
     if (busy) {
@@ -52,7 +58,11 @@ export function CloudResetRequestPanel({
     const address = email.trim();
 
     if (!isPlausibleEmail(address)) {
-      setNotice(invalidResetAddress);
+      setNotice(
+        accountFirst
+          ? { tone: 'danger', title: 'Sjekk e-postadressen', lines: [] }
+          : invalidResetAddress,
+      );
       return;
     }
 
@@ -68,7 +78,15 @@ export function CloudResetRequestPanel({
       if (result.kind === 'sent') {
         onSent();
       } else {
-        setNotice(result.notice);
+        setNotice(
+          accountFirst
+            ? {
+                tone: 'danger',
+                title: 'Kunne ikke sende lenken',
+                lines: ['Sjekk nettforbindelsen eller prøv igjen om litt.'],
+              }
+            : result.notice,
+        );
       }
     } finally {
       setBusy(false);
@@ -83,11 +101,23 @@ export function CloudResetRequestPanel({
   if (sent) {
     return (
       <div>
-        <p className="backup-verify__title">{resetRequestText.title}</p>
-        <CloudNotice notice={passwordResetSent} />
+        <p className="backup-verify__title">{title}</p>
+        <CloudNotice
+          notice={
+            accountFirst
+              ? {
+                  tone: 'success',
+                  title: 'Sjekk e-posten din',
+                  lines: [
+                    'Hvis adressen har en konto, får du en lenke for å velge nytt passord.',
+                  ],
+                }
+              : passwordResetSent
+          }
+        />
         <div className="action-row">
           <Button data-cloud-focus="" onClick={onBack} variant="secondary">
-            {resetRequestText.back}
+            {back}
           </Button>
         </div>
       </div>
@@ -96,9 +126,13 @@ export function CloudResetRequestPanel({
 
   return (
     <form className="profile-form" noValidate onSubmit={handleSubmit}>
-      <p className="backup-verify__title">{resetRequestText.title}</p>
-      <p className="card__description">{resetRequestText.lead}</p>
-      <FormField controlId={emailId} label="Email">
+      <p className="backup-verify__title">{title}</p>
+      <p className="card__description">
+        {accountFirst
+          ? 'Skriv inn e-postadressen du bruker i ProgressPal.'
+          : resetRequestText.lead}
+      </p>
+      <FormField controlId={emailId} label={accountFirst ? 'E-post' : 'Email'}>
         {({ inputId }) => (
           <TextInput
             autoComplete="email"
@@ -115,10 +149,10 @@ export function CloudResetRequestPanel({
       {notice ? <CloudNotice notice={notice} /> : null}
       <div className="action-row">
         <Button loading={busy} type="submit" variant="primary">
-          {resetRequestText.send}
+          {accountFirst ? 'Send lenke' : resetRequestText.send}
         </Button>
         <Button disabled={busy} onClick={onBack} variant="quiet">
-          {resetRequestText.back}
+          {back}
         </Button>
       </div>
     </form>

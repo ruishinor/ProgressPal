@@ -1,5 +1,15 @@
 # ProgressPal current state
 
+**Kontobasert oppstart og automatisk synkronisering — kildekandidat
+2026-11-12.** Arbeidet bygger på `61bcb593b9194e6b1092e495d28465a2cf091a90`
+på en isolert gren. `VITE_PROGRESSPAL_ACCOUNT_SYNC=true` aktiverer
+kontoflyten i en kontrollert bygging. Den additive
+[Nhost-kontrakten](../infra/nhost/sync/README.md) er klargjort for
+`progresspal-g0`. Providerinstallasjon, autentiseringspolicy og
+verifisering mot den faktiske Hasura-instansen krever egen autorisasjon
+før utrulling. [Synkroniseringsbeslutningen](account-sync.md) beskriver
+datagrensen, konflikthåndteringen og lokal verifisering.
+
 **PR #89 — editorial test cleanup and release review policy, 2026-11-12.**
 Based on master at f72d67677000ed4379faf3def157341ed2e029cf. The owner
 retired tests that freeze or police learner-facing copy on 2026-11-11.

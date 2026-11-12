@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import { Fragment, type ComponentType, type PropsWithChildren } from 'react';
 
 import { RewardNoticeRegion } from '@/components/ui/RewardNotice';
 import { RpgAchievementArt } from '@/features/rpg';
@@ -44,16 +44,21 @@ function RewardNotices() {
  * the active scope from persisted state on every stable resolution. An
  * unresolvable programme becomes the existing bootstrap error state.
  */
-export function AppProviders({ children }: PropsWithChildren) {
+export function AppProviders({
+  children,
+  gate: Gate = Fragment,
+}: PropsWithChildren<{ gate?: ComponentType<PropsWithChildren> }>) {
   return (
     <RewardNotificationProvider>
       <AppStateProvider
         resolveProgramme={resolveProgrammeScope}
         resolveMigrationContext={resolveDatabaseMigrationContext}
       >
-        {children}
+        <Gate>
+          {children}
+          <RewardNotices />
+        </Gate>
       </AppStateProvider>
-      <RewardNotices />
     </RewardNotificationProvider>
   );
 }

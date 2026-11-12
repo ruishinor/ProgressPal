@@ -197,6 +197,11 @@ export default defineConfig({
               test: /[\\/]src[\\/]features[\\/]social[\\/]/,
               priority: 15,
             },
+            {
+              name: 'account-sync',
+              test: /[\\/]src[\\/]app[\\/]providers[\\/](?:AccountSyncGate|LearningSyncStatus|learningSyncContext|useLearningSync)\.[jt]sx?$/,
+              priority: 14,
+            },
           ],
         },
       },

@@ -12,6 +12,7 @@ import {
   type CloudSignOutResult,
 } from '@/lib/cloud';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 
 import type { CloudSettingsDependencies } from '../cloudDependencies';
 import {
@@ -123,7 +124,12 @@ export function CloudBackupCard({
       titleAs={titleAs}
     >
       <div className="card__body" ref={body}>
-        {remoteBackupDisclosure.map((paragraph) => (
+        {(accountSyncEnabled
+          ? [
+              'Her kan du lagre en egen sikkerhetskopi på kontoen. Den inneholder hele den lokale kopien, inkludert aktivitetsregistreringer og mål. Tjenesteleverandøren og den som drifter ProgressPal kan lese sikkerhetskopien.',
+            ]
+          : remoteBackupDisclosure
+        ).map((paragraph) => (
           <p className="card__description" key={paragraph}>
             {paragraph}
           </p>

@@ -8,6 +8,7 @@ import type {
   CloudBackupService,
   PreparedCloudRestore,
 } from '@/lib/cloudBackup';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 
 import {
   describeCloudError,
@@ -252,6 +253,12 @@ export function CloudRestorePanel({
               prepared.summary.counts.achievementUnlocks,
             )}
           </dl>
+          {accountSyncEnabled ? (
+            <p className="card__description" lang="nb">
+              De gjenopprettede dataene kan synkroniseres med kontoen din og
+              erstatte studiedata på andre enheter.
+            </p>
+          ) : null}
           {needsAcknowledgement ? (
             <>
               <p className="data-action__error" role="alert">

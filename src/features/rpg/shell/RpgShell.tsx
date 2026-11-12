@@ -253,7 +253,9 @@ function RpgHeroHud({
   );
 }
 
-export function RpgShell() {
+export function RpgShell({
+  learningSyncStatus,
+}: { learningSyncStatus?: React.ReactNode } = {}) {
   const { coordination, profile, programmeScope, refresh } = useAppState();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [hubState, setHubState] = useState<RpgShellHubState>(initialHubState);
@@ -500,6 +502,7 @@ export function RpgShell() {
             />
           ) : null}
           <MovementReminder />
+          {learningSyncStatus}
           <Outlet
             context={
               {

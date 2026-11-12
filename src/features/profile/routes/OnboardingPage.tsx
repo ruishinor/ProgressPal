@@ -14,6 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Toast, ToastStack } from '@/components/ui/Toast';
 import { ProfileForm } from '@/features/profile/components/ProfileForm';
 import { useAppState } from '@/lib/appState';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 import {
   currentDatabaseSchemaVersion,
   defaultLearnerProfileValues,
@@ -158,7 +159,11 @@ export function OnboardingPage() {
       </fieldset>
       {mode === 'quick' ? (
         <Card
-          description="Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later."
+          description={
+            accountSyncEnabled
+              ? 'Studiedata lagres på denne enheten og synkroniseres med kontoen din når du er på nett.'
+              : 'Your data is stored in this browser. No account is needed, nothing is synced, and there is no analytics. You can export, import, or reset it later.'
+          }
           title="Start now"
         >
           <div className="onboarding-quick">
@@ -228,6 +233,11 @@ export function OnboardingPage() {
         </div>
       )}
       <ImportBackupControl
+        replacementDescription={
+          accountSyncEnabled
+            ? 'Sikkerhetskopien erstatter studiedataene på denne enheten. Når du er på nett, synkroniseres de gjenopprettede dataene med kontoen din.'
+            : undefined
+        }
         busy={importing}
         disabled={!coordination.canWrite || coordination.peerActive}
         confirmLabel="Restore this backup"

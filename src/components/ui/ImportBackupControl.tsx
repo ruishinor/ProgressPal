@@ -12,6 +12,7 @@ import {
 import type { DatabaseMigrationContext } from '@/lib/db';
 
 export type ImportBackupControlProps = {
+  replacementDescription?: string;
   busy?: boolean;
   confirmLabel?: string;
   disabled?: boolean;
@@ -53,6 +54,7 @@ export function ImportBackupControl({
   heading = 'Import a backup',
   migrationContext,
   onConfirmImport,
+  replacementDescription,
 }: ImportBackupControlProps) {
   const inputId = useId();
   const selectionGeneration = useRef(0);
@@ -121,8 +123,8 @@ export function ImportBackupControl({
   return (
     <Card title={heading} titleAs="h3">
       <p className="card__description">
-        Importing replaces all local data on this device with the contents of
-        the backup file. This is destructive, local-only, and cannot be undone.
+        {replacementDescription ??
+          'Importing replaces all local data on this device with the contents of the backup file. This is destructive, local-only, and cannot be undone.'}
       </p>
       <div className="data-action">
         <label className="form-field__label" htmlFor={inputId}>
