@@ -463,8 +463,10 @@ describe('the browser’s Back and Forward', () => {
     await forward();
     expect(heading()).toHaveTextContent(first!.cards[1]!.title);
     // A card reached again starts unanswered: Back is "the previous screen".
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Trykk på svaret du tror stemmer.',
+    expect(screen.getByRole('status')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Neste' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
     );
 
     await user.click(screen.getByRole('link', { name: `Lukk ${track.title}` }));

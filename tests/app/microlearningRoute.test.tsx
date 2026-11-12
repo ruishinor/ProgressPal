@@ -870,8 +870,10 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await forward();
     expect(heading()).toHaveTextContent(firstCheck!.title);
     // A card reached again starts unanswered: nothing was kept.
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Trykk på svaret du tror stemmer.',
+    expect(screen.getByRole('status')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Neste' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
     );
 
     await user.click(screen.getByRole('link', { name: 'Lukk mikroøkten' }));

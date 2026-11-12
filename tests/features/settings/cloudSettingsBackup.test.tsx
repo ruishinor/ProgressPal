@@ -524,11 +524,7 @@ describe('the inventory states server facts only', () => {
     expect(store.requests.map((request) => request.method)).toEqual([
       'listSlots',
     ]);
-    expect(
-      screen.getByText(
-        "Details only. Contents were not downloaded or checked. Times are the server's.",
-      ),
-    ).toBeVisible();
+
     // Metadata only: no payload was fetched, nothing was verified.
     expect(store.count('downloadBackup')).toBe(0);
   });

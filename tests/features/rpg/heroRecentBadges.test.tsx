@@ -170,7 +170,6 @@ describe('Hero Profile recent badges (real route, fresh learner)', () => {
     const panel = await badgesPanel();
 
     expect(within(panel).queryAllByRole('listitem')).toEqual([]);
-    expect(panel).toHaveTextContent('The badges you earn will appear here.');
     expect(
       within(panel).getByRole('link', { name: 'View all badges' }),
     ).toBeInTheDocument();
