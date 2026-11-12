@@ -4,11 +4,11 @@
   "reviewer": "OpenAI Codex, implementing agent (self-review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "3ad2cfdc0556ad05af7bbbbc05473dd48b77eb29",
+    "payloadTree": "a97e49b728fcd8255483ba59c1f73978e22fb2d0",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Reviewed the Guild permissions and canonical routes added to the previously certified consolidation on PR #91. Compared the final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The SQL upgrade preserves the function identity, grants, membership checks and existing data. The sync implementation, sync provider files, CI, and bundle limits match master.",
+    "summary": "Reviewed the Guild permissions and canonical routes added to the previously certified consolidation on PR #91, plus the final Playwright measurement correction. Compared the final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The SQL upgrade preserves the function identity, grants, membership checks and existing data. The sync implementation, sync provider files, CI, and bundle limits match master.",
     "evidence": [
       "Hosted run 43260049243 attempt 1 passed for the previous PR head d71ec8c45fb1aad65da517641ee82767eef03f45. This is historical evidence for the retained consolidation.",
       "The permission follow-up passed 43 focused Vitest cases, nine managed Chromium cases, then reran the Guild and offline bookmark cases on the final redirect component. TypeScript, changed-file ESLint and Prettier, git diff --check, production build and bundle checks passed. Final JS gzip was 458195 bytes, with 343345 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
@@ -16,7 +16,9 @@
       "The Guild spec passed again on the final candidate. It checks rendered word fragments, full heading width and placement below both controls at 320 CSS pixels, along with focus, exact read counts, duplicate suppression, refresh failure and retry, rename permissions, explicit sharing, stale membership and account isolation.",
       "Both PR #90 account-sync browser journeys passed before the CSS correction. The final production build passed the unchanged master limits with 458064 bytes of JS gzip, 343107 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
       "Inspected full Guild screenshots at 320 CSS pixels and the header at native 200% Chromium zoom. The 40-character name wraps between words. At 200% and 309 CSS pixels, all four styles in both color modes passed title and control geometry, 44 by 44 pixel hit areas and axe. The fixture retains eight ranked members, long nicknames, shared ranks and a full bar with the actual 20 / 16 total.",
-      "Hosted run 43253772741 attempt 1 failed on the inherited HUD keyboard expectation. After updating that existing test, nine focused managed Chromium cases passed, covering the keyboard path, both fixed-navigation axe cases and the six HUD viewport cases. The test follow-up changes no application files."
+      "Hosted run 43253772741 attempt 1 failed on the inherited HUD keyboard expectation. After updating that existing test, nine focused managed Chromium cases passed, covering the keyboard path, both fixed-navigation axe cases and the six HUD viewport cases. The test follow-up changes no application files.",
+      "Hosted run 43294625504 failed only the light RPG visual-style case at the sequential one-row measurement. Its retained trace establishes Glass as the second style iteration and shows the link and information rectangles were requested 34 ms apart. The retained local Glass, Vibrant and Playful 320px screenshots show each action pair on one row.",
+      "The final targeted managed Chromium run filtered to the two light/dark RPG visual-style cases completed after the atomic rectangle measurement; it builds the production application and leaves no Playwright failure artifact. Changed-file Prettier and ESLint, TypeScript and git diff --check passed."
     ]
   },
   "adversarialFindings": [
@@ -32,6 +34,13 @@
       "severity": "P2",
       "description": "Hosted certification found that the existing keyboard journey expected Settings directly after Activity, although the required Guild link now receives focus in between.",
       "resolution": "The test now checks the Guild link in sequence, its route destination and visible focus before continuing through Settings and the quest action. The targeted keyboard and adjacent accessibility checks passed.",
+      "status": "resolved"
+    },
+    {
+      "id": "LEARNING-ACTION-MEASUREMENT-RACE",
+      "severity": "P2",
+      "description": "The style-switch test compared the learning link and its information button through separate browser round trips. The hosted trace recorded a 34 ms gap and reported a transient 41.375px vertical difference, despite the retained 320px Glass rendering keeping the pair aligned.",
+      "resolution": "The existing assertion now obtains both client rectangles in one DOM evaluation. It retains the same one-row, horizontal-order and 44px hit-target requirements, so it removes the cross-layout race without weakening the visual acceptance criteria.",
       "status": "resolved"
     },
     {
