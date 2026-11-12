@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
@@ -7,12 +7,14 @@ import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairCon
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
+import { useRpgStyle } from '@/lib/appState/rpgStyle';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
 
 import { useShellBrand } from './shellBrand';
 
 export function RpgRouteShell() {
   const location = useLocation();
+  const rpgStyle = useRpgStyle();
   const { coordination, error, refresh, requiresOnboarding, status } =
     useAppState();
   // The document is named by the active programme brand on RPG routes too.
@@ -29,6 +31,13 @@ export function RpgRouteShell() {
       document.body.classList.remove('rpg-route-active');
     };
   }, []);
+
+  useLayoutEffect(() => {
+    document.body.dataset.rpgStyle = rpgStyle;
+    return () => {
+      delete document.body.dataset.rpgStyle;
+    };
+  }, [rpgStyle]);
 
   if (status === 'loading') {
     return (

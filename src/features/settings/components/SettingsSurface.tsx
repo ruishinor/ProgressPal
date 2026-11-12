@@ -23,6 +23,12 @@ import {
   serializeBackupEnvelope,
 } from '@/lib/backup';
 import { useAppState } from '@/lib/appState';
+import {
+  rpgStyleOptions,
+  saveRpgStyle,
+  useRpgStyle,
+  useRpgStyleIsTemporary,
+} from '@/lib/appState/rpgStyle';
 import { downloadBackupFile } from '@/lib/backup/download';
 import { accountSyncEnabled, hasAccountBinding } from '@/lib/cloudSync/rollout';
 import { requireProgrammeScope } from '@/lib/domain';
@@ -59,6 +65,36 @@ type SettingsToast = {
 };
 
 const resetConfirmationPhrase = 'RESET';
+
+function RpgStyleControl() {
+  const style = useRpgStyle();
+  const temporary = useRpgStyleIsTemporary();
+
+  return (
+    <>
+      <FormField
+        controlId="rpg-visual-style"
+        description="Saved in this browser, outside your ProgressPal backup."
+        label="RPG visual style"
+      >
+        {({ describedBy, inputId }) => (
+          <Select
+            aria-describedby={describedBy}
+            id={inputId}
+            onChange={(event) => saveRpgStyle(event.target.value)}
+            options={rpgStyleOptions}
+            value={style}
+          />
+        )}
+      </FormField>
+      {temporary && (
+        <p role="status">
+          The browser could not save this style. It applies until you reload.
+        </p>
+      )}
+    </>
+  );
+}
 
 export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
   const { copy } = requireProgrammeScope(useAppState().programmeScope).content
@@ -305,6 +341,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
             : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
         </p>
+        {isRpgVariant && <RpgStyleControl />}
         <div className="action-row">
           <Link
             className="button button--secondary button--md"

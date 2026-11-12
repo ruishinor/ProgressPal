@@ -1,4 +1,6 @@
+/// <reference lib="dom" />
 import { writeFile } from 'node:fs/promises';
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
@@ -684,3 +686,319 @@ for (const theme of ['light', 'dark'] as const) {
     }
   });
 }
+
+const styleChoices = ['vibrant', 'glass', 'playful'] as const;
+const rpgStyleStorageKey = 'progresspal:rpg-style';
+const homeContrastTargets = [
+  '.rpg-hero-hud__name',
+  '.rpg-hub__quest-panel .rpg-panel__title',
+  '.rpg-hub__quest-primary .rpg-button > span',
+  '.rpg-hub__learning-grid .rpg-button > span',
+  '.rpg-hub__details--summary :is(dt, dd)',
+].join(', ');
+const teamContrastTargets = [
+  '.rpg-team h1',
+  '.rpg-team .rpg-page-lede',
+  '.rpg-team [role="tab"]',
+  '.rpg-team [role="tabpanel"]:not([hidden]) .rpg-panel__title',
+].join(', ');
+
+async function sampleRenderedContrast(page: Page, selector: string) {
+  const targets = await page.locator(selector).evaluateAll((elements) =>
+    elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        name: element.textContent?.trim(),
+        foreground: getComputedStyle(element).color,
+        y: Math.floor(rect.top + scrollY + rect.height / 2),
+        xs: [0.15, 0.5, 0.85].map((fraction) =>
+          Math.floor(rect.left + scrollX + rect.width * fraction),
+        ),
+      };
+    }),
+  );
+  expect(targets.length).toBeGreaterThan(0);
+  // Read the background behind each label directly from rendered pixels,
+  // including the gradient, blur and all translucent layers.
+  const background = await page.screenshot({
+    fullPage: true,
+    scale: 'css',
+    style: `:is(${selector}) { color: transparent !important; }`,
+  });
+  const sampled = await page.evaluate(
+    async ({ png, targets }) => {
+      const image = new Image();
+      image.src = 'data:image/png;base64,' + png;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const paint = canvas.getContext('2d')!;
+      paint.drawImage(image, 0, 0);
+      return targets.map((target) => ({
+        ...target,
+        backgrounds: target.xs.map((x) => {
+          const [r, g, b] = paint.getImageData(x, target.y, 1, 1).data;
+          return `rgb(${r}, ${g}, ${b})`;
+        }),
+      }));
+    },
+    { png: background.toString('base64'), targets },
+  );
+
+  return sampled.map(({ name, foreground, backgrounds }) => {
+    const minimum = Math.min(
+      ...backgrounds.map((bg) => contrastBetween(foreground, bg)),
+    );
+    expect(
+      minimum,
+      `${name} against ${backgrounds.join(' / ')}`,
+    ).toBeGreaterThanOrEqual(4.5);
+    return { name, foreground, backgrounds, minimum };
+  });
+}
+
+async function expectRpgReflow(page: Page, selectors: string) {
+  const clipped = await page.locator(selectors).evaluateAll((elements) =>
+    elements
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return (
+          rect.left < 0 ||
+          rect.right > innerWidth + 1 ||
+          element.scrollWidth > element.clientWidth + 1
+        );
+      })
+      .map((element) => element.textContent),
+  );
+  expect(clipped).toEqual([]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+}
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`RPG visual styles render contrasting Home and Team surfaces in ${theme}`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    await completeOnboarding(page, {
+      theme,
+      programme: 'Programvareutvikling',
+    });
+    const select = page.locator('#rpg-visual-style');
+    const body = page.locator('body');
+    const entries = page.locator('.rpg-hub__learning-grid .rpg-hub__entry');
+    const surfaces = () =>
+      entries.evaluateAll((elements) =>
+        elements.map((entry) => ({
+          card: getComputedStyle(entry).backgroundColor,
+          button: getComputedStyle(entry.querySelector('a')!).backgroundColor,
+        })),
+      );
+    const stats = page.locator('.rpg-hub__details--summary dd');
+    const hud = page.locator('.rpg-hero-hud');
+    const themeSignature = () =>
+      hud.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          background: getComputedStyle(document.body).backgroundImage,
+          surface: style.backgroundColor,
+          shadow: style.boxShadow,
+          blur: style.backdropFilter,
+        };
+      });
+    await openRpgHub(page);
+    await expect(entries).toHaveCount(4);
+    const standard = await themeSignature();
+    const standardButtons = (await surfaces()).map(({ button }) => button);
+    const savedStats = await stats.allTextContents();
+    expect(savedStats.length).toBeGreaterThan(0);
+    const signatures = [];
+
+    for (const style of styleChoices) {
+      await page.goto('/rpg/settings');
+      await expect(select).toHaveAccessibleName(/\S/);
+      await select.selectOption(style);
+      await expect(body).toHaveAttribute('data-rpg-style', style);
+      await openRpgHub(page);
+      await expect(entries).toHaveCount(4);
+      const signature = await themeSignature();
+      expect(signature).not.toEqual(standard);
+      signatures.push(signature);
+      expect(await stats.allTextContents()).toEqual(savedStats);
+      expect((await surfaces()).map(({ button }) => button)).toEqual(
+        standardButtons,
+      );
+      if (style === 'glass') expect(signature.blur).not.toBe('none');
+      if (style === 'playful') {
+        const fills = await stats.evaluateAll((elements) =>
+          elements.map(
+            (element) =>
+              getComputedStyle(element.parentElement!).backgroundColor,
+          ),
+        );
+        expect(new Set(fills).size).toBe(fills.length);
+      }
+
+      for (const width of [1280, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        const css = await surfaces();
+        expect(new Set(css.map(({ card }) => card)).size).toBe(4);
+        await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
+        const entryLink = entries.first().getByRole('link');
+        await entryLink.focus();
+        await expect(entryLink).toHaveCSS('outline-style', 'solid');
+        const outline = await entryLink.evaluate(
+          (element) => getComputedStyle(element).outlineColor,
+        );
+        expect(contrastBetween(outline, css[0]!.card)).toBeGreaterThanOrEqual(
+          3,
+        );
+        await entryLink.blur();
+        await page.screenshot({
+          fullPage: true,
+          path: testInfo.outputPath(`${style}-${theme}-${width}.png`),
+        });
+        const contrast = await sampleRenderedContrast(
+          page,
+          homeContrastTargets,
+        );
+        await writeFile(
+          testInfo.outputPath(`${style}-${theme}-${width}-home.json`),
+          JSON.stringify({ signature, css, contrast }, null, 2),
+        );
+      }
+      const enlarged = await page.addStyleTag({
+        content: 'html { font-size: 200% !important; }',
+      });
+      await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
+      const teamLink = hud.locator('a[href="/rpg/laeringslaget"]');
+      await teamLink.focus();
+      await expect(teamLink).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/\/rpg\/laeringslaget$/);
+      await expect(page.getByRole('tabpanel')).toBeVisible();
+      await expectRpgReflow(page, '.rpg-team :is([role="tab"], a:visible)');
+      await enlarged.evaluate((tag) => {
+        tag.parentNode?.removeChild(tag);
+      });
+
+      for (const width of [1280, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.locator('.rpg-team').screenshot({
+          path: testInfo.outputPath(`team-${style}-${theme}-${width}.png`),
+        });
+        const contrast = await sampleRenderedContrast(
+          page,
+          teamContrastTargets,
+        );
+        await writeFile(
+          testInfo.outputPath(`${style}-${theme}-${width}-team.json`),
+          JSON.stringify(contrast, null, 2),
+        );
+      }
+      expect(
+        (await new AxeBuilder({ page }).include('.rpg-team').analyze())
+          .violations,
+      ).toEqual([]);
+    }
+
+    expect(
+      new Set(signatures.map((signature) => JSON.stringify(signature))).size,
+    ).toBe(3);
+    await page.goto('/rpg/settings');
+    await select.selectOption('standard');
+    await openRpgHub(page);
+    expect(await themeSignature()).toEqual(standard);
+  });
+}
+
+test('RPG visual style persists separately from colour mode, including peer and storage failure', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(60_000);
+  await completeOnboarding(page);
+  await page.evaluate(
+    (key) => localStorage.setItem(key, 'unknown-style'),
+    rpgStyleStorageKey,
+  );
+  await saveThemeFromSettings(page, '/rpg/settings', 'system');
+  const select = page.locator('#rpg-visual-style');
+  const body = page.locator('body');
+  await expect(select).toHaveValue('standard');
+  await select.selectOption('glass');
+  await page.reload();
+  await expect(select).toHaveValue('glass');
+  await expect(body).toHaveAttribute('data-rpg-style', 'glass');
+  const peer = await context.newPage();
+  await openRpgHub(peer);
+  await expect(peer.locator('body')).toHaveAttribute('data-rpg-style', 'glass');
+
+  await select.selectOption('vibrant');
+  await expect(peer.locator('body')).toHaveAttribute(
+    'data-rpg-style',
+    'vibrant',
+  );
+  await peer.close();
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(body).toHaveAttribute('data-rpg-style', 'vibrant');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(body).toHaveAttribute('data-rpg-style', 'vibrant');
+
+  await page.evaluate((key) => {
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name, value) {
+      if (name === key)
+        throw new DOMException('Synthetic quota failure', 'QuotaExceededError');
+      setItem.call(this, name, value);
+    };
+  }, rpgStyleStorageKey);
+  await select.selectOption('playful');
+  await expect(body).toHaveAttribute('data-rpg-style', 'playful');
+  await expect(
+    page
+      .locator('.rpg-settings')
+      .getByRole('status')
+      .filter({ hasText: 'reload' }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(select).toHaveValue('vibrant');
+  await page.goto('/settings');
+  await expect(select).toHaveCount(0);
+  await expect(body).not.toHaveAttribute('data-rpg-style');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.goto('/rpg/settings');
+  await select.selectOption('glass');
+  await openRpgHub(page);
+  const session = await context.newCDPSession(page);
+  await session.send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-color-scheme', value: 'dark' },
+      { name: 'prefers-reduced-transparency', value: 'reduce' },
+    ],
+  });
+  await expect(page.locator('.rpg-hero-hud')).toHaveCSS(
+    'backdrop-filter',
+    'none',
+  );
+  await expect(page.locator('.rpg-hero-hud')).toHaveCSS(
+    'background-color',
+    'rgb(22, 45, 64)',
+  );
+  await page.addInitScript((key) => {
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (name) {
+      if (name === key)
+        throw new DOMException('Synthetic read failure', 'SecurityError');
+      return getItem.call(this, name);
+    };
+  }, rpgStyleStorageKey);
+  await page.goto('/rpg/settings');
+  await expect(select).toHaveValue('standard');
+});

@@ -19,6 +19,11 @@ authorized genuine implementer self-review on 2026-11-12. Record its actual
 provenance in schema-v2 evidence bound to the final payload. The hosted
 Final candidate check must pass on the exact PR candidate before merge.
 
+**RPG-stiler, lokal kandidat 2026-11-12.** Standard, Vibrant Accent,
+Glassmorphic Contrast og High-Contrast Playful kan velges i RPG Settings.
+Stilen lagres som nettleserpreferanse utenfor backup. Fargemodus følger
+fortsatt profilinnstillingen i både Classic og RPG.
+
 **Team, lokal kandidat 2026-11-12.** RPG HUD lenker til den eksisterende
 lagruten. Min uke, Team og Administrasjon har egne faner. Læringsuken
 leses lokalt, og gruppesesjonen leser eller deler med Nhost ved en
