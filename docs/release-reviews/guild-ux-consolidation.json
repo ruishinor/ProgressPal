@@ -4,13 +4,15 @@
   "reviewer": "OpenAI Codex, implementing agent (self-review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "9a7ddcf3e2696067bad133b90ce018c3fdace7c6",
+    "payloadTree": "3ad2cfdc0556ad05af7bbbbc05473dd48b77eb29",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Reviewed the consolidated Guild panel, the explicit share action in Min uke and the follow-up that gives Guild names the full card width. Compared the inherited v2 prerequisites and final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The Guild command model and SQL match v2. The sync implementation, sync provider files, CI, and bundle limits match master.",
+    "summary": "Reviewed the Guild permissions and canonical routes added to the previously certified consolidation on PR #91. Compared the final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The SQL upgrade preserves the function identity, grants, membership checks and existing data. The sync implementation, sync provider files, CI, and bundle limits match master.",
     "evidence": [
-      "The prior preflight passed 175 focused Vitest cases, 6 Node bundle-budget cases, circular dependency analysis and 29 distinct managed Chromium cases. Changed-file Prettier, ESLint, TypeScript and git diff --check passed after the header correction and its integration-test follow-up.",
+      "Hosted run 43260049243 attempt 1 passed for the previous PR head d71ec8c45fb1aad65da517641ee82767eef03f45. This is historical evidence for the retained consolidation.",
+      "The permission follow-up passed 43 focused Vitest cases, nine managed Chromium cases, then reran the Guild and offline bookmark cases on the final redirect component. TypeScript, changed-file ESLint and Prettier, git diff --check, production build and bundle checks passed. Final JS gzip was 458195 bytes, with 343345 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
+      "The disposable PostgreSQL probe passed both upgrade guards, administrator rename and revoke, regular-member invite and leave, rejection of stale and foreign memberships, active-code replacement and the eight-member cap. The mocked browser accepts and copies a member-issued code and keeps administrator controls hidden for the member.",
       "The Guild spec passed again on the final candidate. It checks rendered word fragments, full heading width and placement below both controls at 320 CSS pixels, along with focus, exact read counts, duplicate suppression, refresh failure and retry, rename permissions, explicit sharing, stale membership and account isolation.",
       "Both PR #90 account-sync browser journeys passed before the CSS correction. The final production build passed the unchanged master limits with 458064 bytes of JS gzip, 343107 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
       "Inspected full Guild screenshots at 320 CSS pixels and the header at native 200% Chromium zoom. The 40-character name wraps between words. At 200% and 309 CSS pixels, all four styles in both color modes passed title and control geometry, 44 by 44 pixel hit areas and axe. The fixture retains eight ranked members, long nicknames, shared ranks and a full bar with the actual 20 / 16 total.",
@@ -18,6 +20,13 @@
     ]
   },
   "adversarialFindings": [
+    {
+      "id": "GUILD-INVITE-ADMIN-SEPARATION",
+      "severity": "P1",
+      "description": "The provider and client used canInvite as an administrator flag. Changing that field to true for all members would expose administrator actions in existing clients, while the old adapter would reject a regular member's legitimate invitation code.",
+      "resolution": "The upgrade adds canCreateInvite and preserves the legacy administrator flag. The adapter maps the capabilities separately and the guarded SQL allows invite after membership validation while keeping rename and revoke administrator-only. SQL, adapter and browser tests cover the resulting boundaries.",
+      "status": "resolved"
+    },
     {
       "id": "HUD-GUILD-TAB-ORDER",
       "severity": "P2",
@@ -49,6 +58,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "The reviewed payload is ready for hosted certification. The browser uses simulated Nhost transport. The merge remains on hold until authenticated live social_week and its rename support on progresspal-g0 are confirmed. The v2 SQL probe was already passed in a disposable database. This task has not applied a live migration."
+    "summary": "The reviewed payload is ready for hosted certification. The browser uses simulated Nhost transport. Merge requires the authorized member-invites.sql upgrade and authenticated verification on progresspal-g0. The installed function definition has not been read back in this session, and the new SQL has not been applied live."
   }
 }
