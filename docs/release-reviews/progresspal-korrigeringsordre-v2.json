@@ -4,44 +4,43 @@
   "reviewer": "OpenAI Codex, implementing agent (self-review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "6088bcb231ee908d109b88b0e4ef18b8333fd345",
+    "payloadTree": "421ae8f91e6d1b16104e6bfaa534c93a1b154bc9",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Reviewed the integrated P0–P2 changes on verified master, the Guild UI and existing membership contract, mobile HUD, rendered styles, and the measured JavaScript limits.",
+    "summary": "Reviewed the final corrections on GitHub master 2c1201930b403e4c081de212ca59ae9ca9a2f067, including the preserved PR #90 account and sync paths, explicit Guild operations and narrow Home layout.",
     "evidence": [
-      "274 focused Vitest cases and 27 Node cases passed, including cloud boundaries, social session pinning, route access, bundle enforcement and review binding.",
-      "Managed Chromium passed 46 distinct cases across both focused runs, including two offline cases, simulated provider and backup journeys, layout, keyboard navigation and axe checks. The final contrast pass measured minimum ratios of 7.15:1 on Glassmorphic Home and 5.73:1 on Glassmorphic Guild.",
-      "At native Chromium 200% zoom (309 CSS pixels), all eight style and colour combinations kept the four HUD fields visible with Details closed, the Technology Reference controls on one row, and the Guild tabs within the viewport.",
-      "The disposable PostgreSQL probe applied the upgrade over populated tables. It confirmed unchanged function identity, grants, membership, shared days and invitation, checked malformed and unauthorized rename inputs, and exercised ownership transfer and Auth deletion.",
-      "The production build passed lint, formatting, type and circular checks and the bundle budget. The integrated build measured 450670 bytes JavaScript gzip and 497241 bytes for the largest raw JavaScript chunk."
+      "97 focused Vitest cases and 6 bundle-budget cases passed. Changed-file formatting and ESLint, TypeScript and circular dependency checks passed.",
+      "14 targeted managed browser cases passed. The revised Guild test passed on its own after the delayed-response fixture was made TypeScript-compatible. The default browser coverage includes offline, strict provider traffic counts, the 320px full Home text-line check, visual styles, keyboard access and Guild permissions.",
+      "Both existing PR #90 browser cases passed with sync enabled, covering registration and recovery, two-device sync, offline replay, conflicts and account isolation. The sync implementation and its provider contract match master.",
+      "The existing Guild SQL probe passed in disposable PostgreSQL/PGlite. Production builds passed their bundle budgets with sync disabled (457948 bytes JS gzip; 343107 bytes largest raw JS) and enabled (457654; 342903)."
     ]
   },
   "adversarialFindings": [
     {
-      "id": "HUD-REFLOW",
+      "id": "HOME-TEXT",
       "severity": "P2",
-      "description": "The first layout with the Guild name and Path visible exceeded the existing closed HUD height limits at 320 and 390 CSS pixels.",
-      "resolution": "Let the hero name and Activity link share a row when space permits and compact vertical spacing. The existing height and 44px target checks now pass at both widths.",
+      "description": "A test of the action and info-button boxes could pass when the Teknologioppslag label wrapped inside its button.",
+      "resolution": "The common narrow layout gives the link more inline space. The existing full Home browser case counts rendered text lines at 320 CSS pixels, checks label containment and preserves the information button's hit area.",
       "status": "resolved"
     },
     {
-      "id": "GUILD-AUTHORIZATION",
+      "id": "GUILD-BOARD",
+      "severity": "P2",
+      "description": "The Guild overview lacked a member list and a visual goal indicator. A full bar alone would hide contributions beyond the goal.",
+      "resolution": "The existing member and ranking projections drive separate compact lists. The existing progress bar shows goal completion and the accompanying text keeps the actual total. Browser checks cover vertical members, ties and an exceeded goal.",
+      "status": "resolved"
+    },
+    {
+      "id": "PASSIVE-GUILD-READ",
       "severity": "P1",
-      "description": "A hidden gear alone cannot prevent a forged rename or protect against a stale membership.",
-      "resolution": "The existing session-bound RPC derives the actor and group, verifies the membership reference and checks the existing administrator role under the same database lock. Local SQL exercises rejected calls and preservation of existing group data.",
-      "status": "resolved"
-    },
-    {
-      "id": "GLASS-CONTRAST",
-      "severity": "P2",
-      "description": "The initial brighter canvas brought the light Guild tab text to 4.56:1 in a rendered sample, close to the 4.5:1 minimum.",
-      "resolution": "Strengthened muted text contrast in both Glassmorphic palettes and measured rendered backgrounds again in both modes and widths. The reduced-transparency fallback also passed.",
+      "description": "The HUD queried Nhost on shell load and displayed data from a passive membership lookup.",
+      "resolution": "The shell presents a name confirmed by an explicit Guild action and clears account-scoped state on identity changes. The existing command cancellation and session-pinning checks guard delayed replies. Browser checks exercise logout, another account, an old reply and exact provider traffic counts.",
       "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Local evidence supports the integrated candidate. Live Hasura/JWT validation and hosted Final candidate certification are pending in their authorized environments. PR #90 and the current production deployment have their own evidence."
+    "summary": "The local evidence applies to this payload. Hosted Final candidate certification and live Hasura/JWT and Guild migration validation are pending in their authorized environments. Vercel production alias was observed at 61bcb593."
   }
 }
