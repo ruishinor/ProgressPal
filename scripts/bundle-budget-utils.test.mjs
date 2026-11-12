@@ -73,20 +73,15 @@ test('a CSS warning leaves every other budget as it was', () => {
   assert.equal(result.violations.length, 1);
   assert.match(result.violations[0], /Total JavaScript gzip/);
   assert.equal(result.warnings.length, 1);
-  assert.equal(releaseBundleBudget.maxJavaScriptGzipBytes, 500_000);
-  assert.equal(releaseBundleBudget.maxJavaScriptRawBytes, 550_000);
+  assert.equal(releaseBundleBudget.maxJavaScriptGzipBytes, 470_000);
+  assert.equal(releaseBundleBudget.maxJavaScriptRawBytes, 500_000);
   assert.equal(releaseBundleBudget.maxCurriculumGzipBytes, 273000);
   assert.equal(releaseBundleBudget.maxRuntimeAssetGzipBytes, 7_000_000);
 });
 
 test('reports raw JavaScript, total JavaScript gzip, and CSS gzip independently', () => {
   const result = evaluateBundleBudget([
-    {
-      gzipBytes: 250_000,
-      kind: 'js',
-      path: 'a.js',
-      rawBytes: releaseBundleBudget.maxJavaScriptRawBytes + 1,
-    },
+    { gzipBytes: 250_000, kind: 'js', path: 'a.js', rawBytes: 500_001 },
     {
       // One byte over the total JavaScript limit together with a.js.
       gzipBytes: releaseBundleBudget.maxJavaScriptGzipBytes - 250_000 + 1,

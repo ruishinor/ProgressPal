@@ -54,7 +54,11 @@ type Props = {
   settings: string;
   learning: ReturnType<typeof useLearningWeek>;
   onGuildName?: (userId: string, name: string | null) => void;
-  renderPanels?: (guild: ReactNode, administration: ReactNode) => ReactNode;
+  renderPanels?: (
+    guild: ReactNode,
+    administration: ReactNode,
+    share?: ReactNode,
+  ) => ReactNode;
 };
 
 export function GroupSession({
@@ -132,7 +136,11 @@ export function GroupSession({
     if (result.status !== 'ok') {
       setNotice(failures[result.status]);
       if (result.status === 'unauthenticated') setSignedOut(true);
+      const retryableRead =
+        command.operation === 'read' &&
+        (result.status === 'unavailable' || result.status === 'rate-limited');
       if (
+        !retryableRead &&
         !['invalid-code', 'group-full', 'invalid-input'].includes(result.status)
       ) {
         setSnapshot(null);
@@ -147,6 +155,7 @@ export function GroupSession({
       result.weekStart !== getOsloWeek(new Date()).start
     ) {
       setSnapshot(null);
+      onGuildName?.(userId, null);
       setNotice(
         'Uken i Guilden avviker fra klokken på enheten. Sjekk klokken og oppdater Guilden.',
       );
@@ -211,38 +220,39 @@ export function GroupSession({
   const summary = group === null ? null : summarizeGroup(group);
   const canShare = Array.isArray(learning.days) && learning.days.length > 0;
   const Action = renderPanels ? RpgButton : Button;
-  const status = <p role="status">{busy ? 'Henter Guild-data …' : notice}</p>;
+  const status = (
+    <p className="learning-group__status" role="status">
+      {busy ? 'Jobber med Guild …' : notice}
+    </p>
+  );
   const accountLink = (
     <p>
       <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
     </p>
   );
-  const readAction = (fromAdministration = false) => (
-    <Action
-      disabled={busy}
-      onClick={() => void run({ operation: 'read' }, fromAdministration)}
-      variant="secondary"
-    >
-      {snapshot === null ? 'Hent Guild' : 'Oppdater Guild'}
-    </Action>
+  const sharePrivacy = (
+    <p>
+      Guilden ser kallenavnet ditt og antall dager. Nhost lagrer datoene du
+      deler. En delt dag teller én gang og blir stående selv om du endrer den
+      lokale registreringen.
+    </p>
   );
-  const shareAction = group !== null && (
+  const shareAction = group !== null && (canShare || !renderPanels) && (
     <Action
       disabled={busy || !canShare}
       onClick={() => {
-        if (
-          learning.days &&
-          learning.week.today === getOsloWeek(new Date()).today
-        ) {
-          void run(
-            {
-              operation: 'share',
-              days: learning.days,
-              membership: group.membership,
-            },
-            true,
+        if (!learning.days) return;
+        if (learning.week.today !== getOsloWeek(new Date()).today) {
+          setNotice(
+            'Datoen har endret seg. Last inn siden på nytt før du deler.',
           );
+          return;
         }
+        void run({
+          operation: 'share',
+          days: learning.days,
+          membership: group.membership,
+        });
       }}
     >
       Del ukens læringsdager
@@ -322,59 +332,33 @@ export function GroupSession({
   const Progress = renderPanels ? RpgProgressBar : ProgressBar;
   const board = group !== null && summary !== null && (
     <>
-      <h3>Medlemmer</h3>
-      <p>{group.members.length} av 8 plasser i bruk</p>
-      <ul aria-label="Medlemmer" className="learning-group__rows" role="list">
-        {group.members.map(({ nickname, self }, index) => (
+      <Progress
+        className="learning-group__goal"
+        label="Felles ukemål"
+        helperText={`${summary.total} / ${summary.target} læringsdager`}
+        max={summary.target}
+        value={summary.total}
+        tone={summary.total >= summary.target ? 'success' : undefined}
+      />
+      <h3 className="learning-group__ranking-title">Ukas rangering</h3>
+      <ul
+        aria-label="Ukas rangering"
+        className="learning-group__ranking"
+        role="list"
+      >
+        {summary.ranking.map(({ nickname, rank, days, self }, index) => (
           <li key={index}>
-            {nickname}
-            {self ? ' (deg)' : ''}
+            <span>{rank}.</span>{' '}
+            <span>
+              {nickname}
+              {self ? ' (deg)' : ''}
+            </span>{' '}
+            <span>
+              {days} {days === 1 ? 'dag' : 'dager'}
+            </span>
           </li>
         ))}
       </ul>
-      <Progress
-        label="Felles mål"
-        helperText={`${summary.total} av ${summary.target} læringsdager delt. Målet er to dager per medlem.`}
-        max={summary.target}
-        value={summary.total}
-        showValue={false}
-        tone={summary.total >= summary.target ? 'success' : undefined}
-      />
-      {summary.total >= summary.target && (
-        <p>
-          <strong>Guilden nådde ukemålet!</strong>
-        </p>
-      )}
-      {group.members.length > 1 ? (
-        <>
-          <h3>Ukas rangering</h3>
-          <ul
-            aria-label="Ukas rangering"
-            className="learning-group__rows learning-group__ranking"
-            role="list"
-          >
-            {summary.ranking.map(({ nickname, rank, days, self }, index) => (
-              <li key={index}>
-                <span>{rank}.</span>{' '}
-                <span>
-                  {nickname}
-                  {self ? ' (deg)' : ''}
-                </span>{' '}
-                <span>
-                  {days} {days === 1 ? 'dag' : 'dager'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <p>Inviter noen du vil øve sammen med.</p>
-      )}
-      <p>
-        Hver delt dag teller én gang, også fra flere enheter. Delte dager blir
-        stående selv om du endrer registreringene dine. Del innen søndag i norsk
-        tid.
-      </p>
     </>
   );
   const membership = group !== null && (
@@ -486,9 +470,30 @@ export function GroupSession({
 
   const heading = (
     <div className="learning-group__heading">
-      <h2 ref={focus} tabIndex={-1}>
-        {group?.name ?? 'Guild'}
-      </h2>
+      <div className="learning-group__identity">
+        {group && <p className="learning-group__eyebrow">Guild</p>}
+        <h2 ref={focus} tabIndex={-1}>
+          {group?.name ?? 'Guild'}
+        </h2>
+        {group && <p>{group.members.length} av 8 medlemmer</p>}
+      </div>
+      {!signedOut && (
+        <button
+          aria-disabled={busy}
+          aria-label="Oppdater Guild"
+          className="learning-group__refresh"
+          onClick={() => void run({ operation: 'read' })}
+          type="button"
+        >
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+            <path
+              d="M20 11a8 8 0 1 0-2 6m2-11v5h-5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
       {group?.canInvite && (
         <details className="learning-group__name-editor" ref={nameEditor}>
           <summary
@@ -546,23 +551,24 @@ export function GroupSession({
 
   if (renderPanels) {
     return renderPanels(
-      <RpgPanel aria-busy={busy} className="learning-group">
+      <RpgPanel className="learning-group">
         {heading}
         {status}
         {signedOut ? (
           accountLink
+        ) : snapshot === null ? (
+          <p>Bruk oppdateringsikonet for å hente Guilden din.</p>
         ) : (
-          <div className="action-row">{readAction()}</div>
-        )}
-        {snapshot !== null && group === null && (
-          <p>
-            Du er ikke med i en Guild ennå. Du kan opprette eller bli med under
-            Administrasjon.
-          </p>
+          group === null && (
+            <p>
+              Du er ikke med i en Guild ennå. Du kan opprette eller bli med
+              under Administrasjon.
+            </p>
+          )
         )}
         {board}
       </RpgPanel>,
-      <RpgPanel aria-busy={busy} className="learning-group">
+      <RpgPanel className="learning-group">
         <h2 ref={administrationHeading} tabIndex={-1}>
           Administrasjon
         </h2>
@@ -570,28 +576,46 @@ export function GroupSession({
         {signedOut ? (
           accountLink
         ) : snapshot === null ? (
-          <div className="action-row">{readAction(true)}</div>
-        ) : (
-          group !== null && <div className="action-row">{shareAction}</div>
-        )}
+          <div className="action-row">
+            <Action
+              disabled={busy}
+              onClick={() => void run({ operation: 'read' }, true)}
+              variant="secondary"
+            >
+              Hent medlemskap
+            </Action>
+          </div>
+        ) : null}
         {enrolment}
         {membership}
       </RpgPanel>,
+      <>
+        {shareAction && (
+          <div className="learning-group__share">
+            {sharePrivacy}
+            {shareAction}
+          </div>
+        )}
+        {canShare && snapshot === null && !signedOut && (
+          <p>Hent medlemskapet i Guild-fanen for å dele læringsdagene dine.</p>
+        )}
+        {status}
+      </>,
     );
   }
 
   return (
-    <Card aria-busy={busy} className="learning-group">
+    <Card className="learning-group">
       {heading}
       {status}
-      {signedOut ? (
-        accountLink
-      ) : (
-        <div className="action-row">
-          {readAction()}
-          {shareAction}
-        </div>
-      )}
+      {signedOut
+        ? accountLink
+        : shareAction && (
+            <div className="learning-group__share">
+              {sharePrivacy}
+              {shareAction}
+            </div>
+          )}
       {enrolment}
       {board}
       {membership}

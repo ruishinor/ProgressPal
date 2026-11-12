@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Card } from '@/components/ui/Card';
@@ -17,10 +18,12 @@ export function PersonalWeekDetails({
   rpg,
   learning,
   onGroupPage = false,
+  children,
 }: {
   rpg: boolean;
   learning: ReturnType<typeof useLearningWeek>;
   onGroupPage?: boolean;
+  children?: ReactNode;
 }) {
   const { week, days, target } = learning;
   const Panel = rpg ? RpgPanel : Card;
@@ -62,6 +65,7 @@ export function PersonalWeekDetails({
           <Link to={socialPath}>Guild</Link>
         </p>
       )}
+      {children}
     </Panel>
   );
 }

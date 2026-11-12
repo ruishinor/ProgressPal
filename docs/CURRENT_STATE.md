@@ -1,5 +1,18 @@
 # ProgressPal current state
 
+**Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger
+videre på den lokale v2-kandidaten `d32acb4` og GitHub `master` med PR #90
+(`2c1201930b403e4c081de212ca59ae9ca9a2f067`). Guild har én medlemsliste
+sortert etter ukas rangering, et felles ukemål og en oppdateringsknapp med
+ikon. I RPG ligger frivillig deling i Min uke etter bekreftet medlemskap.
+Classic beholder deling på Guild-siden. Refresh og deling bruker de
+eksisterende medlemskaps- og kontokontraktene.
+
+Før publisering må den eksisterende, autentiserte `social_week`-kontrakten
+på `progresspal-g0` bekreftes med støtte for navneendring. Den forberedte
+[Guild-oppgraderingen](../infra/nhost/social/README.md) følger v2-kandidaten.
+FAQ i Innstillinger er utsatt.
+
 **ProgressPal-korrigeringsordre v2 — sluttført lokal kandidat, 2026-11-12.**
 `cx/progresspal-korrigeringsordre-v2` bygger på verifisert remote `master`
 `2c1201930b403e4c081de212ca59ae9ca9a2f067`, som inkluderer PR #90.

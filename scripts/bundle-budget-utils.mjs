@@ -39,11 +39,8 @@ export const releaseBundleBudget = Object.freeze({
   // Owner decision (2026-10-28): approved educational-content expansion after
   // one bounded investigation; measured candidate 467,691 B gzip. Previous
   // ceiling 465,000 B; new ceiling 470,000 B. All other thresholds unchanged.
-  // Korrigeringsordre v2 (2026-11-12): the integrated RPG build measured
-  // about 451 kB JS gzip and 497 kB for the largest raw chunk. Round up to
-  // the next 50 kB above those baselines for roughly 10% growth room.
-  maxJavaScriptGzipBytes: 500_000,
-  maxJavaScriptRawBytes: 550_000,
+  maxJavaScriptGzipBytes: 470_000,
+  maxJavaScriptRawBytes: 500_000,
   // Owner-authorized M02 expansion (2026-11-05): 152002 B curriculum gzip measured; prior ceiling 150000 B.
   // New ceiling 157000 B includes bounded headroom.
   // M04 measured 181,948 B curriculum gzip (2026-11-05); 4,052 B headroom.

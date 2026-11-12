@@ -37,6 +37,12 @@ test('group UI shares only dates on demand and hides a private board when offlin
     finishStaleRead = resolve;
   });
   let holdNextRead = false;
+  let failNextRead = false;
+  let releaseFailedRead!: () => void;
+  const failedRead = new Promise<void>((resolve) => {
+    releaseFailedRead = resolve;
+  });
+  let staleMembership = false;
   const invite = 'abcd1234'.repeat(8);
 
   await page.route(graphqlHost + '/**', async (route) => {
@@ -50,10 +56,19 @@ test('group UI shares only dates on demand and hides a private board when offlin
     commands.push(variables);
     expect(request.headers()['authorization']).toMatch(/^Bearer /);
     const operation = variables.operation;
+    if (operation === 'read' && failNextRead) {
+      failNextRead = false;
+      await failedRead;
+      return route.fulfill({
+        status: 503,
+        json: { errors: [{ message: 'Unavailable' }] },
+        headers: { 'access-control-allow-origin': '*' },
+      });
+    }
     const name = (variables.input as { name?: string }).name;
     const invalidRename = operation === 'rename' && !name;
     if (operation === 'rename' && name) group.name = name;
-    if (operation === 'share') group.members[0].days = 1;
+    if (operation === 'share' && !staleMembership) group.members[0].days = 1;
     if (operation === 'invite') group.hasInvite = true;
     if (operation === 'revoke') group.hasInvite = false;
     if (operation === 'leave') enrolled = false;
@@ -75,11 +90,14 @@ test('group UI shares only dates on demand and hides a private board when offlin
           social_week: [
             {
               result: {
-                status: invalidCode
-                  ? 'invalid-code'
-                  : invalidRename
-                    ? 'invalid-input'
-                    : 'ok',
+                status:
+                  operation === 'share' && staleMembership
+                    ? 'membership-changed'
+                    : invalidCode
+                      ? 'invalid-code'
+                      : invalidRename
+                        ? 'invalid-input'
+                        : 'ok',
                 weekStart,
                 group: snapshot,
                 invite: operation === 'invite' ? invite : null,
@@ -113,6 +131,8 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await guildLink.click();
   const tabs = page.getByRole('tab');
   const panel = page.getByRole('tabpanel');
+  const refresh = panel.getByRole('button', { name: 'Oppdater Guild' });
+  const share = panel.getByRole('button', { name: 'Del ukens læringsdager' });
   await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
   await tabs.nth(1).click();
   await page.getByRole('link', { name: 'Åpne kontoinnstillinger' }).click();
@@ -144,41 +164,76 @@ test('group UI shares only dates on demand and hides a private board when offlin
     }
   };
   await capture('min-uke');
+  await expect(share).toHaveCount(0);
   await tabs.last().click();
   await tabs.nth(1).click();
   expect(commands).toEqual([]);
 
-  await panel.getByRole('button', { name: 'Hent Guild' }).click();
+  await expect(tabs.nth(1)).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(panel).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(refresh).toBeFocused();
+  expect(
+    await refresh.evaluate((button) => getComputedStyle(button).outlineStyle),
+  ).toBe('solid');
+  await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Øvelaget' })).toBeFocused();
   await expect(guildLink).toHaveText(group.name);
-  const members = panel
-    .getByRole('list', { name: 'Medlemmer' })
-    .getByRole('listitem');
-  await expect(members).toHaveText(['Ada (deg)', 'Bo']);
-  expect((await members.nth(1).boundingBox())!.y).toBeGreaterThan(
-    (await members.first().boundingBox())!.y,
-  );
   const ranking = panel
     .getByRole('list', { name: 'Ukas rangering' })
     .getByRole('listitem');
-  await expect(ranking.first()).toHaveText('1. Bo 1 dag');
-  const progress = panel.getByRole('progressbar', { name: 'Felles mål' });
+  await expect(panel.getByRole('list')).toHaveCount(1);
+  await expect(ranking).toHaveText(['1. Bo 1 dag', '2. Ada (deg) 0 dager']);
+  expect((await ranking.nth(1).boundingBox())!.y).toBeGreaterThan(
+    (await ranking.first().boundingBox())!.y,
+  );
+  const progress = panel.getByRole('progressbar', { name: 'Felles ukemål' });
   await expect(progress).toHaveAttribute('aria-valuenow', '1');
   await expect(progress).toHaveAttribute('aria-valuemax', '4');
   await capture('guild');
+  const refreshTarget = (await refresh.boundingBox())!;
+  expect(refreshTarget.width).toBeGreaterThanOrEqual(44);
+  expect(refreshTarget.height).toBeGreaterThanOrEqual(44);
+  await expect(refresh).toHaveText('');
+  expect(
+    (await new AxeBuilder({ page }).include('.rpg-guild').analyze()).violations,
+  ).toEqual([]);
+  await expect(share).toHaveCount(0);
   await tabs.last().click();
+  await expect(share).toHaveCount(0);
+  await tabs.first().click();
   expect(commands.map(({ operation }) => operation)).toEqual(['read']);
-  await panel.getByRole('button', { name: 'Del ukens læringsdager' }).click();
+  await share.click();
+  await expect(share).toBeEnabled();
   await expect(panel.getByRole('status')).toContainText(/\S/);
+  await capture('min-uke-deling');
   await tabs.nth(1).click();
   await expect(ranking).toHaveText(['1. Ada (deg) 1 dag', '1. Bo 1 dag']);
   await expect(progress).toHaveAttribute('aria-valuenow', '2');
-  await expect(
-    page.getByText('2 av 4 læringsdager delt.', { exact: false }),
-  ).toBeVisible();
+  await expect(panel.getByText('2 / 4 læringsdager')).toBeVisible();
   expect(commands).toEqual([
     { operation: 'read', input: {} },
     { operation: 'share', input: { days: [weekStart], membership } },
+  ]);
+  failNextRead = true;
+  await refresh.focus();
+  await page.keyboard.press('Enter');
+  await expect(refresh).toBeDisabled();
+  await expect(refresh).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect.poll(() => commands.length).toBe(3);
+  releaseFailedRead();
+  await expect(refresh).toBeEnabled();
+  await expect(panel.getByRole('status')).toContainText(/Kunne ikke bekrefte/);
+  await expect(ranking).toHaveCount(2);
+  await expect(guildLink).toHaveText(group.name);
+  await refresh.click();
+  await expect(refresh).toBeEnabled();
+  await expect(panel.getByRole('status')).toBeEmpty();
+  expect(commands.slice(2)).toEqual([
+    { operation: 'read', input: {} },
+    { operation: 'read', input: {} },
   ]);
   await tabs.last().click();
   await panel.getByRole('button', { name: 'Lag invitasjonskode' }).click();
@@ -235,16 +290,18 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect(
     page.getByText('Du har øvd 1 dag.', { exact: false }),
   ).toBeVisible();
+  await expect(share).toHaveCount(0);
+  await expect(panel.getByRole('status')).toHaveCount(0);
   await context.setOffline(false);
   await expect(guildLink).toHaveText(renamed);
   expect(commands.at(-1)?.operation).toBe('rename');
   group.members[1].days = 5;
   await tabs.last().click();
-  await panel.getByRole('button', { name: 'Hent Guild' }).click();
+  await panel.getByRole('button', { name: 'Hent medlemskap' }).click();
   await tabs.nth(1).click();
   await expect(progress).toHaveAttribute('aria-valuenow', '4');
   await expect(progress).toHaveAttribute('aria-valuemax', '4');
-  await expect(panel.getByText(/6 av 4 læringsdager delt/)).toBeVisible();
+  await expect(panel.getByText('6 / 4 læringsdager')).toBeVisible();
   expect(
     await progress.evaluate(
       (track) =>
@@ -277,19 +334,18 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await tabs.last().click();
   await expect(code).toHaveValue(invalidInvite);
   await panel.getByRole('button', { name: 'Bli med', exact: true }).click();
-  await expect(panel.locator('[aria-busy]')).toHaveAttribute(
-    'aria-busy',
-    'false',
-  );
+  await expect(
+    panel.getByRole('button', { name: 'Bli med', exact: true }),
+  ).toBeEnabled();
   await expect(panel.getByRole('status')).toContainText(/\S/);
   await expect(code).toHaveValue(invalidInvite);
   await panel.getByRole('button', { name: 'Opprett en Guild' }).click();
   await expect(panel.getByLabel('Guild-navn')).toHaveValue('Code Knights');
   await panel.getByLabel('Guild-navn').fill(group.name);
   await panel.getByRole('button', { name: 'Opprett Guild' }).click();
-  await expect(
-    panel.getByRole('button', { name: 'Del ukens læringsdager' }),
-  ).toBeEnabled();
+  await tabs.first().click();
+  await expect(share).toBeEnabled();
+  await tabs.last().click();
   await panel.getByText('Medlemskap og konto').click();
   await panel
     .getByRole('button', { name: 'Forlat Guilden', exact: true })
@@ -300,12 +356,13 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await code.fill(invite);
   await nickname.fill('Ada');
   await panel.getByRole('button', { name: 'Bli med', exact: true }).click();
-  await expect(
-    panel.getByRole('button', { name: 'Del ukens læringsdager' }),
-  ).toBeEnabled();
+  await tabs.first().click();
+  await expect(share).toBeEnabled();
   expect(commands.map(({ operation }) => operation)).toEqual([
     'read',
     'share',
+    'read',
+    'read',
     'invite',
     'revoke',
     'rename',
@@ -324,10 +381,10 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect(guildLink).toHaveText('Code Knights');
   expect(commands.at(-1)?.operation).toBe('join');
   await tabs.nth(1).click();
-  await panel.getByRole('button', { name: 'Hent Guild' }).click();
+  await refresh.click();
   await expect(guildLink).toHaveText(renamed);
   holdNextRead = true;
-  await panel.getByRole('button', { name: 'Oppdater Guild' }).click();
+  await refresh.click();
   await expect.poll(() => holdNextRead).toBe(false);
   await hud.getByRole('link', { name: 'Open Settings' }).click();
   await account.getByRole('button', { name: 'Sign out' }).click();
@@ -356,9 +413,29 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect(guildLink).toHaveText('Code Knights');
   await guildLink.click();
   await tabs.nth(1).click();
-  await expect(panel.getByRole('button', { name: 'Hent Guild' })).toBeVisible();
+  await expect(refresh).toBeVisible();
   expect(commands).toHaveLength(explicitCommands);
   group.name = 'Andre kontoens Guild';
-  await panel.getByRole('button', { name: 'Hent Guild' }).click();
+  await refresh.click();
   await expect(guildLink).toHaveText(group.name);
+
+  await page.goto('/laeringslaget');
+  const classic = page.locator('main .learning-group');
+  await classic.getByRole('button', { name: 'Oppdater Guild' }).click();
+  const classicShare = classic.getByRole('button', {
+    name: 'Del ukens læringsdager',
+  });
+  await classicShare.click();
+  await expect(classicShare).toBeEnabled();
+  expect(commands.slice(-2)).toEqual([
+    { operation: 'read', input: {} },
+    { operation: 'share', input: { days: [weekStart], membership } },
+  ]);
+  staleMembership = true;
+  await classicShare.click();
+  await expect(classicShare).toHaveCount(0);
+  await expect(classic.getByRole('list')).toHaveCount(0);
+  await expect(classic.getByRole('status')).toContainText(
+    /Medlemskapet har endret seg/,
+  );
 });

@@ -18,7 +18,11 @@ function GroupAccess({
 }: {
   learning: ReturnType<typeof useLearningWeek>;
   onGuildName?: (userId: string, name: string | null) => void;
-  renderPanels?: (guild: ReactNode, administration: ReactNode) => ReactNode;
+  renderPanels?: (
+    guild: ReactNode,
+    administration: ReactNode,
+    share?: ReactNode,
+  ) => ReactNode;
 }) {
   const { state, online } = useGroupAccess();
   const settings = renderPanels ? rpgSettingsPath : '/settings';
@@ -139,12 +143,17 @@ function RpgGuildPage({
           </button>
         ))}
       </div>
-      {panel(0, <PersonalWeekDetails learning={learning} onGroupPage rpg />)}
       <GroupAccess
         learning={learning}
         onGuildName={onGuildName}
-        renderPanels={(guild, administration) => (
+        renderPanels={(guild, administration, share) => (
           <>
+            {panel(
+              0,
+              <PersonalWeekDetails learning={learning} onGroupPage rpg>
+                {share}
+              </PersonalWeekDetails>,
+            )}
             {panel(1, guild)}
             {panel(2, administration)}
           </>
