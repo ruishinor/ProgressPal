@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -11,6 +17,7 @@ import { RpgMapPage } from '@/features/rpg/routes/RpgMapPage';
 import { RpgModulePage } from '@/features/rpg/routes/RpgModulePage';
 import { RpgResourcePage } from '@/features/rpg/routes/RpgResourcePage';
 import { RpgShell } from '@/features/rpg/shell/RpgShell';
+import { GroupPage } from '@/features/social';
 import {
   cs50AchievementDefinitions as achievementDefinitions,
   cs50Scope,
@@ -118,6 +125,14 @@ const routes = [
     budget: 11,
     hud: false,
     readyHeading: 'Local activity totals',
+  },
+  {
+    name: 'Guild',
+    path: '/rpg/guild',
+    stores: learningWeekStores,
+    budget: 3,
+    hud: true,
+    readyHeading: 'Guild',
   },
 ];
 
@@ -227,6 +242,7 @@ describe('A7 actual route and shell access matrix', () => {
                   { path: 'focus', element: <RpgFocusPage /> },
                   { path: 'badges', element: <RpgBadgesPage /> },
                   { path: 'hero', element: <RpgHeroPage /> },
+                  { path: 'guild', element: <GroupPage rpg /> },
                 ],
               },
             ],
@@ -241,14 +257,10 @@ describe('A7 actual route and shell access matrix', () => {
       );
       try {
         await screen.findByRole('heading', { name: route.readyHeading });
-        if (route.name === 'Hub') {
-          const weekHeading = screen.getByRole('heading', {
-            name: 'Denne uken',
-          });
-          const weekCard = weekHeading.closest('section');
-          expect(weekCard).toBeInstanceOf(HTMLElement);
-          await within(weekCard as HTMLElement).findByText(
-            /^(Klar for ukens|Du har)/,
+        if (route.name === 'Guild') {
+          const panel = screen.getByRole('tabpanel');
+          await waitFor(() =>
+            expect(within(panel).queryByRole('status')).toBeNull(),
           );
         }
         if (route.name !== 'Hero') {
@@ -258,6 +270,9 @@ describe('A7 actual route and shell access matrix', () => {
           await within(hud).findByLabelText(
             `Level ${calculateXpSummary(save.xpSummary.totalXp).level}`,
           );
+          const guildLink = hud.querySelector('a[href="/rpg/guild"]');
+          expect(guildLink).toBeInTheDocument();
+          expect(guildLink).toHaveAccessibleName();
         }
         if (route.name === 'Focus') {
           await screen.findByText('Review saved sessions (1)');
@@ -275,11 +290,8 @@ describe('A7 actual route and shell access matrix', () => {
           (transaction) =>
             !transaction.stores.every((store) => store.startsWith('activity_')),
         );
-        expect(educationalTransactions).toHaveLength(
-          route.hud || route.name === 'Hub' ? 2 : 1,
-        );
-        if (route.name === 'Hub') {
-          assertLogicalRead(access, learningWeekStores, 3);
+        expect(educationalTransactions).toHaveLength(route.hud ? 2 : 1);
+        if (route.name === 'Guild') {
           const learningWeekTransaction = educationalTransactions.find(
             (transaction) =>
               JSON.stringify(transaction.stores) ===

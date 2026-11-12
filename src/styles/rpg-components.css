@@ -29,7 +29,14 @@
    Behavior stays in the shared components; their semantic design-system roles
    resolve to the RPG palette only within these explicit variant wrappers. */
 .rpg-shell
-  :where(.rpg-focus, .rpg-log, .rpg-badges, .rpg-settings, .lesson--rpg) {
+  :where(
+    .rpg-focus,
+    .rpg-log,
+    .rpg-badges,
+    .rpg-settings,
+    .rpg-guild,
+    .lesson--rpg
+  ) {
   --color-canvas: var(--rpg-bg);
   --color-canvas-strong: var(--rpg-surface);
   --color-canvas-muted: var(--rpg-surface-raised);
@@ -1002,6 +1009,29 @@
   gap: 0.35rem;
 }
 
+.rpg-identity__guild dd {
+  min-width: 0;
+}
+
+.rpg-identity__guild-link {
+  align-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--rpg-text);
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 44px;
+  text-underline-offset: 0.18em;
+}
+
+.rpg-identity__guild-link:hover,
+.rpg-identity__guild-link[aria-current='page'] {
+  background: var(--rpg-surface-raised);
+}
+
+.rpg-identity__guild-link:focus-visible {
+  outline-color: var(--rpg-focus-ring);
+}
+
 .rpg-quest-reward {
   color: var(--rpg-accent-strong);
   font-size: 0.875rem;
@@ -1298,33 +1328,97 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry {
-  align-content: start;
+  align-items: start;
   border: 1px solid var(--rpg-border);
   border-inline-start: 3px solid var(--rpg-border-strong);
   border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
   padding: var(--space-2);
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--pathways {
-  border-inline-start-color: var(--rpg-accent);
+  --learning-entry-accent: #0f574d;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--reference {
-  background: color-mix(
-    in srgb,
-    var(--rpg-surface) 88%,
-    var(--rpg-surface-raised)
-  );
+  --learning-entry-accent: #184d7b;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry--micro {
-  background: var(--rpg-surface);
+  --learning-entry-accent: #572c79;
+}
+
+.rpg-hub__learning-grid .rpg-hub__entry--utviklerblikk {
+  --learning-entry-accent: #76501e;
+}
+
+.rpg-hub__learning-grid
+  :is(
+    .rpg-hub__entry--pathways,
+    .rpg-hub__entry--reference,
+    .rpg-hub__entry--micro,
+    .rpg-hub__entry--utviklerblikk
+  ) {
+  --learning-entry-border: color-mix(
+    in srgb,
+    var(--learning-entry-accent),
+    white var(--learning-entry-border-tint, 0%)
+  );
+
+  background: color-mix(
+    in srgb,
+    var(--learning-entry-accent) var(--learning-entry-tint, 18%),
+    var(--rpg-surface)
+  );
+  border-color: var(--learning-entry-border);
+
+  & .rpg-button--secondary {
+    background: var(--learning-entry-accent);
+    border-color: var(--learning-entry-border);
+    color: white;
+  }
+
+  & .rpg-button--secondary:hover:not(:disabled, [aria-disabled='true']) {
+    background: color-mix(in srgb, var(--learning-entry-accent), black 14%);
+  }
+
+  & .rpg-button--secondary:active:not(:disabled, [aria-disabled='true']) {
+    background: color-mix(in srgb, var(--learning-entry-accent), black 28%);
+  }
+
+  & .rpg-button--quiet {
+    border-color: var(--learning-entry-border);
+    color: var(--rpg-text);
+  }
+
+  & .rpg-button--quiet:hover,
+  & .rpg-button--quiet[aria-expanded='true'] {
+    background: var(--rpg-surface);
+  }
+
+  & .rpg-button:focus-visible {
+    outline-color: var(--rpg-text);
+  }
+}
+
+:root[data-theme='dark'] .rpg-hub__learning-grid {
+  --learning-entry-tint: 54%;
+  --learning-entry-border-tint: 42%;
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry > :first-child {
-  flex: 1 1 auto;
   min-width: 0;
+}
+
+.rpg-hub__learning-grid a.rpg-button {
+  padding-inline: clamp(0.25rem, 1.5vw, var(--space-3));
+}
+
+.rpg-hub__learning-grid .rpg-button--quiet {
+  min-width: 44px;
+  padding-inline: min(var(--space-3), 0.75rem);
 }
 
 .rpg-hub__learning-grid .rpg-button > span {
@@ -1333,9 +1427,16 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry > p {
-  flex: 1 0 100%;
+  grid-column: 1 / -1;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 24rem) {
+  .rpg-hub__learning-grid .rpg-hub__entry {
+    column-gap: var(--space-1);
+    padding-inline: var(--space-1);
+  }
 }
 
 .rpg-hub__details--summary {

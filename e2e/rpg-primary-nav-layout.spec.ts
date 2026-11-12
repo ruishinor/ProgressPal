@@ -552,16 +552,23 @@ test('the skip link, primary navigation and the HUD form a logical keyboard path
   }
 
   // The persistent HUD follows the navigation, before the page content: the
-  // avatar opens the Hero Profile, then Activity, its Settings gear, then the
-  // current-quest action. Each shows a visible focus indicator.
+  // avatar opens the Hero Profile, followed by Activity, Guild, Settings and
+  // the current-quest action. Each shows a visible focus indicator.
   for (const name of [
     'Open Hero Profile',
     'Activity Level 1',
+    'Code Knights',
     'Open Settings',
     /^(Start|Continue) quest$/,
   ]) {
     await page.keyboard.press('Tab');
     await expect(page.locator(':focus')).toHaveAccessibleName(name);
+    if (name === 'Code Knights') {
+      await expect(page.locator(':focus')).toHaveAttribute(
+        'href',
+        '/rpg/guild',
+      );
+    }
     const outline = await readStyles(page.locator(':focus'), ['outlineStyle']);
 
     expect(outline.outlineStyle, `${String(name)} outline`).not.toBe('none');

@@ -12,6 +12,7 @@ it('uses shared rank and a target based on the current members', () => {
     name: 'Lag A',
     membership: 'ab4d2826-20ad-4ee9-80ef-6bf725e82999',
     canInvite: true,
+    isAdmin: true,
     hasInvite: false,
     members,
   };

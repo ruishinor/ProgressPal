@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
 
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -18,6 +19,8 @@ import { loadRpgHeroProfileSummary } from '@/features/rpg/model/readModels';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 import type { RpgHeroProfileSummary } from '@/features/rpg/model/types';
+import type { RpgShellOutletContext } from '@/features/rpg/shell/RpgShell';
+import { rpgSocialPath } from '@/lib/routing/socialPaths';
 import {
   rpgBadgesPath,
   rpgLogPath,
@@ -41,6 +44,7 @@ const initialState: RpgHeroPageState = {
 
 export function RpgHeroPage() {
   const { programmeScope } = useAppState();
+  const guildName = useOutletContext<RpgShellOutletContext | null>()?.guildName;
   const { copy, notesOnDemand } = requireProgrammeScope(
     useAppState().programmeScope,
   ).content.terminology;
@@ -168,6 +172,8 @@ export function RpgHeroPage() {
         >
           <div className="rpg-hero__identity-layout">
             <RpgHeroIdentity
+              guildHref={rpgSocialPath}
+              guildName={guildName}
               avatarConfig={summary.learnerAvatarConfig}
               identity={summary.identity}
               name={summary.learnerName}

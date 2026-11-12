@@ -265,13 +265,15 @@ test.describe('the email-link landing route', () => {
 
     await expectAccessible(page, 'callback success');
 
-    // Every result ends at Settings, and landing there sends nothing new.
+    // Settings adds no provider traffic after the callback.
+    const beforeSettings = provider.calls.length;
     await page.getByRole('link', { name: 'Open Settings' }).click();
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
     await expect(
       card(page).getByText(learnerEmail, { exact: true }),
     ).toBeVisible();
     await page.waitForTimeout(500);
+    expect(provider.calls).toHaveLength(beforeSettings);
     expect(await providerCalls(page)).toHaveLength(1);
   });
 
@@ -427,9 +429,8 @@ test.describe('Settings cloud card in a real browser', () => {
     await expect(page).toHaveURL(/\/rpg$/);
     await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
 
-    // Back in Settings the learner is still signed in, and nothing was sent
-    // without a button press. Exactly: the sign-in; two backups (read the
-    // list, write, read the list again); one download. Nothing else.
+    // The two explicit backups each list, write and list again, followed by
+    // one explicit download. Navigating the RPG shell adds no requests.
     await page.goto('/rpg/settings');
     await expect(card(page).getByText(learnerEmail)).toBeVisible();
     expect(

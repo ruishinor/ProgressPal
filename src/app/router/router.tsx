@@ -7,6 +7,7 @@ import { MicrolearningRoute } from '@/app/routes/MicrolearningRoute';
 import { NotFoundPage } from '@/app/routes/NotFoundPage';
 import { MicroTrackRoute } from '@/app/routes/MicroTrackRoute';
 import { getRouteDefinition } from '@/app/router/routeDefinitions';
+import { LegacyGuildRedirect } from '@/app/router/LegacyGuildRedirect';
 import { AppShell } from '@/app/shell/AppShell';
 import { RpgRouteShell } from '@/app/shell/RpgRouteShell';
 import { AchievementsPage } from '@/features/achievements';
@@ -31,6 +32,7 @@ import { GroupPage } from '@/features/social';
 import { SessionsPage } from '@/features/sessions';
 import { ReferencePage } from '@/features/technologyReference';
 import { CloudCallbackPage, SettingsPage } from '@/features/settings';
+import { rpgSocialPath, socialPath } from '@/lib/routing/socialPaths';
 
 const onboardingRoute = getRouteDefinition('onboarding');
 const dashboardRoute = getRouteDefinition('dashboard');
@@ -61,6 +63,14 @@ export const router = createBrowserRouter([
   {
     path: homeRoute.to,
     element: <Navigate replace to="/rpg" />,
+  },
+  {
+    path: '/laeringslaget',
+    element: <LegacyGuildRedirect to={socialPath} />,
+  },
+  {
+    path: '/rpg/laeringslaget',
+    element: <LegacyGuildRedirect to={rpgSocialPath} />,
   },
   {
     // Outside both shells: a shell may redirect (to onboarding) before the

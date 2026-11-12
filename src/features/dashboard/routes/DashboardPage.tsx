@@ -473,7 +473,7 @@ export function DashboardPage() {
           </div>
         </Card>
 
-        <PersonalWeek rpg={false} />
+        <PersonalWeek />
 
         <Card title="Recent activity">
           {recentActivity.isEmpty ? (

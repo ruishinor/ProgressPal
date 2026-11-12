@@ -383,16 +383,174 @@
 }
 
 /* Reflow against text size, so enlarged text gets full-width goal quantities. */
-.activity-page {
+.activity-page,
+.rpg-guild {
   container-type: inline-size;
 }
+
+.rpg-guild .learning-group :is(.action-row, .profile-form) {
+  max-width: 100%;
+}
+
+.rpg-guild .learning-group :is(.rpg-button, label, summary) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rpg-guild .learning-group input {
+  width: 100%;
+  min-width: 0;
+}
+
+.learning-group__heading {
+  position: relative;
+}
+
+.learning-group__heading:has(.learning-group__refresh)
+  :is(.learning-group__eyebrow, h2:only-child) {
+  min-block-size: 44px;
+  padding-inline-end: calc(44px + var(--space-2));
+}
+
+.learning-group__heading:has(.learning-group__gear) .learning-group__eyebrow {
+  padding-inline-end: calc(88px + 2 * var(--space-2));
+}
+
+.learning-group__heading h2 {
+  margin-block: 0;
+  overflow-wrap: break-word;
+}
+
+.learning-group__eyebrow + h2 {
+  margin-block-start: var(--space-2);
+}
+
+.learning-group__heading p {
+  margin-block: 0;
+}
+
+.learning-group__eyebrow {
+  align-items: center;
+  display: flex;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.learning-group__goal,
+.learning-group__share {
+  border-block-start: 1px solid var(--rpg-border, var(--color-border));
+  padding-block-start: var(--space-3);
+}
+
+.learning-group__share {
+  margin-block-start: var(--space-3);
+}
+
+.learning-group__share p {
+  margin-block-start: 0;
+}
+
+.learning-group__ranking-title {
+  margin-block: var(--space-2) 0;
+}
+
+.learning-group__goal,
+.learning-group__ranking {
+  max-inline-size: 42rem;
+}
+
+.learning-group__ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.learning-group__ranking li {
+  align-items: baseline;
+  border-block-end: 1px solid var(--rpg-border, var(--color-border));
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 2ch minmax(0, 1fr) auto;
+  overflow-wrap: anywhere;
+  padding-block: var(--space-2);
+}
+
+.learning-group__status:empty {
+  margin: 0;
+  position: absolute;
+}
+
+.learning-group__refresh,
+.learning-group__gear {
+  align-items: center;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  height: 44px;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  justify-items: center;
+  padding: 0;
+  position: absolute;
+  width: 44px;
+}
+
+.learning-group__heading:has(.learning-group__gear) .learning-group__refresh {
+  inset-inline-end: calc(44px + var(--space-2));
+}
+
+.learning-group__refresh[aria-disabled='true'] {
+  cursor: wait;
+}
+
+.learning-group__heading .profile-form {
+  margin-block-start: var(--space-3);
+}
+
+.learning-group__gear::-webkit-details-marker {
+  display: none;
+}
+
+.learning-group__heading svg {
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  width: 20px;
+}
+
+.learning-group__name-editor[open] .learning-group__gear,
+.learning-group__refresh:hover,
+.learning-group__gear:hover {
+  background: var(--rpg-surface-raised, var(--color-surface-muted));
+}
+
+.learning-group__heading
+  :is(.learning-group__refresh, .learning-group__gear):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.rpg-guild .activity-tabs {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
+}
+
 @container (max-width: 18rem) {
-  .activity-tabs {
+  .activity-tabs,
+  .rpg-guild .activity-tabs {
     grid-template-columns: minmax(0, 1fr);
   }
   .activity-tabs button {
     white-space: nowrap;
     overflow-wrap: normal;
+  }
+  .rpg-guild .activity-tabs button {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .activity-overview__stats {
     grid-template-columns: minmax(0, 1fr);

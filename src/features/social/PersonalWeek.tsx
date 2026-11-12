@@ -1,29 +1,34 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Card } from '@/components/ui/Card';
+import { RpgPanel } from '@/features/rpg/components/RpgPanel';
 import { rpgFocusPath } from '@/lib/routing/rpgRoutePaths';
-import { rpgSocialPath, socialPath } from '@/lib/routing/socialPaths';
+import { socialPath } from '@/lib/routing/socialPaths';
 import { formatCalendarDay, formatWeekRange } from '@/lib/time/osloWeek';
 
 import { useLearningWeek } from './useLearningWeek';
 
-export function PersonalWeek({ rpg }: { rpg: boolean }) {
+export function PersonalWeek() {
   const learning = useLearningWeek();
-  return <PersonalWeekDetails learning={learning} rpg={rpg} />;
+  return <PersonalWeekDetails learning={learning} rpg={false} />;
 }
 
 export function PersonalWeekDetails({
   rpg,
   learning,
   onGroupPage = false,
+  children,
 }: {
   rpg: boolean;
   learning: ReturnType<typeof useLearningWeek>;
   onGroupPage?: boolean;
+  children?: ReactNode;
 }) {
   const { week, days, target } = learning;
+  const Panel = rpg ? RpgPanel : Card;
   return (
-    <Card lang="nb" padding="compact" title="Denne uken" titleAs="h2">
+    <Panel lang="nb" padding="compact" title="Denne uken" titleAs="h2">
       <p>{formatWeekRange(week)} · norsk tid</p>
       {days === undefined ? (
         <p role="status">Henter læringsdager …</p>
@@ -57,9 +62,10 @@ export function PersonalWeekDetails({
         </p>
       ) : (
         <p>
-          <Link to={rpg ? rpgSocialPath : socialPath}>Læringslaget</Link>
+          <Link to={socialPath}>Guild</Link>
         </p>
       )}
-    </Card>
+      {children}
+    </Panel>
   );
 }

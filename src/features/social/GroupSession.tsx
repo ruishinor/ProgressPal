@@ -1,9 +1,20 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { SettingsIcon } from '@/components/ui/SettingsIcon';
 import { TextInput } from '@/components/ui/TextInput';
+import { RpgButton } from '@/features/rpg/components/RpgButton';
+import { RpgPanel } from '@/features/rpg/components/RpgPanel';
+import { RpgProgressBar } from '@/features/rpg/components/RpgProgressBar';
 import {
   getSocialGroup,
   type SocialCommand,
@@ -13,26 +24,27 @@ import {
 import { getOsloWeek } from '@/lib/time/osloWeek';
 
 import { summarizeGroup } from './groupModel';
+import { defaultGuildName } from './useGroupAccess';
 import type { useLearningWeek } from './useLearningWeek';
 
 const failures: Record<SocialFailure, string> = {
   unauthenticated: 'Økten er utløpt. Logg inn på nytt i kontoinnstillingene.',
   'already-member':
-    'Kontoen er allerede med i et lag. Hent laget for å fortsette.',
-  'invalid-input': 'Sjekk lagnavn, kallenavn eller kode og prøv igjen.',
+    'Kontoen er allerede med i en Guild. Oppdater for å fortsette.',
+  'invalid-input': 'Sjekk Guild-navn, kallenavn eller kode og prøv igjen.',
   'invalid-code': 'Koden er ugyldig eller ikke lenger aktiv. Be om en ny kode.',
-  'group-full': 'Laget har åtte medlemmer og er fullt.',
-  'no-group': 'Kontoen er ikke lenger med i laget. Hent laget på nytt.',
+  'group-full': 'Guilden har åtte medlemmer og er full.',
+  'no-group': 'Kontoen er ikke lenger med i Guilden. Oppdater medlemskapet.',
   'membership-changed':
-    'Medlemskapet har endret seg. Hent laget på nytt før du deler eller gjør endringer.',
+    'Medlemskapet har endret seg. Oppdater Guilden før du deler eller gjør endringer.',
   'not-admin':
-    'Den som styrer laget kan endre invitasjonskoden. Hent laget på nytt.',
+    'Bare Guild-administratoren kan endre navnet eller deaktivere invitasjonskoden. Oppdater Guilden.',
   'invalid-days':
-    'Delte dager må være fra inneværende uke i norsk tid. Sjekk klokken på enheten og hent laget på nytt.',
+    'Delte dager må være fra inneværende uke i norsk tid. Sjekk klokken på enheten og oppdater Guilden.',
   unavailable:
-    'Kunne ikke bekrefte resultatet. Hent laget på nytt når du er tilkoblet.',
+    'Kunne ikke hente et gyldig svar fra Guild-tjenesten. Prøv igjen.',
   'rate-limited':
-    'Tjenesten har fått mange forespørsler. Vent litt og hent laget på nytt.',
+    'Tjenesten har fått mange forespørsler. Vent litt og oppdater Guilden.',
 };
 
 type Snapshot = Extract<SocialResult, { status: 'ok' }>;
@@ -41,9 +53,23 @@ type Props = {
   userId: string;
   settings: string;
   learning: ReturnType<typeof useLearningWeek>;
+  onGuildName?: (userId: string, name: string | null) => void;
+  onOpenAdministration?: () => void;
+  renderPanels?: (
+    guild: ReactNode,
+    administration: ReactNode,
+    share?: ReactNode,
+  ) => ReactNode;
 };
 
-export function GroupSession({ userId, settings, learning }: Props) {
+export function GroupSession({
+  userId,
+  settings,
+  learning,
+  onGuildName,
+  onOpenAdministration,
+  renderPanels,
+}: Props) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -52,6 +78,10 @@ export function GroupSession({ userId, settings, learning }: Props) {
   const [signedOut, setSignedOut] = useState(false);
   const active = useRef<AbortController | null>(null);
   const focus = useRef<HTMLHeadingElement>(null);
+  const nameEditor = useRef<HTMLDetailsElement>(null);
+  const nameEditorToggle = useRef<HTMLElement>(null);
+  const administrationHeading = useRef<HTMLHeadingElement>(null);
+  const commandHeading = useRef(focus);
   const stage =
     snapshot === null ? 'unread' : snapshot.group === null ? 'join' : 'member';
   const shownStage = useRef(stage);
@@ -66,12 +96,23 @@ export function GroupSession({ userId, settings, learning }: Props) {
   useEffect(() => {
     if (shownStage.current !== stage) {
       shownStage.current = stage;
-      focus.current?.focus();
+      const heading = commandHeading.current.current;
+      const panel = heading?.closest('[role="tabpanel"]');
+      const activeElement = document.activeElement;
+      if (
+        !panel ||
+        (!panel.hasAttribute('hidden') &&
+          (activeElement === document.body || panel.contains(activeElement)))
+      ) {
+        heading?.focus();
+      }
     }
   }, [stage]);
 
-  async function run(command: SocialCommand) {
+  async function run(command: SocialCommand, fromAdministration = false) {
     if (active.current !== null) return;
+    commandHeading.current =
+      renderPanels && fromAdministration ? administrationHeading : focus;
     const controller = new AbortController();
     active.current = controller;
     setBusy(true);
@@ -97,11 +138,16 @@ export function GroupSession({ userId, settings, learning }: Props) {
     if (result.status !== 'ok') {
       setNotice(failures[result.status]);
       if (result.status === 'unauthenticated') setSignedOut(true);
+      const retryableRead =
+        command.operation === 'read' &&
+        (result.status === 'unavailable' || result.status === 'rate-limited');
       if (
+        !retryableRead &&
         !['invalid-code', 'group-full', 'invalid-input'].includes(result.status)
       ) {
         setSnapshot(null);
         setConfirmLeave(false);
+        onGuildName?.(userId, null);
       }
       return;
     }
@@ -111,17 +157,28 @@ export function GroupSession({ userId, settings, learning }: Props) {
       result.weekStart !== getOsloWeek(new Date()).start
     ) {
       setSnapshot(null);
+      onGuildName?.(userId, null);
       setNotice(
-        'Uken i laget avviker fra klokken på enheten. Sjekk klokken og hent laget på nytt.',
+        'Uken i Guilden avviker fra klokken på enheten. Sjekk klokken og oppdater Guilden.',
       );
       return;
     }
     setSnapshot(result);
+    onGuildName?.(userId, result.group?.name ?? null);
     setConfirmLeave(false);
     if (command.operation === 'share') setNotice('Læringsdagene er delt.');
-    if (command.operation === 'leave') setNotice('Du har forlatt laget.');
+    if (command.operation === 'leave') setNotice('Du har forlatt Guilden.');
     if (command.operation === 'revoke')
       setNotice('Invitasjonskoden er deaktivert.');
+    if (command.operation === 'rename') {
+      closeNameEditor();
+      setNotice('Guild-navnet er lagret.');
+    }
+  }
+
+  function closeNameEditor() {
+    if (nameEditor.current) nameEditor.current.open = false;
+    nameEditorToggle.current?.focus();
   }
 
   function enrol(event: FormEvent<HTMLFormElement>) {
@@ -129,19 +186,25 @@ export function GroupSession({ userId, settings, learning }: Props) {
     const values = new FormData(event.currentTarget);
     const nickname = String(values.get('nickname') ?? '').trim();
     if (mode === 'create') {
-      void run({
-        operation: 'create',
-        nickname,
-        name: String(values.get('name') ?? '').trim(),
-      });
+      void run(
+        {
+          operation: 'create',
+          nickname,
+          name: String(values.get('name') ?? '').trim(),
+        },
+        true,
+      );
     } else {
-      void run({
-        operation: 'join',
-        nickname,
-        code: String(values.get('code') ?? '')
-          .trim()
-          .toLowerCase(),
-      });
+      void run(
+        {
+          operation: 'join',
+          nickname,
+          code: String(values.get('code') ?? '')
+            .trim()
+            .toLowerCase(),
+        },
+        true,
+      );
     }
   }
 
@@ -158,252 +221,419 @@ export function GroupSession({ userId, settings, learning }: Props) {
   const invite = snapshot?.invite ?? null;
   const summary = group === null ? null : summarizeGroup(group);
   const canShare = Array.isArray(learning.days) && learning.days.length > 0;
-  return (
-    <Card aria-busy={busy} className="learning-group">
-      <h2 ref={focus} tabIndex={-1}>
-        {group?.name ?? 'Laget'}
-      </h2>
-      <p role="status">{busy ? 'Kontakter laget …' : notice}</p>
-      {signedOut ? (
-        <p>
-          <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
-        </p>
-      ) : (
-        <div className="action-row">
-          <Button
+  const Action = renderPanels ? RpgButton : Button;
+  const status = (
+    <p className="learning-group__status" role="status">
+      {busy ? 'Jobber med Guild …' : notice}
+    </p>
+  );
+  const accountLink = (
+    <p>
+      <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
+    </p>
+  );
+  const sharePrivacy = (
+    <p>
+      Guilden ser kallenavnet ditt og antall dager. Nhost lagrer datoene du
+      deler. En delt dag teller én gang og blir stående selv om du endrer den
+      lokale registreringen.
+    </p>
+  );
+  const shareAction = group !== null && (canShare || !renderPanels) && (
+    <Action
+      disabled={busy || !canShare}
+      onClick={() => {
+        if (!learning.days) return;
+        if (learning.week.today !== getOsloWeek(new Date()).today) {
+          setNotice(
+            'Datoen har endret seg. Last inn siden på nytt før du deler.',
+          );
+          return;
+        }
+        void run({
+          operation: 'share',
+          days: learning.days,
+          membership: group.membership,
+        });
+      }}
+    >
+      Del ukens læringsdager
+    </Action>
+  );
+  const enrolmentEntry = (
+    <div className="action-row">
+      <Action
+        disabled={busy}
+        onClick={() => {
+          onOpenAdministration?.();
+          if (snapshot === null) void run({ operation: 'read' }, true);
+        }}
+        variant="secondary"
+      >
+        Opprett eller bli med i Guild
+      </Action>
+    </div>
+  );
+  const enrolment = snapshot !== null && group === null && (
+    <>
+      <p>
+        Ved å bli med deler du kallenavnet ditt med Guilden. Nhost lagrer
+        medlemskapet og datoene du velger å dele. Medlemmer ser kallenavn og
+        antall dager denne uken.
+      </p>
+      <div className="action-row">
+        <Action
+          aria-pressed={mode === 'create'}
+          disabled={busy}
+          onClick={() => setMode('create')}
+          variant="secondary"
+        >
+          Opprett en Guild
+        </Action>
+        <Action
+          aria-pressed={mode === 'join'}
+          disabled={busy}
+          onClick={() => setMode('join')}
+          variant="secondary"
+        >
+          Bli med i en Guild
+        </Action>
+      </div>
+      <form className="profile-form" onSubmit={enrol}>
+        <label>
+          Kallenavn{' '}
+          <TextInput
+            autoComplete="off"
             disabled={busy}
-            onClick={() => void run({ operation: 'read' })}
-            variant="secondary"
-          >
-            {snapshot === null ? 'Hent laget' : 'Oppdater laget'}
-          </Button>
-          {group !== null && (
-            <Button
-              disabled={busy || !canShare}
-              onClick={() => {
-                if (
-                  learning.days &&
-                  learning.week.today === getOsloWeek(new Date()).today
-                ) {
-                  void run({
-                    operation: 'share',
-                    days: learning.days,
-                    membership: group.membership,
-                  });
-                }
-              }}
-            >
-              Del ukens læringsdager
-            </Button>
-          )}
+            maxLength={24}
+            name="nickname"
+            required
+          />
+        </label>
+        {mode === 'create' ? (
+          <label>
+            Guild-navn{' '}
+            <TextInput
+              key="name"
+              autoComplete="off"
+              defaultValue={defaultGuildName}
+              disabled={busy}
+              maxLength={40}
+              name="name"
+              required
+            />
+          </label>
+        ) : (
+          <label>
+            Invitasjonskode{' '}
+            <TextInput
+              key="code"
+              autoComplete="off"
+              disabled={busy}
+              maxLength={64}
+              name="code"
+              required
+              spellCheck={false}
+            />
+          </label>
+        )}
+        <div className="action-row">
+          <Action disabled={busy} type="submit">
+            {mode === 'create' ? 'Opprett Guild' : 'Bli med'}
+          </Action>
         </div>
-      )}
-      {snapshot !== null && group === null && (
+      </form>
+    </>
+  );
+  const Progress = renderPanels ? RpgProgressBar : ProgressBar;
+  const board = group !== null && summary !== null && (
+    <>
+      <Progress
+        className="learning-group__goal"
+        label="Felles ukemål"
+        helperText={`${summary.total} / ${summary.target} læringsdager`}
+        max={summary.target}
+        value={summary.total}
+        tone={summary.total >= summary.target ? 'success' : undefined}
+      />
+      <h3 className="learning-group__ranking-title">Ukas rangering</h3>
+      <ul
+        aria-label="Ukas rangering"
+        className="learning-group__ranking"
+        role="list"
+      >
+        {summary.ranking.map(({ nickname, rank, days, self }, index) => (
+          <li key={index}>
+            <span>{rank}.</span>{' '}
+            <span>
+              {nickname}
+              {self ? ' (deg)' : ''}
+            </span>{' '}
+            <span>
+              {days} {days === 1 ? 'dag' : 'dager'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+  const membership = group !== null && (
+    <>
+      {(group.canInvite || group.isAdmin) && (
         <>
+          <h3>Invitasjon</h3>
           <p>
-            Ved å bli med deler du kallenavnet ditt med laget. Nhost lagrer
-            medlemskapet og datoene du velger å dele. Lagkamerater ser kallenavn
-            og antall dager denne uken.
+            Gi koden til dem du vil invitere. En ny kode erstatter den gamle.
           </p>
           <div className="action-row">
-            <Button
-              aria-pressed={mode === 'create'}
-              disabled={busy}
-              onClick={() => setMode('create')}
-              variant="secondary"
-            >
-              Opprett et lag
-            </Button>
-            <Button
-              aria-pressed={mode === 'join'}
-              disabled={busy}
-              onClick={() => setMode('join')}
-              variant="secondary"
-            >
-              Bli med i et lag
-            </Button>
-          </div>
-          <form className="profile-form" onSubmit={enrol}>
-            <label>
-              Kallenavn{' '}
-              <TextInput
-                autoComplete="off"
+            {group.canInvite && (
+              <Action
                 disabled={busy}
-                maxLength={24}
-                name="nickname"
+                onClick={() =>
+                  void run(
+                    {
+                      operation: 'invite',
+                      membership: group.membership,
+                    },
+                    true,
+                  )
+                }
+                variant="secondary"
+              >
+                {group.hasInvite ? 'Lag ny kode' : 'Lag invitasjonskode'}
+              </Action>
+            )}
+            {group.isAdmin && group.hasInvite && (
+              <Action
+                disabled={busy}
+                onClick={() =>
+                  void run(
+                    {
+                      operation: 'revoke',
+                      membership: group.membership,
+                    },
+                    true,
+                  )
+                }
+                variant="quiet"
+              >
+                Deaktiver koden
+              </Action>
+            )}
+          </div>
+          {invite !== null && (
+            <>
+              <label>
+                Invitasjonskode <TextInput readOnly value={invite} />
+              </label>
+              <div className="action-row">
+                <Action
+                  disabled={busy}
+                  onClick={() => void copyInvite(invite)}
+                  variant="secondary"
+                >
+                  Kopier invitasjonskode
+                </Action>
+              </div>
+            </>
+          )}
+        </>
+      )}
+      <details>
+        <summary>Medlemskap og konto</summary>
+        <p>
+          Du kan forlate Guilden når du vil. Da fjernes medlemskapet og dagene
+          du har delt.
+        </p>
+        <p>
+          Øving lagres på enheten. Medlemskapet og de delte dagene ligger hos
+          Nhost, også om du nullstiller appen eller gjenoppretter en
+          sikkerhetskopi.
+        </p>
+        {accountLink}
+        {confirmLeave && (
+          <p>Vil du fjerne medlemskapet og de delte dagene fra Guilden?</p>
+        )}
+        <div className="action-row">
+          <Action
+            disabled={busy}
+            onClick={() => {
+              if (confirmLeave)
+                void run(
+                  {
+                    operation: 'leave',
+                    membership: group.membership,
+                  },
+                  true,
+                );
+              else setConfirmLeave(true);
+            }}
+            variant={confirmLeave ? 'danger' : 'secondary'}
+          >
+            {confirmLeave ? 'Ja, forlat Guilden' : 'Forlat Guilden'}
+          </Action>
+          {confirmLeave && (
+            <Action
+              disabled={busy}
+              onClick={() => setConfirmLeave(false)}
+              variant="quiet"
+            >
+              Avbryt
+            </Action>
+          )}
+        </div>
+      </details>
+    </>
+  );
+
+  const heading = (
+    <div className="learning-group__heading">
+      <div className="learning-group__identity">
+        {group && <p className="learning-group__eyebrow">Guild</p>}
+        <h2 ref={focus} tabIndex={-1}>
+          {group?.name ?? 'Guild'}
+        </h2>
+        {group && <p>{group.members.length} av 8 medlemmer</p>}
+      </div>
+      {!signedOut && (
+        <button
+          aria-disabled={busy}
+          aria-label="Oppdater Guild"
+          className="learning-group__refresh"
+          onClick={() => void run({ operation: 'read' })}
+          type="button"
+        >
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+            <path
+              d="M20 11a8 8 0 1 0-2 6m2-11v5h-5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
+      {group?.isAdmin && (
+        <details className="learning-group__name-editor" ref={nameEditor}>
+          <summary
+            aria-label="Endre Guild-navn"
+            className="learning-group__gear"
+            ref={nameEditorToggle}
+          >
+            <SettingsIcon />
+          </summary>
+          <form
+            className="profile-form"
+            key={group.name}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const name = new FormData(event.currentTarget).get('name');
+              if (typeof name === 'string') {
+                void run({
+                  operation: 'rename',
+                  membership: group.membership,
+                  name: name.trim(),
+                });
+              }
+            }}
+          >
+            <label>
+              Guild-navn
+              <TextInput
+                defaultValue={group.name}
+                disabled={busy}
+                maxLength={40}
+                name="name"
                 required
               />
             </label>
-            {mode === 'create' ? (
-              <label>
-                Lagnavn{' '}
-                <TextInput
-                  key="name"
-                  autoComplete="off"
-                  disabled={busy}
-                  maxLength={40}
-                  name="name"
-                  required
-                />
-              </label>
-            ) : (
-              <label>
-                Invitasjonskode{' '}
-                <TextInput
-                  key="code"
-                  autoComplete="off"
-                  disabled={busy}
-                  maxLength={64}
-                  name="code"
-                  required
-                  spellCheck={false}
-                />
-              </label>
-            )}
             <div className="action-row">
-              <Button disabled={busy} type="submit">
-                {mode === 'create' ? 'Opprett laget' : 'Bli med'}
-              </Button>
+              <Action disabled={busy} type="submit">
+                Lagre navn
+              </Action>
+              <Action
+                disabled={busy}
+                onClick={(event) => {
+                  event.currentTarget.form?.reset();
+                  closeNameEditor();
+                }}
+                variant="secondary"
+              >
+                Avbryt
+              </Action>
             </div>
           </form>
-        </>
+        </details>
       )}
-      {group !== null && summary !== null && (
-        <>
-          <p>{group.members.length} av 8 plasser i bruk</p>
-          <h3>Felles mål</h3>
-          <p>
-            {summary.total} av {summary.target} læringsdager delt. Målet følger
-            størrelsen på laget, med to dager per medlem.
-          </p>
-          {summary.total >= summary.target && (
-            <p>
-              <strong>Laget nådde ukemålet!</strong>
-            </p>
-          )}
-          {group.members.length > 1 ? (
-            <>
-              <h3>Ukas rangering</h3>
-              <ul className="detail-list">
-                {summary.ranking.map(
-                  ({ nickname, rank, days, self }, index) => (
-                    <li key={index}>
-                      {rank}. {nickname}
-                      {self ? ' (deg)' : ''} · {days}{' '}
-                      {days === 1 ? 'dag' : 'dager'}
-                    </li>
-                  ),
-                )}
-              </ul>
-            </>
-          ) : (
-            <p>Inviter noen du vil øve sammen med.</p>
-          )}
-          <p>
-            Hver delt dag teller én gang, også fra flere enheter. Delte dager
-            blir stående selv om du endrer registreringene dine. Del innen
-            søndag i norsk tid.
-          </p>
-          {group.canInvite && (
-            <>
-              <h3>Invitasjon</h3>
-              <p>
-                Gi koden til dem du vil invitere. En ny kode erstatter den
-                gamle.
-              </p>
-              <div className="action-row">
-                <Button
-                  disabled={busy || group.members.length >= 8}
-                  onClick={() =>
-                    void run({
-                      operation: 'invite',
-                      membership: group.membership,
-                    })
-                  }
-                  variant="secondary"
-                >
-                  {group.hasInvite ? 'Lag ny kode' : 'Lag invitasjonskode'}
-                </Button>
-                {group.hasInvite && (
-                  <Button
-                    disabled={busy}
-                    onClick={() =>
-                      void run({
-                        operation: 'revoke',
-                        membership: group.membership,
-                      })
-                    }
-                    variant="quiet"
-                  >
-                    Deaktiver koden
-                  </Button>
-                )}
-              </div>
-              {invite !== null && (
-                <>
-                  <label>
-                    Invitasjonskode <TextInput readOnly value={invite} />
-                  </label>
-                  <div className="action-row">
-                    <Button
-                      disabled={busy}
-                      onClick={() => void copyInvite(invite)}
-                      variant="secondary"
-                    >
-                      Kopier invitasjonskode
-                    </Button>
-                  </div>
-                </>
-              )}
-            </>
-          )}
-          <details>
-            <summary>Medlemskap og konto</summary>
-            <p>
-              Du kan forlate laget når du vil. Da fjernes medlemskapet og dagene
-              du har delt.
-            </p>
-            <p>
-              Øving lagres på enheten. Medlemskapet og de delte dagene ligger
-              hos Nhost, også om du nullstiller appen eller gjenoppretter en
-              sikkerhetskopi.
-            </p>
-            <p>
-              <Link to={settings + '#cloud-account'}>
-                Åpne kontoinnstillinger
-              </Link>
-            </p>
-            {confirmLeave && (
-              <p>Vil du fjerne medlemskapet og de delte dagene fra laget?</p>
+    </div>
+  );
+
+  if (renderPanels) {
+    return renderPanels(
+      <RpgPanel className="learning-group">
+        {heading}
+        {status}
+        {signedOut
+          ? accountLink
+          : group === null && (
+              <>
+                {snapshot !== null && <p>Du er ikke med i en Guild ennå.</p>}
+                {enrolmentEntry}
+              </>
             )}
-            <div className="action-row">
-              <Button
-                disabled={busy}
-                onClick={() => {
-                  if (confirmLeave)
-                    void run({
-                      operation: 'leave',
-                      membership: group.membership,
-                    });
-                  else setConfirmLeave(true);
-                }}
-                variant={confirmLeave ? 'danger' : 'secondary'}
-              >
-                {confirmLeave ? 'Ja, forlat laget' : 'Forlat laget'}
-              </Button>
-              {confirmLeave && (
-                <Button
-                  disabled={busy}
-                  onClick={() => setConfirmLeave(false)}
-                  variant="quiet"
-                >
-                  Avbryt
-                </Button>
-              )}
+        {board}
+      </RpgPanel>,
+      <RpgPanel className="learning-group">
+        <h2 ref={administrationHeading} tabIndex={-1}>
+          Administrasjon
+        </h2>
+        {status}
+        {signedOut ? (
+          accountLink
+        ) : snapshot === null ? (
+          <div className="action-row">
+            <Action
+              disabled={busy}
+              onClick={() => void run({ operation: 'read' }, true)}
+              variant="secondary"
+            >
+              Hent medlemskap
+            </Action>
+          </div>
+        ) : null}
+        {enrolment}
+        {membership}
+      </RpgPanel>,
+      <>
+        {shareAction && (
+          <div className="learning-group__share">
+            {sharePrivacy}
+            {shareAction}
+          </div>
+        )}
+        {canShare && snapshot === null && !signedOut && (
+          <p>Hent medlemskapet i Guild-fanen for å dele læringsdagene dine.</p>
+        )}
+        {status}
+      </>,
+    );
+  }
+
+  return (
+    <Card className="learning-group">
+      {heading}
+      {status}
+      {!signedOut && snapshot === null && enrolmentEntry}
+      {signedOut
+        ? accountLink
+        : shareAction && (
+            <div className="learning-group__share">
+              {sharePrivacy}
+              {shareAction}
             </div>
-          </details>
-        </>
-      )}
+          )}
+      {enrolment}
+      {board}
+      {membership}
     </Card>
   );
 }

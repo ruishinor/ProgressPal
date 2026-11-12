@@ -1,5 +1,80 @@
 # ProgressPal current state
 
+**Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger
+videre på den lokale v2-kandidaten `d32acb4` og GitHub `master` med PR #90
+(`2c1201930b403e4c081de212ca59ae9ca9a2f067`). Guild har én medlemsliste
+sortert etter ukas rangering, et felles ukemål og en oppdateringsknapp med
+ikon. I RPG ligger frivillig deling i Min uke etter bekreftet medlemskap.
+Classic beholder deling på Guild-siden. Refresh og deling bruker de
+eksisterende medlemskaps- og kontokontraktene.
+
+Før publisering må den eksisterende, autentiserte `social_week`-kontrakten
+på `progresspal-g0` bekreftes med støtte for navneendring. Den forberedte
+[Guild-oppgraderingen](../infra/nhost/social/README.md) følger v2-kandidaten.
+FAQ i Innstillinger er utsatt.
+
+**ProgressPal-korrigeringsordre v2 — sluttført lokal kandidat, 2026-11-12.**
+`cx/progresspal-korrigeringsordre-v2` bygger på verifisert remote `master`
+`2c1201930b403e4c081de212ca59ae9ca9a2f067`, som inkluderer PR #90.
+Kandidaten beholder kontoflyten, synkroniseringsstatus og RPG-stilvalget.
+
+- Full RPG Home viser Teknologioppslag på én tekstlinje ved 320 CSS px.
+  Testen kontrollerer tekstens faktiske linjer og infoknappens plassering og
+  trefflate, også i Glassmorphic.
+- Guild viser medlemmer vertikalt, fremdrift mot felles mål og rangering med
+  delte plasseringer. Fremdriftslinjen fylles ved oppnådd mål, og teksten
+  viser faktisk total ved måloverskridelse.
+- Hero HUD viser navnet fra en bekreftet, eksplisitt Guild-handling i det
+  aktive RPG-skallet. Ved ukjent navn, utlogging, kontobytte eller offline
+  vises Code Knights. Åpning av RPG og kontoinnstillinger gir ingen
+  bakgrunnsoppslag mot Guild.
+
+Lokalt besto 97 Vitest-caser, 6 buntbudsjett-caser og 16 unike nettlesercaser,
+inkludert de to PR #90-flytene med synkronisering aktivert. Guild-testen besto
+også i egen omkjøring etter justering av testen for forsinkede svar.
+Produksjonsbygg og buntbudsjett besto både med standardinnstilling og med
+synkronisering aktivert. Standardbygget målte 457 948 B JS gzip og 343 107 B
+for største rå JS-fil mot takene på 500 000 og 550 000 B.
+
+Den lokale [Guild-migreringen](../infra/nhost/social/README.md) besto SQL-proben
+mot midlertidig PostgreSQL. Live Hasura/JWT og migrering gjenstår. Kandidaten
+avventer hosted `Final candidate`. Vercel-aliaset pekte ved kontroll på
+`61bcb593`. [Selvreview for sluttkandidaten](release-reviews/progresspal-korrigeringsordre-v2.json).
+
+**ProgressPal-korrigeringsordre v2 — tidligere lokal kandidat, 2026-11-12.** Kandidatgrenen
+`cx/progresspal-korrigeringsordre-v2` starter på verifisert `master`
+`61bcb593b9194e6b1092e495d28465a2cf091a90` (PR #89). De eksisterende
+P0–P2-implementeringene `b4ee587`, `1d876be` og `843d668` er integrert.
+De opprinnelige grenene beholder sin historiske review- og testevidens.
+
+- Guild bruker de eksisterende rutene og Nhost-medlemskapene. Administratoren
+  endrer navnet fra tannhjulet i Guild-kortet. RPG viser bekreftet Guild-navn
+  for innloggede brukere på nett og bruker Code Knights som standard.
+  Guild, aktivitetsnivå, XP/Level og Path er synlige med Details lukket.
+- Teknologioppslag og infoknappen ligger på samme rad ved smal visning og
+  forstørring. Glassmorphic viser bakgrunnsfargene gjennom panelene og
+  respekterer redusert transparens. Playful-farger følger KPI-ene når
+  rekkefølgen endres.
+- P0–P2 før korrigering målte 450 026 B JS gzip og 497 064 B største rå
+  JS-fil. Korrigert bygg målte 450 670 og 497 241 B. Takene på 500 000 og
+  550 000 B gir 10,9 % og 10,6 % arbeidsmargin, avrundet til 50 kB.
+  `check:bundle` ga PASS for alle budsjettklasser. CSS målte 18 786 B gzip,
+  pensum 265 864 B og Python-runtime 6 398 912 B.
+- Lokal verifikasjon omfatter 274 målrettede Vitest-caser, 27 Node-caser
+  for buntbudsjett og release-binding, 46 unike Chromium-caser inkludert
+  to offline-caser, samt lint, format, typesjekk, sirkulærsjekk og bygg.
+  Ekte 200 % Chromium-zoom ga 309 CSS px og besto for åtte kombinasjoner av
+  stil og fargemodus. Laveste målte Glassmorphic-tekstkontrast var 7,15:1
+  på Home og 5,73:1 på Guild-flaten.
+- [Guild-migreringen](../infra/nhost/social/README.md) besto i en midlertidig
+  lokal database med PostgreSQL/PGlite 0.5.16. Nettleserprøven bruker simulert
+  transport. Live Nhost-migrering og validering av Hasura/JWT gjenstår i
+  autorisert miljø.
+- PR #90 var en åpen kladd ved denne kontrollen. Dens `Final candidate` besto på `5b2a35e`.
+  Produksjonsaliaset pekte ved kontroll på Vercel-deploy
+  `dpl_3mMF8fxccg85f1csJphvnUBSbsko` fra `61bcb593`.
+  Selvreviewet for denne historiske kandidaten ligger i commit `ea8b2c5`.
+
 **Kontobasert oppstart og automatisk synkronisering — kildekandidat
 2026-11-12.** Arbeidet bygger på `61bcb593b9194e6b1092e495d28465a2cf091a90`
 på en isolert gren. `VITE_PROGRESSPAL_ACCOUNT_SYNC=true` aktiverer
@@ -18,6 +93,21 @@ programme isolation, accessibility and release controls. The owner
 authorized genuine implementer self-review on 2026-11-12. Record its actual
 provenance in schema-v2 evidence bound to the final payload. The hosted
 Final candidate check must pass on the exact PR candidate before merge.
+
+**RPG-stiler, lokal kandidat 2026-11-12.** Standard, Vibrant Accent,
+Glassmorphic Contrast og High-Contrast Playful kan velges i RPG Settings.
+Stilen lagres som nettleserpreferanse utenfor backup. Fargemodus følger
+fortsatt profilinnstillingen i både Classic og RPG.
+
+**Team, lokal kandidat 2026-11-12.** RPG HUD lenker til den eksisterende
+lagruten. Min uke, Team og Administrasjon har egne faner. Læringsuken
+leses lokalt, og gruppesesjonen leser eller deler med Nhost ved en
+uttrykkelig handling. Classic beholder ukevisningen på dashbordet.
+
+**RPG Home, local candidate 2026-11-12.** Pathways, Teknologioppslag,
+Mikroøkt and Utviklerblikk have distinct card and action colours in both
+themes. Managed Chromium checked contrast, focus, 320 px reflow and 200%
+root text. The existing C1 palette checks and bundle budget passed.
 
 **Læringslaget, kildekandidat 2026-11-11.** Arbeidet startet ved PR #85
 (`06983dcd2dc5f9f3f6673e36ebfc388c8d501904`) og inkluderer PR #86

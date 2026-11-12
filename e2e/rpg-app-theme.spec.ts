@@ -1,4 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+/// <reference lib="dom" />
+import { writeFile } from 'node:fs/promises';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
@@ -18,6 +21,10 @@ interface ThemeScope {
   };
   getComputedStyle(element: unknown): {
     backgroundColor: string;
+    borderColor: string;
+    color: string;
+    outlineColor: string;
+    outlineStyle: string;
     getPropertyValue(name: string): string;
   };
 }
@@ -65,7 +72,21 @@ function channelsOf(color: string) {
       Number.parseInt(color.slice(offset, offset + 2), 16),
     );
   }
-  return (color.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number);
+  const channels = (color.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number);
+  return color.startsWith('color(srgb')
+    ? channels.map((channel) => channel * 255)
+    : channels;
+}
+
+function contrastBetween(foreground: string, background: string) {
+  const luminances = [foreground, background].map((color) => {
+    const [r, g, b] = channelsOf(color).map((value) => {
+      const c = value / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  });
+  return (Math.max(...luminances) + 0.05) / (Math.min(...luminances) + 0.05);
 }
 
 /**
@@ -562,4 +583,498 @@ test('a system preference drives both interfaces and follows device changes', as
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await classicCanvas()).toBe('rgb(31, 36, 39)');
+});
+
+const learningEntryLinks = [
+  '/rpg/pathways',
+  '/rpg/oppslag',
+  '/rpg/micro',
+  '/rpg/track/tenk-som-en-utvikler',
+];
+
+async function expectLearningActionsOnOneRow(entry: Locator) {
+  const { info, link } = await entry.evaluate((element) => {
+    const link = element.querySelector('a');
+    const info = element.querySelector('button');
+    if (link === null || info === null) {
+      throw new Error('Learning entry is missing an action.');
+    }
+    const rectangle = ({ height, width, x, y }: DOMRect) => ({
+      height,
+      width,
+      x,
+      y,
+    });
+    return {
+      info: rectangle(info.getBoundingClientRect()),
+      link: rectangle(link.getBoundingClientRect()),
+    };
+  });
+  expect(Math.abs(link.y - info.y)).toBeLessThanOrEqual(1);
+  expect(link.x + link.width).toBeLessThanOrEqual(info.x);
+  expect(info.height).toBeGreaterThanOrEqual(44);
+  expect(info.width).toBeGreaterThanOrEqual(44);
+}
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`RPG Home learning entries have distinct accessible surfaces in ${theme}`, async ({
+    page,
+  }, testInfo) => {
+    await completeOnboarding(page, {
+      theme,
+      programme: 'Programvareutvikling',
+    });
+    await page.goto('/rpg');
+    const grid = page.locator('.rpg-hub__learning-grid');
+    const entries = grid.locator('.rpg-hub__entry');
+    await expect(entries).toHaveCount(4);
+
+    for (const width of [1280, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      const samples = [];
+      for (const href of learningEntryLinks) {
+        const target = page.locator(`a[href="${href}"]`);
+        const entry = entries.filter({ has: target });
+        const link = entry.getByRole('link');
+        const info = entry.getByRole('button');
+        await expect(link).toBeVisible();
+        await expect(info).toHaveAccessibleName(/\S/);
+        await expectLearningActionsOnOneRow(entry);
+        await link.focus();
+        const sample = await entry.evaluate((card) => {
+          const scope = globalThis as unknown as ThemeScope;
+          const target = card as unknown as {
+            querySelector(selector: string): unknown;
+          };
+          const surface = scope.getComputedStyle(card);
+          const action = scope.getComputedStyle(target.querySelector('a'));
+          const disclosure = scope.getComputedStyle(
+            target.querySelector('button'),
+          );
+          return {
+            card: surface.backgroundColor,
+            button: action.backgroundColor,
+            buttonText: action.color,
+            infoText: disclosure.color,
+            infoBorder: disclosure.borderColor,
+            focus: action.outlineColor,
+            focusStyle: action.outlineStyle,
+          };
+        });
+        expect(
+          contrastBetween(sample.buttonText, sample.button),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastBetween(sample.infoText, sample.card),
+        ).toBeGreaterThanOrEqual(4.5);
+        expect(
+          contrastBetween(sample.infoBorder, sample.card),
+        ).toBeGreaterThanOrEqual(3);
+        expect(
+          contrastBetween(sample.focus, sample.card),
+        ).toBeGreaterThanOrEqual(3);
+        expect(sample.focusStyle).toBe('solid');
+        samples.push({ href, ...sample });
+      }
+      expect(new Set(samples.map(({ card }) => card)).size).toBe(4);
+      expect(new Set(samples.map(({ button }) => button)).size).toBe(4);
+      await writeFile(
+        testInfo.outputPath(`computed-colours-${theme}-${width}.json`),
+        JSON.stringify(samples, null, 2),
+      );
+      await grid.screenshot({
+        path: testInfo.outputPath(`learning-${theme}-${width}.png`),
+      });
+    }
+
+    const reference = entries.filter({
+      has: page.locator('a[href="/rpg/oppslag"]'),
+    });
+    const info = reference.getByRole('button');
+    await info.focus();
+    await page.keyboard.press('Enter');
+    await expect(info).toHaveAttribute('aria-expanded', 'true');
+    await expect(page).toHaveURL(/\/rpg$/);
+    const controlledId = await info.getAttribute('aria-controls');
+    await expect(page.locator(`[id="${controlledId}"]`)).toBeVisible();
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    for (const entry of await entries.all()) {
+      await expectLearningActionsOnOneRow(entry);
+    }
+    expect(
+      await page.evaluate('document.documentElement.scrollWidth <= innerWidth'),
+    ).toBe(true);
+    const gridBounds = (await grid.boundingBox())!;
+    for (const control of await grid
+      .getByRole('link')
+      .or(grid.getByRole('button'))
+      .all()) {
+      const bounds = (await control.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(gridBounds.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(
+        gridBounds.x + gridBounds.width + 1,
+      );
+    }
+  });
+}
+
+const styleChoices = ['vibrant', 'glass', 'playful'] as const;
+const rpgStyleStorageKey = 'progresspal:rpg-style';
+const homeContrastTargets = [
+  '.rpg-hero-hud__name',
+  '.rpg-identity__guild-link',
+  '.rpg-identity__path dd',
+  '.rpg-hub__quest-panel .rpg-panel__title',
+  '.rpg-hub__quest-primary .rpg-button > span',
+  '.rpg-hub__learning-grid .rpg-button > span',
+  '.rpg-hub__details--summary :is(dt, dd)',
+].join(', ');
+const guildContrastTargets = [
+  '.rpg-guild h1',
+  '.rpg-guild .rpg-page-lede',
+  '.rpg-guild [role="tab"]',
+  '.rpg-guild [role="tabpanel"]:not([hidden]) .rpg-panel__title',
+].join(', ');
+
+async function sampleRenderedContrast(page: Page, selector: string) {
+  const targets = await page.locator(selector).evaluateAll((elements) =>
+    elements.map((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        name: element.textContent?.trim(),
+        foreground: getComputedStyle(element).color,
+        y: Math.floor(rect.top + scrollY + rect.height / 2),
+        xs: [0.15, 0.5, 0.85].map((fraction) =>
+          Math.floor(rect.left + scrollX + rect.width * fraction),
+        ),
+      };
+    }),
+  );
+  expect(targets.length).toBeGreaterThan(0);
+  // Read the background behind each label directly from rendered pixels,
+  // including the gradient, blur and all translucent layers.
+  const background = await page.screenshot({
+    fullPage: true,
+    scale: 'css',
+    style: `:is(${selector}) { color: transparent !important; }`,
+  });
+  const sampled = await page.evaluate(
+    async ({ png, targets }) => {
+      const image = new Image();
+      image.src = 'data:image/png;base64,' + png;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const paint = canvas.getContext('2d')!;
+      paint.drawImage(image, 0, 0);
+      return targets.map((target) => ({
+        ...target,
+        backgrounds: target.xs.map((x) => {
+          const [r, g, b] = paint.getImageData(x, target.y, 1, 1).data;
+          return `rgb(${r}, ${g}, ${b})`;
+        }),
+      }));
+    },
+    { png: background.toString('base64'), targets },
+  );
+
+  return sampled.map(({ name, foreground, backgrounds }) => {
+    const minimum = Math.min(
+      ...backgrounds.map((bg) => contrastBetween(foreground, bg)),
+    );
+    expect(
+      minimum,
+      `${name} against ${backgrounds.join(' / ')}`,
+    ).toBeGreaterThanOrEqual(4.5);
+    return { name, foreground, backgrounds, minimum };
+  });
+}
+
+async function expectRpgReflow(page: Page, selectors: string) {
+  const clipped = await page.locator(selectors).evaluateAll((elements) =>
+    elements
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return (
+          rect.left < 0 ||
+          rect.right > innerWidth + 1 ||
+          element.scrollWidth > element.clientWidth + 1
+        );
+      })
+      .map((element) => element.textContent),
+  );
+  expect(clipped).toEqual([]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+}
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`RPG visual styles render contrasting Home and Guild surfaces in ${theme}`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    await completeOnboarding(page, {
+      theme,
+      programme: 'Programvareutvikling',
+    });
+    const select = page.locator('#rpg-visual-style');
+    const body = page.locator('body');
+    const entries = page.locator('.rpg-hub__learning-grid .rpg-hub__entry');
+    const surfaces = () =>
+      entries.evaluateAll((elements) =>
+        elements.map((entry) => ({
+          card: getComputedStyle(entry).backgroundColor,
+          button: getComputedStyle(entry.querySelector('a')!).backgroundColor,
+        })),
+      );
+    const stats = page.locator('.rpg-hub__details--summary dd');
+    const hud = page.locator('.rpg-hero-hud');
+    const themeSignature = () =>
+      hud.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          background: getComputedStyle(document.body).backgroundImage,
+          surface: style.backgroundColor,
+          shadow: style.boxShadow,
+          blur: style.backdropFilter,
+        };
+      });
+    await openRpgHub(page);
+    await expect(entries).toHaveCount(4);
+    const standard = await themeSignature();
+    const standardButtons = (await surfaces()).map(({ button }) => button);
+    const savedStats = await stats.allTextContents();
+    expect(savedStats.length).toBeGreaterThan(0);
+    const signatures = [];
+
+    for (const style of styleChoices) {
+      await page.goto('/rpg/settings');
+      await expect(select).toHaveAccessibleName(/\S/);
+      await select.selectOption(style);
+      await expect(body).toHaveAttribute('data-rpg-style', style);
+      await openRpgHub(page);
+      await expect(entries).toHaveCount(4);
+      const signature = await themeSignature();
+      expect(signature).not.toEqual(standard);
+      signatures.push(signature);
+      expect(await stats.allTextContents()).toEqual(savedStats);
+      expect((await surfaces()).map(({ button }) => button)).toEqual(
+        standardButtons,
+      );
+      if (style === 'glass') expect(signature.blur).not.toBe('none');
+      if (style === 'playful') {
+        const fills = await stats.evaluateAll((elements) => {
+          const cards = elements.map((element) => element.parentElement!);
+          const fill = (card: HTMLElement) =>
+            getComputedStyle(card).backgroundColor;
+          const original = cards.map(fill);
+          const list = cards[0].parentElement!;
+          list.prepend(cards.at(-1)!);
+          const reordered = cards.map(fill);
+          list.append(cards.at(-1)!);
+          return { original, reordered };
+        });
+        expect(new Set(fills.original).size).toBe(fills.original.length);
+        expect(fills.reordered).toEqual(fills.original);
+      }
+
+      for (const width of [1280, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        const css = await surfaces();
+        expect(new Set(css.map(({ card }) => card)).size).toBe(4);
+        await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
+        if (width === 320) {
+          const reference = entries.filter({
+            has: page.getByRole('link', {
+              name: 'Teknologioppslag',
+              exact: true,
+            }),
+          });
+          await expectLearningActionsOnOneRow(reference);
+          const title = reference.getByRole('link').locator('span');
+          await expect(title).toBeVisible();
+          const lines = await title.evaluate((label) => {
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            return [...range.getClientRects()].map((rect) => ({
+              top: rect.top,
+              left: rect.left,
+              right: rect.right,
+            }));
+          });
+          expect(new Set(lines.map(({ top }) => top)).size).toBe(1);
+          const button = (await reference.getByRole('link').boundingBox())!;
+          for (const line of lines) {
+            expect(line.left).toBeGreaterThanOrEqual(button.x);
+            expect(line.right).toBeLessThanOrEqual(button.x + button.width);
+          }
+        }
+        const entryLink = entries.first().getByRole('link');
+        await entryLink.focus();
+        await expect(entryLink).toHaveCSS('outline-style', 'solid');
+        const outline = await entryLink.evaluate(
+          (element) => getComputedStyle(element).outlineColor,
+        );
+        expect(contrastBetween(outline, css[0]!.card)).toBeGreaterThanOrEqual(
+          3,
+        );
+        await entryLink.blur();
+        await page.screenshot({
+          fullPage: true,
+          path: testInfo.outputPath(`${style}-${theme}-${width}.png`),
+        });
+        const contrast = await sampleRenderedContrast(
+          page,
+          homeContrastTargets,
+        );
+        await writeFile(
+          testInfo.outputPath(`${style}-${theme}-${width}-home.json`),
+          JSON.stringify({ signature, css, contrast }, null, 2),
+        );
+      }
+      if (style === 'glass') {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setEmulatedMedia', {
+          features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }],
+        });
+        await expect(hud).toHaveCSS('backdrop-filter', 'none');
+        await expect(body).toHaveCSS('background-image', 'none');
+        await sampleRenderedContrast(page, homeContrastTargets);
+        await cdp.send('Emulation.setEmulatedMedia', { features: [] });
+        await cdp.detach();
+      }
+      const enlarged = await page.addStyleTag({
+        content: 'html { font-size: 200% !important; }',
+      });
+      await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
+      const guildLink = hud.locator('a[href="/rpg/guild"]');
+      await guildLink.focus();
+      await expect(guildLink).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(/\/rpg\/guild$/);
+      await expect(page.getByRole('tabpanel')).toBeVisible();
+      await expectRpgReflow(page, '.rpg-guild :is([role="tab"], a:visible)');
+      await enlarged.evaluate((tag) => {
+        tag.parentNode?.removeChild(tag);
+      });
+
+      for (const width of [1280, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.locator('.rpg-guild').screenshot({
+          path: testInfo.outputPath(`guild-${style}-${theme}-${width}.png`),
+        });
+        const contrast = await sampleRenderedContrast(
+          page,
+          guildContrastTargets,
+        );
+        await writeFile(
+          testInfo.outputPath(`${style}-${theme}-${width}-guild.json`),
+          JSON.stringify(contrast, null, 2),
+        );
+      }
+      expect(
+        (await new AxeBuilder({ page }).include('.rpg-guild').analyze())
+          .violations,
+      ).toEqual([]);
+    }
+
+    expect(
+      new Set(signatures.map((signature) => JSON.stringify(signature))).size,
+    ).toBe(3);
+    await page.goto('/rpg/settings');
+    await select.selectOption('standard');
+    await openRpgHub(page);
+    expect(await themeSignature()).toEqual(standard);
+  });
+}
+
+test('RPG visual style persists separately from colour mode, including peer and storage failure', async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(60_000);
+  await completeOnboarding(page);
+  await page.evaluate(
+    (key) => localStorage.setItem(key, 'unknown-style'),
+    rpgStyleStorageKey,
+  );
+  await saveThemeFromSettings(page, '/rpg/settings', 'system');
+  const select = page.locator('#rpg-visual-style');
+  const body = page.locator('body');
+  await expect(select).toHaveValue('standard');
+  await select.selectOption('glass');
+  await page.reload();
+  await expect(select).toHaveValue('glass');
+  await expect(body).toHaveAttribute('data-rpg-style', 'glass');
+  const peer = await context.newPage();
+  await openRpgHub(peer);
+  await expect(peer.locator('body')).toHaveAttribute('data-rpg-style', 'glass');
+
+  await select.selectOption('vibrant');
+  await expect(peer.locator('body')).toHaveAttribute(
+    'data-rpg-style',
+    'vibrant',
+  );
+  await peer.close();
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(body).toHaveAttribute('data-rpg-style', 'vibrant');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(body).toHaveAttribute('data-rpg-style', 'vibrant');
+
+  await page.evaluate((key) => {
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name, value) {
+      if (name === key)
+        throw new DOMException('Synthetic quota failure', 'QuotaExceededError');
+      setItem.call(this, name, value);
+    };
+  }, rpgStyleStorageKey);
+  await select.selectOption('playful');
+  await expect(body).toHaveAttribute('data-rpg-style', 'playful');
+  await expect(
+    page
+      .locator('.rpg-settings')
+      .getByRole('status')
+      .filter({ hasText: 'reload' }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(select).toHaveValue('vibrant');
+  await page.goto('/settings');
+  await expect(select).toHaveCount(0);
+  await expect(body).not.toHaveAttribute('data-rpg-style');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.goto('/rpg/settings');
+  await select.selectOption('glass');
+  await openRpgHub(page);
+  const session = await context.newCDPSession(page);
+  await session.send('Emulation.setEmulatedMedia', {
+    features: [
+      { name: 'prefers-color-scheme', value: 'dark' },
+      { name: 'prefers-reduced-transparency', value: 'reduce' },
+    ],
+  });
+  await expect(page.locator('.rpg-hero-hud')).toHaveCSS(
+    'backdrop-filter',
+    'none',
+  );
+  await expect(page.locator('.rpg-hero-hud')).toHaveCSS(
+    'background-color',
+    'rgb(22, 45, 64)',
+  );
+  await page.addInitScript((key) => {
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (name) {
+      if (name === key)
+        throw new DOMException('Synthetic read failure', 'SecurityError');
+      return getItem.call(this, name);
+    };
+  }, rpgStyleStorageKey);
+  await page.goto('/rpg/settings');
+  await expect(select).toHaveValue('standard');
 });

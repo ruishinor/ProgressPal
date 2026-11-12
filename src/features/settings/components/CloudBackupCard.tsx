@@ -138,7 +138,7 @@ export function CloudBackupCard({
           <>
             <p className="card__description">
               Cloud services are off on this device. Turn them on to use your
-              account for a learning group or manual remote backups.
+              account for a Guild or manual remote backups.
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <div className="action-row">
@@ -160,7 +160,7 @@ export function CloudBackupCard({
         {state.status === 'signed-out' ? (
           <>
             <p className="card__description">
-              Sign in for your learning group or to use manual remote backups.
+              Sign in for your Guild or to use manual remote backups.
             </p>
             {notice ? <CloudNotice notice={notice} /> : null}
             <CloudSignInPanel
