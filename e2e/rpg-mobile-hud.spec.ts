@@ -63,6 +63,9 @@ for (const width of [320, 390, 1280]) {
       await touchTarget(
         hud.getByRole('link', { name: 'Open Hero Profile', exact: true }),
       );
+      const team = hud.locator('a[href="/rpg/laeringslaget"]');
+      await expect(team).toHaveAccessibleName(/\S/);
+      await touchTarget(team);
       if (quest) {
         await expect(
           hud.getByRole('link', { name: 'Start quest', exact: true }),
@@ -239,6 +242,10 @@ test('mobile HUD reflows for enlarged text and a long programme identity', async
         .map((element) => element.textContent),
     );
   expect(clipped).toEqual([]);
+  const team = hud.locator('a[href="/rpg/laeringslaget"]');
+  await team.focus();
+  await expect(team).toBeFocused();
+  await touchTarget(team);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await hud.screenshot({
     path: 'artifacts/mobile-hud-expanded-320-enlarged.png',
@@ -246,6 +253,7 @@ test('mobile HUD reflows for enlarged text and a long programme identity', async
   await hud
     .locator('.rpg-hero-hud__detail-content')
     .screenshot({ path: 'artifacts/mobile-hud-details-320-enlarged.png' });
+  await hud.getByLabel('Character details').focus();
   await page.keyboard.press('Space');
   await expect(hud.locator('details')).not.toHaveAttribute('open');
   await hud.screenshot({

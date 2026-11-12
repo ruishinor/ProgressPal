@@ -19,6 +19,11 @@ authorized genuine implementer self-review on 2026-11-12. Record its actual
 provenance in schema-v2 evidence bound to the final payload. The hosted
 Final candidate check must pass on the exact PR candidate before merge.
 
+**Team, lokal kandidat 2026-11-12.** RPG HUD lenker til den eksisterende
+lagruten. Min uke, Team og Administrasjon har egne faner. Læringsuken
+leses lokalt, og gruppesesjonen leser eller deler med Nhost ved en
+uttrykkelig handling. Classic beholder ukevisningen på dashbordet.
+
 **RPG Home, local candidate 2026-11-12.** Pathways, Teknologioppslag,
 Mikroøkt and Utviklerblikk have distinct card and action colours in both
 themes. Managed Chromium checked contrast, focus, 320 px reflow and 200%

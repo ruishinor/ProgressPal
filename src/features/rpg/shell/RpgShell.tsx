@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
 import { formatEstimatedMinutes } from '@/lib/time';
@@ -37,6 +37,7 @@ import {
   rpgSettingsPath,
   rpgReferencePath,
 } from '@/lib/routing/rpgRoutePaths';
+import { rpgSocialPath } from '@/lib/routing/socialPaths';
 import { useAppState } from '@/lib/appState';
 import { requireProgrammeScope } from '@/lib/domain';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
@@ -211,7 +212,14 @@ function RpgHeroHud({
         identity={summary.identity}
         name={summary.learnerName}
         profileHref={rpgHeroPath}
-        secondaryStatistic={<ActivityIndicator />}
+        secondaryStatistic={
+          <div className="rpg-hero-hud__links">
+            <ActivityIndicator />
+            <NavLink className="rpg-hero-hud__team-link" end to={rpgSocialPath}>
+              Team
+            </NavLink>
+          </div>
+        }
         showDetails={!mobile}
       />
       <SettingsLink inHud />
