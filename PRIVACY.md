@@ -1,8 +1,10 @@
 # Privacy
 
 ProgressPal is a local-first study companion. IndexedDB in your browser is the
-working copy of your learning records. You can study and see your personal
-week without a cloud account or an internet connection once the app is cached.
+working copy of your learning records. The default build supports study
+without a cloud account. The account-first build requires sign-in before
+accessing learning records. A browser with a previously verified account
+binding and a remembered session can continue studying offline.
 See [current state](docs/CURRENT_STATE.md) for version and rollout status.
 
 ## On this device
@@ -20,8 +22,9 @@ The service worker caches static app, course and runtime files.
 
 ## Optional cloud account and backups
 
-Cloud services are off by default on each device. If you turn them on and sign
-in, Nhost processes your email and credentials in the configured Stockholm,
+In the default build, cloud services are off by default on each device. If
+you turn them on and sign in, or sign in using the account-first build, Nhost
+processes your email and credentials in the configured Stockholm,
 Sweden project. The session normally uses tab storage or memory. Choosing to
 stay signed in uses browser-local persistent storage. Email-link recovery uses
 a short-lived, single-use PKCE verifier. Cloud preferences and credentials stay
@@ -32,6 +35,25 @@ choose to back up. Nhost and the service operator can read uploaded snapshots.
 The service supports up to five snapshots per account, and a manual backup can
 replace the oldest one. Signing out or turning off cloud services leaves remote
 snapshots available to your account.
+
+## Automatic account synchronization
+
+In the account-first build, signing in enables automatic sync. When connected,
+ProgressPal sends an updated snapshot when learner records change and checks
+for updates from other devices. The snapshot includes profile and preferences,
+programme enrolments, progress, notes, study and media history, resume
+positions, saved exercise answers and results, XP, achievements, and Activity
+history and settings. Bundled course material, session credentials and device
+backup history are outside this snapshot.
+
+The Nhost project stores the latest committed sync revision for your account
+until it is replaced or the provider deletes your account. Nhost and the
+service operator can read it. Signing out leaves the server copy in place
+and keeps local records associated with the same account. Sync does not
+combine conflicting edits automatically. You can download both copies before
+choosing which to continue with. Changes that have yet to sync can be lost if
+browser storage is cleared. File exports and manual remote backups are
+separate recovery copies.
 
 ## Optional private learning group
 
@@ -57,8 +79,10 @@ A file export or manual remote backup contains the local learner records.
 Group membership and shared dates are managed separately through Læringslaget.
 Local restore accepts schema-5 backups and replaces the database after validation
 and confirmation. Older exported schemas are refused. Existing on-device
-schema-4 databases upgrade in place. Local reset clears this device's learning
-records. Your Nhost account, remote backup
+schema-4 databases upgrade in place. Local reset is available in the default
+build for browsers without a synced account binding. To remove the device copy
+from an account-bound browser, export pending changes, sign out and clear
+the site's browser storage. Your Nhost account, remote backup
 copies and group membership have separate controls. Use **Forlat laget** in
 Læringslaget to remove membership and shared dates.
 
@@ -71,5 +95,5 @@ profile or files.
 
 The host serves the app and its packaged files. External course links open
 separate websites with their own privacy practices. The optional cloud
-operations above are the app's Nhost requests. ProgressPal has no analytics,
-telemetry, automatic cloud sync, tracking cookies or remote AI service.
+and account sync operations above are the app's Nhost requests. ProgressPal
+has no analytics, telemetry, tracking cookies or remote AI service.

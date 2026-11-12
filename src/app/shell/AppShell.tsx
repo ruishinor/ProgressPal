@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 
+import { LearningSyncStatus } from '@/app/providers/LearningSyncStatus';
 import { DataEpochOutlet } from '@/app/router/DataEpochOutlet';
 import {
   getRouteDefinition,
@@ -13,6 +14,7 @@ import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairCon
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useAppState } from '@/lib/appState';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 import { requireProgrammeScope } from '@/lib/domain';
 import { getOnboardingReturnPath } from '@/lib/routing/onboardingReturnPath';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
@@ -212,7 +214,9 @@ export function AppShell() {
       }
       summary={
         requiresOnboarding
-          ? 'Create the local learner profile before opening the rest of the app. Nothing is uploaded automatically.'
+          ? accountSyncEnabled
+            ? 'Velg studieprogram og gjør klar profilen din.'
+            : 'Create the local learner profile before opening the rest of the app. Nothing is uploaded automatically.'
           : requireProgrammeScope(programmeScope).content.terminology.copy
               .shellActiveSummary
       }
@@ -281,6 +285,7 @@ export function AppShell() {
           ) : null}
         </section>
       ) : null}
+      <LearningSyncStatus />
       <DataEpochOutlet />
     </AppShellLayout>
   );

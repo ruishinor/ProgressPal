@@ -36,8 +36,7 @@ export const cs50Terminology: ProgrammeTerminology = {
       'Local-first CS50 tracking is active. Course progress, study sessions, XP, achievements, insights, and offline support all run on this device. Backups are manual.',
     profileDescription:
       'Your local CS50 profile is the starting point for ProgressPal. It keeps your study target, theme preference, reduced-motion preference, and learning identity on this device.',
-    dashboardDescription:
-      'Your CS50 progress on this device. Nothing is synced; backups are manual.',
+    dashboardDescription: 'Your saved CS50x progress.',
     dashboardErrorDescription:
       'This page shows your CS50 progress on this device.',
     courseMapEyebrow: 'CS50 course map',
@@ -56,7 +55,7 @@ export const cs50Terminology: ProgrammeTerminology = {
       'Local ProgressPal progress, not official CS50 completion.',
     settingsBoundaryTitle: 'Local-first and course boundary',
     settingsBoundaryText:
-      'ProgressPal keeps your working data in this browser on this device. No account is needed, nothing is synced, and there is no analytics. The optional remote backup (Alpha) is manual: no learner data is uploaded unless you press Back up now. Browser storage can be cleared by you, your browser, or your device, so export a backup before clearing data or switching devices.',
+      'ProgressPal keeps your working data in this browser. Export a backup before clearing browser storage.',
     rpgCourseBoundary:
       'RPG ranks, badges, and profile summaries are local ProgressPal interpretations, not CS50, Harvard, edX, or OpenCourseWare status. Use official course systems for enrollment, submission, grading, and certificates.',
     officialResourceOpenLabel: 'Open official CS50x resource',

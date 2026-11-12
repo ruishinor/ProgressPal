@@ -1,0 +1,59 @@
+{
+  "type": "bulk_atomic",
+  "args": [
+    {
+      "type": "pg_track_table",
+      "args": {
+        "source": "default",
+        "table": {
+          "schema": "progresspal_sync",
+          "name": "response"
+        }
+      }
+    },
+    {
+      "type": "pg_create_select_permission",
+      "args": {
+        "source": "default",
+        "table": {
+          "schema": "progresspal_sync",
+          "name": "response"
+        },
+        "role": "user",
+        "permission": {
+          "columns": ["result"],
+          "filter": {},
+          "allow_aggregations": false,
+          "query_root_fields": [],
+          "subscription_root_fields": []
+        }
+      }
+    },
+    {
+      "type": "pg_track_function",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_sync",
+          "name": "sync_learning_v1"
+        },
+        "configuration": {
+          "session_argument": "hasura_session",
+          "exposed_as": "mutation",
+          "custom_name": "sync_learning_v1"
+        }
+      }
+    },
+    {
+      "type": "pg_create_function_permission",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_sync",
+          "name": "sync_learning_v1"
+        },
+        "role": "user"
+      }
+    }
+  ]
+}

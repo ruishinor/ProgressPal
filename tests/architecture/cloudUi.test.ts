@@ -80,7 +80,7 @@ describe('cloud UI: made of what already exists', () => {
 
   it('imports only the public entries it is allowed to', () => {
     const allowed =
-      /^(?:\.{1,2}\/|react$|react-router-dom$|@\/components\/ui\/|@\/lib\/(?:cloud|cloudBackup|backup|appState|routing\/rpgRoutePaths|db|db\/database)$)/;
+      /^(?:\.{1,2}\/|react$|react-router-dom$|@\/components\/ui\/|@\/lib\/(?:cloud|cloudBackup|cloudSync\/rollout|backup|appState|routing\/rpgRoutePaths|db|db\/database)$)/;
     const offenders = cloudUiFiles.flatMap((file) =>
       importsOf(file.text)
         .filter((spec) => !allowed.test(spec))
@@ -203,11 +203,14 @@ describe('cloud UI: the callback page never reads the address itself', () => {
     expect(text).toMatch(/\.completeEmailLink\(\)/);
   });
 
-  it('every result ends at Settings, replacing the callback entry', () => {
+  it('continues into the account gate when enabled and Settings otherwise, replacing the callback entry', () => {
     const text = code(page ?? { text: '' });
 
     expect(text).toMatch(/replace/);
-    expect(text).toMatch(/to=\{rpgSettingsPath\}/);
+    expect(text).toMatch(
+      /accountSyncEnabled \? rpgRoutePath : rpgSettingsPath/,
+    );
+    expect(text).toMatch(/to=\{destination\}/);
   });
 });
 
@@ -314,7 +317,7 @@ describe('cloud UI: what is deliberately not here', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('does not touch navigation, the HUD, the dashboard or onboarding', () => {
+  it('only the router and account welcome reuse the cloud settings UI', () => {
     const others = walk(path.join(root, 'src'))
       .map(rel)
       .filter((file) => /\.tsx?$/.test(file))
@@ -326,7 +329,9 @@ describe('cloud UI: what is deliberately not here', () => {
         ),
       );
 
-    // Only the router mounts the callback page; nothing else mentions the UI.
-    expect(others).toEqual(['src/app/router/router.tsx']);
+    expect(others).toEqual([
+      'src/app/providers/AccountSyncGate.tsx',
+      'src/app/router/router.tsx',
+    ]);
   });
 });

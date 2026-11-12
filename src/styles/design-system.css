@@ -139,6 +139,16 @@
   gap: var(--space-4);
 }
 
+.account-entry {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 42rem;
+  overflow-wrap: anywhere;
+}
+
+.account-entry .profile-form {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* The main landmark receives programmatic focus on route changes
    (tabIndex=-1); suppress the resulting focus ring. Keyboard focus on
    interactive elements still uses the global :focus-visible outline. */

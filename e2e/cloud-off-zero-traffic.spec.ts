@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
+import { installSimulatedProvider } from './support/simulatedProvider';
 
 /**
  * Epic G, Stage 1: the cloud feature is OFF by default and must be invisible on
@@ -36,6 +37,36 @@ const representativeRoutes = [
   '/cloud/callback',
   '/cloud/callback?code=abcdefgh12345678&keep=1',
 ];
+
+test('rollout rollback keeps account-bound data behind sign-in during password recovery', async ({
+  page,
+}) => {
+  const code = 'rollback-recovery-code';
+  const provider = await installSimulatedProvider(page, { exchangeCode: code });
+  await page.goto('/');
+  await page.evaluate(`localStorage.setItem('progresspal:sync:binding-v1', JSON.stringify({
+    userId: '00000000-0000-4000-8000-0000000000e2',
+    initialized: true,
+    revision: 1,
+    hash: 'a'.repeat(64)
+  }))`);
+  await page.reload();
+  await page.getByRole('button', { name: 'Glemt passord?' }).click();
+  await page.getByLabel('E-post', { exact: true }).fill('learner@example.test');
+  await page.getByRole('button', { name: 'Send lenke' }).click();
+  await expect(page.getByText('Sjekk e-posten din')).toBeVisible();
+  await page.goto('/cloud/callback?code=' + code);
+  await expect(
+    page.getByRole('heading', { name: 'Choose a new password' }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/cloud\/callback$/);
+  await page.getByRole('link', { name: 'Open Settings' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Logg inn', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#cloud-account')).toHaveCount(0);
+  expect(provider.calls.filter(({ path }) => path === '/v1')).toEqual([]);
+});
 
 test('cloud disabled (default): normal local use makes no request to any Nhost host or any foreign origin', async ({
   page,

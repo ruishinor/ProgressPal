@@ -5483,7 +5483,63 @@ export async function resetAllData(
 
 export type RestoreDatabaseFromBackupOptions = InitializeDatabaseOptions & {
   fileName?: string;
+  synchronization?: {
+    assertCurrent: (snapshot: DatabaseSnapshot) => void;
+    signal: AbortSignal;
+  };
 };
+
+/** Rebuild the same catalogue and media slice plan the local writers use. */
+export function materializeSyncCatalogue(
+  seeds: readonly { seed: CourseSeed; programmeId: string }[],
+  events: DatabaseSnapshot['mediaProgressEvents'],
+  timestamp: string,
+): Pick<
+  DatabaseSnapshot,
+  | 'courseUnits'
+  | 'courseItems'
+  | 'contentAssets'
+  | 'contentSlices'
+  | 'catalogueVersions'
+> {
+  const courseUnits = seeds.flatMap(({ seed }) =>
+    seed.units.map((unit) => materializeCourseUnit(seed, unit, timestamp)),
+  );
+  const courseItems = seeds.flatMap(({ seed }) =>
+    seed.units.flatMap((unit) =>
+      unit.items.map((item) => materializeCourseItem(unit.id, item, timestamp)),
+    ),
+  );
+  const contentAssets = courseItems.flatMap((item) => {
+    const asset = materializeContentAsset(item, timestamp);
+    return asset === null ? [] : [asset];
+  });
+  const rangesByAsset = new Map<string, CoveredRange[]>();
+  for (const event of events) {
+    const ranges = rangesByAsset.get(event.assetId) ?? [];
+    ranges.push({ startSecond: event.startSecond, endSecond: event.endSecond });
+    rangesByAsset.set(event.assetId, ranges);
+  }
+  return {
+    courseUnits,
+    courseItems,
+    contentAssets,
+    contentSlices: contentAssets.flatMap((asset) =>
+      materializeContentSlices(
+        asset,
+        timestamp,
+        [],
+        mergeCoveredRanges(rangesByAsset.get(asset.id) ?? []),
+      ),
+    ),
+    catalogueVersions: seeds.map(({ seed, programmeId }) => ({
+      courseId: seed.courseId,
+      programmeId,
+      dataVersion: seed.dataVersion,
+      syncedAt: timestamp,
+    })),
+  };
+}
 
 /**
  * Replace-all restore. Validates every row first, then in one atomic
@@ -5500,12 +5556,35 @@ export async function restoreDatabaseFromBackup(
 ): Promise<DatabaseSnapshot> {
   const database = await ensureOpen(resolveDatabase(options.db));
   const restored = parseSnapshotForRestore(snapshot, database.migrationContext);
+  const sync = options.synchronization;
   const tables = allDataTables(database);
 
   return runDestructiveCoordinatedWrite(database, () =>
     database.transaction('rw', tables, async () => {
       markCurrentTransactionCoordinated(database, true);
-      await Promise.all(tables.map((table) => table.clear()));
+      const transaction = Dexie.currentTransaction;
+      const abort = () => transaction?.abort();
+      if (sync !== undefined) {
+        sync.signal.throwIfAborted();
+        sync.signal.addEventListener('abort', abort, { once: true });
+        transaction?.on('complete', () =>
+          sync.signal.removeEventListener('abort', abort),
+        );
+        transaction?.on('abort', () =>
+          sync.signal.removeEventListener('abort', abort),
+        );
+        sync.assertCurrent(await getDatabaseSnapshot({ db: database }));
+      }
+      await Promise.all(
+        tables
+          .filter(
+            (table) =>
+              sync === undefined ||
+              (table !== database.backups &&
+                table !== database.achievementDefinitions),
+          )
+          .map((table) => table.clear()),
+      );
 
       if (restored.appMeta !== null) {
         await database.appMeta.add(restored.appMeta);
@@ -5525,11 +5604,15 @@ export async function restoreDatabaseFromBackup(
         database.resumePoints.bulkAdd(restored.resumePoints),
         database.studySessions.bulkAdd(restored.studySessions),
         database.xpTransactions.bulkAdd(restored.xpTransactions),
-        database.achievementDefinitions.bulkAdd(
-          restored.achievementDefinitions,
-        ),
+        sync === undefined
+          ? database.achievementDefinitions.bulkAdd(
+              restored.achievementDefinitions,
+            )
+          : undefined,
         database.achievementUnlocks.bulkAdd(restored.achievementUnlocks),
-        database.backups.bulkAdd(restored.backups),
+        sync === undefined
+          ? database.backups.bulkAdd(restored.backups)
+          : undefined,
         database.catalogueVersions.bulkAdd(restored.catalogueVersions),
         database.programmeEnrolments.bulkAdd(restored.programmeEnrolments),
         database.learnerEvidence.bulkAdd(restored.learnerEvidence),
@@ -5542,13 +5625,15 @@ export async function restoreDatabaseFromBackup(
 
       await initializeDatabase({ ...options, db: database });
 
-      await recordBackupEvent(
-        {
-          type: 'import',
-          fileName: options.fileName ?? 'imported-backup.json',
-        },
-        { db: database, now: options.now },
-      );
+      if (sync === undefined) {
+        await recordBackupEvent(
+          {
+            type: 'import',
+            fileName: options.fileName ?? 'imported-backup.json',
+          },
+          { db: database, now: options.now },
+        );
+      }
 
       const finalSnapshot = await getDatabaseSnapshot({ db: database });
 
@@ -5559,6 +5644,7 @@ export async function restoreDatabaseFromBackup(
         migrationContext: database.migrationContext,
       });
 
+      sync?.signal.throwIfAborted();
       return finalSnapshot;
     }),
   );

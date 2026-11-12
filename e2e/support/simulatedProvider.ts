@@ -32,6 +32,7 @@ export interface ProviderCall {
 }
 
 export interface SimulatedProviderOptions {
+  shared?: ReturnType<typeof createSimulatedNhost>;
   /** The one-time code the token exchange accepts (with a matching verifier). */
   exchangeCode?: string;
   /**
@@ -87,7 +88,7 @@ export async function installSimulatedProvider(
   page: Page,
   options: SimulatedProviderOptions = {},
 ) {
-  const sim = createSimulatedNhost({ schemaVersion: 5 });
+  const sim = options.shared ?? createSimulatedNhost({ schemaVersion: 5 });
   const calls: ProviderCall[] = [];
   const passwords = new Map<string, string>(
     Object.entries(options.accounts ?? {}),

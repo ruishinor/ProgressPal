@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { LearningSyncStatus } from '@/app/providers/LearningSyncStatus';
 import { PathwaysRoute } from '@/app/routes/PathwaysRoute';
 import { HomePage } from '@/app/routes/HomePage';
 import { MicrolearningRoute } from '@/app/routes/MicrolearningRoute';
@@ -126,7 +127,7 @@ export const router = createBrowserRouter([
     element: <RpgRouteShell />,
     children: [
       {
-        element: <RpgShell />,
+        element: <RpgShell learningSyncStatus={<LearningSyncStatus />} />,
         children: [
           ...(
             ['rpgPathways', 'rpgPathwayTrack', 'rpgPathwayLesson'] as const

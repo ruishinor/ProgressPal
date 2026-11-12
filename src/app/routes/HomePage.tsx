@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
@@ -86,14 +87,22 @@ export function HomePage() {
           </div>
         </Card>
         <Card
-          description="ProgressPal stores your progress in this browser. It does not sync to a server, send analytics, or back up data automatically. The optional remote backup in Settings sends a copy only when you press Back up now, and needs an account. Exported backup files are your responsibility."
+          description={
+            accountSyncEnabled
+              ? 'Framdriften lagres i nettleseren og synkroniseres med kontoen din. Du kan også laste ned en egen sikkerhetskopi fra innstillingene.'
+              : 'ProgressPal stores your progress in this browser. It does not sync to a server, send analytics, or back up data automatically. The optional remote backup in Settings sends a copy only when you press Back up now, and needs an account. Exported backup files are your responsibility.'
+          }
           title="Privacy boundary"
         >
           {null}
         </Card>
       </div>
       <Card
-        description="Your learning identity, theme, motion, and study schedule are stored on this device. They leave it only in a backup that you make."
+        description={
+          accountSyncEnabled
+            ? 'Profilen, temaet, bevegelsesvalget og studieplanen følger kontoen din.'
+            : 'Your learning identity, theme, motion, and study schedule are stored on this device. They leave it only in a backup that you make.'
+        }
         title="Current local state"
       >
         <dl className="profile-summary-list">

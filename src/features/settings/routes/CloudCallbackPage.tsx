@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { getCloudAccount, type CloudAccountPort } from '@/lib/cloud';
-import { rpgSettingsPath } from '@/lib/routing/rpgRoutePaths';
+import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
+import { rpgRoutePath, rpgSettingsPath } from '@/lib/routing/rpgRoutePaths';
 
 import { CloudNewPasswordForm } from '../components/CloudNewPasswordForm';
 import {
@@ -32,6 +33,23 @@ function isSignedIn(account: CallbackAccount): boolean {
   }
 }
 
+function callbackCopy(view: CallbackView): CallbackView {
+  if (!accountSyncEnabled || view.kind !== 'done') return view;
+  if (view.tone === 'success') {
+    return {
+      ...view,
+      title: 'E-postadressen er bekreftet',
+      detail: 'Fortsett for å åpne ProgressPal.',
+    };
+  }
+  return {
+    ...view,
+    title: 'Logg inn for å fortsette',
+    detail:
+      'Hvis du trenger nytt passord, be om en ny lenke og åpne den i samme nettleser.',
+  };
+}
+
 /**
  * Where the provider's email link lands (`/cloud/callback`). It sits outside
  * both shells on purpose: a shell can redirect (to onboarding) before this
@@ -50,6 +68,10 @@ function isSignedIn(account: CallbackAccount): boolean {
 export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
   const [view, setView] = useState<CallbackView>({ kind: 'working' });
   const target = account ?? getCloudAccount();
+  const destination = accountSyncEnabled ? rpgRoutePath : rpgSettingsPath;
+  const continueLabel = accountSyncEnabled
+    ? 'Fortsett til ProgressPal'
+    : 'Open Settings';
   const main = useRef<HTMLElement>(null);
   // Held across React's development double-run of effects: a one-time code
   // must be exchanged once, not twice.
@@ -66,8 +88,10 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
 
     target.completeEmailLink().then(
       (outcome) =>
-        setView(describeCallbackOutcome(outcome, isSignedIn(target))),
-      (error: unknown) => setView(describeCallbackFailure(error)),
+        setView(
+          callbackCopy(describeCallbackOutcome(outcome, isSignedIn(target))),
+        ),
+      (error: unknown) => setView(callbackCopy(describeCallbackFailure(error))),
     );
   }, [target]);
 
@@ -86,28 +110,49 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
 
   return (
     <main
-      className="shell-root shell-main"
+      className={
+        accountSyncEnabled
+          ? 'shell-root shell-main account-entry'
+          : 'shell-root shell-main'
+      }
       id="main-content"
+      lang={accountSyncEnabled ? 'nb' : undefined}
       ref={main}
       tabIndex={-1}
     >
       <div className="shell-brand-block">
         <p className="shell-brand">ProgressPal</p>
-        <h1 className="shell-title">Cloud sign-in</h1>
+        <h1 className="shell-title">
+          {accountSyncEnabled ? 'ProgressPal-konto' : 'Cloud sign-in'}
+        </h1>
       </div>
       {view.kind === 'working' ? (
-        <LoadingState description="Please wait." title="Finishing sign-in" />
+        <LoadingState
+          description={accountSyncEnabled ? 'Vent litt.' : 'Please wait.'}
+          title={
+            accountSyncEnabled ? 'Kontrollerer lenken' : 'Finishing sign-in'
+          }
+        />
       ) : view.kind === 'new-password' ? (
-        <Card title={newPasswordText.title} titleAs="h2">
-          <p className="card__description">{newPasswordText.lead}</p>
+        <Card
+          title={
+            accountSyncEnabled ? 'Velg nytt passord' : newPasswordText.title
+          }
+          titleAs="h2"
+        >
+          <p className="card__description">
+            {accountSyncEnabled
+              ? 'Skriv inn og gjenta det nye passordet.'
+              : newPasswordText.lead}
+          </p>
           <CloudNewPasswordForm account={target} onFinished={finish} />
           <div className="action-row">
             <Link
               className="button button--quiet button--md"
               replace
-              to={rpgSettingsPath}
+              to={destination}
             >
-              Open Settings
+              {accountSyncEnabled ? 'Avbryt' : continueLabel}
             </Link>
           </div>
         </Card>
@@ -129,9 +174,9 @@ export function CloudCallbackPage({ account }: CloudCallbackPageProps) {
             <Link
               className="button button--primary button--md"
               replace
-              to={rpgSettingsPath}
+              to={destination}
             >
-              Open Settings
+              {continueLabel}
             </Link>
           </div>
         </Card>

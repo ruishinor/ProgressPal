@@ -188,12 +188,12 @@ describe('cloud boundary: the callback location has exactly one authority (carri
   });
 });
 
-describe('cloud boundary: the application boots no cloud code and only the reviewed modules call it', () => {
-  // Epic G callback route and Settings UI: this list is the whole wiring. A
-  // module that is not here (the entry point, the providers, a shell, any other
-  // feature) importing the cloud library fails this test until it is added on
-  // purpose.
+describe('cloud boundary: only reviewed modules call the cloud port', () => {
   const cloudImporters = [
+    'src/app/App.tsx',
+    'src/app/providers/AccountSyncGate.tsx',
+    'src/app/providers/LearningSyncStatus.tsx',
+    'src/app/providers/useLearningSync.ts',
     // The path the provider redirects to is the route's path: one source.
     'src/app/router/routeDefinitions.ts',
     'src/features/settings/cloudDependencies.ts',
@@ -209,9 +209,12 @@ describe('cloud boundary: the application boots no cloud code and only the revie
     'src/features/social/GroupPage.tsx',
     'src/features/social/GroupSession.tsx',
     'src/features/social/groupModel.ts',
+    'src/lib/cloudSync/binding.ts',
+    'src/lib/cloudSync/reconcile.ts',
+    'src/lib/cloudSync/snapshot.ts',
   ];
 
-  it('only the G5/G6 domain folder and the listed Settings and route modules import the cloud library', () => {
+  it('keeps cloud access inside the reviewed account, sync, backup and group modules', () => {
     const importers = sourceFiles
       .filter((file) => !file.path.startsWith(CLOUD_DIR))
       .filter((file) =>
@@ -225,10 +228,9 @@ describe('cloud boundary: the application boots no cloud code and only the revie
     expect(importers.sort()).toEqual(cloudImporters);
   });
 
-  it('nothing that runs at start-up imports cloud code, directly or through the cloud-backup domain', () => {
+  it('boot providers and shells cannot contact the cloud port directly', () => {
     const startup = [
       'src/main.tsx',
-      'src/app/App.tsx',
       'src/app/providers/AppProviders.tsx',
       'src/app/shell/AppShell.tsx',
       'src/app/shell/RpgRouteShell.tsx',
@@ -236,11 +238,25 @@ describe('cloud boundary: the application boots no cloud code and only the revie
     const offenders = sourceFiles
       .filter((file) => startup.includes(file.path))
       .filter((file) =>
-        importsOf(file.text).some((spec) => /^@\/lib\/cloud/.test(spec)),
+        importsOf(file.text).some((spec) =>
+          /^@\/lib\/cloud(?:\/|Backup|$)/.test(spec),
+        ),
       )
       .map((file) => file.path);
 
     expect(offenders).toEqual([]);
+  });
+
+  it('automatic requests require the account-first flag and an opted-in identity', () => {
+    const gate = sourceFiles.find(({ path }) =>
+      path.endsWith('/AccountSyncGate.tsx'),
+    );
+    expect(gate?.text).toMatch(
+      /const canSync\s*=\s*consented && accountSyncEnabled && !bindingUnreadable && !wrongAccount/,
+    );
+    expect(gate?.text).toMatch(
+      /useLearningSync\(canSync \? userId : null, catalogue\)/,
+    );
   });
 
   it('nothing in the adapter performs work at import time (no top-level calls)', () => {

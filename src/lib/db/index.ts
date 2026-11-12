@@ -53,6 +53,7 @@ export {
   listXpTransactions,
   logMediaProgress,
   logMediaProgressAndAwardXp,
+  materializeSyncCatalogue,
   readAchievementsSurfaceData,
   readStudySessionLedgerRows,
   readStudySessionsSurfaceData,

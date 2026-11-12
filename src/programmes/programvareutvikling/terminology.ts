@@ -47,7 +47,7 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
     shellActiveSummary: `${programvareutviklingDisplayName} kjører lokalt. Økter, svar, framdrift, XP, prestasjoner og innsikt lagres på denne enheten. Du lager sikkerhetskopier selv.`,
     profileDescription:
       'Den lokale profilen din lagrer studiemål, tema, valg for redusert bevegelse og læringsidentiteten din på denne enheten.',
-    dashboardDescription: `Framdriften din i ${programvareutviklingDisplayName} på denne enheten. Ingenting synkroniseres; du lager sikkerhetskopier selv.`,
+    dashboardDescription: `Den lagrede framdriften din i ${programvareutviklingDisplayName}.`,
     dashboardErrorDescription: `Denne siden viser framdriften din i ${programvareutviklingDisplayName} på denne enheten.`,
     courseMapEyebrow: `${programvareutviklingDisplayName} – moduler`,
     courseMapLoadingDescription:
@@ -64,7 +64,7 @@ export const programvareutviklingTerminology: ProgrammeTerminology = {
       'Lokal framdrift i ProgressPal. Det er ikke en vurdering av hva du kan.',
     settingsBoundaryTitle: 'Lagring og framdrift',
     settingsBoundaryText:
-      'ProgressPal lagrer arbeidet ditt i denne nettleseren, på denne enheten. Du trenger ikke konto for å lære, ingenting synkroniseres, og appen samler ikke inn bruksstatistikk. Den valgfrie eksterne sikkerhetskopien (Alpha) er manuell: ingen data lastes opp før du selv starter en sikkerhetskopi. Du, nettleseren eller enheten kan tømme lagringen i nettleseren, så lag en sikkerhetskopi før du tømmer data eller bytter enhet.',
+      'ProgressPal lagrer arbeidet ditt i nettleseren. Last ned en sikkerhetskopi før du tømmer nettleserlagringen.',
     officialResourceOpenLabel: 'Åpne ekstern ressurs',
     officialResourceReviewLabel: 'Se på ekstern ressurs igjen',
     sharedMilestoneRewardNote: 'delt med en annen oppgave',
