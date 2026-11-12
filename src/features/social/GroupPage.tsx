@@ -1,56 +1,24 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { useId, useState, type ReactNode } from 'react';
+import { Link, useOutletContext } from 'react-router-dom';
 
 import { Card } from '@/components/ui/Card';
 import { RpgPanel } from '@/features/rpg/components/RpgPanel';
-import { getCloudAccount, type CloudAccountState } from '@/lib/cloud';
 import { rpgRoutePath, rpgSettingsPath } from '@/lib/routing/rpgRoutePaths';
 
 import { GroupSession } from './GroupSession';
 import { PersonalWeekDetails } from './PersonalWeek';
 import { useLearningWeek } from './useLearningWeek';
 
-type AccountState = CloudAccountState | { status: 'unavailable' };
-
-function readAccountState(): AccountState {
-  try {
-    return getCloudAccount().getState();
-  } catch {
-    return { status: 'unavailable' };
-  }
-}
-
-function useGroupAccess() {
-  const account = getCloudAccount();
-  const [state, setState] = useState(readAccountState);
-  const [online, setOnline] = useState(() => navigator.onLine);
-
-  useEffect(() => {
-    const updateConnection = () => setOnline(navigator.onLine);
-    const updateAccount = () => setState(readAccountState());
-    const unsubscribe = account.subscribe(setState);
-    window.addEventListener('storage', updateAccount);
-    window.addEventListener('focus', updateAccount);
-    window.addEventListener('online', updateConnection);
-    window.addEventListener('offline', updateConnection);
-    return () => {
-      unsubscribe();
-      window.removeEventListener('storage', updateAccount);
-      window.removeEventListener('focus', updateAccount);
-      window.removeEventListener('online', updateConnection);
-      window.removeEventListener('offline', updateConnection);
-    };
-  }, [account]);
-
-  return { state, online };
-}
+import { useGroupAccess } from './useGroupAccess';
 
 function GroupAccess({
   learning,
   renderPanels,
+  onGuildName,
 }: {
   learning: ReturnType<typeof useLearningWeek>;
-  renderPanels?: (team: ReactNode, administration: ReactNode) => ReactNode;
+  onGuildName?: (userId: string, name: string | null) => void;
+  renderPanels?: (guild: ReactNode, administration: ReactNode) => ReactNode;
 }) {
   const { state, online } = useGroupAccess();
   const settings = renderPanels ? rpgSettingsPath : '/settings';
@@ -63,20 +31,21 @@ function GroupAccess({
         settings={settings}
         learning={learning}
         renderPanels={renderPanels}
+        onGuildName={onGuildName}
       />
     );
   }
 
   const access = !online ? (
     <p role="status">
-      Koble til nettet for å se laget. Du kan øve videre på denne enheten.
+      Koble til nettet for å se Guild. Du kan øve videre på denne enheten.
     </p>
   ) : (
     <>
       <p>
         {state.status === 'unavailable'
           ? 'Kunne ikke lese kontoen på denne enheten.'
-          : 'Slå på skytjenester og logg inn for å opprette eller bli med i et lag. Du velger selv når du deler læringsdager.'}
+          : 'Slå på skytjenester og logg inn for å opprette eller bli med i en Guild. Du velger selv når du deler læringsdager.'}
       </p>
       <p>
         <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
@@ -85,7 +54,7 @@ function GroupAccess({
   );
   return renderPanels ? (
     renderPanels(
-      <RpgPanel title="Team" titleAs="h2">
+      <RpgPanel title="Guild" titleAs="h2">
         {access}
       </RpgPanel>,
       <RpgPanel title="Administrasjon" titleAs="h2">
@@ -93,19 +62,23 @@ function GroupAccess({
       </RpgPanel>,
     )
   ) : (
-    <Card title="Laget" titleAs="h2">
+    <Card title="Guild" titleAs="h2">
       {access}
     </Card>
   );
 }
 
-const teamTabs = ['Min uke', 'Team', 'Administrasjon'] as const;
+const guildTabs = ['Min uke', 'Guild', 'Administrasjon'] as const;
 
-function RpgTeamPage({
+function RpgGuildPage({
   learning,
 }: {
   learning: ReturnType<typeof useLearningWeek>;
 }) {
+  const { onGuildName } =
+    useOutletContext<{
+      onGuildName: (userId: string, name: string | null) => void;
+    } | null>() ?? {};
   const id = useId();
   const [selected, setSelected] = useState(0);
 
@@ -124,20 +97,20 @@ function RpgTeamPage({
   }
 
   return (
-    <section className="page-section rpg-team" lang="nb">
+    <section className="page-section rpg-guild" lang="nb">
       <header className="rpg-page-header">
         <div>
-          <h1>Mitt team</h1>
+          <h1>Guild</h1>
           <p className="rpg-page-lede">
-            Øv sammen i et privat lag med opptil åtte medlemmer.
+            Øv sammen i en privat Guild med opptil åtte medlemmer.
           </p>
         </div>
         <p>
           <Link to={rpgRoutePath}>Tilbake til oversikten</Link>
         </p>
       </header>
-      <div aria-label="Teamvisning" className="activity-tabs" role="tablist">
-        {teamTabs.map((label, index) => (
+      <div aria-label="Guild-visning" className="activity-tabs" role="tablist">
+        {guildTabs.map((label, index) => (
           <button
             aria-controls={`${id}-panel-${index}`}
             aria-selected={selected === index}
@@ -145,10 +118,10 @@ function RpgTeamPage({
             key={label}
             onClick={() => setSelected(index)}
             onKeyDown={(event) => {
-              const last = teamTabs.length - 1;
+              const last = guildTabs.length - 1;
               const destinations: Record<string, number> = {
-                ArrowLeft: (index + last) % teamTabs.length,
-                ArrowRight: (index + 1) % teamTabs.length,
+                ArrowLeft: (index + last) % guildTabs.length,
+                ArrowRight: (index + 1) % guildTabs.length,
                 Home: 0,
                 End: last,
               };
@@ -169,9 +142,10 @@ function RpgTeamPage({
       {panel(0, <PersonalWeekDetails learning={learning} onGroupPage rpg />)}
       <GroupAccess
         learning={learning}
-        renderPanels={(team, administration) => (
+        onGuildName={onGuildName}
+        renderPanels={(guild, administration) => (
           <>
-            {panel(1, team)}
+            {panel(1, guild)}
             {panel(2, administration)}
           </>
         )}
@@ -182,7 +156,7 @@ function RpgTeamPage({
 
 export function GroupPage({ rpg }: { rpg: boolean }) {
   const learning = useLearningWeek();
-  if (rpg) return <RpgTeamPage learning={learning} />;
+  if (rpg) return <RpgGuildPage learning={learning} />;
 
   return (
     <section className="page-section" lang="nb">
@@ -190,8 +164,8 @@ export function GroupPage({ rpg }: { rpg: boolean }) {
         <p>
           <Link to="/dashboard">Tilbake til oversikten</Link>
         </p>
-        <h1>Læringslaget</h1>
-        <p>Øv sammen i et privat lag med opptil åtte medlemmer.</p>
+        <h1>Guild</h1>
+        <p>Øv sammen i en privat Guild med opptil åtte medlemmer.</p>
       </header>
       <PersonalWeekDetails learning={learning} onGroupPage rpg={false} />
       <GroupAccess learning={learning} />

@@ -30,7 +30,7 @@
 
 :root[data-theme]
   body.rpg-route-active[data-rpg-style='vibrant']
-  :is(.rpg-hero-hud, .rpg-panel--raised, .rpg-team .rpg-page-header) {
+  :is(.rpg-hero-hud, .rpg-panel--raised, .rpg-guild .rpg-page-header) {
   box-shadow: inset 0 3px var(--rpg-accent);
 }
 
@@ -40,13 +40,19 @@
   --rpg-surface-raised: #e1edf5;
   --rpg-border: #95b1c2;
   --rpg-border-strong: #537b91;
+  --rpg-text-muted: #394453;
   --rpg-accent: #185c72;
   --rpg-accent-strong: #16485a;
   --rpg-focus-ring: #185c72;
   --rpg-progress: #286e84;
   --rpg-nav-shade: #d0e0ea;
-  --rpg-glass-fill: rgb(248 253 255 / 0.77);
-  --rpg-style-canvas: linear-gradient(145deg, #c0deec, #e7eff9 50%, #c9d9ea);
+  --rpg-glass-fill: rgb(248 253 255 / 0.62);
+  --rpg-glass-rim: rgb(255 255 255 / 0.85);
+  --rpg-glass-shadow: rgb(31 69 104 / 0.18);
+  --rpg-style-canvas:
+    radial-gradient(ellipse at 20% 22%, #99d6ed, transparent 54%),
+    radial-gradient(ellipse at 82% 28%, #b3b9e8, transparent 48%),
+    radial-gradient(ellipse at 35% 85%, #9bdad2, transparent 54%);
 }
 
 :root[data-theme='dark'] body.rpg-route-active[data-rpg-style='glass'] {
@@ -55,23 +61,38 @@
   --rpg-surface-raised: #203a4f;
   --rpg-border: #577b91;
   --rpg-border-strong: #86afc2;
+  --rpg-text-muted: #d3dde4;
   --rpg-accent: #95dae9;
   --rpg-accent-strong: #bce9f2;
   --rpg-focus-ring: #a7e2f0;
   --rpg-progress: #78bbc9;
   --rpg-nav-shade: #101f30;
-  --rpg-glass-fill: rgb(19 39 54 / 0.77);
-  --rpg-style-canvas: linear-gradient(145deg, #17465a, #142538 50%, #293956);
+  --rpg-glass-fill: rgb(19 34 52 / 0.65);
+  --rpg-glass-rim: rgb(202 239 255 / 0.28);
+  --rpg-glass-shadow: rgb(2 13 28 / 0.55);
+  --rpg-style-canvas:
+    radial-gradient(ellipse at 20% 22%, #23637a, transparent 54%),
+    radial-gradient(ellipse at 82% 28%, #424b83, transparent 48%),
+    radial-gradient(ellipse at 35% 85%, #1d645f, transparent 54%);
 }
 
 /* The ordinary opaque panel fills remain the fallback. */
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
+    :root[data-theme] body.rpg-route-active[data-rpg-style='glass'] {
+      background-image: var(--rpg-style-canvas);
+      background-repeat: no-repeat;
+      background-size: 100% max(65rem, 100vh);
+    }
+
     :root[data-theme]
       body.rpg-route-active[data-rpg-style='glass']
       :is(.rpg-hero-hud, .rpg-page-header, .rpg-panel) {
-      backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px) saturate(1.25);
       background-color: var(--rpg-glass-fill);
+      box-shadow:
+        inset 0 1px 0 var(--rpg-glass-rim),
+        0 8px 24px -12px var(--rpg-glass-shadow);
     }
   }
 }
@@ -115,8 +136,8 @@
   :is(
     .rpg-hero-hud,
     .rpg-panel--raised,
-    .rpg-team .rpg-page-header,
-    .rpg-team .rpg-panel
+    .rpg-guild .rpg-page-header,
+    .rpg-guild .rpg-panel
   ) {
   border-color: var(--rpg-border-strong);
   box-shadow: 0 3px var(--rpg-border-strong);
@@ -124,40 +145,32 @@
 
 :root[data-theme]
   body.rpg-route-active[data-rpg-style='playful']
-  .rpg-hub__details
-  > div {
-  background-color: var(--rpg-stat-gold);
+  .rpg-hub__stat {
+  background-color: var(--rpg-stat-fill);
   border: 1px solid var(--rpg-border-strong);
   border-radius: var(--radius-sm);
   box-shadow: 0 2px var(--rpg-border-strong);
   padding: var(--space-2) var(--space-3);
 }
 
-:root[data-theme]
-  body.rpg-route-active[data-rpg-style='playful']
-  .rpg-hub__details
-  > div:nth-child(2) {
-  background-color: var(--rpg-stat-blue);
+.rpg-hub__stat--current-module,
+.rpg-hub__stat--tasks {
+  --rpg-stat-fill: var(--rpg-stat-gold);
 }
 
-:root[data-theme]
-  body.rpg-route-active[data-rpg-style='playful']
-  .rpg-hub__details
-  > div:nth-child(3) {
-  background-color: var(--rpg-stat-green);
+.rpg-hub__stat--module-status,
+.rpg-hub__stat--study-time {
+  --rpg-stat-fill: var(--rpg-stat-blue);
 }
 
-:root[data-theme]
-  body.rpg-route-active[data-rpg-style='playful']
-  .rpg-hub__details
-  > div:nth-child(4) {
-  background-color: var(--rpg-stat-rose);
+.rpg-hub__stat--sessions {
+  --rpg-stat-fill: var(--rpg-stat-green);
 }
 
-:root[data-theme]
-  body.rpg-route-active:is(
-    [data-rpg-style='vibrant'],
-    [data-rpg-style='glass']
-  ) {
+.rpg-hub__stat--xp {
+  --rpg-stat-fill: var(--rpg-stat-rose);
+}
+
+:root[data-theme] body.rpg-route-active[data-rpg-style='vibrant'] {
   background-image: var(--rpg-style-canvas);
 }

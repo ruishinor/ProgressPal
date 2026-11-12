@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 import { classNames } from '@/components/ui/utils';
 import { ProfileAvatar } from '@/features/profile';
@@ -11,6 +11,8 @@ import type { LearnerAvatarConfig } from '@/lib/domain';
 
 type RpgHeroIdentityProps = {
   avatarConfig: LearnerAvatarConfig | null;
+  guildHref?: string;
+  guildName?: string | null;
   identity: RpgHubIdentity;
   name: string;
   /** When set, the avatar becomes the entry point to the Hero Profile. */
@@ -23,6 +25,8 @@ type RpgHeroIdentityProps = {
 /** One visual vocabulary for learner identity; all facts come from the read model. */
 export function RpgHeroIdentity({
   avatarConfig,
+  guildHref,
+  guildName,
   identity,
   name,
   profileHref,
@@ -86,7 +90,32 @@ export function RpgHeroIdentity({
             <RpgRankBadge rank={identity.rankLabel} />
           ))}
         {secondaryStatistic}
-        {showDetails && <IdentityTraits identity={identity} />}
+        <dl className="rpg-identity__traits">
+          <div className="rpg-identity__guild">
+            <dt>
+              <img alt="" src={guildEmblem} width="32" height="32" />
+              Guild
+            </dt>
+            <dd>
+              {guildHref ? (
+                <NavLink
+                  className="rpg-identity__guild-link"
+                  end
+                  to={guildHref}
+                >
+                  {guildName ?? identity.guildLabel}
+                </NavLink>
+              ) : (
+                (guildName ?? identity.guildLabel)
+              )}
+            </dd>
+          </div>
+          {showDetails && <IdentityClass label={identity.classLabel} />}
+          <div className="rpg-identity__path">
+            <dt>Path</dt>
+            <dd>{identity.pathLabel}</dd>
+          </div>
+        </dl>
       </div>
     </div>
   );
@@ -101,29 +130,18 @@ export function RpgHeroIdentityDetails({
   return (
     <>
       <RpgRankBadge rank={identity.rankLabel} />
-      <IdentityTraits identity={identity} />
+      <dl className="rpg-identity__traits">
+        <IdentityClass label={identity.classLabel} />
+      </dl>
     </>
   );
 }
 
-function IdentityTraits({ identity }: { identity: RpgHubIdentity }) {
+function IdentityClass({ label }: { label: string }) {
   return (
-    <dl className="rpg-identity__traits">
-      <div className="rpg-identity__guild">
-        <dt>
-          <img alt="" src={guildEmblem} width="32" height="32" />
-          Guild
-        </dt>
-        <dd>{identity.guildLabel}</dd>
-      </div>
-      <div className="rpg-identity__class">
-        <dt>Class</dt>
-        <dd>{identity.classLabel}</dd>
-      </div>
-      <div className="rpg-identity__path">
-        <dt>Path</dt>
-        <dd>{identity.pathLabel}</dd>
-      </div>
-    </dl>
+    <div className="rpg-identity__class">
+      <dt>Class</dt>
+      <dd>{label}</dd>
+    </div>
   );
 }

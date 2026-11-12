@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { SettingsIcon } from '@/components/ui/SettingsIcon';
 import { TextInput } from '@/components/ui/TextInput';
 import { RpgButton } from '@/features/rpg/components/RpgButton';
 import { RpgPanel } from '@/features/rpg/components/RpgPanel';
@@ -21,26 +22,27 @@ import {
 import { getOsloWeek } from '@/lib/time/osloWeek';
 
 import { summarizeGroup } from './groupModel';
+import { defaultGuildName } from './useGroupAccess';
 import type { useLearningWeek } from './useLearningWeek';
 
 const failures: Record<SocialFailure, string> = {
   unauthenticated: 'Økten er utløpt. Logg inn på nytt i kontoinnstillingene.',
   'already-member':
-    'Kontoen er allerede med i et lag. Hent laget for å fortsette.',
-  'invalid-input': 'Sjekk lagnavn, kallenavn eller kode og prøv igjen.',
+    'Kontoen er allerede med i en Guild. Oppdater for å fortsette.',
+  'invalid-input': 'Sjekk Guild-navn, kallenavn eller kode og prøv igjen.',
   'invalid-code': 'Koden er ugyldig eller ikke lenger aktiv. Be om en ny kode.',
-  'group-full': 'Laget har åtte medlemmer og er fullt.',
-  'no-group': 'Kontoen er ikke lenger med i laget. Hent laget på nytt.',
+  'group-full': 'Guilden har åtte medlemmer og er full.',
+  'no-group': 'Kontoen er ikke lenger med i Guilden. Oppdater medlemskapet.',
   'membership-changed':
-    'Medlemskapet har endret seg. Hent laget på nytt før du deler eller gjør endringer.',
+    'Medlemskapet har endret seg. Oppdater Guilden før du deler eller gjør endringer.',
   'not-admin':
-    'Den som styrer laget kan endre invitasjonskoden. Hent laget på nytt.',
+    'Bare Guild-administratoren kan endre navn og invitasjonskode. Oppdater Guilden.',
   'invalid-days':
-    'Delte dager må være fra inneværende uke i norsk tid. Sjekk klokken på enheten og hent laget på nytt.',
+    'Delte dager må være fra inneværende uke i norsk tid. Sjekk klokken på enheten og oppdater Guilden.',
   unavailable:
-    'Kunne ikke bekrefte resultatet. Hent laget på nytt når du er tilkoblet.',
+    'Kunne ikke bekrefte resultatet. Oppdater Guilden når du er tilkoblet.',
   'rate-limited':
-    'Tjenesten har fått mange forespørsler. Vent litt og hent laget på nytt.',
+    'Tjenesten har fått mange forespørsler. Vent litt og oppdater Guilden.',
 };
 
 type Snapshot = Extract<SocialResult, { status: 'ok' }>;
@@ -49,13 +51,15 @@ type Props = {
   userId: string;
   settings: string;
   learning: ReturnType<typeof useLearningWeek>;
-  renderPanels?: (team: ReactNode, administration: ReactNode) => ReactNode;
+  onGuildName?: (userId: string, name: string | null) => void;
+  renderPanels?: (guild: ReactNode, administration: ReactNode) => ReactNode;
 };
 
 export function GroupSession({
   userId,
   settings,
   learning,
+  onGuildName,
   renderPanels,
 }: Props) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -66,6 +70,8 @@ export function GroupSession({
   const [signedOut, setSignedOut] = useState(false);
   const active = useRef<AbortController | null>(null);
   const focus = useRef<HTMLHeadingElement>(null);
+  const nameEditor = useRef<HTMLDetailsElement>(null);
+  const nameEditorToggle = useRef<HTMLElement>(null);
   const administrationHeading = useRef<HTMLHeadingElement>(null);
   const commandHeading = useRef(focus);
   const stage =
@@ -129,6 +135,7 @@ export function GroupSession({
       ) {
         setSnapshot(null);
         setConfirmLeave(false);
+        onGuildName?.(userId, null);
       }
       return;
     }
@@ -139,16 +146,26 @@ export function GroupSession({
     ) {
       setSnapshot(null);
       setNotice(
-        'Uken i laget avviker fra klokken på enheten. Sjekk klokken og hent laget på nytt.',
+        'Uken i Guilden avviker fra klokken på enheten. Sjekk klokken og oppdater Guilden.',
       );
       return;
     }
     setSnapshot(result);
+    onGuildName?.(userId, result.group?.name ?? null);
     setConfirmLeave(false);
     if (command.operation === 'share') setNotice('Læringsdagene er delt.');
-    if (command.operation === 'leave') setNotice('Du har forlatt laget.');
+    if (command.operation === 'leave') setNotice('Du har forlatt Guilden.');
     if (command.operation === 'revoke')
       setNotice('Invitasjonskoden er deaktivert.');
+    if (command.operation === 'rename') {
+      closeNameEditor();
+      setNotice('Guild-navnet er lagret.');
+    }
+  }
+
+  function closeNameEditor() {
+    if (nameEditor.current) nameEditor.current.open = false;
+    nameEditorToggle.current?.focus();
   }
 
   function enrol(event: FormEvent<HTMLFormElement>) {
@@ -192,7 +209,7 @@ export function GroupSession({
   const summary = group === null ? null : summarizeGroup(group);
   const canShare = Array.isArray(learning.days) && learning.days.length > 0;
   const Action = renderPanels ? RpgButton : Button;
-  const status = <p role="status">{busy ? 'Kontakter laget …' : notice}</p>;
+  const status = <p role="status">{busy ? 'Henter Guild-data …' : notice}</p>;
   const accountLink = (
     <p>
       <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
@@ -204,7 +221,7 @@ export function GroupSession({
       onClick={() => void run({ operation: 'read' }, fromAdministration)}
       variant="secondary"
     >
-      {snapshot === null ? 'Hent laget' : 'Oppdater laget'}
+      {snapshot === null ? 'Hent Guild' : 'Oppdater Guild'}
     </Action>
   );
   const shareAction = group !== null && (
@@ -232,8 +249,8 @@ export function GroupSession({
   const enrolment = snapshot !== null && group === null && (
     <>
       <p>
-        Ved å bli med deler du kallenavnet ditt med laget. Nhost lagrer
-        medlemskapet og datoene du velger å dele. Lagkamerater ser kallenavn og
+        Ved å bli med deler du kallenavnet ditt med Guilden. Nhost lagrer
+        medlemskapet og datoene du velger å dele. Medlemmer ser kallenavn og
         antall dager denne uken.
       </p>
       <div className="action-row">
@@ -243,7 +260,7 @@ export function GroupSession({
           onClick={() => setMode('create')}
           variant="secondary"
         >
-          Opprett et lag
+          Opprett en Guild
         </Action>
         <Action
           aria-pressed={mode === 'join'}
@@ -251,7 +268,7 @@ export function GroupSession({
           onClick={() => setMode('join')}
           variant="secondary"
         >
-          Bli med i et lag
+          Bli med i en Guild
         </Action>
       </div>
       <form className="profile-form" onSubmit={enrol}>
@@ -267,10 +284,11 @@ export function GroupSession({
         </label>
         {mode === 'create' ? (
           <label>
-            Lagnavn{' '}
+            Guild-navn{' '}
             <TextInput
               key="name"
               autoComplete="off"
+              defaultValue={defaultGuildName}
               disabled={busy}
               maxLength={40}
               name="name"
@@ -293,7 +311,7 @@ export function GroupSession({
         )}
         <div className="action-row">
           <Action disabled={busy} type="submit">
-            {mode === 'create' ? 'Opprett laget' : 'Bli med'}
+            {mode === 'create' ? 'Opprett Guild' : 'Bli med'}
           </Action>
         </div>
       </form>
@@ -305,11 +323,11 @@ export function GroupSession({
       <h3>Felles mål</h3>
       <p>
         {summary.total} av {summary.target} læringsdager delt. Målet følger
-        størrelsen på laget, med to dager per medlem.
+        størrelsen på Guilden, med to dager per medlem.
       </p>
       {summary.total >= summary.target && (
         <p>
-          <strong>Laget nådde ukemålet!</strong>
+          <strong>Guilden nådde ukemålet!</strong>
         </p>
       )}
       {group.members.length > 1 ? (
@@ -397,8 +415,8 @@ export function GroupSession({
       <details>
         <summary>Medlemskap og konto</summary>
         <p>
-          Du kan forlate laget når du vil. Da fjernes medlemskapet og dagene du
-          har delt.
+          Du kan forlate Guilden når du vil. Da fjernes medlemskapet og dagene
+          du har delt.
         </p>
         <p>
           Øving lagres på enheten. Medlemskapet og de delte dagene ligger hos
@@ -407,7 +425,7 @@ export function GroupSession({
         </p>
         {accountLink}
         {confirmLeave && (
-          <p>Vil du fjerne medlemskapet og de delte dagene fra laget?</p>
+          <p>Vil du fjerne medlemskapet og de delte dagene fra Guilden?</p>
         )}
         <div className="action-row">
           <Action
@@ -425,7 +443,7 @@ export function GroupSession({
             }}
             variant={confirmLeave ? 'danger' : 'secondary'}
           >
-            {confirmLeave ? 'Ja, forlat laget' : 'Forlat laget'}
+            {confirmLeave ? 'Ja, forlat Guilden' : 'Forlat Guilden'}
           </Action>
           {confirmLeave && (
             <Action
@@ -442,9 +460,63 @@ export function GroupSession({
   );
 
   const heading = (
-    <h2 ref={focus} tabIndex={-1}>
-      {group?.name ?? (renderPanels ? 'Team' : 'Laget')}
-    </h2>
+    <div className="learning-group__heading">
+      <h2 ref={focus} tabIndex={-1}>
+        {group?.name ?? 'Guild'}
+      </h2>
+      {group?.canInvite && (
+        <details className="learning-group__name-editor" ref={nameEditor}>
+          <summary
+            aria-label="Endre Guild-navn"
+            className="learning-group__gear"
+            ref={nameEditorToggle}
+          >
+            <SettingsIcon />
+          </summary>
+          <form
+            className="profile-form"
+            key={group.name}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const name = new FormData(event.currentTarget).get('name');
+              if (typeof name === 'string') {
+                void run({
+                  operation: 'rename',
+                  membership: group.membership,
+                  name: name.trim(),
+                });
+              }
+            }}
+          >
+            <label>
+              Guild-navn
+              <TextInput
+                defaultValue={group.name}
+                disabled={busy}
+                maxLength={40}
+                name="name"
+                required
+              />
+            </label>
+            <div className="action-row">
+              <Action disabled={busy} type="submit">
+                Lagre navn
+              </Action>
+              <Action
+                disabled={busy}
+                onClick={(event) => {
+                  event.currentTarget.form?.reset();
+                  closeNameEditor();
+                }}
+                variant="secondary"
+              >
+                Avbryt
+              </Action>
+            </div>
+          </form>
+        </details>
+      )}
+    </div>
   );
 
   if (renderPanels) {
@@ -459,7 +531,7 @@ export function GroupSession({
         )}
         {snapshot !== null && group === null && (
           <p>
-            Du er ikke med i et team ennå. Du kan opprette eller bli med under
+            Du er ikke med i en Guild ennå. Du kan opprette eller bli med under
             Administrasjon.
           </p>
         )}

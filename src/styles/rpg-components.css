@@ -34,7 +34,7 @@
     .rpg-log,
     .rpg-badges,
     .rpg-settings,
-    .rpg-team,
+    .rpg-guild,
     .lesson--rpg
   ) {
   --color-canvas: var(--rpg-bg);
@@ -1009,6 +1009,29 @@
   gap: 0.35rem;
 }
 
+.rpg-identity__guild dd {
+  min-width: 0;
+}
+
+.rpg-identity__guild-link {
+  align-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--rpg-text);
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 44px;
+  text-underline-offset: 0.18em;
+}
+
+.rpg-identity__guild-link:hover,
+.rpg-identity__guild-link[aria-current='page'] {
+  background: var(--rpg-surface-raised);
+}
+
+.rpg-identity__guild-link:focus-visible {
+  outline-color: var(--rpg-focus-ring);
+}
+
 .rpg-quest-reward {
   color: var(--rpg-accent-strong);
   font-size: 0.875rem;
@@ -1305,10 +1328,12 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry {
-  align-content: start;
+  align-items: start;
   border: 1px solid var(--rpg-border);
   border-inline-start: 3px solid var(--rpg-border-strong);
   border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
   padding: var(--space-2);
 }
@@ -1384,8 +1409,16 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry > :first-child {
-  flex: 1 1 auto;
   min-width: 0;
+}
+
+.rpg-hub__learning-grid a.rpg-button {
+  padding-inline: clamp(0.25rem, 1.5vw, var(--space-3));
+}
+
+.rpg-hub__learning-grid .rpg-button--quiet {
+  min-width: 44px;
+  padding-inline: min(var(--space-3), 0.75rem);
 }
 
 .rpg-hub__learning-grid .rpg-button > span {
@@ -1394,7 +1427,7 @@
 }
 
 .rpg-hub__learning-grid .rpg-hub__entry > p {
-  flex: 1 0 100%;
+  grid-column: 1 / -1;
   margin: 0;
   overflow-wrap: anywhere;
 }

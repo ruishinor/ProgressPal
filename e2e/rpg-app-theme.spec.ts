@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 import { writeFile } from 'node:fs/promises';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
 
@@ -592,6 +592,15 @@ const learningEntryLinks = [
   '/rpg/track/tenk-som-en-utvikler',
 ];
 
+async function expectLearningActionsOnOneRow(entry: Locator) {
+  const link = (await entry.getByRole('link').boundingBox())!;
+  const info = (await entry.getByRole('button').boundingBox())!;
+  expect(Math.abs(link.y - info.y)).toBeLessThanOrEqual(1);
+  expect(link.x + link.width).toBeLessThanOrEqual(info.x);
+  expect(info.height).toBeGreaterThanOrEqual(44);
+  expect(info.width).toBeGreaterThanOrEqual(44);
+}
+
 for (const theme of ['light', 'dark'] as const) {
   test(`RPG Home learning entries have distinct accessible surfaces in ${theme}`, async ({
     page,
@@ -615,6 +624,7 @@ for (const theme of ['light', 'dark'] as const) {
         const info = entry.getByRole('button');
         await expect(link).toBeVisible();
         await expect(info).toHaveAccessibleName(/\S/);
+        await expectLearningActionsOnOneRow(entry);
         await link.focus();
         const sample = await entry.evaluate((card) => {
           const scope = globalThis as unknown as ThemeScope;
@@ -662,7 +672,10 @@ for (const theme of ['light', 'dark'] as const) {
       });
     }
 
-    const info = entries.first().getByRole('button');
+    const reference = entries.filter({
+      has: page.locator('a[href="/rpg/oppslag"]'),
+    });
+    const info = reference.getByRole('button');
     await info.focus();
     await page.keyboard.press('Enter');
     await expect(info).toHaveAttribute('aria-expanded', 'true');
@@ -670,6 +683,9 @@ for (const theme of ['light', 'dark'] as const) {
     const controlledId = await info.getAttribute('aria-controls');
     await expect(page.locator(`[id="${controlledId}"]`)).toBeVisible();
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    for (const entry of await entries.all()) {
+      await expectLearningActionsOnOneRow(entry);
+    }
     expect(
       await page.evaluate('document.documentElement.scrollWidth <= innerWidth'),
     ).toBe(true);
@@ -691,16 +707,18 @@ const styleChoices = ['vibrant', 'glass', 'playful'] as const;
 const rpgStyleStorageKey = 'progresspal:rpg-style';
 const homeContrastTargets = [
   '.rpg-hero-hud__name',
+  '.rpg-identity__guild-link',
+  '.rpg-identity__path dd',
   '.rpg-hub__quest-panel .rpg-panel__title',
   '.rpg-hub__quest-primary .rpg-button > span',
   '.rpg-hub__learning-grid .rpg-button > span',
   '.rpg-hub__details--summary :is(dt, dd)',
 ].join(', ');
-const teamContrastTargets = [
-  '.rpg-team h1',
-  '.rpg-team .rpg-page-lede',
-  '.rpg-team [role="tab"]',
-  '.rpg-team [role="tabpanel"]:not([hidden]) .rpg-panel__title',
+const guildContrastTargets = [
+  '.rpg-guild h1',
+  '.rpg-guild .rpg-page-lede',
+  '.rpg-guild [role="tab"]',
+  '.rpg-guild [role="tabpanel"]:not([hidden]) .rpg-panel__title',
 ].join(', ');
 
 async function sampleRenderedContrast(page: Page, selector: string) {
@@ -780,7 +798,7 @@ async function expectRpgReflow(page: Page, selectors: string) {
 }
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`RPG visual styles render contrasting Home and Team surfaces in ${theme}`, async ({
+  test(`RPG visual styles render contrasting Home and Guild surfaces in ${theme}`, async ({
     page,
   }, testInfo) => {
     test.setTimeout(90_000);
@@ -834,13 +852,19 @@ for (const theme of ['light', 'dark'] as const) {
       );
       if (style === 'glass') expect(signature.blur).not.toBe('none');
       if (style === 'playful') {
-        const fills = await stats.evaluateAll((elements) =>
-          elements.map(
-            (element) =>
-              getComputedStyle(element.parentElement!).backgroundColor,
-          ),
-        );
-        expect(new Set(fills).size).toBe(fills.length);
+        const fills = await stats.evaluateAll((elements) => {
+          const cards = elements.map((element) => element.parentElement!);
+          const fill = (card: HTMLElement) =>
+            getComputedStyle(card).backgroundColor;
+          const original = cards.map(fill);
+          const list = cards[0].parentElement!;
+          list.prepend(cards.at(-1)!);
+          const reordered = cards.map(fill);
+          list.append(cards.at(-1)!);
+          return { original, reordered };
+        });
+        expect(new Set(fills.original).size).toBe(fills.original.length);
+        expect(fills.reordered).toEqual(fills.original);
       }
 
       for (const width of [1280, 320]) {
@@ -871,37 +895,48 @@ for (const theme of ['light', 'dark'] as const) {
           JSON.stringify({ signature, css, contrast }, null, 2),
         );
       }
+      if (style === 'glass') {
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Emulation.setEmulatedMedia', {
+          features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }],
+        });
+        await expect(hud).toHaveCSS('backdrop-filter', 'none');
+        await expect(body).toHaveCSS('background-image', 'none');
+        await sampleRenderedContrast(page, homeContrastTargets);
+        await cdp.send('Emulation.setEmulatedMedia', { features: [] });
+        await cdp.detach();
+      }
       const enlarged = await page.addStyleTag({
         content: 'html { font-size: 200% !important; }',
       });
       await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
-      const teamLink = hud.locator('a[href="/rpg/laeringslaget"]');
-      await teamLink.focus();
-      await expect(teamLink).toBeFocused();
+      const guildLink = hud.locator('a[href="/rpg/laeringslaget"]');
+      await guildLink.focus();
+      await expect(guildLink).toBeFocused();
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/\/rpg\/laeringslaget$/);
       await expect(page.getByRole('tabpanel')).toBeVisible();
-      await expectRpgReflow(page, '.rpg-team :is([role="tab"], a:visible)');
+      await expectRpgReflow(page, '.rpg-guild :is([role="tab"], a:visible)');
       await enlarged.evaluate((tag) => {
         tag.parentNode?.removeChild(tag);
       });
 
       for (const width of [1280, 320]) {
         await page.setViewportSize({ width, height: 900 });
-        await page.locator('.rpg-team').screenshot({
-          path: testInfo.outputPath(`team-${style}-${theme}-${width}.png`),
+        await page.locator('.rpg-guild').screenshot({
+          path: testInfo.outputPath(`guild-${style}-${theme}-${width}.png`),
         });
         const contrast = await sampleRenderedContrast(
           page,
-          teamContrastTargets,
+          guildContrastTargets,
         );
         await writeFile(
-          testInfo.outputPath(`${style}-${theme}-${width}-team.json`),
+          testInfo.outputPath(`${style}-${theme}-${width}-guild.json`),
           JSON.stringify(contrast, null, 2),
         );
       }
       expect(
-        (await new AxeBuilder({ page }).include('.rpg-team').analyze())
+        (await new AxeBuilder({ page }).include('.rpg-guild').analyze())
           .violations,
       ).toEqual([]);
     }

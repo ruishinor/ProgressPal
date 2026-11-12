@@ -1,4 +1,4 @@
-# Læringslaget provider contract
+# Guild provider contract
 
 This delta targets the existing Nhost PostgreSQL source and Hasura GraphQL API.
 It requires PostgreSQL with built-in `gen_random_uuid()` and `sha256(bytea)`,
@@ -45,3 +45,30 @@ should drop tables containing records.
 
 References: [Hasura custom SQL functions](https://hasura.io/docs/2.0/schema/postgres/custom-functions/)
 and [Hasura Metadata API](https://hasura.io/docs/2.0/api-reference/metadata-api/index/).
+
+## Guild name upgrade
+
+For an existing installation, compare the tracked `social_week` signature,
+injected session argument and `user` permission with [metadata.json](metadata.json).
+Save the current definition with
+`SELECT pg_get_functiondef('progresspal_social.social_week(json,text,jsonb)'::regprocedure);`
+and verify that the deployed definition matches the baseline in [up.sql](up.sql).
+Apply [rename-guild.sql](rename-guild.sql) as the function owner, with tracking
+disabled in the SQL console. For a fresh installation, apply the SQL files in
+order, then apply the existing metadata batch. The upgrade replaces the
+function body in a transaction and retains its identity and grants.
+[PostgreSQL CREATE FUNCTION](https://www.postgresql.org/docs/current/sql-createfunction.html)
+
+Using the synthetic accounts from the setup check, rename A's Guild through the
+app and confirm B sees the new name. Verify that B, C with A's membership
+reference, a stale membership and an anonymous caller cannot rename A's Guild.
+Check that the active invite, members and shared dates survive the rename, and
+that a surviving member can rename after taking over the administrator role.
+
+The disposable PostgreSQL check can be run with
+`node infra/nhost/social/probe-rename.mjs <pglite/dist/index.js>` and a local
+PGlite distribution. It exercises the SQL before and after the upgrade.
+
+To roll back the rename operation, reapply the saved function definition.
+Names already saved remain on their existing groups. Recheck GraphQL access
+and metadata consistency after either operation.

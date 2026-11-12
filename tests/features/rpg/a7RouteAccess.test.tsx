@@ -127,12 +127,12 @@ const routes = [
     readyHeading: 'Local activity totals',
   },
   {
-    name: 'Team',
+    name: 'Guild',
     path: '/rpg/laeringslaget',
     stores: learningWeekStores,
     budget: 3,
     hud: true,
-    readyHeading: 'Mitt team',
+    readyHeading: 'Guild',
   },
 ];
 
@@ -257,7 +257,7 @@ describe('A7 actual route and shell access matrix', () => {
       );
       try {
         await screen.findByRole('heading', { name: route.readyHeading });
-        if (route.name === 'Team') {
+        if (route.name === 'Guild') {
           const panel = screen.getByRole('tabpanel');
           await waitFor(() =>
             expect(within(panel).queryByRole('status')).toBeNull(),
@@ -270,9 +270,9 @@ describe('A7 actual route and shell access matrix', () => {
           await within(hud).findByLabelText(
             `Level ${calculateXpSummary(save.xpSummary.totalXp).level}`,
           );
-          const teamLink = hud.querySelector('a[href="/rpg/laeringslaget"]');
-          expect(teamLink).toBeInTheDocument();
-          expect(teamLink).toHaveAccessibleName();
+          const guildLink = hud.querySelector('a[href="/rpg/laeringslaget"]');
+          expect(guildLink).toBeInTheDocument();
+          expect(guildLink).toHaveAccessibleName();
         }
         if (route.name === 'Focus') {
           await screen.findByText('Review saved sessions (1)');
@@ -291,7 +291,7 @@ describe('A7 actual route and shell access matrix', () => {
             !transaction.stores.every((store) => store.startsWith('activity_')),
         );
         expect(educationalTransactions).toHaveLength(route.hud ? 2 : 1);
-        if (route.name === 'Team') {
+        if (route.name === 'Guild') {
           const learningWeekTransaction = educationalTransactions.find(
             (transaction) =>
               JSON.stringify(transaction.stores) ===

@@ -238,11 +238,11 @@ export function RpgHomePage() {
           {summary.currentModule === null ? null : (
             <div className="rpg-hub__module-context">
               <dl className="rpg-hub__details rpg-hub__details--compact">
-                <div>
+                <div className="rpg-hub__stat rpg-hub__stat--current-module">
                   <dt>Current module</dt>
                   <dd>{summary.currentModule.title}</dd>
                 </div>
-                <div>
+                <div className="rpg-hub__stat rpg-hub__stat--module-status">
                   <dt>Module status</dt>
                   <dd>{summary.currentModule.statusLabel}</dd>
                 </div>
@@ -345,19 +345,19 @@ export function RpgHomePage() {
             {`This week: ${summary.weeklyProgress.weekStartDate} to ${summary.weeklyProgress.weekEndDate}`}
           </p>
           <dl className="rpg-hub__details rpg-hub__details--summary">
-            <div>
+            <div className="rpg-hub__stat rpg-hub__stat--tasks">
               <dt>Tasks last updated</dt>
               <dd>{summary.weeklyProgress.savedProgressCount}</dd>
             </div>
-            <div>
+            <div className="rpg-hub__stat rpg-hub__stat--study-time">
               <dt>Study time</dt>
               <dd>{formatMinutes(summary.weeklyProgress.totalMinutes)}</dd>
             </div>
-            <div>
+            <div className="rpg-hub__stat rpg-hub__stat--sessions">
               <dt>Sessions</dt>
               <dd>{summary.weeklyProgress.sessionCount}</dd>
             </div>
-            <div>
+            <div className="rpg-hub__stat rpg-hub__stat--xp">
               <dt>XP</dt>
               <dd>{summary.weeklyProgress.xpEarned}</dd>
             </div>

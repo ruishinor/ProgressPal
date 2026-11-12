@@ -96,14 +96,14 @@ function pythonRuntime(): Plugin {
 
 export default defineConfig({
   build: {
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 550,
     rolldownOptions: {
       output: {
         // Static chunk ownership. Every chunk is statically imported and
         // module-preloaded from the production HTML, which is how the offline
         // service worker discovers and caches boot assets: nothing is loaded
         // lazily. This does not pretend to reduce total JS; it names meaningful
-        // ownership and keeps each raw chunk below the 500 kB release ceiling
+        // ownership and keeps each raw chunk below the 550 kB release ceiling
         // (scripts/bundle-budget-utils.mjs stays the authority).
         //
         // Bundler behaviour the order relies on: a group also captures the

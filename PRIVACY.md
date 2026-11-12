@@ -55,15 +55,16 @@ choosing which to continue with. Changes that have yet to sync can be lost if
 browser storage is cleared. File exports and manual remote backups are
 separate recovery copies.
 
-## Optional private learning group
+## Optional private Guild
 
 When group sharing is available, you choose whether to create or join a group.
 Nhost stores its name, your account's membership and your chosen nickname.
 Sharing sends only the dates you choose to share for the current week in Oslo.
 Current members can see the group name, member nicknames and each member's
 current-week count. Exercise answers, notes, XP and email addresses are outside
-the group service. Treat an invitation code as private. The person managing the
-group can replace or disable it.
+the group service. The RPG shell looks up the name when a signed-in device is
+online. Treat an invitation code as private. The Guild administrator can change
+the name and replace or disable the code.
 
 Dates shared from different devices are added together, once per date. Local
 edits can change your personal week while previously shared dates remain in
@@ -76,15 +77,15 @@ and the previous invite stops working.
 ## Export, restore and reset
 
 A file export or manual remote backup contains the local learner records.
-Group membership and shared dates are managed separately through Læringslaget.
+Group membership and shared dates are managed separately through Guild.
 Local restore accepts schema-5 backups and replaces the database after validation
 and confirmation. Older exported schemas are refused. Existing on-device
 schema-4 databases upgrade in place. Local reset is available in the default
 build for browsers without a synced account binding. To remove the device copy
 from an account-bound browser, export pending changes, sign out and clear
 the site's browser storage. Your Nhost account, remote backup
-copies and group membership have separate controls. Use **Forlat laget** in
-Læringslaget to remove membership and shared dates.
+copies and group membership have separate controls. Use **Forlat Guilden** in
+Guild to remove membership and shared dates.
 
 Clearing browser storage or uninstalling can lose local progress. A file
 export gives you a recovery copy you can keep outside the browser. Local

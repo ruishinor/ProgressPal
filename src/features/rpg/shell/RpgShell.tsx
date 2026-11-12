@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useMainContentFocus } from '@/components/layout/useMainContentFocus';
 import { formatEstimatedMinutes } from '@/lib/time';
@@ -28,6 +28,8 @@ import {
 import type { RpgHubSummary, RpgHudSummary } from '@/features/rpg/model/types';
 import { RpgPrimaryNav } from '@/features/rpg/shell/RpgPrimaryNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
+import { SettingsIcon } from '@/components/ui/SettingsIcon';
+import { useGuildName } from '@/features/social/useGroupAccess';
 import {
   getRpgResourcePath,
   rpgHeroPath,
@@ -57,6 +59,8 @@ export type RpgShellHubState = {
 };
 
 export type RpgShellOutletContext = {
+  guildName: string | null;
+  onGuildName: (userId: string, name: string | null) => void;
   hubState: RpgShellHubState;
   refreshHub: () => void;
   refreshHud: () => Promise<RpgHudSummary>;
@@ -89,15 +93,7 @@ function SettingsLink({ inHud = false }: { inHud?: boolean }) {
       className="rpg-shell__settings-link"
       to={rpgSettingsPath}
     >
-      <svg
-        aria-hidden="true"
-        className="rpg-shell__settings-icon"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <path d="M9.8 3.8h4.4l.6 2.1 1.6.9 2.1-.6 2.2 3.8-1.5 1.5v1.9l1.5 1.5-2.2 3.8-2.1-.6-1.6.9-.6 2.1H9.8L9.2 19l-1.6-.9-2.1.6-2.2-3.8 1.5-1.5v-1.9L3.3 10l2.2-3.8 2.1.6 1.6-.9.6-2.1Z" />
-        <circle cx="12" cy="12.4" r="2.8" />
-      </svg>
+      <SettingsIcon className="rpg-shell__settings-icon" />
       <span className={inHud ? 'sr-only' : 'rpg-shell__settings-text'}>
         Settings
       </span>
@@ -106,11 +102,13 @@ function SettingsLink({ inHud = false }: { inHud?: boolean }) {
 }
 
 function RpgHeroHud({
+  guildName,
   onRetry,
   state,
   showQuest,
   programmeTitle,
 }: {
+  guildName: string | null;
   onRetry: () => void;
   state: RpgShellHudState;
   showQuest: boolean;
@@ -209,17 +207,12 @@ function RpgHeroHud({
     >
       <RpgHeroIdentity
         avatarConfig={summary.learnerAvatarConfig}
+        guildHref={rpgSocialPath}
+        guildName={guildName}
         identity={summary.identity}
         name={summary.learnerName}
         profileHref={rpgHeroPath}
-        secondaryStatistic={
-          <div className="rpg-hero-hud__links">
-            <ActivityIndicator />
-            <NavLink className="rpg-hero-hud__team-link" end to={rpgSocialPath}>
-              Team
-            </NavLink>
-          </div>
-        }
+        secondaryStatistic={<ActivityIndicator />}
         showDetails={!mobile}
       />
       <SettingsLink inHud />
@@ -265,6 +258,7 @@ export function RpgShell({
   learningSyncStatus,
 }: { learningSyncStatus?: React.ReactNode } = {}) {
   const { coordination, profile, programmeScope, refresh } = useAppState();
+  const { guildName, onGuildName } = useGuildName();
   const [hudState, setHudState] = useState<RpgShellHudState>(initialHudState);
   const [hubState, setHubState] = useState<RpgShellHubState>(initialHubState);
   const [reloadToken, setReloadToken] = useState(0);
@@ -422,6 +416,7 @@ export function RpgShell({
         <RpgPrimaryNav />
         {!withoutHud ? (
           <RpgHeroHud
+            guildName={guildName}
             programmeTitle={programmeScope?.title}
             showQuest={
               location.pathname !== rpgRoutePath &&
@@ -514,6 +509,8 @@ export function RpgShell({
           <Outlet
             context={
               {
+                guildName,
+                onGuildName,
                 hubState,
                 refreshHub,
                 refreshHud,

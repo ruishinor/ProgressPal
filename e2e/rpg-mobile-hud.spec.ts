@@ -63,9 +63,13 @@ for (const width of [320, 390, 1280]) {
       await touchTarget(
         hud.getByRole('link', { name: 'Open Hero Profile', exact: true }),
       );
-      const team = hud.locator('a[href="/rpg/laeringslaget"]');
-      await expect(team).toHaveAccessibleName(/\S/);
-      await touchTarget(team);
+      const guild = hud.getByRole('link', {
+        name: 'Code Knights',
+        exact: true,
+      });
+      await expect(guild).toHaveAttribute('href', '/rpg/laeringslaget');
+      await touchTarget(guild);
+      await expect(hud.locator('.rpg-identity__path dd')).toBeVisible();
       if (quest) {
         await expect(
           hud.getByRole('link', { name: 'Start quest', exact: true }),
@@ -93,9 +97,11 @@ for (const width of [320, 390, 1280]) {
         expect(
           (await page.locator('#rpg-main-content').boundingBox())!.y,
         ).toBeLessThan(width === 320 ? 290 : 270);
-        await expect(
-          hud.getByText('Code Knights', { exact: true }),
-        ).not.toBeVisible();
+        await expect(hud.locator('details')).not.toHaveAttribute('open');
+        await expect(hud.locator('details .rpg-identity__path')).toHaveCount(0);
+        await expect(hud.locator('details .rpg-identity__guild')).toHaveCount(
+          0,
+        );
       } else {
         await expect(hud.getByLabel('Character details')).toHaveCount(0);
         await expect(
@@ -205,6 +211,11 @@ test('mobile HUD reflows for enlarged text and a long programme identity', async
     ).document.documentElement.style.fontSize = '200%';
   });
   await noOverflow(page);
+  await expect(hud.locator('details')).not.toHaveAttribute('open');
+  await expect(hud.locator('.rpg-identity__path dd')).toBeVisible();
+  await expect(
+    hud.getByRole('group', { name: 'Hero progression' }),
+  ).toBeVisible();
   const copy = await hud.locator('.rpg-hero-hud__quest-copy').boundingBox();
   const action = await hud
     .getByRole('link', { name: 'Start quest', exact: true })
@@ -242,10 +253,10 @@ test('mobile HUD reflows for enlarged text and a long programme identity', async
         .map((element) => element.textContent),
     );
   expect(clipped).toEqual([]);
-  const team = hud.locator('a[href="/rpg/laeringslaget"]');
-  await team.focus();
-  await expect(team).toBeFocused();
-  await touchTarget(team);
+  const guild = hud.getByRole('link', { name: 'Code Knights', exact: true });
+  await guild.focus();
+  await expect(guild).toBeFocused();
+  await touchTarget(guild);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await hud.screenshot({
     path: 'artifacts/mobile-hud-expanded-320-enlarged.png',

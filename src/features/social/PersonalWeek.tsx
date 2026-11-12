@@ -59,7 +59,7 @@ export function PersonalWeekDetails({
         </p>
       ) : (
         <p>
-          <Link to={socialPath}>Læringslaget</Link>
+          <Link to={socialPath}>Guild</Link>
         </p>
       )}
     </Panel>

@@ -1,5 +1,40 @@
 # ProgressPal current state
 
+**ProgressPal-korrigeringsordre v2 — tidligere lokal kandidat, 2026-11-12.** Kandidatgrenen
+`cx/progresspal-korrigeringsordre-v2` starter på verifisert `master`
+`61bcb593b9194e6b1092e495d28465a2cf091a90` (PR #89). De eksisterende
+P0–P2-implementeringene `b4ee587`, `1d876be` og `843d668` er integrert.
+De opprinnelige grenene beholder sin historiske review- og testevidens.
+
+- Guild bruker de eksisterende rutene og Nhost-medlemskapene. Administratoren
+  endrer navnet fra tannhjulet i Guild-kortet. RPG viser bekreftet Guild-navn
+  for innloggede brukere på nett og bruker Code Knights som standard.
+  Guild, aktivitetsnivå, XP/Level og Path er synlige med Details lukket.
+- Teknologioppslag og infoknappen ligger på samme rad ved smal visning og
+  forstørring. Glassmorphic viser bakgrunnsfargene gjennom panelene og
+  respekterer redusert transparens. Playful-farger følger KPI-ene når
+  rekkefølgen endres.
+- P0–P2 før korrigering målte 450 026 B JS gzip og 497 064 B største rå
+  JS-fil. Korrigert bygg målte 450 670 og 497 241 B. Takene på 500 000 og
+  550 000 B gir 10,9 % og 10,6 % arbeidsmargin, avrundet til 50 kB.
+  `check:bundle` ga PASS for alle budsjettklasser. CSS målte 18 786 B gzip,
+  pensum 265 864 B og Python-runtime 6 398 912 B.
+- Lokal verifikasjon omfatter 274 målrettede Vitest-caser, 27 Node-caser
+  for buntbudsjett og release-binding, 46 unike Chromium-caser inkludert
+  to offline-caser, samt lint, format, typesjekk, sirkulærsjekk og bygg.
+  Ekte 200 % Chromium-zoom ga 309 CSS px og besto for åtte kombinasjoner av
+  stil og fargemodus. Laveste målte Glassmorphic-tekstkontrast var 7,15:1
+  på Home og 5,73:1 på Guild-flaten.
+- [Guild-migreringen](../infra/nhost/social/README.md) besto i en midlertidig
+  lokal database med PostgreSQL/PGlite 0.5.16. Nettleserprøven bruker simulert
+  transport. Live Nhost-migrering og validering av Hasura/JWT gjenstår i
+  autorisert miljø.
+- PR #90 var en åpen kladd ved denne kontrollen. Dens `Final candidate` besto på `5b2a35e`.
+  Produksjonsaliaset pekte ved kontroll på Vercel-deploy
+  `dpl_3mMF8fxccg85f1csJphvnUBSbsko` fra `61bcb593`.
+  Korrigeringskandidaten har [bundet selvreview](release-reviews/progresspal-korrigeringsordre-v2.json)
+  og avventer en ordinær hosted `Final candidate` ved autorisert publisering.
+
 **Kontobasert oppstart og automatisk synkronisering — kildekandidat
 2026-11-12.** Arbeidet bygger på `61bcb593b9194e6b1092e495d28465a2cf091a90`
 på en isolert gren. `VITE_PROGRESSPAL_ACCOUNT_SYNC=true` aktiverer

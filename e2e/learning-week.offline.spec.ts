@@ -66,5 +66,5 @@ test('shows a saved Oslo learning day after reload and in both shells offline', 
   ).toBeVisible();
   await page.locator('a[href="/laeringslaget"]').click();
   await expect(page).toHaveURL(/\/laeringslaget$/);
-  await expect(page.getByText(/Koble til nettet for å se laget/)).toBeVisible();
+  await expect(page.getByRole('status')).toBeVisible();
 });

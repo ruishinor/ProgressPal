@@ -2,6 +2,7 @@ export type SocialCommand =
   | { operation: 'read' }
   | { operation: 'leave' | 'invite' | 'revoke'; membership: string }
   | { operation: 'create'; name: string; nickname: string }
+  | { operation: 'rename'; name: string; membership: string }
   | { operation: 'join'; code: string; nickname: string }
   | { operation: 'share'; days: string[]; membership: string };
 
