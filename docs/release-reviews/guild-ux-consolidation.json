@@ -4,19 +4,26 @@
   "reviewer": "OpenAI Codex, implementing agent (self-review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "747ba0c123c8bf6df7a7242dce60914be1df07ee",
+    "payloadTree": "7e1e8224768011fa9d4baa8c07bcb598708ff551",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Reviewed the consolidated Guild panel and the explicit share action in Min uke, the inherited v2 prerequisites, and the diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The Guild command model and SQL match v2. The sync implementation, provider files, CI, and bundle limits match master.",
+    "summary": "Reviewed the consolidated Guild panel, the explicit share action in Min uke and the follow-up that gives Guild names the full card width. Compared the inherited v2 prerequisites and final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The Guild command model and SQL match v2. The sync implementation, sync provider files, CI, and bundle limits match master.",
     "evidence": [
-      "175 focused Vitest cases and 6 Node bundle-budget cases passed. Changed-file Prettier, ESLint, TypeScript, circular dependency analysis and git diff --check passed.",
-      "29 distinct default managed Chromium cases passed across the affected specs, including offline Min uke and cloud Settings. The Guild case passed again on the final CSS, covering keyboard focus, exact read counts, duplicate suppression, a transient failure and retry, rename permissions, explicit sharing, stale membership, and a delayed reply across logout and account switch.",
-      "Both PR #90 account-sync browser journeys passed with the rollout flag enabled. Production builds passed the unchanged master limits at 458064 bytes gzip and 343107 bytes largest raw JS by default, and 457771 and 342903 bytes with sync enabled.",
-      "Inspected the final 320px and desktop Guild screenshots against v2. The shared goal is adjacent to the member count and the ranking is the only roster. Native Chromium at 200% used a 309 CSS-pixel viewport with eight synthetic members. All four styles in both color modes fit without clipping or horizontal overflow, with 44 by 44 pixel controls and no axe violations in the Guild surface."
+      "The prior preflight passed 175 focused Vitest cases, 6 Node bundle-budget cases, circular dependency analysis and 29 distinct managed Chromium cases. The final correction changes only Guild CSS and its browser spec. Changed-file Prettier, ESLint, TypeScript and git diff --check passed after that correction.",
+      "The Guild spec passed again on the final candidate. It checks rendered word fragments, full heading width and placement below both controls at 320 CSS pixels, along with focus, exact read counts, duplicate suppression, refresh failure and retry, rename permissions, explicit sharing, stale membership and account isolation.",
+      "Both PR #90 account-sync browser journeys passed before the CSS correction. The final production build passed the unchanged master limits with 458064 bytes of JS gzip, 343107 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
+      "Inspected full Guild screenshots at 320 CSS pixels and the header at native 200% Chromium zoom. The 40-character name wraps between words. At 200% and 309 CSS pixels, all four styles in both color modes passed title and control geometry, 44 by 44 pixel hit areas and axe. The fixture retains eight ranked members, long nicknames, shared ranks and a full bar with the actual 20 / 16 total."
     ]
   },
   "adversarialFindings": [
+    {
+      "id": "GUILD-NAME-REFLOW",
+      "severity": "P2",
+      "description": "The first 320px Glassmorphic screenshot showed a valid long Guild name splitting inside words and leaving a letter on its own line. The icon gutter narrowed the entire identity block.",
+      "resolution": "Reserve the icon gutter only on the section-label row. The heading and member count use the full card width, with word-breaking as an overflow fallback. Browser geometry and inspected screenshots confirm the 40-character name renders intact at 320 CSS pixels and native 200% zoom.",
+      "status": "resolved"
+    },
     {
       "id": "REFRESH-PRESERVES-CONFIRMED-BOARD",
       "severity": "P2",
