@@ -407,18 +407,22 @@
 }
 
 .learning-group__heading:has(.learning-group__refresh)
-  .learning-group__identity {
+  :is(.learning-group__eyebrow, h2:only-child) {
   min-block-size: 44px;
   padding-inline-end: calc(44px + var(--space-2));
 }
 
-.learning-group__heading:has(.learning-group__gear) .learning-group__identity {
+.learning-group__heading:has(.learning-group__gear) .learning-group__eyebrow {
   padding-inline-end: calc(88px + 2 * var(--space-2));
 }
 
 .learning-group__heading h2 {
   margin-block: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+.learning-group__eyebrow + h2 {
+  margin-block-start: var(--space-2);
 }
 
 .learning-group__heading p {
@@ -426,6 +430,8 @@
 }
 
 .learning-group__eyebrow {
+  align-items: center;
+  display: flex;
   font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: 0.08em;

@@ -266,7 +266,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await saveName.click();
   await expect(panel.getByRole('status')).toContainText(/Guild-navn/);
   await expect(guildLink).toHaveText(group.name);
-  const renamed = 'Øvingsguild' + 'Kode'.repeat(7);
+  const renamed = 'Kodeverkstedets utholdende problemløsere';
   await field.fill(renamed);
   await capture('guild-navneendring');
   expect(
@@ -275,7 +275,33 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await field.press('Enter');
   await expect(gear).toBeFocused();
   await expect(field).toBeHidden();
-  await expect(panel.getByRole('heading', { name: renamed })).toBeVisible();
+  const guildName = panel.getByRole('heading', { name: renamed });
+  await expect(guildName).toBeVisible();
+  const headingLayout = await guildName.evaluate((heading) => {
+    const name = heading.firstChild!;
+    const range = document.createRange();
+    const title = heading.getBoundingClientRect();
+    const header = heading.closest('.learning-group__heading')!;
+    const actions = header.querySelectorAll(
+      '.learning-group__refresh, .learning-group__gear',
+    );
+    return {
+      width: title.width,
+      headerWidth: header.getBoundingClientRect().width,
+      belowActions: Array.from(actions).every(
+        (action) => action.getBoundingClientRect().bottom <= title.top,
+      ),
+      wordLines: Array.from(name.textContent!.matchAll(/\S+/g), (word) => {
+        range.setStart(name, word.index);
+        range.setEnd(name, word.index + word[0].length);
+        return range.getClientRects().length;
+      }),
+    };
+  });
+  expect(headingLayout.width).toBe(headingLayout.headerWidth);
+  expect(headingLayout.belowActions).toBe(true);
+  expect(headingLayout.wordLines.every((lines) => lines === 1)).toBe(true);
+  await capture('guild-langt-navn');
   await expect(guildLink).toHaveText(renamed);
   expect(commands.at(-1)).toEqual({
     operation: 'rename',
