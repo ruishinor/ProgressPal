@@ -128,7 +128,7 @@ const routes = [
   },
   {
     name: 'Guild',
-    path: '/rpg/laeringslaget',
+    path: '/rpg/guild',
     stores: learningWeekStores,
     budget: 3,
     hud: true,
@@ -242,7 +242,7 @@ describe('A7 actual route and shell access matrix', () => {
                   { path: 'focus', element: <RpgFocusPage /> },
                   { path: 'badges', element: <RpgBadgesPage /> },
                   { path: 'hero', element: <RpgHeroPage /> },
-                  { path: 'laeringslaget', element: <GroupPage rpg /> },
+                  { path: 'guild', element: <GroupPage rpg /> },
                 ],
               },
             ],
@@ -270,7 +270,7 @@ describe('A7 actual route and shell access matrix', () => {
           await within(hud).findByLabelText(
             `Level ${calculateXpSummary(save.xpSummary.totalXp).level}`,
           );
-          const guildLink = hud.querySelector('a[href="/rpg/laeringslaget"]');
+          const guildLink = hud.querySelector('a[href="/rpg/guild"]');
           expect(guildLink).toBeInTheDocument();
           expect(guildLink).toHaveAccessibleName();
         }

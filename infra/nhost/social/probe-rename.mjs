@@ -11,6 +11,10 @@ const db = new PGlite();
 const [owner, member, other, outsider] = [1, 2, 3, 4].map(
   (id) => `00000000-0000-4000-8000-00000000000${id}`,
 );
+const candidates = Array.from(
+  { length: 6 },
+  (_, i) => `00000000-0000-4000-8000-${String(i + 5).padStart(12, '0')}`,
+);
 
 async function rpc(actor, operation, input = {}, role = 'user') {
   const { rows } = await db.query(
@@ -40,6 +44,10 @@ const renameSql = await readFile(
   new URL('rename-guild.sql', import.meta.url),
   'utf8',
 );
+const memberInvitesSql = await readFile(
+  new URL('member-invites.sql', import.meta.url),
+  'utf8',
+);
 
 try {
   await db.exec(`CREATE SCHEMA auth;
@@ -49,6 +57,11 @@ try {
   await assert.rejects(db.exec(renameSql), /Install the existing/);
   await db.exec('ROLLBACK');
   await db.exec(await readFile(new URL('up.sql', import.meta.url), 'utf8'));
+  await assert.rejects(db.exec(memberInvitesSql), /Unexpected social_week/);
+  await db.exec('ROLLBACK');
+  for (const candidate of candidates) {
+    await db.query('INSERT INTO auth.users VALUES ($1)', [candidate]);
+  }
 
   const created = await rpc(owner, 'create', {
     name: 'Eksisterende Guild',
@@ -135,6 +148,99 @@ try {
   await assert.rejects(rpc(owner, 'rename', input), /permission denied/);
   await db.exec('RESET ROLE');
 
+  const memberMembership = joined.group.membership;
+  const beforeInvites = await rpc(member, 'read');
+  await db.exec(memberInvitesSql);
+  assert.deepEqual(await functionIdentity(), identity);
+  assert.deepEqual(await rpc(member, 'read'), {
+    ...beforeInvites,
+    group: { ...beforeInvites.group, canCreateInvite: true },
+  });
+  const nameAfterUpgrade = 'Guild etter invitasjonsoppgradering';
+  assert.equal(
+    (await rpc(owner, 'rename', { membership, name: nameAfterUpgrade })).status,
+    'ok',
+  );
+  assert.equal((await rpc(member, 'read')).group.name, nameAfterUpgrade);
+  assert.deepEqual(await rpc(candidates[0], 'read'), {
+    status: 'ok',
+    weekStart: created.weekStart,
+    group: null,
+    invite: null,
+  });
+  for (const [actor, ref, role, status] of [
+    [member, membership, 'user', 'membership-changed'],
+    [other, memberMembership, 'user', 'membership-changed'],
+    [candidates[0], memberMembership, 'user', 'no-group'],
+    [member, memberMembership, 'anonymous', 'unauthenticated'],
+  ]) {
+    assert.equal(
+      (await rpc(actor, 'invite', { membership: ref }, role)).status,
+      status,
+    );
+  }
+  assert.equal(
+    (await rpc(member, 'rename', { membership: memberMembership, name: 'Nei' }))
+      .status,
+    'not-admin',
+  );
+  assert.equal(
+    (await rpc(member, 'revoke', { membership: memberMembership })).status,
+    'not-admin',
+  );
+  const rotation = await rpc(member, 'invite', {
+    membership: memberMembership,
+  });
+  assert.equal(rotation.status, 'ok');
+  assert.equal(rotation.group.canInvite, false);
+  assert.equal(rotation.group.canCreateInvite, true);
+  assert.match(rotation.invite, /^[0-9a-f]{64}$/);
+  assert.notEqual(rotation.invite, invite);
+  assert.equal(
+    (await rpc(candidates[0], 'join', { code: invite, nickname: 'E' })).status,
+    'invalid-code',
+  );
+  assert.equal((await rpc(owner, 'revoke', { membership })).status, 'ok');
+  assert.equal(
+    (await rpc(candidates[0], 'join', { code: rotation.invite, nickname: 'E' }))
+      .status,
+    'invalid-code',
+  );
+  const fresh = await rpc(member, 'invite', { membership: memberMembership });
+  assert.equal(fresh.status, 'ok');
+  for (const candidate of candidates.slice(0, 5)) {
+    assert.equal(
+      (
+        await rpc(candidate, 'join', {
+          code: fresh.invite,
+          nickname: 'Nytt medlem',
+        })
+      ).status,
+      'ok',
+    );
+  }
+  assert.equal((await rpc(owner, 'read')).group.members.length, 8);
+  const full = await rpc(member, 'invite', { membership: memberMembership });
+  assert.equal(full.status, 'ok');
+  assert.equal(
+    (
+      await rpc(candidates[5], 'join', {
+        code: full.invite,
+        nickname: 'Reserve',
+      })
+    ).status,
+    'group-full',
+  );
+  const leaving = await rpc(candidates[0], 'read');
+  assert.equal(
+    (
+      await rpc(candidates[0], 'leave', {
+        membership: leaving.group.membership,
+      })
+    ).group,
+    null,
+  );
+
   assert.equal((await rpc(owner, 'leave', { membership })).status, 'ok');
   const remaining = await rpc(member, 'read');
   assert.equal(remaining.group.canInvite, true);
@@ -152,7 +258,7 @@ try {
   assert.equal((await rpc(member, 'read')).status, 'unauthenticated');
   assert.equal((await rpc(outsider, 'read')).group.canInvite, true);
   console.log(
-    'Guild rename SQL PASS: upgrade identity, existing data, membership and role checks, invite, ownership transfer and account deletion.',
+    'Guild SQL PASS: guarded upgrades, rename and revoke permissions, member invites, code rotation, capacity, leave and account deletion.',
   );
 } finally {
   await db.close();

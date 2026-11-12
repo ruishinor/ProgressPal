@@ -15,9 +15,11 @@ function GroupAccess({
   learning,
   renderPanels,
   onGuildName,
+  onOpenAdministration,
 }: {
   learning: ReturnType<typeof useLearningWeek>;
   onGuildName?: (userId: string, name: string | null) => void;
+  onOpenAdministration?: () => void;
   renderPanels?: (
     guild: ReactNode,
     administration: ReactNode,
@@ -36,6 +38,7 @@ function GroupAccess({
         learning={learning}
         renderPanels={renderPanels}
         onGuildName={onGuildName}
+        onOpenAdministration={onOpenAdministration}
       />
     );
   }
@@ -86,6 +89,11 @@ function RpgGuildPage({
   const id = useId();
   const [selected, setSelected] = useState(0);
 
+  function selectTab(index: number) {
+    setSelected(index);
+    document.getElementById(`${id}-tab-${index}`)?.focus();
+  }
+
   function panel(index: number, content: ReactNode) {
     return (
       <div
@@ -132,8 +140,7 @@ function RpgGuildPage({
               if (!Object.hasOwn(destinations, event.key)) return;
               const next = destinations[event.key];
               event.preventDefault();
-              setSelected(next);
-              document.getElementById(`${id}-tab-${next}`)?.focus();
+              selectTab(next);
             }}
             role="tab"
             tabIndex={selected === index ? 0 : -1}
@@ -146,6 +153,7 @@ function RpgGuildPage({
       <GroupAccess
         learning={learning}
         onGuildName={onGuildName}
+        onOpenAdministration={() => selectTab(2)}
         renderPanels={(guild, administration, share) => (
           <>
             {panel(

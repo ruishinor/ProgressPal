@@ -25,11 +25,11 @@ test('shows a saved Oslo learning day after reload and in both shells offline', 
   await context.setOffline(true);
   await page.reload();
   await page.setViewportSize({ width: 320, height: 800 });
-  const entry = page.locator('a[href="/rpg/laeringslaget"]');
+  const entry = page.locator('a[href="/rpg/guild"]');
   await entry.focus();
   await expect(entry).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/rpg\/laeringslaget$/);
+  await expect(page).toHaveURL(/\/rpg\/guild$/);
   await expect(entry).toHaveAttribute('aria-current', 'page');
   const tabs = page.getByRole('tab');
   await expect(tabs).toHaveCount(3);
@@ -60,11 +60,20 @@ test('shows a saved Oslo learning day after reload and in both shells offline', 
     (await new AxeBuilder({ page }).include('main').analyze()).violations,
   ).toEqual([]);
 
+  await page.goto('/rpg/laeringslaget?bookmark=1#week');
+  await expect(page).toHaveURL(/\/rpg\/guild\?bookmark=1#week$/);
+  await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+
   await page.goto('/dashboard');
   await expect(
     page.getByText('Du har øvd 1 dag.', { exact: false }),
   ).toBeVisible();
-  await page.locator('a[href="/laeringslaget"]').click();
-  await expect(page).toHaveURL(/\/laeringslaget$/);
+  await page.locator('a[href="/guild"]').click();
+  await expect(page).toHaveURL(/\/guild$/);
   await expect(page.getByRole('status')).toBeVisible();
+  await page.goto('/laeringslaget?bookmark=1#week');
+  await expect(page).toHaveURL(/\/guild\?bookmark=1#week$/);
+  await expect(
+    page.getByRole('main').getByRole('heading', { name: 'Guild', level: 1 }),
+  ).toBeVisible();
 });

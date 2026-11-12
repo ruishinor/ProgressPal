@@ -38,11 +38,11 @@ const failures: Record<SocialFailure, string> = {
   'membership-changed':
     'Medlemskapet har endret seg. Oppdater Guilden før du deler eller gjør endringer.',
   'not-admin':
-    'Bare Guild-administratoren kan endre navn og invitasjonskode. Oppdater Guilden.',
+    'Bare Guild-administratoren kan endre navnet eller deaktivere invitasjonskoden. Oppdater Guilden.',
   'invalid-days':
     'Delte dager må være fra inneværende uke i norsk tid. Sjekk klokken på enheten og oppdater Guilden.',
   unavailable:
-    'Kunne ikke bekrefte resultatet. Oppdater Guilden når du er tilkoblet.',
+    'Kunne ikke hente et gyldig svar fra Guild-tjenesten. Prøv igjen.',
   'rate-limited':
     'Tjenesten har fått mange forespørsler. Vent litt og oppdater Guilden.',
 };
@@ -54,6 +54,7 @@ type Props = {
   settings: string;
   learning: ReturnType<typeof useLearningWeek>;
   onGuildName?: (userId: string, name: string | null) => void;
+  onOpenAdministration?: () => void;
   renderPanels?: (
     guild: ReactNode,
     administration: ReactNode,
@@ -66,6 +67,7 @@ export function GroupSession({
   settings,
   learning,
   onGuildName,
+  onOpenAdministration,
   renderPanels,
 }: Props) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -258,6 +260,20 @@ export function GroupSession({
       Del ukens læringsdager
     </Action>
   );
+  const enrolmentEntry = (
+    <div className="action-row">
+      <Action
+        disabled={busy}
+        onClick={() => {
+          onOpenAdministration?.();
+          if (snapshot === null) void run({ operation: 'read' }, true);
+        }}
+        variant="secondary"
+      >
+        Opprett eller bli med i Guild
+      </Action>
+    </div>
+  );
   const enrolment = snapshot !== null && group === null && (
     <>
       <p>
@@ -363,29 +379,31 @@ export function GroupSession({
   );
   const membership = group !== null && (
     <>
-      {group.canInvite && (
+      {(group.canInvite || group.isAdmin) && (
         <>
           <h3>Invitasjon</h3>
           <p>
             Gi koden til dem du vil invitere. En ny kode erstatter den gamle.
           </p>
           <div className="action-row">
-            <Action
-              disabled={busy || group.members.length >= 8}
-              onClick={() =>
-                void run(
-                  {
-                    operation: 'invite',
-                    membership: group.membership,
-                  },
-                  true,
-                )
-              }
-              variant="secondary"
-            >
-              {group.hasInvite ? 'Lag ny kode' : 'Lag invitasjonskode'}
-            </Action>
-            {group.hasInvite && (
+            {group.canInvite && (
+              <Action
+                disabled={busy}
+                onClick={() =>
+                  void run(
+                    {
+                      operation: 'invite',
+                      membership: group.membership,
+                    },
+                    true,
+                  )
+                }
+                variant="secondary"
+              >
+                {group.hasInvite ? 'Lag ny kode' : 'Lag invitasjonskode'}
+              </Action>
+            )}
+            {group.isAdmin && group.hasInvite && (
               <Action
                 disabled={busy}
                 onClick={() =>
@@ -494,7 +512,7 @@ export function GroupSession({
           </svg>
         </button>
       )}
-      {group?.canInvite && (
+      {group?.isAdmin && (
         <details className="learning-group__name-editor" ref={nameEditor}>
           <summary
             aria-label="Endre Guild-navn"
@@ -554,18 +572,14 @@ export function GroupSession({
       <RpgPanel className="learning-group">
         {heading}
         {status}
-        {signedOut ? (
-          accountLink
-        ) : snapshot === null ? (
-          <p>Bruk oppdateringsikonet for å hente Guilden din.</p>
-        ) : (
-          group === null && (
-            <p>
-              Du er ikke med i en Guild ennå. Du kan opprette eller bli med
-              under Administrasjon.
-            </p>
-          )
-        )}
+        {signedOut
+          ? accountLink
+          : group === null && (
+              <>
+                {snapshot !== null && <p>Du er ikke med i en Guild ennå.</p>}
+                {enrolmentEntry}
+              </>
+            )}
         {board}
       </RpgPanel>,
       <RpgPanel className="learning-group">
@@ -608,6 +622,7 @@ export function GroupSession({
     <Card className="learning-group">
       {heading}
       {status}
+      {!signedOut && snapshot === null && enrolmentEntry}
       {signedOut
         ? accountLink
         : shareAction && (

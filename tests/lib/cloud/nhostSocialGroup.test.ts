@@ -27,6 +27,7 @@ const board = {
   },
   invite: null,
 };
+const adminBoard = { ...board, group: { ...board.group, isAdmin: true } };
 
 const answer = (result: unknown) =>
   jsonResponse(200, { data: { social_week: [{ result }] } });
@@ -60,7 +61,9 @@ it('only sends an explicit, bounded social command under the expected authentica
   expect(stub.calls).toEqual([]);
 
   stub.respond(() => answer(board));
-  expect(await cloud.social.execute(share, 'user-1', signal)).toEqual(board);
+  expect(await cloud.social.execute(share, 'user-1', signal)).toEqual(
+    adminBoard,
+  );
   expect(stub.calls).toHaveLength(1);
   expect(stub.calls[0]?.url).toBe(nhostGraphqlUrl);
   expect(stub.calls[0]?.headers.get('authorization')).toMatch(/^Bearer /);
@@ -74,6 +77,43 @@ it('only sends an explicit, bounded social command under the expected authentica
     'operation',
     'input',
   ]);
+});
+
+it('preserves confirmed absence and accepts member invites only from the upgraded provider', async () => {
+  const stub = installFetchStub();
+  const cloud = createCloud();
+  enableCloud();
+  await signInThroughStub(cloud, stub);
+  const signal = new AbortController().signal;
+  const absent = { ...board, group: null };
+  stub.respond(() => answer(absent));
+  expect(
+    await cloud.social.execute({ operation: 'read' }, 'user-1', signal),
+  ).toEqual(absent);
+
+  const member = { ...board.group, canInvite: false };
+  const invite = 'a'.repeat(64);
+  const command = { operation: 'invite', membership } as const;
+  stub.respond(() => answer({ ...board, group: member }));
+  expect(
+    await cloud.social.execute({ operation: 'read' }, 'user-1', signal),
+  ).toEqual({
+    ...board,
+    group: { ...member, isAdmin: false },
+  });
+  stub.respond(() => answer({ ...board, group: member, invite }));
+  expect(await cloud.social.execute(command, 'user-1', signal)).toEqual({
+    status: 'unavailable',
+  });
+
+  stub.respond(() =>
+    answer({ ...board, group: { ...member, canCreateInvite: true }, invite }),
+  );
+  expect(await cloud.social.execute(command, 'user-1', signal)).toEqual({
+    ...board,
+    group: { ...member, isAdmin: false, canInvite: true },
+    invite,
+  });
 });
 
 it('discards a late private board after cloud disable or a trusted identity change', async () => {
@@ -159,7 +199,7 @@ it.each([-60, 5])(
         'user-1',
         new AbortController().signal,
       ),
-    ).toEqual(board);
+    ).toEqual(adminBoard);
     expect(stub.calls.map((call) => call.url)).toEqual([
       nhostAuthUrl + '/token',
       nhostGraphqlUrl,

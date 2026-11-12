@@ -14,8 +14,8 @@ argument. Only the `user` role has metadata permissions. The mutation takes an
 action and bounded JSON input. Every read/write is relative to the account in
 the injected session. A share, leave or invite action also checks the caller's
 membership reference from the board so a stale device cannot act on a new
-membership. The first remaining member by insertion order manages the
-invite. Codes are generated on request, returned once and stored only as SHA-256
+membership. The first remaining member by insertion order is the administrator.
+Codes are generated on request, returned once and stored only as SHA-256
 digests. Leaving and direct Auth deletion remove the member's days, revoke an
 outgoing administrator's invite and remove an empty group. The server uses Oslo
 dates and prunes older dates for a member at their next successful share.
@@ -72,3 +72,30 @@ PGlite distribution. It exercises the SQL before and after the upgrade.
 To roll back the rename operation, reapply the saved function definition.
 Names already saved remain on their existing groups. Recheck GraphQL access
 and metadata consistency after either operation.
+
+## Member invitation upgrade
+
+On `progresspal-g0`, first inspect the installed function and the tracked
+`user` mutation permission. Save the definition for rollback and check that
+the source hash matches the value in [member-invites.sql](member-invites.sql).
+
+```sql
+SELECT pg_get_functiondef(oid) AS definition,
+       encode(sha256(convert_to(replace(prosrc, E'\r\n', E'\n'), 'UTF8')), 'hex') AS source_hash
+FROM pg_proc
+WHERE oid = to_regprocedure('progresspal_social.social_week(json,text,jsonb)');
+```
+
+After authorization, apply only `member-invites.sql` as the function owner,
+with tracking disabled in the SQL console. Its transaction rejects a missing
+or unexpected function body. The legacy response field `canInvite` still
+indicates the administrator. `canCreateInvite` grants code creation to members.
+Every member can replace the active code. The administrator can deactivate it,
+and any member can create a new code afterwards.
+
+With existing synthetic accounts, rename as administrator and refresh as the
+member. Check that the member's direct `rename` and `revoke` requests return
+`not-admin`, then create a code as the member and verify the old code no longer
+works. Deactivate as administrator and verify the member can create a fresh
+code. Keep tokens and codes out of logs. The local probe above covers both
+upgrades, stale memberships, outsiders, and the eight-member limit.

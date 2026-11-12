@@ -22,6 +22,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
     name: 'Øvelaget',
     hasInvite: false,
     canInvite: true,
+    canCreateInvite: true,
     members: [
       { nickname: 'Ada', self: true, days: 0 },
       { nickname: 'Bo', self: false, days: 1 },
@@ -120,7 +121,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
 
   await page.goto('/rpg');
   const hud = page.getByRole('region', { name: 'Persistent hero HUD' });
-  const guildLink = hud.locator('a[href="/rpg/laeringslaget"]');
+  const guildLink = hud.locator('a[href="/rpg/guild"]');
   await expect(guildLink).toHaveAccessibleName(/\S/);
   for (const width of [1280, 320]) {
     await page.setViewportSize({ width, height: 900 });
@@ -225,7 +226,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect.poll(() => commands.length).toBe(3);
   releaseFailedRead();
   await expect(refresh).toBeEnabled();
-  await expect(panel.getByRole('status')).toContainText(/Kunne ikke bekrefte/);
+  await expect(panel.getByRole('status')).not.toBeEmpty();
   await expect(ranking).toHaveCount(2);
   await expect(guildLink).toHaveText(group.name);
   await refresh.click();
@@ -351,6 +352,15 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect(
     page.getByRole('heading', { name: 'Ukas rangering' }),
   ).toHaveCount(0);
+  await tabs.nth(1).click();
+  await refresh.click();
+  const entryAction = panel.getByRole('button', {
+    name: 'Opprett eller bli med i Guild',
+  });
+  await expect(entryAction).toBeEnabled();
+  await expect(panel.getByRole('status')).toBeEmpty();
+  await entryAction.press('Enter');
+  await expect(tabs.last()).toBeFocused();
   await panel.getByRole('button', { name: 'Bli med i en Guild' }).click();
   await nickname.fill('Ada');
   const code = panel.getByLabel('Invitasjonskode');
@@ -395,6 +405,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
     'rename',
     'read',
     'leave',
+    'read',
     'join',
     'create',
     'leave',
@@ -403,9 +414,22 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await tabs.nth(1).click();
   await expect(panel.getByRole('heading', { name: group.name })).toBeVisible();
   await expect(gear).toHaveCount(0);
+  await tabs.last().click();
+  await panel.getByRole('button', { name: 'Lag invitasjonskode' }).click();
+  await expect(
+    panel.getByRole('textbox', { name: 'Invitasjonskode' }),
+  ).toHaveValue(invite);
+  await expect(
+    panel.getByRole('button', { name: 'Deaktiver koden' }),
+  ).toHaveCount(0);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await panel.getByRole('button', { name: 'Kopier invitasjonskode' }).click();
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toBe(invite);
   await page.reload();
   await expect(guildLink).toHaveText('Code Knights');
-  expect(commands.at(-1)?.operation).toBe('join');
+  expect(commands.at(-1)?.operation).toBe('invite');
   await tabs.nth(1).click();
   await refresh.click();
   await expect(guildLink).toHaveText(renamed);
@@ -445,7 +469,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await refresh.click();
   await expect(guildLink).toHaveText(group.name);
 
-  await page.goto('/laeringslaget');
+  await page.goto('/guild');
   const classic = page.locator('main .learning-group');
   await classic.getByRole('button', { name: 'Oppdater Guild' }).click();
   const classicShare = classic.getByRole('button', {

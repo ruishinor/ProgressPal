@@ -22,6 +22,7 @@ export type SocialFailure =
 export type SocialGroup = {
   name: string;
   membership: string;
+  isAdmin: boolean;
   canInvite: boolean;
   hasInvite: boolean;
   members: { nickname: string; days: number; self: boolean }[];

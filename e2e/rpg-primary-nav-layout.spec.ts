@@ -566,7 +566,7 @@ test('the skip link, primary navigation and the HUD form a logical keyboard path
     if (name === 'Code Knights') {
       await expect(page.locator(':focus')).toHaveAttribute(
         'href',
-        '/rpg/laeringslaget',
+        '/rpg/guild',
       );
     }
     const outline = await readStyles(page.locator(':focus'), ['outlineStyle']);

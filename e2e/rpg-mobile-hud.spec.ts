@@ -67,7 +67,7 @@ for (const width of [320, 390, 1280]) {
         name: 'Code Knights',
         exact: true,
       });
-      await expect(guild).toHaveAttribute('href', '/rpg/laeringslaget');
+      await expect(guild).toHaveAttribute('href', '/rpg/guild');
       await touchTarget(guild);
       await expect(hud.locator('.rpg-identity__path dd')).toBeVisible();
       if (quest) {

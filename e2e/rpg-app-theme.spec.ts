@@ -936,11 +936,11 @@ for (const theme of ['light', 'dark'] as const) {
         content: 'html { font-size: 200% !important; }',
       });
       await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
-      const guildLink = hud.locator('a[href="/rpg/laeringslaget"]');
+      const guildLink = hud.locator('a[href="/rpg/guild"]');
       await guildLink.focus();
       await expect(guildLink).toBeFocused();
       await page.keyboard.press('Enter');
-      await expect(page).toHaveURL(/\/rpg\/laeringslaget$/);
+      await expect(page).toHaveURL(/\/rpg\/guild$/);
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await expectRpgReflow(page, '.rpg-guild :is([role="tab"], a:visible)');
       await enlarged.evaluate((tag) => {

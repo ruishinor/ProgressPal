@@ -13,23 +13,33 @@ const socialDocument = `mutation SocialWeek($operation: String!, $input: jsonb!)
   social_week(args: {operation: $operation, input: $input}) { result }
 }`;
 
-const group = z.object({
-  name: z.string().min(1).max(80),
-  membership: z.uuid(),
-  canInvite: z.boolean(),
-  hasInvite: z.boolean(),
-  members: z
-    .array(
-      z.object({
-        nickname: z.string().min(1).max(48),
-        days: z.number().int().min(0).max(7),
-        self: z.boolean(),
-      }),
-    )
-    .min(1)
-    .max(8)
-    .refine((members) => members.filter((member) => member.self).length === 1),
-});
+const group = z
+  .object({
+    name: z.string().min(1).max(80),
+    membership: z.uuid(),
+    canInvite: z.boolean(),
+    canCreateInvite: z.boolean().optional(),
+    hasInvite: z.boolean(),
+    members: z
+      .array(
+        z.object({
+          nickname: z.string().min(1).max(48),
+          days: z.number().int().min(0).max(7),
+          self: z.boolean(),
+        }),
+      )
+      .min(1)
+      .max(8)
+      .refine(
+        (members) => members.filter((member) => member.self).length === 1,
+      ),
+  })
+  .transform(({ canInvite: isAdmin, canCreateInvite, ...board }) => ({
+    ...board,
+    isAdmin,
+    // The legacy wire field still identifies the administrator for older clients.
+    canInvite: canCreateInvite ?? isAdmin,
+  }));
 
 const reply = z.object({
   data: z.object({
