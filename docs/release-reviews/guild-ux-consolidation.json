@@ -4,19 +4,27 @@
   "reviewer": "OpenAI Codex, implementing agent (self-review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "7e1e8224768011fa9d4baa8c07bcb598708ff551",
+    "payloadTree": "9a7ddcf3e2696067bad133b90ce018c3fdace7c6",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
     "summary": "Reviewed the consolidated Guild panel, the explicit share action in Min uke and the follow-up that gives Guild names the full card width. Compared the inherited v2 prerequisites and final diff against master 2c1201930b403e4c081de212ca59ae9ca9a2f067. The Guild command model and SQL match v2. The sync implementation, sync provider files, CI, and bundle limits match master.",
     "evidence": [
-      "The prior preflight passed 175 focused Vitest cases, 6 Node bundle-budget cases, circular dependency analysis and 29 distinct managed Chromium cases. The final correction changes only Guild CSS and its browser spec. Changed-file Prettier, ESLint, TypeScript and git diff --check passed after that correction.",
+      "The prior preflight passed 175 focused Vitest cases, 6 Node bundle-budget cases, circular dependency analysis and 29 distinct managed Chromium cases. Changed-file Prettier, ESLint, TypeScript and git diff --check passed after the header correction and its integration-test follow-up.",
       "The Guild spec passed again on the final candidate. It checks rendered word fragments, full heading width and placement below both controls at 320 CSS pixels, along with focus, exact read counts, duplicate suppression, refresh failure and retry, rename permissions, explicit sharing, stale membership and account isolation.",
       "Both PR #90 account-sync browser journeys passed before the CSS correction. The final production build passed the unchanged master limits with 458064 bytes of JS gzip, 343107 bytes for the largest raw JS file and 19101 bytes of CSS gzip.",
-      "Inspected full Guild screenshots at 320 CSS pixels and the header at native 200% Chromium zoom. The 40-character name wraps between words. At 200% and 309 CSS pixels, all four styles in both color modes passed title and control geometry, 44 by 44 pixel hit areas and axe. The fixture retains eight ranked members, long nicknames, shared ranks and a full bar with the actual 20 / 16 total."
+      "Inspected full Guild screenshots at 320 CSS pixels and the header at native 200% Chromium zoom. The 40-character name wraps between words. At 200% and 309 CSS pixels, all four styles in both color modes passed title and control geometry, 44 by 44 pixel hit areas and axe. The fixture retains eight ranked members, long nicknames, shared ranks and a full bar with the actual 20 / 16 total.",
+      "Hosted run 43253772741 attempt 1 failed on the inherited HUD keyboard expectation. After updating that existing test, nine focused managed Chromium cases passed, covering the keyboard path, both fixed-navigation axe cases and the six HUD viewport cases. The test follow-up changes no application files."
     ]
   },
   "adversarialFindings": [
+    {
+      "id": "HUD-GUILD-TAB-ORDER",
+      "severity": "P2",
+      "description": "Hosted certification found that the existing keyboard journey expected Settings directly after Activity, although the required Guild link now receives focus in between.",
+      "resolution": "The test now checks the Guild link in sequence, its route destination and visible focus before continuing through Settings and the quest action. The targeted keyboard and adjacent accessibility checks passed.",
+      "status": "resolved"
+    },
     {
       "id": "GUILD-NAME-REFLOW",
       "severity": "P2",
