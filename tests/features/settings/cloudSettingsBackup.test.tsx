@@ -660,7 +660,7 @@ describe('restore', () => {
         },
       ],
     );
-    expect(ready).toHaveFocus();
+    await waitFor(() => expect(ready).toHaveFocus());
 
     const preview = ready.parentElement as HTMLElement;
 

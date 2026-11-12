@@ -8,7 +8,8 @@
       "PowerShell copy replacement reported 20 repo copy changes and two Guild copy changes.",
       "TypeScript typecheck and Vite production build passed.",
       "Focused Vitest: 21 curriculum and 14 Pathways tests passed; 35 total.",
-      "Prettier and staged git diff --check passed. Full local release suite not run."
+      "Prettier and staged git diff --check passed. Full local release suite not run.",
+      "Hosted run 43325731295 failed at an immediate focus assertion in the backup restore test. The existing focus requirement is preserved using waitFor. The focused suite passed locally after correction."
     ]
   },
   "adversarialFindings": [
@@ -32,18 +33,25 @@
       "description": "Guild copy describes owner-intended future activity sharing more broadly than the current functionality.",
       "id": "V4-GUILD-COPY-SCOPE",
       "severity": "P3"
+    },
+    {
+      "id": "V4-BACKUP-FOCUS-TIMING",
+      "severity": "P2",
+      "description": "Hosted validation exposed a focus assertion that ran before the React focus effect was observed.",
+      "resolution": "Await the existing focus requirement instead of removing it or changing unrelated product behavior. Focused suite passed.",
+      "status": "resolved"
     }
   ],
   "reviewer": "ChatGPT-assisted review of owner-provided implementation and test evidence",
   "module": "v4-copy-integration",
   "schemaVersion": 2,
   "binding": {
-    "payloadTree": "17e44d328209d2a22d091083804b8e7d02809e92",
+    "payloadTree": "f29150b4054a4ecdfe2ac1e2cfb17f1784744f7e",
     "excludedPath": "docs/release-reviews",
     "kind": "payload-tree"
   },
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to mandatory hosted Final candidate validation. The reviewed local checks passed; no claim of independent execution or complete browser visual review."
+    "summary": "Proceed to hosted certification with the focused backup focus-test correction. The previous hosted run failed; no complete release PASS is claimed."
   }
 }
