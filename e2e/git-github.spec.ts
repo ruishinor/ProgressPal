@@ -10,16 +10,27 @@ const exercise = (page: Page, number: number) =>
   });
 // The roadmap opens the current module automatically, but other modules
 // remain collapsed. Never toggle a module closed when it is already open.
-async function showModuleLessons(page: Page, label: string) {
-  await expect(
-    page.getByText(/av 47 leksjoner markert fullført/),
-  ).toBeVisible();
-  const summary = page.getByText(label, { exact: true });
-  const details = summary.locator('xpath=..');
+async function showModuleLessons(page: Page, module: string) {
+  await expect(page.locator('.pathways-track__progress-summary')).toBeVisible();
+  const details = page.locator('.pathways-track__roadmap details').filter({
+    has: page.locator('a[href$="/git-' + module + '-o01"]'),
+  });
+  const summary = details.locator('summary');
   if ((await details.getAttribute('open')) === null) {
     await summary.click();
   }
   await expect(details).toHaveAttribute('open', '');
+  return details;
+}
+
+async function followSavedPosition(page: Page) {
+  const article = page.getByRole('article', { name: /\S/ });
+  const resume = article.locator('a[href^="#"][href*="-step-"]');
+  await expect(resume).toHaveAttribute('href', /-step-[1-9]\d*$/);
+  const href = (await resume.getAttribute('href'))!;
+  await expect(article.locator('[id="' + href.slice(1) + '"]')).toBeVisible();
+  await resume.click();
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toBe(href);
 }
 
 async function switchProgramme(page: Page, id: string) {
@@ -66,21 +77,15 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
   const pathwaysInfo = page.getByRole('button', { name: 'Om Pathways' });
   await pathwaysInfo.focus();
   await page.keyboard.press('Enter');
-  await expect(
-    page.getByText('Lær ferdigheter du kan bruke uansett studieprogram'),
-  ).toBeVisible();
+  await expect(pathwaysInfo).toHaveAttribute('aria-expanded', 'true');
+  const details = await pathwaysInfo.getAttribute('aria-controls');
+  await expect(page.locator('[id="' + details + '"]')).toBeVisible();
   await page.getByRole('link', { name: 'Pathways', exact: true }).click();
   await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Hvorfor lære dette?' }),
   ).toBeVisible();
-  await expect(
-    page.getByText('M07 · Git og GitHub i et utviklingsprosjekt'),
-  ).toBeVisible();
-  await showModuleLessons(page, 'Leksjoner i M07 (8)');
-  const m07Lessons = page
-    .getByText('Leksjoner i M07 (8)', { exact: true })
-    .locator('xpath=..');
+  const m07Lessons = await showModuleLessons(page, 'm07');
   await expect(m07Lessons.getByRole('link')).toHaveCount(8);
   await expect(
     m07Lessons.getByRole('link', {
@@ -89,16 +94,15 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
     }),
   ).toBeVisible();
   await expect(
-    page.getByText('GitLab og Bitbucket er andre slike'),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Begynn med første leksjon' }),
-  ).toBeVisible();
-  await showModuleLessons(page, 'Leksjoner i M02 (6)');
+    page
+      .locator('.pathways-track__progress-summary')
+      .getByRole('link', { name: /\S/ }),
+  ).toHaveAttribute('href', route(1));
+  await showModuleLessons(page, 'm02');
   await expect(
     page.getByRole('link', { name: 'Når en gammel versjon er riktig' }),
   ).toBeVisible();
-  await showModuleLessons(page, 'Leksjoner i M05 (8)');
+  await showModuleLessons(page, 'm05');
   await expect(
     page.getByRole('link', { name: 'Fra behov til et samarbeid om endring' }),
   ).toBeVisible();
@@ -125,7 +129,7 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
   });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
-  await showModuleLessons(page, 'Leksjoner i M02 (6)');
+  await showModuleLessons(page, 'm02');
   await page
     .getByRole('link', { name: 'Når en gammel versjon er riktig' })
     .click();
@@ -136,13 +140,11 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
     }),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Git & GitHub — oversikt' }).click();
-  await showModuleLessons(page, 'Leksjoner i M01 (5)');
+  await showModuleLessons(page, 'm01');
   await page
     .getByRole('link', { name: 'Start her: hvorfor bruke Git?', exact: true })
     .click();
-  await expect(
-    page.getByText('Start her: hvorfor bruke Git?', { exact: true }).first(),
-  ).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(route(1) + '$'));
   await page.goto(route(1));
   await expect(
     page.getByRole('heading', {
@@ -151,7 +153,7 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
     }),
   ).toBeVisible();
   await page.goto('/rpg/pathways/git-github');
-  await showModuleLessons(page, 'Leksjoner i M03 (6)');
+  await showModuleLessons(page, 'm03');
   await expect(
     page.getByRole('link', { name: 'Hvorfor arbeide med branches?' }),
   ).toBeVisible();
@@ -181,8 +183,8 @@ test('explains Git answers and preserves learner evidence through reload and pro
     .getByRole('radio', { name: /Git registrerer automatisk/ })
     .check();
   await first.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(first.getByRole('status', { name: 'Resultat' })).toContainText(
-    'Git lager ingen commit av seg selv',
+  await expect(first.getByRole('status', { name: 'Resultat' })).toHaveClass(
+    /lesson-result--neutral/,
   );
   await first.getByRole('button', { name: 'Prøv igjen' }).click();
   const correct = first.getByRole('radio', {
@@ -192,16 +194,14 @@ test('explains Git answers and preserves learner evidence through reload and pro
   await page.keyboard.press('Space');
   await first.getByRole('button', { name: 'Sjekk svaret' }).focus();
   await page.keyboard.press('Enter');
-  await expect(first.getByRole('status', { name: 'Resultat' })).toContainText(
-    'Svaret passer',
+  await expect(first.getByRole('status', { name: 'Resultat' })).toHaveClass(
+    /lesson-result--success/,
   );
   await page.reload();
   await expect(
     exercise(page, 1).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret passer');
-  await expect(
-    page.getByRole('heading', { name: 'Fortsett der du slapp' }),
-  ).toBeVisible();
+  ).toHaveClass(/lesson-result--success/);
+  await followSavedPosition(page);
   await page
     .getByRole('link', {
       name: 'Gjør klar Windows og øvingsmappen',
@@ -220,7 +220,7 @@ test('explains Git answers and preserves learner evidence through reload and pro
     .click();
   await expect(
     exercise(page, 1).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret ditt er lagret');
+  ).toHaveClass(/lesson-result--neutral/);
   for (const part of [3, 4, 5]) {
     await page
       .getByRole('link', {
@@ -240,14 +240,14 @@ test('explains Git answers and preserves learner evidence through reload and pro
   const paste = exercise(page, 2);
   await paste.getByRole('textbox').fill('README.txt\nplan.txt');
   await paste.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(paste.getByRole('status', { name: 'Resultat' })).toContainText(
-    'README.txt står fortsatt',
+  await expect(paste.getByRole('status', { name: 'Resultat' })).toHaveClass(
+    /lesson-result--neutral/,
   );
   await paste.getByRole('button', { name: 'Prøv igjen' }).click();
   await paste.getByRole('textbox').fill('plan.txt');
   await paste.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(paste.getByRole('status', { name: 'Resultat' })).toContainText(
-    'kjøring og filinnhold er ikke bekreftet',
+  await expect(paste.getByRole('status', { name: 'Resultat' })).toHaveClass(
+    /lesson-result--success/,
   );
   const reflection = exercise(page, 3);
   await reflection
@@ -256,32 +256,43 @@ test('explains Git answers and preserves learner evidence through reload and pro
   await reflection.getByRole('button', { name: 'Lagre svaret mitt' }).click();
   await expect(
     reflection.getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret ditt er lagret');
+  ).toHaveClass(/lesson-result--neutral/);
   await expect(reflection.locator('img')).toHaveCount(0);
   await page
     .getByRole('button', { name: 'Marker som fullført lokalt', exact: true })
     .click();
   await expect(
-    page.getByRole('status').filter({ hasText: 'Lokal status:' }),
+    page
+      .getByRole('region', { name: 'Lokal leksjonsstatus' })
+      .getByRole('status'),
   ).toContainText('Fullført');
   expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
   const before = await counts(page);
   expect(before[0]).toBe(12); // Six submitted attempts, each with its terminal result.
+  const outcomes = (await pathwayState(page)).evidence.flatMap((row) =>
+    row.kind === 'evaluation_result' ? [row.outcome] : [],
+  );
+  expect(outcomes.sort()).toEqual([
+    'correct',
+    'correct',
+    'incorrect',
+    'incorrect',
+    'recorded',
+    'recorded',
+  ]);
   expect(before[1]).toBeGreaterThan(0);
   expect(before[2]).toBe(0);
   await switchProgramme(page, 'programvareutvikling');
   await page.goto('/rpg');
-  await expect(
-    page.getByText('Programvareutvikling 1', { exact: true }).first(),
-  ).toBeVisible();
+  expect((await pathwayState(page)).activeProgrammeId).toBe(
+    'programvareutvikling',
+  );
   await switchProgramme(page, 'cs50x');
   await page.goto(route(5));
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret ditt er lagret');
-  await expect(
-    page.getByRole('heading', { name: 'Fortsett der du slapp' }),
-  ).toBeVisible();
+  ).toHaveClass(/lesson-result--neutral/);
+  await followSavedPosition(page);
   expect(await counts(page)).toEqual(before);
   expect((await pathwayState(page)).activeProgrammeId).toBe('cs50x');
   expect(errors).toEqual([]);
@@ -437,7 +448,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await track.focus();
       await page.keyboard.press('Enter');
       await expect(page).toHaveURL(/\/pathways\/git-github$/);
-      await showModuleLessons(page, 'Leksjoner i M01 (5)');
+      await showModuleLessons(page, 'm01');
       await page
         .getByRole('link', {
           name: 'Start her: hvorfor bruke Git?',
@@ -449,9 +460,9 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
         .getByRole('radio', { name: /Lagring i Notisblokk oppdaterer filen/ })
         .check();
       await first.getByRole('button', { name: 'Sjekk svaret' }).click();
-      await expect(
-        first.getByRole('status', { name: 'Resultat' }),
-      ).toContainText('Svaret passer');
+      await expect(first.getByRole('status', { name: 'Resultat' })).toHaveClass(
+        /lesson-result--success/,
+      );
       const assessed = await pathwayState(page);
       const localStatus = page.getByRole('region', {
         name: 'Lokal leksjonsstatus',
@@ -459,19 +470,14 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await expect(
         localStatus.locator('xpath=ancestor::*[@lang][1]'),
       ).toHaveAttribute('lang', 'nb');
-      await expect(localStatus.getByRole('status')).toHaveText(
-        'Lokal status: Ikke fullført',
-      );
-      await expect(localStatus).toContainText(
-        'Du styrer selv når du vil markere leksjonen som gjennomgått.',
+      await expect(localStatus.getByRole('status')).toContainText(
+        'Ikke fullført',
       );
       await localStatus
         .getByRole('button', { name: 'Marker som fullført lokalt' })
         .focus();
       await page.keyboard.press('Enter');
-      await expect(localStatus.getByRole('status')).toHaveText(
-        'Lokal status: Fullført',
-      );
+      await expect(localStatus.getByRole('status')).toContainText('Fullført');
       expect((await pathwayState(page)).progress).toContainEqual(
         expect.objectContaining({
           itemId: 'git-m01-o01',
@@ -484,8 +490,8 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await localStatus
         .getByRole('button', { name: 'Åpne leksjonen igjen' })
         .click();
-      await expect(localStatus.getByRole('status')).toHaveText(
-        'Lokal status: Ikke fullført',
+      await expect(localStatus.getByRole('status')).toContainText(
+        'Ikke fullført',
       );
       expect((await pathwayState(page)).progress).toContainEqual(
         expect.objectContaining({
@@ -497,12 +503,10 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       await localStatus
         .getByRole('button', { name: 'Marker som fullført lokalt' })
         .click();
-      await expect(localStatus.getByRole('status')).toHaveText(
-        'Lokal status: Fullført',
+      await expect(localStatus.getByRole('status')).toContainText('Fullført');
+      await expect(first.getByRole('status', { name: 'Resultat' })).toHaveClass(
+        /lesson-result--success/,
       );
-      await expect(
-        first.getByRole('status', { name: 'Resultat' }),
-      ).toContainText('Svaret passer');
       const after = await pathwayState(page);
       expect(after.evidence).toEqual(assessed.evidence);
       expect(after.appMeta).toEqual(before.appMeta);
@@ -531,9 +535,11 @@ test('a read-only peer cannot prepare or save Pathways and reads existing Git wo
   const peer = await context.newPage();
   await peer.goto(route(1));
   await expect(
-    peer.getByText(
-      'Åpne leksjonen i fanen som kan lagre, før du bruker den i denne skrivebeskyttede fanen.',
-    ),
+    peer
+      .getByRole('main')
+      .locator('.rpg-lesson, .page-section')
+      .getByRole('status')
+      .last(),
   ).toBeVisible();
   expect(await pathwayState(peer)).toEqual(before);
   await peer.close();
@@ -575,22 +581,17 @@ test('RPG Home groups available learning actions with keyboard-operated individu
   await expect(
     section.getByRole('link', { name: 'Teknologioppslag' }),
   ).toBeVisible();
-  await expect(
-    page.getByText('Lær mer ved siden av studieprogrammet'),
-  ).toHaveCount(0);
   const info = section.getByRole('button', { name: 'Om Pathways' });
   await expect(info).toHaveAttribute('aria-expanded', 'false');
   await info.focus();
   await page.keyboard.press('Enter');
   await expect(info).toHaveAttribute('aria-expanded', 'true');
-  await expect(
-    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
-  ).toBeVisible();
+  const controls = await info.getAttribute('aria-controls');
+  const disclosure = section.locator('[id="' + controls + '"]');
+  await expect(disclosure).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(info).toHaveAttribute('aria-expanded', 'false');
-  await expect(
-    section.getByText(/Lær ferdigheter du kan bruke uansett studieprogram/),
-  ).toHaveCount(0);
+  await expect(disclosure).toHaveCount(0);
   await page.evaluate(() => {
     document.documentElement.style.fontSize = '200%';
   });

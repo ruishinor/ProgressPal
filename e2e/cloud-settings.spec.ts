@@ -196,7 +196,9 @@ test.describe('the email-link landing route', () => {
     await card(page).getByLabel('Email').fill(learnerEmail);
     await card(page).getByLabel('Password').fill(password);
     await card(page).getByRole('button', { name: 'Create account' }).click();
-    await expect(card(page).getByText('Check your email')).toBeVisible();
+    await expect(
+      card(page).locator('.backup-verify[role="status"]'),
+    ).toBeVisible();
     // The exact address the provider will be asked to send the learner back to.
     expect(provider.seen.redirectTo).toBe(`${baseURL}/cloud/callback`);
 
@@ -360,7 +362,9 @@ test.describe('Settings cloud card in a real browser', () => {
 
     // Back up (Enter); the stored backup is confirmed by the server.
     await page.keyboard.press('Enter');
-    await expect(card(page).getByText('Backed up')).toBeVisible();
+    await expect(
+      card(page).locator('.backup-verify[role="status"]'),
+    ).toBeVisible();
 
     // Change local data through the app, then back up again.
     await page.getByLabel('Display name').fill('Changed after backup');
@@ -374,10 +378,10 @@ test.describe('Settings cloud card in a real browser', () => {
         .first(),
     ).toBeVisible();
     await expect(
-      card(page).getByText(
-        '2 backups are stored on the server; 2 can be restored by this version.',
-      ),
-    ).toBeVisible();
+      card(page)
+        .getByRole('combobox', { name: 'Backup to restore' })
+        .getByRole('option'),
+    ).toHaveCount(2);
 
     // Choose the first backup with the arrow keys, download and check it.
     const choose = card(page).getByLabel('Backup to restore');
@@ -388,20 +392,22 @@ test.describe('Settings cloud card in a real browser', () => {
       (await choose.locator('option').nth(1).getAttribute('value')) ?? '',
     );
     await page.keyboard.press('ArrowUp');
-    await expect(choose.locator('option:checked')).toHaveText(/^Slot 1:/);
+    await expect(choose).toHaveValue(
+      (await choose.locator('option').first().getAttribute('value'))!,
+    );
     await page.keyboard.press('Tab');
     await expect(
       card(page).getByRole('button', { name: 'Download and check' }),
     ).toBeFocused();
     await page.keyboard.press('Enter');
-    await expect(card(page).getByText(/is ready to restore/)).toBeFocused();
+    await expect(
+      card(page).locator(
+        '.backup-preview .backup-verify__title[tabindex="-1"]',
+      ),
+    ).toBeFocused();
 
     // The destructive warning is on screen, and the dark theme is accessible.
-    await expect(
-      card(page).getByText(
-        'Restoring replaces all learner data on this device with this backup. This is destructive and cannot be undone.',
-      ),
-    ).toBeVisible();
+    await expect(card(page).getByRole('alert')).toBeVisible();
     await expectAccessible(page, 'Classic Settings, prepared restore (dark)');
     await expectContained(page, 'Classic Settings, prepared restore');
 
@@ -472,14 +478,20 @@ test.describe('Settings cloud card in a real browser', () => {
     await expectContained(page, 'signed in (long address)');
 
     await card(page).getByRole('button', { name: 'Back up now' }).click();
-    await expect(card(page).getByText('Backed up')).toBeVisible();
+    await expect(
+      card(page).locator('.backup-verify[role="status"]'),
+    ).toBeVisible();
     await expectContained(page, 'backed up, listed');
     await expectAccessible(page, 'RPG Settings, signed in with list (light)');
 
     await card(page)
       .getByRole('button', { name: 'Download and check' })
       .click();
-    await expect(card(page).getByText(/is ready to restore/)).toBeVisible();
+    await expect(
+      card(page).locator(
+        '.backup-preview .backup-verify__title[tabindex="-1"]',
+      ),
+    ).toBeVisible();
     await expectContained(page, 'prepared restore');
     await expectAccessible(page, 'RPG Settings, prepared restore (light)');
 
@@ -487,7 +499,9 @@ test.describe('Settings cloud card in a real browser', () => {
     await card(page).getByRole('button', { name: 'Cancel' }).click();
     provider.sim.control.gatewayBeforeCommit = 2;
     await card(page).getByRole('button', { name: 'Back up now' }).click();
-    await expect(card(page).getByText('Backup outcome unknown')).toBeVisible();
+    await expect(
+      card(page).getByRole('button', { name: 'Check again' }),
+    ).toBeVisible();
     await expectContained(page, 'outcome unknown');
     await expectAccessible(page, 'RPG Settings, outcome unknown (light)');
   });
@@ -527,14 +541,18 @@ test.describe('password recovery in a real browser', () => {
     await page.keyboard.press('Enter');
 
     // Opening the reset view sent nothing; the address typed so far is kept.
-    await expect(card(page).getByText('Reset your password')).toBeVisible();
+    await expect(
+      card(page).getByRole('button', { name: 'Send reset link' }),
+    ).toBeVisible();
     await expect(card(page).getByLabel('Email')).toBeFocused();
     await expect(card(page).getByLabel('Email')).toHaveValue(learnerEmail);
     expect(provider.calls).toEqual([]);
 
     // Enter sends the one request, and the answer does not repeat the address.
     await page.keyboard.press('Enter');
-    await expect(card(page).getByText('Check your email')).toBeVisible();
+    await expect(
+      card(page).locator('.backup-verify[role="status"]'),
+    ).toBeVisible();
     await expect(
       card(page).getByRole('button', { name: 'Back to sign in' }),
     ).toBeFocused();
@@ -645,11 +663,12 @@ test.describe('password recovery in a real browser', () => {
         .click();
       await card(page).getByLabel('Email').fill(address);
       await card(page).getByRole('button', { name: 'Send reset link' }).click();
-      await expect(card(page).getByText('Check your email')).toBeVisible();
+      await expect(
+        card(page).locator('.backup-verify[role="status"]'),
+      ).toBeVisible();
 
       const text = await card(page)
-        .getByRole('status')
-        .filter({ hasText: 'Check your email' })
+        .locator('.backup-verify[role="status"]')
         .innerText();
 
       await card(page).getByRole('button', { name: 'Back to sign in' }).click();
@@ -661,9 +680,8 @@ test.describe('password recovery in a real browser', () => {
     const known = await answer(learnerEmail);
 
     expect(unknown).toBe(known);
-    expect(unknown).toContain(
-      'If an account exists for that address, a password reset link is on its way.',
-    );
+    expect(unknown).not.toContain('nobody@example.com');
+    expect(known).not.toContain(learnerEmail);
     // Both really were asked of the provider, one request each.
     expect(provider.seen.resetRequests).toEqual([
       'nobody@example.com',
@@ -699,15 +717,15 @@ test.describe('password recovery in a real browser', () => {
       // The shortest local error, then the generic answer.
       await card(page).getByLabel('Email').fill('not an address');
       await card(page).getByRole('button', { name: 'Send reset link' }).click();
-      await expect(
-        card(page).getByText('Enter a valid email address.'),
-      ).toBeVisible();
+      await expect(card(page).getByRole('alert')).toBeVisible();
       await expectContained(page, `reset request refused (${theme})`);
       await expectAccessible(page, `RPG Settings, bad address (${theme})`);
 
       await card(page).getByLabel('Email').fill(longEmail);
       await card(page).getByRole('button', { name: 'Send reset link' }).click();
-      await expect(card(page).getByText('Check your email')).toBeVisible();
+      await expect(
+        card(page).locator('.backup-verify[role="status"]'),
+      ).toBeVisible();
       await expectContained(page, `reset answer (${theme})`);
       await expectAccessible(page, `RPG Settings, reset answer (${theme})`);
 
@@ -728,9 +746,7 @@ test.describe('password recovery in a real browser', () => {
       await page.getByLabel('New password', { exact: true }).fill(newPassword);
       await page.getByLabel('Confirm new password').fill(`${newPassword}x`);
       await page.getByRole('button', { name: 'Change password' }).click();
-      await expect(
-        page.getByText('The two passwords do not match.'),
-      ).toBeVisible();
+      await expect(page.locator('.backup-verify[role="alert"]')).toBeVisible();
       await expectContained(page, `mismatch (${theme})`, newPasswordTitle);
       await expectAccessible(page, `callback, mismatch (${theme})`);
 
@@ -738,9 +754,7 @@ test.describe('password recovery in a real browser', () => {
       await page.getByLabel('New password', { exact: true }).fill(newPassword);
       await page.getByLabel('Confirm new password').fill(newPassword);
       await page.getByRole('button', { name: 'Change password' }).click();
-      await expect(
-        page.getByText('Password change not confirmed'),
-      ).toBeVisible();
+      await expect(page.locator('.backup-verify[role="alert"]')).toBeVisible();
       await expectContained(page, `not confirmed (${theme})`, newPasswordTitle);
       await expectAccessible(page, `callback, not confirmed (${theme})`);
 

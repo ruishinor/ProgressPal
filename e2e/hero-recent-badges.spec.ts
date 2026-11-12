@@ -188,7 +188,6 @@ test('Hero Profile says where badges will appear before any is earned', async ({
   const panel = page.locator('section.rpg-panel').filter({ has: heading });
 
   await expect(panel.getByRole('listitem')).toHaveCount(0);
-  await expect(panel).toContainText('The badges you earn will appear here.');
   await expect(
     panel.getByRole('link', { name: 'View all badges' }),
   ).toBeVisible();

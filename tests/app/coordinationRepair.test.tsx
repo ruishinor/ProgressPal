@@ -27,16 +27,11 @@ describe('corrupt revision recovery surface', () => {
       screen.getByRole('button', { name: 'Repair local tab safety' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'Local tab-coordination metadata is corrupt. Repair resets only the tab-safety counter; your study data is not touched.',
-      ),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole('button', { name: 'Retry local data load' }),
     ).toBeDisabled();
   });
 
-  it('keeps the genuine Web Locks absence copy without the repair control', async () => {
+  it('blocks retry and offers no counter repair when Web Locks are unavailable', async () => {
     const restoreNavigatorLocks = installNavigatorLocks(undefined);
 
     try {
@@ -44,11 +39,6 @@ describe('corrupt revision recovery surface', () => {
 
       expect(
         await screen.findByRole('heading', { name: 'RPG startup failed' }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'Safe local-tab coordination is unavailable in this browser context. ProgressPal will keep local writes blocked.',
-        ),
       ).toBeInTheDocument();
       expect(
         screen.getByRole('button', { name: 'Retry local data load' }),
@@ -79,9 +69,7 @@ describe('CoordinationRepairControl', () => {
     await waitFor(() => {
       expect(onRepaired).toHaveBeenCalledTimes(1);
     });
-    expect(
-      screen.queryByText('Close every other ProgressPal tab, then try again.'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows guidance without calling onRepaired when repair is blocked', async () => {
@@ -96,11 +84,10 @@ describe('CoordinationRepairControl', () => {
       screen.getByRole('button', { name: 'Repair local tab safety' }),
     );
 
+    expect(await screen.findByRole('alert')).toBeVisible();
     expect(
-      await screen.findByText(
-        'Close every other ProgressPal tab, then try again.',
-      ),
-    ).toBeInTheDocument();
+      screen.getByRole('button', { name: 'Repair local tab safety' }),
+    ).toBeEnabled();
     expect(onRepaired).not.toHaveBeenCalled();
   });
 });

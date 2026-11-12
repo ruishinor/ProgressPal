@@ -95,7 +95,7 @@ CLI help before using provider commands. Use authenticated tools directly; do no
 relay routine commands through the owner.
 
 Do not run a routine full local gate. One ordinary PR event produces the authentic
-hosted comprehensive certificate after independent payload-bound review. The
+hosted comprehensive certificate after payload-bound review. The
 single native master job then runs FULL or authenticated ATTEST as specified in
 `docs/release-reuse.md`. PR green, master green, deployment READY, public alias
 assignment and public smoke are separate observations.
@@ -124,7 +124,7 @@ npm run review:payload-tree -- <candidate-commit>   # the payload tree a review 
 npm run verify:release
 ```
 
-Review evidence lives in `docs/release-reviews/<module>.json` (schema version 2) and applies only to the payload tree it names (the candidate's root tree without that directory). The gate discovers it by binding; it fails closed when none applies, so a stale, wrong-tree, malformed or post-review-modified candidate cannot pass. `RELEASE_REVIEW_FILE` and `--review-file` are rejected. Details and the file format are in `docs/ci.md`. Do not fabricate review evidence; the implementation session cannot supply the independent review.
+Review evidence lives in `docs/release-reviews/<module>.json` (schema version 2) and applies only to the payload tree it names (the candidate's root tree without that directory). The gate discovers it by binding; it fails closed when none applies, so a stale, wrong-tree, malformed or post-review-modified candidate cannot pass. `RELEASE_REVIEW_FILE` and `--review-file` are rejected. Details and the file format are in `docs/ci.md`. The implementer may perform and record a genuine self-review. Identify the actual reviewer and provenance, bind the evidence to the reviewed payload, and obtain a passing hosted gate.
 
 Version terms are independent: **database schema v5** (`src/lib/db/constants.ts`); **review evidence schema v2** (`docs/release-reviews/`); **release manifest schema v3** (`scripts/run-release-gate.mjs`); and **backup envelope format v1** (`src/lib/backup/envelope.ts`). A backup also carries a separate database `schemaVersion`. None of these is the application version.
 

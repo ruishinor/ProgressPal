@@ -24,7 +24,9 @@ export async function pathwayState(page: Page) {
         positions,
       ] = await Promise.all([
         read<{ activeProgrammeId: string }>('app_meta'),
-        read<{ programmeId: string }>('learner_evidence'),
+        read<{ programmeId: string; kind: string; outcome?: string }>(
+          'learner_evidence',
+        ),
         read('xp_transactions'),
         read('achievement_unlocks'),
         read('programme_enrolments'),

@@ -71,17 +71,7 @@ describe('routeDefinitions', () => {
     ]);
   });
 
-  it('keeps primary navigation labels aligned with the baseline route set', () => {
-    expect(primaryNavigationItems.map((item) => item.label)).toEqual([
-      'Profile',
-      'Dashboard',
-      'Course Map',
-      'Sessions',
-      'Achievements',
-      'Insights',
-      'Settings',
-    ]);
-
+  it('assigns a unique ID to every route', () => {
     const uniqueRouteIds = new Set(routeDefinitions.map((route) => route.id));
     expect(uniqueRouteIds.size).toBe(routeDefinitions.length);
   });

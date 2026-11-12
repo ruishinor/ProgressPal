@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildCourseMap, courseItemTypeLabels } from '@/features/course/model';
 import {
   CourseItemSchema,
   CourseItemTypeSchema,
@@ -279,45 +278,6 @@ describe('a module and lesson programme passes the real contracts', () => {
     expect(second[1]).toMatchObject({
       sourceId: 'probe-module-one',
       xp: 50,
-    });
-  });
-});
-
-describe('course map labels name the real unit and item kinds', () => {
-  it('labels a module unit and lesson items instead of calling them a week', () => {
-    const [unit] = probeSeed.units;
-    const view = buildCourseMap([unitRow(unit)], itemRows(unit), []);
-
-    expect(view.units[0].typeLabel).toBe('Module');
-    expect(view.units[0].items.map((item) => item.typeLabel)).toEqual([
-      'Lesson',
-      'Lesson',
-    ]);
-    expect(courseItemTypeLabels.lesson).toBe('Lesson');
-  });
-
-  it('leaves every existing label unchanged', () => {
-    const cs50Unit = cs50Definition.catalogue.units.find(
-      (unit) => unit.type === 'week',
-    )!;
-    const view = buildCourseMap(
-      [{ ...unitRow(cs50Unit), courseId: cs50Definition.catalogueId }],
-      itemRows(cs50Unit),
-      [],
-    );
-
-    expect(view.units[0].typeLabel).toBe('Week');
-    expect(courseItemTypeLabels).toMatchObject({
-      lab: 'Lab',
-      lecture: 'Lecture',
-      notes: 'Notes',
-      practice: 'Practice',
-      problem_set: 'Problem set',
-      project_task: 'Project task',
-      reading: 'Reading',
-      reflection: 'Reflection',
-      section: 'Section',
-      shorts: 'Shorts',
     });
   });
 });

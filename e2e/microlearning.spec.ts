@@ -1944,8 +1944,10 @@ test.describe('Mikroøkt and the browser’s own Back and Forward', () => {
     await page.goForward();
     await expect(heading).toHaveText(session.cards[1]!.title);
     // A card returned to starts unanswered.
-    await expect(status(page)).toContainText(
-      'Trykk på svaret du tror stemmer.',
+    await expect(status(page)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Neste' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
     );
 
     await page.reload();

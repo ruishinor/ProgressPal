@@ -74,8 +74,6 @@ describe('fresh onboarding: an explicit programme choice', () => {
     expect(
       screen.getByRole('button', { name: 'Customize first' }),
     ).toBeDisabled();
-    // No programme is presented as already chosen.
-    expect(document.body.textContent ?? '').not.toMatch(/CS50 Edition/);
   });
 
   it('starts Programvareutvikling when the learner chooses it, with no leftover CS50 enrolment', async () => {

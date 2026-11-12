@@ -31,11 +31,6 @@ test('recovers from corrupt coordination revision metadata through the repair co
     page.getByRole('heading', { name: 'Local startup failed' }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      'Local tab-coordination metadata is corrupt. Repair resets only the tab-safety counter; your study data is not touched.',
-    ),
-  ).toBeVisible();
-  await expect(
     page.getByRole('button', { name: 'Retry local data load' }),
   ).toBeDisabled();
 
@@ -51,9 +46,16 @@ test('recovers from corrupt coordination revision metadata through the repair co
 
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(page.getByLabel('Display name')).toHaveValue('Alex');
   await page.getByLabel('Display name').fill('Recovered learner');
   await page.getByRole('button', { name: 'Save local settings' }).click();
-  await expect(page.getByText('Local profile saved')).toBeVisible();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Local profile saved' }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Display name')).toHaveValue(
+    'Recovered learner',
+  );
   expect(consoleIssues).toEqual([]);
 });
 
@@ -81,9 +83,15 @@ test('refuses repair while a second tab is open and repairs after it closes', as
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Repair local tab safety' }).click();
+  const startupError = page.getByRole('heading', {
+    name: 'Local startup failed',
+  });
   await expect(
-    page.getByText('Close every other ProgressPal tab, then try again.'),
+    page.getByRole('alert').filter({ hasNot: startupError }),
   ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Retry local data load' }),
+  ).toBeDisabled();
   expect(
     await page.evaluate((key) => localStorage.getItem(key), revisionStorageKey),
   ).toBe('garbage');

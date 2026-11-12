@@ -490,9 +490,7 @@ describe('Activity daily overview', () => {
   it('shows an explicit empty-goals state with participation still available', () => {
     mount();
     const overview = screen.getByRole('group', { name: 'Activity today' });
-    expect(overview).toHaveTextContent(
-      'No goals configured. You can still record activity.',
-    );
+    expect(screen.getByRole('button', { name: 'Manage goals' })).toBeEnabled();
     expect(overview).toHaveTextContent('Streak0 days');
     expect(overview).toHaveTextContent('Activity Level1');
     expect(overview).not.toHaveTextContent('0%');

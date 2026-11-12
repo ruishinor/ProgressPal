@@ -504,11 +504,6 @@ test('automatically recovers a blocked startup repair after the active peer clos
   await expect(
     peer.getByRole('heading', { name: 'RPG startup failed' }),
   ).toBeVisible();
-  await expect(
-    peer.getByText(
-      'This local database still needs a startup repair. Close the other ProgressPal tab, then retry. ProgressPal stopped before the blocked repair step.',
-    ),
-  ).toBeVisible();
   const retry = peer.getByRole('button', { name: 'Retry local data load' });
   await expect(retry).toBeDisabled();
 

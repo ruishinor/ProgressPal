@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resolveDatabaseMigrationContext } from '@/app/providers/programmeComposition';
@@ -160,15 +160,18 @@ describe('C4 rendered consumers read the active programme terminology', () => {
     { timeout: 30_000 },
     async () => {
       injected.terminology = testTerminology;
-      const text = await renderReady('/rpg/map', 'open any module.');
+      await onboard();
+      await renderAppAtRoute('/rpg/map');
+      await screen.findByTestId('rpg-module-week-3');
 
       expect(mapOrdinal('week-3')).toBe('III');
       expect(mapOrdinal('final-project')).toBe('FP');
-      expect(mapOrdinal('week-2')).toBe('2');
-      expect(text).not.toContain('open any week');
-      expect(
-        within(screen.getByTestId('rpg-module-week-3')).getByText('Week'),
-      ).toBeInTheDocument();
+      expect(mapOrdinal('week-2')).toBe(
+        cs50Terminology.unitMapOrdinals['week-2'],
+      );
+      expect(screen.getByRole('main')).toHaveTextContent(
+        testTerminology.unitNoun.lowercase,
+      );
     },
   );
 
@@ -176,10 +179,16 @@ describe('C4 rendered consumers read the active programme terminology', () => {
     'renders the CS50 map ordinals and unit noun without injection',
     { timeout: 30_000 },
     async () => {
-      await renderReady('/rpg/map', 'open any week.');
+      await onboard();
+      await renderAppAtRoute('/rpg/map');
+      await screen.findByTestId('rpg-module-week-3');
 
-      expect(mapOrdinal('week-3')).toBe('3');
-      expect(mapOrdinal('final-project')).toBe('◆');
+      expect(mapOrdinal('week-3')).toBe(
+        cs50Terminology.unitMapOrdinals['week-3'],
+      );
+      expect(mapOrdinal('final-project')).toBe(
+        cs50Terminology.unitMapOrdinals['final-project'],
+      );
     },
   );
 
@@ -193,7 +202,6 @@ describe('C4 rendered consumers read the active programme terminology', () => {
       expect(text).toContain('Test Class');
       expect(text).toContain('Test Path');
       expect(text).toContain('New Learner');
-      expect(text).not.toContain('Code Knights');
     },
   );
 
@@ -202,12 +210,17 @@ describe('C4 rendered consumers read the active programme terminology', () => {
     { timeout: 30_000 },
     async () => {
       injected.terminology = testTerminology;
-      await renderReady('/rpg/resource/week-0-lecture', 'Back to module');
+      await onboard();
+      await renderAppAtRoute('/rpg/resource/week-0-lecture');
 
       expect(
-        screen.getByRole('link', { name: 'Open test resource' }),
+        await screen.findByRole('link', {
+          name: testTerminology.copy.officialResourceOpenLabel,
+        }),
       ).toHaveAttribute('href', 'https://cs50.harvard.edu/x/weeks/0/');
-      expect(screen.queryByText('Back to week')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('main').querySelector('a[href="/rpg/week/week-0"]'),
+      ).toBeInTheDocument();
     },
   );
 
@@ -216,9 +229,13 @@ describe('C4 rendered consumers read the active programme terminology', () => {
     { timeout: 30_000 },
     async () => {
       injected.terminology = testTerminology;
-      const moduleText = await renderReady('/rpg/week/week-0', 'RPG module');
-
-      expect(moduleText).not.toContain('RPG week');
+      await onboard();
+      await renderAppAtRoute('/rpg/week/week-0');
+      await waitFor(() =>
+        expect(
+          screen.getByRole('main').querySelector('.rpg-week__eyebrow'),
+        ).toHaveTextContent(testTerminology.unitNoun.lowercase),
+      );
     },
   );
 
@@ -227,11 +244,13 @@ describe('C4 rendered consumers read the active programme terminology', () => {
     { timeout: 30_000 },
     async () => {
       injected.terminology = testTerminology;
-      const text = await renderReady('/course', 'Module progress');
+      await onboard();
+      await renderAppAtRoute('/course');
+      await screen.findByTestId('course-unit-week-0');
 
-      expect(text).toContain('Test course map');
-      expect(text).not.toContain('Week progress');
-      expect(text).not.toContain('CS50 course map');
+      expect(
+        screen.getByRole('main').querySelector('.page-header__eyebrow'),
+      ).toHaveTextContent(testTerminology.copy.courseMapEyebrow!);
     },
   );
 });

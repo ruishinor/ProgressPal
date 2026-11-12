@@ -52,8 +52,6 @@ const achievementDefinitions = allAchievementDefinitions.filter(
 type Owner = 'shared' | 'cs50';
 type DefinitionRow = readonly [
   id: string,
-  title: string,
-  description: string,
   category: string,
   xpReward: number,
   owner: Owner,
@@ -61,134 +59,22 @@ type DefinitionRow = readonly [
 
 /** Ordered semantic definition table; array index is the display order. */
 const expectedDefinitions: readonly DefinitionRow[] = [
-  [
-    'first-step',
-    'First Step',
-    'Complete your first task of any kind.',
-    'course_progress',
-    0,
-    'shared',
-  ],
-  [
-    'first-slice',
-    'First Slice',
-    'Complete your first long-form content slice.',
-    'course_progress',
-    0,
-    'shared',
-  ],
-  [
-    'scratch-initiate',
-    'Scratch Initiate',
-    'Complete every required item of Week 0 (Scratch).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'pointer-survivor',
-    'Pointer Survivor',
-    'Complete every required item of Week 4 (Memory).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'data-structure-builder',
-    'Data Structure Builder',
-    'Complete every required item of Week 5 (Data Structures).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'python-shift',
-    'Python Shift',
-    'Complete every required item of Week 6 (Python).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'query-builder',
-    'Query Builder',
-    'Complete every required item of Week 7 (SQL).',
-    'problem_sets',
-    0,
-    'cs50',
-  ],
-  [
-    'browser-builder',
-    'Browser Builder',
-    'Complete every required item of Week 8 (HTML, CSS, JavaScript).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'flask-route-maker',
-    'Flask Route Maker',
-    'Complete every required item of Week 9 (Flask).',
-    'course_progress',
-    0,
-    'cs50',
-  ],
-  [
-    'course-complete',
-    'Course Complete',
-    'Complete every required item of every required unit in the course.',
-    'course_progress',
-    0,
-    'shared',
-  ],
-  [
-    'pset-chain',
-    'Pset Chain',
-    'Submit or get accepted on at least three problem sets.',
-    'problem_sets',
-    0,
-    'cs50',
-  ],
-  [
-    'clean-stop',
-    'Clean Stop',
-    'Log a focused long-form session of 15+ watched minutes that ends at a planned limit.',
-    'consistency',
-    0,
-    'shared',
-  ],
-  [
-    'three-deep-sessions',
-    'Three Deep Sessions',
-    'Log three study sessions of at least 45 minutes each.',
-    'consistency',
-    0,
-    'shared',
-  ],
-  [
-    'bug-hunter',
-    'Bug Hunter',
-    'Log at least one study session in debugging mode.',
-    'debugging',
-    0,
-    'shared',
-  ],
-  [
-    'final-project-mvp',
-    'Final Project MVP',
-    'Complete the "Build the project" final-project task.',
-    'final_project',
-    0,
-    'cs50',
-  ],
-  [
-    'final-project-shipped',
-    'Final Project Shipped',
-    'Complete both the final-project README and the video demo.',
-    'final_project',
-    0,
-    'cs50',
-  ],
+  ['first-step', 'course_progress', 0, 'shared'],
+  ['first-slice', 'course_progress', 0, 'shared'],
+  ['scratch-initiate', 'course_progress', 0, 'cs50'],
+  ['pointer-survivor', 'course_progress', 0, 'cs50'],
+  ['data-structure-builder', 'course_progress', 0, 'cs50'],
+  ['python-shift', 'course_progress', 0, 'cs50'],
+  ['query-builder', 'problem_sets', 0, 'cs50'],
+  ['browser-builder', 'course_progress', 0, 'cs50'],
+  ['flask-route-maker', 'course_progress', 0, 'cs50'],
+  ['course-complete', 'course_progress', 0, 'shared'],
+  ['pset-chain', 'problem_sets', 0, 'cs50'],
+  ['clean-stop', 'consistency', 0, 'shared'],
+  ['three-deep-sessions', 'consistency', 0, 'shared'],
+  ['bug-hunter', 'debugging', 0, 'shared'],
+  ['final-project-mvp', 'final_project', 0, 'cs50'],
+  ['final-project-shipped', 'final_project', 0, 'cs50'],
 ];
 
 /** CHARACTERIZATION: current rule encoding, recorded for C3 reviewability. */
@@ -234,22 +120,20 @@ const characterizedRuleEncoding: Record<string, [string, unknown]> = {
 };
 
 describe('C1 achievement definitions (semantic)', () => {
-  it('pins the ordered id, title, description, category and xpReward of all 16', () => {
+  it('pins the ordered id, category and xpReward of all 16', () => {
     expect(
       achievementDefinitions.map((definition) => [
         definition.id,
-        definition.title,
-        definition.description,
         definition.category,
         definition.xpReward,
       ]),
-    ).toEqual(expectedDefinitions.map((row) => row.slice(0, 5)));
+    ).toEqual(expectedDefinitions.map((row) => row.slice(0, 3)));
   });
 
   it('records the frozen shared vs CS50-owned split (6 / 10)', () => {
     expect(
       expectedDefinitions
-        .filter((row) => row[5] === 'shared')
+        .filter((row) => row[3] === 'shared')
         .map((row) => row[0]),
     ).toEqual([
       'first-step',
@@ -259,7 +143,7 @@ describe('C1 achievement definitions (semantic)', () => {
       'three-deep-sessions',
       'bug-hunter',
     ]);
-    expect(expectedDefinitions.filter((row) => row[5] === 'cs50')).toHaveLength(
+    expect(expectedDefinitions.filter((row) => row[3] === 'cs50')).toHaveLength(
       10,
     );
   });
@@ -271,10 +155,8 @@ describe('C1 achievement definitions (semantic)', () => {
       expect(
         gallery.badges
           .filter((badge) => !badge.id.startsWith('activity-'))
-          .map((badge) => [badge.order, badge.id, badge.title]),
-      ).toEqual(
-        expectedDefinitions.map((row, index) => [index, row[0], row[1]]),
-      );
+          .map((badge) => [badge.order, badge.id]),
+      ).toEqual(expectedDefinitions.map((row, index) => [index, row[0]]));
       expect(gallery.totalBadgeCount).toBe(allAchievementDefinitions.length);
       expect(gallery.earnedBadgeCount).toBe(0);
       expect(gallery.lockedBadgeCount).toBe(allAchievementDefinitions.length);

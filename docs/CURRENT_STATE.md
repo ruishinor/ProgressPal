@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**PR #89 — editorial test cleanup and release review policy, 2026-11-12.**
+Based on master at f72d67677000ed4379faf3def157341ed2e029cf. The owner
+retired tests that freeze or police learner-facing copy on 2026-11-11.
+Functional tests continue to check learning outcomes, persistence,
+programme isolation, accessibility and release controls. The owner
+authorized genuine implementer self-review on 2026-11-12. Record its actual
+provenance in schema-v2 evidence bound to the final payload. The hosted
+Final candidate check must pass on the exact PR candidate before merge.
+
 **Læringslaget, kildekandidat 2026-11-11.** Arbeidet startet ved PR #85
 (`06983dcd2dc5f9f3f6673e36ebfc388c8d501904`) og inkluderer PR #86
 (`5a40960ee01324a9b4b0490ed402fbed9c982c6d`). Personlig uke leser
@@ -533,8 +542,8 @@ Validated before production (`docs/ci.md`).
 
 ## STOP conditions and next actions
 
-- The implementation context must not author its own independent-review verdict. Candidate-bound review evidence must be valid and the authoritative release gate must pass before any release. No force push, forced promotion or weakened gate is authorized.
-- Current local candidate: owner acceptance of the bounded Activity visual refinement is next (`docs/ACTIVITY_VISUAL_REFINEMENT_HANDOFF.md`). Git integration, independent release review/certification, provider generation migration, synthetic live validation and production promotion require separate authorization. Do not apply generation-5 SQL or describe schema-5 cloud backup as operational. A push to `master` is a Production deployment. Historical Epic G branch-stage instructions above do not restart earlier development work.
+- Genuine implementer self-review is permitted with accurate provenance. Candidate-bound review evidence must be valid and the authoritative release gate must pass before release. No force push, forced promotion or weakened gate is authorized.
+- Activity visual refinement handoff (`docs/ACTIVITY_VISUAL_REFINEMENT_HANDOFF.md`). Git integration outside PR #89, provider generation migration, synthetic live validation and production promotion require their own owner authorization. Do not apply generation-5 SQL or describe schema-5 cloud backup as operational. A push to `master` is a Production deployment. Historical Epic G branch-stage instructions above do not restart earlier development work.
 - Do not begin C8 or S1-M03+ without a new owner instruction. Installation must not be described as a backup or protection against storage clearing; manual remote backup availability must accurately distinguish the released generation from prepared schema-5 support.
 
 ## Document map

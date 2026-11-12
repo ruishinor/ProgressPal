@@ -492,7 +492,6 @@ describe('the way in from Home', () => {
     });
     expect(screen.queryByRole('link', { name: 'Mikroøkt' })).toBeNull();
     expect(screen.queryByText(/Mikroøkt/)).toBeNull();
-    expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
   });
 
   it('gives CS50x no entry and no Microlearning line even when Programme 2 work is recorded', async () => {
@@ -515,12 +514,21 @@ describe('the way in from Home', () => {
 });
 
 describe('Home only advertises a session that exists', () => {
-  const microHelp = /Korte oppgaver.*forberede deg.*repetere det du har lært/;
   const homeEntry = () => screen.queryByRole('link', { name: 'Mikroøkt' });
   const campaignAction = () =>
     screen
       .getAllByRole('link')
       .find((link) => link.getAttribute('href')?.includes('/rpg/resource/'));
+
+  async function expectMicroHelpOpens() {
+    const help = await screen.findByRole('button', { name: 'Om Mikroøkt' });
+    expect(help).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(help);
+    expect(help).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      document.getElementById(help.getAttribute('aria-controls')!),
+    ).toBeVisible();
+  }
 
   async function homeAt(complete: number) {
     await onboard();
@@ -539,11 +547,7 @@ describe('Home only advertises a session that exists', () => {
 
       expect(entry).toHaveAttribute('href', '/rpg/micro');
       // What it offers now sits behind its own (i), next to the link.
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Om Mikroøkt' }),
-      );
-      expect(screen.getByText(microHelp)).toBeInTheDocument();
-      expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
+      await expectMicroHelpOpens();
       // The Campaign's own action stays first and stays the primary one.
       expect(campaignAction()).toBeDefined();
       expect(
@@ -555,12 +559,8 @@ describe('Home only advertises a session that exists', () => {
   it('offers the repetition entry after M01/M02 are reached', async () => {
     await homeAt(24);
 
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Om Mikroøkt' }),
-    );
-    expect(screen.getByText(microHelp)).toBeInTheDocument();
+    await expectMicroHelpOpens();
     expect(homeEntry()).toHaveAttribute('href', '/rpg/micro');
-    expect(screen.queryByText(/Ingen mikroøkt/)).toBeNull();
   });
 
   it.each([
@@ -574,10 +574,7 @@ describe('Home only advertises a session that exists', () => {
       const entry = await screen.findByRole('link', { name: 'Mikroøkt' });
 
       expect(entry).toHaveAttribute('href', '/rpg/micro');
-      await userEvent.click(
-        screen.getByRole('button', { name: 'Om Mikroøkt' }),
-      );
-      expect(screen.getByText(microHelp)).toBeInTheDocument();
+      await expectMicroHelpOpens();
       // The Campaign is still the one thing to do, and comes first.
       expect(campaignAction()).toHaveAttribute(
         'href',
@@ -593,11 +590,11 @@ describe('Home only advertises a session that exists', () => {
     injected.nothingOpen = true;
     await homeAt(7);
 
-    expect(
-      await screen.findByText(
-        'Ingen mikroøkt akkurat nå. Fortsett i Campaign for å åpne flere.',
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        document.querySelector('.rpg-hub__entry--micro .rpg-hub__note'),
+      ).toBeVisible(),
+    );
     expect(homeEntry()).toBeNull();
     expect(
       screen
@@ -870,8 +867,10 @@ describe('the browser’s Back and Forward in Mikroøkt', () => {
     await forward();
     expect(heading()).toHaveTextContent(firstCheck!.title);
     // A card reached again starts unanswered: nothing was kept.
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Trykk på svaret du tror stemmer.',
+    expect(screen.getByRole('status')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Neste' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
     );
 
     await user.click(screen.getByRole('link', { name: 'Lukk mikroøkten' }));

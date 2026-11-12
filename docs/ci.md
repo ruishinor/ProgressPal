@@ -35,7 +35,7 @@ Consequences, all enforced by `scripts/release-review-binding.mjs` and covered b
 {
   "schemaVersion": 2,
   "module": "kebab-case-name",
-  "reviewer": "who reviewed",
+  "reviewer": "actual reviewer and provenance",
   "binding": {
     "kind": "payload-tree",
     "payloadTree": "<40-hex payload tree of the reviewed candidate>",
@@ -66,7 +66,7 @@ Consequences, all enforced by `scripts/release-review-binding.mjs` and covered b
 npm run review:payload-tree -- <candidate-commit>
 ```
 
-prints the payload tree to bind. Independent review is of that exact commit; the reviewer's file is then committed on top of it. The implementation session may record its own self-review as evidence input, but it is not the independent review the process requires.
+prints the payload tree to bind. Review that exact candidate and commit the evidence on top of it. The implementer may perform the review. Identify who performed it in the reviewer field and explicitly describe implementer self-review or AI involvement where applicable.
 
 ## Release gate
 
@@ -100,7 +100,7 @@ git status --porcelain=v1
 
 It rejects the wrong Node/npm major, version drift between package and lockfile, a dirty starting/ending tree, non-zero exits, signals, command-policy violations, skipped tests, retried tests, and missing or non-applicable review evidence. Evidence JSON (manifest schema 3: commit, tree, payload tree, bound review and its checksum, parsed test counts, build checksums) is written under ignored `artifacts/release-evidence/`.
 
-Running the ordinary commands above directly validates a candidate without review evidence. That is useful for an independent reviewer, but it is not certification and must not be presented as such.
+Use the ordinary commands directly for targeted preflight and review evidence. Certification requires the release gate.
 
 ## Pipeline
 
@@ -114,7 +114,7 @@ The check name `Final candidate` is a contract: Vercel stores the required check
 
 ### Why this mechanism
 
-Current read-only GitHub inspection (2026-11-02) reports no branch protection or rulesets. Vercel builds every push to `master` for Production. Before this change a commit whose validation later failed still reached Production (observed for `f153f19`, `269633…`, `5eadb2b…` and `d92d8ce…`).
+On 2026-11-02, read-only GitHub inspection found no branch protection or rulesets. Vercel builds every push to `master` for Production. Before this change a commit whose validation later failed still reached Production (observed for `f153f19`, `269633…`, `5eadb2b…` and `d92d8ce…`).
 
 Vercel Deployment Checks hold each production deployment, which Vercel still builds, until the required GitHub check on the same commit passes, and only then assign it to the production domains. A failed or missing check leaves the previous deployment serving Production. It needs no secret, no deploy hook and no branch protection, and it gates promotion regardless of how the commit reached `master`.
 
@@ -137,7 +137,7 @@ restoring FULL; this task does not authorize removal/bypass of the provider chec
 
 With Deployment Checks active, every `master` commit needs its own passing `Final candidate` check before it is promoted, and that check needs an applicable review:
 
-1. The candidate commit `C` is frozen and independently reviewed (`npm run review:payload-tree -- C` names the payload).
+1. The candidate commit `C` is frozen and reviewed (`npm run review:payload-tree -- C` names the payload).
 2. The reviewer commits `docs/release-reviews/<module>.json` on top of `C` as an **evidence-only** commit `E`. `E` has the same payload tree as `C`.
 3. `E` (or a merge whose tree equals `E`'s) reaches `master`, its check passes, and Vercel promotes it.
 
@@ -145,10 +145,10 @@ Pushing `C` without `E` is safe but unproductive: its check fails closed, so Ver
 
 ### Residual limits
 
-- The gate proves a review **names this exact payload**; it does not authenticate **who wrote it**. A review file is a claim recorded in Git, and anyone who can commit can write one. Independence rests on process: a genuinely separate reviewer authors and commits the evidence file, with explicit AI provenance when applicable; the authorized merger checks the evidence commit and `reviewer` field before merging.
-- Without branch protection, GitHub cannot stop a direct push to `master`; the guarantee is that such a push is not promoted until its check passes.
+- The gate proves a review **names this exact payload**; it does not authenticate **who wrote it**. A review file is a claim recorded in Git, and anyone who can commit can write one. The reviewer records the actual provenance, including implementer self-review and AI involvement when applicable. The authorized merger checks the evidence commit and `reviewer` field before merging.
+- Read-only inspection on 2026-11-12 confirmed that GitHub ruleset `shield-1` requires a PR and the GitHub Actions `Final candidate` check for `master`, with zero required approving reviews. Vercel separately enforces its production alias check.
 - Force Promote and `vercel deploy --prod` with owner credentials are deliberate owner bypasses.
-- The gate runs from the candidate's own checkout, so a candidate that edits `scripts/` or the workflow can alter the gate that judges it. The independent review must cover those paths; upgrading the GitHub plan would allow a base-branch-owned gate.
+- The gate runs from the candidate's own checkout, so a candidate that edits `scripts/` or the workflow can alter the gate that judges it. The candidate review must cover changes to those paths; upgrading the GitHub plan would allow a base-branch-owned gate.
 - Vercel rebuilds the commit; it does not promote the CI-built `dist`. Identity is by commit, and the deterministic lockfile build is the basis for treating the bytes as equivalent.
 - Nothing here validates Production after promotion. Hosted smoke is a separate evidence class.
 
@@ -160,7 +160,7 @@ The CI job uploads evidence JSON, `playwright-report/` and `test-results/` for 3
 
 - Wrong Node/npm: activate Node 24 and npm 11; do not waive the runtime check.
 - Dirty worktree: commit the exact candidate or use ordinary targeted commands during development. A dirty tree cannot produce counted certification evidence.
-- `No release review evidence is bound to candidate payload tree …`: the candidate changed after review, or no review exists. Run `npm run review:payload-tree`, compare with the review file's `binding.payloadTree`, and either add an independent review for this payload or restore the reviewed bytes.
+- `No release review evidence is bound to candidate payload tree …`: the candidate changed after review, or no review exists. Run `npm run review:payload-tree`, compare with the review file's `binding.payloadTree`, and either review and bind this payload or restore the reviewed bytes.
 - A file under `docs/release-reviews/` is rejected: it must be a regular, valid `<module>.json`; move anything else out.
 - Port 42183 in use: close the owning process. The E2E runner will not attach to an existing server.
 - Playwright failure: retrieve the job artifact and inspect the retained trace, screenshot, video and HTML report.
@@ -193,7 +193,7 @@ Process timeout, interruption, signal and nonzero exit always block. Successful 
 | Vitest, Playwright         | Release-only structured reporter: complete successful run, all selected units/tests passed, no unhandled errors, skips, pending tests or retries |
 | Circular dependencies      | Existing dpdm circular:1 exit policy                                                                                                             |
 
-Vitest 4.1.12's built-in JSON reporter omits retry counts. The small release reporter uses its documented TestCase diagnostic API instead. Playwright uses its selected suite and per-test attempt results. Normal default/list terminal output is preserved. No application test discovery or worker policy changes. Structured reports use a fresh UUID filename and invocation token under ignored artifacts/release-evidence; exclusive creation rejects overwrites. Missing, malformed, mismatched, incomplete and failed reports block. The token prevents accidental stale reuse, not malicious code running inside the candidate: independent review remains the trust boundary.
+Vitest 4.1.12's built-in JSON reporter omits retry counts. The small release reporter uses its documented TestCase diagnostic API instead. Playwright uses its selected suite and per-test attempt results. Normal default/list terminal output is preserved. No application test discovery or worker policy changes. Structured reports use a fresh UUID filename and invocation token under ignored artifacts/release-evidence; exclusive creation rejects overwrites. Missing, malformed, mismatched, incomplete and failed reports block. The token prevents accidental stale reuse. Candidate code executes inside the gate, so review any changes to the release controls.
 
 Schema 3 retains legacy warnings/warningCount as **keyword-match observations only**, for historical compatibility; neither is a severity count or blocking input. New policyViolations and validation fields describe the actual decision, diagnostics records the advisory stderr source/basis, and rawStdout/rawStderr preserve original text including ANSI. Structured evidence and its SHA-256 are recorded when read. Unknown test counters are null (including failed processes or invalid reports), never asserted zero; aggregate skip/retry totals are null if any contributing count is unknown. Historical manifests are unchanged. No in-repository schema-2 manifest parser was found; external consumers must accept schema 3 and nullable counters. Build and review checksums are unchanged.
 

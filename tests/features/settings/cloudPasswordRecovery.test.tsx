@@ -79,12 +79,7 @@ async function openResetView(
   );
 }
 
-const sentTitle = 'Check your email';
-const sentLines = [
-  'If an account exists for that address, a password reset link is on its way.',
-  'Open the link in this browser. If you ask for more than one link, only the last one you asked for works.',
-];
-
+const resetNotice = () => screen.queryByRole('status');
 describe('the Forgot password? action', () => {
   it('is offered only while signed out, as a button that sends nothing by itself', async () => {
     const made = renderSignedOut();
@@ -146,13 +141,6 @@ describe('the reset view', () => {
     const made = renderSignedOut();
 
     await openResetView(made, learnerEmail);
-
-    expect(made.within.getByText('Reset your password')).toBeVisible();
-    expect(
-      made.within.getByText(
-        "Enter your account's email address. If an account exists for it, the cloud service sends a link for choosing a new password. Open the link in this browser.",
-      ),
-    ).toBeVisible();
 
     const email = made.within.getByLabelText('Email');
 
@@ -237,17 +225,13 @@ describe('asking for the link', () => {
 
     await ask(made);
 
-    const notice = await screen.findByText(sentTitle);
-    const region = notice.closest('[role]') as HTMLElement;
+    const region = await screen.findByRole('status');
 
     expect(made.account.requestPasswordReset).toHaveBeenCalledTimes(1);
     expect(made.account.requestPasswordReset).toHaveBeenCalledWith(
       learnerEmail,
     );
-    expect(region).toHaveAttribute('role', 'status');
-    for (const line of sentLines) {
-      expect(within(region).getByText(line)).toBeVisible();
-    }
+    expect(region).toBeVisible();
     expect(made.card.textContent).not.toContain(learnerEmail);
     expect(made.account.signIn).not.toHaveBeenCalled();
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -283,7 +267,7 @@ describe('asking for the link', () => {
     await userEvent.type(made.within.getByLabelText('Email'), learnerEmail);
     await userEvent.keyboard('{Enter}');
 
-    expect(await screen.findByText(sentTitle)).toBeVisible();
+    expect(await screen.findByRole('status')).toBeVisible();
     expect(made.account.requestPasswordReset).toHaveBeenCalledTimes(1);
     expect(made.account.signIn).not.toHaveBeenCalled();
     expect(made.account.signUp).not.toHaveBeenCalled();
@@ -293,7 +277,7 @@ describe('asking for the link', () => {
     const made = renderSignedOut();
 
     await ask(made);
-    await screen.findByText(sentTitle);
+    await screen.findByRole('status');
 
     expect(
       made.within.getAllByRole('button').map((button) => button.textContent),
@@ -319,44 +303,31 @@ describe('asking for the link', () => {
       );
       await ask(made);
 
-      const notice = await screen.findByText(sentTitle);
-      const region = notice.closest('[role]') as HTMLElement;
+      const region = await screen.findByRole('status');
 
-      expect(region).toHaveAttribute('role', 'status');
-      for (const line of sentLines) {
-        expect(within(region).getByText(line)).toBeVisible();
-      }
+      expect(region).toBeVisible();
       expect(made.card.textContent).not.toContain(`provider says ${code}`);
-      expect(
-        made.within.queryByText('Reset link not requested'),
-      ).not.toBeInTheDocument();
+      expect(made.within.queryByRole('alert')).not.toBeInTheDocument();
     },
   );
 
   it.each([
-    ['rate-limited', 'Too many attempts. Wait a while and try again.'],
-    [
-      'unavailable',
-      'The cloud service could not be reached. Local data is unaffected.',
-    ],
-    ['unknown', 'Something went wrong. Local data is unaffected.'],
-    ['disabled', 'Cloud backup is not enabled on this device.'],
-  ] satisfies Array<[CloudErrorCode, string]>)(
-    'a failure that does not depend on the account (%s) is reported as a failure and never as sent',
-    async (code, message) => {
+    'rate-limited',
+    'unavailable',
+    'unknown',
+    'disabled',
+  ] satisfies CloudErrorCode[])(
+    'a failure independent of the account (%s) exposes an alert and keeps the form usable',
+    async (code) => {
       const made = renderSignedOut();
 
       made.account.requestPasswordReset.mockRejectedValueOnce(
-        new CloudError(code, message),
+        new CloudError(code, 'Synthetic provider diagnostic'),
       );
       await ask(made);
 
-      const notice = await screen.findByText('Reset link not requested');
-      const region = notice.closest('[role]') as HTMLElement;
-
-      expect(region).toHaveAttribute('role', 'alert');
-      expect(within(region).getByText(message)).toBeVisible();
-      expect(made.card.textContent).not.toMatch(/on its way/);
+      expect(await screen.findByRole('alert')).toBeVisible();
+      expect(resetNotice()).not.toBeInTheDocument();
       expect(made.within.getByLabelText('Email')).toHaveValue(learnerEmail);
       expect(
         made.within.getByRole('button', { name: 'Send reset link' }),
@@ -372,10 +343,7 @@ describe('asking for the link', () => {
     );
     await ask(made);
 
-    expect(await screen.findByText('Reset link not requested')).toBeVisible();
-    expect(
-      screen.getByText('Something went wrong. Local data is unaffected.'),
-    ).toBeVisible();
+    expect(await screen.findByRole('alert')).toBeVisible();
     expect(document.body.textContent).not.toMatch(/SDK internals|abc\.def/);
   });
 
@@ -397,10 +365,9 @@ describe('asking for the link', () => {
       made.within.getByRole('button', { name: 'Send reset link' }),
     );
 
-    const notice = await screen.findByText('Reset link not requested');
+    const notice = await screen.findByRole('alert');
 
     expect(notice.closest('[role]')).toHaveAttribute('role', 'alert');
-    expect(screen.getByText('Enter a valid email address.')).toBeVisible();
     expect(made.account.requestPasswordReset).not.toHaveBeenCalled();
   });
 
@@ -428,7 +395,7 @@ describe('asking for the link', () => {
       made.within.getByRole('button', { name: 'Back to sign in' }),
     ).toBeDisabled();
     release();
-    expect(await screen.findByText(sentTitle)).toBeVisible();
+    expect(await screen.findByRole('status')).toBeVisible();
     expect(made.account.requestPasswordReset).toHaveBeenCalledTimes(1);
   });
 
@@ -436,12 +403,12 @@ describe('asking for the link', () => {
     const made = renderSignedOut();
 
     await ask(made, learnerEmail);
-    await screen.findByText(sentTitle);
+    await screen.findByRole('status');
     await userEvent.click(
       made.within.getByRole('button', { name: 'Back to sign in' }),
     );
 
-    expect(screen.queryByText(sentTitle)).not.toBeInTheDocument();
+    expect(resetNotice()).not.toBeInTheDocument();
     await waitFor(() =>
       expect(made.within.getByLabelText('Email')).toHaveValue(learnerEmail),
     );

@@ -172,7 +172,6 @@ describe('Learn card', () => {
     const user = renderPage();
     await start(user, variabler);
 
-    expect(status()).toHaveTextContent('Neste: prøv det på nesten samme kode.');
     expect(isDisabled('Neste')).toBe(false);
     expect(screen.queryByRole('button', { name: 'Sjekk' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Prøv igjen' })).toBeNull();
@@ -824,7 +823,6 @@ describe('one physical activation, one progression', () => {
     await user.dblClick(button('Neste'));
 
     expect(title()).toHaveTextContent('Hva skrives ut?');
-    expect(status()).toHaveTextContent('Trykk på svaret du tror stemmer.');
     expect(button('Neste')).toHaveAttribute('aria-disabled', 'true');
   });
 

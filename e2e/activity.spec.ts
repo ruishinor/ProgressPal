@@ -106,9 +106,6 @@ test('individual entries, correction, deletion, goals, navigation and backup pre
   page,
 }) => {
   await openActivity(page);
-  await expect(
-    page.getByText('No goals configured. You can still record activity.'),
-  ).toBeVisible();
   await page.getByRole('button', { name: 'Manage goals' }).click();
   await expect(
     page.getByRole('heading', { name: 'Daily goals', exact: true }),
