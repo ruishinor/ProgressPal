@@ -9,10 +9,12 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 import { SettingsIcon } from '@/components/ui/SettingsIcon';
 import { TextInput } from '@/components/ui/TextInput';
 import { RpgButton } from '@/features/rpg/components/RpgButton';
 import { RpgPanel } from '@/features/rpg/components/RpgPanel';
+import { RpgProgressBar } from '@/features/rpg/components/RpgProgressBar';
 import {
   getSocialGroup,
   type SocialCommand,
@@ -317,14 +319,27 @@ export function GroupSession({
       </form>
     </>
   );
+  const Progress = renderPanels ? RpgProgressBar : ProgressBar;
   const board = group !== null && summary !== null && (
     <>
+      <h3>Medlemmer</h3>
       <p>{group.members.length} av 8 plasser i bruk</p>
-      <h3>Felles mål</h3>
-      <p>
-        {summary.total} av {summary.target} læringsdager delt. Målet følger
-        størrelsen på Guilden, med to dager per medlem.
-      </p>
+      <ul aria-label="Medlemmer" className="learning-group__rows" role="list">
+        {group.members.map(({ nickname, self }, index) => (
+          <li key={index}>
+            {nickname}
+            {self ? ' (deg)' : ''}
+          </li>
+        ))}
+      </ul>
+      <Progress
+        label="Felles mål"
+        helperText={`${summary.total} av ${summary.target} læringsdager delt. Målet er to dager per medlem.`}
+        max={summary.target}
+        value={summary.total}
+        showValue={false}
+        tone={summary.total >= summary.target ? 'success' : undefined}
+      />
       {summary.total >= summary.target && (
         <p>
           <strong>Guilden nådde ukemålet!</strong>
@@ -333,11 +348,21 @@ export function GroupSession({
       {group.members.length > 1 ? (
         <>
           <h3>Ukas rangering</h3>
-          <ul className="detail-list">
+          <ul
+            aria-label="Ukas rangering"
+            className="learning-group__rows learning-group__ranking"
+            role="list"
+          >
             {summary.ranking.map(({ nickname, rank, days, self }, index) => (
               <li key={index}>
-                {rank}. {nickname}
-                {self ? ' (deg)' : ''} · {days} {days === 1 ? 'dag' : 'dager'}
+                <span>{rank}.</span>{' '}
+                <span>
+                  {nickname}
+                  {self ? ' (deg)' : ''}
+                </span>{' '}
+                <span>
+                  {days} {days === 1 ? 'dag' : 'dager'}
+                </span>
               </li>
             ))}
           </ul>

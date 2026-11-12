@@ -2,10 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { completeOnboarding } from './support/onboarding';
-import {
-  installSimulatedProvider,
-  type ProviderCall,
-} from './support/simulatedProvider';
+import { installSimulatedProvider } from './support/simulatedProvider';
 
 /**
  * Epic G callback route and Settings cloud UI, in the real browser against the
@@ -169,19 +166,6 @@ const traffic = (calls: Array<{ method: string; path: string }>) =>
       `${call.method} ${call.path.replace(/^\/v1(?=\/|$)/, '') || '/graphql'}`,
   );
 
-function isGuildRead(call: ProviderCall) {
-  const body = call.body as {
-    query?: string;
-    variables?: { operation?: string; input?: Record<string, unknown> };
-  } | null;
-  return (
-    call.method === 'POST' &&
-    body?.query?.includes('social_week') === true &&
-    body.variables?.operation === 'read' &&
-    JSON.stringify(body.variables.input) === '{}'
-  );
-}
-
 test.describe('the email-link landing route', () => {
   test('a good link: the address is clean before the code leaves, and nothing keeps the code', async ({
     page,
@@ -281,16 +265,16 @@ test.describe('the email-link landing route', () => {
 
     await expectAccessible(page, 'callback success');
 
-    // Settings may read the signed-in Guild name for its HUD.
+    // Settings adds no provider traffic after the callback.
     const beforeSettings = provider.calls.length;
     await page.getByRole('link', { name: 'Open Settings' }).click();
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
     await expect(
       card(page).getByText(learnerEmail, { exact: true }),
     ).toBeVisible();
-    await expect.poll(() => provider.calls.length).toBe(beforeSettings + 1);
-    expect(isGuildRead(provider.calls.at(-1)!)).toBe(true);
-    await expect.poll(() => providerCalls(page)).toHaveLength(2);
+    await page.waitForTimeout(500);
+    expect(provider.calls).toHaveLength(beforeSettings);
+    expect(await providerCalls(page)).toHaveLength(1);
   });
 
   test('a provider error, a code the provider rejects and a cloud-off visit are each handled calmly', async ({
@@ -444,19 +428,15 @@ test.describe('Settings cloud card in a real browser', () => {
 
     await expect(page).toHaveURL(/\/rpg$/);
     await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
-    await expect.poll(() => provider.calls.filter(isGuildRead)).toHaveLength(1);
 
-    // The HUD reads the Guild name. Backup traffic consists of two explicit
-    // backups (list, write, list) and one explicit download.
-    const beforeSettings = provider.calls.length;
+    // The two explicit backups each list, write and list again, followed by
+    // one explicit download. Navigating the RPG shell adds no requests.
     await page.goto('/rpg/settings');
     await expect(card(page).getByText(learnerEmail)).toBeVisible();
-    await expect.poll(() => provider.calls.length).toBe(beforeSettings + 1);
-    expect(isGuildRead(provider.calls.at(-1)!)).toBe(true);
     expect(
-      provider.calls
-        .filter((call) => !isGuildRead(call))
-        .map((call) => `${call.method} ${call.path.split('/').pop()}`),
+      provider.calls.map(
+        (call) => `${call.method} ${call.path.split('/').pop()}`,
+      ),
     ).toEqual([
       'POST email-password',
       ...Array.from({ length: 7 }, () => 'POST v1'),

@@ -62,9 +62,9 @@ Nhost stores its name, your account's membership and your chosen nickname.
 Sharing sends only the dates you choose to share for the current week in Oslo.
 Current members can see the group name, member nicknames and each member's
 current-week count. Exercise answers, notes, XP and email addresses are outside
-the group service. The RPG shell looks up the name when a signed-in device is
-online. Treat an invitation code as private. The Guild administrator can change
-the name and replace or disable the code.
+the group service. While the RPG shell is open, it can show the last name
+confirmed by a Guild action. Treat an invitation code as private. The Guild
+administrator can change the name and replace or disable the code.
 
 Dates shared from different devices are added together, once per date. Local
 edits can change your personal week while previously shared dates remain in

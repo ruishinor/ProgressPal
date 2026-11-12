@@ -872,6 +872,32 @@ for (const theme of ['light', 'dark'] as const) {
         const css = await surfaces();
         expect(new Set(css.map(({ card }) => card)).size).toBe(4);
         await expectRpgReflow(page, '.rpg-hub__learning-grid :is(a, button)');
+        if (width === 320) {
+          const reference = entries.filter({
+            has: page.getByRole('link', {
+              name: 'Teknologioppslag',
+              exact: true,
+            }),
+          });
+          await expectLearningActionsOnOneRow(reference);
+          const title = reference.getByRole('link').locator('span');
+          await expect(title).toBeVisible();
+          const lines = await title.evaluate((label) => {
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            return [...range.getClientRects()].map((rect) => ({
+              top: rect.top,
+              left: rect.left,
+              right: rect.right,
+            }));
+          });
+          expect(new Set(lines.map(({ top }) => top)).size).toBe(1);
+          const button = (await reference.getByRole('link').boundingBox())!;
+          for (const line of lines) {
+            expect(line.left).toBeGreaterThanOrEqual(button.x);
+            expect(line.right).toBeLessThanOrEqual(button.x + button.width);
+          }
+        }
         const entryLink = entries.first().getByRole('link');
         await entryLink.focus();
         await expect(entryLink).toHaveCSS('outline-style', 'solid');

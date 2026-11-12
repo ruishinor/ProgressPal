@@ -1432,6 +1432,13 @@
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 24rem) {
+  .rpg-hub__learning-grid .rpg-hub__entry {
+    column-gap: var(--space-1);
+    padding-inline: var(--space-1);
+  }
+}
+
 .rpg-hub__details--summary {
   gap: var(--space-2);
   grid-template-columns: repeat(2, minmax(0, 1fr));

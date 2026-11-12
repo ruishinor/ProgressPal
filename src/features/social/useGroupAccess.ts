@@ -1,10 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  getCloudAccount,
-  getSocialGroup,
-  type CloudAccountState,
-} from '@/lib/cloud';
+import { getCloudAccount, type CloudAccountState } from '@/lib/cloud';
 
 export const defaultGuildName = 'Code Knights';
 
@@ -45,43 +41,26 @@ export function useGroupAccess() {
 
 export function useGuildName() {
   const { state, online } = useGroupAccess();
-  const userId = online && state.status === 'signed-in' ? state.userId : null;
-  const [guild, setGuild] = useState<{ userId: string; name: string | null }>();
-  const pending = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!userId) return;
-    const request = new AbortController();
-    pending.current = request;
-    const signal = AbortSignal.any([
-      request.signal,
-      AbortSignal.timeout(15_000),
-    ]);
-
-    void getSocialGroup()
-      .execute({ operation: 'read' }, userId, signal)
-      .then((result) => {
-        if (!request.signal.aborted) {
-          setGuild({
-            userId,
-            name: result.status === 'ok' ? (result.group?.name ?? null) : null,
-          });
-        }
-      })
-      .catch(() => {
-        if (!request.signal.aborted) setGuild({ userId, name: null });
-      });
-    return () => request.abort();
-  }, [userId]);
+  const userId = state.status === 'signed-in' ? state.userId : null;
+  const [guild, setGuild] = useState<{
+    userId: string | null;
+    name: string | null;
+  }>({
+    userId,
+    name: null,
+  });
+  if (guild.userId !== userId) setGuild({ userId, name: null });
 
   function onGuildName(accountId: string, name: string | null) {
-    if (accountId !== userId) return;
-    pending.current?.abort();
-    setGuild({ userId, name });
+    const account = readAccountState();
+    if (account.status !== 'signed-in' || account.userId !== accountId) return;
+    setGuild((previous) =>
+      previous.userId === accountId ? { userId: accountId, name } : previous,
+    );
   }
 
   return {
-    guildName: guild?.userId === userId ? guild.name : null,
+    guildName: online && guild.userId === userId ? guild.name : null,
     onGuildName,
   };
 }

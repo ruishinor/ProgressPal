@@ -1,5 +1,33 @@
 # ProgressPal current state
 
+**ProgressPal-korrigeringsordre v2 — sluttført lokal kandidat, 2026-11-12.**
+`cx/progresspal-korrigeringsordre-v2` bygger på verifisert remote `master`
+`2c1201930b403e4c081de212ca59ae9ca9a2f067`, som inkluderer PR #90.
+Kandidaten beholder kontoflyten, synkroniseringsstatus og RPG-stilvalget.
+
+- Full RPG Home viser Teknologioppslag på én tekstlinje ved 320 CSS px.
+  Testen kontrollerer tekstens faktiske linjer og infoknappens plassering og
+  trefflate, også i Glassmorphic.
+- Guild viser medlemmer vertikalt, fremdrift mot felles mål og rangering med
+  delte plasseringer. Fremdriftslinjen fylles ved oppnådd mål, og teksten
+  viser faktisk total ved måloverskridelse.
+- Hero HUD viser navnet fra en bekreftet, eksplisitt Guild-handling i det
+  aktive RPG-skallet. Ved ukjent navn, utlogging, kontobytte eller offline
+  vises Code Knights. Åpning av RPG og kontoinnstillinger gir ingen
+  bakgrunnsoppslag mot Guild.
+
+Lokalt besto 97 Vitest-caser, 6 buntbudsjett-caser og 16 unike nettlesercaser,
+inkludert de to PR #90-flytene med synkronisering aktivert. Guild-testen besto
+også i egen omkjøring etter justering av testen for forsinkede svar.
+Produksjonsbygg og buntbudsjett besto både med standardinnstilling og med
+synkronisering aktivert. Standardbygget målte 457 948 B JS gzip og 343 107 B
+for største rå JS-fil mot takene på 500 000 og 550 000 B.
+
+Den lokale [Guild-migreringen](../infra/nhost/social/README.md) besto SQL-proben
+mot midlertidig PostgreSQL. Live Hasura/JWT og migrering gjenstår. Kandidaten
+avventer hosted `Final candidate`. Vercel-aliaset pekte ved kontroll på
+`61bcb593`. [Selvreview for sluttkandidaten](release-reviews/progresspal-korrigeringsordre-v2.json).
+
 **ProgressPal-korrigeringsordre v2 — tidligere lokal kandidat, 2026-11-12.** Kandidatgrenen
 `cx/progresspal-korrigeringsordre-v2` starter på verifisert `master`
 `61bcb593b9194e6b1092e495d28465a2cf091a90` (PR #89). De eksisterende
@@ -32,8 +60,7 @@ De opprinnelige grenene beholder sin historiske review- og testevidens.
 - PR #90 var en åpen kladd ved denne kontrollen. Dens `Final candidate` besto på `5b2a35e`.
   Produksjonsaliaset pekte ved kontroll på Vercel-deploy
   `dpl_3mMF8fxccg85f1csJphvnUBSbsko` fra `61bcb593`.
-  Korrigeringskandidaten har [bundet selvreview](release-reviews/progresspal-korrigeringsordre-v2.json)
-  og avventer en ordinær hosted `Final candidate` ved autorisert publisering.
+  Selvreviewet for denne historiske kandidaten ligger i commit `ea8b2c5`.
 
 **Kontobasert oppstart og automatisk synkronisering — kildekandidat
 2026-11-12.** Arbeidet bygger på `61bcb593b9194e6b1092e495d28465a2cf091a90`
