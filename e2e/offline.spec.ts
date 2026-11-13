@@ -402,7 +402,7 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
   await waitForServiceWorkerControl(page);
 
   // Export a backup from settings (the SW must not interfere with the download).
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   const [download] = await Promise.all([
@@ -424,7 +424,7 @@ test('keeps Module 16 reset and onboarding-import recovery working with the serv
   await page.getByLabel('Backup file').setInputFiles(backupPath);
   await page.getByRole('button', { name: 'Restore this backup' }).click();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
-  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page).toHaveURL(/\/settings\?section=data$/);
 });
 
 test('cleans only ProgressPal caches and refreshes the cached shell online', async ({
