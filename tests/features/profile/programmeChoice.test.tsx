@@ -82,6 +82,14 @@ describe('fresh onboarding: an explicit programme choice', () => {
     fireEvent.click(
       within(group).getByRole('radio', { name: /Programvareutvikling/ }),
     );
+    expect(
+      within(group)
+        .getByRole('radio', { name: /Programvareutvikling/ })
+        .closest('label'),
+    ).toHaveClass('checkbox--selected');
+    expect(
+      within(group).getByRole('radio', { name: /CS50x/ }).closest('label'),
+    ).not.toHaveClass('checkbox--selected');
     fireEvent.click(
       await screen.findByRole('button', { name: 'Use default learner' }),
     );
