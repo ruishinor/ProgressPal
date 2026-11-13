@@ -1,3 +1,16 @@
+**Private feedback intake — isolated source candidate (2026-11-13).**
+Branch `feat/private-feedback-intake-20261113` is a work-in-progress,
+not a released feature. A shared Classic/RPG/immersive feedback form and a
+disabled-by-default Vercel `/api/feedback` endpoint have been committed with
+a prepared private Nhost schema/function contract. Vercel preview of commit
+`8cbfd74bd6265e35da02a94b94648c5a793b89cf` reported READY after a
+successful Vite production build. That does NOT certify local tests, live
+provider routing, Hasura permissions, retention, WAF, report receipt, the
+hosted `Final candidate` gate, master merge or public deployment. Private
+Nhost migration/metadata, server-only secret, Vercel firewall and retention
+job have not been applied or verified. Do NOT merge or enable intake while
+these prerequisites are unresolved. See `infra/nhost/feedback/README.md`.
+
 # ProgressPal current state
 
 **Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger

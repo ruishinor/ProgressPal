@@ -47,7 +47,7 @@ export function AppShell() {
   if (status === 'loading') {
     return (
       <AppShellLayout
-      feedbackAction={<FeedbackWidget />}
+        feedbackAction={<FeedbackWidget />}
         mainRef={mainRef}
         navigationItems={[
           {
@@ -91,7 +91,7 @@ export function AppShell() {
   if (status === 'error') {
     return (
       <AppShellLayout
-      feedbackAction={<FeedbackWidget />}
+        feedbackAction={<FeedbackWidget />}
         mainRef={mainRef}
         navigationItems={[
           {
