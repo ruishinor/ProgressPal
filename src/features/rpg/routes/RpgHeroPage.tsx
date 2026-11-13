@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { ActivityIndicator } from '@/features/rpg/activity/ActivityIndicator';
+import { RpgUtilityActions } from '@/features/rpg/shell/RpgUtilityActions';
 
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -108,8 +109,11 @@ export function RpgHeroPage() {
       return (
         <section className="page-section rpg-hero">
           <div className="rpg-hero__header rpg-page-header">
-            <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
-            <h1>Hero Profile</h1>
+            <div>
+              <p className="rpg-hero__eyebrow rpg-page-eyebrow">RPG</p>
+              <h1>Hero Profile</h1>
+            </div>
+            <RpgUtilityActions compact />
           </div>
           <ErrorState
             action={
@@ -136,6 +140,7 @@ export function RpgHeroPage() {
       <section className="page-section rpg-hero">
         <div className="rpg-hero__header rpg-page-header">
           <h1>Hero Profile</h1>
+          <RpgUtilityActions compact />
         </div>
         <LoadingState
           description="Building the profile from local progress, XP, sessions, and badges."
@@ -161,6 +166,7 @@ export function RpgHeroPage() {
           <RpgButton href={rpgSettingsPath} variant="secondary">
             Edit profile
           </RpgButton>
+          <RpgUtilityActions compact />
         </div>
       </div>
 

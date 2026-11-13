@@ -450,8 +450,11 @@ test('primary and danger buttons stay readable on hover in dark theme', async ({
   await page.goto('/profile');
   const primary = page.getByRole('link', { name: 'Open dashboard' });
   await primary.hover();
-  await expect(page.locator('.button--primary')).toHaveCount(1);
-  const primaryHover = await measureContrast(page, '.button--primary');
+  await expect(primary).toHaveClass(/\bbutton--primary\b/);
+  const primaryHover = await measureContrast(
+    page,
+    'a.button--primary[href="/dashboard"]',
+  );
   expect(primaryHover.ratio).toBeGreaterThanOrEqual(MIN_CONTRAST);
 
   // Danger button hover - enable the Settings reset button via normal input

@@ -239,14 +239,15 @@ export function FeedbackWidget({
             strokeWidth="1.7"
           />
           <path
-            d="M8 11.5h8M12 7.5v8"
+            d="M12 8.5v5M12 16.5h.01"
             stroke="currentColor"
             strokeWidth="1.6"
+            strokeLinecap="round"
           />
         </svg>
-        <span className={iconOnly ? 'sr-only' : undefined}>
-          {compact ? 'Meld fra' : 'Meld feil / Gi innspill'}
-        </span>
+        {iconOnly ? null : (
+          <span>{compact ? 'Meld fra' : 'Meld feil / Gi innspill'}</span>
+        )}
       </button>
       {createPortal(
         <dialog

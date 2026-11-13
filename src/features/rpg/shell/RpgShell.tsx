@@ -28,8 +28,7 @@ import {
 import type { RpgHubSummary, RpgHudSummary } from '@/features/rpg/model/types';
 import { RpgPrimaryNav } from '@/features/rpg/shell/RpgPrimaryNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
-import { SettingsIcon } from '@/components/ui/SettingsIcon';
-import { FeedbackWidget } from '@/features/feedback';
+import { RpgUtilityActions } from '@/features/rpg/shell/RpgUtilityActions';
 import { useGuildName } from '@/features/social/useGroupAccess';
 import {
   getRpgResourcePath,
@@ -37,7 +36,6 @@ import {
   rpgMapPath,
   rpgRoutePath,
   rpgFocusPath,
-  rpgSettingsPath,
   rpgReferencePath,
 } from '@/lib/routing/rpgRoutePaths';
 import { rpgSocialPath } from '@/lib/routing/socialPaths';
@@ -79,29 +77,6 @@ const initialHubState: RpgShellHubState = {
   summary: null,
 };
 
-/**
- * The one Settings launch of the shell. Inside the HUD it is the HUD's
- * top-right gear (`inHud`: icon only, the name stays spoken); on a route
- * without a HUD it sits in the shell's utility bar.
- */
-function SettingsLink({ inHud = false }: { inHud?: boolean }) {
-  const location = useLocation();
-
-  return (
-    <Link
-      aria-current={location.pathname === rpgSettingsPath ? 'page' : undefined}
-      aria-label="Open Settings"
-      className="rpg-shell__settings-link"
-      to={rpgSettingsPath}
-    >
-      <SettingsIcon className="rpg-shell__settings-icon" />
-      <span className={inHud ? 'sr-only' : 'rpg-shell__settings-text'}>
-        Settings
-      </span>
-    </Link>
-  );
-}
-
 function RpgHeroHud({
   guildName,
   onRetry,
@@ -141,7 +116,7 @@ function RpgHeroHud({
                 'Local RPG summary could not be loaded from this browser.'}
             </p>
           </div>
-          <SettingsLink inHud />
+          <RpgUtilityActions inHud />
           <button
             className="rpg-hero-hud__quest-link"
             onClick={onRetry}
@@ -166,7 +141,7 @@ function RpgHeroHud({
             Loading your Hero
           </p>
         </div>
-        <SettingsLink inHud />
+        <RpgUtilityActions inHud />
       </section>
     );
   }
@@ -216,7 +191,7 @@ function RpgHeroHud({
         secondaryStatistic={<ActivityIndicator />}
         showDetails={!mobile}
       />
-      <SettingsLink inHud />
+      <RpgUtilityActions inHud />
       <RpgLevelProgress xp={summary.xpSummary} />
       {mobile && (
         <details className="rpg-hero-hud__details">
@@ -404,20 +379,17 @@ export function RpgShell({
         Skip to RPG content
       </a>
       <div className="rpg-shell__frame">
-        {/* Reuse the HUD-free reading layout; navigation and coordination
-            notices remain available on both reference routes. */}
-        {withoutHud ? (
+        {/* The Hero Profile owns its controls inside its page header;
+            HUD-free reading routes keep one compact utility row. */}
+        {readingReference ? (
           <nav
             aria-label="RPG utility navigation"
             className="rpg-shell__utility-bar"
           >
-            <SettingsLink />
+            <RpgUtilityActions />
           </nav>
         ) : null}
-        <div className="rpg-shell__topbar">
-          <RpgPrimaryNav />
-          <FeedbackWidget compact />
-        </div>
+        <RpgPrimaryNav />
         {!withoutHud ? (
           <RpgHeroHud
             guildName={guildName}

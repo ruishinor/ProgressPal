@@ -119,36 +119,50 @@ for (const viewport of flowViewports) {
 
       const navBox = await box(nav, `${label} navigation`);
       const mainBox = await box(main, `${label} main`);
-      // The Hero route intentionally has no persistent HUD; there the one
-      // Settings launch is the utility bar, elsewhere the HUD's gear.
+      // The Hero Profile has no persistent HUD; its controls sit in its own
+      // header. Elsewhere the two controls share the HUD's top-right strip.
       const contentTop =
         route === rpgRoutes.hero
           ? mainBox.y
           : (await box(hud, `${label} HUD`)).y;
 
-      if (route === rpgRoutes.hero) {
-        const utilityBox = await box(utility, `${label} utility`);
+      await expect(utility, `${label} no detached utility row`).toHaveCount(0);
+      const surface =
+        route === rpgRoutes.hero ? page.locator('.rpg-hero__header') : hud;
+      const controls = surface.locator('.rpg-shell__actions');
+      const gear = controls.getByRole('link', { name: 'Open Settings' });
+      const report = controls.getByRole('button', {
+        name: 'Meld feil eller gi innspill',
+      });
+      const surfaceBox = await box(surface, `${label} control surface`);
+      const gearBox = await box(gear, `${label} Settings gear`);
+      const reportBox = await box(report, `${label} Report control`);
 
-        // Visual order matches DOM order: utility, navigation, main.
+      for (const control of [gearBox, reportBox]) {
         expect(
-          utilityBox.y + utilityBox.height,
-          `${label} utility`,
-        ).toBeLessThanOrEqual(navBox.y + 1);
-      } else {
-        await expect(utility, `${label} utility`).toHaveCount(0);
-        const gear = hud.getByRole('link', { name: 'Open Settings' });
-        const gearBox = await box(gear, `${label} Settings gear`);
-        const hudBox = await box(hud, `${label} HUD`);
-
-        // Inside the HUD, at its top-right, and a full touch target.
-        expect(gearBox.x + gearBox.width).toBeLessThanOrEqual(
-          hudBox.x + hudBox.width + 1,
-        );
-        expect(gearBox.x).toBeGreaterThan(hudBox.x + hudBox.width / 2);
-        expect(gearBox.y).toBeGreaterThanOrEqual(hudBox.y - 1);
-        expect(gearBox.y).toBeLessThan(hudBox.y + 24);
-        expect(gearBox.width).toBeGreaterThanOrEqual(44);
-        expect(gearBox.height).toBeGreaterThanOrEqual(44);
+          control.x,
+          `${label} control inside left edge`,
+        ).toBeGreaterThanOrEqual(surfaceBox.x - 1);
+        expect(
+          control.x + control.width,
+          `${label} control inside right edge`,
+        ).toBeLessThanOrEqual(surfaceBox.x + surfaceBox.width + 1);
+        expect(
+          control.y,
+          `${label} control inside top edge`,
+        ).toBeGreaterThanOrEqual(surfaceBox.y - 1);
+        expect(
+          control.y + control.height,
+          `${label} control inside bottom edge`,
+        ).toBeLessThanOrEqual(surfaceBox.y + surfaceBox.height + 1);
+        expect(control.width).toBeGreaterThanOrEqual(44);
+        expect(control.height).toBeGreaterThanOrEqual(44);
+      }
+      expect(reportBox.x + reportBox.width).toBeLessThanOrEqual(gearBox.x + 1);
+      expect(Math.abs(reportBox.y - gearBox.y)).toBeLessThanOrEqual(1);
+      if (route !== rpgRoutes.hero) {
+        expect(gearBox.x).toBeGreaterThan(surfaceBox.x + surfaceBox.width / 2);
+        expect(gearBox.y).toBeLessThan(surfaceBox.y + 24);
       }
       await expect(
         page.getByRole('link', { name: 'Open Settings' }),
@@ -552,12 +566,13 @@ test('the skip link, primary navigation and the HUD form a logical keyboard path
   }
 
   // The persistent HUD follows the navigation, before the page content: the
-  // avatar opens the Hero Profile, followed by Activity, Guild, Settings and
-  // the current-quest action. Each shows a visible focus indicator.
+  // avatar opens the Hero Profile, followed by Activity, Guild, feedback,
+  // Settings and the current-quest action. Each has a visible focus indicator.
   for (const name of [
     'Open Hero Profile',
     'Activity Level 1',
     'Code Knights',
+    'Meld feil eller gi innspill',
     'Open Settings',
     /^(Start|Continue) quest$/,
   ]) {

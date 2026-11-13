@@ -61,6 +61,12 @@ for (const width of [320, 390, 1280]) {
         hud.getByRole('link', { name: 'Open Settings', exact: true }),
       );
       await touchTarget(
+        hud.getByRole('button', {
+          name: 'Meld feil eller gi innspill',
+          exact: true,
+        }),
+      );
+      await touchTarget(
         hud.getByRole('link', { name: 'Open Hero Profile', exact: true }),
       );
       const guild = hud.getByRole('link', {
@@ -92,7 +98,7 @@ for (const width of [320, 390, 1280]) {
         );
         const box = await hud.boundingBox();
         expect(box!.height, `${path} closed HUD height`).toBeLessThan(
-          quest ? (width === 320 ? 260 : 240) : 190,
+          quest ? (width === 320 ? 260 : 240) : width === 320 ? 216 : 190,
         );
         expect(
           (await page.locator('#rpg-main-content').boundingBox())!.y,
@@ -185,6 +191,20 @@ for (const width of [320, 390, 1280]) {
       page.getByRole('heading', { name: 'Hero Profile', exact: true }),
     ).toBeVisible();
     await expect(hud).toHaveCount(0);
+    await expect(
+      page.getByRole('region', { name: 'Learner identity and progression' }),
+    ).toBeVisible();
+    const heroHeader = page.locator('.rpg-hero__header');
+    await expect(
+      page.getByRole('navigation', { name: 'RPG utility navigation' }),
+    ).toHaveCount(0);
+    await touchTarget(
+      heroHeader.getByRole('button', {
+        name: 'Meld feil eller gi innspill',
+      }),
+    );
+    await touchTarget(heroHeader.getByRole('link', { name: 'Open Settings' }));
+    await noOverflow(page);
     await expect(
       page
         .getByRole('region', { name: 'Learner identity and progression' })

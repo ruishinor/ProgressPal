@@ -32,23 +32,6 @@ body.rpg-route-active .feedback-launcher,
 body.rpg-route-active .feedback-launcher:hover {
   background: var(--rpg-surface-raised);
 }
-.rpg-shell__topbar {
-  align-items: center;
-  display: flex;
-  gap: var(--space-2);
-  min-width: 0;
-}
-.rpg-shell__topbar .rpg-primary-nav {
-  flex: 1;
-}
-@media (max-width: 42rem) {
-  .rpg-shell__topbar {
-    justify-content: flex-end;
-  }
-  .rpg-shell__topbar .rpg-primary-nav {
-    flex: 0;
-  }
-}
 .feedback-dialog {
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
