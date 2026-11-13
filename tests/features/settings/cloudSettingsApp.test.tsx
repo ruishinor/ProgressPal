@@ -92,7 +92,9 @@ async function onboardRealApp(displayName: string) {
  * app is what another tab does, and the app rightly treats that as stale.)
  */
 async function renameLearner(name: string) {
-  await userEvent.click(screen.getByRole('link', { name: 'Profile & preferences' }));
+  await userEvent.click(
+    screen.getByRole('link', { name: 'Profile & preferences' }),
+  );
   const field = screen.getByLabelText('Display name');
 
   await userEvent.clear(field);
