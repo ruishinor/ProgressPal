@@ -913,16 +913,36 @@
 }
 
 .rpg-rank-badge {
-  display: flex;
+  align-items: center;
+  color: var(--rpg-accent-strong);
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
   font-size: var(--text-sm);
   font-weight: 700;
-  line-height: 1.4;
-  color: var(--rpg-accent-strong);
+  gap: 0.35rem;
+  line-height: 1.35;
+  min-height: 2rem;
 }
 
-.rpg-rank-badge > span:first-child {
+.rpg-rank-badge__mark {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  height: 1.125rem;
+  justify-content: center;
+  width: 1.125rem;
+}
+
+.rpg-rank-badge__mark::before {
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  content: '';
+  height: 0.625rem;
+  transform: rotate(45deg);
+  width: 0.625rem;
+}
+
+.rpg-rank-badge__label {
   color: var(--rpg-text-muted);
   font-weight: 400;
 }
