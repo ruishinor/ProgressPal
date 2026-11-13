@@ -374,6 +374,7 @@ test.describe('Settings cloud card in a real browser', () => {
     await page.getByLabel('Display name').fill('Changed after backup');
     await page.getByRole('button', { name: 'Save local settings' }).click();
     await expect(page.getByText('Local profile saved')).toBeVisible();
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await card(page).getByRole('button', { name: 'Back up now' }).focus();
     await page.keyboard.press('Enter');
     await expect(
