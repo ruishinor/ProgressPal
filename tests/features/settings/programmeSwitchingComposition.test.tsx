@@ -137,10 +137,9 @@ describe('production registry: two real programmes, nothing switches on render',
     const categories = screen.getByRole('navigation', {
       name: 'Settings categories',
     });
-    expect(within(categories).getByRole('link', { name: 'General' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    expect(
+      within(categories).getByRole('link', { name: 'General' }),
+    ).toHaveAttribute('aria-current', 'page');
 
     await userEvent.click(
       within(categories).getByRole('link', { name: 'Profile & preferences' }),
@@ -152,7 +151,9 @@ describe('production registry: two real programmes, nothing switches on render',
     await userEvent.click(
       within(categories).getByRole('link', { name: 'Data & backups' }),
     );
-    expect(screen.queryByRole('button', { name: 'Save local settings' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Save local settings' }),
+    ).toBeNull();
     expect(
       within(categories).getByRole('link', { name: 'Data & backups' }),
     ).toHaveAttribute('aria-current', 'page');
