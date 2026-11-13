@@ -16,6 +16,7 @@ export type TechnicalContext = {
     | 'other';
 };
 export type FeedbackPayload = {
+  schemaVersion: 1;
   requestId: string;
   category: FeedbackCategory;
   message: string;

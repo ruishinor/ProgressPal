@@ -91,3 +91,12 @@ Please give the maintainer reasonable time to investigate before public disclosu
 ## No bug bounty
 
 There is currently no paid bug bounty program.
+
+## In-app bug feedback is not a private vulnerability channel
+
+The prepared **Meld fra** feature is for ordinary usability, technical and
+learning-content reports. It is not a security disclosure endpoint and must
+not be used to transmit exploit details, account credentials or sensitive
+records. Use GitHub private vulnerability reporting only when enabled and
+available; otherwise first establish a private contact route with the
+maintainer before disclosing details. A public GitHub issue is never private.

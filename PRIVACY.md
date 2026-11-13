@@ -98,3 +98,22 @@ The host serves the app and its packaged files. External course links open
 separate websites with their own privacy practices. The optional cloud
 and account sync operations above are the app's Nhost requests. ProgressPal
 has no analytics, telemetry, tracking cookies or remote AI service.
+
+## Voluntary product feedback (prepared feature)
+
+The optional **Meld fra** feature is separate from learner records. Only an
+explicit submission sends the chosen category and written report; a reply
+email is included only when entered by the learner. App version, coarse browser
+and operating-system families and a page category are added only when the
+learner chooses to attach technical details. No progress history, lesson
+answers, learner notes, passwords, backups or account identifiers are
+automatically attached. The report can itself contain personal information
+entered by its author.
+
+Reports are intended for private maintainer triage in a separate Nhost database
+schema through a Vercel function. That reporting service is disabled until
+permissions, abuse protection, actual retention cleanup and provider settings
+are verified. The planned raw-report retention target is 90 days; this is
+**not yet a verified operational deletion guarantee**. Other provider logs
+and backup retention are separate. Submission errors do not mean that a
+report definitely failed to arrive; retry with the same request reference.

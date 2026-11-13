@@ -46,11 +46,12 @@ BEGIN
     RETURN;
   END IF;
   -- Defense in depth beyond HTTP: require the exact server-to-DB contract.
-  IF (SELECT COUNT(*) FROM jsonb_object_keys(payload)) <> 5 THEN
+  IF (SELECT COUNT(*) FROM jsonb_object_keys(payload)) <> 6 THEN
     RETURN QUERY SELECT jsonb_build_object('status','invalid');
     RETURN;
   END IF;
-  IF NOT payload ?& ARRAY['requestId','category','message','replyEmail','technicalContext'] THEN
+  IF NOT (payload ?& ARRAY['schemaVersion','requestId','category','message','replyEmail','technicalContext'])
+     OR payload->>'schemaVersion' IS DISTINCT FROM '1' THEN
     RETURN QUERY SELECT jsonb_build_object('status','invalid');
     RETURN;
   END IF;

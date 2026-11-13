@@ -97,6 +97,8 @@ const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
  * primitive check still applies to it, and no other file may fetch.
  */
 const PACKAGED_ASSET_READER = 'src/lib/assets/sameOriginAsset.ts';
+// One additional, user-initiated same-origin POST boundary. No background reporting.
+const FEEDBACK_TRANSPORT = 'src/features/feedback/transport.ts';
 
 // Git pilot: these two static values configure an explicit installation link.
 // They authorize no runtime network primitive, remote asset or other module.
@@ -192,7 +194,8 @@ describe('local-only source safety guardrail', () => {
       for (const { label, pattern } of FORBIDDEN_PATTERNS) {
         if (
           label === 'network fetch' &&
-          relativePath === PACKAGED_ASSET_READER
+          (relativePath === PACKAGED_ASSET_READER ||
+            relativePath === FEEDBACK_TRANSPORT)
         ) {
           continue;
         }
@@ -225,6 +228,19 @@ describe('local-only source safety guardrail', () => {
     }
 
     expect(violations).toEqual([]);
+  });
+});
+
+describe('opt-in feedback network boundary', () => {
+  it('uses exactly one fixed same-origin POST without cookies', () => {
+    const code = stripComments(
+      readFileSync(path.resolve(process.cwd(), FEEDBACK_TRANSPORT), 'utf8'),
+    );
+    expect(code.match(/\bfetch\s*\(/g)).toHaveLength(1);
+    expect(code).toMatch(/fetch\('\/api\/feedback'/);
+    expect(code).toMatch(/method:\s*'POST'/);
+    expect(code).toMatch(/credentials:\s*'omit'/);
+    expect(code).not.toMatch(URL_PATTERN);
   });
 });
 

@@ -173,6 +173,7 @@ export function FeedbackWidget({
     if (!requestId.current) requestId.current = makeId();
     setState('submitting');
     const response = await submitFeedback({
+      schemaVersion: 1,
       requestId: requestId.current,
       category,
       message: message.trim(),

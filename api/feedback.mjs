@@ -9,7 +9,7 @@ const categories = new Set(['technical', 'content', 'idea', 'other']);
 const browsers = new Set(['Chrome', 'Firefox', 'Safari', 'Edge', 'Other']);
 const systems = new Set(['Windows', 'macOS', 'Linux', 'Android', 'iOS', 'Other']);
 const pages = new Set(['home', 'campaign', 'pathways', 'lesson', 'guild', 'settings', 'microlearning', 'other']);
-const keys = new Set(['requestId', 'category', 'message', 'replyEmail', 'technicalContext']);
+const keys = new Set(['schemaVersion', 'requestId', 'category', 'message', 'replyEmail', 'technicalContext']);
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const query = 'mutation SubmitFeedback($payload: jsonb!) { submit_feedback(args: {payload: $payload}) { result } }';
 
@@ -54,7 +54,7 @@ async function parseBody(request) {
 
 function validate(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  if (Object.keys(value).some((key) => !keys.has(key))) return null;
+  if (Object.keys(value).some((key) => !keys.has(key)) || value.schemaVersion !== 1) return null;
   if (typeof value.requestId !== 'string' || !uuidPattern.test(value.requestId)) return null;
   if (typeof value.category !== 'string' || !categories.has(value.category)) return null;
   if (typeof value.message !== 'string') return null;
@@ -71,6 +71,7 @@ function validate(value) {
         !browsers.has(ctx.browser) || !systems.has(ctx.os) || !pages.has(ctx.page)) return null;
   }
   return {
+    schemaVersion: 1,
     requestId: value.requestId.toLowerCase(),
     category: value.category,
     message,
@@ -126,7 +127,7 @@ export default {
       if (result.status === 'invalid') return response(400, { status: 'invalid' });
       if ((result.status === 'received' || result.status === 'already_received') &&
           typeof result.receipt === 'string' && uuidPattern.test(result.receipt)) {
-        return response(200, { status: 'received', receipt: result.receipt });
+        return response(result.status === 'received' ? 201 : 200, { status: 'received', receipt: result.receipt });
       }
       return response(503, { status: 'unavailable' });
     } catch {
