@@ -10,7 +10,9 @@
       "Focused Vitest: 21 curriculum and 14 Pathways tests passed; 35 total.",
       "Prettier and staged git diff --check passed. Full local release suite not run.",
       "Hosted run 43325731295 failed at an immediate focus assertion in the backup restore test. The existing focus requirement is preserved using waitFor. The focused suite passed locally after correction.",
-      "Hosted run 43327138968 exposed stale Git/GitHub content assets after approved canonical copy changes. The existing Git/GitHub exporter was rerun and checked. The two affected content suites passed locally."
+      "Hosted run 43327138968 exposed stale Git/GitHub content assets after approved canonical copy changes. The existing Git/GitHub exporter was rerun and checked. The two affected content suites passed locally.",
+      "Audited the 1095-file PR #92 source ZIP, including 308 tests/E2E files and 45 owner-approved copy originals. One remaining obsolete four-word copy assertion was identified and removed; functional XP, progress, reward, and evidence assertions remain unchanged.",
+      "One complete local Vitest run with bail disabled passed on this corrected candidate. Playwright and hosted Final candidate were not run locally for this correction."
     ]
   },
   "adversarialFindings": [
@@ -48,18 +50,25 @@
       "description": "The Git/GitHub canonical source changed while its content-addressed assets retained the previous source hash.",
       "resolution": "Regenerated Git/GitHub assets and offline manifest with the existing exporter; verified source identity and focused content tests.",
       "status": "resolved"
+    },
+    {
+      "id": "V4-XP-COPY-ASSERTION",
+      "severity": "P2",
+      "description": "Hosted run 43328891104 failed on a removed user-facing phrase in a mixed XP behavior test; --bail=1 left later tests unexecuted.",
+      "resolution": "Removed only the legacy phrase assertion, preserving all actual XP, progress, reward and evidence checks. Reviewed the provided full test-source archive for other obsolete approved wording; relevant local tests passed.",
+      "status": "resolved"
     }
   ],
   "reviewer": "ChatGPT-assisted review of owner-provided implementation and test evidence",
   "module": "v4-copy-integration",
   "schemaVersion": 2,
   "binding": {
-    "payloadTree": "5fee6fb8a741016053db8bd23542572ace4d1821",
+    "payloadTree": "f62284238979ff73912d1e022e68c8f7c0e69e39",
     "excludedPath": "docs/release-reviews",
     "kind": "payload-tree"
   },
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to hosted certification after regenerating Git/GitHub content assets. Previous hosted runs failed; no complete release PASS is claimed."
+    "summary": "Ready for a new hosted Final candidate on the corrected test-only payload. Previous hosted runs are failures; no hosted PASS or production release is claimed."
   }
 }
