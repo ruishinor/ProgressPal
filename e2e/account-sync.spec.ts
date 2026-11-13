@@ -250,7 +250,7 @@ test('account-first, two-device round trip, offline replay and account isolation
       second.getByText('Synkronisert', { exact: true }),
     ).toBeVisible();
 
-    await page.goto('/settings');
+    await page.goto('/settings?section=data');
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(
       page.getByRole('heading', { name: 'Velkommen til ProgressPal' }),
