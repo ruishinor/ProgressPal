@@ -240,14 +240,14 @@ describe('local-only source safety guardrail', () => {
 });
 
 describe('opt-in feedback network boundary', () => {
-  it('uses exactly one fixed same-origin POST without cookies', () => {
+  it('uses one fixed same-origin POST with same-origin credentials', () => {
     const code = stripComments(
       readFileSync(path.resolve(process.cwd(), FEEDBACK_TRANSPORT), 'utf8'),
     );
     expect(code.match(/\bfetch\s*\(/g)).toHaveLength(1);
     expect(code).toMatch(/fetch\('\/api\/feedback'/);
     expect(code).toMatch(/method:\s*'POST'/);
-    expect(code).toMatch(/credentials:\s*'omit'/);
+    expect(code).toMatch(/credentials:\s*'same-origin'/);
     expect(code).not.toMatch(URL_PATTERN);
   });
 });

@@ -56,6 +56,8 @@ Den planlagte **Meld fra**-funksjonen er adskilt fra studieopplysningene. Når d
 
 Du kan i tillegg velge å legge ved appversjon, nettlesertype, operativsystemtype og hvilken del av appen du bruker. Full nettadresse, studieprogresjon, oppgavesvar, notater, passord, sikkerhetskopier og konto-ID blir ikke lagt ved automatisk. Beskrivelsen kan likevel inneholde personopplysninger du selv skriver inn.
 
+Ved innsending kan nettleseren også sende informasjonskapsler for samme nettsted til Vercel, blant annet for tilgang til en beskyttet forhåndsvisning. Disse inngår ikke i rapporten som videresendes til Nhost.
+
 Meldingen skal gå gjennom en Vercel-funksjon til et eget skjema i Nhost-databasen, der bare de som vedlikeholder tjenesten, skal ha tilgang. Mottaket er **avslått** inntil tilgangskontroll, beskyttelse mot misbruk, sletting og oppsett hos leverandøren er kontrollert. Planen er å slette råmeldingene etter 90 dager, men automatisk sletting er **ikke bekreftet i drift**. Logger og sikkerhetskopier hos leverandørene kan ha andre lagringstider.
 
 En feilmelding ved innsending betyr ikke nødvendigvis at rapporten ikke kom fram. Ved et nytt forsøk skal den samme meldingsreferansen brukes; appen er laget for å beholde denne referansen hvis leveringen er usikker.
@@ -121,6 +123,8 @@ The website delivers the app and the files it needs. Links to outside courses op
 The planned **Meld fra** (Send feedback) feature is separate from your study records. Once enabled, it sends a report only when you explicitly select **Send inn** (Submit). The report contains the category and description you enter. Your email address is included only if you provide it.
 
 You can also choose to attach the app version, browser type, operating system type, and the area of the app you're using. Your full URL, study progress, exercise answers, notes, passwords, backups, and account ID aren't added automatically. Your description can still contain personal information if you choose to include it.
+
+When you send feedback, your browser may also send cookies for the same site to Vercel, for example to access a protected preview. These cookies are not included in the report forwarded to Nhost.
 
 The report is designed to pass through a Vercel function into a separate schema in the Nhost database, accessible only to authorised maintainers. **Submissions remain disabled** until access controls, abuse protection, deletion, and provider configuration have been checked. The plan is to delete the original reports after 90 days, but automatic deletion has **not been verified in operation**. Provider logs and backups may have different retention periods.
 

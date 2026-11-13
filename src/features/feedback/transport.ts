@@ -1,5 +1,5 @@
 /** The sole client-originated feedback network boundary. Only a user click
- * calls this helper, and it sends no learner records, cookies or credentials. */
+ * calls this helper and sends no learner records. Same-origin cookies may be sent to Vercel for access control; they are not forwarded to Nhost. */
 export type FeedbackCategory = 'technical' | 'content' | 'idea' | 'other';
 export type TechnicalContext = {
   version: string;
@@ -41,7 +41,7 @@ export async function submitFeedback(
     const result = await fetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'omit',
+      credentials: 'same-origin',
       cache: 'no-store',
       redirect: 'error',
       body: JSON.stringify(payload),

@@ -565,11 +565,15 @@ describe('accessibility contract', () => {
   it('moves focus to the new card and works from the keyboard', async () => {
     const user = renderPage();
 
-    // Focus starts on the title; Close is one Shift+Tab back, the first
-    // session one Tab on.
+    // From the title, Shift+Tab reaches feedback, then Close.
+    // Tab past both header controls to reach the first session.
     expect(title()).toHaveFocus();
     await user.tab({ shift: true });
+    expect(button('Meld feil eller gi innspill')).toHaveFocus();
+    await user.tab({ shift: true });
     expect(screen.getByRole('link', { name: 'Lukk mikroøkten' })).toHaveFocus();
+    await user.tab();
+    expect(button('Meld feil eller gi innspill')).toHaveFocus();
     await user.tab();
     expect(button(/^Følg variablene/)).toHaveFocus();
     await user.keyboard('{Enter}');
