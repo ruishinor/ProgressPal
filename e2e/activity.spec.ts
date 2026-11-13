@@ -157,7 +157,7 @@ test('individual entries, correction, deletion, goals, navigation and backup pre
   await expect(page).toHaveURL(/\/rpg$/);
   await page.goForward();
   await expect(page).toHaveURL(/\/rpg\/movement$/);
-  await page.goto('/rpg/settings');
+  await page.goto('/rpg/settings?section=data');
   const downloadEvent = page.waitForEvent('download');
   await page
     .getByRole('button', { name: 'Export local backup', exact: true })
@@ -174,7 +174,7 @@ test('individual entries, correction, deletion, goals, navigation and backup pre
   expect(backup.data.activityDays).toHaveLength(1);
   await page.goto('/rpg/movement');
   await log(page, '42');
-  await page.goto('/rpg/settings');
+  await page.goto('/rpg/settings?section=data');
   await page.getByLabel('Backup file').setInputFiles({
     name: 'synthetic-activity.json',
     mimeType: 'application/json',

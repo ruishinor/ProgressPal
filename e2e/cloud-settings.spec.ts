@@ -189,7 +189,7 @@ test.describe('the email-link landing route', () => {
     await completeOnboarding(page);
 
     // Start the sign-up that the emailed link would complete.
-    await page.goto('/rpg/settings');
+    await page.goto('/rpg/settings?section=data');
     await card(page)
       .getByRole('button', { name: 'Turn on cloud services' })
       .click();
@@ -269,6 +269,7 @@ test.describe('the email-link landing route', () => {
     const beforeSettings = provider.calls.length;
     await page.getByRole('link', { name: 'Open Settings' }).click();
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await expect(
       card(page).getByText(learnerEmail, { exact: true }),
     ).toBeVisible();
@@ -337,7 +338,7 @@ test.describe('Settings cloud card in a real browser', () => {
     const provider = await installSimulatedProvider(page);
 
     await completeOnboarding(page, { theme: 'dark' });
-    await page.goto('/settings');
+    await page.goto('/settings?section=data');
     await expect(card(page)).toBeVisible();
 
     // Off by default: opening Settings sent nothing.
@@ -369,9 +370,11 @@ test.describe('Settings cloud card in a real browser', () => {
     ).toBeVisible();
 
     // Change local data through the app, then back up again.
+    await page.getByRole('link', { name: 'Profile & preferences' }).click();
     await page.getByLabel('Display name').fill('Changed after backup');
     await page.getByRole('button', { name: 'Save local settings' }).click();
     await expect(page.getByText('Local profile saved')).toBeVisible();
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await card(page).getByRole('button', { name: 'Back up now' }).focus();
     await page.keyboard.press('Enter');
     await expect(
@@ -431,7 +434,7 @@ test.describe('Settings cloud card in a real browser', () => {
 
     // The two explicit backups each list, write and list again, followed by
     // one explicit download. Navigating the RPG shell adds no requests.
-    await page.goto('/rpg/settings');
+    await page.goto('/rpg/settings?section=data');
     await expect(card(page).getByText(learnerEmail)).toBeVisible();
     expect(
       provider.calls.map(
@@ -457,7 +460,7 @@ test.describe('Settings cloud card in a real browser', () => {
     const longEmail = `${'a'.repeat(58)}@${'b'.repeat(40)}.example.com`;
 
     await completeOnboarding(page, { theme: 'light' });
-    await page.goto('/rpg/settings');
+    await page.goto('/rpg/settings?section=data');
     await expect(card(page)).toBeVisible();
 
     await expectContained(page, 'off');
@@ -522,7 +525,7 @@ test.describe('password recovery in a real browser', () => {
     const logged = recordConsole(page);
 
     await completeOnboarding(page, { theme: 'dark' });
-    await page.goto('/settings');
+    await page.goto('/settings?section=data');
     await expect(card(page)).toBeVisible();
 
     // Turn on, type the address, and reach "Forgot password?" by Tab alone.
@@ -610,6 +613,7 @@ test.describe('password recovery in a real browser', () => {
     ).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await expect(card(page).getByLabel('Email')).toBeVisible();
     await card(page).getByLabel('Email').fill(learnerEmail);
     await card(page).getByLabel('Password').fill(password);
@@ -653,7 +657,7 @@ test.describe('password recovery in a real browser', () => {
     });
 
     await completeOnboarding(page);
-    await page.goto('/settings');
+    await page.goto('/settings?section=data');
     await card(page)
       .getByRole('button', { name: 'Turn on cloud services' })
       .click();
@@ -704,7 +708,7 @@ test.describe('password recovery in a real browser', () => {
       const longEmail = `${'a'.repeat(58)}@${'b'.repeat(40)}.example.com`;
 
       await completeOnboarding(page, { theme });
-      await page.goto('/rpg/settings');
+      await page.goto('/rpg/settings?section=data');
       await card(page)
         .getByRole('button', { name: 'Turn on cloud services' })
         .click();

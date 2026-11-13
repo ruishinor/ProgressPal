@@ -85,12 +85,12 @@ test('hands write authority to the peer after the owner tab closes', async ({
   const consoleIssues: string[] = [];
   collectConsoleIssues(page, consoleIssues);
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   const peer = await context.newPage();
   collectConsoleIssues(peer, consoleIssues);
-  await peer.goto('/settings');
+  await peer.goto('/settings?section=profile');
 
   // First tab owns the writer lock; the peer is gated read-only.
   await expect(
@@ -132,12 +132,12 @@ test('locks destructive controls on both tabs while a peer is active but lets th
   const consoleIssues: string[] = [];
   collectConsoleIssues(page, consoleIssues);
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   const peer = await context.newPage();
   collectConsoleIssues(peer, consoleIssues);
-  await peer.goto('/settings');
+  await peer.goto('/settings?section=profile');
   await expect(
     peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
   ).toBeVisible();
@@ -147,6 +147,7 @@ test('locks destructive controls on both tabs while a peer is active but lets th
   await expect(
     page.getByRole('button', { name: 'Save local settings' }),
   ).toBeEnabled();
+  await page.getByRole('link', { name: 'Data & backups' }).click();
   await expect(
     page.getByRole('button', { name: 'Export local backup' }),
   ).toBeEnabled();
@@ -161,6 +162,7 @@ test('locks destructive controls on both tabs while a peer is active but lets th
   await expect(
     peer.getByRole('button', { name: 'Save local settings' }),
   ).toBeDisabled();
+  await peer.getByRole('link', { name: 'Data & backups' }).click();
   await expect(
     peer.getByRole('button', { name: 'Export local backup' }),
   ).toBeEnabled();
@@ -208,14 +210,14 @@ test('keeps the writer tab fully functional when a read-only peer vanishes abrup
   const consoleIssues: string[] = [];
   collectConsoleIssues(page, consoleIssues);
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(
     page.getByRole('button', { name: 'Save local settings' }),
   ).toBeEnabled();
 
   const peer = await context.newPage();
   collectConsoleIssues(peer, consoleIssues);
-  await peer.goto('/settings');
+  await peer.goto('/settings?section=profile');
   await expect(
     peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
   ).toBeVisible();
@@ -233,10 +235,12 @@ test('keeps the writer tab fully functional when a read-only peer vanishes abrup
   await peer.close();
 
   // Peer presence clears and the peer-gated destructive controls release.
+  await page.getByRole('link', { name: 'Data & backups' }).click();
   await expect(page.getByLabel('Backup file')).toBeEnabled();
   await expect(page.getByLabel('Confirmation phrase')).toBeEnabled();
 
   // The owner can still complete a real write after the abrupt disappearance.
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await page.getByLabel('Display name').fill('Still writable');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
@@ -252,7 +256,7 @@ test('restores from history navigation without a stale write path or startup fai
   const consoleIssues: string[] = [];
   collectConsoleIssues(page, consoleIssues);
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.getByLabel('Display name')).toHaveValue('Alex');
 
   await page.goto('about:blank');

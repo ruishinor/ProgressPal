@@ -1,6 +1,6 @@
 import { gitPathwayProgrammeId } from '@/lib/routing/pathwaysPaths';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -64,6 +64,12 @@ type SettingsToast = {
   tone: 'success' | 'danger';
 };
 
+const settingsCategories = [
+  { id: 'general', label: 'General' },
+  { id: 'profile', label: 'Profile & preferences' },
+  { id: 'data', label: 'Data & backups' },
+] as const;
+
 const resetConfirmationPhrase = 'RESET';
 
 function RpgStyleControl() {
@@ -104,6 +110,12 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
     ? 'page-section rpg-settings'
     : 'page-section';
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedSection = searchParams.get('section');
+  const activeSection =
+    requestedSection === 'profile' || requestedSection === 'data'
+      ? requestedSection
+      : 'general';
   const {
     coordination,
     enrolAndSwitchProgramme,
@@ -335,229 +347,269 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           title="Settings"
         />
       )}
-      <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
-        <p className="card__description">
-          {isRpgVariant
-            ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
-            : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
-        </p>
-        {isRpgVariant && <RpgStyleControl />}
-        <div className="action-row">
+      <nav aria-label="Settings categories" className="settings-category-nav">
+        {settingsCategories.map((item) => (
           <Link
-            className="button button--secondary button--md"
-            to={isRpgVariant ? '/dashboard' : rpgRoutePath}
+            aria-current={activeSection === item.id ? 'page' : undefined}
+            className="settings-category-nav__link"
+            key={item.id}
+            to={`?section=${item.id}`}
           >
-            {isRpgVariant ? 'Open Classic interface' : 'Open RPG interface'}
+            {item.label}
           </Link>
-        </div>
-      </Card>
-      {activeProgramme?.programmeId === gitPathwayProgrammeId ? (
-        <p role="status">
-          Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er bevart.
-          Velg CS50x eller Programvareutvikling nedenfor for å fortsette med et
-          studieprogram.
-        </p>
-      ) : null}
-      <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
-        <p className="card__description">
-          Active programme:{' '}
-          <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
-        </p>
-        {switchTarget === undefined ? (
-          <p className="card__description">
-            This is the only programme available in this version of ProgressPal.
-          </p>
-        ) : (
-          <>
+        ))}
+      </nav>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'general'}
+      >
+        <div className="settings-overview-grid">
+          <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
             <p className="card__description">
-              Switching changes the course, wording, and rewards ProgressPal
-              shows. Your XP, achievements, study sessions, and profile stay
-              shared across programmes and nothing is deleted. Nothing changes
-              until you press the button.
+              {isRpgVariant
+                ? 'RPG interface is active. ProgressPal also includes the Classic interface. Both use the same local progress and data; only the layout and navigation change.'
+                : 'Classic interface is active. It uses the same local progress and data as the RPG interface; only the layout and navigation change.'}
             </p>
-            <FormField
-              controlId="programme-switch-target"
-              label="Programme to switch to"
-            >
-              {({ inputId }) => (
-                <Select
-                  disabled={switchDisabled || switching}
-                  id={inputId}
-                  onChange={(event) =>
-                    setSelectedProgrammeId(event.target.value)
-                  }
-                  options={switchTargets.map((choice) => ({
-                    label: `${choice.title} (${choice.enrolled ? 'enrolled' : 'not enrolled'})`,
-                    value: choice.programmeId,
-                  }))}
-                  value={switchTarget.programmeId}
-                />
-              )}
-            </FormField>
+            {isRpgVariant && <RpgStyleControl />}
             <div className="action-row">
-              <Button
-                disabled={switchDisabled}
-                loading={switching}
-                onClick={() => {
-                  void handleSwitchProgramme();
-                }}
-                variant="secondary"
+              <Link
+                className="button button--secondary button--md"
+                to={isRpgVariant ? '/dashboard' : rpgRoutePath}
               >
-                {switchTarget.enrolled
-                  ? 'Switch programme'
-                  : 'Enrol and switch'}
-              </Button>
+                {isRpgVariant ? 'Open Classic interface' : 'Open RPG interface'}
+              </Link>
             </div>
-            {switchFailed ? (
-              <p className="form-field__error" role="alert">
-                The programme could not be switched. Your active programme is
-                unchanged.
+          </Card>
+          <div className="settings-programme-column">
+            {activeProgramme?.programmeId === gitPathwayProgrammeId ? (
+              <p role="status">
+                Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er
+                bevart. Velg CS50x eller Programvareutvikling nedenfor for å
+                fortsette med et studieprogram.
               </p>
             ) : null}
-          </>
-        )}
-      </Card>
-      <ProfileForm
-        cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
-        disabled={!coordination.canWrite}
-        key={profile.updatedAt}
-        mode="settings"
-        onSubmit={async (input) => {
-          await saveProfile(input, { completeOnboarding: true });
-          setToast({
-            title: 'Local profile saved',
-            description:
-              'Profile, appearance, motion, and study cadence were updated on this device.',
-            tone: 'success',
-          });
-        }}
-        profile={profile}
-        submitLabel="Save local settings"
-      />
-      <Card
-        title="Browser storage durability"
-        titleAs={isRpgVariant ? 'h2' : 'h3'}
-      >
-        <p className="card__description">
-          {persistenceStatus === 'persistent'
-            ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
-            : persistenceStatus === 'best-effort'
-              ? 'This browser currently treats ProgressPal storage as best-effort and may evict it under storage pressure.'
-              : persistenceStatus === 'unsupported'
-                ? 'This browser does not expose a persistent-storage request to ProgressPal.'
-                : persistenceStatus === 'error'
-                  ? 'The browser did not provide a reliable persistent-storage status.'
-                  : 'Checking the browser storage policy…'}
-        </p>
-        <p className="card__description">
-          {accountSyncEnabled
-            ? 'Hvis nettleseren mister lokale data, kan ProgressPal hente den siste synkroniserte kopien fra kontoen din.'
-            : 'Persistent permission is not a backup. You, the browser, or device failure can still remove local data, and nothing is synced to another device.'}
-        </p>
-        {persistenceStatus === 'best-effort' ||
-        persistenceStatus === 'error' ? (
-          <div className="action-row">
-            <Button
-              onClick={() => {
-                void handleRequestPersistence();
-              }}
-              variant="secondary"
-            >
-              Request persistent storage
-            </Button>
+            <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+              <p className="card__description">
+                Active programme:{' '}
+                <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
+              </p>
+              {switchTarget === undefined ? (
+                <p className="card__description">
+                  This is the only programme available in this version of
+                  ProgressPal.
+                </p>
+              ) : (
+                <>
+                  <p className="card__description">
+                    Switching changes the course, wording, and rewards
+                    ProgressPal shows. Your XP, achievements, study sessions,
+                    and profile stay shared across programmes and nothing is
+                    deleted. Nothing changes until you press the button.
+                  </p>
+                  <FormField
+                    controlId="programme-switch-target"
+                    label="Programme to switch to"
+                  >
+                    {({ inputId }) => (
+                      <Select
+                        disabled={switchDisabled || switching}
+                        id={inputId}
+                        onChange={(event) =>
+                          setSelectedProgrammeId(event.target.value)
+                        }
+                        options={switchTargets.map((choice) => ({
+                          label: `${choice.title} (${choice.enrolled ? 'enrolled' : 'not enrolled'})`,
+                          value: choice.programmeId,
+                        }))}
+                        value={switchTarget.programmeId}
+                      />
+                    )}
+                  </FormField>
+                  <div className="action-row">
+                    <Button
+                      disabled={switchDisabled}
+                      loading={switching}
+                      onClick={() => {
+                        void handleSwitchProgramme();
+                      }}
+                      variant="secondary"
+                    >
+                      {switchTarget.enrolled
+                        ? 'Switch programme'
+                        : 'Enrol and switch'}
+                    </Button>
+                  </div>
+                  {switchFailed ? (
+                    <p className="form-field__error" role="alert">
+                      The programme could not be switched. Your active programme
+                      is unchanged.
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </Card>
           </div>
-        ) : null}
-      </Card>
-      <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
-        <p className="card__description">
-          Download a full local backup as a JSON file. It contains your learning
-          history and progress, notes and saved blockers, XP transactions and
-          achievement unlocks, media progress and resume points, and your
-          Activity records and goals, settings, profile, and app metadata. Keep
-          exported files somewhere private; they are created and stored only by
-          you.
-        </p>
-        <div className="action-row">
-          <Button loading={exporting} onClick={handleExport} variant="primary">
-            Export local backup
-          </Button>
         </div>
-      </Card>
-      <ImportBackupControl
-        replacementDescription={
-          accountSyncEnabled
-            ? 'Sikkerhetskopien erstatter studiedataene på denne enheten. Når du er på nett, synkroniseres de gjenopprettede dataene med kontoen din.'
-            : undefined
-        }
-        busy={importing}
-        disabled={!coordination.canWrite || coordination.peerActive}
-        expectedSchemaVersion={currentDatabaseSchemaVersion}
-        migrationContext={getSharedDatabase().migrationContext}
-        onConfirmImport={handleImport}
-      />
-      <CloudBackupCard
-        exporting={exporting}
-        localBusy={importing || resetting}
-        onExportLocal={handleExport}
-        titleAs={isRpgVariant ? 'h2' : 'h3'}
-      />
-      {accountSyncEnabled || hasAccountBinding() ? (
+      </div>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'profile'}
+      >
+        <ProfileForm
+          cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
+          disabled={!coordination.canWrite}
+          key={profile.updatedAt}
+          mode="settings"
+          onSubmit={async (input) => {
+            await saveProfile(input, { completeOnboarding: true });
+            setToast({
+              title: 'Local profile saved',
+              description:
+                'Profile, appearance, motion, and study cadence were updated on this device.',
+              tone: 'success',
+            });
+          }}
+          profile={profile}
+          submitLabel="Save local settings"
+        />
+      </div>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'data'}
+      >
         <Card
-          title="Fjern data fra denne enheten"
+          title="Browser storage durability"
           titleAs={isRpgVariant ? 'h2' : 'h3'}
         >
           <p className="card__description">
-            Last ned en sikkerhetskopi hvis du har endringer som venter. Logg ut
-            og tøm deretter nettleserlagringen for ProgressPal. Den
-            synkroniserte kopien beholdes på kontoen.
+            {persistenceStatus === 'persistent'
+              ? 'This browser reports persistent storage for this site, which reduces automatic eviction risk.'
+              : persistenceStatus === 'best-effort'
+                ? 'This browser currently treats ProgressPal storage as best-effort and may evict it under storage pressure.'
+                : persistenceStatus === 'unsupported'
+                  ? 'This browser does not expose a persistent-storage request to ProgressPal.'
+                  : persistenceStatus === 'error'
+                    ? 'The browser did not provide a reliable persistent-storage status.'
+                    : 'Checking the browser storage policy…'}
           </p>
-        </Card>
-      ) : (
-        <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
           <p className="card__description">
-            Permanently delete all local ProgressPal data on this device and
-            start fresh. This removes your progress, sessions, XP, achievements,
-            notes, media history, and backup history. It is destructive,
-            local-only, and cannot be undone. Type{' '}
-            <code>{resetConfirmationPhrase}</code> to enable the reset. Your
-            cloud account, remote backups and learning group membership are
-            managed separately.
+            {accountSyncEnabled
+              ? 'Hvis nettleseren mister lokale data, kan ProgressPal hente den siste synkroniserte kopien fra kontoen din.'
+              : 'Persistent permission is not a backup. You, the browser, or device failure can still remove local data, and nothing is synced to another device.'}
           </p>
-          <div className="data-action">
-            <label className="form-field__label" htmlFor="reset-confirmation">
-              Confirmation phrase
-            </label>
-            <TextInput
-              autoComplete="off"
-              disabled={!coordination.canWrite || coordination.peerActive}
-              id="reset-confirmation"
-              onChange={(event) => setResetPhrase(event.target.value)}
-              placeholder={resetConfirmationPhrase}
-              value={resetPhrase}
-            />
-          </div>
-          <div className="action-row">
-            <Button
-              disabled={
-                !resetReady || !coordination.canWrite || coordination.peerActive
-              }
-              loading={resetting}
-              onClick={handleReset}
-              variant="danger"
-            >
-              Reset all local data
-            </Button>
-          </div>
-        </Card>
-      )}
-      {isRpgVariant ? (
-        <Card title={copy.settingsBoundaryTitle} titleAs="h2">
-          <p className="card__description">{copy.settingsBoundaryText}</p>
-          {copy.rpgCourseBoundary ? (
-            <p className="card__description">{copy.rpgCourseBoundary}</p>
+          {persistenceStatus === 'best-effort' ||
+          persistenceStatus === 'error' ? (
+            <div className="action-row">
+              <Button
+                onClick={() => {
+                  void handleRequestPersistence();
+                }}
+                variant="secondary"
+              >
+                Request persistent storage
+              </Button>
+            </div>
           ) : null}
         </Card>
-      ) : null}
+        <div className="settings-backup-grid">
+          <div className="settings-backup-local">
+            <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+              <p className="card__description">
+                Download a full local backup as a JSON file. It contains your
+                learning history and progress, notes and saved blockers, XP
+                transactions and achievement unlocks, media progress and resume
+                points, and your Activity records and goals, settings, profile,
+                and app metadata. Keep exported files somewhere private; they
+                are created and stored only by you.
+              </p>
+              <div className="action-row">
+                <Button
+                  loading={exporting}
+                  onClick={handleExport}
+                  variant="primary"
+                >
+                  Export local backup
+                </Button>
+              </div>
+            </Card>
+            <ImportBackupControl
+              replacementDescription={
+                accountSyncEnabled
+                  ? 'Sikkerhetskopien erstatter studiedataene på denne enheten. Når du er på nett, synkroniseres de gjenopprettede dataene med kontoen din.'
+                  : undefined
+              }
+              busy={importing}
+              disabled={!coordination.canWrite || coordination.peerActive}
+              expectedSchemaVersion={currentDatabaseSchemaVersion}
+              migrationContext={getSharedDatabase().migrationContext}
+              onConfirmImport={handleImport}
+            />
+          </div>
+          <CloudBackupCard
+            exporting={exporting}
+            localBusy={importing || resetting}
+            onExportLocal={handleExport}
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
+          />
+        </div>
+        {accountSyncEnabled || hasAccountBinding() ? (
+          <Card
+            title="Fjern data fra denne enheten"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
+          >
+            <p className="card__description">
+              Last ned en sikkerhetskopi hvis du har endringer som venter. Logg
+              ut og tøm deretter nettleserlagringen for ProgressPal. Den
+              synkroniserte kopien beholdes på kontoen.
+            </p>
+          </Card>
+        ) : (
+          <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+            <p className="card__description">
+              Permanently delete all local ProgressPal data on this device and
+              start fresh. This removes your progress, sessions, XP,
+              achievements, notes, media history, and backup history. It is
+              destructive, local-only, and cannot be undone. Type{' '}
+              <code>{resetConfirmationPhrase}</code> to enable the reset. Your
+              cloud account, remote backups and learning group membership are
+              managed separately.
+            </p>
+            <div className="data-action">
+              <label className="form-field__label" htmlFor="reset-confirmation">
+                Confirmation phrase
+              </label>
+              <TextInput
+                autoComplete="off"
+                disabled={!coordination.canWrite || coordination.peerActive}
+                id="reset-confirmation"
+                onChange={(event) => setResetPhrase(event.target.value)}
+                placeholder={resetConfirmationPhrase}
+                value={resetPhrase}
+              />
+            </div>
+            <div className="action-row">
+              <Button
+                disabled={
+                  !resetReady || !coordination.canWrite || coordination.peerActive
+                }
+                loading={resetting}
+                onClick={handleReset}
+                variant="danger"
+              >
+                Reset all local data
+              </Button>
+            </div>
+          </Card>
+        )}
+        {isRpgVariant ? (
+          <Card title={copy.settingsBoundaryTitle} titleAs="h2">
+            <p className="card__description">{copy.settingsBoundaryText}</p>
+            {copy.rpgCourseBoundary ? (
+              <p className="card__description">{copy.rpgCourseBoundary}</p>
+            ) : null}
+          </Card>
+        ) : null}
+      </div>
       {toast ? (
         <ToastStack>
           <Toast

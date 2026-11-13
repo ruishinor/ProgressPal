@@ -83,7 +83,7 @@ describe('backup recovery composition (Epic C6-R, D2; Epic E forward baseline)',
     );
     closeSharedDatabase();
 
-    await renderAppAtRoute('/settings');
+    await renderAppAtRoute('/settings?section=data');
     await screen.findByRole(
       'heading',
       { name: /settings/i },

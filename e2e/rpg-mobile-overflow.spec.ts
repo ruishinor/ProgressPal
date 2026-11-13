@@ -59,7 +59,9 @@ test('keyboard focus stays clear of the RPG primary navigation in forms', async 
       ['/rpg/focus', 'Start live session'],
       ['/rpg/settings', 'Save local settings'],
     ] as const) {
-      await page.goto(path);
+      await page.goto(
+        path === '/rpg/settings' ? '/rpg/settings?section=profile' : path,
+      );
       await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
       await expect(
         page.getByRole('button', { exact: true, name: readyButton }),
@@ -458,7 +460,9 @@ test('mobile navigation keeps the five RPG destinations direct and moves Classic
 
   await page.getByRole('link', { name: 'Open Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await expect(page.getByLabel('Theme', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'General' }).click();
   await page.getByRole('link', { name: 'Open Classic interface' }).click();
 
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();

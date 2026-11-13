@@ -194,7 +194,7 @@ async function saveThemeFromSettings(
   path: '/rpg/settings' | '/settings',
   theme: 'dark' | 'light' | 'system',
 ) {
-  await page.goto(path);
+  await page.goto(`${path}?section=profile`);
   await page.locator('select[id$="-theme"]').selectOption(theme);
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
@@ -248,15 +248,17 @@ test('switching between Classic and RPG keeps the one saved preference', async (
 }) => {
   await completeOnboarding(page, { theme: 'light' });
 
-  await page.goto('/rpg/settings');
+  await page.goto('/rpg/settings?section=profile');
   await expect(page.locator('select[id$="-theme"]')).toHaveValue('light');
+  await page.getByRole('link', { name: 'General' }).click();
   await page.getByRole('link', { name: 'Open Classic interface' }).click();
   await expect(
     page.getByRole('heading', { name: 'Dashboard', exact: true }),
   ).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.locator('select[id$="-theme"]')).toHaveValue('light');
+  await page.getByRole('link', { name: 'General' }).click();
   await page
     .getByRole('navigation', { name: 'Primary' })
     .getByRole('link', { name: 'Open RPG interface' })
@@ -1003,6 +1005,7 @@ test('RPG visual style persists separately from colour mode, including peer and 
     rpgStyleStorageKey,
   );
   await saveThemeFromSettings(page, '/rpg/settings', 'system');
+  await page.getByRole('link', { name: 'General' }).click();
   const select = page.locator('#rpg-visual-style');
   const body = page.locator('body');
   await expect(select).toHaveValue('standard');

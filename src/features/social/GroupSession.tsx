@@ -229,7 +229,9 @@ export function GroupSession({
   );
   const accountLink = (
     <p>
-      <Link to={settings + '#cloud-account'}>Åpne kontoinnstillinger</Link>
+      <Link to={settings + '?section=data#cloud-account'}>
+        Åpne kontoinnstillinger
+      </Link>
     </p>
   );
   const sharePrivacy = (

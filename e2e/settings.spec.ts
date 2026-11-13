@@ -181,7 +181,7 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   expect(beforeExport.mediaProgressEvents).toBeGreaterThan(0);
 
   // Export a backup from settings and capture the downloaded file.
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   const [download] = await Promise.all([
@@ -225,7 +225,7 @@ test('completes the export, reset, and onboarding-restore recovery loop', async 
   // The restored backup completed onboarding, so the app returns to the
   // protected route that initiated the reset/recovery round trip.
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
-  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page).toHaveURL(/\/settings\?section=data$/);
   expect(await readLatestImportFileName(page)).toBe(selectedFileName);
 
   const afterRestore = await readLedgerCounts(page);
@@ -252,7 +252,7 @@ test('imports a backup from settings when onboarding is complete', async ({
   await completeOnboarding(page);
   await logWatchedRangeWithNote(page, 'Saved from Playwright.');
 
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Export local backup' }).click(),
@@ -290,6 +290,7 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await completeOnboarding(page);
     await page.goto('/rpg/settings');
+    await page.getByRole('link', { name: 'Profile & preferences' }).click();
     const card = page
       .locator('.card')
       .filter({ has: page.getByRole('heading', { name: 'Edit profile' }) });
@@ -342,9 +343,11 @@ for (const viewport of [
     await expect(
       page.getByRole('button', { name: 'Save local settings' }),
     ).toBeEnabled();
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await expect(
       page.getByRole('button', { name: 'Export local backup' }),
     ).toBeEnabled();
+    await page.getByRole('link', { name: 'Profile & preferences' }).click();
     // One Settings launch, in the HUD, marked as the current page.
     const gear = page.getByRole('link', { name: 'Open Settings' });
 
@@ -374,7 +377,7 @@ test('rejects an invalid backup file without mutating data', async ({
   page,
 }) => {
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
 
   const before = await readLedgerCounts(page);
 
@@ -398,13 +401,13 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
   const consoleIssues: string[] = [];
   collectConsoleIssues(page, consoleIssues);
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   const beforePeer = await readStartupSnapshot(page);
 
   const peer = await context.newPage();
   collectConsoleIssues(peer, consoleIssues);
-  await peer.goto('/settings');
+  await peer.goto('/settings?section=data');
 
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(peer.getByRole('heading', { name: 'Settings' })).toBeVisible();
@@ -417,9 +420,11 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
   await expect(
     page.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
   ).toHaveCount(0);
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await expect(
     page.getByRole('button', { name: 'Save local settings' }),
   ).toBeEnabled();
+  await page.getByRole('link', { name: 'Data & backups' }).click();
   await expect(
     page.getByRole('button', { name: 'Export local backup' }),
   ).toBeEnabled();
@@ -432,9 +437,11 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
   await expect(
     peer.getByRole('heading', { name: 'This ProgressPal tab is read-only' }),
   ).toBeVisible();
+  await peer.getByRole('link', { name: 'Profile & preferences' }).click();
   await expect(
     peer.getByRole('button', { name: 'Save local settings' }),
   ).toBeDisabled();
+  await peer.getByRole('link', { name: 'Data & backups' }).click();
   await expect(
     peer.getByRole('button', { name: 'Export local backup' }),
   ).toBeEnabled();
@@ -469,12 +476,14 @@ test('keeps one writer, makes the peer read-only, and blocks destructive recover
     peer.getByRole('button', { name: 'Mark locally complete' }),
   ).toBeDisabled();
 
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await page.getByLabel('Display name').fill('Owner tab update');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(page.getByText('Local profile saved')).toBeVisible();
   expect(await readStartupSnapshot(page)).not.toBe(beforePeer);
 
   await peer.close();
+  await page.getByRole('link', { name: 'Data & backups' }).click();
 
   await expect(
     page.getByRole('button', { name: 'Export local backup' }),
@@ -493,7 +502,7 @@ test('automatically recovers a blocked startup repair after the active peer clos
   page,
 }) => {
   await completeOnboarding(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await downgradeStoredAppVersion(page);
 

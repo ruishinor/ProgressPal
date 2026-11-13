@@ -444,7 +444,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await tabs.nth(1).click();
   await expect(panel.getByRole('heading', { name: group.name })).toHaveCount(0);
   await expect(
-    panel.locator('a[href="/rpg/settings#cloud-account"]'),
+    panel.locator('a[href="/rpg/settings?section=data#cloud-account"]'),
   ).toBeVisible();
   await expect(guildLink).toHaveText('Code Knights');
   expect(commands.at(-1)?.operation).toBe('read');

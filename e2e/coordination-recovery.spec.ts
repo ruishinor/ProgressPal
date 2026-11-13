@@ -44,7 +44,7 @@ test('recovers from corrupt coordination revision metadata through the repair co
     await page.evaluate((key) => localStorage.getItem(key), revisionStorageKey),
   ).toBe('0');
 
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(page.getByLabel('Display name')).toHaveValue('Alex');
   await page.getByLabel('Display name').fill('Recovered learner');

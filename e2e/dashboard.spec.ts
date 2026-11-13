@@ -269,6 +269,7 @@ test('creates a local profile, persists it across reload, and applies stored pre
 
   await page.getByRole('link', { name: 'Settings' }).click();
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await expect(page.getByLabel('Display name')).toHaveValue('Alex');
   await expect(page.getByLabel('Theme', { exact: true })).toHaveValue('dark');
   await expect(page.getByLabel('Reduce motion in this app')).toBeChecked();

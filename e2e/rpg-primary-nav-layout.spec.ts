@@ -241,6 +241,7 @@ test('desktop toasts keep the standard corner offset instead of reserving naviga
   await page.setViewportSize({ height: 900, width: 1280 });
   await completeOnboarding(page);
   await openRoute(page, rpgRoutes.settings);
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(page.getByText('Local profile saved')).toBeVisible();
 
@@ -276,6 +277,7 @@ for (const width of [320, 390, 430]) {
       await readPx(page.locator('html'), 'scrollPaddingBottom'),
     ).toBeGreaterThanOrEqual(navBox.height);
 
+    await page.getByRole('link', { name: 'Profile & preferences' }).click();
     await page.getByRole('button', { name: 'Save local settings' }).click();
     await expect(page.getByText('Local profile saved')).toBeVisible();
 

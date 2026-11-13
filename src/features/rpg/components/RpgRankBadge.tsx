@@ -9,7 +9,8 @@ export type RpgRankBadgeProps = HTMLAttributes<HTMLSpanElement> & {
 export function RpgRankBadge({ className, rank, ...rest }: RpgRankBadgeProps) {
   return (
     <span className={classNames('rpg-rank-badge', className)} {...rest}>
-      <span>Rank:</span>
+      <span aria-hidden="true" className="rpg-rank-badge__mark" />
+      <span className="rpg-rank-badge__label">Rank:</span>
       <span>{rank}</span>
     </span>
   );

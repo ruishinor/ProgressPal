@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "module": "onboarding-settings-hud-ux",
+  "reviewer": "OpenAI GPT-6 (implementer self-review via GitHub connector; no independent reviewer or local test run)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "6310738e74ae7bc0ed7e65607ae8a182113121b4",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped review of onboarding programme/avatar selected states, responsive category-based shared Settings, backup/cloud/reset grouping, Guild account deep links and RPG HUD identity/status alignment. No database, provider, release controls, dependencies or destructive action handlers were changed.",
+    "evidence": [
+      "Source-only read of current master and branch components, styling, affected callers, routing and documented release constraints.",
+      "Isolated branch based on master 747d80e284eceda2d18c74c99c15735a021ffbfb; compare view before binding shows 31 changed files and no base divergence.",
+      "Settings remain in one shared SettingsSurface for Classic/RPG; search parameter selects visible panel without unmounting profile/backup state.",
+      "Added and adapted focused Vitest and Playwright tests for Settings category routing, draft preservation, recovery, coordination, cloud account, theme, programme and Activity.",
+      "No local Node 24/npm 11 or browser test execution was available in this session. GitHub-hosted Final candidate certification is required and its result must be observed before merge.",
+      "Prettier failure on first hosted PR check 43347218150 was limited to seven source/test files; targeted formatting corrections were applied and require revalidation on the new head.",
+      "Second hosted run 43348140805 passed lint, but Prettier reported only SettingsSurface and GroupSession; both were corrected and the exact new payload requires a fresh gate."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UX-1",
+      "severity": "P2",
+      "description": "Selected programme and avatar options were visually confusable with unselected choices.",
+      "resolution": "Full-card checked border/fill/indicator, visible Selected label for programme, shared focus outline and responsive option grids.",
+      "status": "resolved"
+    },
+    {
+      "id": "UX-2",
+      "severity": "P2",
+      "description": "Hiding unrelated Settings panels could disconnect direct Guild account links or discard in-progress form state.",
+      "resolution": "Use same-route URL query categories, preserve mounted subtrees, update Guild account links to data category and add draft-persistence coverage.",
+      "status": "resolved"
+    },
+    {
+      "id": "UX-3",
+      "severity": "P2",
+      "description": "Moving cloud and restore panels risks accidental operation of destructive controls.",
+      "resolution": "Preserved existing restore preview, confirmation, writer-lock and RESET handlers; reset stays a full-width separate section, not adjacent to cloud activation.",
+      "status": "resolved"
+    },
+    {
+      "id": "QA-1",
+      "severity": "P2",
+      "description": "Changes have not been compiled, formatted or exercised in Chromium by the implementer environment.",
+      "resolution": "Accepted for draft PR only; required hosted release validation must pass on the final reviewed payload before any merge or production promotion. Failed gate blocks merge.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to draft PR and hosted exact-candidate certification; not approval to merge without successful checks. Prefer scoped reuse of existing components, functional tests and theme tokens; preserve user data semantics."
+  }
+}

@@ -78,18 +78,25 @@ export function RpgHeroIdentity({
         >
           {name}
         </p>
-        {showDetails &&
-          (variant === 'profile' ? (
-            <div className="action-row">
-              <RpgRankBadge rank={identity.rankLabel} />
-              <RpgInfoNote label="About rank">
-                Rank follows how much of the required course you have completed.
-              </RpgInfoNote>
-            </div>
-          ) : (
-            <RpgRankBadge rank={identity.rankLabel} />
-          ))}
-        {secondaryStatistic}
+        {variant === 'hud' ? (
+          <div className="rpg-identity__status">
+            {showDetails ? <RpgRankBadge rank={identity.rankLabel} /> : null}
+            {secondaryStatistic}
+          </div>
+        ) : (
+          <>
+            {showDetails ? (
+              <div className="action-row">
+                <RpgRankBadge rank={identity.rankLabel} />
+                <RpgInfoNote label="About rank">
+                  Rank follows how much of the required course you have
+                  completed.
+                </RpgInfoNote>
+              </div>
+            ) : null}
+            {secondaryStatistic}
+          </>
+        )}
         <dl className="rpg-identity__traits">
           <div className="rpg-identity__guild">
             <dt>
