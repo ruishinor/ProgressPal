@@ -4,11 +4,11 @@
   "reviewer": "Owner-authorized implementer self-review with GPT-6 source assistance; owner-reported focused validation; no independent test execution",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "829ac9eae52be659b1f88361eb97c845f557e7e0",
+    "payloadTree": "8e0a1a4f51dd86a92047d13c3b34d340ce772f2d",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "PR96 successor including reviewed feedback intake, RPG HUD utility integration, mobile layout corrections and focused browser test repairs. Exact payload binding; hosted certification and production activation remain separate gates.",
+    "summary": "PR96 successor with RPG HUD integration and focused correction of outdated App.test.tsx DOM expectations. Exact payload-bound implementer self-review. Hosted release certification and production feedback activation remain separate.",
     "evidence": [
       "Owner-provided local candidate identity: d6d06868ff2eb766c1a2da6a965c01cd820634d0, payload tree 6421b9e72999e687afe79bae66597dab807b5043; five changed files, 30 insertions and 14 deletions. The commit was not yet pushed when reviewed.",
       "GPT-6 reviewed the uploaded git show patch covering RpgRouteShell.tsx, MicroShell.tsx, microFeedbackSlot.ts, the microlearning public entrypoint and microSession.test.tsx. The new context is React-only and feature-local; the app consumes it through @/features/microlearning, preserving the app import boundary.",
@@ -25,7 +25,14 @@
       "Owner-reported final focused Playwright regression: 8/8 Chromium PASS.",
       "Owner-reported TypeScript/build validation and final Prettier/lint checks; not an independently executed full release suite.",
       "Hero Profile readiness synchronization and scoped accessibility contrast selector corrected the observed browser-test failures.",
-      "Hosted Final candidate and provider operational-security checks remain separate unverified gates."
+      "Hosted Final candidate and provider operational-security checks remain separate unverified gates.",
+      "Hosted Final candidate 43513277442 failed because App.test.tsx expected Settings to be a direct HUD child and the Hero route to retain a separate utility navigation.",
+      "The corrected test verifies both feedback and Settings within the HUD action group and within the Hero Profile header where applicable, preserving the intended landmark ordering.",
+      "Owner-reported isolated corrected landmark test: 1/1 PASS.",
+      "Owner-reported subsequent focused Vitest: 135/135 PASS across five test files, including all 111 App tests.",
+      "Owner-reported Prettier, ESLint and git diff --check PASS for the focused correction.",
+      "Only tests/app/App.test.tsx was modified in this successor payload. Previous targeted Chromium regression was 8/8 PASS; it was not rerun for this test-only change.",
+      "Earlier hosted failures are superseded only as candidate results; the new hosted Final candidate remains unverified until executed."
     ]
   },
   "adversarialFindings": [
@@ -81,6 +88,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed for exact PR96 successor payload based on owner-reported focused validation and source assessment. Implementer self-review; hosted release certification and production activation remain separate."
+    "summary": "Proceed with the exact corrected test-only PR96 successor after owner-reported 135/135 focused Vitest PASS and source inspection. Owner explicitly lifted the prior two-failure branch pause. This is implementer self-review, not independent hosted certification. Production operational gates remain separate."
   }
 }

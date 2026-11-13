@@ -3993,20 +3993,38 @@ describe('RPG routes', () => {
 
     expect(settings).toHaveLength(1);
     expect(hud).toContainElement(settings[0]!);
-    expect(settings[0]!.parentElement).toBe(hud);
+    const hudActions = hud.querySelector('.rpg-shell__actions--hud');
+    expect(hudActions).toContainElement(settings[0]!);
+    expect(hudActions).toContainElement(
+      screen.getByRole('button', { name: 'Meld feil eller gi innspill' }),
+    );
 
     cleanup();
     await renderAppAtRoute('/rpg/hero');
     await screen.findByTestId('rpg-shell');
 
-    // The Hero route keeps its persistent-HUD exclusion, so its one Settings
-    // launch is the shell's utility bar, before the primary navigation.
+    // Hero Profile excludes the persistent HUD. Its utility controls
+    // are placed in the profile header inside main.
     expect(
       screen.queryByRole('region', { name: 'Persistent hero HUD' }),
     ).not.toBeInTheDocument();
-    const utility = screen.getByRole('navigation', {
-      name: 'RPG utility navigation',
+    expect(
+      screen.queryByRole('navigation', { name: 'RPG utility navigation' }),
+    ).not.toBeInTheDocument();
+
+    await screen.findByRole('region', {
+      name: 'Learner identity and progression',
     });
+
+    const utility = screen
+      .getByRole('heading', { name: 'Hero Profile', level: 1 })
+      .closest<HTMLElement>('.rpg-hero__header')!;
+
+    expect(
+      within(utility).getByRole('button', {
+        name: 'Meld feil eller gi innspill',
+      }),
+    ).toBeInTheDocument();
 
     expect(screen.getAllByRole('link', { name: 'Open Settings' })).toHaveLength(
       1,
@@ -4016,8 +4034,8 @@ describe('RPG routes', () => {
     );
     expect(
       precedes(
-        utility,
         screen.getByRole('navigation', { name: 'RPG primary navigation' }),
+        utility,
       ),
     ).toBe(true);
     expect(
