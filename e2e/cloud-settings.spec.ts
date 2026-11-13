@@ -370,6 +370,7 @@ test.describe('Settings cloud card in a real browser', () => {
     ).toBeVisible();
 
     // Change local data through the app, then back up again.
+    await page.getByRole('link', { name: 'Profile & preferences' }).click();
     await page.getByLabel('Display name').fill('Changed after backup');
     await page.getByRole('button', { name: 'Save local settings' }).click();
     await expect(page.getByText('Local profile saved')).toBeVisible();
