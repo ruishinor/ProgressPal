@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6 (implementer self-review via GitHub connector; no independent reviewer or local test run)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "ec64b78f4a9236d17eb99444f12ceb69c1e6d405",
+    "payloadTree": "6310738e74ae7bc0ed7e65607ae8a182113121b4",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -15,7 +15,8 @@
       "Settings remain in one shared SettingsSurface for Classic/RPG; search parameter selects visible panel without unmounting profile/backup state.",
       "Added and adapted focused Vitest and Playwright tests for Settings category routing, draft preservation, recovery, coordination, cloud account, theme, programme and Activity.",
       "No local Node 24/npm 11 or browser test execution was available in this session. GitHub-hosted Final candidate certification is required and its result must be observed before merge.",
-      "Prettier failure on first hosted PR check 43347218150 was limited to seven source/test files; targeted formatting corrections were applied and require revalidation on the new head."
+      "Prettier failure on first hosted PR check 43347218150 was limited to seven source/test files; targeted formatting corrections were applied and require revalidation on the new head.",
+      "Second hosted run 43348140805 passed lint, but Prettier reported only SettingsSurface and GroupSession; both were corrected and the exact new payload requires a fresh gate."
     ]
   },
   "adversarialFindings": [
