@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6 (implementer self-review via GitHub connector; no independent reviewer or local test run)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "b0efcd50ba47f513756f1f02f04686f507189d69",
+    "payloadTree": "ec64b78f4a9236d17eb99444f12ceb69c1e6d405",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,8 @@
       "Isolated branch based on master 747d80e284eceda2d18c74c99c15735a021ffbfb; compare view before binding shows 31 changed files and no base divergence.",
       "Settings remain in one shared SettingsSurface for Classic/RPG; search parameter selects visible panel without unmounting profile/backup state.",
       "Added and adapted focused Vitest and Playwright tests for Settings category routing, draft preservation, recovery, coordination, cloud account, theme, programme and Activity.",
-      "No local Node 24/npm 11 or browser test execution was available in this session. GitHub-hosted Final candidate certification is required and its result must be observed before merge."
+      "No local Node 24/npm 11 or browser test execution was available in this session. GitHub-hosted Final candidate certification is required and its result must be observed before merge.",
+      "Prettier failure on first hosted PR check 43347218150 was limited to seven source/test files; targeted formatting corrections were applied and require revalidation on the new head."
     ]
   },
   "adversarialFindings": [
