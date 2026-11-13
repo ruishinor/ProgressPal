@@ -388,10 +388,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                 fortsette med et studieprogram.
               </p>
             ) : null}
-            <Card
-              title="Programme"
-              titleAs={isRpgVariant ? 'h2' : 'h3'}
-            >
+            <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
               <p className="card__description">
                 Active programme:{' '}
                 <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
@@ -405,8 +402,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                 <>
                   <p className="card__description">
                     Switching changes the course, wording, and rewards
-                    ProgressPal shows. Your XP, achievements, study sessions, and
-                    profile stay shared across programmes and nothing is
+                    ProgressPal shows. Your XP, achievements, study sessions,
+                    and profile stay shared across programmes and nothing is
                     deleted. Nothing changes until you press the button.
                   </p>
                   <FormField
@@ -444,8 +441,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                   </div>
                   {switchFailed ? (
                     <p className="form-field__error" role="alert">
-                      The programme could not be switched. Your active
-                      programme is unchanged.
+                      The programme could not be switched. Your active programme
+                      is unchanged.
                     </p>
                   ) : null}
                 </>
@@ -516,10 +513,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </Card>
         <div className="settings-backup-grid">
           <div className="settings-backup-local">
-            <Card
-              title="Export a backup"
-              titleAs={isRpgVariant ? 'h2' : 'h3'}
-            >
+            <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
               <p className="card__description">
                 Download a full local backup as a JSON file. It contains your
                 learning history and progress, notes and saved blockers, XP
@@ -564,21 +558,18 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             titleAs={isRpgVariant ? 'h2' : 'h3'}
           >
             <p className="card__description">
-              Last ned en sikkerhetskopi hvis du har endringer som venter. Logg ut
-              og tøm deretter nettleserlagringen for ProgressPal. Den
+              Last ned en sikkerhetskopi hvis du har endringer som venter. Logg
+              ut og tøm deretter nettleserlagringen for ProgressPal. Den
               synkroniserte kopien beholdes på kontoen.
             </p>
           </Card>
         ) : (
-          <Card
-            title="Reset local data"
-            titleAs={isRpgVariant ? 'h2' : 'h3'}
-          >
+          <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
             <p className="card__description">
               Permanently delete all local ProgressPal data on this device and
-              start fresh. This removes your progress, sessions, XP, achievements,
-              notes, media history, and backup history. It is destructive,
-              local-only, and cannot be undone. Type{' '}
+              start fresh. This removes your progress, sessions, XP,
+              achievements, notes, media history, and backup history. It is
+              destructive, local-only, and cannot be undone. Type{' '}
               <code>{resetConfirmationPhrase}</code> to enable the reset. Your
               cloud account, remote backups and learning group membership are
               managed separately.
