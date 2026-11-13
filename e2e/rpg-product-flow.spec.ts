@@ -12,6 +12,7 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
 
   await expect(page.getByRole('heading', { name: 'Interface' })).toBeVisible();
 
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await page.getByLabel('Display name').fill('Morgan');
   await page.getByLabel('Theme', { exact: true }).selectOption('light');
   await page.getByRole('button', { name: 'Save local settings' }).click();
@@ -30,9 +31,11 @@ test('RPG settings save the one app-wide theme and keep the deliberate interface
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
 
   await page.getByRole('link', { name: 'Open Settings' }).click();
+  await page.getByRole('link', { name: 'Profile & preferences' }).click();
   await expect(page.getByLabel('Display name')).toHaveValue('Morgan');
   expect(await readRpgRewardStores(page)).toEqual(storesBefore);
 
+  await page.getByRole('link', { name: 'General' }).click();
   await page.getByRole('link', { name: 'Open Classic interface' }).click();
   await expect(
     page.getByRole('heading', { name: 'Dashboard', exact: true }),
