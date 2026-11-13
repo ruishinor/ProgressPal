@@ -64,6 +64,12 @@ type SettingsToast = {
   tone: 'success' | 'danger';
 };
 
+const settingsCategories = [
+  { id: 'general', label: 'General' },
+  { id: 'profile', label: 'Profile & preferences' },
+  { id: 'data', label: 'Data & backups' },
+] as const;
+
 const resetConfirmationPhrase = 'RESET';
 
 function RpgStyleControl() {
@@ -342,13 +348,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         />
       )}
       <nav aria-label="Settings categories" className="settings-category-nav">
-        {(
-          [
-            { id: 'general', label: 'General' },
-            { id: 'profile', label: 'Profile & preferences' },
-            { id: 'data', label: 'Data & backups' },
-          ] as const
-        ).map((item) => (
+        {settingsCategories.map((item) => (
           <Link
             aria-current={activeSection === item.id ? 'page' : undefined}
             className="settings-category-nav__link"
@@ -359,7 +359,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </Link>
         ))}
       </nav>
-      <div className="settings-category-panel" hidden={activeSection !== 'general'}>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'general'}
+      >
         <div className="settings-overview-grid">
           <Card title="Interface" titleAs={isRpgVariant ? 'h2' : 'h3'}>
             <p className="card__description">
@@ -447,7 +450,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </div>
         </div>
       </div>
-      <div className="settings-category-panel" hidden={activeSection !== 'profile'}>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'profile'}
+      >
         <ProfileForm
           cardTitleAs={isRpgVariant ? 'h2' : 'h3'}
           disabled={!coordination.canWrite}
@@ -466,7 +472,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           submitLabel="Save local settings"
         />
       </div>
-      <div className="settings-category-panel" hidden={activeSection !== 'data'}>
+      <div
+        className="settings-category-panel"
+        hidden={activeSection !== 'data'}
+      >
         <Card
           title="Browser storage durability"
           titleAs={isRpgVariant ? 'h2' : 'h3'}
