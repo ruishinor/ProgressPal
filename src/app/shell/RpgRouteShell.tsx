@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { FeedbackWidget } from '@/features/feedback';
 import { useAppState } from '@/lib/appState';
 import { useRpgStyle } from '@/lib/appState/rpgStyle';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
@@ -51,6 +52,7 @@ export function RpgRouteShell() {
               description="Opening local data stores and reading the learner profile."
               title="Preparing RPG"
             />
+            <FeedbackWidget compact />
           </main>
         </div>
       </section>
@@ -80,6 +82,7 @@ export function RpgRouteShell() {
               description={error ?? 'Local data could not be loaded.'}
               title="RPG startup failed"
             />
+            <FeedbackWidget compact />
             {isLocalCoordinationRevisionExhausted(coordination) ? (
               <CoordinationRepairControl
                 onRepaired={() => {

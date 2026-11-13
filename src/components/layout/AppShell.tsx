@@ -1,4 +1,4 @@
-import type { PropsWithChildren, Ref } from 'react';
+import type { PropsWithChildren, ReactNode, Ref } from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/Badge';
@@ -19,6 +19,7 @@ export type AppShellStatusItem = {
 };
 
 export type AppShellProps = PropsWithChildren<{
+  feedbackAction?: ReactNode;
   navigationItems: readonly AppShellNavigationItem[];
   statusItems?: readonly AppShellStatusItem[];
   utilityNavigationItems?: readonly AppShellNavigationItem[];
@@ -32,6 +33,7 @@ export type AppShellProps = PropsWithChildren<{
 export function AppShell({
   brand = 'ProgressPal CS50 Edition',
   children,
+  feedbackAction,
   mainRef,
   navigationItems,
   statusItems,
@@ -81,6 +83,11 @@ export function AppShell({
             {item.label}
           </NavLink>
         ))}
+        {feedbackAction ? (
+          <div className="shell-nav__utility shell-nav__feedback">
+            {feedbackAction}
+          </div>
+        ) : null}
         {utilityNavigationItems?.length ? (
           <div className="shell-nav__utility">
             {utilityNavigationItems.map((item) => (
