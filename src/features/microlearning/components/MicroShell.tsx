@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 
 import { RpgButton } from '@/features/rpg/components/RpgButton';
-import { FeedbackWidget } from '@/features/feedback';
+import { MicroFeedbackSlot } from './microFeedbackSlot';
 
 /**
  * The immersive frame for one microlearning surface: a close control, an
@@ -26,6 +26,8 @@ export function MicroShell({
   /** Only while a session runs; `current` is the 1-based card on screen. */
   progress?: { current: number; done: boolean; total: number };
 }) {
+  const feedbackAction = useContext(MicroFeedbackSlot);
+
   const reached =
     progress === undefined
       ? 0
@@ -52,7 +54,7 @@ export function MicroShell({
         >
           Lukk
         </RpgButton>
-        <FeedbackWidget compact iconOnly />
+        {feedbackAction}
         {progress === undefined ? null : (
           <>
             <div

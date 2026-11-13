@@ -7,6 +7,7 @@ import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairCon
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { FeedbackWidget } from '@/features/feedback';
+import { MicroFeedbackSlot } from '@/features/microlearning';
 import { useAppState } from '@/lib/appState';
 import { useRpgStyle } from '@/lib/appState/rpgStyle';
 import { isLocalCoordinationRevisionExhausted } from '@/lib/storage';
@@ -108,5 +109,9 @@ export function RpgRouteShell() {
     );
   }
 
-  return <DataEpochOutlet />;
+  return (
+    <MicroFeedbackSlot.Provider value={<FeedbackWidget compact iconOnly />}>
+      <DataEpochOutlet />
+    </MicroFeedbackSlot.Provider>
+  );
 }

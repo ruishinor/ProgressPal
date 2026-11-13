@@ -9,6 +9,8 @@ import {
   createActionGuard,
 } from '@/features/microlearning/components/actionGuard';
 import { SessionRunner } from '@/features/microlearning/components/SessionRunner';
+import { MicroFeedbackSlot } from '@/features/microlearning/components/microFeedbackSlot';
+import { FeedbackWidget } from '@/features/feedback';
 import { MicrolearningPage, type MicroStep } from '@/features/microlearning';
 import type { MicroCard, MicroSession } from '@/lib/domain';
 import { programvareutviklingMicrolearning as bank } from '@/programmes/programvareutvikling/microlearning';
@@ -76,16 +78,18 @@ function renderPage(
   render(
     <MemoryRouter initialEntries={['/rpg/micro']}>
       <LocationProbe />
-      <ActionGuardContext.Provider value={guard}>
-        <Page
-          availability={{
-            primerId: options.primer ?? null,
-            repeatSessions: sessionsById(eligible),
-            status: 'ready',
-          }}
-          bank={bank}
-        />
-      </ActionGuardContext.Provider>
+      <MicroFeedbackSlot.Provider value={<FeedbackWidget compact iconOnly />}>
+        <ActionGuardContext.Provider value={guard}>
+          <Page
+            availability={{
+              primerId: options.primer ?? null,
+              repeatSessions: sessionsById(eligible),
+              status: 'ready',
+            }}
+            bank={bank}
+          />
+        </ActionGuardContext.Provider>
+      </MicroFeedbackSlot.Provider>
     </MemoryRouter>,
   );
   return user;
