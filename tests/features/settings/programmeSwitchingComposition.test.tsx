@@ -350,6 +350,7 @@ describe('reset and restore never reseed a stale programme', () => {
       'Active programme: C5 alternate catalogue',
     );
 
+    await userEvent.click(screen.getByRole('link', { name: 'Data & backups' }));
     await userEvent.type(screen.getByLabelText('Confirmation phrase'), 'RESET');
     await userEvent.click(
       screen.getByRole('button', { name: 'Reset all local data' }),
@@ -379,6 +380,7 @@ describe('reset and restore never reseed a stale programme', () => {
 
     await renderAppAtRoute('/settings');
     await screen.findByRole('heading', { name: 'Programme' }, timeout);
+    await userEvent.click(screen.getByRole('link', { name: 'Data & backups' }));
     await userEvent.upload(screen.getByLabelText('Backup file'), backup);
     await userEvent.click(
       await screen.findByRole(
