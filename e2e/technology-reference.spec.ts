@@ -243,7 +243,7 @@ test('reference: quiet reading top, live links and focused reflow in both themes
   mkdirSync(output, { recursive: true });
   await completeOnboarding(page);
   for (const theme of ['light', 'dark']) {
-    await page.goto('/rpg/settings');
+    await page.goto('/rpg/settings?section=profile');
     await page.locator('select[id$="-theme"]').selectOption(theme);
     await page.getByRole('button', { name: 'Save local settings' }).click();
     await expect(
