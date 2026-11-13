@@ -1166,7 +1166,7 @@ export const gitM07Lessons = [
           'Undersøke en regresjon i delt historikk og velge en forholdsmessig korrigerende handling.',
           'Overlevere hva som faktisk er gjort, verifisert og fortsatt usikkert.',
         ],
-        next: 'Du har nå gjennomført Foundations M01–M07. Du har et grunnlag for å bruke Git og GitHub i små studie- og utviklingsprosjekter. Nye prosjekter vil gi nye situasjoner; bruk dokumentasjon, undersøk faktisk tilstand og be om review når det er relevant. Denne modulen gir ikke et kompetansesertifikat eller garanti for at all praksis er verifisert.',
+        next: 'I M01 og M02 jobbet du med å lagre endringer og undersøke historikken. M03 og M04 tok for seg *brancher*, sammenslåing og deling av arbeid. I M05 og M06 øvde du på samarbeid, feilretting og å hente fram tidligere arbeid. M07 samlet dette i et lite prosjekt. Bruk gjerne de samme stegene i dine egne prosjekter, og gå tilbake til leksjonene når du trenger å repetere.',
       },
     ],
   },

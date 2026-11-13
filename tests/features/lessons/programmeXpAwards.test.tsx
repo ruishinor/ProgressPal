@@ -148,7 +148,6 @@ describe('Programvareutvikling earns its own XP for correct work', () => {
     const markComplete = await screen.findByRole('button', {
       name: 'Mark locally complete',
     });
-    expect(markComplete).toHaveAccessibleDescription(/Det gir ikke XP/);
 
     fireEvent.click(markComplete);
     await screen.findByRole('heading', { name: 'Progress saved' });

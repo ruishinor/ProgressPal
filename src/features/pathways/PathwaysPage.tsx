@@ -184,8 +184,7 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     ) : (
       <div className="pathways-track__progress-summary">
         <p>
-          {completedCount} av {items.length} leksjoner markert fullført.
-          «Påbegynt» betyr lagret aktivitet eller leksjonsposisjon.
+          {completedCount} av {items.length} leksjoner markert som fullført.
         </p>
         {allCompleted ? (
           <p>
@@ -305,18 +304,19 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
         <>
           <h1>Pathways</h1>
           <p>
-            Lær praktiske ferdigheter ved siden av studieprogrammet ditt, uten å
-            bytte studieprogram eller miste framdriften der.
+            I Pathways finner du læringsveier. Foreløpig kan du lære Git og
+            GitHub, samtidig som du beholder framdriften i studieprogrammet
+            ditt.
           </p>
           <div className="pathways-page__offer">
             <h2>
               <Link to={track}>Git &amp; GitHub</Link>
             </h2>
             <p>
-              Lær å ta vare på endringer, finne igjen fungerende kode og etter
-              hvert samarbeide om et prosjekt. M01 har fem tilgjengelige
-              leksjoner, M02 har seks, M03 har seks, M04 har sju, M05 har åtte,
-              M06 har sju og M07 har åtte. Hele Foundations er tilgjengelig.
+              I Git- og GitHub-løpet begynner du med å lagre egne endringer og
+              undersøke hva som har skjedd. Videre øver du på <em>brancher</em>,
+              å dele arbeid og å samarbeide om endringer. Til slutt bruker du
+              dette i et lite prosjekt. Hele løpet M01–M07 er tilgjengelig.
             </p>
             <p>Du kan lese oversikten før du installerer Git eller Node.js.</p>
             {overviewSummary}
@@ -376,15 +376,12 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                 Hva med kopierte mapper, skylagring og sikkerhetskopier?
               </summary>
               <p>
-                En kopi av prosjektmappen kan være nyttig for å bevare en
-                utgave, og skylagring kan gjøre filer tilgjengelige på flere
-                enheter. Men ingen av delene erstatter uten videre Gits
-                organiserte historikk, utvalg av endringer og arbeid med
-                parallelle grener. Git er heller ikke automatisk en trygg
-                sikkerhetskopi: hvis hele den lokale prosjektmappen, inkludert
-                den skjulte .git-mappen, forsvinner, kan historikken forsvinne
-                med den. Bevar verdifullt arbeid separat og kontroller at det
-                faktisk kan gjenopprettes.
+                En ekstra kopi av prosjektmappen kan hjelpe hvis du mister
+                filer. Git hjelper deg å se hva som har endret seg mellom
+                versjoner, men er ikke automatisk en sikkerhetskopi. Mister du
+                mappen med <code>.git</code>, kan du også miste den lokale
+                historikken. Lagre en ekstra kopi av viktig arbeid et annet
+                sted, og kontroller at du kan hente den fram.
               </p>
               <p>
                 Git krever at du lærer en arbeidsmåte. Samtidige endringer kan
@@ -398,10 +395,10 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
           <section aria-labelledby="pathways-roadmap">
             <h2 id="pathways-roadmap">Dette lærer du i M01–M07</h2>
             <p>
-              Hver modul bygger videre på forrige. Alle M01–M07 er
-              tilgjengelige. M07 samler ferdighetene i ett lite
-              utviklingsprosjekt og avslutter Foundations. Du kan åpne
-              leksjonene igjen når du vil.
+              Du lærer først å registrere og undersøke endringer i egne filer.
+              Så arbeider du med <em>brancher</em>, sammenslåing og samarbeid.
+              Deretter øver du på å finne feil og hente fram tidligere arbeid
+              før du bruker ferdighetene i et lite prosjekt i M07.
             </p>
             <ol className="pathways-track__roadmap">
               <li className="pathways-track__current">
@@ -507,9 +504,10 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   </span>
                 </div>
                 <p>
-                  Arbeid på en egen branch, samle endringer med merge og løs en
-                  reell konflikt. Se også hvorfor en konfliktfri merge kan gi
-                  feil resultat og krever kontroll av funksjonaliteten.
+                  I M03 prøver du å arbeide på en egen <em>branch</em>, slå
+                  sammen endringer med <em>merge</em> og løse en konflikt. Du
+                  undersøker også resultatet etterpå, fordi Git kan slå sammen
+                  filene uten at programmet nødvendigvis virker.
                 </p>
                 <p className="pathways-track__builds-on">
                   Bygger på: Commits fra M01 og historikk/diff fra M02.
@@ -550,9 +548,11 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   </span>
                 </div>
                 <p>
-                  Del og hent Git-historikk med remotes, push, clone, fetch og
-                  pull. Lær å skille lokal main fra origin/main og forstå
-                  autentisering, tilgang og hva som ikke bør publiseres.
+                  I M04 kobler du Git-prosjektet ditt til andre prosjektkopier.
+                  Du øver på <code>clone</code>, <code>fetch</code>,{' '}
+                  <code>pull</code> og <code>push</code>, ser forskjellen mellom
+                  lokal <code>main</code> og <code>origin/main</code>, og lærer
+                  å vurdere hva du deler med andre.
                 </p>
                 <p className="pathways-track__builds-on">
                   Bygger på: Branches og merge fra M03.
@@ -636,9 +636,11 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
                   </span>
                 </div>
                 <p>
-                  Undersøk hva som gikk galt før du endrer filer eller
-                  historikk. Lær forskjellen på restore, reset, stash, reflog og
-                  revert, og øv i et eget ufarlig repository.
+                  Når noe går galt, begynner du med å undersøke hva som har
+                  skjedd. I M06 øver du på <code>restore</code>,{' '}
+                  <code>reset</code>, <code>stash</code>, <code>reflog</code> og{' '}
+                  <code>revert</code> i egne øvingsmapper. Da kan du se hva
+                  kommandoene gjør før du bruker dem på viktig arbeid.
                 </p>
                 <p className="pathways-track__builds-on">
                   Bygger på: Lokalt arbeid, historikk og samarbeid fra M01–M05.

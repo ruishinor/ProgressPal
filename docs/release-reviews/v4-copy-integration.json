@@ -1,0 +1,74 @@
+{
+  "reviewScope": {
+    "summary": "Focused V4 copy integration review. Approved text replacements, preserved seven-module curriculum, generated assets and selected technical checks. No independent runtime execution.",
+    "evidence": [
+      "Canonical pilot compared against published baseline: exactly 25 approved string changes; 7 modules, 73 units and 346 exercises preserved.",
+      "All 28 unrelated authoring rebuild differences excluded.",
+      "Existing product exporter and --check passed for 12 generated files.",
+      "PowerShell copy replacement reported 20 repo copy changes and two Guild copy changes.",
+      "TypeScript typecheck and Vite production build passed.",
+      "Focused Vitest: 21 curriculum and 14 Pathways tests passed; 35 total.",
+      "Prettier and staged git diff --check passed. Full local release suite not run.",
+      "Hosted run 43325731295 failed at an immediate focus assertion in the backup restore test. The existing focus requirement is preserved using waitFor. The focused suite passed locally after correction.",
+      "Hosted run 43327138968 exposed stale Git/GitHub content assets after approved canonical copy changes. The existing Git/GitHub exporter was rerun and checked. The two affected content suites passed locally.",
+      "Audited the 1095-file PR #92 source ZIP, including 308 tests/E2E files and 45 owner-approved copy originals. One remaining obsolete four-word copy assertion was identified and removed; functional XP, progress, reward, and evidence assertions remain unchanged.",
+      "One complete local Vitest run with bail disabled passed on this corrected candidate. Playwright and hosted Final candidate were not run locally for this correction."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "status": "resolved",
+      "resolution": "Restored the published seven-module pilot and applied only 25 approved string differences. Full JSON comparison passed.",
+      "description": "Rebuilding with a different Python runtime changed unrelated transcripts, metadata and timing.",
+      "id": "V4-AUTHORING-DRIFT",
+      "severity": "P1"
+    },
+    {
+      "status": "resolved",
+      "resolution": "Generated assets, old asset removals, catalogue, offline manifest and updated source expectations were staged; content tests passed.",
+      "description": "New content-addressed asset names could be omitted from Git staging.",
+      "id": "V4-CONTENT-ASSETS",
+      "severity": "P2"
+    },
+    {
+      "status": "accepted-risk",
+      "resolution": "Owner explicitly approved forward-looking wording. This change does not implement additional sharing behavior.",
+      "description": "Guild copy describes owner-intended future activity sharing more broadly than the current functionality.",
+      "id": "V4-GUILD-COPY-SCOPE",
+      "severity": "P3"
+    },
+    {
+      "id": "V4-BACKUP-FOCUS-TIMING",
+      "severity": "P2",
+      "description": "Hosted validation exposed a focus assertion that ran before the React focus effect was observed.",
+      "resolution": "Await the existing focus requirement instead of removing it or changing unrelated product behavior. Focused suite passed.",
+      "status": "resolved"
+    },
+    {
+      "id": "V4-GIT-CONTENT-EXPORT",
+      "severity": "P2",
+      "description": "The Git/GitHub canonical source changed while its content-addressed assets retained the previous source hash.",
+      "resolution": "Regenerated Git/GitHub assets and offline manifest with the existing exporter; verified source identity and focused content tests.",
+      "status": "resolved"
+    },
+    {
+      "id": "V4-XP-COPY-ASSERTION",
+      "severity": "P2",
+      "description": "Hosted run 43328891104 failed on a removed user-facing phrase in a mixed XP behavior test; --bail=1 left later tests unexecuted.",
+      "resolution": "Removed only the legacy phrase assertion, preserving all actual XP, progress, reward and evidence checks. Reviewed the provided full test-source archive for other obsolete approved wording; relevant local tests passed.",
+      "status": "resolved"
+    }
+  ],
+  "reviewer": "ChatGPT-assisted review of owner-provided implementation and test evidence",
+  "module": "v4-copy-integration",
+  "schemaVersion": 2,
+  "binding": {
+    "payloadTree": "f62284238979ff73912d1e022e68c8f7c0e69e39",
+    "excludedPath": "docs/release-reviews",
+    "kind": "payload-tree"
+  },
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Ready for a new hosted Final candidate on the corrected test-only payload. Previous hosted runs are failures; no hosted PASS or production release is claimed."
+  }
+}

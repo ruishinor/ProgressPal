@@ -277,9 +277,10 @@ export function GroupSession({
   const enrolment = snapshot !== null && group === null && (
     <>
       <p>
-        Ved å bli med deler du kallenavnet ditt med Guilden. Nhost lagrer
-        medlemskapet og datoene du velger å dele. Medlemmer ser kallenavn og
-        antall dager denne uken.
+        Når du melder deg inn i en Guild, deles kallenavnet ditt med andre i
+        samme guild. Disse kan også se det du velger å dele av aktivitet. Nhost
+        er leverandøren som brukes for å lagre opplysningene som trengs for å
+        registrere, koble opp og synkronisere.
       </p>
       <div className="action-row">
         <Action
@@ -442,13 +443,17 @@ export function GroupSession({
       <details>
         <summary>Medlemskap og konto</summary>
         <p>
-          Du kan forlate Guilden når du vil. Da fjernes medlemskapet og dagene
-          du har delt.
+          Du kan forlate Guilden når du vil. Da fjernes medlemsregistreringen
+          din og dagene du har delt.
         </p>
         <p>
-          Øving lagres på enheten. Medlemskapet og de delte dagene ligger hos
-          Nhost, også om du nullstiller appen eller gjenoppretter en
-          sikkerhetskopi.
+          Når du melder deg ut av guilden fjernes også de dataene du har valgt å
+          dele.
+        </p>
+        <p>
+          Mens aktiv deling slettes, kan det likevel forekomme at tidligere
+          registrerte opplysninger beholdes i databasen hos Nhost, også om du
+          nullstiller appen eller gjenoppretter fra en tidligere sikkerhetskopi.
         </p>
         {accountLink}
         {confirmLeave && (
