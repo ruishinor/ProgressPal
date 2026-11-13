@@ -205,7 +205,7 @@ export function GuildCommons({
           <section aria-label="Guild-oppslag">
             <h4>Guild-oppslag ({group.notes.length} av 3)</h4>
             <p className="guild-commons__hint">
-              Korte beskjeder og spørsmål for medlemmer. Oppslag fjernes etter sju dager.
+              Korte beskjeder og spørsmål for medlemmer. Oppslag vises i inntil sju dager.
               Ikke del passord, personopplysninger eller privat kode.
             </p>
             {group.notes.length === 0 && <p>Ingen oppslag ennå.</p>}

@@ -25,8 +25,14 @@ For a live rollout, verify A/B in one Guild, C in another, anonymous, stale
 membership, simultaneous final-slot posts, edited/removed notes, Unicode limits,
 Auth delete cascade, admin handover and outgoing-admin invite invalidation.
 Check the actual Hasura JWT role and that the private tables remain untracked.
-The client requests Commons only when a member explicitly opens it; while the
-new function is absent, the existing Guild panel must remain usable.
+The client requests Commons only when a member explicitly opens it, and the
+UI is disabled by default. Set `VITE_PROGRESSPAL_GUILD_COMMONS=true` only
+after the separately authorized Nhost contract and metadata are installed and
+verified. If the function is absent, the original Guild remains usable.
+Expired notes are hidden after seven days and purged on the next authenticated
+Commons operation; a dormant Guild's expired rows can remain in storage until
+a separately approved housekeeping operation or Guild deletion. Do not call this
+an unconditional seven-day physical retention guarantee.
 
 Rollback should remove the Hasura function permission and tracking to disable
 access, preserving live Guild records and `social_week`. Destructive table or

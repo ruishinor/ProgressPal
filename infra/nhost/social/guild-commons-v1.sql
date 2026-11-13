@@ -91,6 +91,10 @@ BEGIN
   SELECT user_id INTO current_admin FROM progresspal_social.members
     WHERE group_id = group_key ORDER BY member_order LIMIT 1;
   now_at := clock_timestamp();
+  -- Read and all writes opportunistically discard logically expired notes.
+  -- A dormant Guild still needs separately reviewed retention housekeeping.
+  DELETE FROM progresspal_social.guild_notes
+    WHERE group_id=group_key AND expires_at <= now_at;
 
   IF operation = 'profile' THEN
     IF actor IS DISTINCT FROM current_admin THEN
@@ -124,7 +128,7 @@ BEGIN
     note_body := btrim(input->>'body');
     IF note_kind NOT IN ('help','offer','notice','win')
       OR char_length(note_body) NOT BETWEEN 1 AND 280
-      OR note_body ~ '[[:cntrl:]]' THEN
+      OR replace(note_body, E'\n', '') ~ '[[:cntrl:]]' THEN
       RETURN QUERY SELECT jsonb_build_object('status','invalid-input');
       RETURN;
     END IF;
@@ -133,9 +137,6 @@ BEGIN
       RETURN QUERY SELECT jsonb_build_object('status','rate-limited');
       RETURN;
     END IF;
-    -- Expired notes are discarded inside the serialized membership lock.
-    DELETE FROM progresspal_social.guild_notes
-      WHERE group_id = group_key AND expires_at <= now_at;
     IF EXISTS (SELECT 1 FROM progresspal_social.guild_notes
        WHERE group_id=group_key AND author_id=actor) THEN
       RETURN QUERY SELECT jsonb_build_object('status','already-posted');
@@ -187,7 +188,7 @@ BEGIN
       END IF;
       note_body := btrim(input->>'body');
       IF char_length(note_body) NOT BETWEEN 1 AND 280
-        OR note_body ~ '[[:cntrl:]]' THEN
+        OR replace(note_body, E'\n', '') ~ '[[:cntrl:]]' THEN
         RETURN QUERY SELECT jsonb_build_object('status','invalid-input');
         RETURN;
       END IF;
