@@ -169,11 +169,26 @@ export default {
         signal: AbortSignal.timeout(8000),
         cache: 'no-store',
       });
-      if (!upstream.ok) return response(503, { status: 'unavailable' });
-      const json = await upstream.json();
-      const result = json?.data?.submit_feedback?.[0]?.result;
-      if (!result || typeof result !== 'object')
+      if (!upstream.ok) {
+        console.error('[feedback] Nhost HTTP status:', upstream.status);
         return response(503, { status: 'unavailable' });
+      }
+      const json = await upstream.json();
+      if (Array.isArray(json?.errors)) {
+        const codes = json.errors
+          .slice(0, 3)
+          .map((item) =>
+            typeof item?.extensions?.code === 'string'
+              ? item.extensions.code
+              : 'unspecified',
+          );
+        console.error('[feedback] Nhost GraphQL error codes:', codes);
+      }
+      const result = json?.data?.submit_feedback?.[0]?.result;
+      if (!result || typeof result !== 'object') {
+        console.error('[feedback] Nhost response missing expected result');
+        return response(503, { status: 'unavailable' });
+      }
       if (result.status === 'rate_limited') {
         return response(
           429,
