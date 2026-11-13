@@ -55,7 +55,9 @@ function GroupAccess({
           : 'Slå på skytjenester og logg inn for å opprette eller bli med i en Guild. Du velger selv når du deler læringsdager.'}
       </p>
       <p>
-        <Link to={settings + '?section=data#cloud-account'}>Åpne kontoinnstillinger</Link>
+        <Link to={settings + '?section=data#cloud-account'}>
+          Åpne kontoinnstillinger
+        </Link>
       </p>
     </>
   );
