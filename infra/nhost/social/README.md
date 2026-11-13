@@ -1,5 +1,38 @@
 # Guild provider contract
 
+## Guild Commons v1 — proposed additive installation
+
+The new `guild-commons-v1.sql` and `guild-commons-metadata.json` are
+**not applied by this repository change**. Before an authorized migration,
+verify the actual Nhost source, currently installed `social_week` function,
+Auth deletion trigger, Hasura permissions and account role; take a definition
+backup. Apply the SQL as the existing source role only after a disposable
+PostgreSQL test confirms the exact current schema, including prior member-invite
+upgrades. Track only the additive `guild_commons_v1` mutation and give the
+`user` role function permission. The existing `response` return type is
+reused; do not re-track it or reapply `metadata.json` in a live project.
+
+This API uses the same account/membership serialization lock as `social_week`.
+Only current members may read Guild notes and profile; each current member may
+post one unexpired note, with at most three per Guild; the author may edit,
+withdraw or resolve their own help note, and the earliest remaining member may
+remove a note. A confirmed administrator handover changes the member order,
+which also changes administrator identity for the old RPC, and invalidates
+any active invite code. There is no Guild XP, automatic learning-data sharing,
+notifications, public message history or presence tracking in v1.
+
+For a live rollout, verify A/B in one Guild, C in another, anonymous, stale
+membership, simultaneous final-slot posts, edited/removed notes, Unicode limits,
+Auth delete cascade, admin handover and outgoing-admin invite invalidation.
+Check the actual Hasura JWT role and that the private tables remain untracked.
+The client requests Commons only when a member explicitly opens it; while the
+new function is absent, the existing Guild panel must remain usable.
+
+Rollback should remove the Hasura function permission and tracking to disable
+access, preserving live Guild records and `social_week`. Destructive table or
+column rollback requires separate retention/deletion authorization.
+
+
 This delta targets the existing Nhost PostgreSQL source and Hasura GraphQL API.
 It requires PostgreSQL with built-in `gen_random_uuid()` and `sha256(bytea)`,
 `auth.users(id uuid)`, and the authenticated Hasura role `user` on a read-committed source. Verify the

@@ -1,0 +1,62 @@
+.guild-commons {
+  min-width: 0;
+  display: grid;
+  gap: 1rem;
+  margin-block-start: 1rem;
+  border-block-start: 1px solid currentColor;
+  padding-block-start: 1rem;
+}
+.guild-commons__entry {
+  margin-block-start: 1rem;
+}
+.guild-commons__heading,
+.guild-commons__notes,
+.guild-commons__note {
+  display: grid;
+  gap: .65rem;
+  min-width: 0;
+}
+.guild-commons__notes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.guild-commons__note {
+  border: 1px solid currentColor;
+  border-radius: .5rem;
+  padding: .8rem;
+}
+.guild-commons__note p {
+  margin: 0;
+}
+.guild-commons__ethos {
+  font-style: italic;
+}
+.guild-commons__copy {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.guild-commons__hint {
+  font-size: .92em;
+}
+.guild-commons__textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: .3rem;
+  padding: .5rem;
+}
+.guild-commons select,
+.guild-commons input {
+  font: inherit;
+  max-width: 100%;
+}
+.guild-commons .action-row {
+  flex-wrap: wrap;
+}
