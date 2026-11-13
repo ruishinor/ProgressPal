@@ -44,8 +44,11 @@ async function apply(name) {
 }
 
 try {
-  await db.exec('CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY);');
-  for (const id of ids) await db.query('INSERT INTO auth.users VALUES ($1)', [id]);
+  await db.exec(
+    'CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY);',
+  );
+  for (const id of ids)
+    await db.query('INSERT INTO auth.users VALUES ($1)', [id]);
   await apply('up.sql');
   await apply('rename-guild.sql');
   await apply('member-invites.sql');
@@ -60,102 +63,268 @@ try {
   const cm = c.group.membership;
   const d = await social(fourth, 'join', { code, nickname: 'Dee' });
   const dm = d.group.membership;
-  const otherGroup = await social(other, 'create', { name: 'Team B', nickname: 'Eve' });
+  const otherGroup = await social(other, 'create', {
+    name: 'Team B',
+    nickname: 'Eve',
+  });
   const om = otherGroup.group.membership;
 
-  assert.equal((await commons(unused, 'read', { membership: am })).status, 'no-group');
-  assert.equal((await commons(owner, 'read', { membership: am }, 'anonymous')).status, 'unauthenticated');
-  assert.equal((await commons(other, 'read', { membership: am })).status, 'membership-changed');
-  assert.equal((await commons(peer, 'read', { membership: am })).status, 'membership-changed');
-  assert.equal((await commons(owner, 'read', { membership: am, group_id: om })).status, 'invalid-input');
-  assert.equal((await commons(owner, 'read', { membership: am })).group.notes.length, 0);
+  assert.equal(
+    (await commons(unused, 'read', { membership: am })).status,
+    'no-group',
+  );
+  assert.equal(
+    (await commons(owner, 'read', { membership: am }, 'anonymous')).status,
+    'unauthenticated',
+  );
+  assert.equal(
+    (await commons(other, 'read', { membership: am })).status,
+    'membership-changed',
+  );
+  assert.equal(
+    (await commons(peer, 'read', { membership: am })).status,
+    'membership-changed',
+  );
+  assert.equal(
+    (await commons(owner, 'read', { membership: am, group_id: om })).status,
+    'invalid-input',
+  );
+  assert.equal(
+    (await commons(owner, 'read', { membership: am })).group.notes.length,
+    0,
+  );
 
-  assert.equal((await commons(peer, 'profile', {
-    membership: bm, ethos: 'No', about: '',
-  })).status, 'not-admin');
-  assert.equal((await commons(owner, 'profile', {
-    membership: am, ethos: 'Lær sammen', about: 'En liten gruppe',
-  })).group.ethos, 'Lær sammen');
-  assert.equal((await commons(owner, 'profile', {
-    membership: am, ethos: 'x'.repeat(121), about: '',
-  })).status, 'invalid-input');
+  assert.equal(
+    (
+      await commons(peer, 'profile', {
+        membership: bm,
+        ethos: 'No',
+        about: '',
+      })
+    ).status,
+    'not-admin',
+  );
+  assert.equal(
+    (
+      await commons(owner, 'profile', {
+        membership: am,
+        ethos: 'Lær sammen',
+        about: 'En liten gruppe',
+      })
+    ).group.ethos,
+    'Lær sammen',
+  );
+  assert.equal(
+    (
+      await commons(owner, 'profile', {
+        membership: am,
+        ethos: 'x'.repeat(121),
+        about: '',
+      })
+    ).status,
+    'invalid-input',
+  );
 
   const first = await commons(owner, 'post', {
-    membership: am, kind: 'help', body: 'Et spørsmål om Git',
+    membership: am,
+    kind: 'help',
+    body: 'Et spørsmål om Git',
   });
   assert.equal(first.status, 'ok');
   assert.equal(first.group.notes[0].author, 'Ada');
   const noteId = first.group.notes[0].id;
-  assert.equal((await commons(owner, 'post', {
-    membership: am, kind: 'help', body: 'Noe annet',
-  })).status, 'rate-limited');
-  assert.equal((await commons(peer, 'edit', {
-    membership: bm, note: noteId, body: 'Nope',
-  })).status, 'not-owner');
-  assert.equal((await commons(peer, 'remove', {
-    membership: bm, note: noteId,
-  })).status, 'not-admin');
-  assert.equal((await commons(owner, 'edit', {
-    membership: am, note: noteId, body: 'Et nytt spørsmål om Git',
-  })).group.notes[0].body, 'Et nytt spørsmål om Git');
-  assert.equal((await commons(owner, 'edit', {
-    membership: am, note: noteId, body: '<script> og mer',
-  })).group.notes[0].body, '<script> og mer');
-  assert.equal((await commons(owner, 'edit', {
-    membership: am, note: noteId, body: 'x'.repeat(281),
-  })).status, 'invalid-input');
+  assert.equal(
+    (
+      await commons(owner, 'post', {
+        membership: am,
+        kind: 'help',
+        body: 'Noe annet',
+      })
+    ).status,
+    'rate-limited',
+  );
+  assert.equal(
+    (
+      await commons(peer, 'edit', {
+        membership: bm,
+        note: noteId,
+        body: 'Nope',
+      })
+    ).status,
+    'not-owner',
+  );
+  assert.equal(
+    (
+      await commons(peer, 'remove', {
+        membership: bm,
+        note: noteId,
+      })
+    ).status,
+    'not-admin',
+  );
+  assert.equal(
+    (
+      await commons(owner, 'edit', {
+        membership: am,
+        note: noteId,
+        body: 'Et nytt spørsmål om Git',
+      })
+    ).group.notes[0].body,
+    'Et nytt spørsmål om Git',
+  );
+  assert.equal(
+    (
+      await commons(owner, 'edit', {
+        membership: am,
+        note: noteId,
+        body: '<script> og mer',
+      })
+    ).group.notes[0].body,
+    '<script> og mer',
+  );
+  assert.equal(
+    (
+      await commons(owner, 'edit', {
+        membership: am,
+        note: noteId,
+        body: 'x'.repeat(281),
+      })
+    ).status,
+    'invalid-input',
+  );
 
-  assert.equal((await commons(peer, 'post', {
-    membership: bm, kind: 'offer', body: 'Jeg kan hjelpe',
-  })).status, 'ok');
-  assert.equal((await commons(third, 'post', {
-    membership: cm, kind: 'notice', body: 'Neste samling',
-  })).status, 'ok');
-  assert.equal((await commons(fourth, 'post', {
-    membership: dm, kind: 'win', body: 'En liten seier',
-  })).status, 'full');
+  assert.equal(
+    (
+      await commons(peer, 'post', {
+        membership: bm,
+        kind: 'offer',
+        body: 'Jeg kan hjelpe',
+      })
+    ).status,
+    'ok',
+  );
+  assert.equal(
+    (
+      await commons(third, 'post', {
+        membership: cm,
+        kind: 'notice',
+        body: 'Neste samling',
+      })
+    ).status,
+    'ok',
+  );
+  assert.equal(
+    (
+      await commons(fourth, 'post', {
+        membership: dm,
+        kind: 'win',
+        body: 'En liten seier',
+      })
+    ).status,
+    'full',
+  );
   const snapshot = await commons(owner, 'read', { membership: am });
   assert.equal(snapshot.group.notes.length, 3);
-  assert.equal((await commons(other, 'read', { membership: om })).group.notes.length, 0);
-  assert.equal((await commons(owner, 'resolve', {
-    membership: am, note: noteId,
-  })).status, 'ok');
-  assert.equal((await commons(fourth, 'post', {
-    membership: dm, kind: 'win', body: 'En liten seier',
-  })).status, 'ok');
+  assert.equal(
+    (await commons(other, 'read', { membership: om })).group.notes.length,
+    0,
+  );
+  assert.equal(
+    (
+      await commons(owner, 'resolve', {
+        membership: am,
+        note: noteId,
+      })
+    ).status,
+    'ok',
+  );
+  assert.equal(
+    (
+      await commons(fourth, 'post', {
+        membership: dm,
+        kind: 'win',
+        body: 'En liten seier',
+      })
+    ).status,
+    'ok',
+  );
 
-  assert.equal((await commons(peer, 'transfer', {
-    membership: bm, target: cm,
-  })).status, 'not-admin');
+  assert.equal(
+    (
+      await commons(peer, 'transfer', {
+        membership: bm,
+        target: cm,
+      })
+    ).status,
+    'not-admin',
+  );
   const transferred = await commons(owner, 'transfer', {
-    membership: am, target: bm,
+    membership: am,
+    target: bm,
   });
   assert.equal(transferred.status, 'ok');
   assert.equal(transferred.group.isAdmin, false);
   assert.equal((await social(peer, 'read')).group.canInvite, true);
   assert.equal((await social(peer, 'read')).group.hasInvite, false);
-  assert.equal((await social(owner, 'rename', {
-    membership: am, name: 'Denied',
-  })).status, 'not-admin');
-  assert.equal((await social(peer, 'rename', {
-    membership: bm, name: 'Renamed',
-  })).status, 'ok');
-  assert.equal((await commons(peer, 'remove', {
-    membership: bm, note: (await commons(third, 'read', { membership: cm })).group.notes.find(n => n.author === 'Cai').id,
-  })).status, 'ok');
+  assert.equal(
+    (
+      await social(owner, 'rename', {
+        membership: am,
+        name: 'Denied',
+      })
+    ).status,
+    'not-admin',
+  );
+  assert.equal(
+    (
+      await social(peer, 'rename', {
+        membership: bm,
+        name: 'Renamed',
+      })
+    ).status,
+    'ok',
+  );
+  assert.equal(
+    (
+      await commons(peer, 'remove', {
+        membership: bm,
+        note: (
+          await commons(third, 'read', { membership: cm })
+        ).group.notes.find((n) => n.author === 'Cai').id,
+      })
+    ).status,
+    'ok',
+  );
 
   const previous = await commons(fourth, 'read', { membership: dm });
-  assert.equal(previous.group.notes.some((note) => note.author === 'Dee'), true);
+  assert.equal(
+    previous.group.notes.some((note) => note.author === 'Dee'),
+    true,
+  );
   await social(fourth, 'leave', { membership: dm });
-  assert.equal((await commons(peer, 'read', { membership: bm })).group.notes.some((note) => note.author === 'Dee'), false);
+  assert.equal(
+    (await commons(peer, 'read', { membership: bm })).group.notes.some(
+      (note) => note.author === 'Dee',
+    ),
+    false,
+  );
   await db.query('DELETE FROM auth.users WHERE id=$1', [third]);
-  assert.equal((await commons(peer, 'read', { membership: bm })).group.notes.some((note) => note.author === 'Cai'), false);
+  assert.equal(
+    (await commons(peer, 'read', { membership: bm })).group.notes.some(
+      (note) => note.author === 'Cai',
+    ),
+    false,
+  );
   await social(owner, 'leave', { membership: am });
   await social(peer, 'leave', { membership: bm });
-  const count = await db.query('SELECT count(*)::int AS count FROM progresspal_social.groups');
+  const count = await db.query(
+    'SELECT count(*)::int AS count FROM progresspal_social.groups',
+  );
   assert.equal(count.rows[0].count, 1);
   assert.equal((await commons(other, 'read', { membership: om })).status, 'ok');
-  console.log('Guild Commons SQL PASS: isolated Guilds, private notes, caps, roles, handover, leave and Auth deletion.');
+  console.log(
+    'Guild Commons SQL PASS: isolated Guilds, private notes, caps, roles, handover, leave and Auth deletion.',
+  );
 } finally {
   await db.close();
 }

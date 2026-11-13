@@ -379,11 +379,11 @@ export function GroupSession({
       </ul>
       {import.meta.env.VITE_PROGRESSPAL_GUILD_COMMONS === 'true' && (
         <GuildCommons
-        key={group.membership}
-        membership={group.membership}
-        userId={userId}
-        rpg={Boolean(renderPanels)}
-        onMembershipChanged={() => void run({ operation: 'read' })}
+          key={group.membership}
+          membership={group.membership}
+          userId={userId}
+          rpg={Boolean(renderPanels)}
+          onMembershipChanged={() => void run({ operation: 'read' })}
         />
       )}
     </>

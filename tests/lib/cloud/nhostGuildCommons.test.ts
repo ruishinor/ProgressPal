@@ -20,18 +20,18 @@ const commons = {
     ethos: 'Lær sammen',
     about: 'Et lite læringsfellesskap',
     isAdmin: true,
-    members: [
-      { nickname: 'Ada', membership, self: true },
+    members: [{ nickname: 'Ada', membership, self: true }],
+    notes: [
+      {
+        id: noteId,
+        kind: 'help',
+        body: 'Kan noen forklare git merge?',
+        author: 'Ada',
+        createdAt: '2026-11-13T01:00:00Z',
+        own: true,
+        canRemove: true,
+      },
     ],
-    notes: [{
-      id: noteId,
-      kind: 'help',
-      body: 'Kan noen forklare git merge?',
-      author: 'Ada',
-      createdAt: '2026-11-13T01:00:00Z',
-      own: true,
-      canRemove: true,
-    }],
   },
 };
 
@@ -50,24 +50,52 @@ it('keeps Commons silent until explicitly called and uses the expected authentic
   const cloud = createCloud();
   const signal = new AbortController().signal;
   expect(stub.calls).toEqual([]);
-  expect(await cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'user-1', signal)).toEqual({ status: 'unavailable' });
+  expect(
+    await cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'user-1',
+      signal,
+    ),
+  ).toEqual({ status: 'unavailable' });
   expect(stub.calls).toEqual([]);
   enableCloud();
-  expect(await cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'user-1', signal)).toEqual({ status: 'unauthenticated' });
+  expect(
+    await cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'user-1',
+      signal,
+    ),
+  ).toEqual({ status: 'unauthenticated' });
   await signInThroughStub(cloud, stub);
-  expect(await cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'other-user', signal)).toEqual({ status: 'unauthenticated' });
+  expect(
+    await cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'other-user',
+      signal,
+    ),
+  ).toEqual({ status: 'unauthenticated' });
   expect(stub.calls).toEqual([]);
 
   stub.respond(() => answer(commons));
-  expect(await cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'user-1', signal)).toEqual(commons);
+  expect(
+    await cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'user-1',
+      signal,
+    ),
+  ).toEqual(commons);
   expect(stub.calls).toHaveLength(1);
   expect(stub.calls[0]?.url).toBe(nhostGraphqlUrl);
   expect(stub.calls[0]?.headers.get('authorization')).toMatch(/^Bearer /);
@@ -81,25 +109,44 @@ it('rejects malformed member messages, oversized note lists and unexpected Graph
   const cloud = createCloud();
   enableCloud();
   await signInThroughStub(cloud, stub);
-  const read = () => cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'user-1', new AbortController().signal);
+  const read = () =>
+    cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'user-1',
+      new AbortController().signal,
+    );
 
-  stub.respond(() => answer({
-    ...commons,
-    group: { ...commons.group, notes: Array(4).fill(commons.group.notes[0]) },
-  }));
+  stub.respond(() =>
+    answer({
+      ...commons,
+      group: { ...commons.group, notes: Array(4).fill(commons.group.notes[0]) },
+    }),
+  );
   expect(await read()).toEqual({ status: 'unavailable' });
 
-  stub.respond(() => answer({
-    ...commons,
-    group: { ...commons.group, notes: [{ ...commons.group.notes[0], body: 'x'.repeat(281) }] },
-  }));
+  stub.respond(() =>
+    answer({
+      ...commons,
+      group: {
+        ...commons.group,
+        notes: [{ ...commons.group.notes[0], body: 'x'.repeat(281) }],
+      },
+    }),
+  );
   expect(await read()).toEqual({ status: 'unavailable' });
 
-  stub.respond(() => jsonResponse(200, { errors: [{
-    extensions: { code: 'invalid-jwt' },
-  }] }));
+  stub.respond(() =>
+    jsonResponse(200, {
+      errors: [
+        {
+          extensions: { code: 'invalid-jwt' },
+        },
+      ],
+    }),
+  );
   expect(await read()).toEqual({ status: 'unauthenticated' });
 });
 
@@ -115,8 +162,13 @@ it('passes only a bounded member-authored command and preserves provider denials
     body: 'Jeg trenger hjelp med git merge.',
   } as const;
   stub.respond(() => answer({ status: 'full' }));
-  expect(await cloud.commons.execute(command, 'user-1', new AbortController().signal))
-    .toEqual({ status: 'full' });
+  expect(
+    await cloud.commons.execute(
+      command,
+      'user-1',
+      new AbortController().signal,
+    ),
+  ).toEqual({ status: 'full' });
   expect(stub.calls).toHaveLength(1);
   expect(stub.calls[0]?.body).toMatchObject({
     variables: {
@@ -131,9 +183,15 @@ it('discards a private response after logout or a cloud preference change', asyn
   const cloud = createCloud();
   enableCloud();
   await signInThroughStub(cloud, stub);
-  const read = () => cloud.commons.execute({
-    operation: 'read', membership,
-  }, 'user-1', new AbortController().signal);
+  const read = () =>
+    cloud.commons.execute(
+      {
+        operation: 'read',
+        membership,
+      },
+      'user-1',
+      new AbortController().signal,
+    );
 
   stub.respond(() => {
     sessionStorage.removeItem(cloudSessionStorageKey);
