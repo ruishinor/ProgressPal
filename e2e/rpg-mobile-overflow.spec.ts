@@ -59,7 +59,7 @@ test('keyboard focus stays clear of the RPG primary navigation in forms', async 
       ['/rpg/focus', 'Start live session'],
       ['/rpg/settings', 'Save local settings'],
     ] as const) {
-      await page.goto(path);
+      await page.goto(path === '/rpg/settings' ? '/rpg/settings?section=profile' : path);
       await expect(page.locator('.rpg-hero-hud__name')).toHaveText('Alex');
       await expect(
         page.getByRole('button', { exact: true, name: readyButton }),
