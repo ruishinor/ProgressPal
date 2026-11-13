@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FeedbackWidget } from '@/features/feedback';
 import { submitFeedback } from '@/features/feedback/transport';
@@ -19,6 +19,7 @@ beforeAll(() => {
 });
 
 describe('voluntary feedback dialog', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('never sends while closed; sends opt-in report without learner metadata', async () => {
     vi.mocked(submitFeedback).mockResolvedValue({
       status: 'received',
