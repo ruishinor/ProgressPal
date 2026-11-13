@@ -4,11 +4,11 @@
   "reviewer": "Owner-authorized implementer self-review, with GPT-6 assistance; not an independent review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "dd7e789a18e6cc062147a268b498dcbe7db1b224",
+    "payloadTree": "8e41def5bfbf8fcdf0fd47ced7026b24c36e7ba4",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "PR93 private feedback candidate, including protected Preview authentication, keyboard navigation, security boundaries and bilingual privacy documentation.",
+    "summary": "Feedback intake candidate with corrected protected-Preview authentication, keyboard navigation, source and bilingual privacy documentation, and safe upstream error diagnostics.",
     "evidence": [
       "Owner-reported focused Vitest: 72/72 passed across three test files.",
       "Owner-reported ESLint, Prettier, TypeScript, Vite build and git diff --check passed.",
@@ -16,7 +16,9 @@
       "Microlearning keyboard navigation test updated and passed locally.",
       "Nhost valid synthetic submission returned received with a receipt.",
       "Nhost scheduled retention: 37 successful runs, daily schedule restored and synthetic expired report removed.",
-      "Final Vercel Preview submission, ordinary user-role denial and release certification remain operational checks."
+      "Owner-reported Node server tests: 4/4 passed; ESLint and Prettier checks passed after safe server-side diagnostics addition; source correction at commit 7789a977299155e23a985b3c39ad3138bac374e6.",
+      "Owner-provided Vercel runtime logs identified Nhost GraphQL access-denied for the previous server credential; subsequently the owner-provided Preview screenshot displayed 'Meldingen er mottatt' with receipt da2a8725-f658-40f5-9293-4359ecb5459c.",
+      "Direct Nhost storage readback for that receipt, live Vercel rate-limit enforcement/host coverage, ordinary authenticated-user denial, and hosted Final candidate certification remain separately unverified."
     ]
   },
   "adversarialFindings": [
@@ -24,14 +26,14 @@
       "id": "PR93-R1",
       "severity": "P2",
       "description": "The feedback interface is present while the server-side inbox can still be disabled.",
-      "resolution": "The API fails closed unless both FEEDBACK_INTAKE_ENABLED=true and a server-only administrator secret exist. Do not activate until abuse protection and end-to-end receipt tests pass.",
+      "resolution": "The API fails closed unless FEEDBACK_INTAKE_ENABLED=true and a server-side administrator secret exist. An owner-provided Preview screen confirmed a valid receipt after repairing the Nhost credential; production enablement still requires the remaining operational gates.",
       "status": "accepted-risk"
     },
     {
       "id": "PR93-R2",
       "severity": "P2",
       "description": "Provider firewall coverage, scheduled purge execution and actual learner-role access are not certified by source-only tests.",
-      "resolution": "These are separately identified activation gates; the source merge alone must not be represented as evidence of operational readiness.",
+      "resolution": "Synthetic SQL purge and scheduled execution were owner-verified (37 successful runs). A Vercel rate-limit rule was configured, but enforcement and all-hostname coverage have not been independently confirmed, and ordinary-user GraphQL denial still requires a live test. These are operational activation gates, not claims of source-only certification.",
       "status": "accepted-risk"
     },
     {
@@ -58,6 +60,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Owner-authorized implementer self-review with GPT-6 assistance. Source corrections passed reported local checks. No independent review was performed or claimed. Production activation still requires operational verification."
+    "summary": "Owner-authorized implementer self-review with GPT-6 assistance; no independent reviewer was used. Focused tests and owner-supplied Preview receipt support this source candidate. Full hosted release certification and production operational controls remain separate verifications."
   }
 }
