@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "private-feedback-intake",
+  "reviewer": "Owner-authorized implementer self-review, with GPT-6 assistance; not an independent review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "271036874f52b84aa8c1b5d3dcc2516e48695a3b",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Review of PR #93 feedback source corrections, restricted security-reporting link, Norwegian-English documentation and operational fail-closed boundaries.",
+    "evidence": [
+      "Owner-reported local Node server tests 4/4 and focused Vitest tests 19/19 passed after code corrections.",
+      "Owner-reported ESLint, Prettier, TypeScript, Vite build, bundle budget and circular dependency checks passed; latest documentation-only update passed Prettier and git diff --check.",
+      "Nhost schema installation and Hasura metadata tracking confirmed; reports and daily_count remained untracked with no ordinary role permissions.",
+      "Anonymous GraphQL responded no mutations exist; ordinary authenticated user role remains to be independently role-tested.",
+      "pg_cron 1.6 job 1 confirmed active on the daily schedule, with 37 succeeded runs and no remaining synthetic retention test report (owner-supplied SQL results).",
+      "Vercel firewall publication/coverage, server secret scoping, authenticated role denial, Preview receipt, and Production activation require distinct operational verification."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PR93-R1",
+      "severity": "P2",
+      "description": "The feedback interface is present while the server-side inbox can still be disabled.",
+      "resolution": "The API fails closed unless both FEEDBACK_INTAKE_ENABLED=true and a server-only administrator secret exist. Do not activate until abuse protection and end-to-end receipt tests pass.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PR93-R2",
+      "severity": "P2",
+      "description": "Provider firewall coverage, scheduled purge execution and actual learner-role access are not certified by source-only tests.",
+      "resolution": "These are separately identified activation gates; the source merge alone must not be represented as evidence of operational readiness.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PR93-R3",
+      "severity": "P3",
+      "description": "The public feedback form is not an appropriate destination for reporting security vulnerabilities.",
+      "resolution": "The app and both documentation languages direct disclosures to the separate GitHub private vulnerability intake, rather than the feedback service.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Owner-authorized self-review supports the fail-closed source candidate. No independent review was performed or claimed. Merge does not itself certify or activate the Nhost/Vercel service; activation requires verified external controls."
+  }
+}
