@@ -40,7 +40,6 @@ Rollback should remove the Hasura function permission and tracking to disable
 access, preserving live Guild records and `social_week`. Destructive table or
 column rollback requires separate retention/deletion authorization.
 
-
 This delta targets the existing Nhost PostgreSQL source and Hasura GraphQL API.
 It requires PostgreSQL with built-in `gen_random_uuid()` and `sha256(bytea)`,
 `auth.users(id uuid)`, and the authenticated Hasura role `user` on a read-committed source. Verify the
