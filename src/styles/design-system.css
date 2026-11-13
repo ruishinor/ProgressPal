@@ -2085,3 +2085,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+@media (max-width: 32rem) {
+  .settings-category-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
