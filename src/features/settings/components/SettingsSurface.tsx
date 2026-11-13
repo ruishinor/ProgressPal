@@ -383,27 +383,31 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           <div className="settings-programme-column">
             {activeProgramme?.programmeId === gitPathwayProgrammeId ? (
               <p role="status">
-                Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er bevart.
-                Velg CS50x eller Programvareutvikling nedenfor for å fortsette med et
-                studieprogram.
+                Git &amp; GitHub ligger nå under Pathways. Arbeidet ditt er
+                bevart. Velg CS50x eller Programvareutvikling nedenfor for å
+                fortsette med et studieprogram.
               </p>
             ) : null}
-            <Card title="Programme" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+            <Card
+              title="Programme"
+              titleAs={isRpgVariant ? 'h2' : 'h3'}
+            >
               <p className="card__description">
                 Active programme:{' '}
                 <strong>{activeProgramme?.title ?? 'Unavailable'}</strong>
               </p>
               {switchTarget === undefined ? (
                 <p className="card__description">
-                  This is the only programme available in this version of ProgressPal.
+                  This is the only programme available in this version of
+                  ProgressPal.
                 </p>
               ) : (
                 <>
                   <p className="card__description">
-                    Switching changes the course, wording, and rewards ProgressPal
-                    shows. Your XP, achievements, study sessions, and profile stay
-                    shared across programmes and nothing is deleted. Nothing changes
-                    until you press the button.
+                    Switching changes the course, wording, and rewards
+                    ProgressPal shows. Your XP, achievements, study sessions, and
+                    profile stay shared across programmes and nothing is
+                    deleted. Nothing changes until you press the button.
                   </p>
                   <FormField
                     controlId="programme-switch-target"
@@ -440,8 +444,8 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
                   </div>
                   {switchFailed ? (
                     <p className="form-field__error" role="alert">
-                      The programme could not be switched. Your active programme is
-                      unchanged.
+                      The programme could not be switched. Your active
+                      programme is unchanged.
                     </p>
                   ) : null}
                 </>
@@ -512,17 +516,24 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
         </Card>
         <div className="settings-backup-grid">
           <div className="settings-backup-local">
-            <Card title="Export a backup" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+            <Card
+              title="Export a backup"
+              titleAs={isRpgVariant ? 'h2' : 'h3'}
+            >
               <p className="card__description">
-                Download a full local backup as a JSON file. It contains your learning
-                history and progress, notes and saved blockers, XP transactions and
-                achievement unlocks, media progress and resume points, and your
-                Activity records and goals, settings, profile, and app metadata. Keep
-                exported files somewhere private; they are created and stored only by
-                you.
+                Download a full local backup as a JSON file. It contains your
+                learning history and progress, notes and saved blockers, XP
+                transactions and achievement unlocks, media progress and resume
+                points, and your Activity records and goals, settings, profile,
+                and app metadata. Keep exported files somewhere private; they
+                are created and stored only by you.
               </p>
               <div className="action-row">
-                <Button loading={exporting} onClick={handleExport} variant="primary">
+                <Button
+                  loading={exporting}
+                  onClick={handleExport}
+                  variant="primary"
+                >
                   Export local backup
                 </Button>
               </div>
@@ -559,7 +570,10 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
             </p>
           </Card>
         ) : (
-          <Card title="Reset local data" titleAs={isRpgVariant ? 'h2' : 'h3'}>
+          <Card
+            title="Reset local data"
+            titleAs={isRpgVariant ? 'h2' : 'h3'}
+          >
             <p className="card__description">
               Permanently delete all local ProgressPal data on this device and
               start fresh. This removes your progress, sessions, XP, achievements,
