@@ -269,6 +269,7 @@ test.describe('the email-link landing route', () => {
     const beforeSettings = provider.calls.length;
     await page.getByRole('link', { name: 'Open Settings' }).click();
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await expect(
       card(page).getByText(learnerEmail, { exact: true }),
     ).toBeVisible();
@@ -610,6 +611,7 @@ test.describe('password recovery in a real browser', () => {
     ).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(`${baseURL}/rpg/settings`);
+    await page.getByRole('link', { name: 'Data & backups' }).click();
     await expect(card(page).getByLabel('Email')).toBeVisible();
     await card(page).getByLabel('Email').fill(learnerEmail);
     await card(page).getByLabel('Password').fill(password);
