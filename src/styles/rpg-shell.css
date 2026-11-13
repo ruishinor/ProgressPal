@@ -210,10 +210,26 @@ html:has(body.rpg-route-active) {
 }
 
 .rpg-hero-hud .rpg-identity__copy {
-  align-items: baseline;
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--space-3);
+  gap: var(--space-1) var(--space-3);
+}
+
+.rpg-hero-hud .rpg-identity__status {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  min-height: 2rem;
+  min-width: 0;
+}
+
+.rpg-hero-hud .rpg-identity__status .activity-indicator {
+  align-items: center;
+  line-height: 1.35;
+  min-height: 2rem;
+  padding-block: 0;
 }
 
 .rpg-hero-hud .rpg-identity__name {
