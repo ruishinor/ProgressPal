@@ -2067,6 +2067,12 @@
   min-width: 0;
 }
 
+.settings-programme-column {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
 .settings-backup-local {
   display: grid;
   gap: var(--space-4);
