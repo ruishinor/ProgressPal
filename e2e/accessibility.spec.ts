@@ -457,7 +457,7 @@ test('primary and danger buttons stay readable on hover in dark theme', async ({
   // Danger button hover - enable the Settings reset button via normal input
   // (typing the confirmation phrase), then hover only. Nothing is clicked, so no
   // data is mutated.
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await page.getByLabel('Confirmation phrase').fill('RESET');
   const danger = page.getByRole('button', { name: 'Reset all local data' });
@@ -472,7 +472,7 @@ test('the custom checkbox shows a visible keyboard focus indicator in dark theme
   page,
 }) => {
   await completeOnboardingDark(page);
-  await page.goto('/settings');
+  await page.goto('/settings?section=profile');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 
   const checkbox = page.getByLabel('Reduce motion in this app');
@@ -517,7 +517,7 @@ test('an RPG settings toast does not cover the fixed mobile primary navigation',
   const page = await context.newPage();
 
   await completeOnboardingDark(page);
-  await page.goto('/rpg/settings');
+  await page.goto('/rpg/settings?section=profile');
   await page.getByRole('button', { name: 'Save local settings' }).click();
   await expect(
     page.getByRole('status').getByText('Local profile saved'),
