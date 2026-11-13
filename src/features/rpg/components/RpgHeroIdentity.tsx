@@ -89,7 +89,8 @@ export function RpgHeroIdentity({
               <div className="action-row">
                 <RpgRankBadge rank={identity.rankLabel} />
                 <RpgInfoNote label="About rank">
-                  Rank follows how much of the required course you have completed.
+                  Rank follows how much of the required course you have
+                  completed.
                 </RpgInfoNote>
               </div>
             ) : null}
