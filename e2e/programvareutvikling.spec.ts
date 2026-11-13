@@ -306,7 +306,7 @@ test('exports a schema-5 backup with the evidence and restores it exactly', asyn
   await answerFirstChoiceExercise(page);
   const before = await readEvidenceCount(page);
 
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Export local backup' }).click(),
@@ -329,7 +329,7 @@ test('exports a schema-5 backup with the evidence and restores it exactly', asyn
 
   await page.getByLabel('Backup file').setInputFiles(backupPath);
   await page.getByRole('button', { name: 'Restore this backup' }).click();
-  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page).toHaveURL(/\/settings\?section=data$/);
   expect(await readEvidenceCount(page)).toEqual(before);
 
   await page.goto(firstLesson);
@@ -344,7 +344,7 @@ test('refuses an older schema-3 backup before any write', async ({ page }) => {
   await answerFirstChoiceExercise(page);
   const before = await readEvidenceCount(page);
 
-  await page.goto('/settings');
+  await page.goto('/settings?section=data');
   const [download] = await Promise.all([
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Export local backup' }).click(),
