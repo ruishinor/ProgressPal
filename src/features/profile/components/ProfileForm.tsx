@@ -275,27 +275,11 @@ export function ProfileForm({
             <p className="profile-fieldset__description">
               The same character is used in Classic and RPG views.
             </p>
-            <div
-              style={{
-                display: 'grid',
-                gap: '0.75rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
-              }}
-            >
+            <div className="avatar-choice-grid">
               {avatarOptions.map((option) => (
                 <label
+                  className={`checkbox checkbox--avatar${values.avatarId === option.id ? ' checkbox--selected' : ''}${disabled ? ' checkbox--disabled' : ''}`}
                   key={option.id}
-                  style={{
-                    alignItems: 'center',
-                    border:
-                      '1px solid color-mix(in srgb, currentColor 22%, transparent)',
-                    borderRadius: '0.75rem',
-                    cursor: disabled ? 'default' : 'pointer',
-                    display: 'flex',
-                    gap: '0.625rem',
-                    opacity: disabled ? 0.65 : 1,
-                    padding: '0.625rem',
-                  }}
                 >
                   <input
                     checked={values.avatarId === option.id}
