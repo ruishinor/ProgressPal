@@ -1,24 +1,26 @@
 {
   "schemaVersion": 2,
   "module": "private-feedback-intake",
-  "reviewer": "Owner-authorized implementer self-review, with GPT-6 assistance; not an independent review",
+  "reviewer": "Owner-authorized implementer self-review with GPT-6 assistance; GPT-6 focused successor source review of the owner-uploaded local commit diff, not an independently executed test run",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "8e41def5bfbf8fcdf0fd47ced7026b24c36e7ba4",
+    "payloadTree": "6421b9e72999e687afe79bae66597dab807b5043",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Feedback intake candidate with corrected protected-Preview authentication, keyboard navigation, source and bilingual privacy documentation, and safe upstream error diagnostics.",
+    "summary": "Private feedback intake source candidate, including the five-file microlearning architectural boundary correction on local candidate commit d6d06868ff2eb766c1a2da6a965c01cd820634d0. Focused successor review of the actual uploaded git show diff compared with the feature entrypoint and RPG route topology from the existing PR branch. This is a source review and owner-reported local check evidence, not hosted release certification or production activation.",
     "evidence": [
-      "Owner-reported focused Vitest: 72/72 passed across three test files.",
-      "Owner-reported ESLint, Prettier, TypeScript, Vite build and git diff --check passed.",
-      "Protected Preview required same-origin credentials; the fixed client and architecture test were locally verified.",
-      "Microlearning keyboard navigation test updated and passed locally.",
-      "Nhost valid synthetic submission returned received with a receipt.",
-      "Nhost scheduled retention: 37 successful runs, daily schedule restored and synthetic expired report removed.",
-      "Owner-reported Node server tests: 4/4 passed; ESLint and Prettier checks passed after safe server-side diagnostics addition; source correction at commit 7789a977299155e23a985b3c39ad3138bac374e6.",
-      "Owner-provided Vercel runtime logs identified Nhost GraphQL access-denied for the previous server credential; subsequently the owner-provided Preview screenshot displayed 'Meldingen er mottatt' with receipt da2a8725-f658-40f5-9293-4359ecb5459c.",
-      "Direct Nhost storage readback for that receipt, live Vercel rate-limit enforcement/host coverage, ordinary authenticated-user denial, and hosted Final candidate certification remain separately unverified."
+      "Owner-provided local candidate identity: d6d06868ff2eb766c1a2da6a965c01cd820634d0, payload tree 6421b9e72999e687afe79bae66597dab807b5043; five changed files, 30 insertions and 14 deletions. The commit was not yet pushed when reviewed.",
+      "GPT-6 reviewed the uploaded git show patch covering RpgRouteShell.tsx, MicroShell.tsx, microFeedbackSlot.ts, the microlearning public entrypoint and microSession.test.tsx. The new context is React-only and feature-local; the app consumes it through @/features/microlearning, preserving the app import boundary.",
+      "The existing router.tsx, inspected from the public PR branch, places both MicrolearningRoute and MicroTrackRoute under RpgRouteShell. Its ready-state provider surrounds DataEpochOutlet, and loading/error states continue to render FeedbackWidget directly. The existing immersive header injects the action where the old direct FeedbackWidget was rendered.",
+      "The revised microSession test setup explicitly supplies the same feedback action through MicroFeedbackSlot.Provider. This preserves interactive feedback-button and focus-related test coverage within the focused suite; it does not replace independent end-to-end browser evidence.",
+      "Owner-reported preflight on this local candidate: git diff --check, changed-file Prettier, ESLint, TypeScript typecheck, circular dependency check (562/562 analyzed, no cycles), Vite production build and bundle-budget check all passed. The bundle report recorded zero violations and warnings; JavaScript gzip total 461632 bytes against 470000-byte maximum.",
+      "Owner-reported focused Vitest on this local candidate: 70/70 passed in three test files (microlearningBoundary 14, microSession 54, FeedbackWidget 2). No new full local test suite or managed Playwright run was reported for the five-file delta.",
+      "Previously owner-reported focused Vitest: 72/72 passed across three test files before the newer microlearning boundary change; this is historical evidence, not a result for the current payload.",
+      "Previously owner-reported Node server tests: 4/4 passed; ESLint and Prettier checks passed after safe server-side diagnostics addition at commit 7789a977299155e23a985b3c39ad3138bac374e6.",
+      "Previously owner-reported protected Preview had same-origin credential handling corrected; supplied Vercel runtime diagnostics identified an earlier Nhost GraphQL access-denied and a later screenshot showed a successful application receipt da2a8725-f658-40f5-9293-4359ecb5459c. This does not constitute Nhost receipt-storage readback.",
+      "Previously owner-reported Nhost synthetic submission and scheduled retention validation: 37 successful cron executions, daily schedule restored and a synthetic expired report removed. These are operational evidence from the previous payload, not retested here.",
+      "Direct Nhost storage readback for the Preview receipt, actual enforced Vercel firewall rate-limit and all-hostname coverage, ordinary authenticated-role denial, hosted Final candidate certification, production enablement, alias promotion and production smoke remain unverified in this review."
     ]
   },
   "adversarialFindings": [
@@ -56,10 +58,17 @@
       "description": "The new feedback button changed microlearning keyboard focus order.",
       "resolution": "Updated the accessibility test to verify both header controls and entry to the first session. Focused test passed.",
       "status": "resolved"
+    },
+    {
+      "id": "PR96-R6",
+      "severity": "P2",
+      "description": "The first microlearning feedback integration imported the feedback feature directly inside the isolated microlearning feature, violating its established architecture boundary. The initial repair also introduced an app-layer import of a feature-internal context module, rejected by ESLint.",
+      "resolution": "The final five-file successor defines a React-only optional context inside microlearning, exports it from the feature public entrypoint, provides the existing FeedbackWidget action from RpgRouteShell and consumes it in MicroShell without importing feedback. The microSession fixture mirrors this provider. The owner reported 70/70 focused tests, lint, typecheck, circular dependency, build and budget PASS for the local candidate; direct diff review found no remaining restricted import.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Owner-authorized implementer self-review with GPT-6 assistance; no independent reviewer was used. Focused tests and owner-supplied Preview receipt support this source candidate. Full hosted release certification and production operational controls remain separate verifications."
+    "summary": "Focused source-review proceed for local candidate d6d06868ff2eb766c1a2da6a965c01cd820634d0 / payload tree 6421b9e72999e687afe79bae66597dab807b5043. Implementer self-review with GPT-6 assistance, without claims of independent test execution. The architectural regression has been corrected and owner-reported local checks passed. This proceed decision is limited to the source candidate: it neither certifies the native hosted Final candidate gate nor authorizes enabling production feedback before the outstanding provider-security and operational controls are verified."
   }
 }
