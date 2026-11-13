@@ -128,6 +128,45 @@ describe('production registry: two real programmes, nothing switches on render',
     closeSharedDatabase();
   }
 
+  it('keeps an unsaved profile draft when switching Settings categories', async () => {
+    injected.registry = null;
+    await seedProductionDevice();
+    await renderAppAtRoute('/settings');
+    await screen.findByRole('heading', { name: 'Programme' }, timeout);
+
+    const categories = screen.getByRole('navigation', {
+      name: 'Settings categories',
+    });
+    expect(within(categories).getByRole('link', { name: 'General' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await userEvent.click(
+      within(categories).getByRole('link', { name: 'Profile & preferences' }),
+    );
+    const displayName = screen.getByLabelText('Display name');
+    await userEvent.clear(displayName);
+    await userEvent.type(displayName, 'Draft learner');
+
+    await userEvent.click(
+      within(categories).getByRole('link', { name: 'Data & backups' }),
+    );
+    expect(screen.queryByRole('button', { name: 'Save local settings' })).toBeNull();
+    expect(
+      within(categories).getByRole('link', { name: 'Data & backups' }),
+    ).toHaveAttribute('aria-current', 'page');
+
+    await userEvent.click(
+      within(categories).getByRole('link', { name: 'Profile & preferences' }),
+    );
+    expect(screen.getByLabelText('Display name')).toHaveValue('Draft learner');
+    expect(
+      (await getDatabaseSnapshot({ db: getSharedDatabase() })).learnerProfile
+        ?.displayName,
+    ).toBe('C7 Synthetic Learner');
+  }, 45_000);
+
   it.each([
     ['/settings', 'Classic'],
     ['/rpg/settings', 'RPG'],
