@@ -279,20 +279,27 @@ export function ProfileForm({
               style={{
                 display: 'grid',
                 gap: '0.75rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(6.25rem, 1fr))',
               }}
             >
               {avatarOptions.map((option) => (
                 <label
+                  className="profile-avatar-option"
                   key={option.id}
                   style={{
                     alignItems: 'center',
                     border:
-                      '1px solid color-mix(in srgb, currentColor 22%, transparent)',
+                      values.avatarId === option.id
+                      ? '2px solid var(--color-accent)'
+                      : '2px solid color-mix(in srgb, currentColor 22%, transparent)',
                     borderRadius: '0.75rem',
                     cursor: disabled ? 'default' : 'pointer',
                     display: 'flex',
-                    gap: '0.625rem',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                    justifyContent: 'center',
+                    minHeight: '5.75rem',
+                    position: 'relative',
                     opacity: disabled ? 0.65 : 1,
                     padding: '0.625rem',
                   }}
@@ -311,14 +318,19 @@ export function ProfileForm({
                     value={option.id}
                   />
                   <ProfileAvatar
+                    aria-hidden="true"
                     avatarConfig={{
                       ...createAvatarConfig(values),
                       avatarId: option.id,
                     }}
                     label={`${option.label} avatar`}
+                    loading="lazy"
                     size="sm"
                   />
-                  <span>{option.label}</span>
+                  <span className="sr-only">{option.label}</span>
+                  <span aria-hidden="true" className="profile-avatar-option__tooltip">
+                    {option.label}
+                  </span>
                 </label>
               ))}
             </div>

@@ -1939,3 +1939,32 @@
   font-size: var(--text-sm);
   margin-block: 0.5rem;
 }
+
+/* Avatar identity labels appear only on hover and keyboard focus. */
+.profile-avatar-option__tooltip {
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.375rem;
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  inset-block-end: calc(100% + 0.25rem);
+  left: 50%;
+  max-width: min(14rem, 90vw);
+  opacity: 0;
+  padding: 0.25rem 0.5rem;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  transform: translateX(-50%);
+  visibility: hidden;
+  white-space: normal;
+  width: max-content;
+  z-index: 2;
+}
+
+.profile-avatar-option:hover .profile-avatar-option__tooltip,
+.profile-avatar-option:focus-within .profile-avatar-option__tooltip {
+  opacity: 1;
+  visibility: visible;
+}

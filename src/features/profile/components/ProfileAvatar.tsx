@@ -8,6 +8,7 @@ import { normalizeAvatarConfig } from '@/lib/profile';
 export type ProfileAvatarProps = HTMLAttributes<HTMLDivElement> & {
   avatarConfig: LearnerAvatarConfig | undefined;
   label?: string;
+  loading?: 'eager' | 'lazy';
   size?: 'lg' | 'sm';
 };
 
@@ -15,6 +16,7 @@ export function ProfileAvatar({
   avatarConfig,
   className,
   label = 'Character profile avatar',
+  loading = 'eager',
   size = 'lg',
   style,
   ...rest
@@ -44,6 +46,7 @@ export function ProfileAvatar({
     >
       <img
         alt=""
+        loading={loading}
         aria-hidden="true"
         src={avatar.src}
         style={{
