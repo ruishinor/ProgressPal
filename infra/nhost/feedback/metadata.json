@@ -1,0 +1,29 @@
+{
+  "type": "bulk",
+  "args": [
+    {
+      "type": "pg_track_table",
+      "args": {
+        "source": "default",
+        "table": {
+          "schema": "progresspal_feedback",
+          "name": "response"
+        }
+      }
+    },
+    {
+      "type": "pg_track_function",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_feedback",
+          "name": "submit_feedback"
+        },
+        "configuration": {
+          "exposed_as": "mutation",
+          "custom_name": "submit_feedback"
+        }
+      }
+    }
+  ]
+}

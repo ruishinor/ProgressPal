@@ -97,9 +97,17 @@ const URL_PATTERN = /https?:\/\/[^\s'"`)<>]+/g;
  * primitive check still applies to it, and no other file may fetch.
  */
 const PACKAGED_ASSET_READER = 'src/lib/assets/sameOriginAsset.ts';
+// One additional, user-initiated same-origin POST boundary. No background reporting.
+const FEEDBACK_TRANSPORT = 'src/features/feedback/transport.ts';
 
 // Git pilot: these two static values configure an explicit installation link.
 // They authorize no runtime network primitive, remote asset or other module.
+/** Fixed, user-clicked security policy link; not a background request. */
+const FEEDBACK_SECURITY_POLICY_MODULE =
+  'src/features/feedback/FeedbackWidget.tsx';
+const FEEDBACK_SECURITY_POLICY_URL =
+  'https://github.com/ruishinor/progresspal-security-intake/security/advisories';
+
 const GIT_RESOURCE_MODULE = 'src/programmes/git-github/index.ts';
 const GIT_RESOURCE_URLS = [
   'https://git-scm.com/',
@@ -192,7 +200,8 @@ describe('local-only source safety guardrail', () => {
       for (const { label, pattern } of FORBIDDEN_PATTERNS) {
         if (
           label === 'network fetch' &&
-          relativePath === PACKAGED_ASSET_READER
+          (relativePath === PACKAGED_ASSET_READER ||
+            relativePath === FEEDBACK_TRANSPORT)
         ) {
           continue;
         }
@@ -216,7 +225,9 @@ describe('local-only source safety guardrail', () => {
           (relativePath === CLOUD_ENDPOINT_MODULE &&
             CLOUD_ENDPOINT_URLS.includes(url)) ||
           (relativePath === GIT_RESOURCE_MODULE &&
-            GIT_RESOURCE_URLS.includes(url));
+            GIT_RESOURCE_URLS.includes(url)) ||
+          (relativePath === FEEDBACK_SECURITY_POLICY_MODULE &&
+            url === FEEDBACK_SECURITY_POLICY_URL);
 
         if (!allowed) {
           violations.push(`${relativePath}: external URL ${url}`);
@@ -225,6 +236,19 @@ describe('local-only source safety guardrail', () => {
     }
 
     expect(violations).toEqual([]);
+  });
+});
+
+describe('opt-in feedback network boundary', () => {
+  it('uses exactly one fixed same-origin POST without cookies', () => {
+    const code = stripComments(
+      readFileSync(path.resolve(process.cwd(), FEEDBACK_TRANSPORT), 'utf8'),
+    );
+    expect(code.match(/\bfetch\s*\(/g)).toHaveLength(1);
+    expect(code).toMatch(/fetch\('\/api\/feedback'/);
+    expect(code).toMatch(/method:\s*'POST'/);
+    expect(code).toMatch(/credentials:\s*'omit'/);
+    expect(code).not.toMatch(URL_PATTERN);
   });
 });
 

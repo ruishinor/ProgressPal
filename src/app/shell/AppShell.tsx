@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/Card';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { FeedbackWidget } from '@/features/feedback';
 import { useAppState } from '@/lib/appState';
 import { accountSyncEnabled } from '@/lib/cloudSync/rollout';
 import { requireProgrammeScope } from '@/lib/domain';
@@ -46,6 +47,7 @@ export function AppShell() {
   if (status === 'loading') {
     return (
       <AppShellLayout
+        feedbackAction={<FeedbackWidget />}
         mainRef={mainRef}
         navigationItems={[
           {
@@ -89,6 +91,7 @@ export function AppShell() {
   if (status === 'error') {
     return (
       <AppShellLayout
+        feedbackAction={<FeedbackWidget />}
         mainRef={mainRef}
         navigationItems={[
           {
@@ -171,6 +174,7 @@ export function AppShell() {
 
   return (
     <AppShellLayout
+      feedbackAction={<FeedbackWidget />}
       mainRef={mainRef}
       navigationItems={navigationItems}
       statusItems={[

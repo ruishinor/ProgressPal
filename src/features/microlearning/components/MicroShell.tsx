@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { RpgButton } from '@/features/rpg/components/RpgButton';
+import { FeedbackWidget } from '@/features/feedback';
 
 /**
  * The immersive frame for one microlearning surface: a close control, an
@@ -51,6 +52,7 @@ export function MicroShell({
         >
           Lukk
         </RpgButton>
+        <FeedbackWidget compact iconOnly />
         {progress === undefined ? null : (
           <>
             <div

@@ -29,6 +29,7 @@ import type { RpgHubSummary, RpgHudSummary } from '@/features/rpg/model/types';
 import { RpgPrimaryNav } from '@/features/rpg/shell/RpgPrimaryNav';
 import { CoordinationRepairControl } from '@/components/ui/CoordinationRepairControl';
 import { SettingsIcon } from '@/components/ui/SettingsIcon';
+import { FeedbackWidget } from '@/features/feedback';
 import { useGuildName } from '@/features/social/useGroupAccess';
 import {
   getRpgResourcePath,
@@ -413,7 +414,10 @@ export function RpgShell({
             <SettingsLink />
           </nav>
         ) : null}
-        <RpgPrimaryNav />
+        <div className="rpg-shell__topbar">
+          <RpgPrimaryNav />
+          <FeedbackWidget compact />
+        </div>
         {!withoutHud ? (
           <RpgHeroHud
             guildName={guildName}
