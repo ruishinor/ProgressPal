@@ -102,6 +102,12 @@ const FEEDBACK_TRANSPORT = 'src/features/feedback/transport.ts';
 
 // Git pilot: these two static values configure an explicit installation link.
 // They authorize no runtime network primitive, remote asset or other module.
+/** Fixed, user-clicked security policy link; not a background request. */
+const FEEDBACK_SECURITY_POLICY_MODULE =
+  'src/features/feedback/FeedbackWidget.tsx';
+const FEEDBACK_SECURITY_POLICY_URL =
+  'https://github.com/ruishinor/progresspal-security-intake/security/advisories';
+
 const GIT_RESOURCE_MODULE = 'src/programmes/git-github/index.ts';
 const GIT_RESOURCE_URLS = [
   'https://git-scm.com/',
@@ -219,7 +225,9 @@ describe('local-only source safety guardrail', () => {
           (relativePath === CLOUD_ENDPOINT_MODULE &&
             CLOUD_ENDPOINT_URLS.includes(url)) ||
           (relativePath === GIT_RESOURCE_MODULE &&
-            GIT_RESOURCE_URLS.includes(url));
+            GIT_RESOURCE_URLS.includes(url)) ||
+          (relativePath === FEEDBACK_SECURITY_POLICY_MODULE &&
+            url === FEEDBACK_SECURITY_POLICY_URL);
 
         if (!allowed) {
           violations.push(`${relativePath}: external URL ${url}`);

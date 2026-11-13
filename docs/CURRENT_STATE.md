@@ -1,17 +1,26 @@
-**Private feedback intake — isolated source candidate (2026-11-13).**
-Branch `feat/private-feedback-intake-20261113` is a work-in-progress,
-not a released feature. A shared Classic/RPG/immersive feedback form and a
-disabled-by-default Vercel `/api/feedback` endpoint have been committed with
-a prepared private Nhost schema/function contract. Vercel preview of commit
-`8cbfd74bd6265e35da02a94b94648c5a793b89cf` reported READY after a
-successful Vite production build. That does NOT certify local tests, live
-provider routing, Hasura permissions, retention, WAF, report receipt, the
-hosted `Final candidate` gate, master merge or public deployment. Private
-Nhost migration/metadata, server-only secret, Vercel firewall and retention
-job have not been applied or verified. Do NOT merge or enable intake while
-these prerequisites are unresolved. See `infra/nhost/feedback/README.md`.
+# Gjeldende status i ProgressPal
 
-# ProgressPal current state
+**PR #93 – frivillig tilbakemelding, kildekandidat (13. november 2026).** Grenen `feat/private-feedback-intake-20261113` inneholder et felles skjema for Classic, RPG og undervisningsvisninger, en Vercel-funksjon på `/api/feedback` som er avslått som standard, og et foreslått privat mottak hos Nhost. Dette er ennå ikke en publisert eller aktivert funksjon.
+
+En tidligere Vercel-forhåndsvisning av commit `8cbfd74bd6265e35da02a94b94648c5a793b89cf` var klar etter vellykket bygging. Det bekrefter **ikke** at mottaket virker, eller at sikkerhetskravene er oppfylt. På en lokal korrigeringsgren har eieren rapportert beståtte målrettede tester (4 Node og 19 Vitest), ESLint, Prettier, TypeScript, bygg, buntbudsjett og kontroll av sirkulære avhengigheter. Disse kontrollene gjelder de lokale filene før endelig commit, ikke den publiserte PR-grenen eller produksjonen.
+
+Nødvendige kontroller gjenstår hos Nhost og Vercel: database og Hasura-tilganger, serverhemmelighet, beskyttelse mot misbruk, løpende sletting, faktisk ruting og kvittering ved syntetisk innsending. Mottaket må forbli avslått, og PR-en må ikke flettes inn eller publiseres som en fungerende tjeneste før dette er verifisert. Se [driftsbeskrivelsen](../infra/nhost/feedback/README.md).
+
+En egen offentlig [sikkerhetskanal på GitHub](https://github.com/ruishinor/progresspal-security-intake/security/advisories) er opprettet med privat sårbarhetsrapportering aktivert. Tilgjengeligheten for eksterne rapportører er ennå ikke verifisert. Denne kanalen er uavhengig av skjemaet for vanlige tilbakemeldinger.
+
+---
+
+# Current state of ProgressPal
+
+**PR #93 — voluntary feedback, source candidate (13 November 2026).** The branch `feat/private-feedback-intake-20261113` contains a shared feedback form for Classic, RPG, and lesson views, a Vercel function at `/api/feedback` that's disabled by default, and a proposed private intake service in Nhost. The feature has not been released or enabled.
+
+An earlier Vercel preview of commit `8cbfd74bd6265e35da02a94b94648c5a793b89cf` was ready after a successful build. That does **not** prove the submission service works or meets its security requirements. On a separate local correction branch, the owner reported passing focused tests (4 Node tests and 19 Vitest tests), ESLint, Prettier, TypeScript, build, bundle-budget checks, and circular-dependency checks. These results apply to the local files before the final commit, not to the published PR branch or production.
+
+The required Nhost and Vercel checks are still outstanding: database and Hasura permissions, the server-side secret, abuse protection, recurring deletion, actual routing, and receipt verification using a synthetic submission. Submissions must stay disabled, and the PR must not be merged or deployed as a working service until those checks are complete. See the [operating instructions](../infra/nhost/feedback/README.md).
+
+A separate public [GitHub vulnerability-reporting repository](https://github.com/ruishinor/progresspal-security-intake/security/advisories) has been created, with private vulnerability reporting enabled. Access for external reporters has not yet been verified. This channel is separate from the regular product feedback form.
+
+---
 
 **Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger
 videre på den lokale v2-kandidaten `d32acb4` og GitHub `master` med PR #90

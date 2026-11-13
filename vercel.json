@@ -44,9 +44,7 @@
   ],
   "functions": {
     "api/feedback.mjs": {
-      "regions": [
-        "arn1"
-      ],
+      "regions": ["arn1"],
       "maxDuration": 10
     }
   }

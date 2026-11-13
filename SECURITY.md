@@ -1,102 +1,103 @@
-# Security Policy
+# Sikkerhet og varsling
 
-## Supported versions
+## Hvilke versjoner gjelder dette?
 
-ProgressPal is currently a local-first single-user project. Security review applies to `master` and to the candidate under review; the live state is in `docs/CURRENT_STATE.md`.
+Vi tar imot sikkerhetsvarsler om gjeldende `master` og utviklingsversjoner som er under aktiv vurdering. Eldre, arkiverte grener vedlikeholdes ikke. Oppgi gjerne versjon eller commit når du melder fra.
 
-| Version / branch                  |                          Supported |
-| --------------------------------- | ---------------------------------: |
-| `master` / current stable history |                                Yes |
-| the candidate under review        | Yes, for active development review |
-| old archived branches             |                                 No |
+Se [prosjektstatus](docs/CURRENT_STATE.md) for hvilke funksjoner som faktisk er tatt i bruk.
 
-## Security model
+## Hvordan håndterer ProgressPal data?
 
-ProgressPal is designed as a local-first browser app.
+ProgressPal lagrer studiearbeid i nettleserens IndexedDB. Appen kan brukes uten konto i standardutgaven. Valgfrie skytjenester kan brukes til innlogging, manuelle sikkerhetskopier og Guild. En egen utgave med kontobasert oppstart kan også synkronisere læringsdata automatisk. Hva som er tilgjengelig, avhenger av hvilken utgave som er tatt i bruk.
 
-The intended security and privacy posture is:
+Når skytjenestene brukes, kan opplysninger sendes til Nhost. Hvilke data som sendes, og når det skjer, er beskrevet i [personvernerklæringen](PRIVACY.md). Appen bruker ikke analyseverktøy eller sporingskapsler. Kursinnhold og Python-miljøet leveres som en del av appen, ikke fra eksterne kurstjenester under bruk.
 
-- no user accounts;
-- no backend;
-- no cloud sync (any future cloud persistence needs its own accepted decision and security review);
-- no analytics;
-- no runtime external course-data fetching;
-- no embedded external course content;
-- local browser storage only;
-- explicit user-controlled backup/export/import/reset.
+Den vanlige tilbakemeldingsfunksjonen er adskilt fra studiearbeidet. Mottaket er foreløpig deaktivert mens nødvendige sikkerhets- og driftskontroller verifiseres. Det skal ikke brukes til å varsle om sikkerhetssårbarheter.
 
-All current and future surfaces must preserve this posture unless a future accepted decision changes the product boundary. Learner state is never transmitted; the app shell and official course links do use the network.
+## Hva bør du melde fra om?
 
-## Data storage
+Vi ønsker særlig å få vite om feil som kan føre til:
 
-ProgressPal stores user data in the browser through IndexedDB.
+- at personopplysninger, studiearbeid eller andre data blir tilgjengelige for uvedkommende;
+- tap av eller utilsiktede endringer i lagrede data, sikkerhetskopier eller gjenoppretting;
+- uventet overføring av data til eksterne tjenester;
+- at uvedkommende kan få tilgang til kontoer, Guild-data eller tilknyttede tjenester;
+- usikker behandling av inndata, for eksempel skriptinjeksjon eller kjøring av uønsket kode;
+- svakheter i avhengigheter, tilgangskontroll eller andre sikkerhetsmekanismer.
 
-Users should understand that local browser data can be lost if:
+At nettleserdata kan gå tapt når lagringen slettes, eller at lenker til eksterne kurs krever internett, er kjente begrensninger. Meld likevel fra dersom appen oppfører seg annerledes enn beskrevet, eller en feil fører til utilsiktet tap eller tilgang.
 
-- site data is cleared;
-- the browser profile is deleted;
-- storage cleanup tools remove browser data;
-- the browser removes storage under pressure;
-- the user changes device or browser without exporting/importing a backup.
+## Meld sikkerhetssårbarheter privat
 
-This is a known risk. The mitigation is clear backup/export guidance, not cloud sync.
+Bruk [privat sikkerhetsvarsling til @RuishiNOR](https://github.com/ruishinor/progresspal-security-intake/security/advisories) og velg **Report a vulnerability**. Du må være innlogget på GitHub.
 
-## What to report
+Repoet som tar imot varslene, er offentlig. Rapportene som sendes gjennom GitHubs private varslingsskjema, er det ikke. Ikke legg inn sårbarhetsdetaljer i vanlige GitHub-saker eller i appens «Meld fra»-skjema. Hvis du ikke kan bruke GitHub, bør du avklare en privat kontaktkanal med vedlikeholder før du deler tekniske detaljer.
 
-Please report issues involving:
+Beskriv gjerne:
 
-- unintended network requests;
-- data corruption or data loss;
-- backup/export/import/reset failures;
-- cross-site scripting risks;
-- unsafe HTML injection;
-- unsafe dynamic code execution;
-- dependency vulnerabilities;
-- accidental use of remote assets or scripts;
-- weakening of the local-only guard;
-- privacy claims that do not match implementation;
-- CS50/Harvard branding or content misuse that could create trust or rights issues.
+- hvilken versjon eller side feilen gjelder;
+- hvordan feilen kan gjenskapes, og hva du forventet skulle skje;
+- hva som faktisk skjedde, og hvilke data eller brukere som kan være berørt;
+- relevant nettleser og operativsystem;
+- eventuelle skjermbilder eller logger, uten passord, tokens eller andre unødvendige personopplysninger.
 
-## What not to report as a security vulnerability
+Du trenger ikke forsøke å hente ut andre brukeres data for å dokumentere feilen.
 
-The following are known product limitations unless they involve an implementation bug:
+## Oppfølging og offentliggjøring
 
-- no account recovery;
-- no cloud sync;
-- no server-side backup;
-- local browser data can be cleared;
-- official course links require internet access;
-- external official resources are outside ProgressPal’s control.
+Vi vurderer innkomne varsler og avklarer videre oppfølging gjennom den private rapporten. Avtal eventuell offentliggjøring med vedlikeholder, slik at feilen kan undersøkes og berørte brukere kan beskyttes først. Prosjektet tilbyr ikke dusør for sikkerhetsfunn.
 
-## Reporting process
+Vanlige forslag, spørsmål om innhold og andre feil som ikke gjelder sikkerhet, hører hjemme i den ordinære tilbakemeldingskanalen når den er tilgjengelig.
 
-If the repository has GitHub private vulnerability reporting enabled, use that.
+---
 
-Otherwise, open a clear issue without posting sensitive exploit details. If sensitive details are required, contact the maintainer privately using the project owner’s preferred contact route before public disclosure.
+# Security and vulnerability reporting
 
-Include:
+## Which versions are covered?
 
-- affected branch or commit;
-- browser and operating system;
-- reproduction steps;
-- expected behavior;
-- actual behavior;
-- screenshots or logs if helpful;
-- whether user data was changed, lost, or exposed.
+We accept security reports about the current `master` branch and development versions under active review. Older, archived branches aren't maintained. Please include a version or commit if you know it.
 
-## Disclosure expectation
+See the [project status](docs/CURRENT_STATE.md) for which features are actually in use.
 
-Please give the maintainer reasonable time to investigate before public disclosure. This is a small project and may not have a formal security response team or bug bounty.
+## How does ProgressPal handle data?
 
-## No bug bounty
+ProgressPal saves study work in your browser's IndexedDB database. The standard version can be used without an account. Optional cloud services support sign-in, manual backups, and Guild. A separate account-first version may also sync learning records automatically. What you can use depends on the version you're running.
 
-There is currently no paid bug bounty program.
+When cloud services are used, information may be sent to Nhost. The [privacy information](PRIVACY.md) explains what gets sent and when. The app doesn't use analytics tools or tracking cookies. Course content and the Python runtime are included with the app rather than fetched from outside course services while you're using them.
 
-## In-app bug feedback is not a private vulnerability channel
+The regular feedback form is separate from your study records. Its submission service is currently disabled while the required security and operational checks are completed. Don't use it to report security vulnerabilities.
 
-The prepared **Meld fra** feature is for ordinary usability, technical and
-learning-content reports. It is not a security disclosure endpoint and must
-not be used to transmit exploit details, account credentials or sensitive
-records. Use GitHub private vulnerability reporting only when enabled and
-available; otherwise first establish a private contact route with the
-maintainer before disclosing details. A public GitHub issue is never private.
+## What should you report?
+
+Please let us know about problems that could lead to:
+
+- someone gaining access to personal information, study work, or other data they shouldn't be able to see;
+- saved data or backups being lost or changed unexpectedly, including problems with restoring them;
+- data being sent to outside services without the expected action or permission;
+- unauthorised access to accounts, Guild information, or related services;
+- unsafe handling of input, such as script injection or unwanted code execution;
+- weaknesses in dependencies, access controls, or other security measures.
+
+Some limitations are expected: browser data can be lost when storage is cleared, and links to outside courses need an internet connection. Still, report it if the app behaves differently from what it says it does, or a bug causes unexpected data loss or access.
+
+## Report vulnerabilities privately
+
+Use [private vulnerability reporting for @RuishiNOR](https://github.com/ruishinor/progresspal-security-intake/security/advisories) and select **Report a vulnerability**. You'll need to sign in to GitHub.
+
+The repository that accepts reports is public, but reports submitted through GitHub's private vulnerability reporting form are not. Don't post vulnerability details in public GitHub issues or the app's regular **Meld fra** feedback form. If you can't use GitHub, agree on a private way to contact the maintainer before sharing technical details.
+
+Please include, where you can:
+
+- the affected version or page;
+- steps to reproduce the issue and what you expected to happen;
+- what actually happened, including any data or users that might be affected;
+- your browser and operating system, if relevant;
+- any useful screenshots or logs, without passwords, tokens, or unnecessary personal information.
+
+You don't need to access anyone else's data to demonstrate a vulnerability.
+
+## What happens after you report?
+
+We review incoming reports and discuss next steps through the private report. Please coordinate any public disclosure with the maintainer so the issue can be investigated and affected users protected first. There is no paid bug bounty programme.
+
+Suggestions, questions about course content, and bugs that aren't security vulnerabilities belong in the regular feedback channel when it's available.

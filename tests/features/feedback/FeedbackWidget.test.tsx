@@ -29,7 +29,10 @@ describe('voluntary feedback dialog', () => {
     render(<FeedbackWidget />);
     expect(submitFeedback).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: /Meld feil/ }));
-    await user.type(screen.getByLabelText('Hva vil du fortelle oss?'), 'Synthetic report about the exercise');
+    await user.type(
+      screen.getByLabelText('Hva vil du fortelle oss?'),
+      'Synthetic report about the exercise',
+    );
     await user.click(screen.getByRole('button', { name: 'Send inn' }));
     await waitFor(() => {
       expect(submitFeedback).toHaveBeenCalledWith(
@@ -50,13 +53,20 @@ describe('voluntary feedback dialog', () => {
     const user = userEvent.setup();
     render(<FeedbackWidget compact />);
     await user.click(screen.getByRole('button', { name: 'Meld fra' }));
-    await user.type(screen.getByLabelText('Hva vil du fortelle oss?'), 'Synthetic content issue');
+    await user.type(
+      screen.getByLabelText('Hva vil du fortelle oss?'),
+      'Synthetic content issue',
+    );
     await user.click(screen.getByRole('button', { name: 'Avbryt' }));
     await user.click(screen.getByRole('button', { name: 'Meld fra' }));
-    expect(screen.getByLabelText('Hva vil du fortelle oss?')).toHaveValue('Synthetic content issue');
+    expect(screen.getByLabelText('Hva vil du fortelle oss?')).toHaveValue(
+      'Synthetic content issue',
+    );
     await user.click(screen.getByLabelText('Legg ved teknisk informasjon'));
     vi.mocked(submitFeedback).mockResolvedValue({ status: 'unavailable' });
-    fireEvent.submit(screen.getByRole('button', { name: 'Send inn' }).closest('form')!);
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Send inn' }).closest('form')!,
+    );
     await waitFor(() => expect(submitFeedback).toHaveBeenCalled());
     const call = vi.mocked(submitFeedback).mock.lastCall?.[0];
     expect(call?.technicalContext).toMatchObject({

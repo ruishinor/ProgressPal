@@ -38,10 +38,16 @@ body.rpg-route-active .feedback-launcher:hover {
   gap: var(--space-2);
   min-width: 0;
 }
-.rpg-shell__topbar .rpg-primary-nav { flex: 1; }
+.rpg-shell__topbar .rpg-primary-nav {
+  flex: 1;
+}
 @media (max-width: 42rem) {
-  .rpg-shell__topbar { justify-content: flex-end; }
-  .rpg-shell__topbar .rpg-primary-nav { flex: 0; }
+  .rpg-shell__topbar {
+    justify-content: flex-end;
+  }
+  .rpg-shell__topbar .rpg-primary-nav {
+    flex: 0;
+  }
 }
 .feedback-dialog {
   background: var(--color-surface);
@@ -61,7 +67,9 @@ body.rpg-route-active .feedback-dialog {
   border-color: var(--rpg-border-strong);
   color: var(--rpg-text);
 }
-.feedback-dialog::backdrop { background: rgb(8 16 25 / 0.64); }
+.feedback-dialog::backdrop {
+  background: rgb(8 16 25 / 0.64);
+}
 .feedback-dialog__header {
   align-items: flex-start;
   display: flex;
@@ -69,8 +77,13 @@ body.rpg-route-active .feedback-dialog {
   justify-content: space-between;
   margin-bottom: var(--space-4);
 }
-.feedback-dialog__header h2 { font-size: var(--text-xl); margin: 0; }
-.feedback-dialog__header p { margin-block: var(--space-2) 0; }
+.feedback-dialog__header h2 {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+.feedback-dialog__header p {
+  margin-block: var(--space-2) 0;
+}
 .feedback-dialog__close {
   background: transparent;
   border: 1px solid currentColor;
@@ -82,11 +95,26 @@ body.rpg-route-active .feedback-dialog {
   min-height: 44px;
   min-width: 44px;
 }
-.feedback-form { display: grid; gap: var(--space-3); min-width: 0; }
-.feedback-categories { border: 0; min-width: 0; padding: 0; }
+.feedback-form {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.feedback-categories {
+  border: 0;
+  min-width: 0;
+  padding: 0;
+}
 .feedback-categories legend,
-.feedback-field { font-weight: 700; margin-bottom: var(--space-2); }
-.feedback-categories__grid { display: grid; gap: var(--space-2); grid-template-columns: repeat(2,minmax(0,1fr)); }
+.feedback-field {
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+.feedback-categories__grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .feedback-category {
   align-items: center;
   border: 1px solid var(--color-border-strong);
@@ -102,9 +130,17 @@ body.rpg-route-active .feedback-dialog {
   box-shadow: inset 0 0 0 1px var(--color-accent);
   font-weight: 700;
 }
-body.rpg-route-active .feedback-category { border-color: var(--rpg-border-strong); }
-body.rpg-route-active .feedback-category:has(input:checked) { border-color: var(--rpg-accent); box-shadow: inset 0 0 0 1px var(--rpg-accent); }
-.feedback-category input { accent-color: var(--color-accent); flex: none; }
+body.rpg-route-active .feedback-category {
+  border-color: var(--rpg-border-strong);
+}
+body.rpg-route-active .feedback-category:has(input:checked) {
+  border-color: var(--rpg-accent);
+  box-shadow: inset 0 0 0 1px var(--rpg-accent);
+}
+.feedback-category input {
+  accent-color: var(--color-accent);
+  flex: none;
+}
 .feedback-textarea,
 .feedback-input {
   background: var(--color-canvas-strong);
@@ -116,37 +152,76 @@ body.rpg-route-active .feedback-category:has(input:checked) { border-color: var(
   padding: var(--space-3);
   width: 100%;
 }
-.feedback-textarea { min-height: 8rem; resize: vertical; }
+.feedback-textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
 body.rpg-route-active .feedback-textarea,
 body.rpg-route-active .feedback-input {
   background: var(--rpg-surface-raised);
   border-color: var(--rpg-border-strong);
   color: var(--rpg-text);
 }
-.feedback-help, .feedback-privacy { font-size: var(--text-sm); margin: 0; overflow-wrap: anywhere; }
-.feedback-help { color: var(--color-text-muted); }
-body.rpg-route-active .feedback-help { color: var(--rpg-text-muted); }
-.feedback-diagnostics { align-items: center; display: flex; gap: 0.6rem; min-height: 44px; }
-.feedback-diagnostics input { height: 1.2rem; width: 1.2rem; }
-.feedback-error { color: var(--color-danger); margin: 0; }
+.feedback-help,
+.feedback-privacy {
+  font-size: var(--text-sm);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.feedback-help {
+  color: var(--color-text-muted);
+}
+body.rpg-route-active .feedback-help {
+  color: var(--rpg-text-muted);
+}
+.feedback-diagnostics {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  min-height: 44px;
+}
+.feedback-diagnostics input {
+  height: 1.2rem;
+  width: 1.2rem;
+}
+.feedback-error {
+  color: var(--color-danger);
+  margin: 0;
+}
 .feedback-status {
   border: 1px solid currentColor;
   border-radius: var(--radius-sm);
   padding: var(--space-3);
 }
-.feedback-dialog__receipt { overflow-wrap: anywhere; }
-.feedback-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: flex-end; }
-.feedback-actions button { min-height: 44px; }
-.feedback-dialog :is(a,button,input,textarea):focus-visible {
+.feedback-dialog__receipt {
+  overflow-wrap: anywhere;
+}
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.feedback-actions button {
+  min-height: 44px;
+}
+.feedback-dialog :is(a, button, input, textarea):focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
-body.rpg-route-active .feedback-dialog :is(a,button,input,textarea):focus-visible {
+body.rpg-route-active
+  .feedback-dialog
+  :is(a, button, input, textarea):focus-visible {
   outline-color: var(--rpg-focus-ring);
 }
 @media (max-width: 24rem) {
-  .feedback-categories__grid { grid-template-columns: minmax(0,1fr); }
+  .feedback-categories__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .feedback-dialog * { animation: none !important; transition: none !important; }
+  .feedback-dialog * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

@@ -29,7 +29,9 @@ test('closed intake is safe and never contacts provider', async () => {
   const previous = process.env.FEEDBACK_INTAKE_ENABLED;
   try {
     delete process.env.FEEDBACK_INTAKE_ENABLED;
-    globalThis.fetch = () => { throw Error('must not call upstream'); };
+    globalThis.fetch = () => {
+      throw Error('must not call upstream');
+    };
     const answer = await handler.fetch(request());
     assert.equal(answer.status, 503);
     assert.equal((await answer.json()).status, 'unavailable');
@@ -48,9 +50,14 @@ test('validated request produces a receipt only after provider acknowledgement',
     let upstreamBody;
     globalThis.fetch = async (_url, init) => {
       upstreamBody = JSON.parse(init.body);
-      assert.equal(init.headers['x-hasura-admin-secret'], 'synthetic-test-secret');
+      assert.equal(
+        init.headers['x-hasura-admin-secret'],
+        'synthetic-test-secret',
+      );
       return Response.json({
-        data: { submit_feedback: [{ result: { status: 'received', receipt } }] },
+        data: {
+          submit_feedback: [{ result: { status: 'received', receipt } }],
+        },
       });
     };
     const answer = await handler.fetch(request());
@@ -59,9 +66,14 @@ test('validated request produces a receipt only after provider acknowledgement',
     assert.equal(upstreamBody.variables.payload.technicalContext, null);
     assert.equal(upstreamBody.variables.payload.replyEmail, null);
     assert.equal(upstreamBody.variables.payload.message, payload.message);
-    globalThis.fetch = async () => Response.json({
-      data: { submit_feedback: [{ result: { status: 'already_received', receipt } }] },
-    });
+    globalThis.fetch = async () =>
+      Response.json({
+        data: {
+          submit_feedback: [
+            { result: { status: 'already_received', receipt } },
+          ],
+        },
+      });
     const retry = await handler.fetch(request());
     assert.equal(retry.status, 200);
     assert.equal((await retry.json()).receipt, receipt);
@@ -76,13 +88,21 @@ test('invalid input, unknown keys, wrong origin and huge payload are rejected', 
   process.env.FEEDBACK_INTAKE_ENABLED = 'true';
   process.env.FEEDBACK_NHOST_ADMIN_SECRET = 'synthetic-test-secret';
   try {
-    const bad = await handler.fetch(request({ ...payload, unknown: 'tracking' }));
+    const bad = await handler.fetch(
+      request({ ...payload, unknown: 'tracking' }),
+    );
     assert.equal(bad.status, 400);
-    const badVersion = await handler.fetch(request({ ...payload, schemaVersion: 2 }));
+    const badVersion = await handler.fetch(
+      request({ ...payload, schemaVersion: 2 }),
+    );
     assert.equal(badVersion.status, 400);
-    const badOrigin = await handler.fetch(request(payload, { Origin: 'https://attacker.example' }));
+    const badOrigin = await handler.fetch(
+      request(payload, { Origin: 'https://attacker.example' }),
+    );
     assert.equal(badOrigin.status, 403);
-    const large = await handler.fetch(request({ ...payload, message: 'x'.repeat(18000) }));
+    const large = await handler.fetch(
+      request({ ...payload, message: 'x'.repeat(18000) }),
+    );
     assert.equal(large.status, 413);
     const method = await handler.fetch(new Request(baseUrl, { method: 'GET' }));
     assert.equal(method.status, 405);
@@ -97,7 +117,9 @@ test('provider timeout is uncertain rather than a false success', async () => {
   const original = globalThis.fetch;
   process.env.FEEDBACK_INTAKE_ENABLED = 'true';
   process.env.FEEDBACK_NHOST_ADMIN_SECRET = 'synthetic-test-secret';
-  globalThis.fetch = async () => { throw new Error('synthetic network drop'); };
+  globalThis.fetch = async () => {
+    throw new Error('synthetic network drop');
+  };
   try {
     const answer = await handler.fetch(request());
     assert.equal(answer.status, 503);

@@ -18,14 +18,21 @@ const categories: { value: FeedbackCategory; label: string }[] = [
   { value: 'idea', label: 'Forbedringsforslag' },
   { value: 'other', label: 'Annet' },
 ];
-type State = FeedbackResult['status'] | 'editing' | 'invalid_input' | 'submitting' | 'offline';
+type State =
+  | FeedbackResult['status']
+  | 'editing'
+  | 'invalid_input'
+  | 'submitting'
+  | 'offline';
 
 function makeId() {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = ((bytes[6] ?? 0) & 15) | 64;
   bytes[8] = ((bytes[8] ?? 0) & 63) | 128;
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('');
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),
@@ -118,9 +125,11 @@ export function FeedbackWidget({
   const trigger = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
-  const invalidMessage = state === 'invalid_input' &&
+  const invalidMessage =
+    state === 'invalid_input' &&
     (message.trim().length < 10 || message.trim().length > 4000);
-  const invalidEmail = state === 'invalid_input' &&
+  const invalidEmail =
+    state === 'invalid_input' &&
     email.trim() !== '' &&
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -160,9 +169,12 @@ export function FeedbackWidget({
 
   async function send() {
     if (state === 'submitting') return;
-    if (message.trim().length < 10 || message.trim().length > 4000 ||
-        email.trim().length > 254 ||
-        (email.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+    if (
+      message.trim().length < 10 ||
+      message.trim().length > 4000 ||
+      email.trim().length > 254 ||
+      (email.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+    ) {
       setState('invalid_input');
       return;
     }
@@ -186,7 +198,9 @@ export function FeedbackWidget({
 
   async function copy() {
     const contents = [
-      'Kategori: ' + (categories.find((entry) => entry.value === category)?.label ?? category),
+      'Kategori: ' +
+        (categories.find((entry) => entry.value === category)?.label ??
+          category),
       'Melding: ' + message.trim(),
       ...(email.trim() ? ['E-post for svar: ' + email.trim()] : []),
     ].join('\n\n');
@@ -194,7 +208,9 @@ export function FeedbackWidget({
       await navigator.clipboard.writeText(contents);
       setCopyNotice('Meldingen er kopiert.');
     } catch {
-      setCopyNotice('Kunne ikke kopiere automatisk. Marker teksten i feltet og kopier.');
+      setCopyNotice(
+        'Kunne ikke kopiere automatisk. Marker teksten i feltet og kopier.',
+      );
     }
   }
 
@@ -210,9 +226,23 @@ export function FeedbackWidget({
         title="Meld feil eller gi innspill"
         type="button"
       >
-        <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20">
-          <path d="M5 5.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-5 3v-3.5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="1.7"/>
-          <path d="M8 11.5h8M12 7.5v8" stroke="currentColor" strokeWidth="1.6"/>
+        <svg
+          aria-hidden="true"
+          fill="none"
+          height="20"
+          viewBox="0 0 24 24"
+          width="20"
+        >
+          <path
+            d="M5 5.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H10l-5 3v-3.5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Z"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          />
+          <path
+            d="M8 11.5h8M12 7.5v8"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
         </svg>
         <span className={iconOnly ? 'sr-only' : undefined}>
           {compact ? 'Meld fra' : 'Meld feil / Gi innspill'}
@@ -232,9 +262,19 @@ export function FeedbackWidget({
           <header className="feedback-dialog__header">
             <div>
               <h2 id={id + '-title'}>Hjelp oss å forbedre ProgressPal</h2>
-              <p id={id + '-lead'}>Fant du noe som ikke virker, eller har du et forslag?</p>
+              <p id={id + '-lead'}>
+                Fant du noe som ikke virker, eller har du et forslag?
+              </p>
             </div>
-            <button aria-label="Lukk" className="feedback-dialog__close" onClick={close} type="button" disabled={state === 'submitting'}>×</button>
+            <button
+              aria-label="Lukk"
+              className="feedback-dialog__close"
+              onClick={close}
+              type="button"
+              disabled={state === 'submitting'}
+            >
+              ×
+            </button>
           </header>
           {state === 'received' ? (
             <div className="feedback-form">
@@ -243,8 +283,18 @@ export function FeedbackWidget({
               <Button onClick={close}>Lukk</Button>
             </div>
           ) : (
-            <form className="feedback-form" noValidate onSubmit={(event) => { event.preventDefault(); void send(); }}>
-              <fieldset className="feedback-categories" disabled={state === 'submitting'}>
+            <form
+              className="feedback-form"
+              noValidate
+              onSubmit={(event) => {
+                event.preventDefault();
+                void send();
+              }}
+            >
+              <fieldset
+                className="feedback-categories"
+                disabled={state === 'submitting'}
+              >
                 <legend>Hva gjelder det?</legend>
                 <div className="feedback-categories__grid">
                   {categories.map((item) => (
@@ -252,7 +302,10 @@ export function FeedbackWidget({
                       <input
                         checked={category === item.value}
                         name={id + '-category'}
-                        onChange={() => { setCategory(item.value); changed(); }}
+                        onChange={() => {
+                          setCategory(item.value);
+                          changed();
+                        }}
                         type="radio"
                         value={item.value}
                       />
@@ -272,17 +325,28 @@ export function FeedbackWidget({
                     : 'Fortell kort hva du ønsker å forbedre.'}
               </p>
               <textarea
-                aria-describedby={id + '-hint' + (invalidMessage ? ' ' + id + '-message-error' : '')}
+                aria-describedby={
+                  id +
+                  '-hint' +
+                  (invalidMessage ? ' ' + id + '-message-error' : '')
+                }
                 aria-invalid={invalidMessage || undefined}
                 className="feedback-textarea"
                 disabled={state === 'submitting'}
                 id={id + '-message'}
                 maxLength={4000}
-                onChange={(event) => { setMessage(event.target.value); changed(); }}
+                onChange={(event) => {
+                  setMessage(event.target.value);
+                  changed();
+                }}
                 rows={5}
                 value={message}
               />
-              {invalidMessage && <p className="feedback-error" id={id + '-message-error'}>Skriv minst 10 tegn.</p>}
+              {invalidMessage && (
+                <p className="feedback-error" id={id + '-message-error'}>
+                  Skriv minst 10 tegn.
+                </p>
+              )}
               <label className="feedback-field" htmlFor={id + '-email'}>
                 <span>E-postadresse for svar (valgfritt)</span>
               </label>
@@ -293,16 +357,24 @@ export function FeedbackWidget({
                 disabled={state === 'submitting'}
                 id={id + '-email'}
                 maxLength={254}
-                onChange={(event) => { setEmail(event.target.value); changed(); }}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  changed();
+                }}
                 type="email"
                 value={email}
               />
-              <p className="feedback-help" id={id + '-email-help'}>Uten e-postadresse kan vi ikke svare deg direkte.</p>
+              <p className="feedback-help" id={id + '-email-help'}>
+                Uten e-postadresse kan vi ikke svare deg direkte.
+              </p>
               <label className="feedback-diagnostics">
                 <input
                   checked={attach}
                   disabled={state === 'submitting'}
-                  onChange={(event) => { setAttach(event.target.checked); changed(); }}
+                  onChange={(event) => {
+                    setAttach(event.target.checked);
+                    changed();
+                  }}
                   type="checkbox"
                 />
                 <span>Legg ved teknisk informasjon</span>
@@ -313,17 +385,58 @@ export function FeedbackWidget({
                   : 'Teknisk informasjon sendes ikke uten ditt valg.'}
               </p>
               <p className="feedback-privacy">
-                Beskrivelsen og eventuell e-postadresse sendes privat til den som vedlikeholder ProgressPal. Ikke skriv passord eller sensitiv informasjon. Studieprogresjon, svar og notater blir ikke lagt ved automatisk.
+                Beskrivelsen og eventuell e-postadresse sendes privat til den
+                som vedlikeholder ProgressPal. Ikke skriv passord eller sensitiv
+                informasjon.
               </p>
               <p className="feedback-help">
-                Gjelder det en sikkerhetssårbarhet? Ikke beskriv den her. Se <a href="https://github.com/ruishinor/ProgressPal/security/policy" rel="noreferrer noopener" target="_blank">prosjektets sikkerhetsrutine</a>.
+                Gjelder det en sikkerhetssårbarhet? Bruk heller privat varsling
+                på GitHub{' '}
+                <a
+                  href="https://github.com/ruishinor/progresspal-security-intake/security/advisories"
+                  rel="noreferrer noopener"
+                  target="_blank"
+                >
+                  @RuishiNOR
+                </a>
+                .
               </p>
-              {statusText ? <p aria-live="polite" className="feedback-status" role="status">{statusText}</p> : null}
-              {copyNotice ? <p aria-live="polite" className="feedback-status" role="status">{copyNotice}</p> : null}
+              {statusText ? (
+                <p aria-live="polite" className="feedback-status" role="status">
+                  {statusText}
+                </p>
+              ) : null}
+              {copyNotice ? (
+                <p aria-live="polite" className="feedback-status" role="status">
+                  {copyNotice}
+                </p>
+              ) : null}
               <div className="feedback-actions">
-                <Button onClick={() => { void copy(); }} type="button" variant="quiet" disabled={!message.trim() || state === 'submitting'}>Kopier melding</Button>
-                <Button onClick={close} type="button" variant="secondary" disabled={state === 'submitting'}>Avbryt</Button>
-                <Button disabled={state === 'submitting'} loading={state === 'submitting'} type="submit">Send inn</Button>
+                <Button
+                  onClick={() => {
+                    void copy();
+                  }}
+                  type="button"
+                  variant="quiet"
+                  disabled={!message.trim() || state === 'submitting'}
+                >
+                  Kopier melding
+                </Button>
+                <Button
+                  onClick={close}
+                  type="button"
+                  variant="secondary"
+                  disabled={state === 'submitting'}
+                >
+                  Avbryt
+                </Button>
+                <Button
+                  disabled={state === 'submitting'}
+                  loading={state === 'submitting'}
+                  type="submit"
+                >
+                  Send inn
+                </Button>
               </div>
             </form>
           )}
