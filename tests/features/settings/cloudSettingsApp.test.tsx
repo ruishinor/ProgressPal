@@ -92,6 +92,7 @@ async function onboardRealApp(displayName: string) {
  * app is what another tab does, and the app rightly treats that as stale.)
  */
 async function renameLearner(name: string) {
+  await userEvent.click(screen.getByRole('link', { name: 'Profile & preferences' }));
   const field = screen.getByLabelText('Display name');
 
   await userEvent.clear(field);
@@ -101,6 +102,7 @@ async function renameLearner(name: string) {
   );
   await screen.findByText('Local profile saved', {}, slow);
   await waitFor(async () => expect(await displayName()).toBe(name), slow);
+  await userEvent.click(screen.getByRole('link', { name: 'Data & backups' }));
 }
 
 const displayName = async () =>
@@ -113,6 +115,7 @@ async function openSettings(route: '/settings' | '/rpg/settings') {
   closeSharedDatabase();
   await renderAppAtRoute(route);
   await screen.findByRole('heading', { name: 'Settings' }, slow);
+  await userEvent.click(screen.getByRole('link', { name: 'Data & backups' }));
 
   return screen
     .getByRole('heading', { name: 'Remote backup — Alpha' })
@@ -175,6 +178,7 @@ describe.each([
 
     expect(card).toBeInTheDocument();
     // Navigate to the other interface and come back, as a learner would.
+    await userEvent.click(screen.getByRole('link', { name: 'General' }));
     await userEvent.click(
       screen.getAllByRole('link', {
         name: /Open (Classic|RPG) interface/,
