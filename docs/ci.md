@@ -163,7 +163,7 @@ The CI job uploads evidence JSON, `playwright-report/` and `test-results/` for 3
 - `No release review evidence is bound to candidate payload tree …`: the candidate changed after review, or no review exists. Run `npm run review:payload-tree`, compare with the review file's `binding.payloadTree`, and either review and bind this payload or restore the reviewed bytes.
 - A file under `docs/release-reviews/` is rejected: it must be a regular, valid `<module>.json`; move anything else out.
 - Port 42183 in use: close the owning process. The E2E runner will not attach to an existing server.
-- Playwright failure: retrieve the job artifact and inspect the retained trace, screenshot, video and HTML report.
+- Playwright failure: retrieve the job artifact and inspect the retained trace, screenshot and HTML report.
 - Audit endpoint unavailable: the job fails. Record the external outage; do not relabel it a clean security pass.
 - Process leak or timeout: fail the gate, contain only the owned process tree, fix the harness and run a new final gate for the corrected source state.
 

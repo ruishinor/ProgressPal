@@ -391,7 +391,7 @@ describe('RPG Campaign Map read boundary', () => {
     assertMapAccessContract(access);
   });
 
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'keeps Map access isolated with %i rows in every append-only history',
     async (historyCount) => {
       const { context, probe } = await createBundledMapDatabase(

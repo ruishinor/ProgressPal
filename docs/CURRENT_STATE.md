@@ -1,5 +1,20 @@
 # ProgressPal current state
 
+**Release gate runtime budget — PR candidate, 2026-11-14.** Based on `master`
+`747d80e`. Every hosted `Final candidate` since run #186 failed, including
+PR #95 and PR #96, partly on 30-second browser-test timeouts in code those
+PRs did not touch. Measured cause: three Playwright workers on a two-CPU runner.
+On unchanged master with two CPUs, three workers gave 12 timeouts and two gave
+none; summed test time fell 27 % at a 5 % wall-time cost. The candidate
+caps CI workers at the CPU count (at most three), records no video (trace and
+screenshot on failure remain), keeps the two capture-only review specs for
+closed epics opt-in (`PROGRESSPAL_REVIEW_CAPTURE=true`), runs the six RPG
+read-boundary scale tests at 100 and 1,000 rows (the Epic A AC-09 10× ratio
+and access pattern are kept; 181.6 s → 16.5 s), and splits the Classic dark
+axe sweep into two groups like the RPG sweeps. No assertion, retry policy,
+timeout or release control is weakened. Hosted `Final candidate` and merge
+remain separate gates.
+
 **Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger
 videre på den lokale v2-kandidaten `d32acb4` og GitHub `master` med PR #90
 (`2c1201930b403e4c081de212ca59ae9ca9a2f067`). Guild har én medlemsliste
