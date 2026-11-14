@@ -843,7 +843,7 @@ test('keeps CS50 and Programvareutvikling XP and levels independent across switc
 
   // CS50 earns XP through its own catalogue progress.
   await page.goto('/course/week-0-problem-set');
-  await page.getByLabel('Progress').selectOption('started');
+  await page.getByLabel('Progress', { exact: true }).selectOption('started');
   await page.getByRole('button', { name: 'Save progress' }).click();
   await expect(page.getByText(/\+20 XP!/)).toBeVisible();
   await expect

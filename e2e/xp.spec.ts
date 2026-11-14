@@ -112,7 +112,7 @@ test.describe('XP Engine E2E Tests', () => {
     ).toBeVisible();
 
     // 2. Select 'started' status and save (awards problem_set_started milestone: +20 XP)
-    await page.getByLabel('Progress').selectOption('started');
+    await page.getByLabel('Progress', { exact: true }).selectOption('started');
     await page.getByText('More details').click();
     await page.getByLabel('How sure are you?').selectOption('3');
     await page.getByRole('button', { name: 'Save progress' }).click();
@@ -134,7 +134,9 @@ test.describe('XP Engine E2E Tests', () => {
       .toBe('started');
 
     // 3. Select 'completed' status first, because submitted/accepted are only transitionable from completed status
-    await page.getByLabel('Progress').selectOption('completed');
+    await page
+      .getByLabel('Progress', { exact: true })
+      .selectOption('completed');
     await page.getByRole('button', { name: 'Save progress' }).click();
     await expect(
       page.getByRole('heading', { name: /Progress (saved|updated)/ }),
@@ -145,7 +147,9 @@ test.describe('XP Engine E2E Tests', () => {
       .toBe('completed');
 
     // 4. Select 'submitted' status and save (awards problem_set_submitted milestone: +75 XP)
-    await page.getByLabel('Progress').selectOption('submitted');
+    await page
+      .getByLabel('Progress', { exact: true })
+      .selectOption('submitted');
     await page.getByRole('button', { name: 'Save progress' }).click();
 
     // Verify toast notification (+75 XP!)

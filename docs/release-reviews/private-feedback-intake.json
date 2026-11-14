@@ -4,11 +4,11 @@
   "reviewer": "Owner-authorized implementer self-review with GPT-6 source assistance; owner-reported focused validation; no independent test execution",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "ebb1f346c57d1fe6a644a45a30a8227f18ff2ee7",
+    "payloadTree": "16fc177849b262b435b87cc5272820142cfbb343",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "PR96 feedback intake successor with focused accessibility regression correction. Classic dark-theme axe coverage is grouped into bounded tests without removing route assertions. Owner-reported local tests passed; hosted release certification and production activation remain separate.",
+    "summary": "PR96 successor: exact five-selector Playwright correction across achievements, programme switching and XP tests. Previous implementation and test corrections preserved. Hosted Final candidate and production activation remain separate gates.",
     "evidence": [
       "Owner-provided local candidate identity: d6d06868ff2eb766c1a2da6a965c01cd820634d0, payload tree 6421b9e72999e687afe79bae66597dab807b5043; five changed files, 30 insertions and 14 deletions. The commit was not yet pushed when reviewed.",
       "GPT-6 reviewed the uploaded git show patch covering RpgRouteShell.tsx, MicroShell.tsx, microFeedbackSlot.ts, the microlearning public entrypoint and microSession.test.tsx. The new context is React-only and feature-local; the app consumes it through @/features/microlearning, preserving the app import boundary.",
@@ -37,7 +37,12 @@
       "The seven Classic routes retain their heading, loading-state and axe assertions, now divided into four bounded tests. PR96 primary-button hover selector correction is preserved.",
       "Owner-reported focused Chromium Playwright: four Classic dark-theme groups, 4/4 PASS, one worker, 17.7 seconds.",
       "Owner-reported complete e2e/accessibility.spec.ts Chromium Playwright: 21/21 PASS, three workers, 44.7 seconds.",
-      "The new payload is a test-only accessibility correction. Full hosted Final candidate certification is not yet verified."
+      "The new payload is a test-only accessibility correction. Full hosted Final candidate certification is not yet verified.",
+      "Final candidate run 43577092561: 3712/3712 Vitest PASS; Playwright stopped on e2e/achievements.spec.ts at getByLabel Progress matching both the actual progress select and the feedback dialog.",
+      "Five ambiguous Progress label selectors were corrected to exact accessible-label matching in three E2E files. No application source files changed.",
+      "Owner-reported targeted Chromium validation: 3/3 PASS for achievement unlocking, XP milestones and independent programme XP.",
+      "Owner-reported production build and git diff --check PASS. This correction has not yet passed the complete hosted Final candidate.",
+      "Final candidate run 43517923533 had separately failed on an accessibility route timeout; the current correction does not claim to resolve that earlier failure."
     ]
   },
   "adversarialFindings": [
@@ -93,6 +98,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to hosted Final candidate verification for the exact PR96 accessibility test correction. Owner-reported local Chromium regression passed 21/21 with three workers. Existing source-review and operational limitations remain; this is not independent hosted certification or production activation."
+    "summary": "Proceed for this exact test-only successor candidate. Owner explicitly authorized lifting the pause. Focused Chromium validation was reported as 3/3 PASS. Implementer self-review, not independent hosted certification. Production activation remains separately gated."
   }
 }
