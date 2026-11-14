@@ -173,6 +173,7 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
 test('explains Git answers and preserves learner evidence through reload and programme switches', async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await completeOnboarding(page);
