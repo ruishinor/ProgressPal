@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 2,
+  "module": "release-gate-runtime-budget",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "1eb5751b25a09c1ca56bb958e089d3e1acba8b1f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of a test-configuration change on master 747d80e: CI Playwright workers capped at the available CPUs, no per-test video, two capture-only review specs made opt-in, six RPG read-boundary scale tests run at 100 and 1,000 rows, and the Classic dark axe sweep split into two groups. Product code, assertions, retry policy, timeouts and release controls other than the pinned worker expression are unchanged.",
+    "evidence": [
+      "Hosted runs 187-208 all failed or were cancelled after the last green master run #186. PR #95 run 200 and PR #96 runs 205, 207 and 208 failed on 30-second timeouts in tests the PRs did not change.",
+      "Green run #185 vs PR #96 run 208 on the same runner image ubuntu-24.04 20261111.370.1: Vitest setup 37 s vs 61 s and jsdom environment 101 s vs 170 s, phases independent of the PR code, so hosted runner speed varies.",
+      "The repository is private; its standard ubuntu-latest runner is assumed to have 2 vCPUs. INFERRED, not verified here: the first hosted run of this candidate prints 'using N workers', which equals the CPU count when it is below three.",
+      "Local full-suite benchmark of unchanged master, each run pinned to two CPUs with taskset, Chromium 1243 through executablePath: three workers gave 319 passed, 12 timedOut and 15 failed; two workers gave 326 passed, 0 timedOut and 20 failed. Summed test time 7,353 s vs 5,379 s; tests at or above 25 s 81 vs 50; wall time 2,656 s vs 2,790 s.",
+      "The non-timeout failures in both local runs were sandbox artifacts that occurred independently of worker count: console warnings from the newer local Chromium build, 404 console entries, and 320 px overflow from different fonts. Hosted run #185 passed the same tests. They are not claimed as passes.",
+      "Accessibility spec alone on two CPUs: three workers 107 s wall with a 35.6 s timeout; two workers 102 s; one worker 130 s.",
+      "Video A/B on 93 tests across six specs, two workers on two CPUs: 520 s wall with retain-on-failure video, 459 s with video off; summed test time 1,022 s vs 901 s.",
+      "Scale A/B for the six read-boundary files on two CPUs: 1,000 and 10,000 rows 181.6 s; 100 and 1,000 rows 16.5 s; 64 of 64 tests passed in both. Loaders stream with Dexie each() cursors and have no batch threshold, so 100 rows exercise the same access path, and 100 exceeds the 5-row recency cut.",
+      "With the candidate config on two CPUs: os.availableParallelism() returned 2 and Playwright selected 2 workers; accessibility and activity-achievements specs 21 of 21 passed; after the split, accessibility 19 of 19 passed with a 15.3 s maximum, previously 26.0 s.",
+      "Playwright listing: master 346 tests in 49 files; candidate default 338 in 47; PROGRESSPAL_REVIEW_CAPTURE=true lists the 8 excluded capture tests in 2 files.",
+      "Preflight on the candidate: Prettier check on all changed files, ESLint with --max-warnings 0 on changed TypeScript, npm run typecheck, git diff --check, and Vitest for releaseWorkflow plus the six scale files (74 of 74) passed. No full local release gate was run, per AGENTS.md."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "RGB-1",
+      "severity": "P2",
+      "description": "Epic A AC-07 and AC-09 require scale evidence at 1x and 10x history and allow lower counts only if authoritative CI shows a hard runtime problem and the 10x ratio and access pattern are kept. The six files did not fail; the reduction is for cost.",
+      "resolution": "Counts keep the 10x ratio (100 and 1,000) and every assertion, including constant query counts and rows scanned equal to history. Applied on the owner's 2026-11-14 instruction to prioritise efficiency and cut arbitrary testing, and stated in the PR so the owner can reject it.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RGB-2",
+      "severity": "P2",
+      "description": "Two workers give about 5 % longer wall time than three on two CPUs.",
+      "resolution": "Accepted for 12 fewer timeouts; the video and scale reductions more than recover it. Math.min(3, availableParallelism()) keeps three workers on a runner with three or more CPUs.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RGB-3",
+      "severity": "P2",
+      "description": "Without video, a failure retains only the trace and a screenshot.",
+      "resolution": "The trace records screencast frames, DOM snapshots, network and console for the failing test, and failures still upload test-results. Lessons-learned standard 09 section 5 requires first-failure trace and screenshot, and both remain.",
+      "status": "resolved"
+    },
+    {
+      "id": "RGB-4",
+      "severity": "P3",
+      "description": "c1-baseline-visual-capture and d-shell-review-capture leave the certification run.",
+      "resolution": "Both are labelled CAPTURE ONLY with no comparison or golden baseline, for closed epics C1 and D. Their assertions only guard the captures themselves. Epic E and B2-B4 review specs, which check behaviour, overflow and axe, remain in the gate. The captures still run on demand.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RGB-5",
+      "severity": "P2",
+      "description": "The local benchmark used a different Chromium build and machine from the hosted runner.",
+      "resolution": "Only worker-count comparisons on identical local conditions are claimed. The hosted Final candidate on this exact payload is the authoritative check; a hosted timeout would refute the hypothesis.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "RGB-6",
+      "severity": "P3",
+      "description": "Changing playwright.config.ts changes the release-control fingerprint, so the master merge cannot ATTEST.",
+      "resolution": "Expected: the master push runs FULL, which also tests master on current runners.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one ordinary hosted Final candidate. The timeout family is attributed to CPU oversubscription with measured local evidence; the hosted run on this payload is the deciding observation. Merge, master FULL and deployment remain separate owner-authorised steps."
+  }
+}
