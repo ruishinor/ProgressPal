@@ -676,22 +676,36 @@ const rpgAxeRoutes = [
   { heading: 'Settings', path: '/rpg/settings' },
 ] as const;
 
-test('classic routes pass axe in dark theme', async ({ page }) => {
-  await completeOnboardingDark(page);
+// Each route is still scanned with the same assertions; split the journeys so
+// onboarding and seven axe scans do not share one 30-second Playwright timeout.
+// Match the existing bounded-group approach used by the RPG axe sweeps.
+const classicDarkAxeRouteGroups = [
+  classicAxeRoutes.slice(0, 2),
+  classicAxeRoutes.slice(2, 4),
+  classicAxeRoutes.slice(4, 6),
+  classicAxeRoutes.slice(6),
+];
 
-  for (const route of classicAxeRoutes) {
-    await page.goto(route.path);
-    await expect(
-      page.getByRole('heading', { exact: true, name: route.heading }),
-    ).toBeVisible({ timeout: 15000 });
+for (const [groupIndex, routes] of classicDarkAxeRouteGroups.entries()) {
+  test(`classic routes group ${groupIndex + 1} pass axe in dark theme`, async ({
+    page,
+  }) => {
+    await completeOnboardingDark(page);
 
-    await expect(page.locator('.loading-state')).toHaveCount(0, {
-      timeout: 15000,
-    });
-    const scan = await new AxeBuilder({ page }).analyze();
-    expect(scan.violations).toEqual([]);
-  }
-});
+    for (const route of routes) {
+      await page.goto(route.path);
+      await expect(
+        page.getByRole('heading', { exact: true, name: route.heading }),
+      ).toBeVisible({ timeout: 15000 });
+
+      await expect(page.locator('.loading-state')).toHaveCount(0, {
+        timeout: 15000,
+      });
+      const scan = await new AxeBuilder({ page }).analyze();
+      expect(scan.violations).toEqual([]);
+    }
+  });
+}
 
 test('key classic routes pass axe in light theme', async ({ page }) => {
   await completeOnboardingLight(page);
