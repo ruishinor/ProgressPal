@@ -1,19 +1,21 @@
 # ProgressPal current state
 
-**Release gate runtime budget — PR candidate, 2026-11-14.** Based on `master`
-`747d80e`. Every hosted `Final candidate` since run #186 failed, including
-PR #95 and PR #96, partly on 30-second browser-test timeouts in code those
-PRs did not touch. Measured cause: three Playwright workers on a two-CPU runner.
-On unchanged master with two CPUs, three workers gave 12 timeouts and two gave
-none; summed test time fell 27 % at a 5 % wall-time cost. The candidate
-caps CI workers at the CPU count (at most three), records no video (trace and
-screenshot on failure remain), keeps the two capture-only review specs for
-closed epics opt-in (`PROGRESSPAL_REVIEW_CAPTURE=true`), runs the six RPG
-read-boundary scale tests at 100 and 1,000 rows (the Epic A AC-09 10× ratio
-and access pattern are kept; 181.6 s → 16.5 s), and splits the Classic dark
-axe sweep into two groups like the RPG sweeps. No assertion, retry policy,
-timeout or release control is weakened. Hosted `Final candidate` and merge
-remain separate gates.
+**Release gate runtime budget — PR #97 candidate, 2026-11-15.** Based on
+`master` `747d80e`. Every hosted `Final candidate` from run #187 on failed,
+including PR #95 and PR #96, partly on 30-second browser-test timeouts in code
+those PRs did not touch. Measured cause: three Playwright workers on the
+two-vCPU runner (run #209 printed the CPU count) slow each test by up to about
+1.4 times. Two workers removed the timeouts but took about 31 instead of 24.7
+minutes hosted, so the candidate keeps three workers with a 60-second
+per-test budget. It also records no video (trace and screenshot on failure
+remain), makes four capture-only or redundant review specs for closed epics
+opt-in (`PROGRESSPAL_REVIEW_CAPTURE=true`), drops four browser walks that
+repeat another spec's viewport, scale and path, runs the six RPG read-boundary
+scale tests at 100 and 1,000 rows (Epic A AC-09 ratio and access pattern kept;
+181.6 s → 16.5 s), splits the Classic dark axe sweep into two groups, and
+scopes one offline Guild status locator that raced a loading status in run
+#209. No assertion, retry policy or release control is weakened. Hosted
+`Final candidate` and merge remain separate gates.
 
 **Guild UX Consolidation — 2026-11-12.** `cx/guild-ux-consolidation` bygger
 videre på den lokale v2-kandidaten `d32acb4` og GitHub `master` med PR #90

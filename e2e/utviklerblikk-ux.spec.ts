@@ -294,14 +294,14 @@ test.afterAll(() => {
     );
 });
 
+// 360 x 560 at 100 %, 150 % (text) and 200 % (root) walk the same Generelt
+// sessions on the same miss-twice path in microlearning.spec.ts, whose checks
+// also catch pinned footers and clipping, so they are not repeated here.
 for (const viewport of [
   { width: 320, height: 568 },
-  { width: 360, height: 560 },
   { width: 390, height: 844 },
   { width: 1280, height: 800 },
-  { width: 360, height: 560, scale: 150 },
-  { width: 360, height: 560, scale: 200 },
-]) {
+] as { width: number; height: number; scale?: number }[]) {
   test(
     'Utviklerblikk reachable matrix ' +
       viewport.width +

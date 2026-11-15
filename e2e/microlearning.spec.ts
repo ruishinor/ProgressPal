@@ -846,8 +846,9 @@ for (const viewport of MIKRO_MATRIX) {
 test.describe('microlearning at enlarged text', () => {
   test.use({ viewport: HARD });
 
+  // 125 % text is covered by 150 % text: same mechanism, more text, and the
+  // rem-based media queries do not change with text tokens alone.
   const scales: Scale[] = [
-    { mechanism: 'text', percent: 125 },
     { mechanism: 'text', percent: 150 },
     { mechanism: 'root', percent: 200 },
   ];
