@@ -4,15 +4,16 @@
   "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "bb7c37f780c4f11536212e4e85b1e368300269ea",
+    "payloadTree": "154f539ed151b155236bd27f5488b2c165f2043e",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
     "summary": "Self-review on master 73fcc7d1 of three concerns ordered together by the owner: a copy-only fast lane for the release gate, the RPG stale-data banner wording ('Saved data changed.'), and removal of 'Gratis' from two learner-facing texts. No schema, dependency, runtime, service-worker or CSP change.",
     "evidence": [
-      "Owner instruction 2026-11-15: put the copy-only fast lane in place, include the banner commit, remove 'Gratis' from copy text, smallest changes possible.",
-      "scripts/release-copy-lane.mjs classifies HEAD^1..HEAD of a two-parent merge. COPY needs: only modified src TypeScript files plus docs or review evidence (which may be added); identical token streams once copy literals (JSX text, copy attributes, prose property values) are masked; new text no longer than the old; no test text matcher, regex or raw test file matching the old text; the old text exactly once among src string values. Any error, other status or path is FULL.",
-      "Unit tests: 2 COPY cases and 14 FULL cases, each asserting its own refusal reason (code, class name, longer text, string, regex and raw test matches, duplicated text, added and non-source files, no change). Fixture strings are synthetic and absent from src, so the tests cannot block a real copy edit.",
+      "Owner instructions 2026-11-15: put the copy-only fast lane in place, include the banner commit, remove 'Gratis' from copy text, smallest changes possible; then: any user-facing language should be accepted in the fast lane unless there are very good arguments against.",
+      "scripts/release-copy-lane.mjs classifies HEAD^1..HEAD of a two-parent merge. Copy is any string, template text or JSX text that reads as language, unless its position gives it behaviour: comparison or case operand, type, module path, class list, key/id-like property or attribute, header-like key, or a format, parse, selector or storage call. COPY needs only modified src TypeScript files outside src/lib/{db,backup,storage,cloud,cloudBackup} (docs and review evidence may also be added), identical token streams with copy masked, no test text matcher, regex or raw test file matching the old text, and every src occurrence of the old text changed alike. Any error, other status or path is FULL.",
+      "Unit tests: 4 COPY cases (JSX text, attributes and prose properties; conditionals, translation calls and template text, including longer text; the same text changed alike in two files; docs only) and 20 FULL cases, each asserting its own refusal reason, including a compared value, a type, a format string, a module path, a class list and a header value. A mutation check confirmed that the header test fails without its rule. Fixture strings are synthetic and absent from src.",
+      "Coverage on the current src: 5,542 copy values recognised, up from 3,449 with the first, position-allowlist version. Replay on the last 25 copy-related commits: this PR's two copy commits and the docs-only commits are COPY; every other commit changed tests, code or lesson assets and is FULL, which matches what those commits actually did (for example db12873c changed a type and a conditional render).",
       "Local probes on master plus the lane: this PR's copy edits with an added review file, as a --no-ff merge, give COPY; the same commit applied linearly gives FULL (not a two-parent merge); a merge that also edits src/lib/db/constants.ts gives FULL.",
       "ATTEST never reuses a copy run: verifyEvidence requires certificationKind 'comprehensive' and discoverSource requires every stage job to have succeeded, and both failures fall back to FULL, never BLOCK. The master merge then classifies itself and runs the copy stage, including a fresh npm audit.",
       "The copy stage runs install, audit, classification, lint, format, typecheck, production build, bundle budget, circular check and both clean-status checks; a test pins that it runs no test suite. The full local gate filters the classification out, so it is unchanged. Final candidate step names are unchanged, so the ATTEST STEPS contract holds.",
@@ -32,14 +33,7 @@
       "id": "CPY-2",
       "severity": "P2",
       "description": "Residual after the direct-match checks: a test that builds its expected text at runtime could still match edited copy, and the lane would skip that test.",
-      "resolution": "Any test matcher, regex or raw test-file occurrence of the old text, and any second occurrence in src, forces FULL. Matching through computed strings is not detectable statically; such a break would show on the next FULL run, and production still waits for a passing build, lint and typecheck.",
-      "status": "accepted-risk"
-    },
-    {
-      "id": "CPY-3",
-      "severity": "P2",
-      "description": "Longer or different text can change layout (overflow, reflow) that only browser tests catch.",
-      "resolution": "New text must be no longer than the old; a longer edit runs FULL. A shorter text can still change wrapping; accepted on the owner's instruction.",
+      "resolution": "Any test matcher, regex or raw test-file occurrence of the old text forces FULL, and any src occurrence not changed alike forces FULL; a comparison literal cannot change without changing the masked token stream. Matching through computed strings is not detectable statically; such a break would show on the next FULL run, and production still waits for a passing build, lint and typecheck.",
       "status": "accepted-risk"
     },
     {
@@ -54,6 +48,27 @@
       "severity": "P3",
       "description": "This PR changes release controls, so it runs FULL; the copy stage itself first runs hosted on a later copy-only change.",
       "resolution": "The stage reuses existing gate commands, and selection and classification are unit-tested and probed locally. The first copy run is observed before relying on it.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CPY-6",
+      "severity": "P2",
+      "description": "The language heuristic can mistake a protocol or stored value for text (an HTTP header value, a persisted seed name, an event name).",
+      "resolution": "Header-like keys, key/id/status-like names, format, parse, selector and storage calls are not copy, and the persistence and protocol layers always run FULL. A remaining misclassification would need a language-looking value, used only in copy positions, with no test naming it.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CPY-7",
+      "severity": "P2",
+      "description": "Longer text can overflow a layout that only browser tests check (20 specs measure overflow or fit).",
+      "resolution": "Owner direction: user-facing language is accepted unless there are strong arguments. Prose wraps, an overflow is cosmetic and revertible, and the next FULL run still measures every surface. The previous rule that text must not grow is removed.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CPY-8",
+      "severity": "P3",
+      "description": "Lesson text in public/content is user-facing but always runs FULL.",
+      "resolution": "The assets are hash-addressed, and the catalogue, the offline list and the evaluator expectations depend on them (their own dependencies, the exception the owner named). Proving a lesson edit safe would mean reimplementing the exporter's integrity contract.",
       "status": "accepted-risk"
     }
   ],
