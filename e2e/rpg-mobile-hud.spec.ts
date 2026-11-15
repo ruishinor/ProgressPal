@@ -239,7 +239,9 @@ test('mobile HUD reflows for enlarged text and a long programme identity', async
   }
   await hud.getByLabel('Character details').focus();
   await page.keyboard.press('Enter');
-  await expect(hud.getByText(/Programme: Programvareutvikling/)).toBeVisible();
+  await expect(hud.locator('.rpg-identity__programme dd')).toHaveText(
+    /^Programvareutvikling/,
+  );
   await expect(hud.locator('.rpg-identity__path dd')).toBeVisible();
   await expect(hud.locator('.rpg-identity__path dd')).toHaveText(
     'Programvareutvikling 1',

@@ -976,7 +976,7 @@
   font-weight: 800;
   line-height: 1.2;
   margin: 0;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Identity facts share one label/value grid, so Guild, Path, Class and Rank
@@ -1018,6 +1018,9 @@
   gap: 0.4rem;
   margin: 0;
   min-width: 0;
+  /* Breaks inside a word only when that word alone is wider than the line
+     (200% text at 320px); ordinary names still wrap at spaces. */
+  overflow-wrap: anywhere;
 }
 
 .rpg-identity__guild-link {
