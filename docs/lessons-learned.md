@@ -91,8 +91,17 @@ the slowest one on the default budget took 32.1 s, about half the new budget.
 Standard 09 §5 forbids longer timeouts "to get green without causal
 evidence". Here the evidence was measured CPU contention.
 
-**Rule:** raise a time budget only with a measured cause, and never an
-assertion timeout.
+**Rule:** raise a time budget only with a measured cause. Give a single
+assertion a longer wait only when it waits for measured asynchronous work,
+such as a save and re-read through IndexedDB, never for UI that should be
+immediate.
+
+**Follow-up (run #212):** one more failure in this family showed the rule as
+first written was too strict. A saved Task 6 result rendered 5.6 s after the
+click on a loaded runner, past the default 5 s assertion wait. The
+owner-supplied trace proved the answer was complete, nothing errored, and the
+correct "Riktig, +13 XP" appeared one frame later. PR #100 gives the 23
+saved-result assertions a 15 s wait, the suite's existing stored-state wait.
 
 ### 12. Cut duplicated work, not detection
 
@@ -193,13 +202,21 @@ Recorded so they aren't repeated:
 - [ ] Two consecutive red runs: stop, write down each cause, then continue.
 - [ ] Claims about speed come from a hosted run, not a local one.
 
+## Product finding from the run #212 trace
+
+While a tab re-reads after its own save, the RPG shell shows "Saved data
+changed in another tab". That is untrue for a single tab: the coordinator
+marks every tab stale after its own write by design, and the shell uses
+another-tab wording for that state. It needs its own small change.
+
 ## Open items
 
-- PR #99 (feedback link) hosted run in progress at writing. On green: merge,
-  then close PR #96 as replaced.
-- Master `Final candidate` runs for the PR #97 and #98 merges (runs #212 and
-  #214) still in progress or queued at writing. The first eligible feature
-  merge after them should take the ATTEST path.
+- Done: PR #99 merged and PR #96 closed as replaced. Master run #216 took
+  the ATTEST path (stages skipped, Final candidate green in 18 s): the first
+  proof of reuse under the parallel gate.
+- Master run #212 (the #97 merge) failed once on a slow save; fixed in
+  PR #100. Run #214 (the #98 merge) was cancelled by GitHub's per-branch
+  queue, superseded by #216.
 - Billing for Actions minutes is unverified: about 2,500 minutes were used in
   November 1–14, above the Free plan's 2,000. Check
   github.com/settings/billing.
