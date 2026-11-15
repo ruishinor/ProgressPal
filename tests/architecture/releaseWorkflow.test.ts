@@ -47,11 +47,14 @@ describe('release validation workflow contract', () => {
     expect(workflow).toContain('ref: ${{ github.sha }}');
     expect(workflow.match(/ref: \$\{\{ github\.sha \}\}/g)).toHaveLength(4);
     expect(workflow.match(/npm run verify:release/g)).toHaveLength(3);
-    for (const stage of ['unit', 'e2e', 'assemble']) {
+    for (const stage of ['unit', 'e2e']) {
       expect(
         workflow.match(new RegExp(`RELEASE_STAGE: ${stage}$`, 'gm')),
       ).toHaveLength(1);
     }
+    expect(workflow).toContain(
+      "RELEASE_STAGE: ${{ needs.plan.outputs.decision == 'COPY' && 'copy' || 'assemble' }}",
+    );
     expect(workflow).toContain('RELEASE_SHARD: ${{ matrix.shard }}/3');
     expect(workflow).toMatch(/^ {8}shard: \[1, 2, 3\]$/m);
   });
@@ -67,12 +70,24 @@ describe('release validation workflow contract', () => {
     expect(workflow).toMatch(
       /^ {2}final-candidate:\n {4}name: Final candidate\n {4}needs: \[plan, unit, e2e\]\n {4}if: always\(\)$/m,
     );
+    // Stage jobs run only for FULL; COPY and ATTEST skip them.
     expect(
-      workflow.match(/if: needs.plan.outputs.decision != 'ATTEST'/g),
+      workflow.match(/if: needs.plan.outputs.decision == 'FULL'/g),
     ).toHaveLength(2);
     expect(
       workflow.match(/if: steps.reuse.outputs.decision != 'ATTEST'/g),
-    ).toHaveLength(3);
+    ).toHaveLength(5);
+    expect(
+      workflow.match(
+        /if: steps.reuse.outputs.decision != 'ATTEST' && needs.plan.outputs.decision != 'COPY'/g,
+      ),
+    ).toHaveLength(2);
+    expect(workflow).toContain(
+      "decision: ${{ steps.copy.outputs.lane == 'COPY' && 'COPY' || steps.reuse.outputs.decision }}",
+    );
+    expect(workflow).toContain(
+      'echo "lane=$(node scripts/release-copy-lane.mjs || true)" >> "$GITHUB_OUTPUT"',
+    );
     expect(workflow.match(/id: reuse/g)).toHaveLength(2);
     expect(workflow.match(/selection=\$\(mktemp\)/g)).toHaveLength(2);
     expect(workflow).toContain('timeout 150s node --input-type=module');

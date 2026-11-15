@@ -464,7 +464,7 @@ export function RpgShell({
           ) : null}
           {coordination.blockReason === 'stale' ? (
             <RpgPanel
-              description="Saved data changed in another tab."
+              description="Saved data changed."
               role="alert"
               title="Reload changed local data"
             >

@@ -17,6 +17,34 @@ Path on wide screens and in Details on phones. Titles and helper text use
 balanced wrapping. No data, schema, route, dependency or release-control
 change.
 
+**Copy-only lane — merged as PR #101, 2026-11-15.** On the owner's instruction, a
+merge that only edits learner-facing text, docs or review evidence skips the
+browser stages: `Final candidate` installs, audits, re-proves the
+classification, lints, typechecks, builds and runs the unit suite
+(`docs/ci.md`). Per the owner, any user-facing language qualifies unless there
+is a strong reason against. Three cases stay FULL: a test asserts the text;
+the text is also used as a value; or it lives in hash-addressed lesson assets
+or the persistence/protocol layers. The proof fails closed to FULL. This PR
+runs FULL, because it changes release controls; the lane first applies to the
+next copy-only change. Copy changes in it: the RPG stale-data banner says
+"Saved data changed." (it also showed after the tab's own save), and "Gratis"
+leaves two learner texts, since it implies something is paid elsewhere; the
+Utviklerblikk content-freeze digest is re-pinned for that one word. The word
+stays in one S1-M03 lesson, where it is the expected output of a learner's
+program, not product copy.
+
+**Saved-result waits — merged as PR #100, 2026-11-15.** Master run #212 failed
+once in `task6-progress-check` at 1280 px: the scored result appeared 5.6 s
+after "Sjekk svaret" on a loaded runner, after Playwright's default 5 s wait.
+The trace (owner-supplied artifact) shows a complete answer, no console error,
+and the correct "Riktig, +13 XP" result in the next frame. Assertions that wait
+for a result saved and re-read through IndexedDB after a submit now wait up to
+15 s, as other stored-state checks in the suite do. Passing checks still return
+at once and assert the same content. During the tab's own post-save re-read
+the RPG shell said "Saved data changed in another tab", untrue for a single
+tab; the copy-only lane PR changes it to "Saved data changed.", like Classic's
+revision wording.
+
 **Feedback link — merged as PR #99, 2026-11-15.** Replaces the PR #93/#96
 approach with the smallest version: a **Feedback** card in the shared Settings
 surface (Classic and RPG) whose **Send feedback** link opens the learner's own

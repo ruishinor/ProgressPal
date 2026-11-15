@@ -207,7 +207,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     orderMoveDownButton: '↓',
     orderMoved: '{item} er flyttet til plass {n}.',
     progressCheckButton: 'Sjekk så langt',
-    progressCheckRule: 'Gratis, og teller ikke som svar.',
+    progressCheckRule: 'Teller ikke som svar.',
     progressCheckFirst: 'Velg {n} steg før du kan sjekke.',
     progressCheckMore: 'Velg {n} steg til før du kan sjekke.',
     progressCheckSecond: 'Velg {n} steg til før du kan sjekke igjen.',

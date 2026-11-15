@@ -836,7 +836,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Ett trykk – mange steg',
           role: 'explain',
           source: a5,
-          idea: 'Biblioteket har et gratis kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Her sjekker appen plass og registrerer påmeldingen før den svarer. Dette er systematferd. Ali ser handlingen sin og svaret på skjermen, men ikke sjekken og registreringen bak.',
+          idea: 'Biblioteket har et kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Her sjekker appen plass og registrerer påmeldingen før den svarer. Dette er systematferd. Ali ser handlingen sin og svaret på skjermen, men ikke sjekken og registreringen bak.',
           bridge: 'Neste: koble Alis handlinger til systemets svar.',
         },
         {

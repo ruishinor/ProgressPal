@@ -142,6 +142,7 @@ for (const width of [1280, 390, 320]) {
     await page.keyboard.press('Enter');
     await expect(task.getByRole('status', { name: 'Resultat' })).toContainText(
       'Ikke riktig ennå',
+      { timeout: 15_000 },
     );
     await expect(task.getByText('Feil plass', { exact: true })).toHaveCount(2);
     await expect(task.getByText('Riktig plass', { exact: true })).toHaveCount(
@@ -161,6 +162,7 @@ for (const width of [1280, 390, 320]) {
     await task.getByRole('button', { name: 'Sjekk svaret' }).click();
     await expect(task.getByRole('status', { name: 'Resultat' })).toContainText(
       'Riktig',
+      { timeout: 15_000 },
     );
 
     // Task 7 is a different interaction: one option per answer, no repeats.

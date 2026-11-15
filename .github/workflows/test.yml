@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      decision: ${{ steps.reuse.outputs.decision }}
+      decision: ${{ steps.copy.outputs.lane == 'COPY' && 'COPY' || steps.reuse.outputs.decision }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -72,11 +72,20 @@ jobs:
             20) echo 'Confirmed mandatory violation; certification blocked.'; exit 1 ;;
             *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
           esac
+      # A change that only edits learner-facing text, docs or review evidence
+      # runs the short copy stage instead of the full gate.
+      - name: Install locked dependencies
+        if: steps.reuse.outputs.decision != 'ATTEST'
+        run: npm ci
+      - name: Classify copy-only change
+        id: copy
+        if: steps.reuse.outputs.decision != 'ATTEST' && github.event_name != 'workflow_dispatch'
+        run: echo "lane=$(node scripts/release-copy-lane.mjs || true)" >> "$GITHUB_OUTPUT"
 
   unit:
     name: Unit stage
     needs: plan
-    if: needs.plan.outputs.decision != 'ATTEST'
+    if: needs.plan.outputs.decision == 'FULL'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -110,7 +119,7 @@ jobs:
   e2e:
     name: E2E shard ${{ matrix.shard }}/3
     needs: plan
-    if: needs.plan.outputs.decision != 'ATTEST'
+    if: needs.plan.outputs.decision == 'FULL'
     runs-on: ubuntu-latest
     timeout-minutes: 130
     strategy:
@@ -208,7 +217,7 @@ jobs:
             *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
           esac
       - name: Require successful stages
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        if: steps.reuse.outputs.decision != 'ATTEST' && needs.plan.outputs.decision != 'COPY'
         env:
           PLAN: ${{ needs.plan.result }}
           UNIT: ${{ needs.unit.result }}
@@ -217,7 +226,7 @@ jobs:
           echo "plan=$PLAN unit=$UNIT e2e=$E2E"
           test "$PLAN" = success && test "$UNIT" = success && test "$E2E" = success
       - name: Download stage evidence
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        if: steps.reuse.outputs.decision != 'ATTEST' && needs.plan.outputs.decision != 'COPY'
         uses: actions/download-artifact@v5
         with:
           pattern: release-stage-*
@@ -229,7 +238,7 @@ jobs:
         if: steps.reuse.outputs.decision != 'ATTEST'
         env:
           RELEASE_PASS: '1'
-          RELEASE_STAGE: assemble
+          RELEASE_STAGE: ${{ needs.plan.outputs.decision == 'COPY' && 'copy' || 'assemble' }}
         run: npm run verify:release
       - name: Upload release evidence
         if: always()
