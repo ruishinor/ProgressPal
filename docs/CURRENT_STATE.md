@@ -1,6 +1,18 @@
 # ProgressPal current state
 
-**Guild member list without ranking — PR candidate, 2026-11-15.** Owner
+**Guild Commons S1-A activation readiness — PR candidate, 2026-11-15.**
+Source only; nothing is installed and the flag stays off. Adds the D6 cleanup
+job (`infra/nhost/social/guild-commons-cleanup.sql`: one repeat-safe daily
+pg_cron job that deletes notes past `expires_at`, within 24 hours), a
+real-PostgreSQL probe (disposable PostgreSQL 16.15 with pg_cron 1.6: lock
+serialization, final-slot race, two-device post, cleanup registration,
+execution and isolation from other jobs) and a flag-on browser journey in its
+own opt-in Playwright project (`VITE_PROGRESSPAL_GUILD_COMMONS=true`). The
+delivery plan records D1–D6 as accepted and the owner-run install checklist.
+Provider status: owner verified pg_cron 1.6 live; the Commons SQL itself is
+not installed or live-verified.
+
+**Guild member list without ranking — merged as PR #104, 2026-11-15.** Owner
 decision D5 (Guild Commons plan): the Guild card's "Ukas rangering" becomes
 "Medlemmer", in the server's stable join order with no rank numbers. Each
 member's deliberately shared day count stays; nothing new is uploaded and no

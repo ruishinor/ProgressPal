@@ -3,8 +3,8 @@
 **Status (2026-11-15):** reviewed revision of the 2026-11-13 planning baseline
 on `plan/guild-commons-20261113` (inspected base `cffd41e`). This file
 supersedes that baseline's sequencing. It authorizes no merge, provider
-migration, flag change or deployment. S1 source is the PR that adds this file;
-it is off by default and not installed on Nhost.
+migration, flag change or deployment. S1 source merged as PR #103 (off by
+default, not installed on Nhost); the owner decisions in §5 are accepted.
 
 The product intent from the baseline stands: a private, optional Guild that
 helps a learner get practical help, see what the group is doing and belong
@@ -35,19 +35,19 @@ learning, programmes or personal rewards.
 
 Findings by perspective. Each is acted on in §3 or recorded as a decision.
 
-| #   | Perspective                  | Finding                                                                                                                                                                                                                       | Action                                                                                                                                              |
-| --- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Delivery / release           | The baseline puts provider inventory (S0) before any code, but S1's SQL probe already pins the repository contract, and the owner reports the live base installed. A paper-only slice adds a round without reducing risk.     | Fold S0 into the S1 activation checklist (§4).                                                                                                      |
-| R2  | Release / QA                 | Feature-on code is never built or browser-tested by the gate, which builds with the flag off. A flag flip is therefore a release, not a setting.                                                                              | Activation PR adds one Commons journey to the existing account-sync Playwright project with stubbed GraphQL, plus a flag-on build and bundle check. |
-| R3  | Product / pedagogy           | S2 (opt-in roster with programme, level and status) uploads derived learning data and overlaps the existing weekly day count. Its value is unproven; its privacy cost is certain.                                             | Demote to P3. Replace S2 with a weekly focus (§3, S2) that needs no learning data.                                                                  |
-| R4  | Human factors                | The existing "Ukas rangering" ranks up to eight people by shared days. The baseline's own rules reject pressure mechanics, permanent ranking and inactivity signals, yet keep this ranking "secondary".                       | **Owner decision D5**: keep, soften to an unranked list, or remove. Not changed silently here.                                                      |
-| R5  | Architecture / privacy       | S3 is blocked by decisions, not code: a local receipt store is a Dexie schema change (v5 → v6, forbidden without an accepted decision), and claim-once-across-Guilds conflicts with erasing an account's claims.              | Gate S3 on written decisions D1–D4 (§5). No S3 code before them.                                                                                    |
-| R6  | Security                     | Commons uses the same global advisory lock as `social_week`, so all Guild writes serialize across the project. Correct for capacity and handover; a throughput limit at scale.                                                | Accept for 1–8-member private Guilds; revisit only with measured contention.                                                                        |
-| R7  | Security / data minimization | The Commons read returns every member's opaque `membership` id. It is not a credential (the server derives the actor from the JWT and checks the caller's own id), but only an administrator needs others' ids, for handover. | Accepted for S1; trim to administrator-only when the response next changes.                                                                         |
-| R8  | Retention                    | Expired notes are purged only by that Guild's next Commons call. A dormant Guild keeps expired rows until it is deleted.                                                                                                      | Truthful wording kept in the provider README; scheduled housekeeping is D6, not hidden in S1.                                                       |
-| R9  | Operability                  | The flag is build-time (`VITE_PROGRESSPAL_GUILD_COMMONS`). Turning Commons off needs a redeploy; the fast kill switch is removing the Hasura function permission.                                                             | Documented in the provider README rollback section.                                                                                                 |
-| R10 | Measurement                  | "Aggregated Guild-local counters" are still data collection.                                                                                                                                                                  | Pilot evidence comes from the existing Send feedback link and owner-run sessions only.                                                              |
-| R11 | Junior developer / DX        | The baseline is long and mixes standing rules with slice detail; an implementer must read 200 lines to find the next action.                                                                                                  | This revision keeps one table of slices and one list of decisions.                                                                                  |
+| #   | Perspective                  | Finding                                                                                                                                                                                                                       | Action                                                                                                                                                      |
+| --- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Delivery / release           | The baseline puts provider inventory (S0) before any code, but S1's SQL probe already pins the repository contract, and the owner reports the live base installed. A paper-only slice adds a round without reducing risk.     | Fold S0 into the S1 activation checklist (§4).                                                                                                              |
+| R2  | Release / QA                 | Feature-on code is never built or browser-tested by the gate, which builds with the flag off. A flag flip is therefore a release, not a setting.                                                                              | S1-A adds a flag-on Playwright project with one Commons journey; activation then removes the build flag so the gate certifies the shipped code (§4 step 5). |
+| R3  | Product / pedagogy           | S2 (opt-in roster with programme, level and status) uploads derived learning data and overlaps the existing weekly day count. Its value is unproven; its privacy cost is certain.                                             | Demote to P3. Replace S2 with a weekly focus (§3, S2) that needs no learning data.                                                                          |
+| R4  | Human factors                | The existing "Ukas rangering" ranks up to eight people by shared days. The baseline's own rules reject pressure mechanics, permanent ranking and inactivity signals, yet keep this ranking "secondary".                       | D5 accepted: stable unranked member list (PR #104).                                                                                                         |
+| R5  | Architecture / privacy       | S3 is blocked by decisions, not code: a local receipt store is a Dexie schema change (v5 → v6, forbidden without an accepted decision), and claim-once-across-Guilds conflicts with erasing an account's claims.              | Gate S3 on written decisions D1–D4 (§5). No S3 code before them.                                                                                            |
+| R6  | Security                     | Commons uses the same global advisory lock as `social_week`, so all Guild writes serialize across the project. Correct for capacity and handover; a throughput limit at scale.                                                | Accept for 1–8-member private Guilds; revisit only with measured contention.                                                                                |
+| R7  | Security / data minimization | The Commons read returns every member's opaque `membership` id. It is not a credential (the server derives the actor from the JWT and checks the caller's own id), but only an administrator needs others' ids, for handover. | Accepted for S1; trim to administrator-only when the response next changes.                                                                                 |
+| R8  | Retention                    | Expired notes are purged only by that Guild's next Commons call. A dormant Guild keeps expired rows until it is deleted.                                                                                                      | D6 accepted: daily `pg_cron` cleanup job (S1-A, `guild-commons-cleanup.sql`).                                                                               |
+| R9  | Operability                  | The flag is build-time (`VITE_PROGRESSPAL_GUILD_COMMONS`). Turning Commons off needs a redeploy; the fast kill switch is removing the Hasura function permission.                                                             | Documented in the provider README rollback section.                                                                                                         |
+| R10 | Measurement                  | "Aggregated Guild-local counters" are still data collection.                                                                                                                                                                  | Pilot evidence comes from the existing Send feedback link and owner-run sessions only.                                                                      |
+| R11 | Junior developer / DX        | The baseline is long and mixes standing rules with slice detail; an implementer must read 200 lines to find the next action.                                                                                                  | This revision keeps one table of slices and one list of decisions.                                                                                          |
 
 ## 3. Revised slices
 
@@ -55,14 +55,14 @@ Each slice is one PR with focused tests, its own payload-bound self-review
 and one hosted `Final candidate`. Provider SQL lands as files first and is
 applied only on separate owner authorization.
 
-| Slice                                     | Scope                                                                                                                                                                      | Depends on                     | Exit evidence                                                                                     |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| **S1 — Commons board** (this PR)          | Ethos/About, three private seven-day notes (help, offer, notice, win), author edit/withdraw/resolve, admin remove, admin handover consistent with `social_week`. Flag off. | —                              | SQL probe; client and component Vitest; lint, types, build and bundle with flag off; hosted gate. |
-| **S1-A — Activation**                     | Install SQL + metadata on `progresspal-g0`, verify A/B/C/anonymous live, add the flag-on Playwright journey, set the Vercel variable.                                      | S1 merged; owner authorization | §4 checklist recorded with outputs.                                                               |
-| **S2 — Weekly focus**                     | One administrator-set focus line per Oslo week (≤120 code points), shown to members; no counting, no XP, no vote. Optional self-report "jeg jobbet med dette" deferred.    | S1-A pilot feedback            | Probe for week rollover (DST), admin-only write, reset on new week.                               |
-| **S3 — Contribution ledger**              | Server-allowlisted, deduplicated contribution claims; derived Guild total.                                                                                                 | D1–D4 accepted                 | As baseline S3 exit, plus restore/two-device duplicate tests.                                     |
-| **S4 — Chronicle and Guild achievements** | Dated history from accepted ledger events only.                                                                                                                            | S3                             | As baseline S4 exit.                                                                              |
-| **P3 backlog**                            | Opt-in roster details (old S2), member voting on focus, resource shelf, cooperative bonus.                                                                                 | Pilot demand                   | Separate proposal each.                                                                           |
+| Slice                                     | Scope                                                                                                                                                                        | Depends on                            | Exit evidence                                                                                     |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **S1 — Commons board** (PR #103, merged)  | Ethos/About, three private seven-day notes (help, offer, notice, win), author edit/withdraw/resolve, admin remove, admin handover consistent with `social_week`. Flag off.   | —                                     | SQL probe; client and component Vitest; lint, types, build and bundle with flag off; hosted gate. |
+| **S1-A — Activation**                     | Source: D6 cleanup job, real-PostgreSQL concurrency and cron probe, flag-on browser journey. Then the owner-run §4 install and an activation PR that removes the build flag. | S1 merged; owner authorization for §4 | §4 checklist recorded with outputs.                                                               |
+| **S2 — Weekly focus**                     | One administrator-set focus line per Oslo week (≤120 code points), shown to members; no counting, no XP, no vote. Optional self-report "jeg jobbet med dette" deferred.      | S1-A pilot feedback                   | Probe for week rollover (DST), admin-only write, reset on new week.                               |
+| **S3 — Contribution ledger**              | Server-allowlisted, deduplicated contribution claims; derived Guild total.                                                                                                   | Executable D1–D4 lifecycle contract   | As baseline S3 exit, plus restore/two-device duplicate tests.                                     |
+| **S4 — Chronicle and Guild achievements** | Dated history from accepted ledger events only.                                                                                                                              | S3                                    | As baseline S4 exit.                                                                              |
+| **P3 backlog**                            | Opt-in roster details (old S2), member voting on focus, resource shelf, cooperative bonus.                                                                                   | Pilot demand                          | Separate proposal each.                                                                           |
 
 Unchanged from the baseline and binding for every slice: messages, votes,
 links, presence, invites and admin edits never earn XP or GXP; no presence,
@@ -71,32 +71,49 @@ background upload of local learning events; failed or unknown writes never
 show success; learner copy in plain Bokmål without disclaimers beyond what the
 action needs.
 
-## 4. S1 activation checklist (owner-run, after merge)
+## 4. S1 activation checklist (owner-run)
 
-1. On `progresspal-g0`, export the current definitions of
+Steps 1–3 and 5 change the live provider and each need explicit owner
+authorization. Run them in the Nhost SQL Console of `progresspal-g0`.
+
+1. **Inventory, read-only.** Export the installed definitions of
    `progresspal_social.social_week`, `members` and the member-removal trigger;
    confirm `member_order` is `GENERATED ALWAYS AS IDENTITY` and the
    `member-invites` upgrade is present. Stop on any difference from
    `up.sql` + `rename-guild.sql` + `member-invites.sql`.
-2. Apply `guild-commons-v1.sql` as the source role, then the two operations in
+2. **Install.** Apply `guild-commons-v1.sql` as the role that owns
+   `progresspal_social`, then the two operations in
    `guild-commons-metadata.json`. Do not reapply `metadata.json`.
-3. With synthetic accounts A, B (same Guild), C (other Guild) and an anonymous
-   call: A posts, B cannot edit A's note, C reads only its own Guild,
-   anonymous is `unauthenticated`, a fourth note in a full board is `full`,
-   handover moves `isAdmin` in both `guild_commons_v1` and `social_week` and
-   clears the invite. Record the responses.
-4. Activation PR: flag-on Playwright journey and build; then set
-   `VITE_PROGRESSPAL_GUILD_COMMONS=true` in Vercel.
-5. Rollback: remove the function permission and tracking in Hasura; keep the
-   tables. Destructive rollback needs a separate retention decision.
+3. **Live contract.** With synthetic accounts A, B (same Guild), C (other
+   Guild) and an anonymous call: A posts, B cannot edit A's note, C reads only
+   its own Guild, anonymous is `unauthenticated`, a fourth note in a full board
+   is `full`, handover moves `isAdmin` in both `guild_commons_v1` and
+   `social_week` and clears the invite. Record the responses. The frontend
+   flag is not a security boundary: from this step on the RPC is callable
+   directly by any signed-in `user`, so its own checks are the boundary.
+4. **Cleanup job (D6).** Apply `guild-commons-cleanup.sql` as the same role.
+   Verify and, if needed, unschedule as described in the provider README.
+5. **Frontend.** Activation PR: remove the build flag so Commons ships in the
+   build the gate certifies (the gate builds with default variables, so a
+   Vercel-only variable would ship code the gate never ran), and move
+   `e2e/guild-commons.spec.ts` into the default project.
+6. **Rollback.** Remove the Hasura function permission and tracking; keep the
+   tables. Unscheduling the cleanup job is independent. Destructive rollback
+   needs a separate retention decision.
 
-## 5. Owner decisions that block later slices
+Already verified without the live provider (S1-A source PR): the PGlite
+contract probe; `probe-guild-commons-postgres.mjs` on disposable PostgreSQL
+16.15 with pg_cron 1.6 (lock serialization, final-slot race, two-device post,
+cleanup registration, repeat safety, execution and isolation from other jobs);
+the flag-on browser journey against a simulated provider.
 
-| ID  | Decision                                                                                                                                                                            | Blocks            |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| D1  | Local receipt store for Mikroøkt/Utviklerblikk completions: accept a Dexie v6 migration (with backup/export/import and sync coverage), or derive claims only from existing records. | S3                |
-| D2  | Account erasure versus claim-once: are an erased account's claims deleted (totals may drop) or de-identified (and how is that described truthfully in an eight-member group)?       | S3, S4            |
-| D3  | Which existing personal XP sources may be shared as Guild contributions, and the fixed GXP catalogue, after a 1/2/4/8-member simulation.                                            | S3                |
-| D4  | Consent model: per-share preview only, or a standing opt-in with withdrawal.                                                                                                        | S3                |
-| D5  | Keep, soften or remove "Ukas rangering" (R4).                                                                                                                                       | — (current UI)    |
-| D6  | Scheduled purge of expired notes in dormant Guilds, or accept purge-on-use.                                                                                                         | Retention wording |
+## 5. Accepted owner decisions (2026-11-15)
+
+| ID  | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Applies to |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| D1  | No Dexie v6 for the first S3. Claims come only from existing persisted, eligible learning evidence. Mikroøkt/Utviklerblikk receipts wait until their migration, backup, restore, account binding and sync behaviour are justified and testable.                                                                                                                                                                                                                                                  | S3         |
+| D2  | Account deletion erases the account's Guild claims and totals are recalculated; no shadow identifier is kept for lifetime deduplication. Leaving a Guild, withdrawing one contribution and erasing an account are distinct operations. Dependent achievements are reconciled truthfully.                                                                                                                                                                                                         | S3, S4     |
+| D3  | Provisional catalogue: +3 GXP for an explicitly shared, eligible, uniquely identified saved Pathways lesson completion; +20 GXP for one qualifying collective weekly milestone from deliberately shared days under server-set weekly rules. Nothing for messages, links, votes, navigation, invitations, admin actions or repeated claims. Verify the source catalogue and simulate 1/2/4/8 members before S3 release. No percentage conversion of personal XP; personal XP semantics unchanged. | S3         |
+| D4  | Every contribution needs a per-share preview and an affirmative action. No standing authorization or background upload. No success shown before server acknowledgement. Withdrawal follows D2.                                                                                                                                                                                                                                                                                                   | S3         |
+| D5  | The weekly ranking becomes a stable, unranked member list that keeps the shared day counts and infers no inactivity. Implemented in PR #104.                                                                                                                                                                                                                                                                                                                                                     | Guild card |
+| D6  | Bounded physical cleanup with the existing `pg_cron` (1.6, verified live by the owner): one daily job deletes notes whose `expires_at` has passed, at most 24 hours after expiry. Database cleanup only; provider backups keep their own retention. No separate service.                                                                                                                                                                                                                         | S1-A       |

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-commons-activation",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "33b152bfd5ecc53ca37e7181b4a0cbcc2411b2a1",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of Guild Commons S1-A activation readiness on master ae82102 (PRs #103 and #104 merged). Source only: the D6 pg_cron cleanup registration, a real-PostgreSQL probe, a flag-on browser journey in an opt-in Playwright project, provider README and delivery plan updates (D1-D6 accepted). No application code changes; nothing is installed on Nhost and the Commons flag stays off.",
+    "evidence": [
+      "Owner verified pg_cron 1.6 live on progresspal-g0 with an active progresspal-feedback-purge job (15 3 * * *); the cleanup job uses a distinct name and time (03:45) and cron.schedule's replace-by-name, so it is repeat-safe and never alters that job.",
+      "probe-guild-commons-postgres.mjs on disposable PostgreSQL 16.15 with pg_cron 1.6: PASS. Two waiting advisory locks while a post holds the lock in an open transaction; both waiters then get full; a three-way burst for one slot yields exactly one ok; one member posting from two connections stores one note; the cleanup SQL applied twice leaves one job at 45 3 * * * owned by the applying role; an unrelated job keeps its schedule; the real scheduled job ran with status succeeded and return message DELETE 2, leaving only the active note.",
+      "Mutation check: removing pg_advisory_xact_lock from guild-commons-v1.sql makes the probe fail ('competing posts must wait for the lock').",
+      "The probe refuses non-local hosts and databases that already contain an auth or progresspal_social schema, and drops what it created.",
+      "PGlite contract probe (probe-guild-commons.mjs): PASS on the final tree.",
+      "Flag-on Playwright project (VITE_PROGRESSPAL_GUILD_COMMONS=true), simulated provider: 1 of 1 passed after merging master ae82102 - no Commons request before opening; keyboard open, post and focus return; native maxlength caps 200 emoji at 140 code points within the server's 280; handover after confirmation re-reads social_week; axe without violations on the RPG Guild panel and the Classic Guild card; no horizontal overflow at 320, 640 and 1280 CSS px; sign-out removes the board and signing in again does not re-read it.",
+      "Default Playwright project unchanged: 324 tests listed, guild-commons.spec.ts excluded by testIgnore, so no skipped test enters the gate.",
+      "Vitest tests/infra, tests/architecture, tests/lib/cloud and tests/features/social: 680 of 680, including the infra credential guard, which caught an example connection URL in the README (replaced by a placeholder).",
+      "Release script tests (node --test, the gate's five files): 159 of 159. Prettier (pinned 3.8.4) on changed files and the whole repository, git diff --check, eslint --max-warnings 0, npm run typecheck, build and check:bundle (459,346 B JS gzip) pass."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GCA-1",
+      "severity": "P2",
+      "description": "The hosted gate builds with default variables, so setting VITE_PROGRESSPAL_GUILD_COMMONS only in Vercel would ship Commons code that the gate never built or browser-tested.",
+      "resolution": "Recorded in the plan's activation checklist: the activation PR removes the build flag and moves the Commons journey into the default project, so the gate certifies the shipped code. This PR does not activate.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-2",
+      "severity": "P2",
+      "description": "Once the Hasura function permission is granted, any signed-in user can call guild_commons_v1 directly; the frontend flag is not a security boundary.",
+      "resolution": "Stated in the activation checklist. The function's own checks (role, auth.users, membership reference, author and administrator rules, limits) are the boundary and are covered by both probes.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-3",
+      "severity": "P3",
+      "description": "Real account switching to a different user id is not exercised in the browser: the shared simulated provider issues one user id for every email.",
+      "resolution": "The journey covers sign-out and sign-in; wrong-user and session-change rejection are covered by tests/lib/cloud/nhostGuildCommons.test.ts. Changing the shared helper would affect other specs.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-4",
+      "severity": "P3",
+      "description": "640 CSS px stands in for 200 % zoom of a 1280 px window by layout width; it is not native browser zoom, and no screen reader was used.",
+      "resolution": "Recorded as such; role, name and focus semantics are asserted and axe passes. Native zoom and screen-reader observation remain for the activation PR.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-5",
+      "severity": "P3",
+      "description": "Deleted notes can persist in provider backups after the cleanup job removes them.",
+      "resolution": "The README states that the job removes database rows only and that provider backups keep their own retention.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate. The change adds provider files, an opt-in test project and documentation, and does not alter application behaviour or the default test suite."
+  }
+}

@@ -4,6 +4,8 @@ const E2E_PORT = 42_183;
 const E2E_URL = `http://127.0.0.1:${E2E_PORT}`;
 const OFFLINE_SPEC = /offline\.spec\.ts/;
 const ACCOUNT_SYNC_SPEC = /account-sync\.spec\.ts/;
+// Needs a build with VITE_PROGRESSPAL_GUILD_COMMONS=true; off by default.
+const GUILD_COMMONS_SPEC = /guild-commons\.spec\.ts/;
 // Capture-only review tooling for closed epics: screenshots, no comparison.
 // Opt in with PROGRESSPAL_REVIEW_CAPTURE=true; not part of certification.
 const REVIEW_CAPTURE_SPEC =
@@ -48,28 +50,37 @@ export default defineConfig({
             use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
           },
         ]
-      : process.env.VITE_PROGRESSPAL_ACCOUNT_SYNC === 'true'
+      : process.env.VITE_PROGRESSPAL_GUILD_COMMONS === 'true'
         ? [
             {
-              name: 'account-sync',
-              testMatch: ACCOUNT_SYNC_SPEC,
+              name: 'guild-commons',
+              testMatch: GUILD_COMMONS_SPEC,
               use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
             },
           ]
-        : [
-            {
-              name: 'chromium',
-              testIgnore: [
-                OFFLINE_SPEC,
-                ACCOUNT_SYNC_SPEC,
-                REVIEW_CAPTURE_SPEC,
-              ],
-              use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
-            },
-            {
-              name: 'offline',
-              testMatch: OFFLINE_SPEC,
-              use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
-            },
-          ],
+        : process.env.VITE_PROGRESSPAL_ACCOUNT_SYNC === 'true'
+          ? [
+              {
+                name: 'account-sync',
+                testMatch: ACCOUNT_SYNC_SPEC,
+                use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+              },
+            ]
+          : [
+              {
+                name: 'chromium',
+                testIgnore: [
+                  OFFLINE_SPEC,
+                  ACCOUNT_SYNC_SPEC,
+                  GUILD_COMMONS_SPEC,
+                  REVIEW_CAPTURE_SPEC,
+                ],
+                use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+              },
+              {
+                name: 'offline',
+                testMatch: OFFLINE_SPEC,
+                use: { ...devices['Desktop Chrome'], baseURL: E2E_URL },
+              },
+            ],
 });
