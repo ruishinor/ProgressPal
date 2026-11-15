@@ -2,7 +2,8 @@
 
 Version 2, 2026-11-15 (version 1: 2026-11-14). Covers PR #96 (the failed
 feedback button) and the follow-up: PR #97 (gate stability and trimming),
-PR #98 (parallel gate) and PR #99 (feedback link, smallest version).
+PR #98 (parallel gate), PR #99 (feedback link, smallest version), PR #100
+(saved-result waits) and PR #101 (copy-only lane).
 
 ## Summary
 
@@ -202,15 +203,33 @@ Recorded so they aren't repeated:
 - [ ] Two consecutive red runs: stop, write down each cause, then continue.
 - [ ] Claims about speed come from a hosted run, not a local one.
 
+### 16. A static copy check cannot see what a test computes
+
+The copy-only lane (PR #101) proves an edit is text by comparing code tokens
+and searching tests for the old text. Hosted run #219 still failed on such an
+edit: a unit test pins a SHA-256 digest of 24 authored Utviklerblikk sessions,
+so removing one word ("gratis") changed the digest. No search for the old
+text can find that dependency. The copy stage now also runs the unit suite
+(about 2.5 minutes) and skips only the browser stages (about 13). The rule
+"any user-facing language qualifies" holds, with three stated exceptions: a
+test names the text, the text is also a value, or the text lives in
+hash-addressed lesson assets or in storage code.
+
+**Rule:** skip the expensive checks you can prove irrelevant. Keep the cheap
+ones that catch what no proof can see.
+
 ## Product finding from the run #212 trace
 
-While a tab re-reads after its own save, the RPG shell shows "Saved data
-changed in another tab". That is untrue for a single tab: the coordinator
-marks every tab stale after its own write by design, and the shell uses
-another-tab wording for that state. It needs its own small change.
+While a tab re-reads after its own save, the RPG shell showed "Saved data
+changed in another tab". That was untrue for a single tab: the coordinator
+marks every tab stale after its own write by design. Fixed in PR #101: the
+banner says "Saved data changed."
 
 ## Open items
 
+- Done: PR #101 merged (copy-only lane, banner wording, "Gratis" removed
+  from two learner texts). The lane first runs hosted on the next copy-only
+  merge; watch that run.
 - Done: PR #99 merged and PR #96 closed as replaced. Master run #216 took
   the ATTEST path (stages skipped, Final candidate green in 18 s): the first
   proof of reuse under the parallel gate.
