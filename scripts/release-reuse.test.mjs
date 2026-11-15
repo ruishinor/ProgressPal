@@ -781,7 +781,7 @@ test('installed workflow selection defaults uncertain output to FULL and preserv
     2,
   );
   assert.equal(
-    (workflow.match(/if: needs\.plan\.outputs\.decision != 'ATTEST'/g) || [])
+    (workflow.match(/if: needs\.plan\.outputs\.decision == 'FULL'/g) || [])
       .length,
     2,
   );
