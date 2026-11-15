@@ -210,22 +210,44 @@ html:has(body.rpg-route-active) {
 }
 
 .rpg-hero-hud .rpg-identity__copy {
-  align-items: baseline;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-3);
+  gap: 0.25rem;
 }
 
 .rpg-hero-hud .rpg-identity__name {
   font-size: var(--text-lg);
 }
 
+/* Wide HUD: L1 name and Activity; Guild over Path, with the extended Class
+   over Rank beside them, so four facts take two lines. */
 .rpg-hero-hud .rpg-identity__traits {
-  flex-basis: 100%;
+  grid-template-columns:
+    max-content minmax(0, auto)
+    max-content minmax(0, 1fr);
 }
 
-.rpg-hero-hud .rpg-identity__guild {
-  flex-basis: auto;
+.rpg-hero-hud :is(.rpg-identity__guild, .rpg-identity__class) > * {
+  grid-row: 1;
+}
+
+.rpg-hero-hud :is(.rpg-identity__path, .rpg-identity__rank) > * {
+  grid-row: 2;
+}
+
+.rpg-hero-hud :is(.rpg-identity__class, .rpg-identity__rank) > dt {
+  grid-column: 3;
+  padding-inline-start: var(--space-3);
+}
+
+.rpg-hero-hud :is(.rpg-identity__class, .rpg-identity__rank) > dd {
+  grid-column: 4;
+}
+
+/* Activity Level: the icon and the number; the name stays spoken. */
+.rpg-identity__headline .activity-indicator {
+  justify-content: center;
+  margin-block: calc((1.75rem - 44px) / 2);
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .rpg-hero-hud .rpg-level-progress__marker {
@@ -260,14 +282,14 @@ html:has(body.rpg-route-active) {
 .rpg-hero-hud__quest strong {
   color: var(--rpg-text);
   font-weight: 800;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .rpg-hero-hud__meta,
 .rpg-hero-hud__quest-context {
   color: var(--rpg-text-muted);
   font-size: var(--text-sm);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   margin: 0;
 }
 
@@ -502,18 +524,14 @@ html:has(body.rpg-route-active) {
     height: 48px;
   }
 
-  .rpg-hero-hud .rpg-identity__copy {
-    align-items: center;
-    gap: 0 0.25rem;
+  .rpg-hero-hud .rpg-identity__traits {
+    grid-template-columns: max-content minmax(0, 1fr);
   }
 
-  .rpg-hero-hud .activity-indicator {
-    display: inline-flex;
-    align-items: center;
-    column-gap: 2px;
-    min-height: 44px;
-    padding-block: 0;
-    width: fit-content;
+  .rpg-hero-hud .rpg-identity__traits > div > * {
+    grid-column: auto;
+    grid-row: auto;
+    padding-inline-start: 0;
   }
 
   .rpg-hero-hud > .rpg-shell__settings-link {
@@ -559,7 +577,6 @@ html:has(body.rpg-route-active) {
   .rpg-hero-hud__detail-content {
     display: grid;
     min-width: 0;
-    overflow-wrap: anywhere;
     gap: var(--space-2);
     padding-block: var(--space-3);
   }

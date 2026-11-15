@@ -609,7 +609,7 @@ for (const theme of ['dark', 'light'] as const) {
 
 const hudIdentityText = [
   'Alex',
-  'Rank:',
+  'Rank',
   'New Learner',
   'Guild',
   'Code Knights',

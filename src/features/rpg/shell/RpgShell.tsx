@@ -221,12 +221,10 @@ function RpgHeroHud({
         <details className="rpg-hero-hud__details">
           <summary aria-label="Character details">Details</summary>
           <div className="rpg-hero-hud__detail-content">
-            {programmeTitle && (
-              <p>
-                Programme: <strong>{programmeTitle}</strong>
-              </p>
-            )}
-            <RpgHeroIdentityDetails identity={summary.identity} />
+            <RpgHeroIdentityDetails
+              identity={summary.identity}
+              programmeTitle={programmeTitle}
+            />
             {showQuest && questMetadata}
           </div>
         </details>
