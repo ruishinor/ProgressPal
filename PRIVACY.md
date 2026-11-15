@@ -98,3 +98,7 @@ The host serves the app and its packaged files. External course links open
 separate websites with their own privacy practices. The optional cloud
 and account sync operations above are the app's Nhost requests. ProgressPal
 has no analytics, telemetry, tracking cookies or remote AI service.
+
+Settings has a **Send feedback** link. It opens your own email app with the
+app version filled in. The app sends nothing itself; only an email you choose
+to send reaches the maintainer.
