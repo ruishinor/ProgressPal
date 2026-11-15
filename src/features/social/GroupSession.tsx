@@ -23,6 +23,7 @@ import {
 } from '@/lib/cloud';
 import { getOsloWeek } from '@/lib/time/osloWeek';
 
+import { GuildCommons } from './GuildCommons';
 import { summarizeGroup } from './groupModel';
 import { defaultGuildName } from './useGroupAccess';
 import type { useLearningWeek } from './useLearningWeek';
@@ -375,6 +376,15 @@ export function GroupSession({
           </li>
         ))}
       </ul>
+      {import.meta.env.VITE_PROGRESSPAL_GUILD_COMMONS === 'true' && (
+        <GuildCommons
+          key={group.membership}
+          membership={group.membership}
+          userId={userId}
+          rpg={Boolean(renderPanels)}
+          onMembershipChanged={() => void run({ operation: 'read' })}
+        />
+      )}
     </>
   );
   const membership = group !== null && (

@@ -207,6 +207,7 @@ describe('cloud boundary: only reviewed modules call the cloud port', () => {
     'src/features/settings/components/CloudSignInPanel.tsx',
     'src/features/settings/routes/CloudCallbackPage.tsx',
     'src/features/social/GroupSession.tsx',
+    'src/features/social/GuildCommons.tsx',
     'src/features/social/groupModel.ts',
     'src/features/social/useGroupAccess.ts',
     'src/lib/cloudSync/binding.ts',
