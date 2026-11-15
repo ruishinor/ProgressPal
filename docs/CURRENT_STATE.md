@@ -1,5 +1,11 @@
 # ProgressPal current state
 
+**Guild member list without ranking — PR candidate, 2026-11-15.** Owner
+decision D5 (Guild Commons plan): the Guild card's "Ukas rangering" becomes
+"Medlemmer", in the server's stable join order with no rank numbers. Each
+member's deliberately shared day count stays; nothing new is uploaded and no
+inactivity is inferred. The shared weekly goal is unchanged.
+
 **Settings on one page, clearer choices and Hero HUD lines — PR candidate,
 2026-11-15.** Replaces draft PR #94, which never reached its tests (three
 hosted runs stopped at Prettier) and, measured on master `08216aa`, failed 14

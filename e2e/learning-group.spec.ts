@@ -181,13 +181,14 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Øvelaget' })).toBeFocused();
   await expect(guildLink).toHaveText(group.name);
-  const ranking = panel
-    .getByRole('list', { name: 'Ukas rangering' })
+  const members = panel
+    .getByRole('list', { name: 'Medlemmer' })
     .getByRole('listitem');
   await expect(panel.getByRole('list')).toHaveCount(1);
-  await expect(ranking).toHaveText(['1. Bo 1 dag', '2. Ada (deg) 0 dager']);
-  expect((await ranking.nth(1).boundingBox())!.y).toBeGreaterThan(
-    (await ranking.first().boundingBox())!.y,
+  // Join order from the server, not sorted by shared days.
+  await expect(members).toHaveText(['Ada (deg) 0 dager', 'Bo 1 dag']);
+  expect((await members.nth(1).boundingBox())!.y).toBeGreaterThan(
+    (await members.first().boundingBox())!.y,
   );
   const progress = panel.getByRole('progressbar', { name: 'Felles ukemål' });
   await expect(progress).toHaveAttribute('aria-valuenow', '1');
@@ -210,7 +211,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   await expect(panel.getByRole('status')).toContainText(/\S/);
   await capture('min-uke-deling');
   await tabs.nth(1).click();
-  await expect(ranking).toHaveText(['1. Ada (deg) 1 dag', '1. Bo 1 dag']);
+  await expect(members).toHaveText(['Ada (deg) 1 dag', 'Bo 1 dag']);
   await expect(progress).toHaveAttribute('aria-valuenow', '2');
   await expect(panel.getByText('2 / 4 læringsdager')).toBeVisible();
   expect(commands).toEqual([
@@ -227,7 +228,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   releaseFailedRead();
   await expect(refresh).toBeEnabled();
   await expect(panel.getByRole('status')).not.toBeEmpty();
-  await expect(ranking).toHaveCount(2);
+  await expect(members).toHaveCount(2);
   await expect(guildLink).toHaveText(group.name);
   await refresh.click();
   await expect(refresh).toBeEnabled();
@@ -350,7 +351,7 @@ test('group UI shares only dates on demand and hides a private board when offlin
   const nickname = panel.getByLabel('Kallenavn');
   await expect(nickname).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Ukas rangering' }),
+    page.getByRole('heading', { name: 'Medlemmer', exact: true }),
   ).toHaveCount(0);
   await tabs.nth(1).click();
   await refresh.click();

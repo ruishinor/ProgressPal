@@ -357,15 +357,14 @@ export function GroupSession({
         value={summary.total}
         tone={summary.total >= summary.target ? 'success' : undefined}
       />
-      <h3 className="learning-group__ranking-title">Ukas rangering</h3>
+      <h3 className="learning-group__members-title">Medlemmer</h3>
       <ul
-        aria-label="Ukas rangering"
-        className="learning-group__ranking"
+        aria-label="Medlemmer"
+        className="learning-group__members"
         role="list"
       >
-        {summary.ranking.map(({ nickname, rank, days, self }, index) => (
+        {summary.members.map(({ nickname, days, self }, index) => (
           <li key={index}>
-            <span>{rank}.</span>{' '}
             <span>
               {nickname}
               {self ? ' (deg)' : ''}
