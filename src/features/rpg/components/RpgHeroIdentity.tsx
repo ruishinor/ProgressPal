@@ -70,33 +70,30 @@ export function RpgHeroIdentity({
         </Link>
       )}
       <div className="rpg-identity__copy">
-        <p
-          className={classNames(
-            'rpg-identity__name',
-            variant === 'hud' && 'rpg-hero-hud__name',
-          )}
-        >
-          {name}
-        </p>
-        {showDetails &&
-          (variant === 'profile' ? (
-            <div className="action-row">
-              <RpgRankBadge rank={identity.rankLabel} />
-              <RpgInfoNote label="About rank">
-                Rank follows how much of the required course you have completed.
-              </RpgInfoNote>
-            </div>
-          ) : (
+        <div className="rpg-identity__headline">
+          <p
+            className={classNames(
+              'rpg-identity__name',
+              variant === 'hud' && 'rpg-hero-hud__name',
+            )}
+          >
+            {name}
+          </p>
+          {secondaryStatistic}
+        </div>
+        {showDetails && variant === 'profile' ? (
+          <div className="action-row">
             <RpgRankBadge rank={identity.rankLabel} />
-          ))}
-        {secondaryStatistic}
+            <RpgInfoNote label="About rank">
+              Rank follows how much of the required course you have completed.
+            </RpgInfoNote>
+          </div>
+        ) : null}
         <dl className="rpg-identity__traits">
           <div className="rpg-identity__guild">
-            <dt>
-              <img alt="" src={guildEmblem} width="32" height="32" />
-              Guild
-            </dt>
+            <dt>Guild</dt>
             <dd>
+              <img alt="" src={guildEmblem} width="32" height="32" />
               {guildHref ? (
                 <NavLink
                   className="rpg-identity__guild-link"
@@ -110,30 +107,39 @@ export function RpgHeroIdentity({
               )}
             </dd>
           </div>
-          {showDetails && <IdentityClass label={identity.classLabel} />}
           <div className="rpg-identity__path">
             <dt>Path</dt>
             <dd>{identity.pathLabel}</dd>
           </div>
+          {showDetails ? <IdentityClass label={identity.classLabel} /> : null}
+          {showDetails && variant === 'hud' ? (
+            <IdentityRank label={identity.rankLabel} />
+          ) : null}
         </dl>
       </div>
     </div>
   );
 }
 
-/** The same read-model facts, wherever the shell places its secondary details. */
+/** The extended facts, wherever the shell places its secondary details. */
 export function RpgHeroIdentityDetails({
   identity,
+  programmeTitle,
 }: {
   identity: RpgHubIdentity;
+  programmeTitle?: string;
 }) {
   return (
-    <>
-      <RpgRankBadge rank={identity.rankLabel} />
-      <dl className="rpg-identity__traits">
-        <IdentityClass label={identity.classLabel} />
-      </dl>
-    </>
+    <dl className="rpg-identity__traits rpg-identity__traits--details">
+      {programmeTitle ? (
+        <div className="rpg-identity__programme">
+          <dt>Programme</dt>
+          <dd>{programmeTitle}</dd>
+        </div>
+      ) : null}
+      <IdentityClass label={identity.classLabel} />
+      <IdentityRank label={identity.rankLabel} />
+    </dl>
   );
 }
 
@@ -141,6 +147,15 @@ function IdentityClass({ label }: { label: string }) {
   return (
     <div className="rpg-identity__class">
       <dt>Class</dt>
+      <dd>{label}</dd>
+    </div>
+  );
+}
+
+function IdentityRank({ label }: { label: string }) {
+  return (
+    <div className="rpg-identity__rank">
+      <dt>Rank</dt>
       <dd>{label}</dd>
     </div>
   );

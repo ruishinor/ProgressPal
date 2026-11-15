@@ -143,7 +143,10 @@ export function OnboardingPage() {
           {programmeChoices
             .filter((choice) => choice.programmeId !== gitPathwayProgrammeId)
             .map((choice) => (
-              <label className="checkbox" key={choice.programmeId}>
+              <label
+                className={`checkbox checkbox--programme${programmeId === choice.programmeId ? ' checkbox--selected' : ''}`}
+                key={choice.programmeId}
+              >
                 <input
                   checked={programmeId === choice.programmeId}
                   disabled={startingDefault || !coordination.canWrite}
@@ -152,7 +155,12 @@ export function OnboardingPage() {
                   type="radio"
                   value={choice.programmeId}
                 />
-                <span>{choice.title}</span>
+                <span className="programme-choice__title">{choice.title}</span>
+                {programmeId === choice.programmeId ? (
+                  <span aria-hidden="true" className="programme-choice__state">
+                    Selected
+                  </span>
+                ) : null}
               </label>
             ))}
         </div>

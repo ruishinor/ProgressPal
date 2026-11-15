@@ -13,7 +13,7 @@ export function ActivityIndicator() {
   return (
     <Link className="activity-indicator" to={rpgActivityPath}>
       <ActivityIcon />
-      <span>{label}</span>{' '}
+      <span className="sr-only">{label}</span>{' '}
       <span className="activity-indicator__level">
         {error
           ? norwegian

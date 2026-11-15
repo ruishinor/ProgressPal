@@ -7,6 +7,7 @@ import { FormField } from '@/components/ui/FormField';
 import { NumberInput } from '@/components/ui/NumberInput';
 import { Select } from '@/components/ui/Select';
 import { TextInput } from '@/components/ui/TextInput';
+import { classNames } from '@/components/ui/utils';
 import { type SaveLearnerProfileInput } from '@/lib/db';
 import type { LearnerAvatarId, LearnerProfile, StudyDay } from '@/lib/domain';
 
@@ -233,7 +234,7 @@ export function ProfileForm({
             >
               Pick the days you realistically expect to show up.
             </p>
-            <div className="checkbox-grid">
+            <div className="checkbox-grid checkbox-grid--days">
               {studyDayOptions.map((option) => (
                 <Checkbox
                   checked={values.targetStudyDays.includes(option.value)}
@@ -275,27 +276,16 @@ export function ProfileForm({
             <p className="profile-fieldset__description">
               The same character is used in Classic and RPG views.
             </p>
-            <div
-              style={{
-                display: 'grid',
-                gap: '0.75rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
-              }}
-            >
+            <div className="avatar-choice-grid">
               {avatarOptions.map((option) => (
                 <label
+                  className={classNames(
+                    'checkbox',
+                    'checkbox--avatar',
+                    values.avatarId === option.id && 'checkbox--selected',
+                    disabled && 'checkbox--disabled',
+                  )}
                   key={option.id}
-                  style={{
-                    alignItems: 'center',
-                    border:
-                      '1px solid color-mix(in srgb, currentColor 22%, transparent)',
-                    borderRadius: '0.75rem',
-                    cursor: disabled ? 'default' : 'pointer',
-                    display: 'flex',
-                    gap: '0.625rem',
-                    opacity: disabled ? 0.65 : 1,
-                    padding: '0.625rem',
-                  }}
                 >
                   <input
                     checked={values.avatarId === option.id}
@@ -323,63 +313,67 @@ export function ProfileForm({
               ))}
             </div>
           </fieldset>
-          <div className="profile-preview-card">
-            <ProfileAvatar
-              avatarConfig={createAvatarConfig(values)}
-              label="Avatar preview"
-            />
-            <dl className="profile-summary-list">
-              <div>
-                <dt>Theme</dt>
-                <dd>{values.preferredTheme}</dd>
-              </div>
-              <div>
-                <dt>Motion</dt>
-                <dd>{values.reducedMotion ? 'Reduced' : 'Standard'}</dd>
-              </div>
-            </dl>
-          </div>
-          <div className="form-grid">
-            <FormField
-              controlId={`${fieldPrefix}-theme`}
-              description={
-                mode === 'onboarding'
-                  ? 'System follows the device preference. Light and dark stay local to this app.'
-                  : 'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.'
-              }
-              label="Theme"
-              required
-            >
-              {({ describedBy, inputId, invalid }) => (
-                <Select
-                  aria-describedby={describedBy}
-                  aria-invalid={invalid || undefined}
-                  id={inputId}
-                  onChange={(event) =>
-                    setValues((currentValues) => ({
-                      ...currentValues,
-                      preferredTheme: event.target
-                        .value as ProfileFormValues['preferredTheme'],
-                    }))
+          <div className="profile-appearance">
+            <div className="profile-preview-card">
+              <ProfileAvatar
+                avatarConfig={createAvatarConfig(values)}
+                label="Avatar preview"
+              />
+              <dl className="profile-summary-list">
+                <div>
+                  <dt>Theme</dt>
+                  <dd>{values.preferredTheme}</dd>
+                </div>
+                <div>
+                  <dt>Motion</dt>
+                  <dd>{values.reducedMotion ? 'Reduced' : 'Standard'}</dd>
+                </div>
+              </dl>
+            </div>
+            <div className="profile-appearance__controls">
+              <div className="form-grid">
+                <FormField
+                  controlId={`${fieldPrefix}-theme`}
+                  description={
+                    mode === 'onboarding'
+                      ? 'System follows the device preference. Light and dark stay local to this app.'
+                      : 'Applies to both the Classic and RPG interfaces. System follows your device. Light and dark stay local to this app.'
                   }
-                  options={themeOptions}
-                  value={values.preferredTheme}
-                />
-              )}
-            </FormField>
+                  label="Theme"
+                  required
+                >
+                  {({ describedBy, inputId, invalid }) => (
+                    <Select
+                      aria-describedby={describedBy}
+                      aria-invalid={invalid || undefined}
+                      id={inputId}
+                      onChange={(event) =>
+                        setValues((currentValues) => ({
+                          ...currentValues,
+                          preferredTheme: event.target
+                            .value as ProfileFormValues['preferredTheme'],
+                        }))
+                      }
+                      options={themeOptions}
+                      value={values.preferredTheme}
+                    />
+                  )}
+                </FormField>
+              </div>
+              <Checkbox
+                checked={values.reducedMotion}
+                description="Suppress extra transitions even if the device preference does not request it."
+                id={`${fieldPrefix}-reduced-motion`}
+                label="Reduce motion in this app"
+                onChange={(event) =>
+                  setValues((currentValues) => ({
+                    ...currentValues,
+                    reducedMotion: event.target.checked,
+                  }))
+                }
+              />
+            </div>
           </div>
-          <Checkbox
-            checked={values.reducedMotion}
-            description="Suppress extra transitions even if the device preference does not request it."
-            id={`${fieldPrefix}-reduced-motion`}
-            label="Reduce motion in this app"
-            onChange={(event) =>
-              setValues((currentValues) => ({
-                ...currentValues,
-                reducedMotion: event.target.checked,
-              }))
-            }
-          />
         </Card>
       </div>
       {errors.submit ? (

@@ -1939,3 +1939,364 @@
   font-size: var(--text-sm);
   margin-block: 0.5rem;
 }
+
+/* Line breaking. Short lines (titles, labels, buttons) are balanced so a
+   wrapped line never leaves one to three words alone; running text avoids a
+   lone last word. :where() keeps this at zero specificity. */
+:where(h1, h2, h3, h4, legend, dt, label, summary, .button, button) {
+  text-wrap: balance;
+}
+
+:where(p, li, dd) {
+  text-wrap: pretty;
+}
+
+/* Helper text is one to three lines: balance it like a title. */
+:where(
+  .card__header .card__description,
+  .profile-fieldset__description,
+  .form-field__description,
+  .checkbox__description
+) {
+  text-wrap: balance;
+}
+
+/* Choices: the selected card must differ from hover and from the card it
+   sits in. Shared by programme, avatar and study-day choices. */
+.checkbox--selected,
+.checkbox--selected:hover,
+.checkbox--checked,
+.checkbox--checked:hover {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.checkbox--selected .programme-choice__title {
+  font-weight: 700;
+}
+
+/* Helper text keeps AA contrast on the selected fill. */
+.checkbox--checked .checkbox__description,
+.checkbox--selected .checkbox__description {
+  color: var(--color-text-muted);
+}
+
+.checkbox--programme input[type='radio'],
+.checkbox--avatar input[type='radio'] {
+  accent-color: var(--color-accent);
+  flex: none;
+  height: 1.25rem;
+  margin: 0;
+  width: 1.25rem;
+}
+
+.checkbox:has(input[type='radio']:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.programme-choice__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.programme-choice__state {
+  color: var(--color-accent-strong);
+  flex: none;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* The profile cards are size containers so their choice grids follow the
+   card's own width (Settings, onboarding, one or two columns). */
+.profile-page-grid > .card {
+  container-type: inline-size;
+}
+
+/* Seven study days: one row of seven when there is room, else 4 + 3. */
+.checkbox-grid--days {
+  gap: var(--space-2);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.checkbox-grid--days .checkbox {
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: 0.6rem 0.25rem;
+  text-align: center;
+}
+
+@container (min-width: 28rem) {
+  .checkbox-grid--days {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+}
+
+/* Four avatars: 2 x 2, or one row of four on a wide card. A narrow card
+   stacks each tile (portrait over radio and name) instead of squeezing the
+   name until it breaks inside a word. */
+.avatar-choice-grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.checkbox--avatar {
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  min-width: 0;
+  padding: 0.75rem 0.6rem;
+  position: relative;
+  text-align: center;
+}
+
+.checkbox--avatar input[type='radio'] {
+  inset-block-start: 0.6rem;
+  inset-inline-start: 0.6rem;
+  position: absolute;
+}
+
+.checkbox--avatar .profile-avatar svg,
+.checkbox--avatar .profile-avatar img {
+  margin-inline: auto;
+  max-width: 2.75rem;
+}
+
+@container (min-width: 26rem) {
+  .checkbox--avatar {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: start;
+  }
+
+  .checkbox--avatar input[type='radio'] {
+    position: static;
+  }
+
+  .checkbox--avatar .profile-avatar {
+    flex: none;
+  }
+}
+
+@container (min-width: 44rem) {
+  .avatar-choice-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Preview beside the appearance controls instead of above them. */
+.profile-appearance {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.profile-appearance__controls {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.profile-appearance .profile-preview-card {
+  align-items: center;
+  grid-template-columns: 5rem minmax(0, 1fr);
+}
+
+@container (min-width: 28rem) {
+  .profile-appearance {
+    align-items: start;
+    grid-template-columns: minmax(6rem, 8rem) minmax(0, 1fr);
+  }
+
+  .profile-appearance .profile-preview-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .profile-appearance .profile-appearance__controls .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Settings: one page, three sections, a jump bar at the top. */
+.settings-jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.settings-jump-nav__link {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  display: inline-flex;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+}
+
+.settings-jump-nav__link:hover {
+  border-color: var(--color-border-strong);
+}
+
+.settings-jump-nav__link--feedback {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  margin-inline-start: auto;
+}
+
+.settings-section {
+  --settings-accent: var(--color-accent);
+  container-type: inline-size;
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  scroll-margin-top: var(--space-4);
+}
+
+.settings-section:focus:not(:focus-visible),
+.settings-cell:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.settings-section--profile {
+  --settings-accent: var(--color-warning);
+}
+
+.settings-section--data {
+  --settings-accent: var(--color-success);
+}
+
+.settings-section__label {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: var(--text-sm);
+  font-weight: 800;
+  gap: var(--space-2);
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.settings-section__label::before {
+  background: var(--settings-accent);
+  border-radius: var(--radius-pill);
+  content: '';
+  height: 1.1em;
+  width: 0.3rem;
+}
+
+/* Each box carries its section's colour on its top edge. */
+.settings-section .card {
+  border-top: 3px solid var(--settings-accent);
+}
+
+.settings-section .card .card {
+  border-top-width: 1px;
+  border-top-color: var(--color-border-muted);
+}
+
+.settings-section .settings-card--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 45%, transparent);
+  border-top-color: var(--color-danger);
+}
+
+.settings-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.settings-grid > *,
+.settings-cell > .card {
+  min-width: 0;
+}
+
+.settings-cell {
+  display: grid;
+  min-width: 0;
+}
+
+/* Side-by-side boxes keep their actions on one baseline. */
+.settings-grid > .card,
+.settings-cell > .card {
+  align-content: start;
+  grid-template-rows: auto 1fr;
+}
+
+.settings-grid > .card > .card__body,
+.settings-cell > .card > .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings-grid > .card > .card__body > .action-row:last-child,
+.settings-cell > .card > .card__body > .action-row:last-child {
+  margin-top: auto;
+}
+
+@container (min-width: 44rem) {
+  .settings-grid--general,
+  .settings-grid--data {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .settings-grid--general > .settings-cell:last-child,
+  .settings-cell--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (min-width: 62rem) {
+  .settings-grid--general {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .settings-grid--general > .settings-cell:last-child {
+    grid-column: auto;
+  }
+}
+
+/* A native file input asks for about 300px; let it shrink with its card. */
+.data-action,
+.settings-grid > .card > .card__body > *,
+.settings-cell > .card > .card__body > * {
+  min-width: 0;
+}
+
+.data-action,
+.settings-grid > .card,
+.settings-cell > .card {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 42rem) {
+  .settings-jump-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .settings-jump-nav__link {
+    justify-content: center;
+    padding-inline: 0.5rem;
+    text-align: center;
+  }
+
+  .settings-jump-nav__link--feedback {
+    margin-inline-start: 0;
+  }
+}
+
+/* Paired profile fields keep their inputs on one line when one label or
+   helper wraps and the other does not. */
+.profile-form .form-grid {
+  align-items: end;
+}
