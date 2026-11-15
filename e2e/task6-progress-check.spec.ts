@@ -160,8 +160,12 @@ for (const width of [320, 390, 672, 673, 1280]) {
       await pool.getByRole('button', { name: `Legg til: ${step}` }).click();
     }
     await task.getByRole('button', { name: 'Sjekk svaret' }).click();
+    // The result renders after the answer, XP and bookmark are saved and
+    // re-read. Run #212 showed it 5.6 s after the click on a loaded runner,
+    // so saved-result checks wait up to 15 s like other stored states.
     await expect(task.getByRole('status', { name: 'Resultat' })).toContainText(
       'Riktig',
+      { timeout: 15_000 },
     );
     expect(await evidenceCount(page)).toBe(2);
   });

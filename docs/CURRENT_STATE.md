@@ -1,5 +1,16 @@
 # ProgressPal current state
 
+**Saved-result waits — PR candidate, 2026-11-15.** Master run #212 failed
+once in `task6-progress-check` at 1280 px: the scored result appeared 5.6 s
+after "Sjekk svaret" on a loaded runner, after Playwright's default 5 s wait.
+The trace (owner-supplied artifact) shows a complete answer, no console error,
+and the correct "Riktig, +13 XP" result in the next frame. Assertions that wait
+for a result saved and re-read through IndexedDB after a submit now wait up to
+15 s, as other stored-state checks in the suite do. Passing checks still return
+at once and assert the same content. Finding for a separate change: during the
+tab's own post-save re-read the RPG shell shows "Saved data changed in another
+tab", which is untrue for a single tab.
+
 **Feedback link — PR candidate, 2026-11-15.** Replaces the PR #93/#96
 approach with the smallest version: a **Feedback** card in the shared Settings
 surface (Classic and RPG) whose **Send feedback** link opens the learner's own
