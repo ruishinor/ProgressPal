@@ -221,7 +221,7 @@ test('selects exactly the stage commands and pins the shard', () => {
   assert.throws(() => selectStage(gate, 'other', null), /Unknown/);
 });
 
-test('the copy stage classifies, audits and builds but runs no tests', () => {
+test('the copy stage classifies, audits, builds and unit-tests, without browsers', () => {
   const gate = [...UNIT_STAGE, ['copy-only classification', []]].map(
     ([label, args]) => ({ label, args: [...args] }),
   );
@@ -229,5 +229,6 @@ test('the copy stage classifies, audits and builds but runs no tests', () => {
   assert.ok(labels.includes('copy-only classification'));
   assert.ok(labels.includes('dependency audit'));
   assert.ok(labels.includes('production build'));
-  assert.ok(!labels.some((label) => /tests/.test(label)));
+  assert.ok(labels.includes('unit and integration tests'));
+  assert.ok(!labels.includes('end-to-end tests'));
 });

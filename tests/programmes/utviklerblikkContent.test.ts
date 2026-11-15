@@ -157,7 +157,9 @@ describe('Utviklerblikk content contract', () => {
     // A1 permits exactly two Scrum Guide edition clarifications.
     // KAN-01 changes only K02's board teaching; its relationships and answers
     // have dedicated behavioral checks. Retain this broader content freeze,
-    // normalizing only A1's two Scrum Guide edition clarifications.
+    // normalizing only A1's two Scrum Guide edition clarifications. Owner
+    // 2026-11-15: "gratis" left the library-event example (it implied a paid
+    // tier elsewhere); the digest below is re-pinned for that one word.
     const serialized = JSON.stringify(track.sessions.slice(0, 24));
     const editionRef =
       'Scrum Guide (2020), den offisielle beskrivelsen av Scrum';
@@ -171,7 +173,7 @@ describe('Utviklerblikk content contract', () => {
           ),
         )
         .digest('hex'),
-    ).toBe('7bea5699d5e5c8beb9cde87c00e70b1d2d74d76bbea75ca0e996eb723b1297f7');
+    ).toBe('f6de7ddcc39755e3fa8353a7f25af89c7a5e678a1ce6203a634fd6827fe7f2b9');
   });
 
   it('registers each bank once, in category order, without replacing content', () => {
