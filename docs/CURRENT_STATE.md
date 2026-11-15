@@ -1,6 +1,23 @@
 # ProgressPal current state
 
-**Feedback link — PR candidate, 2026-11-15.** Replaces the PR #93/#96
+**Settings on one page, clearer choices and Hero HUD lines — PR candidate,
+2026-11-15.** Replaces draft PR #94, which never reached its tests (three
+hosted runs stopped at Prettier) and, measured on master `08216aa`, failed 14
+unit tests and two browser journeys, added a second `aria-current="page"`
+and lowered onboarding helper contrast to 4.49:1. On the owner's choice
+(2026-11-15) Settings stays one page: a jump bar (General, Profile &
+preferences, Data & backups, Send feedback) moves within it, so no control is
+hidden. Sections are named regions with an eyebrow label and a coloured top
+edge on their boxes; related boxes share a row on wide screens (Interface,
+Programme, Feedback; Export and Import; durability and Reset). Profile choices
+show a selected state; avatars are 2 × 2 and study days 7 or 4 + 3. The Hero
+HUD reads: name and Activity (icon and number; the name stays spoken), Guild,
+Path, Level and XP; Class and Rank are the extended facts beside Guild and
+Path on wide screens and in Details on phones. Titles and helper text use
+balanced wrapping. No data, schema, route, dependency or release-control
+change.
+
+**Feedback link — merged as PR #99, 2026-11-15.** Replaces the PR #93/#96
 approach with the smallest version: a **Feedback** card in the shared Settings
 surface (Classic and RPG) whose **Send feedback** link opens the learner's own
 email app, addressed to the owner-chosen ruishinor@gmail.com, with the app
