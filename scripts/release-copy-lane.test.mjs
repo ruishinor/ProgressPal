@@ -24,7 +24,7 @@ function run(head, { tests = [], sources, changes } = {}) {
   });
 }
 
-test('a shorter edit of JSX text, a copy attribute and a prose property is COPY', () => {
+test('an edit of JSX text, a copy attribute and a prose property is COPY', () => {
   const result = run(
     base
       .replace('changed in another window.', 'changed.')
@@ -48,6 +48,80 @@ test('documentation and review evidence alone are COPY', () => {
   assert.equal(result.lane, 'COPY');
 });
 
+// Text in the other places copy lives: conditionals, translation calls,
+// template text, plus places where a string is behaviour.
+const WIDE = 'src/features/demo/Badge.tsx';
+const wide = `import x from './demo path';
+export function Badge({ done }: { done: boolean }) {
+  const label = done ? 'Demo ferdig' : 'Demo ikke ferdig';
+  if (state === 'Demo verdi') return null;
+  const when = format(date, 'd. MMM yyyy');
+  return (
+    <Tag className="demo tag" title={\`\${count} demo igjen\`}>
+      {t('Demo lagret', 'Demo saved')}
+    </Tag>
+  );
+}
+type DemoState = 'Demo tilstand' | 'other';
+const h = { Authorization: \`Bearer \${x}\` };
+`;
+function runWide(head, sources = [[WIDE, wide]]) {
+  return classify({
+    changes: [['M', WIDE]],
+    read: (ref) => (ref === 'base' ? wide : head),
+    tests: [],
+    sources,
+  });
+}
+
+test('conditional, translation and template text, also longer, is COPY', () => {
+  const result = runWide(
+    wide
+      .replace('Demo ikke ferdig', 'Demo er ikke ferdig ennå')
+      .replace('demo igjen', 'demo gjenstår')
+      .replace("'Demo saved'", "'Demo has been saved'"),
+  );
+  assert.equal(result.lane, 'COPY', result.reasons.join('; '));
+  assert.equal(result.edits.length, 3);
+});
+
+test('the same text edited alike everywhere it occurs is COPY', () => {
+  const other = ['src/other.tsx', 'const a = <p>Demo ferdig</p>;'];
+  const result = classify({
+    changes: [
+      ['M', WIDE],
+      ['M', other[0]],
+    ],
+    read: (ref, path) =>
+      path === WIDE
+        ? ref === 'base'
+          ? wide
+          : wide.replace('Demo ferdig', 'Demo klar')
+        : ref === 'base'
+          ? other[1]
+          : other[1].replace('Demo ferdig', 'Demo klar'),
+    tests: [],
+    sources: [[WIDE, wide], other],
+  });
+  assert.equal(result.lane, 'COPY', result.reasons.join('; '));
+});
+
+const behaviour = [
+  ['a compared value', () => wide.replace("'Demo verdi'", "'Demo verdi 2'")],
+  ['a type', () => wide.replace('Demo tilstand', 'Demo tilstander')],
+  ['a format string', () => wide.replace('d. MMM yyyy', 'd. MMMM yyyy')],
+  ['a module path', () => wide.replace('./demo path', './demo paths')],
+  ['a class list', () => wide.replace('demo tag', 'demo tags')],
+  ['a header value', () => wide.replace('Bearer', 'Token')],
+];
+for (const [name, head] of behaviour) {
+  test(`${name} is FULL`, () => {
+    const result = runWide(head());
+    assert.equal(result.lane, 'FULL');
+    assert.match(result.reasons.join('\n'), /code changed/);
+  });
+}
+
 const shorter = base.replace('Demo, og teller', 'Teller');
 // Each FULL case must refuse for its own reason, not by accident.
 const full = [
@@ -65,11 +139,6 @@ const full = [
     'a non-copy property change',
     /code changed/,
     () => run(base.replace("kind: 'order'", "kind: 'list'")),
-  ],
-  [
-    'longer copy',
-    /longer copy/,
-    () => run(base.replace('Demo, og', 'Demo, og helt')),
   ],
   [
     'a test locating by removed text',
@@ -104,7 +173,7 @@ const full = [
   ],
   [
     'old copy used elsewhere in src',
-    /occurs 2 times/,
+    /occurs 2 times in src, 1 edited alike/,
     () =>
       run(shorter, {
         sources: [
@@ -127,6 +196,11 @@ const full = [
     'a test file change',
     /not a source copy file/,
     () => run(base, { changes: [['M', 'e2e/a.spec.ts']] }),
+  ],
+  [
+    'a persistence layer change',
+    /persistence or protocol/,
+    () => run(base, { changes: [['M', 'src/lib/db/demo.ts']] }),
   ],
   [
     'a dependency change',

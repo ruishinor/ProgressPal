@@ -7,59 +7,162 @@ import { pathToFileURL } from 'node:url';
 
 import ts from 'typescript';
 
-// JSX attributes and object properties whose string values are copy.
-const COPY_ATTRIBUTES = new Set([
-  'alt',
-  'aria-description',
-  'aria-label',
-  'description',
-  'label',
-  'placeholder',
-  'title',
-]);
-const NON_COPY_KEYS = new Set([
-  'class',
-  'className',
-  'href',
-  'id',
-  'key',
-  'kind',
-  'mode',
-  'name',
-  'path',
-  'role',
-  'src',
-  'to',
-  'type',
-  'url',
-  'value',
+// Any string, template text or JSX text that reads as language is copy,
+// unless the place it is used gives it behaviour: a comparison, a type, a
+// module path, a key, a class name, a format or a selector.
+const NON_COPY_ATTRIBUTES =
+  /^(as|class|className|d|dir|fill|form|height|href|htmlFor|icon|id|inputMode|key|kind|lang|method|mode|name|pattern|rel|role|size|src|status|stroke|style|target|to|tone|type|value|variant|viewBox|width|xmlns|accept|action|autoComplete)$|^data-|^aria-(?!(label|description|valuetext|roledescription|placeholder)$)/;
+const NON_COPY_NAMES =
+  /^(class|className|style|href|src|to|url|path|route|id|key|kind|mode|type|role|name|value|variant|tone|status|icon|slug|code|format|pattern|locale|lang|timeZone|unit|field|event|action|tag|target|rel|method|selector|query)$|(Id|Key|Url|Path|Class|ClassName|Pattern|Format|Selector|Query|Type|Kind|Mode|Status)$/;
+const NON_COPY_CALLS =
+  /format|parse|match|query|select|closest|Item$|Listener$|^fetch$|RegExp|Media|^require$|^import$|^literal$|^enum$|^cn$|^cx$|^clsx$|^classNames$|^on$|^emit$/i;
+// Operators that make a string a value rather than text.
+const COMPARISONS = new Set([
+  ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsToken,
+  ts.SyntaxKind.InKeyword,
 ]);
 const SOURCE = /^src\/.+\.(ts|tsx)$/;
+// Persistence and protocol layers: a string there may be a stored or sent
+// value, which no static check can tell from text.
+const STORED = /^src\/lib\/(db|backup|storage|cloud|cloudBackup)\//;
 const TEST = /(^(tests|e2e)\/)|(\.test\.(ts|tsx|mjs)$)/;
 
 const normalize = (text) => text.replace(/\s+/g, ' ').trim();
 
 function keyName(name) {
-  return ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : null;
+  return name && (ts.isIdentifier(name) || ts.isStringLiteral(name))
+    ? name.text
+    : null;
+}
+
+function calleeName(call) {
+  const callee = call.expression;
+  return ts.isPropertyAccessExpression(callee)
+    ? callee.name.text
+    : ts.isIdentifier(callee)
+      ? callee.text
+      : call.kind === ts.SyntaxKind.ImportKeyword
+        ? 'import'
+        : '';
+}
+
+/** Reads as language: letters and a space, a non-ASCII letter, a capital or
+ * sentence punctuation; not a URL, path or class list. */
+function readsAsLanguage(text) {
+  const value = normalize(text);
+  if (
+    !/\p{L}{2}/u.test(value) ||
+    /:\/\/|^(\/|#|\.|mailto:)|--|__/.test(value)
+  ) {
+    return false;
+  }
+  const words = value.split(' ');
+  if (words.every((word) => /^[a-z0-9_-]+$/.test(word)) && /[-_]/.test(value)) {
+    return false;
+  }
+  return (
+    words.length > 1 ||
+    /[^\p{ASCII}]/u.test(value) ||
+    /^\p{Lu}\p{Ll}/u.test(value) ||
+    /[.!?…:]$/.test(value)
+  );
+}
+
+/** Whether the place a string is used leaves it plain text. */
+function textPosition(node) {
+  let child = node;
+  let parent = node.parent;
+  // Climb through expressions that only pass the text on.
+  while (
+    ts.isParenthesizedExpression(parent) ||
+    ts.isConditionalExpression(parent) ||
+    ts.isArrayLiteralExpression(parent) ||
+    ts.isAsExpression(parent) ||
+    ts.isSatisfiesExpression(parent) ||
+    ts.isTemplateSpan(parent) ||
+    ts.isTemplateExpression(parent) ||
+    (ts.isBinaryExpression(parent) &&
+      !COMPARISONS.has(parent.operatorToken.kind))
+  ) {
+    if (ts.isConditionalExpression(parent) && parent.condition === child) {
+      return false;
+    }
+    child = parent;
+    parent = parent.parent;
+  }
+  if (ts.isBinaryExpression(parent) || ts.isCaseClause(parent)) {
+    return false;
+  }
+  if (ts.isJsxAttribute(parent)) {
+    return !NON_COPY_ATTRIBUTES.test(parent.name.getText());
+  }
+  if (ts.isJsxExpression(parent)) {
+    const attribute = parent.parent;
+    return !(
+      ts.isJsxAttribute(attribute) &&
+      NON_COPY_ATTRIBUTES.test(attribute.name.getText())
+    );
+  }
+  if (ts.isPropertyAssignment(parent)) {
+    return (
+      parent.initializer === child &&
+      // Header-like keys (Authorization, Content-Type) carry protocol values.
+      !/^[A-Z]|-/.test(keyName(parent.name) ?? '-') &&
+      !NON_COPY_NAMES.test(keyName(parent.name) ?? '')
+    );
+  }
+  if (
+    ts.isVariableDeclaration(parent) ||
+    ts.isParameter(parent) ||
+    ts.isBindingElement(parent)
+  ) {
+    return !NON_COPY_NAMES.test(keyName(parent.name) ?? '');
+  }
+  if (ts.isCallExpression(parent) || ts.isNewExpression(parent)) {
+    return (
+      parent.expression !== child &&
+      !NON_COPY_CALLS.test(
+        ts.isCallExpression(parent) ? calleeName(parent) : '',
+      )
+    );
+  }
+  return (
+    ts.isReturnStatement(parent) ||
+    ts.isArrowFunction(parent) ||
+    ts.isThrowStatement(parent) ||
+    ts.isExpressionStatement(parent) ||
+    ts.isShorthandPropertyAssignment(parent) ||
+    ts.isSpreadElement(parent)
+  );
 }
 
 function isCopy(node) {
   if (ts.isJsxText(node)) {
     return normalize(node.text) !== '';
   }
-  if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
-    return false;
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+    return readsAsLanguage(node.text) && textPosition(node);
   }
-  const parent = node.parent;
-  if (ts.isJsxAttribute(parent)) {
-    return COPY_ATTRIBUTES.has(parent.name.getText());
+  return false;
+}
+
+/** The fixed text of a template, as [start, end, text] spans, when copy. */
+function templateParts(node, source) {
+  const parts = [node.head, ...node.templateSpans.map((span) => span.literal)];
+  if (
+    !parts.some((part) => readsAsLanguage(part.text)) ||
+    !textPosition(node)
+  ) {
+    return null;
   }
-  return (
-    ts.isPropertyAssignment(parent) &&
-    parent.initializer === node &&
-    !NON_COPY_KEYS.has(keyName(parent.name)) &&
-    /\s/.test(node.text)
-  );
+  return parts.map((part) => {
+    const start = part.getStart(source) + 1;
+    const end = part.getEnd() - (ts.isTemplateTail(part) ? 1 : 2);
+    return [start, end, part.text];
+  });
 }
 
 /** Code tokens with every copy value masked, and the copy values in order. */
@@ -71,19 +174,30 @@ export function analyse(text, fileName) {
     true,
     fileName.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   );
+  // [start, end, replacement, copy text]
   const spans = [];
   const visit = (node) => {
     if (isCopy(node)) {
-      spans.push([node.getStart(source), node.getEnd(), node]);
+      spans.push([
+        node.getStart(source),
+        node.getEnd(),
+        ts.isJsxText(node) ? 'COPY' : "''",
+        node.text,
+      ]);
       return;
+    }
+    const parts = ts.isTemplateExpression(node) && templateParts(node, source);
+    if (parts) {
+      parts.forEach(([start, end, part]) => spans.push([start, end, '', part]));
     }
     ts.forEachChild(node, visit);
   };
   visit(source);
+  spans.sort((a, b) => a[0] - b[0]);
   let masked = '';
   let cursor = 0;
-  for (const [start, end, node] of spans) {
-    masked += text.slice(cursor, start) + (ts.isJsxText(node) ? 'COPY' : "''");
+  for (const [start, end, replacement] of spans) {
+    masked += text.slice(cursor, start) + replacement;
     cursor = end;
   }
   masked += text.slice(cursor);
@@ -103,7 +217,7 @@ export function analyse(text, fileName) {
   }
   return {
     tokens,
-    copy: spans.map(([, , node]) => normalize(node.text)),
+    copy: spans.map(([, , , copy]) => normalize(copy)),
   };
 }
 
@@ -188,7 +302,13 @@ function sourceValues(files) {
       fileName.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
     );
     const visit = (node) => {
-      if (ts.isStringLiteralLike(node) || ts.isJsxText(node)) {
+      if (
+        ts.isStringLiteralLike(node) ||
+        ts.isJsxText(node) ||
+        ts.isTemplateHead(node) ||
+        ts.isTemplateMiddle(node) ||
+        ts.isTemplateTail(node)
+      ) {
         values.push(normalize(node.text));
       }
       ts.forEachChild(node, visit);
@@ -219,6 +339,8 @@ export function classify({ changes, read, tests, sources }) {
       continue;
     } else if (!SOURCE.test(path) || TEST.test(path)) {
       reasons.push(`${path}: not a source copy file`);
+    } else if (STORED.test(path)) {
+      reasons.push(`${path}: persistence or protocol code`);
     } else {
       const before = analyse(read('base', path), path);
       const after = analyse(read('head', path), path);
@@ -239,9 +361,6 @@ export function classify({ changes, read, tests, sources }) {
   const { strings, patterns } = testMatchers(tests);
   const values = sourceValues(sources);
   for (const { path, old, next } of edits) {
-    if (next.length > old.length) {
-      reasons.push(`${path}: longer copy can change layout: "${next}"`);
-    }
     if (
       strings.some(
         (text) =>
@@ -254,10 +373,12 @@ export function classify({ changes, read, tests, sources }) {
     ) {
       reasons.push(`${path}: a test matches the old copy "${old}"`);
     }
+    // Text used anywhere else may be a value: every use must change alike.
     const uses = values.filter((value) => value === old).length;
-    if (uses !== 1) {
+    const alike = edits.filter((edit) => edit.old === old);
+    if (uses !== alike.length || alike.some((edit) => edit.next !== next)) {
       reasons.push(
-        `${path}: the old copy occurs ${uses} times in src: "${old}"`,
+        `${path}: the old copy occurs ${uses} times in src, ${alike.length} edited alike: "${old}"`,
       );
     }
   }

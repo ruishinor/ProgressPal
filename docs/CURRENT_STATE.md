@@ -3,8 +3,11 @@
 **Copy-only lane — PR candidate, 2026-11-15.** On the owner's instruction, a
 merge that only edits learner-facing text, docs or review evidence skips the
 unit and browser stages: `Final candidate` installs, audits, re-proves the
-classification, and lints, typechecks and builds (`docs/ci.md`). The proof
-fails closed to FULL. This PR runs FULL, because it changes release controls;
+classification, and lints, typechecks and builds (`docs/ci.md`). Per the
+owner, any user-facing language qualifies unless there is a strong reason
+against. Three cases stay FULL: a test asserts the text; the text is also used
+as a value; or it lives in hash-addressed lesson assets or the
+persistence/protocol layers. The proof fails closed to FULL. This PR runs FULL, because it changes release controls;
 the lane first applies to the next copy-only change. Copy changes in it: the
 RPG stale-data banner says "Saved data changed." (it also showed after the
 tab's own save), and "Gratis" leaves two learner texts, since it implies
