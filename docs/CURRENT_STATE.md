@@ -1,5 +1,12 @@
 # ProgressPal current state
 
+**Feedback link — PR candidate, 2026-11-15.** Replaces the PR #93/#96
+approach with the smallest version: a **Feedback** card in the shared Settings
+surface (Classic and RPG) whose **Send feedback** link opens the learner's own
+email app, addressed to the owner-chosen ruishinor@gmail.com, with the app
+version prefilled. No backend, endpoint, secret, database, dialog or
+shell/HUD change. `PRIVACY.md` describes it.
+
 **Release gate runtime budget — PR #97 candidate, 2026-11-15.** Based on
 `master` `747d80e`. Every hosted `Final candidate` from run #187 on failed,
 including PR #95 and PR #96, partly on 30-second browser-test timeouts in code

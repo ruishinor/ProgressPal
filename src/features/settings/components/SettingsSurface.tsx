@@ -44,6 +44,7 @@ import { getSharedDatabase } from '@/lib/db/database';
 import { rpgRoutePath } from '@/lib/routing/rpgRoutePaths';
 
 import { CloudBackupCard } from './CloudBackupCard';
+import { FeedbackCard } from './FeedbackCard';
 
 // The same settings surface renders in two shells: the classic Settings route
 // and the RPG settings route (/rpg/settings). Settings is the product concept;
@@ -550,6 +551,7 @@ export function SettingsSurface({ variant = 'classic' }: SettingsSurfaceProps) {
           </div>
         </Card>
       )}
+      <FeedbackCard titleAs={isRpgVariant ? 'h2' : 'h3'} />
       {isRpgVariant ? (
         <Card title={copy.settingsBoundaryTitle} titleAs="h2">
           <p className="card__description">{copy.settingsBoundaryText}</p>
