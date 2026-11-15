@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "module": "copy-only-fast-lane",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "bb7c37f780c4f11536212e4e85b1e368300269ea",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review on master 73fcc7d1 of three concerns ordered together by the owner: a copy-only fast lane for the release gate, the RPG stale-data banner wording ('Saved data changed.'), and removal of 'Gratis' from two learner-facing texts. No schema, dependency, runtime, service-worker or CSP change.",
+    "evidence": [
+      "Owner instruction 2026-11-15: put the copy-only fast lane in place, include the banner commit, remove 'Gratis' from copy text, smallest changes possible.",
+      "scripts/release-copy-lane.mjs classifies HEAD^1..HEAD of a two-parent merge. COPY needs: only modified src TypeScript files plus docs or review evidence (which may be added); identical token streams once copy literals (JSX text, copy attributes, prose property values) are masked; new text no longer than the old; no test text matcher, regex or raw test file matching the old text; the old text exactly once among src string values. Any error, other status or path is FULL.",
+      "Unit tests: 2 COPY cases and 14 FULL cases, each asserting its own refusal reason (code, class name, longer text, string, regex and raw test matches, duplicated text, added and non-source files, no change). Fixture strings are synthetic and absent from src, so the tests cannot block a real copy edit.",
+      "Local probes on master plus the lane: this PR's copy edits with an added review file, as a --no-ff merge, give COPY; the same commit applied linearly gives FULL (not a two-parent merge); a merge that also edits src/lib/db/constants.ts gives FULL.",
+      "ATTEST never reuses a copy run: verifyEvidence requires certificationKind 'comprehensive' and discoverSource requires every stage job to have succeeded, and both failures fall back to FULL, never BLOCK. The master merge then classifies itself and runs the copy stage, including a fresh npm audit.",
+      "The copy stage runs install, audit, classification, lint, format, typecheck, production build, bundle budget, circular check and both clean-status checks; a test pins that it runs no test suite. The full local gate filters the classification out, so it is unchanged. Final candidate step names are unchanged, so the ATTEST STEPS contract holds.",
+      "'Gratis' stays only in the S1-M03 lesson asset, where it is a Python program's expected output in a ticket-price exercise, not product copy; changing it would regenerate a content-addressed asset.",
+      "Preflight: Prettier, ESLint with --max-warnings 0, npm run typecheck and git diff --check pass; release-script tests 157 of 157 and architecture tests 158 of 158 pass."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "CPY-1",
+      "severity": "P1",
+      "description": "A rebase merge or direct push could hide a code commit behind a final copy-only commit in HEAD^1..HEAD.",
+      "resolution": "The lane requires HEAD to have exactly two parents; anything else is FULL. Probed locally.",
+      "status": "resolved"
+    },
+    {
+      "id": "CPY-2",
+      "severity": "P2",
+      "description": "Residual after the direct-match checks: a test that builds its expected text at runtime could still match edited copy, and the lane would skip that test.",
+      "resolution": "Any test matcher, regex or raw test-file occurrence of the old text, and any second occurrence in src, forces FULL. Matching through computed strings is not detectable statically; such a break would show on the next FULL run, and production still waits for a passing build, lint and typecheck.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CPY-3",
+      "severity": "P2",
+      "description": "Longer or different text can change layout (overflow, reflow) that only browser tests catch.",
+      "resolution": "New text must be no longer than the old; a longer edit runs FULL. A shorter text can still change wrapping; accepted on the owner's instruction.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "CPY-4",
+      "severity": "P2",
+      "description": "docs/ci.md listed no changed-file-only release decision as a deliberate omission.",
+      "resolution": "Narrowed on the owner's instruction to allow only this lane, which proves its case and otherwise runs FULL.",
+      "status": "resolved"
+    },
+    {
+      "id": "CPY-5",
+      "severity": "P3",
+      "description": "This PR changes release controls, so it runs FULL; the copy stage itself first runs hosted on a later copy-only change.",
+      "resolution": "The stage reuses existing gate commands, and selection and classification are unit-tested and probed locally. The first copy run is observed before relying on it.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted FULL run. The lane only removes test stages for changes proven to leave code unchanged, and fails closed everywhere else."
+  }
+}
