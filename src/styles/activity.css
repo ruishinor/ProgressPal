@@ -452,27 +452,27 @@
   margin-block-start: 0;
 }
 
-.learning-group__ranking-title {
+.learning-group__members-title {
   margin-block: var(--space-2) 0;
 }
 
 .learning-group__goal,
-.learning-group__ranking {
+.learning-group__members {
   max-inline-size: 42rem;
 }
 
-.learning-group__ranking {
+.learning-group__members {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.learning-group__ranking li {
+.learning-group__members li {
   align-items: baseline;
   border-block-end: 1px solid var(--rpg-border, var(--color-border));
   display: grid;
   gap: var(--space-2);
-  grid-template-columns: 2ch minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   overflow-wrap: anywhere;
   padding-block: var(--space-2);
 }

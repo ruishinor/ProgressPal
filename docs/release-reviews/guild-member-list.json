@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-member-list",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "cdbd42052d69a019e88b00d383480f0b9b82dbd1",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of owner decision D5 on master 14f38fb (PR #103 merged): the Guild card's competitive 'Ukas rangering' becomes 'Medlemmer', listed in the server's stable join order without rank numbers. Each member's deliberately shared day count and the shared weekly goal stay; no new data is uploaded and nothing infers inactivity.",
+    "evidence": [
+      "summarizeGroup no longer sorts or ranks; it returns the server's members array (social_week orders by member_order) with the unchanged total and 2 x members target.",
+      "Unit test asserts the members come back in join order with a non-sorted fixture (0, 3, 2 days).",
+      "e2e/learning-group.spec.ts now expects 'Ada (deg) 0 dager' before 'Bo 1 dag', the fixture's join order, which the old sort would have reversed.",
+      "Sister search: no remaining 'rangering', 'ranking' or learning-group__ranking references in src, e2e or tests.",
+      "Local Playwright, --max-failures=0, the six specs that touch the Guild (learning-group, learning-week.offline, hero-recent-badges, rpg-app-theme, rpg-mobile-overflow, rpg-primary-nav-layout): 61 of 61 passed, including the existing 320 px overflow check and the axe scan of the Guild panel.",
+      "Vitest tests/features/social and tests/architecture: 164 of 164 after merging master 14f38fb. Prettier on changed files, eslint --max-warnings 0 on changed TypeScript, npm run typecheck pass.",
+      "The master merge conflicted only in docs/CURRENT_STATE.md; both top entries are kept and the S1 entry now records its merge."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GML-1",
+      "severity": "P3",
+      "description": "Per-member shared day counts remain visible, so members can still compare themselves.",
+      "resolution": "D5 keeps intentionally shared information where useful; the counts are what each member chose to share, and without ordering or rank numbers the list is no longer a leaderboard.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GML-2",
+      "severity": "P3",
+      "description": "Join order puts the administrator first, which the list does not label.",
+      "resolution": "Unchanged behaviour of the stable order; labelling the administrator would be new UI outside D5.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate. A presentation change with no data, contract or provider effect, verified in the affected browser journeys."
+  }
+}

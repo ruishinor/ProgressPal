@@ -12,7 +12,13 @@ delivery plan records D1–D6 as accepted and the owner-run install checklist.
 Provider status: owner verified pg_cron 1.6 live; the Commons SQL itself is
 not installed or live-verified.
 
-**Guild Commons S1 — PR candidate, 2026-11-15.** Replaces paused draft PR
+**Guild member list without ranking — merged as PR #104, 2026-11-15.** Owner
+decision D5 (Guild Commons plan): the Guild card's "Ukas rangering" becomes
+"Medlemmer", in the server's stable join order with no rank numbers. Each
+member's deliberately shared day count stays; nothing new is uploaded and no
+inactivity is inferred. The shared weekly goal is unchanged.
+
+**Guild Commons S1 — merged as PR #103, 2026-11-15.** Replaces paused draft PR
 #95 (run #199: unchecked Markdown formatting; run #200: runner contention since
 fixed by PR #97) with one commit on current master plus review fixes. An
 optional, off-by-default Guild board (`VITE_PROGRESSPAL_GUILD_COMMONS`): Guild
