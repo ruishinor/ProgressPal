@@ -30,6 +30,14 @@ export {
   type CloudPreferences,
 } from './preferences';
 export type {
+  GuildCommonsCommand,
+  GuildCommonsFailure,
+  GuildCommonsGroup,
+  GuildCommonsPort,
+  GuildCommonsResult,
+  GuildNoteKind,
+} from './guildCommonsPort';
+export type {
   SocialCommand,
   SocialFailure,
   SocialGroup,
@@ -46,6 +54,7 @@ export {
   getCloudBackupStore,
   getCloudSyncStore,
   getSocialGroup,
+  getGuildCommons,
   type NhostCloud,
 } from './nhost/account';
 export {

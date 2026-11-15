@@ -31,10 +31,12 @@ import {
 } from '../port';
 import type { CloudBackupStore } from '../backupPort';
 import type { SocialGroupPort } from '../socialPort';
+import type { GuildCommonsPort } from '../guildCommonsPort';
 import type { CloudSyncStore } from '../syncPort';
 import { cloudError, mapAuthError } from './authErrors';
 import { createNhostBackupStore } from './backupStore';
 import { createNhostSocialGroup } from './socialGroup';
+import { createNhostGuildCommons } from './guildCommons';
 import { createNhostSyncStore } from './syncStore';
 import { nhostAuthUrl, nhostGraphqlUrl } from './endpoints';
 import {
@@ -101,6 +103,7 @@ export interface NhostCloud {
   account: CloudAccountPort;
   backups: CloudBackupStore;
   social: SocialGroupPort;
+  commons: GuildCommonsPort;
   sync: CloudSyncStore;
 }
 
@@ -533,6 +536,7 @@ export function createNhostCloud(
     account,
     backups: createNhostBackupStore({ getClient: ensureClient }),
     social: createNhostSocialGroup(ensureClient),
+    commons: createNhostGuildCommons(ensureClient),
     sync: createNhostSyncStore(() => {
       if (signingOut) throw cloudError('session-ended');
       return ensureClient();
@@ -568,6 +572,10 @@ export function getCloudBackupStore(): CloudBackupStore {
 
 export function getSocialGroup(): SocialGroupPort {
   return getSharedCloud().social;
+}
+
+export function getGuildCommons(): GuildCommonsPort {
+  return getSharedCloud().commons;
 }
 
 export function getCloudSyncStore(): CloudSyncStore {
