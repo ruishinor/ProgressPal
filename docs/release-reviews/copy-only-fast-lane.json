@@ -4,7 +4,7 @@
   "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "154f539ed151b155236bd27f5488b2c165f2043e",
+    "payloadTree": "3f672f51271e416ea0bd806f0813cfce6cc16a69",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -16,9 +16,10 @@
       "Coverage on the current src: 5,542 copy values recognised, up from 3,449 with the first, position-allowlist version. Replay on the last 25 copy-related commits: this PR's two copy commits and the docs-only commits are COPY; every other commit changed tests, code or lesson assets and is FULL, which matches what those commits actually did (for example db12873c changed a type and a conditional render).",
       "Local probes on master plus the lane: this PR's copy edits with an added review file, as a --no-ff merge, give COPY; the same commit applied linearly gives FULL (not a two-parent merge); a merge that also edits src/lib/db/constants.ts gives FULL.",
       "ATTEST never reuses a copy run: verifyEvidence requires certificationKind 'comprehensive' and discoverSource requires every stage job to have succeeded, and both failures fall back to FULL, never BLOCK. The master merge then classifies itself and runs the copy stage, including a fresh npm audit.",
-      "The copy stage runs install, audit, classification, lint, format, typecheck, production build, bundle budget, circular check and both clean-status checks; a test pins that it runs no test suite. The full local gate filters the classification out, so it is unchanged. Final candidate step names are unchanged, so the ATTEST STEPS contract holds.",
+      "The copy stage runs install, audit, classification, lint, format, typecheck, production build, bundle budget, the unit suite, circular check and both clean-status checks; a test pins that it runs the unit suite and no browser tests. The full local gate filters the classification out, so it is unchanged. Final candidate step names are unchanged, so the ATTEST STEPS contract holds.",
       "'Gratis' stays only in the S1-M03 lesson asset, where it is a Python program's expected output in a ticket-price exercise, not product copy; changing it would regenerate a content-addressed asset.",
-      "Preflight: Prettier, ESLint with --max-warnings 0, npm run typecheck and git diff --check pass; release-script tests 157 of 157 and architecture tests 158 of 158 pass."
+      "Preflight: Prettier, ESLint with --max-warnings 0, npm run typecheck and git diff --check pass; release-script tests 157 of 157 and architecture tests 158 of 158 pass.",
+      "Hosted run #219 (FULL, head 181e72ac) failed only tests/programmes/utviklerblikkContent.test.ts: the content-freeze digest of the first 24 Utviklerblikk sessions changed with the owner-ordered removal of 'gratis'. Locally, restoring that one word restores the old digest (39 of 39 pass), so the re-pinned digest f6de7ddc... covers that word only. The test comment records the owner decision. All other 1,714 unit tests passed in that run."
     ]
   },
   "adversarialFindings": [
@@ -32,8 +33,8 @@
     {
       "id": "CPY-2",
       "severity": "P2",
-      "description": "Residual after the direct-match checks: a test that builds its expected text at runtime could still match edited copy, and the lane would skip that test.",
-      "resolution": "Any test matcher, regex or raw test-file occurrence of the old text forces FULL, and any src occurrence not changed alike forces FULL; a comparison literal cannot change without changing the masked token stream. Matching through computed strings is not detectable statically; such a break would show on the next FULL run, and production still waits for a passing build, lint and typecheck.",
+      "description": "A test may depend on copy without naming it: a digest, snapshot or content freeze computed from authored text (run #219 hit one).",
+      "resolution": "Static checks force FULL when a test matcher, regex or raw test file contains the old text, or an occurrence is not changed alike. The copy stage also runs the whole unit suite, which covers digests, freezes and snapshots. What remains is a browser test that builds its expected text at runtime; it shows on the next FULL run, and production still waits for a passing build and unit suite.",
       "status": "accepted-risk"
     },
     {
@@ -47,7 +48,7 @@
       "id": "CPY-5",
       "severity": "P3",
       "description": "This PR changes release controls, so it runs FULL; the copy stage itself first runs hosted on a later copy-only change.",
-      "resolution": "The stage reuses existing gate commands, and selection and classification are unit-tested and probed locally. The first copy run is observed before relying on it.",
+      "resolution": "The stage reuses existing gate commands, and selection and classification are unit-tested and probed locally. Run #219 proved the Plan job's install and classification steps hosted (classified FULL, 2 s). The first copy-stage run is observed before relying on it.",
       "status": "accepted-risk"
     },
     {
