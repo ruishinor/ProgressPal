@@ -138,7 +138,9 @@ for (const width of [320, 390, 1280]) {
         await expect(hud.getByText(text, { exact: true })).toBeVisible();
         await expect(hud.getByText(text, { exact: true })).toHaveCount(1);
       }
-      await expect(hud.getByText(/Programme: CS50x/)).toBeVisible();
+      const programme = hud.locator('.rpg-identity__programme');
+      await expect(programme.locator('dt')).toHaveText('Programme');
+      await expect(programme.locator('dd')).toHaveText(/^CS50x/);
       await expect(
         hud.getByText('Week 0: Scratch / 2h 30m', { exact: true }),
       ).toBeVisible();

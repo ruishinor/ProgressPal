@@ -1976,6 +1976,12 @@
   font-weight: 700;
 }
 
+/* Helper text keeps AA contrast on the selected fill. */
+.checkbox--checked .checkbox__description,
+.checkbox--selected .checkbox__description {
+  color: var(--color-text-muted);
+}
+
 .checkbox--programme input[type='radio'],
 .checkbox--avatar input[type='radio'] {
   accent-color: var(--color-accent);
