@@ -1,0 +1,31 @@
+{
+  "type": "bulk",
+  "args": [
+    {
+      "type": "pg_track_function",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_social",
+          "name": "guild_commons_v1"
+        },
+        "configuration": {
+          "session_argument": "hasura_session",
+          "exposed_as": "mutation",
+          "custom_name": "guild_commons_v1"
+        }
+      }
+    },
+    {
+      "type": "pg_create_function_permission",
+      "args": {
+        "source": "default",
+        "function": {
+          "schema": "progresspal_social",
+          "name": "guild_commons_v1"
+        },
+        "role": "user"
+      }
+    }
+  ]
+}

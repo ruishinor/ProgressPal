@@ -1,5 +1,20 @@
 # ProgressPal current state
 
+**Guild Commons S1 — PR candidate, 2026-11-15.** Replaces paused draft PR
+#95 (run #199: unchecked Markdown formatting; run #200: runner contention since
+fixed by PR #97) with one commit on current master plus review fixes. An
+optional, off-by-default Guild board (`VITE_PROGRESSPAL_GUILD_COMMONS`): Guild
+motto and About, at most three private seven-day notes (one per member), author
+edit/withdraw/resolve, administrator removal and a confirmed administrator
+handover that `social_week` also honours. The Nhost SQL and metadata
+(`infra/nhost/social/guild-commons-*`) are **not installed**; activation is a
+separate owner step with a checklist. No Guild XP, presence, notifications or
+learning-data upload. Fixes over #95: limits count code points as PostgreSQL
+does (an emoji nickname no longer blanks the board), notes show their Oslo
+date, shared form controls, focus returns after a change, handover asks once
+more. The reviewed plan with revised slices and the owner decisions blocking
+later slices: [Guild Commons delivery plan](guild-commons-delivery-plan.md).
+
 **Settings on one page, clearer choices and Hero HUD lines — PR candidate,
 2026-11-15.** Replaces draft PR #94, which never reached its tests (three
 hosted runs stopped at Prettier) and, measured on master `08216aa`, failed 14
