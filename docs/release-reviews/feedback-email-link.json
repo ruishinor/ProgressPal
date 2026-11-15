@@ -4,11 +4,11 @@
   "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "c9a1ef79097902cf7620ab3e13411d31ef7653db",
+    "payloadTree": "c57817b67711de223fcc3b930e472524d0bc8d42",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Self-review of the smallest feedback feature on master b88ddda5: a Feedback card in the shared Settings surface whose Send feedback link is a mailto URL to the owner-chosen ruishinor@gmail.com with only the app version prefilled. Replaces the PR #93/#96 backend approach. No endpoint, secret, database, dialog, portal, shell or HUD change.",
+    "summary": "Self-review of the smallest feedback feature now merged with master 632683cb (PR #98): a Feedback card in the shared Settings surface whose Send feedback link is a mailto URL to the owner-chosen ruishinor@gmail.com with only the app version prefilled. Replaces the PR #93/#96 backend approach. No endpoint, secret, database, dialog, portal, shell or HUD change.",
     "evidence": [
       "Owner instruction 2026-11-15: ship the feature as small as possible; ruishinor@gmail.com is the address to use.",
       "The card renders inside SettingsSurface for both Classic and RPG Settings and mounts no dialog or portal, so no hidden DOM is added to other routes (the PR #96 failure family).",
@@ -16,7 +16,8 @@
       "Only the app version is prefilled; no learner records, route or identity. The address is visible to anyone using the app, which the owner accepted.",
       "Unit test tests/features/settings/feedbackCard.test.tsx checks the protocol, address, subject and version-only body. Settings, architecture and local-first copy suites: 473 of 473 pass.",
       "Local run of every e2e spec that visits Settings (178 passed, 13 failed): all 13 failures are the sandbox-only families that also fail on unchanged master locally (local Chromium console entries, 320 px font overflow and HUD height) and pass hosted. No locator collides with the new card.",
-      "Preflight on the payload: Prettier, ESLint with --max-warnings 0, npm run typecheck, git diff --check."
+      "Preflight on the payload: Prettier, ESLint with --max-warnings 0, npm run typecheck, git diff --check.",
+      "Re-reviewed after merging master 632683cb: the only conflict was the two CURRENT_STATE.md top entries; both are kept, and the PR #97 and #98 entries now state their merged results. No feature file changed in the merge. Settings and architecture suites 457 of 457, release-stage and reuse tests 76 of 76, typecheck and Prettier pass."
     ]
   },
   "adversarialFindings": [
