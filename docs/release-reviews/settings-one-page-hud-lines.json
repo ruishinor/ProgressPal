@@ -4,7 +4,7 @@
   "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "a4353ea7a8d95480db87feddc047c4348bbbd328",
+    "payloadTree": "2fa7187287b9f94030304150e874cbc0f64346b5",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -17,7 +17,8 @@
       "Preflight on the payload: Prettier, ESLint --max-warnings 0, typecheck, dpdm circular check, production build and check:bundle (no violations; CSS 20204 B gzip, JS 459024 B gzip).",
       "Full local Playwright run: 313 of 324 passed. Fixed from it: checked-choice helper contrast (4.31:1 to the muted token) and two specs that read the old 'Programme: ...' text. Remaining local failures were rechecked against unchanged master in the same container: the 'cross-world service worker' console preload warning fails varying specs on both trees, and the 320 px HUD height bounds fail on both. Measured HUD heights are lower than master's everywhere (320 px /rpg 164 vs 203, /rpg/map 270 vs 309; 390 px /rpg 164 vs 182, /rpg/map 220 vs 238); master passes these bounds hosted.",
       "Visual check at 320, 390 and 1280 px in light and dark, Classic and RPG: no horizontal overflow on either Settings page (the backup file input previously widened the page by 27 px at 320 px), avatars 2 x 2, study days 7 or 4 + 3, HUD identity values aligned on one column.",
-      "The HUD keeps overflow-wrap: anywhere on names and identity values, which breaks a word only when that word alone is wider than the line (200% text at 320 px, 'Programvareutvikling'); ordinary text wraps at spaces."
+      "The HUD keeps overflow-wrap: anywhere on names and identity values, which breaks a word only when that word alone is wider than the line (200% text at 320 px, 'Programvareutvikling'); ordinary text wraps at spaces.",
+      "Re-reviewed after merging master bf353b5 (PRs #100 and #101): the only conflict was the two CURRENT_STATE.md top entries; both kept, and the copy-only lane entry records its merge as PR #101. RpgShell.tsx merged cleanly (the stale-data banner wording and the HUD Details change touch different lines). On the merged tree: Prettier, ESLint, typecheck, circular check pass; unit 3714 of 3714; release script tests 159 of 159."
     ]
   },
   "adversarialFindings": [
