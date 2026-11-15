@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-commons-s1",
+  "reviewer": "Claude Code implementer self-review (the same agent session that rebuilt and fixed the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "834e98a90e0b9811ba80d0f72a26cdf4d34ca944",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of Guild Commons S1 rebuilt on master 6bdcbc5 as one commit, replacing paused draft PR #95: an off-by-default (VITE_PROGRESSPAL_GUILD_COMMONS) private Guild board with motto/About, at most three seven-day notes, author edit/withdraw/resolve, administrator removal and a confirmed handover. Nhost SQL and Hasura metadata are files only and are not installed. Includes the reviewed delivery plan and a CURRENT_STATE entry.",
+    "evidence": [
+      "PR #95 history: run 43349132389 (#199) failed at prettier --check on infra/nhost/social/README.md, which the author had not formatted; run 43349672337 (#200) passed install, audit, lint, typecheck, build, bundle and 3,712 unit tests and failed one e2e test (classic routes pass axe in dark theme, 30 s timeout) that renders no Commons code, the master-wide runner-contention family PR #97 fixed.",
+      "git merge-tree of PR #95 head 4d826c8 with master was clean; the payload was re-applied without docs/release-reviews and reviewed line by line against the 2026-11-13 plan's S1 contract.",
+      "SQL probe on PGlite 0.5.16 (applies up.sql, rename-guild.sql, member-invites.sql, guild-commons-v1.sql): PASS before and after the added code-point, CR-rejection and expiry cases.",
+      "Mutation check: counting UTF-16 units instead of code points in the client schema makes tests/lib/cloud/nhostGuildCommons.test.ts fail.",
+      "Vitest, non-bailing: tests/architecture, tests/lib/cloud, tests/features/social, tests/infra and tests/app, 52 files, 943 of 943 pass.",
+      "Prettier --check on every changed file and on the whole repository, git diff --check, eslint . --max-warnings 0, npm run typecheck and npm run check:circular pass.",
+      "npm run build and npm run check:bundle pass with the flag off (459,420 B JS gzip, Commons code absent from the JS) and with VITE_PROGRESSPAL_GUILD_COMMONS=true (461,224 B, limit 470,000 B).",
+      "No e2e or full unit run locally, per the targeted-preflight policy; the hosted Final candidate is the comprehensive run."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GC-1",
+      "severity": "P1",
+      "description": "PR #95's client schema bounded nickname, author, body, ethos and About with z.string().max, which counts UTF-16 units, while PostgreSQL char_length counts code points. Any member with an astral character in a nickname near the limit, or a direct-API note of 141 to 280 emoji, made every member's Commons read fail as unavailable.",
+      "resolution": "The schema counts code points; tests cover 280 emoji and a 24-emoji nickname accepted and 281 rejected, and the probe asserts the server's 280/281 boundary.",
+      "status": "resolved"
+    },
+    {
+      "id": "GC-2",
+      "severity": "P2",
+      "description": "Notes showed no date, although the plan requires author and date and the board is time-limited.",
+      "resolution": "Each note renders a time element with its Oslo calendar day; a test pins an instant that is a different day in UTC and Oslo.",
+      "status": "resolved"
+    },
+    {
+      "id": "GC-3",
+      "severity": "P2",
+      "description": "Administrator handover ran on a single submit, and the former administrator cannot undo it.",
+      "resolution": "Handover asks once more, following the existing leave-Guild confirmation; the test checks that the first submit sends nothing.",
+      "status": "resolved"
+    },
+    {
+      "id": "GC-4",
+      "severity": "P2",
+      "description": "Focus was left on a disabled or removed control after a change; raw form controls used currentColor borders instead of the themed field tokens.",
+      "resolution": "Focus moves to the Commons heading after each successful change, and shared TextInput, TextArea and Select replace the raw controls.",
+      "status": "resolved"
+    },
+    {
+      "id": "GC-5",
+      "severity": "P2",
+      "description": "The flag-on UI has no browser test or observed 320 CSS px, 200 % zoom, screen-reader or RPG-variant check; the gate builds only with the flag off.",
+      "resolution": "Production behaviour is unchanged while the flag is off. The plan's S1-A activation PR adds a Commons journey to the existing account-sync Playwright project and observes those states before the flag is set.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GC-6",
+      "severity": "P2",
+      "description": "The final-slot race is not exercised: PGlite has one connection.",
+      "resolution": "Capacity and handover run under the same transaction advisory lock as social_week. The activation checklist covers live behaviour.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GC-7",
+      "severity": "P3",
+      "description": "The read returns every member's opaque membership id, although only an administrator needs others' ids.",
+      "resolution": "Not a credential: the server derives the actor from the JWT and compares the caller's own id. Trim when the response next changes (plan R7).",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GC-8",
+      "severity": "P3",
+      "description": "Expired notes are purged only by that Guild's next Commons call; a dormant Guild keeps them until deletion.",
+      "resolution": "The provider README states this; scheduled housekeeping is owner decision D6.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate. Both PR #95 failure causes are addressed: every changed file is Prettier-checked, and master now carries the runner-contention fix. The feature is inert until the owner installs the SQL and sets the flag."
+  }
+}
