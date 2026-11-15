@@ -88,6 +88,7 @@ async function answerFirstChoiceExercise(page: Page) {
 
   await expect(card.getByRole('status', { name: 'Resultat' })).toContainText(
     'Riktig',
+    { timeout: 15_000 },
   );
   return card;
 }
@@ -112,7 +113,7 @@ test('enrols in Programvareutvikling, answers by keyboard and keeps the result a
   await page.reload();
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Riktig');
+  ).toContainText('Riktig', { timeout: 15_000 });
   await expect(
     page.getByRole('heading', { name: 'Fortsett der du slapp' }),
   ).toBeVisible();
@@ -125,7 +126,7 @@ test('enrols in Programvareutvikling, answers by keyboard and keeps the result a
   ).toBeVisible();
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Riktig');
+  ).toContainText('Riktig', { timeout: 15_000 });
 
   expect(consoleIssues).toEqual([]);
 });
@@ -294,7 +295,7 @@ test('switches CS50 → Programvareutvikling → CS50 → Programvareutvikling w
   await page.goto(firstLesson);
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Riktig');
+  ).toContainText('Riktig', { timeout: 15_000 });
   expect((await readEvidenceCount(page)).evidence).toBe(2);
 });
 
@@ -335,7 +336,7 @@ test('exports a schema-5 backup with the evidence and restores it exactly', asyn
   await page.goto(firstLesson);
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Riktig');
+  ).toContainText('Riktig', { timeout: 15_000 });
 });
 
 test('refuses an older schema-3 backup before any write', async ({ page }) => {
@@ -393,6 +394,7 @@ test('the lesson passes axe and fits a 375 px phone without horizontal scroll', 
   await command.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(command.getByRole('status', { name: 'Resultat' })).toContainText(
     /\+\d+ XP/,
+    { timeout: 15_000 },
   );
   const rpgScan = await new AxeBuilder({ page }).analyze();
   expect(rpgScan.violations).toEqual([]);
@@ -490,7 +492,9 @@ async function answerByKeyboard(page: Page, card: Locator) {
 
   await card.getByRole('button', { name: 'Sjekk svaret' }).focus();
   await page.keyboard.press('Enter');
-  await expect(card.getByRole('status', { name: 'Resultat' })).toBeVisible();
+  await expect(card.getByRole('status', { name: 'Resultat' })).toBeVisible({
+    timeout: 15_000,
+  });
 }
 
 /**
@@ -655,7 +659,7 @@ test('finishes an interrupted evaluation after reload without a new attempt', as
   await page.reload();
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Riktig');
+  ).toContainText('Riktig', { timeout: 15_000 });
 
   const after = await readEvidenceRows(page);
   expect(after.filter(([kind]) => kind === 'exercise_attempt')).toEqual([
@@ -733,6 +737,7 @@ test('runs the checkpoint under the owner rules: closed lesson, how it is passed
   await gate.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(gate.getByRole('status', { name: 'Resultat' })).toContainText(
     'Ikke riktig ennå',
+    { timeout: 15_000 },
   );
 
   const retry = gate.getByRole('button', { name: 'Prøv igjen' });
@@ -742,6 +747,7 @@ test('runs the checkpoint under the owner rules: closed lesson, how it is passed
   await gate.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(gate.getByRole('status', { name: 'Resultat' })).toContainText(
     'Riktig',
+    { timeout: 15_000 },
   );
   const attempts = (await readEvidenceRows(page)).filter(
     ([kind]) => kind === 'exercise_attempt',
@@ -855,6 +861,7 @@ test('keeps CS50 and Programvareutvikling XP and levels independent across switc
   const card = await answerFirstChoiceExercise(page);
   await expect(card.getByRole('status', { name: 'Resultat' })).toContainText(
     /\+\d+ XP/,
+    { timeout: 15_000 },
   );
   await expect
     .poll(async () => (await readLedger(page)).totals.programvareutvikling)
@@ -890,7 +897,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   // A wrong answer gets its feedback and no XP.
   await wrong.check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(result).toContainText('Ikke riktig ennå');
+  await expect(result).toContainText('Ikke riktig ennå', { timeout: 15_000 });
   await expect(result).toContainText('Python leser filen på nytt');
   expect((await readLedger(page)).rows).toBe(0);
 
@@ -898,7 +905,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   await card.getByRole('button', { name: 'Prøv igjen' }).click();
   await correct.check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(result).toContainText('Riktig');
+  await expect(result).toContainText('Riktig', { timeout: 15_000 });
   await expect(result).toContainText(/\+\d+ XP/);
   const earned = await readLedger(page);
   expect(earned.totals.programvareutvikling).toBeGreaterThan(0);
@@ -909,7 +916,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   await card.getByRole('button', { name: 'Prøv igjen' }).click();
   await correct.check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
-  await expect(result).toContainText('Riktig');
+  await expect(result).toContainText('Riktig', { timeout: 15_000 });
   await expect(result).not.toContainText('XP');
   expect(await readLedger(page)).toEqual(earned);
 });

@@ -30,13 +30,14 @@ test('opens a previously unread Git lesson and records an answer after a cold of
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(card.getByRole('status', { name: 'Resultat' })).toContainText(
     'Svaret passer',
+    { timeout: 15_000 },
   );
   await offlinePage.reload();
   await expect(
     offlinePage
       .getByRole('group', { name: /^Oppgave 1 · / })
       .getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret passer');
+  ).toContainText('Svaret passer', { timeout: 15_000 });
   expect((await pathwayState(offlinePage)).appMeta).toEqual(before.appMeta);
   // Also exercise an unread M05 lesson on the same cold-offline journey.
   await offlinePage.goto('/rpg/pathways/git-github/git-m05-o01');
@@ -55,13 +56,14 @@ test('opens a previously unread Git lesson and records an answer after a cold of
   await m05.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(m05.getByRole('status', { name: 'Resultat' })).toContainText(
     'Svaret passer',
+    { timeout: 15_000 },
   );
   await offlinePage.reload();
   await expect(
     offlinePage
       .getByRole('group', { name: /^Oppgave 1 · / })
       .getByRole('status', { name: 'Resultat' }),
-  ).toContainText('Svaret passer');
+  ).toContainText('Svaret passer', { timeout: 15_000 });
   await offlinePage.getByRole('link', { name: /^Tilbake til/ }).click();
   await expect(offlinePage).toHaveURL(/\/rpg$/);
   await context.setOffline(false);

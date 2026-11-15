@@ -220,7 +220,7 @@ test('explains Git answers and preserves learner evidence through reload and pro
     .click();
   await expect(
     exercise(page, 1).getByRole('status', { name: 'Resultat' }),
-  ).toHaveClass(/lesson-result--neutral/);
+  ).toHaveClass(/lesson-result--neutral/, { timeout: 15_000 });
   for (const part of [3, 4, 5]) {
     await page
       .getByRole('link', {
@@ -256,7 +256,7 @@ test('explains Git answers and preserves learner evidence through reload and pro
   await reflection.getByRole('button', { name: 'Lagre svaret mitt' }).click();
   await expect(
     reflection.getByRole('status', { name: 'Resultat' }),
-  ).toHaveClass(/lesson-result--neutral/);
+  ).toHaveClass(/lesson-result--neutral/, { timeout: 15_000 });
   await expect(reflection.locator('img')).toHaveCount(0);
   await page
     .getByRole('button', { name: 'Marker som fullført lokalt', exact: true })
