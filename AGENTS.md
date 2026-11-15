@@ -112,7 +112,7 @@ assignment and public smoke are separate observations.
 ### E2E (Playwright)
 
 - `npm run test:e2e` runs `scripts/run-e2e.mjs`: it builds the app, starts a Vite preview on `127.0.0.1:42183`, verifies the served document, runs Playwright with `playwright.managed.config.ts`, and always tears down its own process tree. It refuses to reuse an existing server — free port 42183 first if a run fails to start.
-- Specs live in `e2e/`; `offline.spec.ts` runs in a separate `offline` project, `accessibility.spec.ts` uses axe-core. Traces, screenshots, and videos are retained on failure only.
+- Specs live in `e2e/`; `offline.spec.ts` runs in a separate `offline` project, `accessibility.spec.ts` uses axe-core. Traces and screenshots are retained on failure only (no video). Capture-only review specs run only with `PROGRESSPAL_REVIEW_CAPTURE=true`.
 - Tests must use synthetic data only — never real learner data, tokens, or private backups (failure traces can expose rendered data).
 
 ### Release gate (`npm run verify:release`)

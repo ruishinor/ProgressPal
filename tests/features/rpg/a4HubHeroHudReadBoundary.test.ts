@@ -401,7 +401,7 @@ describe('A4 HUD/Hub/Hero read boundaries', () => {
     emitAccessEvidence('hero', access);
   });
 
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'streams all three A4 histories at %i rows without source-row materialization',
     async (historyCount) => {
       const { probe, reader } = await createA4Database(

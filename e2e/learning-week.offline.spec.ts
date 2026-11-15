@@ -70,7 +70,12 @@ test('shows a saved Oslo learning day after reload and in both shells offline', 
   ).toBeVisible();
   await page.locator('a[href="/guild"]').click();
   await expect(page).toHaveURL(/\/guild$/);
-  await expect(page.getByRole('status')).toBeVisible();
+  // Scoped like the RPG tab panel above: the personal week's loading status
+  // can briefly coexist with the Guild card's offline notice.
+  const guildCard = page
+    .locator('.card')
+    .filter({ has: page.getByRole('heading', { name: 'Guild', level: 2 }) });
+  await expect(guildCard.getByRole('status')).toBeVisible();
   await page.goto('/laeringslaget?bookmark=1#week');
   await expect(page).toHaveURL(/\/guild\?bookmark=1#week$/);
   await expect(

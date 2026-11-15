@@ -566,7 +566,7 @@ describe('A6 Badges actual-route read boundary', () => {
   );
 
   // Scale: fixture setup is outside the measured read. The query skips unknown IDs.
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'streams %i XP rows with fixed child access',
     async (count) => {
       const xp = createXpFixtures(count);

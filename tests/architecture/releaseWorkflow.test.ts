@@ -232,6 +232,7 @@ describe('release execution budgets', () => {
     );
     expect(job - e2e).toBeGreaterThanOrEqual(40 * 60_000);
     expect(playwrightConfig).toMatch(/workers: process\.env\.CI \? 3 : 1,/);
+    expect(playwrightConfig).toMatch(/timeout: 60_000,/);
     expect(playwrightConfig).toMatch(/retries: 0,/);
   });
 

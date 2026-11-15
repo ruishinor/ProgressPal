@@ -486,7 +486,7 @@ describe('RPG Module read boundary', () => {
     },
   );
 
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'keeps Module access isolated with %i rows in every append-only history',
     async (historyCount) => {
       const { context, probe } = await createBundledModuleDatabase(

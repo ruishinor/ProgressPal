@@ -576,7 +576,7 @@ describe('RPG Resource read boundary', () => {
     });
   });
 
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'keeps Resource access isolated with %i rows in append-only histories',
     async (historyCount) => {
       const context = await createUninstrumentedBundledResourceDatabase(

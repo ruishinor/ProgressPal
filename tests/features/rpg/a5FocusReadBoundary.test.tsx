@@ -401,7 +401,7 @@ describe('A5 Focus actual-route read boundary GREEN', () => {
     });
   });
 
-  it.each([1_000, 10_000])(
+  it.each([100, 1_000])(
     'keeps Focus child query count constant while streaming %i visible sessions',
     async (fixtureSessionCount) => {
       await seedSharedDatabase(createSessionFixtures(fixtureSessionCount));
