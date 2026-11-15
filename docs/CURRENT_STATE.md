@@ -1,5 +1,17 @@
 # ProgressPal current state
 
+**Guild Commons S1-A activation readiness — PR candidate, 2026-11-15.**
+Source only; nothing is installed and the flag stays off. Adds the D6 cleanup
+job (`infra/nhost/social/guild-commons-cleanup.sql`: one repeat-safe daily
+pg_cron job that deletes notes past `expires_at`, within 24 hours), a
+real-PostgreSQL probe (disposable PostgreSQL 16.15 with pg_cron 1.6: lock
+serialization, final-slot race, two-device post, cleanup registration,
+execution and isolation from other jobs) and a flag-on browser journey in its
+own opt-in Playwright project (`VITE_PROGRESSPAL_GUILD_COMMONS=true`). The
+delivery plan records D1–D6 as accepted and the owner-run install checklist.
+Provider status: owner verified pg_cron 1.6 live; the Commons SQL itself is
+not installed or live-verified.
+
 **Guild Commons S1 — PR candidate, 2026-11-15.** Replaces paused draft PR
 #95 (run #199: unchecked Markdown formatting; run #200: runner contention since
 fixed by PR #97) with one commit on current master plus review fixes. An

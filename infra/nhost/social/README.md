@@ -43,6 +43,44 @@ the final-slot race relies on the shared advisory lock):
 `node infra/nhost/social/probe-guild-commons.mjs <pglite/dist/index.js>`.
 The owner-run activation checklist is in `docs/guild-commons-delivery-plan.md`.
 
+`probe-guild-commons-postgres.mjs` runs the same SQL on a **disposable local**
+PostgreSQL (it refuses another host or a database that already has an `auth`
+or `progresspal_social` schema, and drops what it creates). It proves the
+shared advisory lock serializes concurrent connections, that a race for the
+final slot and a two-device post each store one note, and, where pg_cron is
+installed, the cleanup job below:
+`node infra/nhost/social/probe-guild-commons-postgres.mjs <pg/lib/index.js> <local-database-url>`.
+
+### Expired-note cleanup (pg_cron)
+
+`guild-commons-cleanup.sql` registers one daily job,
+`progresspal-guild-notes-purge` at 03:45 in `cron.timezone`, that runs
+`DELETE FROM progresspal_social.guild_notes WHERE expires_at < now()` with the
+database server's time, so a note is physically deleted at most 24 hours after
+it expires. It first checks that pg_cron is installed, that the table exists
+and that the current role may delete from it; `cron.schedule` replaces a job of
+the same name, so applying it twice keeps one job. It does not touch other
+jobs such as `progresspal-feedback-purge`. Apply it as the role that owns the
+table, after `guild-commons-v1.sql`. It removes database rows only; provider
+backups keep their own retention.
+
+Verify after applying (read-only):
+
+```sql
+SELECT jobid, jobname, schedule, command, username, active
+FROM cron.job WHERE jobname = 'progresspal-guild-notes-purge';
+-- after 03:45 the next day:
+SELECT status, return_message, start_time FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job
+               WHERE jobname = 'progresspal-guild-notes-purge')
+ORDER BY start_time DESC LIMIT 5;
+```
+
+`username` is the role the job runs as; a run's `status` should be
+`succeeded` and `return_message` `DELETE <n>`. Unschedule safely with
+`SELECT cron.unschedule('progresspal-guild-notes-purge');`, which stops the
+job and keeps the notes.
+
 Rollback should remove the Hasura function permission and tracking to disable
 access, preserving live Guild records and `social_week`. Destructive table or
 column rollback requires separate retention/deletion authorization.
