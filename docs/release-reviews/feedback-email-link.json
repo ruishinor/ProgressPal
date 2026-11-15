@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "module": "feedback-email-link",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "c9a1ef79097902cf7620ab3e13411d31ef7653db",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of the smallest feedback feature on master b88ddda5: a Feedback card in the shared Settings surface whose Send feedback link is a mailto URL to the owner-chosen ruishinor@gmail.com with only the app version prefilled. Replaces the PR #93/#96 backend approach. No endpoint, secret, database, dialog, portal, shell or HUD change.",
+    "evidence": [
+      "Owner instruction 2026-11-15: ship the feature as small as possible; ruishinor@gmail.com is the address to use.",
+      "The card renders inside SettingsSurface for both Classic and RPG Settings and mounts no dialog or portal, so no hidden DOM is added to other routes (the PR #96 failure family).",
+      "The mailto link is navigation the learner starts; the app makes no request. The local-first architecture guard (tests/architecture, including localOnly) passes unchanged, and no CSP, service-worker or network code changes.",
+      "Only the app version is prefilled; no learner records, route or identity. The address is visible to anyone using the app, which the owner accepted.",
+      "Unit test tests/features/settings/feedbackCard.test.tsx checks the protocol, address, subject and version-only body. Settings, architecture and local-first copy suites: 473 of 473 pass.",
+      "Local run of every e2e spec that visits Settings (178 passed, 13 failed): all 13 failures are the sandbox-only families that also fail on unchanged master locally (local Chromium console entries, 320 px font overflow and HUD height) and pass hosted. No locator collides with the new card.",
+      "Preflight on the payload: Prettier, ESLint with --max-warnings 0, npm run typecheck, git diff --check."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "FB-1",
+      "severity": "P2",
+      "description": "The maintainer's email address becomes public in the shipped app and source.",
+      "resolution": "Explicit owner choice on 2026-11-15. The card asks learners to leave out passwords and sensitive details.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "FB-2",
+      "severity": "P3",
+      "description": "Learners without a configured email app get no compose window from mailto.",
+      "resolution": "The address is also shown as text so it can be copied into any email service.",
+      "status": "resolved"
+    },
+    {
+      "id": "FB-3",
+      "severity": "P3",
+      "description": "Feedback is reachable only from Settings, not from every screen.",
+      "resolution": "Accepted for the smallest version; a global entry would touch the shells and HUD, the surfaces that caused the PR #96 failures.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate. The feature is a static link in an existing surface with no new runtime boundary."
+  }
+}
