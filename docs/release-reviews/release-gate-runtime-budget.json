@@ -4,59 +4,60 @@
   "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "1eb5751b25a09c1ca56bb958e089d3e1acba8b1f",
+    "payloadTree": "533165086ee0ad3390875f8e4c744031dadc6ceb",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Self-review of a test-configuration change on master 747d80e: CI Playwright workers capped at the available CPUs, no per-test video, two capture-only review specs made opt-in, six RPG read-boundary scale tests run at 100 and 1,000 rows, and the Classic dark axe sweep split into two groups. Product code, assertions, retry policy, timeouts and release controls other than the pinned worker expression are unchanged.",
+    "summary": "Self-review of a test-configuration change on master 747d80e: three CI Playwright workers with a 60-second per-test budget, no per-test video, four capture-only or redundant review specs for closed epics made opt-in, four browser walks removed that repeat another walk's viewport, scale mechanism and path, six RPG read-boundary scale tests at 100 and 1,000 rows, the Classic dark axe sweep split into two groups, and one offline Guild status locator scoped. Product code, assertion timeouts, retry policy and release controls other than the pinned Playwright settings are unchanged.",
     "evidence": [
       "Hosted runs 187-208 all failed or were cancelled after the last green master run #186. PR #95 run 200 and PR #96 runs 205, 207 and 208 failed on 30-second timeouts in tests the PRs did not change.",
-      "Green run #185 vs PR #96 run 208 on the same runner image ubuntu-24.04 20261111.370.1: Vitest setup 37 s vs 61 s and jsdom environment 101 s vs 170 s, phases independent of the PR code, so hosted runner speed varies.",
-      "The repository is private; its standard ubuntu-latest runner is assumed to have 2 vCPUs. INFERRED, not verified here: the first hosted run of this candidate prints 'using N workers', which equals the CPU count when it is below three.",
-      "Local full-suite benchmark of unchanged master, each run pinned to two CPUs with taskset, Chromium 1243 through executablePath: three workers gave 319 passed, 12 timedOut and 15 failed; two workers gave 326 passed, 0 timedOut and 20 failed. Summed test time 7,353 s vs 5,379 s; tests at or above 25 s 81 vs 50; wall time 2,656 s vs 2,790 s.",
-      "The non-timeout failures in both local runs were sandbox artifacts that occurred independently of worker count: console warnings from the newer local Chromium build, 404 console entries, and 320 px overflow from different fonts. Hosted run #185 passed the same tests. They are not claimed as passes.",
-      "Accessibility spec alone on two CPUs: three workers 107 s wall with a 35.6 s timeout; two workers 102 s; one worker 130 s.",
-      "Video A/B on 93 tests across six specs, two workers on two CPUs: 520 s wall with retain-on-failure video, 459 s with video off; summed test time 1,022 s vs 901 s.",
-      "Scale A/B for the six read-boundary files on two CPUs: 1,000 and 10,000 rows 181.6 s; 100 and 1,000 rows 16.5 s; 64 of 64 tests passed in both. Loaders stream with Dexie each() cursors and have no batch threshold, so 100 rows exercise the same access path, and 100 exceeds the 5-row recency cut.",
-      "With the candidate config on two CPUs: os.availableParallelism() returned 2 and Playwright selected 2 workers; accessibility and activity-achievements specs 21 of 21 passed; after the split, accessibility 19 of 19 passed with a 15.3 s maximum, previously 26.0 s.",
-      "Playwright listing: master 346 tests in 49 files; candidate default 338 in 47; PROGRESSPAL_REVIEW_CAPTURE=true lists the 8 excluded capture tests in 2 files.",
-      "Preflight on the candidate: Prettier check on all changed files, ESLint with --max-warnings 0 on changed TypeScript, npm run typecheck, git diff --check, and Vitest for releaseWorkflow plus the six scale files (74 of 74) passed. No full local release gate was run, per AGENTS.md."
+      "Hosted run #209 on the first candidate printed 'Running 339 tests using 2 workers' under Math.min(3, availableParallelism()), so the runner has two vCPUs. Vitest took 353 s (green run #185: 374 s; PR #96 runs: 605 s), and browser tests took about 31 minutes to test 323 of 339, compared with 24.7 minutes for the whole suite with three workers in run #185.",
+      "Run #209 failed once: learning-week.offline.spec.ts line 73, a strict-mode violation of getByRole('status') between the personal week's transient loading status and the Guild card's offline notice. No test timed out.",
+      "Local full-suite benchmark of unchanged master, each run pinned to two CPUs: three workers gave 12 timeouts, two workers none; summed test time 7,353 s vs 5,379 s; wall time 2,656 s vs 2,790 s. The hosted wall-time penalty of two workers was larger than the local one, so the candidate keeps three workers and raises the per-test budget to 60 s. Every assertion keeps its own timeout.",
+      "Video A/B on 93 tests, two workers on two CPUs: 520 s wall with retain-on-failure video, 459 s without. Retain-on-failure records every test and deletes passing videos; the retained trace and failure screenshot remain.",
+      "Scale A/B for the six read-boundary files on two CPUs: 1,000 and 10,000 rows 181.6 s; 100 and 1,000 rows 16.5 s; 64 of 64 passed in both. Loaders stream with Dexie each() cursors without a batch threshold, and 100 rows exceed the 5-row recency cut.",
+      "Opt-in review specs: c1-baseline-visual-capture and d-shell-review-capture (labelled CAPTURE ONLY, no comparison), b2-shell-visual-review (screenshots with visibility checks), b4-shell-coherence-visual-review (its state checks also exist in rpg-product-flow, insights, achievements and sessions). PROGRESSPAL_REVIEW_CAPTURE=true lists their 19 tests.",
+      "Removed duplicate walks: utviklerblikk-ux reachable matrix 360x560 at 100, 150 and 200 percent repeat microlearning.spec's Generelt walks with the same viewport, scale mechanism and miss-twice path, whose checks include pinned-footer and clipping detection; microlearning 125 percent text scale is covered by 150 percent with the same mechanism, and the rem media queries do not change with text tokens.",
+      "Playwright listing: master 346 tests in 49 files; candidate default 324 in 45: 23 intended removals (8 C1/D captures, 1 B2, 10 B4, 3 Utviklerblikk matrix entries, 1 text scale) and one added test from splitting the Classic dark axe sweep, checked by diffing the listings.",
+      "Local full run of the trimmed suite with --max-failures=0 on four CPUs: 300 passed, 24 failed, 0 timed out, 1,365 s. All 24 failures are sandbox families that also failed on unchanged master locally and passed hosted: console entries from the newer local Chromium build (a cross-world preload warning and 404 entries) and 320 px overflow or HUD height from different fonts.",
+      "The scoped Guild locator passed 3 of 3 repeats locally in the offline project. The other unscoped page-level status locators are in the immersive microlearning shell and the session timer, where one status exists; they passed in every run.",
+      "Preflight on the final payload: Prettier check, ESLint with --max-warnings 0 on changed TypeScript, npm run typecheck, git diff --check, releaseWorkflow architecture test 10 of 10, release-script Node tests 122 of 122 (first candidate). No full local release gate, per AGENTS.md."
     ]
   },
   "adversarialFindings": [
     {
       "id": "RGB-1",
       "severity": "P2",
-      "description": "Epic A AC-07 and AC-09 require scale evidence at 1x and 10x history and allow lower counts only if authoritative CI shows a hard runtime problem and the 10x ratio and access pattern are kept. The six files did not fail; the reduction is for cost.",
-      "resolution": "Counts keep the 10x ratio (100 and 1,000) and every assertion, including constant query counts and rows scanned equal to history. Applied on the owner's 2026-11-14 instruction to prioritise efficiency and cut arbitrary testing, and stated in the PR so the owner can reject it.",
+      "description": "Epic A AC-07 and AC-09 require scale evidence at 1x and 10x history and allow lower counts only after a hard CI runtime problem with the 10x ratio and access pattern kept. These files did not fail; the reduction is for cost.",
+      "resolution": "The 10x ratio and every assertion are kept. Applied on the owner's 2026-11-14 instruction to prioritise efficiency and reduce arbitrary testing; stated in the PR so the owner can reject it separately.",
       "status": "accepted-risk"
     },
     {
       "id": "RGB-2",
       "severity": "P2",
-      "description": "Two workers give about 5 % longer wall time than three on two CPUs.",
-      "resolution": "Accepted for 12 fewer timeouts; the video and scale reductions more than recover it. Math.min(3, availableParallelism()) keeps three workers on a runner with three or more CPUs.",
+      "description": "A 60-second per-test budget could let a slower regression pass where 30 seconds would have failed.",
+      "resolution": "The budget only bounds hung tests. Expect assertions keep their 5 to 15 second limits, and spec-level setTimeout values are unchanged. The 30 s default had been crossed by contention alone (runs 200, 205, 207, 208).",
       "status": "accepted-risk"
     },
     {
       "id": "RGB-3",
       "severity": "P2",
       "description": "Without video, a failure retains only the trace and a screenshot.",
-      "resolution": "The trace records screencast frames, DOM snapshots, network and console for the failing test, and failures still upload test-results. Lessons-learned standard 09 section 5 requires first-failure trace and screenshot, and both remain.",
+      "resolution": "The trace records screencast frames, DOM snapshots, network and console. Lessons-learned standard 09 section 5 requires a first-failure trace and screenshot; both remain.",
       "status": "resolved"
     },
     {
       "id": "RGB-4",
-      "severity": "P3",
-      "description": "c1-baseline-visual-capture and d-shell-review-capture leave the certification run.",
-      "resolution": "Both are labelled CAPTURE ONLY with no comparison or golden baseline, for closed epics C1 and D. Their assertions only guard the captures themselves. Epic E and B2-B4 review specs, which check behaviour, overflow and axe, remain in the gate. The captures still run on demand.",
+      "severity": "P2",
+      "description": "Removed walks and opt-in specs carried some unique sub-checks: per-control hit testing in utviklerblikk-ux at 360x560 and enlarged text, and B4's progressed-state screenshots.",
+      "resolution": "The same states are still walked by microlearning.spec with fit, pinned-footer and clipping checks, and utviklerblikk-ux keeps hit testing at 320x568, 390x844 and 1280x800. B4 states remain asserted functionally elsewhere, and the captures still run on demand.",
       "status": "accepted-risk"
     },
     {
       "id": "RGB-5",
       "severity": "P2",
-      "description": "The local benchmark used a different Chromium build and machine from the hosted runner.",
-      "resolution": "Only worker-count comparisons on identical local conditions are claimed. The hosted Final candidate on this exact payload is the authoritative check; a hosted timeout would refute the hypothesis.",
+      "description": "Local benchmarks used a different Chromium build and machine from the hosted runner, and underestimated the hosted cost of two workers.",
+      "resolution": "The hosted Final candidate on this exact payload decides. The worker decision was revised from hosted run #209, not from local numbers alone.",
       "status": "accepted-risk"
     },
     {
@@ -69,6 +70,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to one ordinary hosted Final candidate. The timeout family is attributed to CPU oversubscription with measured local evidence; the hosted run on this payload is the deciding observation. Merge, master FULL and deployment remain separate owner-authorised steps."
+    "summary": "Proceed to one hosted Final candidate. The first candidate's run confirmed the two-vCPU runner and removed the timeout family; this payload keeps throughput with three workers, adds the per-test budget, removes duplicated work and fixes the one race it exposed. Merge, master FULL and deployment remain separate observations."
   }
 }
