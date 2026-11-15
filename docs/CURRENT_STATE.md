@@ -7,7 +7,20 @@ email app, addressed to the owner-chosen ruishinor@gmail.com, with the app
 version prefilled. No backend, endpoint, secret, database, dialog or
 shell/HUD change. `PRIVACY.md` describes it.
 
-**Release gate runtime budget — PR #97 candidate, 2026-11-15.** Based on
+**Release gate in parallel stages — merged as PR #98, 2026-11-15.** Builds on
+PR #97. On the owner's 2026-11-15 instruction (waiting is the bottleneck; more
+Actions minutes are acceptable), `Final candidate` no longer runs the whole
+gate serially. A Plan certification job selects FULL or ATTEST; for FULL a Unit
+stage and three E2E shards run in parallel, and `Final candidate` verifies every
+stage of the same attempt (commit, tree, payload, review, control fingerprint,
+command profile, reports, byte-identical build) and writes the one
+comprehensive manifest. The ATTEST contract moves to version 2 (38 commands and
+the stage job set); evidence from earlier runs cannot be reused. Vercel still
+requires only `Final candidate`. First hosted run #211: 14.75 minutes (unit
+10.2, shards 9.8, 12.8 and 13.4 minutes, assembly 26 seconds), against 36.5
+minutes for the single job in run #210.
+
+**Release gate runtime budget — merged as PR #97, 2026-11-15.** Based on
 `master` `747d80e`. Every hosted `Final candidate` from run #187 on failed,
 including PR #95 and PR #96, partly on 30-second browser-test timeouts in code
 those PRs did not touch. Measured cause: three Playwright workers on the

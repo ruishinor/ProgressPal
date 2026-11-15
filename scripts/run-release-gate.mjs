@@ -186,6 +186,13 @@ async function artifactChecksums() {
   );
 }
 
+// Hosted CI runs the gate as parallel stages. RELEASE_STAGE selects one:
+// `unit`, `e2e` (with RELEASE_SHARD=i/n) or `assemble`, which verifies every
+// stage's evidence and writes the single comprehensive manifest. Without it
+// the whole gate runs in one process, as for a local certification.
+const STAGE = process.env.RELEASE_STAGE ?? 'full';
+const SHARD = process.env.RELEASE_SHARD ?? null;
+
 const packageJson = JSON.parse(
   await readFile(resolve(ROOT, 'package.json'), 'utf8'),
 );
@@ -196,6 +203,8 @@ const manifest = {
   schemaVersion: 3,
   module: moduleName,
   pass: passNumber,
+  stage: STAGE,
+  shard: STAGE === 'e2e' ? SHARD : null,
   invocationArgs: args,
   status: 'running',
   startedAt: startedAt.toISOString(),
@@ -399,6 +408,7 @@ try {
         'scripts/release-gate-utils.test.mjs',
         'scripts/release-review-binding.test.mjs',
         'scripts/release-reuse.test.mjs',
+        'scripts/release-stages.test.mjs',
       ],
       label: 'release gate unit tests',
       validate: validateNodeTests,
@@ -491,7 +501,13 @@ try {
     },
   ];
 
-  for (const command of gate) {
+  // Stage modules load only for a staged run; a full run never needs them.
+  const selected =
+    (process.env.RELEASE_STAGE ?? 'full') === 'full'
+      ? gate
+      : (await import('./release-stages.mjs')).selectStage(gate, STAGE, SHARD);
+
+  for (const command of selected) {
     await run(
       command.executable,
       command.args,
@@ -511,6 +527,17 @@ try {
   }
 
   manifest.artifacts = await artifactChecksums();
+  if (STAGE === 'assemble') {
+    const { assembleStages } = await import('./release-stages.mjs');
+    const { controlFingerprint } = await import('./release-reuse-contract.mjs');
+    await assembleStages(manifest, commands, {
+      root: ROOT,
+      artifactRoot: ARTIFACT_ROOT,
+      controls: controlFingerprint(ROOT, 'HEAD'),
+      runId: Number(process.env.GITHUB_RUN_ID),
+      runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+    });
+  }
   manifest.status = 'passed';
 } catch (error) {
   failure = error;
@@ -551,12 +578,17 @@ try {
     .toISOString()
     .replaceAll(':', '-')
     .replaceAll('.', '-');
+  const stageKey =
+    STAGE === 'unit'
+      ? 'unit'
+      : STAGE === 'e2e' && SHARD !== null
+        ? 'e2e-' + SHARD.replace('/', 'of')
+        : null;
   const name =
     stamp +
     '-' +
     basename(moduleName.replaceAll(/[^a-z0-9-]/gi, '-')) +
-    '-pass-' +
-    String(passNumber) +
+    (stageKey === null ? '-pass-' + String(passNumber) : '-stage-' + stageKey) +
     '.json';
   const outputPath = join(ARTIFACT_ROOT, name);
   await writeFile(outputPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');

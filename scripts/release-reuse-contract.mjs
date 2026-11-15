@@ -6,62 +6,68 @@ export const REPOSITORY = 'ruishinor/ProgressPal';
 export const REPOSITORY_ID = 1269722314;
 export const WORKFLOW = '.github/workflows/test.yml';
 export const ARTIFACT = 'release-evidence-final-candidate';
-export const CONTRACT = 1;
+export const CONTRACT = 2;
+// The gate runs as parallel stage jobs; the Final candidate job verifies their
+// evidence and writes the one comprehensive manifest that ATTEST authenticates.
+export const E2E_SHARDS = 3;
+export const STAGE_JOBS = [
+  'Plan certification',
+  'Unit stage',
+  ...Array.from(
+    { length: E2E_SHARDS },
+    (_, index) => `E2E shard ${index + 1}/${E2E_SHARDS}`,
+  ),
+];
 export const STEPS = [
   'Run actions/checkout@v5',
   'Run actions/setup-node@v6',
   'Pin npm 11',
-  'Install locked dependencies',
-  'Install Chromium',
+  'Require successful stages',
+  'Download stage evidence',
   'Run immutable release gate',
   'Upload release evidence',
 ];
 
-export const COMMANDS = [
+const status = [
+  '-c',
+  'core.excludesFile=<checkout>',
+  'status',
+  '--porcelain=v1',
+];
+const npmRun = (script) => ['npm', 'run', script];
+const nodeTests = (...files) => ['--test', '--test-reporter=tap', ...files];
+
+// Every stage, including the final assembly, first records its checkout.
+export const IDENTITY = [
   ['commit SHA', ['rev-parse', 'HEAD']],
   ['tree SHA', ['rev-parse', 'HEAD^{tree}']],
   ['npm version', ['npm', '--version']],
-  [
-    'initial clean status',
-    ['-c', 'core.excludesFile=<checkout>', 'status', '--porcelain=v1'],
-  ],
+];
+
+export const UNIT_STAGE = [
+  ['initial clean status', status],
   ['diff check', ['-c', 'core.excludesFile=<checkout>', 'diff', '--check']],
   ['clean dependency install', ['npm', 'ci']],
-  ['dependency audit', ['npm', 'run', 'audit']],
-  [
-    'Playwright version',
-    ['./node_modules/@playwright/test/cli.js', '--version'],
-  ],
-  [
-    'Chromium version',
-    [
-      '--input-type=module',
-      '--eval',
-      "import { chromium } from '@playwright/test'; const browser = await chromium.launch(); try { process.stdout.write(browser.version()); } finally { await browser.close(); }",
-    ],
-  ],
+  ['dependency audit', npmRun('audit')],
   [
     'release gate unit tests',
-    [
-      '--test',
-      '--test-reporter=tap',
+    nodeTests(
       'scripts/release-gate-utils.test.mjs',
       'scripts/release-review-binding.test.mjs',
       'scripts/release-reuse.test.mjs',
-    ],
+      'scripts/release-stages.test.mjs',
+    ),
   ],
   ['dependency tree', ['npm', 'ls', '--depth=0']],
-  ...[
-    ['lint', 'lint'],
-    ['format check', 'format:check'],
-    ['typecheck', 'typecheck'],
-    ['production build', 'build'],
-  ].map(([label, script]) => [label, ['npm', 'run', script]]),
+  ['lint', npmRun('lint')],
+  ['format check', npmRun('format:check')],
+  ['typecheck', npmRun('typecheck')],
+  ['production build', npmRun('build')],
   [
     'bundle budget unit tests',
-    ['--test', '--test-reporter=tap', 'scripts/bundle-budget-utils.test.mjs'],
+    nodeTests('scripts/bundle-budget-utils.test.mjs'),
   ],
-  ['bundle budget', ['npm', 'run', 'check:bundle']],
+  ['bundle budget', npmRun('check:bundle')],
   [
     'unit and integration tests',
     [
@@ -73,21 +79,57 @@ export const COMMANDS = [
       '--reporter=./scripts/release-test-reporter.mjs',
     ],
   ],
-  [
-    'end-to-end tests',
+  ['circular dependency analysis', npmRun('check:circular')],
+  ['final clean status', status],
+];
+
+export function e2eStage(shard) {
+  return [
+    ['initial clean status', status],
+    ['clean dependency install', ['npm', 'ci']],
     [
-      'npm',
-      'run',
-      'test:e2e',
-      '--',
-      '--reporter=list,./scripts/release-test-reporter.mjs',
+      'Playwright version',
+      ['./node_modules/@playwright/test/cli.js', '--version'],
     ],
-  ],
-  ['circular dependency analysis', ['npm', 'run', 'check:circular']],
-  [
-    'final clean status',
-    ['-c', 'core.excludesFile=<checkout>', 'status', '--porcelain=v1'],
-  ],
+    [
+      'Chromium version',
+      [
+        '--input-type=module',
+        '--eval',
+        "import { chromium } from '@playwright/test'; const browser = await chromium.launch(); try { process.stdout.write(browser.version()); } finally { await browser.close(); }",
+      ],
+    ],
+    [
+      'end-to-end tests',
+      [
+        'npm',
+        'run',
+        'test:e2e',
+        '--',
+        '--reporter=list,./scripts/release-test-reporter.mjs',
+        `--shard=${shard}/${E2E_SHARDS}`,
+      ],
+    ],
+    ['final clean status', status],
+  ];
+}
+
+export const stagePrefix = (stage, shard) =>
+  stage === 'unit' ? 'unit: ' : `e2e ${shard}/${E2E_SHARDS}: `;
+export const baseLabel = (label) =>
+  label.replace(/^(?:unit|e2e \d+\/\d+): /, '');
+
+export const COMMANDS = [
+  ...IDENTITY,
+  ['initial clean status', status],
+  ...UNIT_STAGE.map(([label, args]) => [stagePrefix('unit') + label, args]),
+  ...Array.from({ length: E2E_SHARDS }, (_, index) =>
+    e2eStage(index + 1).map(([label, args]) => [
+      stagePrefix('e2e', index + 1) + label,
+      args,
+    ]),
+  ).flat(),
+  ['final clean status', status],
 ];
 
 export function git(cwd, ...args) {
