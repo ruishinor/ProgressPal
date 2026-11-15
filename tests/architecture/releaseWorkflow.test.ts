@@ -43,9 +43,17 @@ describe('release validation workflow contract', () => {
     expect(workflow).toMatch(/^ {2}workflow_dispatch:$/m);
   });
 
-  it('validates the triggering commit through the single release gate', () => {
+  it('validates the triggering commit through one gate per stage', () => {
     expect(workflow).toContain('ref: ${{ github.sha }}');
-    expect(workflow.match(/npm run verify:release/g)).toHaveLength(1);
+    expect(workflow.match(/ref: \$\{\{ github\.sha \}\}/g)).toHaveLength(4);
+    expect(workflow.match(/npm run verify:release/g)).toHaveLength(3);
+    for (const stage of ['unit', 'e2e', 'assemble']) {
+      expect(
+        workflow.match(new RegExp(`RELEASE_STAGE: ${stage}$`, 'gm')),
+      ).toHaveLength(1);
+    }
+    expect(workflow).toContain('RELEASE_SHARD: ${{ matrix.shard }}/3');
+    expect(workflow).toMatch(/^ {8}shard: \[1, 2, 3\]$/m);
   });
 
   it('does not select review evidence by workflow input', () => {
@@ -54,18 +62,27 @@ describe('release validation workflow contract', () => {
     expect(gateRunner).toContain('no longer supported');
   });
 
-  it('branches only the expensive steps and retains evidence on failure', () => {
+  it('assembles only successful stages and skips them only for ATTEST', () => {
     expect(workflow.match(/name: Final candidate/g)).toHaveLength(1);
+    expect(workflow).toMatch(
+      /^ {2}final-candidate:\n {4}name: Final candidate\n {4}needs: \[plan, unit, e2e\]\n {4}if: always\(\)$/m,
+    );
+    expect(
+      workflow.match(/if: needs.plan.outputs.decision != 'ATTEST'/g),
+    ).toHaveLength(2);
     expect(
       workflow.match(/if: steps.reuse.outputs.decision != 'ATTEST'/g),
     ).toHaveLength(3);
-    expect(workflow).toContain('id: reuse');
-    expect(workflow).toContain('selection=$(mktemp)');
+    expect(workflow.match(/id: reuse/g)).toHaveLength(2);
+    expect(workflow.match(/selection=\$\(mktemp\)/g)).toHaveLength(2);
     expect(workflow).toContain('timeout 150s node --input-type=module');
-    expect(workflow).toContain('if: always()');
+    expect(workflow).toContain(
+      'test "$PLAN" = success && test "$UNIT" = success && test "$E2E" = success',
+    );
+    expect(workflow).toContain('pattern: release-stage-*');
     expect(workflow).not.toContain('continue-on-error');
-    const job = workflow.split('    steps:')[0];
-    expect(job).not.toMatch(/^\s+if:/m);
+    const plan = workflow.split('    steps:')[0];
+    expect(plan).not.toMatch(/^\s+if:/m);
   });
 
   it('holds no deployment authority or secrets', () => {
@@ -218,7 +235,12 @@ describe('release execution budgets', () => {
     const child =
       Number(e2eRunner.match(/'Playwright',\s+(\d+) \* 60 \* 1000/)?.[1]) *
       60_000;
-    const job = Number(workflow.match(/timeout-minutes: (\d+)/)?.[1]) * 60_000;
+    const job =
+      Number(
+        workflow.match(
+          /^ {2}e2e:\n(?:.*\n)*? {4}timeout-minutes: (\d+)$/m,
+        )?.[1],
+      ) * 60_000;
     const e2e = (await executeCommandLoop()).find(
       (command) => command.label === 'end-to-end tests',
     )!.timeoutMs;

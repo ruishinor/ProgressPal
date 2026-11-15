@@ -9,8 +9,10 @@ import {
   CONTRACT,
   REPOSITORY,
   REPOSITORY_ID,
+  STAGE_JOBS,
   STEPS,
   WORKFLOW,
+  baseLabel,
   normalizedCommands,
 } from './release-reuse-contract.mjs';
 import { MAX_ARCHIVE, readZip, sha256 } from './release-reuse-zip.mjs';
@@ -246,13 +248,14 @@ export async function verifyEvidence(entries, artifact, run, job, pr, current) {
     'SOURCE_COMMAND_PROFILE_INVALID',
   );
   for (const command of manifest.commands) {
+    const label = baseLabel(command.label);
     const gitCommand = [
       'commit SHA',
       'tree SHA',
       'initial clean status',
       'diff check',
       'final clean status',
-    ].includes(command.label);
+    ].includes(label);
     requireProof(
       gitCommand
         ? command.executable === 'git'
@@ -271,9 +274,7 @@ export async function verifyEvidence(entries, artifact, run, job, pr, current) {
       'SOURCE_POLICY_INVALID',
     );
     if (
-      ['release gate unit tests', 'bundle budget unit tests'].includes(
-        command.label,
-      )
+      ['release gate unit tests', 'bundle budget unit tests'].includes(label)
     ) {
       const copy = { ...command };
       validateNodeTests(copy);
@@ -285,9 +286,9 @@ export async function verifyEvidence(entries, artifact, run, job, pr, current) {
       );
     }
     const runner =
-      command.label === 'unit and integration tests'
+      label === 'unit and integration tests'
         ? 'vitest'
-        : command.label === 'end-to-end tests'
+        : label === 'end-to-end tests'
           ? 'playwright'
           : null;
     if (runner) {
@@ -324,10 +325,12 @@ export async function verifyEvidence(entries, artifact, run, job, pr, current) {
     'SOURCE_CHECKOUT_INVALID',
   );
   requireProof(
-    manifest.commands.find((c) => c.label === 'Playwright version').stdout ===
-      manifest.playwrightVersion &&
-      manifest.commands.find((c) => c.label === 'Chromium version').stdout ===
-        manifest.browserVersion,
+    manifest.commands
+      .filter((c) => baseLabel(c.label) === 'Playwright version')
+      .every((c) => c.stdout === manifest.playwrightVersion) &&
+      manifest.commands
+        .filter((c) => baseLabel(c.label) === 'Chromium version')
+        .every((c) => c.stdout === manifest.browserVersion),
     'SOURCE_RUNNER_VERSION_INVALID',
   );
   return manifest;
@@ -360,8 +363,27 @@ export async function discoverSource(api, current) {
     `actions/runs/${run.id}/attempts/${run.run_attempt}/jobs`,
     'jobs',
   );
-  requireProof(jobs.length === 1, 'SOURCE_JOB_AMBIGUOUS');
-  const job = jobs[0];
+  // One Final candidate job and exactly the stage jobs it assembled, all green
+  // in this attempt. A missing, extra, duplicated or unsuccessful job is FULL.
+  requireProof(
+    isDeepStrictEqual(
+      jobs.map((candidate) => candidate.name).sort(),
+      [...STAGE_JOBS, 'Final candidate'].sort(),
+    ),
+    'SOURCE_JOB_AMBIGUOUS',
+  );
+  requireProof(
+    jobs.every(
+      (candidate) =>
+        candidate.status === 'completed' &&
+        candidate.conclusion === 'success' &&
+        candidate.run_id === run.id &&
+        candidate.run_attempt === run.run_attempt &&
+        candidate.head_sha === pr.head.sha,
+    ),
+    'SOURCE_STAGE_INVALID',
+  );
+  const job = jobs.find((candidate) => candidate.name === 'Final candidate');
   requireProof(
     job.check_run_url ===
       `https://api.github.com/repos/${REPOSITORY}/check-runs/${job.id}`,

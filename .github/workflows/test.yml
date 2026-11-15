@@ -20,10 +20,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  final-candidate:
-    name: Final candidate
+  # The gate runs as parallel stages on separate runners. Final candidate,
+  # the required production check, verifies every stage of this attempt and
+  # writes the one comprehensive manifest; ATTEST skips the stages.
+  plan:
+    name: Plan certification
     runs-on: ubuntu-latest
-    timeout-minutes: 130
+    timeout-minutes: 10
+    outputs:
+      decision: ${{ steps.reuse.outputs.decision }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -36,8 +41,6 @@ jobs:
           cache: npm
       - name: Pin npm 11
         run: npm install --global npm@11.10.1
-      # Publish an ATTEST output only after verified evidence and a durable record.
-      # A private, fresh output file prevents partial/crashed selector output reuse.
       - name: Select certification path
         id: reuse
         env:
@@ -69,18 +72,164 @@ jobs:
             20) echo 'Confirmed mandatory violation; certification blocked.'; exit 1 ;;
             *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
           esac
+
+  unit:
+    name: Unit stage
+    needs: plan
+    if: needs.plan.outputs.decision != 'ATTEST'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          # Both parents must be available for Git topology/control checks.
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm 11
+        run: npm install --global npm@11.10.1
       - name: Install locked dependencies
-        if: steps.reuse.outputs.decision != 'ATTEST'
+        run: npm ci
+      - name: Run unit stage
+        env:
+          RELEASE_PASS: '1'
+          RELEASE_STAGE: unit
+        run: npm run verify:release
+      - name: Upload stage evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-stage-unit
+          path: artifacts/release-evidence/
+          if-no-files-found: warn
+          retention-days: 30
+
+  e2e:
+    name: E2E shard ${{ matrix.shard }}/3
+    needs: plan
+    if: needs.plan.outputs.decision != 'ATTEST'
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          # Both parents must be available for Git topology/control checks.
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm 11
+        run: npm install --global npm@11.10.1
+      - name: Install locked dependencies
         run: npm ci
       - name: Install Chromium
-        if: steps.reuse.outputs.decision != 'ATTEST'
         run: npx playwright install chromium
+      - name: Run end-to-end stage
+        env:
+          RELEASE_PASS: '1'
+          RELEASE_STAGE: e2e
+          RELEASE_SHARD: ${{ matrix.shard }}/3
+        run: npm run verify:release
+      - name: Upload stage evidence
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-stage-e2e-${{ matrix.shard }}
+          path: artifacts/release-evidence/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-failure-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  final-candidate:
+    name: Final candidate
+    needs: [plan, unit, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          # Both parents must be available for Git topology/control checks.
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm 11
+        run: npm install --global npm@11.10.1
+      - name: Select certification path
+        id: reuse
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          selection=$(mktemp) || { echo 'decision=FULL' >> "$GITHUB_OUTPUT"; exit 0; }
+          status=0
+          GITHUB_OUTPUT="$selection" timeout 150s node --input-type=module <<'NODE' || status=$?
+          import { appendFile } from 'node:fs/promises';
+          let decision = 'FULL';
+          try {
+            const { selectCertification } = await import('./scripts/run-release-reuse.mjs');
+            decision = (await selectCertification()).decision;
+          } catch (error) {
+            console.error(error);
+            if (error.decision === 'BLOCK') process.exit(20);
+          }
+          if (decision === 'BLOCK') process.exit(20);
+          await appendFile(process.env.GITHUB_OUTPUT,
+            `decision=${decision === 'ATTEST' ? 'ATTEST' : 'FULL'}\n`);
+          NODE
+          case "$status" in
+            0)
+              if [[ "$(cat "$selection")" == 'decision=ATTEST' ]]; then
+                echo 'decision=ATTEST' >> "$GITHUB_OUTPUT"
+              else
+                echo 'decision=FULL' >> "$GITHUB_OUTPUT"
+              fi ;;
+            20) echo 'Confirmed mandatory violation; certification blocked.'; exit 1 ;;
+            *) echo 'FULL / VERIFIER_UNAVAILABLE'; echo 'decision=FULL' >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Require successful stages
+        if: steps.reuse.outputs.decision != 'ATTEST'
+        env:
+          PLAN: ${{ needs.plan.result }}
+          UNIT: ${{ needs.unit.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "plan=$PLAN unit=$UNIT e2e=$E2E"
+          test "$PLAN" = success && test "$UNIT" = success && test "$E2E" = success
+      - name: Download stage evidence
+        if: steps.reuse.outputs.decision != 'ATTEST'
+        uses: actions/download-artifact@v5
+        with:
+          pattern: release-stage-*
+          merge-multiple: true
+          path: artifacts/release-evidence
       # Review evidence is not selected here. The gate resolves it from
       # docs/release-reviews/ by its binding to this exact payload tree.
       - name: Run immutable release gate
         if: steps.reuse.outputs.decision != 'ATTEST'
         env:
           RELEASE_PASS: '1'
+          RELEASE_STAGE: assemble
         run: npm run verify:release
       - name: Upload release evidence
         if: always()
