@@ -56,6 +56,7 @@ export const UNIT_STAGE = [
       'scripts/release-review-binding.test.mjs',
       'scripts/release-reuse.test.mjs',
       'scripts/release-stages.test.mjs',
+      'scripts/release-copy-lane.test.mjs',
     ),
   ],
   ['dependency tree', ['npm', 'ls', '--depth=0']],
@@ -208,7 +209,7 @@ export function certificationBinding(cwd, env = process.env) {
   const lock = JSON.parse(git(cwd, 'show', 'HEAD:package-lock.json'));
   return {
     certificationContractVersion: CONTRACT,
-    certificationKind: 'comprehensive',
+    certificationKind: env.RELEASE_STAGE === 'copy' ? 'copy' : 'comprehensive',
     repository: env.GITHUB_REPOSITORY,
     repositoryId: Number(env.GITHUB_REPOSITORY_ID),
     runId: Number(env.GITHUB_RUN_ID),

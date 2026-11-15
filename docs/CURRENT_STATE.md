@@ -1,6 +1,17 @@
 # ProgressPal current state
 
-**Saved-result waits — PR candidate, 2026-11-15.** Master run #212 failed
+**Copy-only lane — PR candidate, 2026-11-15.** On the owner's instruction, a
+merge that only edits learner-facing text, docs or review evidence skips the
+unit and browser stages: `Final candidate` installs, audits, re-proves the
+classification, and lints, typechecks and builds (`docs/ci.md`). The proof
+fails closed to FULL. This PR runs FULL, because it changes release controls;
+the lane first applies to the next copy-only change. Copy changes in it: the
+RPG stale-data banner says "Saved data changed." (it also showed after the
+tab's own save), and "Gratis" leaves two learner texts, since it implies
+something is paid elsewhere. The word stays in one S1-M03 lesson, where it is
+the expected output of a learner's program, not product copy.
+
+**Saved-result waits — merged as PR #100, 2026-11-15.** Master run #212 failed
 once in `task6-progress-check` at 1280 px: the scored result appeared 5.6 s
 after "Sjekk svaret" on a loaded runner, after Playwright's default 5 s wait.
 The trace (owner-supplied artifact) shows a complete answer, no console error,
@@ -9,9 +20,10 @@ for a result saved and re-read through IndexedDB after a submit now wait up to
 15 s, as other stored-state checks in the suite do. Passing checks still return
 at once and assert the same content. During the tab's own post-save re-read
 the RPG shell said "Saved data changed in another tab", untrue for a single
-tab; it now says "Saved data changed.", like Classic's revision wording.
+tab; the copy-only lane PR changes it to "Saved data changed.", like Classic's
+revision wording.
 
-**Feedback link — PR candidate, 2026-11-15.** Replaces the PR #93/#96
+**Feedback link — merged as PR #99, 2026-11-15.** Replaces the PR #93/#96
 approach with the smallest version: a **Feedback** card in the shared Settings
 surface (Classic and RPG) whose **Send feedback** link opens the learner's own
 email app, addressed to the owner-chosen ruishinor@gmail.com, with the app

@@ -19,6 +19,21 @@ export function selectStage(gate, stage, shard) {
     unit: UNIT_STAGE.map(([label]) => label),
     e2e: e2eStage(1).map(([label]) => label),
     assemble: ['initial clean status', 'final clean status'],
+    // Copy-only lane: proves the change is copy, then checks it builds.
+    copy: [
+      'initial clean status',
+      'diff check',
+      'clean dependency install',
+      'dependency audit',
+      'copy-only classification',
+      'lint',
+      'format check',
+      'typecheck',
+      'production build',
+      'bundle budget',
+      'circular dependency analysis',
+      'final clean status',
+    ],
   }[stage];
   if (labels === undefined) {
     throw new Error('Unknown RELEASE_STAGE ' + stage);

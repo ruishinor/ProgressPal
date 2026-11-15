@@ -382,6 +382,12 @@ try {
     },
     {
       executable: process.execPath,
+      args: ['scripts/release-copy-lane.mjs'],
+      label: 'copy-only classification',
+      copyOnly: true,
+    },
+    {
+      executable: process.execPath,
       args: ['./node_modules/@playwright/test/cli.js', '--version'],
       label: 'Playwright version',
       validate: (record) => {
@@ -409,6 +415,7 @@ try {
         'scripts/release-review-binding.test.mjs',
         'scripts/release-reuse.test.mjs',
         'scripts/release-stages.test.mjs',
+        'scripts/release-copy-lane.test.mjs',
       ],
       label: 'release gate unit tests',
       validate: validateNodeTests,
@@ -504,7 +511,7 @@ try {
   // Stage modules load only for a staged run; a full run never needs them.
   const selected =
     (process.env.RELEASE_STAGE ?? 'full') === 'full'
-      ? gate
+      ? gate.filter((command) => !command.copyOnly)
       : (await import('./release-stages.mjs')).selectStage(gate, STAGE, SHARD);
 
   for (const command of selected) {
