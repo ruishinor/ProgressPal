@@ -1,5 +1,16 @@
 # ProgressPal current state
 
+**Release gate in parallel stages — PR candidate, 2026-11-15.** Builds on
+PR #97. On the owner's 2026-11-15 instruction (waiting is the bottleneck; more
+Actions minutes are acceptable), `Final candidate` no longer runs the whole
+gate serially. A Plan certification job selects FULL or ATTEST; for FULL a Unit
+stage and three E2E shards run in parallel, and `Final candidate` verifies every
+stage of the same attempt (commit, tree, payload, review, control fingerprint,
+command profile, reports, byte-identical build) and writes the one
+comprehensive manifest. The ATTEST contract moves to version 2 (38 commands and
+the stage job set); evidence from earlier runs cannot be reused. Vercel still
+requires only `Final candidate`. Expected PR wall time: about 13–15 minutes.
+
 **Release gate runtime budget — PR #97 candidate, 2026-11-15.** Based on
 `master` `747d80e`. Every hosted `Final candidate` from run #187 on failed,
 including PR #95 and PR #96, partly on 30-second browser-test timeouts in code

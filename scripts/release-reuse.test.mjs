@@ -16,8 +16,10 @@ import {
   COMMANDS,
   REPOSITORY,
   REPOSITORY_ID,
+  STAGE_JOBS,
   STEPS,
   WORKFLOW,
+  baseLabel,
 } from './release-reuse-contract.mjs';
 import {
   ReuseError,
@@ -142,7 +144,8 @@ function fixture() {
     check_suite: { id: 88 },
   };
   const reports = [];
-  const commands = COMMANDS.map(([label, args]) => {
+  const commands = COMMANDS.map(([label, args], index) => {
+    const base = baseLabel(label);
     const command = {
       label,
       args,
@@ -152,7 +155,7 @@ function fixture() {
         'initial clean status',
         'diff check',
         'final clean status',
-      ].includes(label)
+      ].includes(base)
         ? 'git'
         : '/toolchain/node',
       exitCode: 0,
@@ -167,26 +170,26 @@ function fixture() {
           ? S
           : label === 'tree SHA'
             ? T
-            : label.includes('unit tests')
+            : base.includes('unit tests')
               ? tap
               : '',
       testCount: null,
       skipCount: 0,
       retryCount: 0,
     };
-    if (label.includes('unit tests')) command.testCount = 1;
-    if (label === 'Playwright version') command.stdout = 'Version 1.60.0';
-    if (label === 'Chromium version') command.stdout = '148.0.7778.96';
+    if (base.includes('unit tests')) command.testCount = 1;
+    if (base === 'Playwright version') command.stdout = 'Version 1.60.0';
+    if (base === 'Chromium version') command.stdout = '148.0.7778.96';
     const runner =
-      label === 'unit and integration tests'
+      base === 'unit and integration tests'
         ? 'vitest'
-        : label === 'end-to-end tests'
+        : base === 'end-to-end tests'
           ? 'playwright'
           : null;
     if (runner) {
       const report = {
         schemaVersion: 1,
-        invocation: 'test-invocation',
+        invocation: `test-invocation-${index}`,
         runner,
         status: 'passed',
         errors: 0,
@@ -205,7 +208,7 @@ function fixture() {
         ],
       };
       const raw = JSON.stringify(report);
-      const path = `artifacts/release-evidence/test-invocation-${runner}.json`;
+      const path = `artifacts/release-evidence/test-invocation-${index}-${runner}.json`;
       command.testReport = {
         path,
         invocation: report.invocation,
@@ -243,7 +246,7 @@ function fixture() {
     commands,
     totals: { commandCount: COMMANDS.length, skipCount: 0, retryCount: 0 },
     certification: {
-      certificationContractVersion: 1,
+      certificationContractVersion: 2,
       certificationKind: 'comprehensive',
       repository: REPOSITORY,
       repositoryId: REPOSITORY_ID,
@@ -288,6 +291,16 @@ function fixture() {
     pr,
     run,
     job,
+    // Stage jobs the Final candidate assembled, in the same attempt.
+    jobs: [
+      ...STAGE_JOBS.map((name, index) => ({
+        ...job,
+        id: 900 + index,
+        name,
+        check_run_url: `https://api.github.com/repos/${REPOSITORY}/check-runs/${900 + index}`,
+      })),
+      job,
+    ],
     check,
     manifest,
     artifact,
@@ -321,7 +334,7 @@ function fixture() {
         };
       else if (path === 'actions/runs/123') body = run;
       else if (path.startsWith('actions/runs/123/attempts/2/jobs?'))
-        body = { total_count: 1, jobs: [job] };
+        body = { total_count: f.jobs.length, jobs: f.jobs };
       else if (path === 'check-runs/456') body = check;
       else if (path.startsWith('actions/runs/123/artifacts?'))
         body = { total_count: 1, artifacts: [artifact] };
@@ -346,6 +359,8 @@ test('actual adapter, ZIP and B evidence accept exact merge, attempt 2 and empty
   assert.equal(result.pr, 50);
   assert.equal(f.calls.filter((p) => p === 'actions/runs/123').length, 2);
 });
+const byLabel = (f, label) =>
+  f.manifest.commands.find((command) => command.label === label);
 const mutations = {
   'complete tree differs': (f) => {
     f.manifest.treeSha = B;
@@ -396,7 +411,7 @@ const mutations = {
     f.reports.pop();
   },
   'missing test count is not zero': (f) => {
-    f.manifest.commands[17].testCount = null;
+    byLabel(f, 'unit: unit and integration tests').testCount = null;
   },
   'real policy violation': (f) => {
     f.manifest.commands[4].policyViolations = ['failed'];
@@ -411,13 +426,28 @@ const mutations = {
     f.manifest.commands[6].args = ['npm', 'run', 'lint'];
   },
   'TAP skipped': (f) => {
-    f.manifest.commands[9].stdout = tap.replace('# skipped 0', '# skipped 1');
+    byLabel(f, 'unit: release gate unit tests').stdout = tap.replace(
+      '# skipped 0',
+      '# skipped 1',
+    );
   },
   'wrong report digest': (f) => {
-    f.manifest.commands[17].testReport.sha256 = '0'.repeat(64);
+    byLabel(f, 'e2e 2/3: end-to-end tests').testReport.sha256 = '0'.repeat(64);
   },
   'contradictory PR association': (f) => {
     f.run.pull_requests = [{ number: 51 }];
+  },
+  'failed stage job': (f) => {
+    f.jobs[1].conclusion = 'failure';
+  },
+  'missing stage job': (f) => {
+    f.jobs.splice(2, 1);
+  },
+  'duplicated stage job': (f) => {
+    f.jobs.push({ ...f.jobs[1], id: 999 });
+  },
+  'stage job from another attempt': (f) => {
+    f.jobs[3].run_attempt = 1;
   },
   'material environment drift': (f) => {
     f.current.npmVersion = '12.0.0';
@@ -745,13 +775,22 @@ test('installed workflow selection defaults uncertain output to FULL and preserv
     'utf8',
   );
   assert.equal((workflow.match(/name: Final candidate/g) || []).length, 1);
-  assert.equal((workflow.match(/npm run verify:release/g) || []).length, 1);
+  assert.equal((workflow.match(/npm run verify:release/g) || []).length, 3);
+  assert.equal(
+    (workflow.match(/name: Select certification path/g) || []).length,
+    2,
+  );
+  assert.equal(
+    (workflow.match(/if: needs\.plan\.outputs\.decision != 'ATTEST'/g) || [])
+      .length,
+    2,
+  );
   assert.match(workflow, /^\s+fetch-depth: 2$/m);
   assert.doesNotMatch(workflow, /continue-on-error/);
   const steps = workflow.split('\n      - ');
   for (const name of [
-    'Install locked dependencies',
-    'Install Chromium',
+    'Require successful stages',
+    'Download stage evidence',
     'Run immutable release gate',
   ]) {
     assert.match(
@@ -763,10 +802,16 @@ test('installed workflow selection defaults uncertain output to FULL and preserv
     steps.find((step) => step.startsWith('name: Upload release evidence')),
     /if: always\(\)/,
   );
-  const selection = steps
+  // The step's own script block: its lines are indented by ten spaces.
+  const lines = steps
     .find((step) => step.startsWith('name: Select certification path'))
     .split('        run: |\n')[1]
-    .split('\n')
+    .split('\n');
+  const end = lines.findIndex(
+    (line) => line.length > 0 && !line.startsWith('          '),
+  );
+  const selection = lines
+    .slice(0, end === -1 ? undefined : end)
     .map((line) => line.slice(10))
     .join('\n');
   const shell =
@@ -822,12 +867,16 @@ test('actual workflow bootstrap carries imported decisions and import failures',
     new URL('../.github/workflows/test.yml', import.meta.url),
     'utf8',
   );
-  const selection = workflow
-    .split('        run: |\n')[1]
-    .split('\n      - ')[0]
-    .split('\n')
+  // The first script block in the file, up to the end of its indentation.
+  const lines = workflow.split('        run: |\n')[1].split('\n');
+  const end = lines.findIndex(
+    (line) => line.length > 0 && !line.startsWith('          '),
+  );
+  const selection = lines
+    .slice(0, end === -1 ? undefined : end)
     .map((line) => line.slice(10))
     .join('\n');
+  assert.match(selection, /^selection=\$\(mktemp\)/);
   const directory = mkdtempSync(join(tmpdir(), 'progresspal-selector-'));
   const output = join(directory, 'output');
   const module = join(directory, 'scripts/run-release-reuse.mjs');

@@ -1,7 +1,10 @@
 # Release certification reuse
 
-The existing Release validation workflow retains one native final-candidate
-job/check named **Final candidate**, its triggers, read-only permissions and upload.
+The Release validation workflow runs the gate as parallel stage jobs (Plan
+certification, Unit stage and three E2E shards) and one native final-candidate
+job/check named **Final candidate** that verifies every stage of the same attempt and
+writes the single comprehensive manifest. Triggers, read-only permissions and the
+Final candidate upload are unchanged.
 PR and manual events run FULL. A master push may run ATTEST only after authenticating
 the comprehensive certificate of its exact tested PR synthetic merge. Activation,
 rollback and other release-control transitions run FULL on both PR and master.
@@ -22,11 +25,13 @@ checkout comes from the authenticated artifact and is independently checked usin
 GitHub's Git commit endpoint. Today's moving pull merge ref is never evidence.
 
 Require the expected workflow, latest successful run and exact successful attempt,
-one native job with all comprehensive steps successful, and the GitHub Actions
+exactly the expected stage jobs plus one Final candidate job, all successful in that
+attempt, the Final candidate's comprehensive steps successful, and the GitHub Actions
 check producer. Artifact ownership, bounded ZIP parsing and SHA-256 authenticate
 the bytes. The schema-3 manifest must explicitly certify comprehensive, name the
-same run/attempt/checkout/PR and contain all 21 passed command records with the
-unchanged command profile. Validate Node TAP and both raw structured test reports,
+same run/attempt/checkout/PR and contain all 38 passed command records (identity,
+the unit stage, three E2E shards and the final clean status, contract version 2)
+with the unchanged command profile. Validate Node TAP and both raw structured test reports,
 their digests, invocation identities and counts. Unknown counts are not zero.
 ATTEST records are ineligible as sources: there are no reuse chains.
 
