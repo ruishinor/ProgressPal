@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "module": "e2e-saved-result-wait",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "26d4891f5cee1a288b8ea516b1b272a428061905",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of a test-only change on master 08216aaa: assertions that wait for a Resultat status after a submit wait up to 15 s instead of Playwright's default 5 s. No product code, assertion content, retry policy or release control changes.",
+    "evidence": [
+      "Master run #212 failed in e2e/task6-progress-check.spec.ts at 1280 px: Resultat not found within 5 s after Sjekk svaret. The same test passed at four other widths in that run and at 1280 px in runs #210, #211 and #215.",
+      "The owner-supplied artifact for run #212 settles the cause. Its error context shows Plassert: 10 av 10 (the answer was complete, so no lost click) and Lagrer og sjekker svaret still showing. The trace has no console or page errors; single clicks took 0.3 to 0.85 s, showing a loaded runner. The screen frame 0.1 s after the wait expired shows Riktig, Riktig rekkefølge, +13 XP: the result rendered about 5.6 s after the click.",
+      "The submit path writes the answer with XP and achievements, re-reads, writes the lesson bookmark and re-reads before the result renders (src/features/lessons/ExerciseCard.tsx submit, src/lib/storage/localDataCoordination.ts recordWrite and markSynchronized).",
+      "Sister search: every e2e assertion on a Resultat status reached after a submit click got the same 15 s wait (23 assertions in 5 files). Reads after a reload or navigation and the Python-runtime checks, which already wait 30 to 60 s, are unchanged.",
+      "Local run of the five edited spec files with --max-failures=0: 51 of 51 passed. A local stress repeat of the failing case (24 runs, 3 workers on 2 CPUs) passed every time before the change, consistent with a load-dependent delay rather than a logic fault.",
+      "Preflight: Prettier, ESLint with --max-warnings 0, npm run typecheck and git diff --check pass."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "SRW-1",
+      "severity": "P2",
+      "description": "A longer wait could hide a real slowdown of saving an answer.",
+      "resolution": "Passing assertions return as soon as the result appears, and the content asserted is unchanged. A save slower than 15 s still fails. Lessons-learned rule 11 is refined accordingly: longer waits only for measured asynchronous persistence, never for immediate UI.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "SRW-2",
+      "severity": "P3",
+      "description": "During the tab's own post-save re-read, the RPG shell shows 'Saved data changed in another tab', which is untrue for a single tab (visible in run #212's snapshot).",
+      "resolution": "Out of scope for this test-only change; recorded in CURRENT_STATE.md as a separate product finding for the owner.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted run. The failure was a correct but slow save under load, proven by the trace; the change aligns all saved-result waits with the suite's existing stored-state wait."
+  }
+}
