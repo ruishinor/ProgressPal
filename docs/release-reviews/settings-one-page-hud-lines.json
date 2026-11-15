@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "module": "settings-one-page-hud-lines",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a4353ea7a8d95480db87feddc047c4348bbbd328",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Self-review of the replacement for draft PR #94 on master 08216aa: Settings as one page with a jump bar and named sections, visible selected states for programme, avatar and checkbox choices, balanced wrapping for titles and helper text, and the Hero HUD line order the owner set on 2026-11-15 (name and Activity icon + number; Guild; Path; Level and XP; Class and Rank as extended facts). No data, schema, route, dependency, service-worker, CSP or release-control change.",
+    "evidence": [
+      "Owner instructions 2026-11-15: one page with jump links; distinct boxes without changing the overall visual; feedback reachable early; HUD lines as specified; no overflow, balanced text, no word breaks; mobile and desktop; merge when recommended and defensible.",
+      "PR #94 measured on master 08216aa before this work: Prettier failure, 14 unit failures (hidden panels removed controls from the accessibility tree), a second aria-current=page beside the RPG navigation, 4.49:1 onboarding helper contrast and a Guild Sign out step behind a hidden panel. None of these mechanisms exist here: nothing is hidden and jump links carry no aria-current.",
+      "Every Settings control stays rendered; the restructure moved JSX without removing any copy (word-set comparison of the old and new SettingsSurface: nothing lost).",
+      "Unit: 3714 of 3714 pass, including new tests/features/settings/settingsOnePage.test.tsx (Classic and RPG: jump links resolve to sections, no aria-current, named regions with visible controls, Feedback in General) and tests/features/rpg/heroIdentityLines.test.tsx (line order, extended Class and Rank, Details rows).",
+      "Preflight on the payload: Prettier, ESLint --max-warnings 0, typecheck, dpdm circular check, production build and check:bundle (no violations; CSS 20204 B gzip, JS 459024 B gzip).",
+      "Full local Playwright run: 313 of 324 passed. Fixed from it: checked-choice helper contrast (4.31:1 to the muted token) and two specs that read the old 'Programme: ...' text. Remaining local failures were rechecked against unchanged master in the same container: the 'cross-world service worker' console preload warning fails varying specs on both trees, and the 320 px HUD height bounds fail on both. Measured HUD heights are lower than master's everywhere (320 px /rpg 164 vs 203, /rpg/map 270 vs 309; 390 px /rpg 164 vs 182, /rpg/map 220 vs 238); master passes these bounds hosted.",
+      "Visual check at 320, 390 and 1280 px in light and dark, Classic and RPG: no horizontal overflow on either Settings page (the backup file input previously widened the page by 27 px at 320 px), avatars 2 x 2, study days 7 or 4 + 3, HUD identity values aligned on one column.",
+      "The HUD keeps overflow-wrap: anywhere on names and identity values, which breaks a word only when that word alone is wider than the line (200% text at 320 px, 'Programvareutvikling'); ordinary text wraps at spaces."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UX-1",
+      "severity": "P2",
+      "description": "Hiding Settings categories (PR #94) removed controls from the accessibility tree and broke deep links and tests.",
+      "resolution": "One page; the jump bar uses same-page anchors on sections marked data-route-focus, the existing deep-link mechanism.",
+      "status": "resolved"
+    },
+    {
+      "id": "UX-2",
+      "severity": "P2",
+      "description": "The selected fill on checked choices lowered checkbox helper text to 4.31:1 (axe, light theme).",
+      "resolution": "Helper text inside checked or selected choices uses --color-text-muted; the onboarding fieldset gets no background.",
+      "status": "resolved"
+    },
+    {
+      "id": "UX-3",
+      "severity": "P3",
+      "description": "Rank moved from beside the name to the extended facts (beside Guild and Path on wide screens, in Details on phones); the HUD label is now 'Rank' like the other facts.",
+      "resolution": "The owner's line order names Class as the extended fact and leaves Rank out of L1; Rank is kept, not removed. The Hero profile keeps its 'Rank:' badge and info note.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UX-4",
+      "severity": "P3",
+      "description": "Equal-height boxes in a row leave space under shorter boxes (Interface and Feedback beside Programme).",
+      "resolution": "Actions sit on one baseline across a row; the page is about 600 px shorter on desktop than before.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "QA-1",
+      "severity": "P3",
+      "description": "The local Chromium build differs from the pinned one, so some browser results here are environmental.",
+      "resolution": "Every remaining local failure was compared with unchanged master in the same container; the hosted Final candidate is the deciding run.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate on this exact payload; merge only if it passes."
+  }
+}
