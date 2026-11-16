@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-commons-s1-activation",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "9515ab010e34a44d02558ff933e93edd2b3c172e",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Guild Commons S1 activation on master f20f135, commit aa1606a: removes the VITE_PROGRESSPAL_GUILD_COMMONS gate (its only source call site, GroupSession.tsx), folds e2e/guild-commons.spec.ts into the default chromium project, replaces the five Commons native maxLength caps with a code-point cap matching PostgreSQL char_length, and records the D6 cleanup job's first run. Reviewed: every flag reference, the Playwright config diff (project list only; the timeout, worker and retry contracts pinned by tests/architecture/releaseWorkflow.test.ts are unchanged), the existing Guild journeys that now render the closed Commons entry, and that Commons still calls the provider only on an explicit open.",
+    "evidence": [
+      "Managed Playwright on the default build (no flag): e2e/guild-commons.spec.ts in the chromium project, e2e/learning-group.spec.ts and e2e/cloud-off-zero-traffic.spec.ts, 7 passed. The Commons journey now asserts that 300 typed emoji are capped at exactly 280 code points and posted unchanged.",
+      "Vitest: tests/features/social, tests/lib/cloud, tests/architecture, tests/features/rpg/a7RouteAccess.test.tsx and heroIdentityLines.test.tsx, 38 files and 613 tests PASS. The existing component test already shows that the S2 focus section stays hidden when the provider omits focus, as the installed S1 provider does.",
+      "ESLint on changed files, npm run typecheck, Prettier, git diff --check, npm run build and npm run check:bundle (no violations or warnings; CSS gzip 20,473 B): all exit 0. The default build now contains the Commons UI.",
+      "D6: owner-run cron.job_run_details read shows progresspal-guild-notes-purge succeeded with DELETE 0 at 2026-11-16 03:45 UTC."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GCA-1",
+      "severity": "P2",
+      "description": "The real-JWT Commons read against the live provider is not yet observed; the browser journey uses a simulated provider.",
+      "resolution": "Taken on this PR's Vercel preview, which builds the activated client against the live provider, before the owner authorizes the production merge. The production merge is held until that read returns ok; the hosted gate certifies the source only.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-2",
+      "severity": "P3",
+      "description": "Without a build flag, the UI can only be removed by a reverted release.",
+      "resolution": "The provider kill switch (removing the Hasura function permission) disables Commons within minutes; the entry then shows an unavailable notice and the original Guild keeps working. Documented in the provider README.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCA-3",
+      "severity": "P3",
+      "description": "The code-point cap truncates on input, which can move the caret to the end when a paste overflows the limit.",
+      "resolution": "Only text beyond the server limit is cut, the same outcome a native maxlength gives for BMP text.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate; production merge only after the preview read and an explicit owner go-ahead."
+  }
+}
