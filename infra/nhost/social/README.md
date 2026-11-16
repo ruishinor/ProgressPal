@@ -153,6 +153,42 @@ should drop tables containing records.
 References: [Hasura custom SQL functions](https://hasura.io/docs/2.0/schema/postgres/custom-functions/)
 and [Hasura Metadata API](https://hasura.io/docs/2.0/api-reference/metadata-api/index/).
 
+## Guild weekly focus (S2) upgrade
+
+**Status:** source only; `guild-focus-v1.sql` is not installed anywhere live.
+
+One optional line (at most 120 code points, one line) for the current
+Europe/Oslo calendar week, set, replaced or cleared (empty text) by the
+administrator through the new `focus` operation of `guild_commons_v1`; every
+current member reads it. The file is one transaction: it refuses any installed
+function body other than S1's (`d51b6de2…`), adds `groups.focus_text` and
+`groups.focus_week` with two checks, adds the helper
+`oslo_week_start(timestamptz)` (Monday of the Oslo week; body `01ada650…`)
+and replaces the `guild_commons_v1` body (new body `49fbc548…`). The
+signature, return type, owner, grants and Hasura metadata are unchanged; do
+not touch the metadata. Identity, membership checks, administrator authority
+and the shared advisory lock are the S1 code paths.
+
+Every `ok` result gains `focus: {text, weekStart}` **beside** `group`; `group`
+keeps exactly its S1 keys. The released S1 client parses `group` strictly but
+ignores other top-level fields, and the S2 client hides the focus when the
+provider omits it, so either install order is safe. A focus stored for an
+earlier week is never returned, and the Guild's next Commons call erases it.
+A dormant Guild keeps its last line in storage until that call or Guild
+deletion; the D6 cleanup job does not cover it. No history is kept.
+
+Before applying: save `SELECT pg_get_functiondef('progresspal_social.guild_commons_v1(json,text,jsonb)'::regprocedure);`
+for rollback, and confirm the inventory still matches
+`guild-commons-inventory-expected.tsv`. Apply as the function owner with
+"Track this" OFF. Afterwards the inventory differs only by the new function
+body hash, the helper's function, ACL and owner rows, the two columns and the
+two named checks (`groups_focus_text_length`, `groups_focus_week_set`, plus
+PostgreSQL 18's named NOT NULL constraint for `focus_text`). Rollback reapplies the
+saved definition; the two columns are then unused and stay until a separate
+data decision. The PGlite probe above applies this upgrade on top of S1, so
+every S1 assertion runs against the S2 body, and checks admin-only set and
+clear, member read, handover, rollover, the Oslo DST weeks and the guard.
+
 ## Guild name upgrade
 
 For an existing installation, compare the tracked `social_week` signature,

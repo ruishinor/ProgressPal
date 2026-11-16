@@ -53,12 +53,20 @@ const group = z
   })
   .strict();
 
+const focus = z
+  .object({ text: bounded(0, 120), weekStart: z.iso.date() })
+  .strict();
+
 const responseSchema = z.object({
   data: z.object({
     guild_commons_v1: z.tuple([
       z.object({
         result: z.discriminatedUnion('status', [
-          z.object({ status: z.literal('ok'), group }),
+          z.object({
+            status: z.literal('ok'),
+            group,
+            focus: focus.optional(),
+          }),
           z.object({
             status: z.enum([
               'unauthenticated',

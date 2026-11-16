@@ -10,9 +10,14 @@ import {
   type GuildCommonsCommand,
   type GuildCommonsFailure,
   type GuildCommonsGroup,
+  type GuildFocus,
   type GuildNoteKind,
 } from '@/lib/cloud';
-import { formatCalendarDay, osloDate } from '@/lib/time/osloWeek';
+import {
+  addCalendarDays,
+  formatCalendarDay,
+  osloDate,
+} from '@/lib/time/osloWeek';
 
 import './guildCommons.css';
 
@@ -47,6 +52,7 @@ const failureLabels: Record<GuildCommonsFailure, string> = {
 const successLabels: Partial<Record<GuildCommonsCommand['operation'], string>> =
   {
     profile: 'Guild-profilen er lagret.',
+    focus: 'Ukens fokus er lagret.',
     post: 'Oppslaget er delt.',
     edit: 'Oppslaget er oppdatert.',
     remove: 'Oppslaget er fjernet.',
@@ -81,6 +87,8 @@ export function GuildCommons({
 }: Props) {
   const [opened, setOpened] = useState(false);
   const [group, setGroup] = useState<GuildCommonsGroup | null>(null);
+  // Undefined while the provider predates the weekly focus.
+  const [focus, setFocus] = useState<GuildFocus | undefined>(undefined);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmTransfer, setConfirmTransfer] = useState(false);
@@ -95,6 +103,7 @@ export function GuildCommons({
     current.current = null;
     setOpened(false);
     setGroup(null);
+    setFocus(undefined);
     setNotice('');
     setBusy(false);
     setConfirmTransfer(false);
@@ -128,12 +137,18 @@ export function GuildCommons({
         result.status === 'unauthenticated' ||
         result.status === 'membership-changed' ||
         result.status === 'no-group'
-      )
+      ) {
         setGroup(null);
+        setFocus(undefined);
+      }
       return;
     }
     setGroup(result.group);
-    const success = successLabels[command.operation];
+    setFocus(result.focus);
+    const success =
+      command.operation === 'focus' && command.text === ''
+        ? 'Ukens fokus er fjernet.'
+        : successLabels[command.operation];
     if (success === undefined) return;
     setNotice(success);
     // The control that started the change is disabled or removed meanwhile.
@@ -150,6 +165,12 @@ export function GuildCommons({
       ethos: text(data, 'ethos'),
       about: text(data, 'about'),
     });
+  }
+
+  function submitFocus(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    void run({ operation: 'focus', membership, text: text(data, 'focus') });
   }
 
   function submitPost(event: FormEvent<HTMLFormElement>) {
@@ -203,6 +224,56 @@ export function GuildCommons({
       <p role="status">{busy ? 'Henter Guild-fellesrom …' : notice}</p>
       {group !== null && (
         <>
+          {focus !== undefined && (
+            <section aria-label="Ukens fokus">
+              <h4>Ukens fokus</h4>
+              <p className="guild-commons__copy">
+                {focus.text || 'Ingen fokus er satt for denne uken.'}
+              </p>
+              <p className="guild-commons__hint">
+                Gjelder {formatCalendarDay(focus.weekStart)}–
+                {formatCalendarDay(addCalendarDays(focus.weekStart, 6))}. Et
+                frivillig felles fokus som nullstilles mandag.
+              </p>
+              {group.isAdmin && (
+                <details key={focus.weekStart + '\u0000' + focus.text}>
+                  <summary>
+                    {focus.text ? 'Endre ukens fokus' : 'Sett ukens fokus'}
+                  </summary>
+                  <form className="profile-form" onSubmit={submitFocus}>
+                    <label>
+                      Fokus for uken
+                      <TextInput
+                        defaultValue={focus.text}
+                        maxLength={120}
+                        name="focus"
+                      />
+                    </label>
+                    <div className="action-row">
+                      <Action disabled={busy} type="submit">
+                        Lagre fokus
+                      </Action>
+                      {focus.text && (
+                        <Action
+                          disabled={busy}
+                          onClick={() =>
+                            void run({
+                              operation: 'focus',
+                              membership,
+                              text: '',
+                            })
+                          }
+                          variant="quiet"
+                        >
+                          Fjern fokus
+                        </Action>
+                      )}
+                    </div>
+                  </form>
+                </details>
+              )}
+            </section>
+          )}
           <section aria-label="Om Guilden">
             <h4>Om Guilden</h4>
             {group.ethos && (

@@ -35,6 +35,7 @@ export type {
   GuildCommonsGroup,
   GuildCommonsPort,
   GuildCommonsResult,
+  GuildFocus,
   GuildNoteKind,
 } from './guildCommonsPort';
 export type {

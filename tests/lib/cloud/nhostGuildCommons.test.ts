@@ -234,3 +234,45 @@ it('discards a private response after logout or a cloud preference change', asyn
   });
   expect(await read()).not.toHaveProperty('group');
 });
+
+it("accepts the week's focus beside the board, rejects a malformed one and sends the focus command bounded", async () => {
+  const stub = installFetchStub();
+  const cloud = createCloud();
+  enableCloud();
+  await signInThroughStub(cloud, stub);
+  const focus = (text: string) =>
+    cloud.commons.execute(
+      { operation: 'focus', membership, text },
+      'user-1',
+      new AbortController().signal,
+    );
+  const current = { text: '🚀'.repeat(120), weekStart: '2026-11-16' };
+
+  stub.respond(() => answer({ ...commons, focus: current }));
+  expect(await focus('🚀'.repeat(120))).toEqual({ ...commons, focus: current });
+  expect(stub.calls[0]?.body).toMatchObject({
+    variables: {
+      operation: 'focus',
+      input: { membership, text: '🚀'.repeat(120) },
+    },
+  });
+
+  for (const malformed of [
+    { ...current, text: '🚀'.repeat(121) },
+    { ...current, weekStart: '16.11.2026' },
+    { ...current, setBy: 'Ada' },
+    null,
+  ]) {
+    stub.respond(() => answer({ ...commons, focus: malformed }));
+    expect(await focus('')).toEqual({ status: 'unavailable' });
+  }
+
+  // Inside `group` the field breaks the strict S1 board contract.
+  stub.respond(() =>
+    answer({ ...commons, group: { ...commons.group, focus: current } }),
+  );
+  expect(await focus('')).toEqual({ status: 'unavailable' });
+
+  stub.respond(() => answer({ status: 'not-admin' }));
+  expect(await focus('Løkker')).toEqual({ status: 'not-admin' });
+});

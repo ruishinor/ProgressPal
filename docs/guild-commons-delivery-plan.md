@@ -107,6 +107,13 @@ README's live status). Open before step 5: the cleanup job's first run
 real signed-in test account returning `ok` or `membership-changed`. S2 may be
 developed on its own branch meanwhile; it ships after step 5.
 
+**S2 source (2026-11-16):** `guild-focus-v1.sql` and the client are in source,
+behind the same build flag; the SQL is not installed. The focus travels
+beside `group`, so the S1 client and the S2 client each work with either
+provider version. Installing it is a separate owner step after step 5
+(provider README, "Guild weekly focus"). R7 is deliberately not folded into
+S2, to keep the S1 response contract unchanged.
+
 Already verified without the live provider (S1-A source PR): the PGlite
 contract probe; `probe-guild-commons-postgres.mjs` on disposable PostgreSQL
 16.15 with pg_cron 1.6 (lock serialization, final-slot race, two-device post,

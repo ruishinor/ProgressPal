@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-weekly-focus",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "cf0a12b371e8e7a6352c3b665c11f13a1923988f",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Guild Commons S2 on master 2594e1d, commit e7a877f: one optional administrator-set focus line for the current Europe/Oslo week inside the off-by-default Commons UI, and the guarded additive SQL upgrade guild-focus-v1.sql (not installed). Reviewed: the full function body diff against the installed S1 body (only the focus operation, its input allow-list entry, the stale-focus erase and the top-level focus result were added), the S1/S2 client and provider compatibility, the client state on failure, membership loss and close, and the flag-off production build.",
+    "evidence": [
+      "Compatibility: a temporary Vitest case on the unmodified S1 transport showed that a top-level focus beside group is stripped and the board still parses, while a focus inside group makes the S1 client report unavailable. The upgrade therefore adds focus beside group and keeps group's exact S1 keys, which the probe asserts.",
+      "PGlite 0.5.16 probe (node infra/nhost/social/probe-guild-commons.mjs): S2 is applied on top of S1, so every existing S1 assertion runs against the S2 body. S2 cases: member read, not-admin set, stale membership, invalid length/newline/type/extra key, 120 astral code points, clear, handover moving focus authority, rollover erase, seven Oslo week-boundary instants including both 2026 DST weeks and New Year, and rejection of a second application by the body guard. PASS. Applying the guard also confirmed that the repository S1 body hash is d51b6de2..., matching the live inventory.",
+      "Vitest: tests/architecture, tests/infra, tests/features/social and tests/lib/cloud, 40 files and 683 tests PASS, including the new transport and component cases (member read without editor, S1 provider hides the section, administrator set and clear, failed save keeps board and draft, focus returns to the heading).",
+      "Managed Playwright with VITE_PROGRESSPAL_GUILD_COMMONS=true (e2e/guild-commons.spec.ts): 1 passed after updating one existing expectation that the new step had made stale (the last Commons operation before handover is now focus). Covers keyboard set, 320/640/1280 reflow and axe on the Guild panel with the focus section open.",
+      "ESLint on changed files, npm run typecheck, Prettier check on changed files, git diff --check, npm run build and npm run check:bundle (no violations): all exit 0. The default flag-off build contains no focus UI."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GWF-1",
+      "severity": "P3",
+      "description": "A board left open across Monday 00:00 Oslo keeps showing the previous week's focus until the member refreshes.",
+      "resolution": "The focus is shown with its explicit week range, and the server never returns an earlier week's focus on any call. Accepted for a board read on explicit open.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GWF-2",
+      "severity": "P3",
+      "description": "The oslo_week_start helper has EXECUTE revoked from PUBLIC; the invoker-rights RPC works only when Hasura's connection role owns the helper.",
+      "resolution": "Same model as the S1 function: apply as the function owner (nhost_hasura on progresspal-g0), as the README states. A wrong role fails loudly with a permission error and no data change.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GWF-3",
+      "severity": "P3",
+      "description": "A dormant Guild keeps its last focus line in storage after its week ends.",
+      "resolution": "It is never returned as current; the next Commons call erases it, and Guild deletion removes it. Documented without claiming physical purge; the D6 job is unchanged.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate. The change is inert in production (flag off) and the SQL stays uninstalled."
+  }
+}

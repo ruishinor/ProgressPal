@@ -4,6 +4,7 @@ export type GuildNoteKind = 'help' | 'offer' | 'notice' | 'win';
 export type GuildCommonsCommand =
   | { operation: 'read'; membership: string }
   | { operation: 'profile'; membership: string; ethos: string; about: string }
+  | { operation: 'focus'; membership: string; text: string }
   | { operation: 'post'; membership: string; kind: GuildNoteKind; body: string }
   | { operation: 'edit'; membership: string; note: string; body: string }
   | { operation: 'remove' | 'resolve'; membership: string; note: string }
@@ -38,8 +39,15 @@ export type GuildCommonsGroup = {
   }[];
 };
 
+/** The current Oslo week's focus; an empty text means none is set. */
+export type GuildFocus = { text: string; weekStart: string };
+
+/**
+ * `focus` sits beside `group` so S1 clients, which parse `group` strictly,
+ * ignore it. It is absent when the provider predates the weekly focus.
+ */
 export type GuildCommonsResult =
-  | { status: 'ok'; group: GuildCommonsGroup }
+  | { status: 'ok'; group: GuildCommonsGroup; focus?: GuildFocus }
   | { status: GuildCommonsFailure };
 
 export interface GuildCommonsPort {

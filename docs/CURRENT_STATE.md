@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**Guild Commons S2 weekly focus — source, 2026-11-16.** One optional
+administrator-set line for the current Oslo week inside Guild Commons (same
+off-by-default flag, no new navigation, no XP, votes or tracking).
+`infra/nhost/social/guild-focus-v1.sql` is a guarded, additive upgrade of the
+installed `guild_commons_v1`; it is **not installed**, and Hasura metadata is
+unchanged. The response adds `focus` beside the unchanged `group`, so S1 and
+S2 clients each work with either provider version. Live install follows S1
+frontend activation.
+
 **Guild Commons S1 — installed live, 2026-11-16 (owner-run).** On
 `progresspal-g0` (PostgreSQL 18.6): the pre-install inventory matched the
 repository, `guild-commons-v1.sql` and its Hasura metadata are installed and
