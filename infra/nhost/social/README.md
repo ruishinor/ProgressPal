@@ -13,8 +13,8 @@ synthetic account left; GraphQL as `user` returned `membership-changed`, as
 `anonymous` no mutation. Cleanup job registered as job 2,
 `progresspal-guild-notes-purge`, `45 3 * * *` UTC, `nhost_hasura`; its first
 run on 2026-11-16 03:45 UTC reported `succeeded | DELETE 0` (owner-run
-`cron.job_run_details` read). The build flag is removed by the activation PR;
-Commons ships in the default build once it is merged.
+`cron.job_run_details` read). The activation PR #108 (merged 2026-11-16)
+removed the build flag; Commons is live in production.
 
 Tools, all for the Nhost SQL Editor with "Track this" OFF:
 `guild-commons-inventory.sql` (read-only catalogue fingerprint; compare with
@@ -157,7 +157,10 @@ and [Hasura Metadata API](https://hasura.io/docs/2.0/api-reference/metadata-api/
 
 ## Guild weekly focus (S2) upgrade
 
-**Status:** source only; `guild-focus-v1.sql` is not installed anywhere live.
+**Status:** installed on `progresspal-g0` by the owner on 2026-11-16
+(owner-confirmed; no post-install inventory or body hash is recorded here).
+The administrator focus flow is observed live; the member view and failure
+paths are not.
 
 One optional line (at most 120 code points, one line) for the current
 Europe/Oslo calendar week, set, replaced or cleared (empty text) by the

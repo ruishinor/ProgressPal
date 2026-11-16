@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-commons-ux-refinement",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "0bfabfefff04d7b37025c36013595da6a7270cb7",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Guild Commons presentation refinement on master 30a1749, commit 790bd2a: 42rem reading width shared with the Guild goal and member list, the existing form-details disclosure on all five Commons disclosures, an accented weekly-focus block, a visible focus ring on Commons summaries, the shared learning-group__status rule so an empty status line takes no space, and removal of empty-state lines that repeated the heading or editor. Status documentation corrected for the live S1 activation and the owner-installed S2 upgrade. Reviewed with git diff -w: no change to commands, API calls, state handling, authorization, SQL or routes; the note byline renders the same text after Prettier's rewrap.",
+    "evidence": [
+      "Managed Playwright on the default build: e2e/guild-commons.spec.ts and e2e/learning-group.spec.ts, 2 passed. New assertions: Commons has the same rendered width as the member list at 1280 px (it was full panel width on master), and a keyboard-focused Commons summary has a solid outline (Chromium's default was auto). The journey's existing 320/640/1280 reflow and axe checks on the RPG Guild panel pass with the focus editor open.",
+      "One temporary capture of the same journey at 1280 and 320 px was inspected and then removed; it showed the doubled period after the focus date range, which this commit fixes. The browser run predates that one-character text fix, which no assertion depends on.",
+      "Vitest tests/features/social: 2 files, 8 tests PASS. ESLint on changed files, npm run typecheck, Prettier check, git diff --check, npm run build and npm run check:bundle (no violations or warnings; CSS gzip 20,706 B): all exit 0."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GCU-1",
+      "severity": "P3",
+      "description": "An ordinary member now sees no weekly-focus block when none is set, and no About section when the Guild has no motto or description.",
+      "resolution": "Intended reduction of empty states; the administrator still sees both, with their editors. The member side is not observed live.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "GCU-2",
+      "severity": "P3",
+      "description": "The six owner screenshots named in the task were not attached to this session; the layout was judged from the code and the agent's own renders.",
+      "resolution": "The changes follow the issues the owner listed (width, disclosure styling, status spacing, empty-state text, focus and reflow), each checked in the browser journey.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate for a presentation-only change."
+  }
+}

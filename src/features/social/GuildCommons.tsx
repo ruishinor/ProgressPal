@@ -233,22 +233,28 @@ export function GuildCommons({
           </Action>
         </div>
       </div>
-      <p role="status">{busy ? 'Henter Guild-fellesrom …' : notice}</p>
+      <p className="learning-group__status" role="status">
+        {busy ? 'Henter Guild-fellesrom …' : notice}
+      </p>
       {group !== null && (
         <>
-          {focus !== undefined && (
-            <section aria-label="Ukens fokus">
+          {focus !== undefined && (focus.text || group.isAdmin) && (
+            <section aria-label="Ukens fokus" className="guild-commons__focus">
               <h4>Ukens fokus</h4>
-              <p className="guild-commons__copy">
-                {focus.text || 'Ingen fokus er satt for denne uken.'}
-              </p>
+              {focus.text && (
+                <p className="guild-commons__copy guild-commons__focus-text">
+                  {focus.text}
+                </p>
+              )}
               <p className="guild-commons__hint">
-                Gjelder {formatCalendarDay(focus.weekStart)}–
-                {formatCalendarDay(addCalendarDays(focus.weekStart, 6))}. Et
-                frivillig felles fokus som nullstilles mandag.
+                Frivillig fokus for {formatCalendarDay(focus.weekStart)}–
+                {formatCalendarDay(addCalendarDays(focus.weekStart, 6))}
               </p>
               {group.isAdmin && (
-                <details key={focus.weekStart + '\u0000' + focus.text}>
+                <details
+                  className="form-details"
+                  key={focus.weekStart + '\u0000' + focus.text}
+                >
                   <summary>
                     {focus.text ? 'Endre ukens fokus' : 'Sett ukens fokus'}
                   </summary>
@@ -286,129 +292,136 @@ export function GuildCommons({
               )}
             </section>
           )}
-          <section aria-label="Om Guilden">
-            <h4>Om Guilden</h4>
-            {group.ethos && (
-              <p className="guild-commons__ethos">{group.ethos}</p>
-            )}
-            <p className="guild-commons__copy">
-              {group.about || 'Guilden har ikke skrevet noe om seg selv ennå.'}
-            </p>
-            {group.isAdmin && (
-              <details key={group.ethos + '\u0000' + group.about}>
-                <summary>Rediger Guild-profil</summary>
-                <form className="profile-form" onSubmit={submitProfile}>
-                  <label>
-                    Guildens motto
-                    <TextInput
-                      defaultValue={group.ethos}
-                      onInput={capCodePoints(120)}
-                      name="ethos"
-                    />
-                  </label>
-                  <label>
-                    Om Guilden
-                    <TextArea
-                      defaultValue={group.about}
-                      onInput={capCodePoints(600)}
-                      name="about"
-                      rows={3}
-                    />
-                  </label>
-                  <Action disabled={busy} type="submit">
-                    Lagre Guild-profil
-                  </Action>
-                </form>
-              </details>
-            )}
-          </section>
+          {(group.ethos || group.about || group.isAdmin) && (
+            <section aria-label="Om Guilden">
+              <h4>Om Guilden</h4>
+              {group.ethos && (
+                <p className="guild-commons__ethos">{group.ethos}</p>
+              )}
+              {group.about && (
+                <p className="guild-commons__copy">{group.about}</p>
+              )}
+              {group.isAdmin && (
+                <details
+                  className="form-details"
+                  key={group.ethos + '\u0000' + group.about}
+                >
+                  <summary>Rediger Guild-profil</summary>
+                  <form className="profile-form" onSubmit={submitProfile}>
+                    <label>
+                      Guildens motto
+                      <TextInput
+                        defaultValue={group.ethos}
+                        onInput={capCodePoints(120)}
+                        name="ethos"
+                      />
+                    </label>
+                    <label>
+                      Om Guilden
+                      <TextArea
+                        defaultValue={group.about}
+                        onInput={capCodePoints(600)}
+                        name="about"
+                        rows={3}
+                      />
+                    </label>
+                    <Action disabled={busy} type="submit">
+                      Lagre Guild-profil
+                    </Action>
+                  </form>
+                </details>
+              )}
+            </section>
+          )}
           <section aria-label="Guild-oppslag">
             <h4>Guild-oppslag ({group.notes.length} av 3)</h4>
             <p className="guild-commons__hint">
-              Korte beskjeder og spørsmål for medlemmer. Oppslag vises i inntil
-              sju dager. Ikke del passord, personopplysninger eller privat kode.
+              Oppslag vises i sju dager. Ikke del passord, personopplysninger
+              eller privat kode.
             </p>
-            {group.notes.length === 0 && <p>Ingen oppslag ennå.</p>}
-            <ul className="guild-commons__notes">
-              {group.notes.map((entry) => (
-                <li className="guild-commons__note" key={entry.id}>
-                  <p>
-                    <strong>{noteLabels[entry.kind]}</strong> · {entry.author} ·{' '}
-                    <time dateTime={entry.createdAt}>
-                      {formatCalendarDay(osloDate(new Date(entry.createdAt)))}
-                    </time>
-                  </p>
-                  <p className="guild-commons__copy">{entry.body}</p>
-                  {entry.canRemove && (
-                    <div className="action-row">
-                      {entry.own && entry.kind === 'help' && (
+            {group.notes.length > 0 && (
+              <ul className="guild-commons__notes">
+                {group.notes.map((entry) => (
+                  <li className="guild-commons__note" key={entry.id}>
+                    <p>
+                      <strong>{noteLabels[entry.kind]}</strong> · {entry.author}{' '}
+                      ·{' '}
+                      <time dateTime={entry.createdAt}>
+                        {formatCalendarDay(osloDate(new Date(entry.createdAt)))}
+                      </time>
+                    </p>
+                    <p className="guild-commons__copy">{entry.body}</p>
+                    {entry.canRemove && (
+                      <div className="action-row">
+                        {entry.own && entry.kind === 'help' && (
+                          <Action
+                            disabled={busy}
+                            onClick={() =>
+                              void run({
+                                operation: 'resolve',
+                                membership,
+                                note: entry.id,
+                              })
+                            }
+                            variant="secondary"
+                          >
+                            Marker som løst
+                          </Action>
+                        )}
                         <Action
                           disabled={busy}
                           onClick={() =>
                             void run({
-                              operation: 'resolve',
+                              operation: 'remove',
                               membership,
                               note: entry.id,
                             })
                           }
-                          variant="secondary"
+                          variant="quiet"
                         >
-                          Marker som løst
+                          Fjern
                         </Action>
-                      )}
-                      <Action
-                        disabled={busy}
-                        onClick={() =>
-                          void run({
-                            operation: 'remove',
-                            membership,
-                            note: entry.id,
-                          })
-                        }
-                        variant="quiet"
-                      >
-                        Fjern
-                      </Action>
-                    </div>
-                  )}
-                  {entry.own && (
-                    <details key={entry.body}>
-                      <summary>Rediger oppslaget</summary>
-                      <form
-                        className="profile-form"
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          const data = new FormData(event.currentTarget);
-                          void run({
-                            operation: 'edit',
-                            membership,
-                            note: entry.id,
-                            body: text(data, 'body'),
-                          });
-                        }}
-                      >
-                        <label>
-                          Oppslagstekst
-                          <TextArea
-                            defaultValue={entry.body}
-                            onInput={capCodePoints(280)}
-                            minLength={1}
-                            name="body"
-                            required
-                            rows={3}
-                          />
-                        </label>
-                        <Action disabled={busy} type="submit">
-                          Lagre oppslag
-                        </Action>
-                      </form>
-                    </details>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      </div>
+                    )}
+                    {entry.own && (
+                      <details className="form-details" key={entry.body}>
+                        <summary>Rediger oppslaget</summary>
+                        <form
+                          className="profile-form"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            const data = new FormData(event.currentTarget);
+                            void run({
+                              operation: 'edit',
+                              membership,
+                              note: entry.id,
+                              body: text(data, 'body'),
+                            });
+                          }}
+                        >
+                          <label>
+                            Oppslagstekst
+                            <TextArea
+                              defaultValue={entry.body}
+                              onInput={capCodePoints(280)}
+                              minLength={1}
+                              name="body"
+                              required
+                              rows={3}
+                            />
+                          </label>
+                          <Action disabled={busy} type="submit">
+                            Lagre oppslag
+                          </Action>
+                        </form>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
             {canPost && (
-              <details>
+              <details className="form-details">
                 <summary>Skriv et oppslag</summary>
                 <form className="profile-form" onSubmit={submitPost}>
                   <label>
@@ -440,7 +453,7 @@ export function GuildCommons({
             )}
           </section>
           {group.isAdmin && others.length > 0 && (
-            <details>
+            <details className="form-details">
               <summary>Overfør administratorrollen</summary>
               <p>
                 Velg en annen deltaker. Administratorrettighetene overføres, og
