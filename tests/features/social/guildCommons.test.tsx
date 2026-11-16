@@ -5,6 +5,7 @@ import type {
   GuildCommonsCommand,
   GuildCommonsGroup,
   GuildCommonsResult,
+  GuildFocus,
 } from '@/lib/cloud';
 
 const execute = vi.hoisted(() =>
@@ -52,10 +53,15 @@ function board(overrides: Partial<GuildCommonsGroup> = {}): GuildCommonsGroup {
   };
 }
 
-const ok = (group: GuildCommonsGroup): GuildCommonsResult => ({
-  status: 'ok',
-  group,
-});
+const ok = (
+  group: GuildCommonsGroup,
+  focus?: GuildFocus,
+): GuildCommonsResult =>
+  focus === undefined
+    ? { status: 'ok', group }
+    : { status: 'ok', group, focus };
+
+const week = '2026-11-16';
 
 function mount(onMembershipChanged = vi.fn()) {
   render(
@@ -69,8 +75,8 @@ function mount(onMembershipChanged = vi.fn()) {
   return onMembershipChanged;
 }
 
-async function open(group: GuildCommonsGroup) {
-  execute.mockResolvedValueOnce(ok(group));
+async function open(group: GuildCommonsGroup, focus?: GuildFocus) {
+  execute.mockResolvedValueOnce(ok(group, focus));
   fireEvent.click(screen.getByRole('button', { name: 'Åpne Guild-fellesrom' }));
   await screen.findByRole('region', { name: 'Guild-oppslag' });
 }
@@ -199,4 +205,75 @@ it('aborts an unfinished read on close and ignores its late answer', async () =>
 
   await screen.findByRole('button', { name: 'Åpne Guild-fellesrom' });
   expect(screen.queryByRole('region', { name: 'Guild-oppslag' })).toBeNull();
+});
+
+it("shows a member the week's focus without an editor, and no focus section for a provider without one", async () => {
+  mount();
+  await open(board(), { text: 'Løkker i C', weekStart: week });
+
+  const section = screen.getByRole('region', { name: 'Ukens fokus' });
+  expect(section).toHaveTextContent('Løkker i C');
+  expect(section.querySelector('form')).toBeNull();
+  expect(section.querySelector('details')).toBeNull();
+
+  execute.mockResolvedValueOnce(ok(board()));
+  fireEvent.click(screen.getByRole('button', { name: 'Oppdater fellesrom' }));
+  await waitFor(() =>
+    expect(screen.queryByRole('region', { name: 'Ukens fokus' })).toBeNull(),
+  );
+  expect(
+    screen.getByRole('region', { name: 'Guild-oppslag' }),
+  ).toBeInTheDocument();
+});
+
+it('lets the administrator set and clear the focus, and keeps the board when a save fails', async () => {
+  mount();
+  const admin = board({ isAdmin: true });
+  await open(admin, { text: '', weekStart: week });
+  const section = () => screen.getByRole('region', { name: 'Ukens fokus' });
+  expect(section().querySelector('details')).not.toBeNull();
+  expect(screen.queryByRole('button', { name: 'Fjern fokus' })).toBeNull();
+
+  fireEvent.click(section().querySelector('summary')!);
+  fireEvent.change(screen.getByLabelText('Fokus for uken'), {
+    target: { value: '  Rekursjon  ' },
+  });
+  execute.mockResolvedValueOnce({ status: 'unavailable' });
+  fireEvent.click(screen.getByRole('button', { name: 'Lagre fokus' }));
+  await waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
+  expect(execute.mock.calls[1]?.[0]).toEqual({
+    operation: 'focus',
+    membership,
+    text: 'Rekursjon',
+  });
+  // A failed save shows no success and keeps both the board and the draft.
+  await waitFor(() =>
+    expect(screen.getByRole('status')).not.toBeEmptyDOMElement(),
+  );
+  expect(screen.getByLabelText('Fokus for uken')).toHaveValue('  Rekursjon  ');
+  expect(
+    screen.getByRole('region', { name: 'Guild-oppslag' }),
+  ).toBeInTheDocument();
+
+  execute.mockResolvedValueOnce(
+    ok(admin, { text: 'Rekursjon', weekStart: week }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Lagre fokus' }));
+  await waitFor(() => expect(section()).toHaveTextContent('Rekursjon'));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('heading', { name: 'Guild-fellesrom' }),
+    ).toHaveFocus(),
+  );
+
+  fireEvent.click(section().querySelector('summary')!);
+  execute.mockResolvedValueOnce(ok(admin, { text: '', weekStart: week }));
+  fireEvent.click(screen.getByRole('button', { name: 'Fjern fokus' }));
+  await waitFor(() => expect(execute).toHaveBeenCalledTimes(4));
+  expect(execute.mock.calls[3]?.[0]).toEqual({
+    operation: 'focus',
+    membership,
+    text: '',
+  });
+  await waitFor(() => expect(section()).not.toHaveTextContent('Rekursjon'));
 });

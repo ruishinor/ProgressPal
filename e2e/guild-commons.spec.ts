@@ -28,6 +28,7 @@ function simulatedGuild(weekStart: string) {
     isAdmin: true,
     ethos: '',
     about: '',
+    focus: '',
     notes: [
       {
         id: 'ca4d2826-20ad-4ee9-80ef-6bf725e82999',
@@ -113,11 +114,20 @@ function simulatedGuild(weekStart: string) {
         if (operation === 'remove')
           state.notes = state.notes.filter((note) => note.id !== input.note);
         if (operation === 'transfer') state.isAdmin = false;
+        if (operation === 'focus') state.focus = input.text;
         return route.fulfill({
           headers,
           json: {
             data: {
-              guild_commons_v1: [{ result: { status: 'ok', group: board() } }],
+              guild_commons_v1: [
+                {
+                  result: {
+                    status: 'ok',
+                    group: board(),
+                    focus: { text: state.focus, weekStart },
+                  },
+                },
+              ],
             },
           },
         });
@@ -208,13 +218,34 @@ test('Guild Commons opens only on request and works by keyboard in RPG and Class
   await expect(notes.getByRole('listitem')).toHaveCount(2);
   await expect(commons.getByRole('status')).not.toBeEmpty();
 
+  // The administrator sets the week's focus by keyboard; Enter submits.
+  const focusSection = commons.getByRole('region', { name: 'Ukens fokus' });
+  await focusSection.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await focusSection.getByRole('textbox', { name: 'Fokus for uken' }).focus();
+  await page.keyboard.insertText('Rekursjon og løkker');
+  await page.keyboard.press('Enter');
+  await expect(
+    commons.getByRole('heading', { name: 'Guild-fellesrom' }),
+  ).toBeFocused();
+  expect(commonsCalls().at(-1)).toEqual({
+    fn: 'guild_commons_v1',
+    operation: 'focus',
+    input: { membership, text: 'Rekursjon og løkker' },
+  });
+  await expect(focusSection).toContainText('Rekursjon og løkker');
+  await focusSection.locator('summary').click();
+  await expect(
+    focusSection.getByRole('button', { name: 'Fjern fokus' }),
+  ).toBeVisible();
+
   for (const width of [320, 640, 1280]) await fitsWidth(page, width);
   await axe(page, '.rpg-guild');
 
   // Handover asks once more, then the Guild is re-read for the new roles.
   await commons.getByText('Overfør administratorrollen').click();
   await commons.getByRole('button', { name: 'Gå videre' }).click();
-  expect(commonsCalls().at(-1)?.operation).toBe('post');
+  expect(commonsCalls().at(-1)?.operation).toBe('focus');
   await commons
     .getByRole('button', { name: 'Ja, overfør administratorrollen' })
     .click();
