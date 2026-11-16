@@ -115,8 +115,9 @@ real signed-in read is taken on the PR's preview deployment, against the live
 provider, before the production merge.
 
 **S2 source (2026-11-16):** `guild-focus-v1.sql` and the client are in source;
-the SQL is not installed, and the focus section stays hidden against the
-installed S1 provider. The focus travels
+the SQL was not installed at merge, and the focus section stayed hidden
+against the S1 provider. The owner installed it on 2026-11-16 after PR #108
+(activation) merged; see `docs/CURRENT_STATE.md` for what is observed live. The focus travels
 beside `group`, so the S1 client and the S2 client each work with either
 provider version. Installing it is a separate owner step after step 5
 (provider README, "Guild weekly focus"). R7 is deliberately not folded into

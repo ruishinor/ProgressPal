@@ -218,7 +218,12 @@ test('Guild Commons opens only on request and works by keyboard in RPG and Class
 
   // The administrator sets the week's focus by keyboard; Enter submits.
   const focusSection = commons.getByRole('region', { name: 'Ukens fokus' });
-  await focusSection.locator('summary').focus();
+  const focusSummary = focusSection.locator('summary');
+  await focusSummary.focus();
+  // Keyboard focus on a Commons disclosure is visibly outlined.
+  expect(
+    await focusSummary.evaluate((node) => getComputedStyle(node).outlineStyle),
+  ).toBe('solid');
   await page.keyboard.press('Enter');
   await focusSection.getByRole('textbox', { name: 'Fokus for uken' }).focus();
   await page.keyboard.insertText('Rekursjon og løkker');
@@ -238,6 +243,11 @@ test('Guild Commons opens only on request and works by keyboard in RPG and Class
   ).toBeVisible();
 
   for (const width of [320, 640, 1280]) await fitsWidth(page, width);
+  // Commons keeps the reading width of the member list above it.
+  const memberList = panel.getByRole('list', { name: 'Medlemmer' });
+  expect((await commons.boundingBox())!.width).toBe(
+    (await memberList.boundingBox())!.width,
+  );
   await axe(page, '.rpg-guild');
 
   // Handover asks once more, then the Guild is re-read for the new roles.

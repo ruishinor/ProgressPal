@@ -1,20 +1,38 @@
+/* Same reading width as the Guild goal and member list above it. */
+.guild-commons,
+.guild-commons__entry {
+  max-inline-size: 42rem;
+}
 .guild-commons {
   min-width: 0;
   display: grid;
-  gap: 1rem;
-  margin-block-start: 1rem;
-  border-block-start: 1px solid currentColor;
-  padding-block-start: 1rem;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+  padding-block-start: var(--space-4);
 }
 .guild-commons__entry {
-  margin-block-start: 1rem;
+  margin-block-start: var(--space-4);
 }
+.guild-commons :is(h3, h4, p) {
+  margin: 0;
+}
+.guild-commons section,
 .guild-commons__heading,
 .guild-commons__notes,
 .guild-commons__note {
   display: grid;
-  gap: 0.65rem;
+  gap: var(--space-2);
   min-width: 0;
+}
+.guild-commons__focus {
+  border-inline-start: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  padding: var(--space-3);
+}
+.guild-commons__focus-text {
+  font-weight: 700;
 }
 .guild-commons__notes {
   list-style: none;
@@ -22,12 +40,9 @@
   margin: 0;
 }
 .guild-commons__note {
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
-  padding: 0.8rem;
-}
-.guild-commons__note p {
-  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
 }
 .guild-commons__ethos {
   font-style: italic;
@@ -37,7 +52,21 @@
   overflow-wrap: anywhere;
 }
 .guild-commons__hint {
-  font-size: 0.92em;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.guild-commons .form-details > summary {
+  align-items: center;
+  display: flex;
+  min-block-size: 44px;
+}
+.guild-commons .form-details[open] > summary {
+  margin-block-end: var(--space-3);
+}
+.guild-commons summary:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 .guild-commons .action-row {
   flex-wrap: wrap;

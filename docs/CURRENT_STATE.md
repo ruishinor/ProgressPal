@@ -1,19 +1,33 @@
 # ProgressPal current state
 
-**Guild Commons S1 activation — PR candidate, 2026-11-16.** Removes the
+**Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
+#108 (activation) merged at 11:14 UTC and its master check passed. The S2
+weekly-focus upgrade (`guild-focus-v1.sql`) is installed on `progresspal-g0`
+(owner-confirmed; no post-install inventory is recorded in this repository).
+Observed live, from owner screenshots of the production administrator view:
+Commons opens, and the weekly focus can be set, saved and cleared. Not
+observed live: the ordinary member's view and the failure paths (refused
+save, membership change, provider unavailable); those are covered only by
+the simulated-provider browser journey and component tests. Follow-up UX
+refinement on `claude/guild-commons-ux`: one reading width for the Guild card,
+the shared `form-details` disclosure, an accented focus block, a status line
+that takes no space when empty, and fewer empty-state lines. No API, SQL or
+authorization change.
+
+**Guild Commons S1 activation — merged as PR #108, 2026-11-16.** Removes the
 `VITE_PROGRESSPAL_GUILD_COMMONS` build flag so Guild Commons ships in the
 default, certified build, and runs its browser journey in the default
 Playwright project. Commons text fields cap at the server's code-point limits.
-D6 cleanup job: first run `succeeded | DELETE 0` (2026-11-16 03:45 UTC). The
-S2 focus SQL is not installed, so the focus section stays hidden. Production
-exposure follows only an explicit owner go-ahead for the merge.
+D6 cleanup job: first run `succeeded | DELETE 0` (2026-11-16 03:45 UTC). At
+merge time the S2 focus SQL was not installed; it has since been installed
+(entry above).
 
 **Guild Commons S2 weekly focus — source, 2026-11-16.** One optional
 administrator-set line for the current Oslo week inside Guild Commons (same
 off-by-default flag, no new navigation, no XP, votes or tracking).
 `infra/nhost/social/guild-focus-v1.sql` is a guarded, additive upgrade of the
-installed `guild_commons_v1`; it is **not installed**, and Hasura metadata is
-unchanged. The response adds `focus` beside the unchanged `group`, so S1 and
+installed `guild_commons_v1`; it was not installed when this source merged
+(since installed: entry above), and Hasura metadata is unchanged. The response adds `focus` beside the unchanged `group`, so S1 and
 S2 clients each work with either provider version. Live install follows S1
 frontend activation.
 
