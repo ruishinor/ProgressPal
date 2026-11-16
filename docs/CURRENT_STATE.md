@@ -1,5 +1,13 @@
 # ProgressPal current state
 
+**Guild Commons S1 activation — PR candidate, 2026-11-16.** Removes the
+`VITE_PROGRESSPAL_GUILD_COMMONS` build flag so Guild Commons ships in the
+default, certified build, and runs its browser journey in the default
+Playwright project. Commons text fields cap at the server's code-point limits.
+D6 cleanup job: first run `succeeded | DELETE 0` (2026-11-16 03:45 UTC). The
+S2 focus SQL is not installed, so the focus section stays hidden. Production
+exposure follows only an explicit owner go-ahead for the merge.
+
 **Guild Commons S2 weekly focus — source, 2026-11-16.** One optional
 administrator-set line for the current Oslo week inside Guild Commons (same
 off-by-default flag, no new navigation, no XP, votes or tracking).

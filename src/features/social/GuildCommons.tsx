@@ -68,6 +68,18 @@ function text(data: FormData, name: string) {
     .trim();
 }
 
+/**
+ * The server limits count code points (PostgreSQL char_length); a native
+ * maxlength counts UTF-16 units and would halve the allowance for emoji.
+ */
+function capCodePoints(max: number) {
+  return (event: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const field = event.currentTarget;
+    const points = [...field.value];
+    if (points.length > max) field.value = points.slice(0, max).join('');
+  };
+}
+
 function isNoteKind(value: string): value is GuildNoteKind {
   return Object.hasOwn(noteLabels, value);
 }
@@ -245,7 +257,7 @@ export function GuildCommons({
                       Fokus for uken
                       <TextInput
                         defaultValue={focus.text}
-                        maxLength={120}
+                        onInput={capCodePoints(120)}
                         name="focus"
                       />
                     </label>
@@ -290,7 +302,7 @@ export function GuildCommons({
                     Guildens motto
                     <TextInput
                       defaultValue={group.ethos}
-                      maxLength={120}
+                      onInput={capCodePoints(120)}
                       name="ethos"
                     />
                   </label>
@@ -298,7 +310,7 @@ export function GuildCommons({
                     Om Guilden
                     <TextArea
                       defaultValue={group.about}
-                      maxLength={600}
+                      onInput={capCodePoints(600)}
                       name="about"
                       rows={3}
                     />
@@ -379,7 +391,7 @@ export function GuildCommons({
                           Oppslagstekst
                           <TextArea
                             defaultValue={entry.body}
-                            maxLength={280}
+                            onInput={capCodePoints(280)}
                             minLength={1}
                             name="body"
                             required
@@ -406,7 +418,7 @@ export function GuildCommons({
                   <label>
                     Beskjed
                     <TextArea
-                      maxLength={280}
+                      onInput={capCodePoints(280)}
                       minLength={1}
                       name="body"
                       required

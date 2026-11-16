@@ -7,8 +7,7 @@ import {
   installSimulatedProvider,
 } from './support/simulatedProvider';
 
-// Runs only in a build with VITE_PROGRESSPAL_GUILD_COMMONS=true (its own
-// Playwright project). The provider is SIMULATED: this proves the client
+// Part of the default chromium project. The provider is SIMULATED: this proves the client
 // against the contract in infra/nhost/social, not the installed provider.
 const membership = 'ab4d2826-20ad-4ee9-80ef-6bf725e82999';
 const peer = 'bb4d2826-20ad-4ee9-80ef-6bf725e82999';
@@ -199,12 +198,11 @@ test('Guild Commons opens only on request and works by keyboard in RPG and Class
   await notes.getByLabel('Type oppslag').selectOption('help');
   const body = notes.getByRole('textbox', { name: 'Beskjed' });
   await body.focus();
-  // Native maxlength counts UTF-16 units: 200 emoji are capped at 140, which
-  // stays within the server's 280 code points.
-  await page.keyboard.insertText('🚀'.repeat(200));
+  // The cap counts code points like the server: 300 emoji become exactly 280.
+  await page.keyboard.insertText('🚀'.repeat(300));
   const typed = await body.inputValue();
-  expect(typed.length).toBe(280);
-  expect([...typed].length).toBe(140);
+  expect([...typed].length).toBe(280);
+  expect(typed).toBe('🚀'.repeat(280));
   await notes.getByRole('button', { name: 'Del oppslag' }).focus();
   await page.keyboard.press('Enter');
   await expect(
