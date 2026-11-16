@@ -1,6 +1,28 @@
 # Guild provider contract
 
-## Guild Commons v1 — proposed additive installation
+## Guild Commons v1 — additive installation
+
+**Live status (`progresspal-g0`, owner-run, 2026-11-15/16):** installed and
+verified. Pre-install inventory equal to the repository (70 rows on
+PostgreSQL 18.6, owner and SQL Editor role `nhost_hasura`); after
+`guild-commons-v1.sql` the inventory equals
+`guild-commons-inventory-expected.tsv` (105 rows, `guild_commons_v1` body
+`d51b6de2…`); Hasura metadata consistent with `user` permission only;
+`guild-commons-live-check.sql` PASS with its intentional rollback and no
+synthetic account left; GraphQL as `user` returned `membership-changed`, as
+`anonymous` no mutation. Cleanup job registered as job 2,
+`progresspal-guild-notes-purge`, `45 3 * * *` UTC, `nhost_hasura`; its first
+run (expected `succeeded | DELETE 0`) is not yet confirmed. The frontend flag
+stays off until a real-account read and the activation PR.
+
+Tools, all for the Nhost SQL Editor with "Track this" OFF:
+`guild-commons-inventory.sql` (read-only catalogue fingerprint; compare with
+`guild-commons-inventory-expected.tsv`, owner and version rows excepted),
+`guild-commons-hasura-metadata.sql` (read-only), and
+`guild-commons-live-check.sql` (always ends in an exception, so it commits
+nothing; read `PASS:` or `FAIL:` in the message). The editor runs through
+Hasura `run_sql` as `nhost_hasura`, which cannot read superuser-only settings
+such as `cron.database_name`.
 
 The new `guild-commons-v1.sql` and `guild-commons-metadata.json` are
 **not applied by this repository change**. Before an authorized migration,

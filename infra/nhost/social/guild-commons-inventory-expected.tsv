@@ -1,0 +1,105 @@
+column	groups.about_text	text notnull=true identity=- default=''::text
+column	groups.ethos	text notnull=true identity=- default=''::text
+column	groups.id	uuid notnull=true identity=- default=gen_random_uuid()
+column	groups.invite_digest	bytea notnull=false identity=- default=-
+column	groups.name	text notnull=true identity=- default=-
+column	guild_notes.author_id	uuid notnull=true identity=- default=-
+column	guild_notes.body	text notnull=true identity=- default=-
+column	guild_notes.created_at	timestamp with time zone notnull=true identity=- default=clock_timestamp()
+column	guild_notes.expires_at	timestamp with time zone notnull=true identity=- default=(clock_timestamp() + '7 days'::interval)
+column	guild_notes.group_id	uuid notnull=true identity=- default=-
+column	guild_notes.id	uuid notnull=true identity=- default=gen_random_uuid()
+column	guild_notes.kind	text notnull=true identity=- default=-
+column	guild_notes.updated_at	timestamp with time zone notnull=true identity=- default=clock_timestamp()
+column	learning_days.group_id	uuid notnull=true identity=- default=-
+column	learning_days.study_date	date notnull=true identity=- default=-
+column	learning_days.user_id	uuid notnull=true identity=- default=-
+column	members.group_id	uuid notnull=true identity=- default=-
+column	members.last_guild_note_at	timestamp with time zone notnull=false identity=- default=-
+column	members.member_order	bigint notnull=true identity=d default=-
+column	members.membership_id	uuid notnull=true identity=- default=gen_random_uuid()
+column	members.nickname	text notnull=true identity=- default=-
+column	members.slot	smallint notnull=true identity=- default=-
+column	members.user_id	uuid notnull=true identity=- default=-
+column	response.result	jsonb notnull=true identity=- default=-
+constraint	groups.groups_about_text_check	CHECK ((char_length(about_text) <= 600))
+constraint	groups.groups_about_text_not_null	NOT NULL about_text
+constraint	groups.groups_ethos_check	CHECK ((char_length(ethos) <= 120))
+constraint	groups.groups_ethos_not_null	NOT NULL ethos
+constraint	groups.groups_id_not_null	NOT NULL id
+constraint	groups.groups_invite_digest_key	UNIQUE (invite_digest)
+constraint	groups.groups_name_check	CHECK (((char_length(name) >= 1) AND (char_length(name) <= 40)))
+constraint	groups.groups_name_not_null	NOT NULL name
+constraint	groups.groups_pkey	PRIMARY KEY (id)
+constraint	guild_notes.guild_notes_author_id_not_null	NOT NULL author_id
+constraint	guild_notes.guild_notes_body_check	CHECK (((char_length(body) >= 1) AND (char_length(body) <= 280)))
+constraint	guild_notes.guild_notes_body_not_null	NOT NULL body
+constraint	guild_notes.guild_notes_created_at_not_null	NOT NULL created_at
+constraint	guild_notes.guild_notes_expires_at_not_null	NOT NULL expires_at
+constraint	guild_notes.guild_notes_group_id_author_id_fkey	FOREIGN KEY (group_id, author_id) REFERENCES progresspal_social.members(group_id, user_id) ON DELETE CASCADE
+constraint	guild_notes.guild_notes_group_id_fkey	FOREIGN KEY (group_id) REFERENCES progresspal_social.groups(id) ON DELETE CASCADE
+constraint	guild_notes.guild_notes_group_id_not_null	NOT NULL group_id
+constraint	guild_notes.guild_notes_id_not_null	NOT NULL id
+constraint	guild_notes.guild_notes_kind_check	CHECK ((kind = ANY (ARRAY['help'::text, 'offer'::text, 'notice'::text, 'win'::text])))
+constraint	guild_notes.guild_notes_kind_not_null	NOT NULL kind
+constraint	guild_notes.guild_notes_pkey	PRIMARY KEY (id)
+constraint	guild_notes.guild_notes_updated_at_not_null	NOT NULL updated_at
+constraint	learning_days.learning_days_group_id_not_null	NOT NULL group_id
+constraint	learning_days.learning_days_group_id_user_id_fkey	FOREIGN KEY (group_id, user_id) REFERENCES progresspal_social.members(group_id, user_id) ON DELETE CASCADE
+constraint	learning_days.learning_days_pkey	PRIMARY KEY (group_id, user_id, study_date)
+constraint	learning_days.learning_days_study_date_not_null	NOT NULL study_date
+constraint	learning_days.learning_days_user_id_not_null	NOT NULL user_id
+constraint	members.members_group_id_fkey	FOREIGN KEY (group_id) REFERENCES progresspal_social.groups(id)
+constraint	members.members_group_id_not_null	NOT NULL group_id
+constraint	members.members_group_id_slot_key	UNIQUE (group_id, slot)
+constraint	members.members_group_id_user_id_key	UNIQUE (group_id, user_id)
+constraint	members.members_member_order_not_null	NOT NULL member_order
+constraint	members.members_membership_id_key	UNIQUE (membership_id)
+constraint	members.members_membership_id_not_null	NOT NULL membership_id
+constraint	members.members_nickname_check	CHECK (((char_length(nickname) >= 1) AND (char_length(nickname) <= 24)))
+constraint	members.members_nickname_not_null	NOT NULL nickname
+constraint	members.members_pkey	PRIMARY KEY (user_id)
+constraint	members.members_slot_check	CHECK (((slot >= 1) AND (slot <= 8)))
+constraint	members.members_slot_not_null	NOT NULL slot
+constraint	members.members_user_id_fkey	FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+constraint	members.members_user_id_not_null	NOT NULL user_id
+constraint	response.response_check	CHECK (false)
+constraint	response.response_result_not_null	NOT NULL result
+function	after_member_removal()	body_sha256=168c56f6a27edb198cb4722adff7587cd07c3756213d1f919f554975043def0f security=definer volatile=v config=search_path=pg_catalog returns=trigger
+function	guild_commons_v1(hasura_session json, operation text, input jsonb)	body_sha256=d51b6de293f511ef1423bb47e2ef5524bb001d69120c75006b3c15b4fe35fbf6 security=invoker volatile=v config=search_path=pg_catalog returns=SETOF progresspal_social.response
+function	lock_account_removal()	body_sha256=e3e26ccf38f3f5014ae4f9292844aeb75f8df68d3edbcad15b50ca5145e9f285 security=invoker volatile=v config=search_path=pg_catalog returns=trigger
+function	social_week(hasura_session json, operation text, input jsonb)	body_sha256=351ce08e5c2b5b93d9b2ead836425d4ada40094c8cda6ee1113e791df7c2f7d8 security=invoker volatile=v config=search_path=pg_catalog returns=SETOF progresspal_social.response
+function-acl	after_member_removal()	owner-only
+function-acl	guild_commons_v1(hasura_session json, operation text, input jsonb)	owner-only
+function-acl	lock_account_removal()	owner-only
+function-acl	social_week(hasura_session json, operation text, input jsonb)	owner-only
+index	groups_invite_digest_key	CREATE UNIQUE INDEX groups_invite_digest_key ON progresspal_social.groups USING btree (invite_digest)
+index	groups_pkey	CREATE UNIQUE INDEX groups_pkey ON progresspal_social.groups USING btree (id)
+index	guild_notes_active	CREATE INDEX guild_notes_active ON progresspal_social.guild_notes USING btree (group_id, expires_at, created_at)
+index	guild_notes_pkey	CREATE UNIQUE INDEX guild_notes_pkey ON progresspal_social.guild_notes USING btree (id)
+index	learning_days_pkey	CREATE UNIQUE INDEX learning_days_pkey ON progresspal_social.learning_days USING btree (group_id, user_id, study_date)
+index	members_group_id_slot_key	CREATE UNIQUE INDEX members_group_id_slot_key ON progresspal_social.members USING btree (group_id, slot)
+index	members_group_id_user_id_key	CREATE UNIQUE INDEX members_group_id_user_id_key ON progresspal_social.members USING btree (group_id, user_id)
+index	members_membership_id_key	CREATE UNIQUE INDEX members_membership_id_key ON progresspal_social.members USING btree (membership_id)
+index	members_pkey	CREATE UNIQUE INDEX members_pkey ON progresspal_social.members USING btree (user_id)
+index	social_members_order	CREATE INDEX social_members_order ON progresspal_social.members USING btree (group_id, member_order)
+owner	function after_member_removal	nhost_hasura
+owner	function guild_commons_v1	nhost_hasura
+owner	function lock_account_removal	nhost_hasura
+owner	function social_week	nhost_hasura
+owner	schema progresspal_social	nhost_hasura
+owner	table groups	nhost_hasura
+owner	table guild_notes	nhost_hasura
+owner	table learning_days	nhost_hasura
+owner	table members	nhost_hasura
+owner	table response	nhost_hasura
+schema-acl	progresspal_social	owner-only
+session	current_user	nhost_hasura
+session	server_version	18.6
+table-acl	groups	owner-only
+table-acl	guild_notes	owner-only
+table-acl	learning_days	owner-only
+table-acl	members	owner-only
+table-acl	response	owner-only
+trigger	auth.users.progresspal_social_account_removal	BEFORE DELETE ON auth.users FOR EACH STATEMENT EXECUTE FUNCTION progresspal_social.lock_account_removal()
+trigger	progresspal_social.members.progresspal_social_member_removal	AFTER DELETE ON progresspal_social.members FOR EACH ROW EXECUTE FUNCTION progresspal_social.after_member_removal()

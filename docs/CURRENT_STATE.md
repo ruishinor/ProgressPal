@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**Guild Commons S1 — installed live, 2026-11-16 (owner-run).** On
+`progresspal-g0` (PostgreSQL 18.6): the pre-install inventory matched the
+repository, `guild-commons-v1.sql` and its Hasura metadata are installed and
+verified (105-row inventory, consistent metadata, `user` permission only, live
+contract check PASS with rollback, GraphQL `user`/`anonymous` as expected),
+and the D6 cleanup job is registered (job 2, 03:45 UTC). Not yet: the job's
+first run, a real-account read, and the frontend activation PR (flag still
+off). Tools and record: `infra/nhost/social/README.md`.
+
 **Guild Commons S1-A activation readiness — PR candidate, 2026-11-15.**
 Source only; nothing is installed and the flag stays off. Adds the D6 cleanup
 job (`infra/nhost/social/guild-commons-cleanup.sql`: one repeat-safe daily
