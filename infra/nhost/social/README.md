@@ -12,8 +12,9 @@ PostgreSQL 18.6, owner and SQL Editor role `nhost_hasura`); after
 synthetic account left; GraphQL as `user` returned `membership-changed`, as
 `anonymous` no mutation. Cleanup job registered as job 2,
 `progresspal-guild-notes-purge`, `45 3 * * *` UTC, `nhost_hasura`; its first
-run (expected `succeeded | DELETE 0`) is not yet confirmed. The frontend flag
-stays off until a real-account read and the activation PR.
+run on 2026-11-16 03:45 UTC reported `succeeded | DELETE 0` (owner-run
+`cron.job_run_details` read). The build flag is removed by the activation PR;
+Commons ships in the default build once it is merged.
 
 Tools, all for the Nhost SQL Editor with "Track this" OFF:
 `guild-commons-inventory.sql` (read-only catalogue fingerprint; compare with
@@ -49,10 +50,11 @@ For a live rollout, verify A/B in one Guild, C in another, anonymous, stale
 membership, simultaneous final-slot posts, edited/removed notes, Unicode limits,
 Auth delete cascade, admin handover and outgoing-admin invite invalidation.
 Check the actual Hasura JWT role and that the private tables remain untracked.
-The client requests Commons only when a member explicitly opens it, and the
-UI is disabled by default. Set `VITE_PROGRESSPAL_GUILD_COMMONS=true` only
-after the separately authorized Nhost contract and metadata are installed and
-verified. If the function is absent, the original Guild remains usable.
+The client requests Commons only when a member explicitly opens it. There is
+no build flag any more: to withdraw Commons quickly, remove the Hasura function
+permission (the entry then reports that the room is unavailable, and the
+original Guild remains usable); removing the UI needs a reverted, certified
+release.
 Expired notes are hidden after seven days and purged on the next authenticated
 Commons operation; a dormant Guild's expired rows can remain in storage until
 a separately approved housekeeping operation or Guild deletion. Do not call this
