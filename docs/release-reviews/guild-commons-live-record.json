@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "module": "guild-commons-live-record",
+  "reviewer": "Claude Code implementer self-review (the same agent session that wrote the change; not independent review)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "e687b09a03731ce6f3ee4d9dae3012889faa9ef3",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Documentation and provider tooling only, on master 0f0fa64: records the owner-run live install of Guild Commons S1 and the D6 cleanup job on progresspal-g0, and adds the read-only inventory query, its expected PostgreSQL 18 result, the read-only Hasura metadata query and the always-rolled-back live contract check. No application code, test or workflow change.",
+    "evidence": [
+      "Owner-reported live results 2026-11-15/16: pre-install inventory equal to the repository (70 rows, PostgreSQL 18.6, nhost_hasura), post-install inventory 105/105, guild_commons_v1 hash match, Hasura metadata consistent with user permission only, live contract check PASS with rollback and 0 synthetic accounts left, GraphQL user membership-changed and anonymous no mutation, cron job 2 registered (45 3 * * *, nhost_hasura, active) beside the unchanged feedback job.",
+      "The added SQL files are the exact ones the owner ran; guild-commons-live-check.sql was tested locally to report PASS, persist zero rows, and fail differently without the Commons function.",
+      "guild-commons-inventory-expected.tsv was derived from applying the repository SQL on PostgreSQL 16 plus PostgreSQL 18's named NOT NULL constraints; the same rule reproduced the owner's 70-row pre-install output exactly.",
+      "Vitest tests/infra and tests/architecture (including the infra credential guard): 239 of 239. Prettier on all changed files."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "GLR-1",
+      "severity": "P3",
+      "description": "The live status is owner-reported from SQL Console and GraphiQL output, not observed by the agent.",
+      "resolution": "Recorded as owner-run in the README and CURRENT_STATE; the agent had no provider access.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to one hosted Final candidate for a documentation and provider-tooling change."
+  }
+}

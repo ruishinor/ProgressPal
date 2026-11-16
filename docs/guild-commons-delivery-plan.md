@@ -101,6 +101,12 @@ authorization. Run them in the Nhost SQL Console of `progresspal-g0`.
    tables. Unscheduling the cleanup job is independent. Destructive rollback
    needs a separate retention decision.
 
+**Status 2026-11-16:** steps 1–4 done on `progresspal-g0` (see the provider
+README's live status). Open before step 5: the cleanup job's first run
+(`cron.job_run_details`, job 2, after 03:45 UTC) and one Commons read with a
+real signed-in test account returning `ok` or `membership-changed`. S2 may be
+developed on its own branch meanwhile; it ships after step 5.
+
 Already verified without the live provider (S1-A source PR): the PGlite
 contract probe; `probe-guild-commons-postgres.mjs` on disposable PostgreSQL
 16.15 with pg_cron 1.6 (lock serialization, final-slot race, two-device post,
