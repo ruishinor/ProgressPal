@@ -58,14 +58,22 @@ try {
         );
       };
       await noOverflow();
+      const settings = page.getByRole('button', { name: 'Visningsinnstillinger' });
+      await expect(settings).toBeVisible();
+      await expect(settings).toHaveAttribute('aria-expanded', 'false');
+      await settings.click();
+      await expect(settings).toHaveAttribute('aria-expanded', 'true');
       const theme = page.getByLabel('Fargetema');
       await theme.selectOption('dark');
       await expect.poll(() =>
         page.evaluate(() => document.documentElement.dataset.theme),
       ).toBe('dark');
       await page.reload();
+      await settings.click();
       await expect(page.getByLabel('Fargetema')).toHaveValue('dark');
       await page.getByRole('link', { name: 'RPG', exact: true }).click();
+      await expect(settings).toHaveAttribute('aria-expanded', 'false');
+      await settings.click();
       await expect(page).toHaveURL(origin + '/rpg/pathways');
       await expect(page.getByLabel('RPG-stil')).toBeVisible();
       await page.getByLabel('RPG-stil').selectOption('glass');
@@ -73,7 +81,12 @@ try {
         page.evaluate(() => document.body.dataset.rpgStyle),
       ).toBe('glass');
       await noOverflow();
-
+      await page.keyboard.press('Escape');
+      await expect(settings).toHaveAttribute('aria-expanded', 'false');
+      await settings.click();
+      await page.getByRole('button', { name: 'Lukk visningsinnstillinger' }).click();
+      await expect(settings).toHaveAttribute('aria-expanded', 'false');
+      await settings.click();
       await page.getByRole('link', { name: 'Klassisk' }).click();
       await expect(page).toHaveURL(origin + '/pathways');
       await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
@@ -100,6 +113,7 @@ try {
           'Classic reading measure must not fill the desktop canvas',
         );
       }
+      await settings.click();
       const choices = await page.locator('.pilot-segment a').evaluateAll((elements) =>
         elements.map((element) => {
           const box = element.getBoundingClientRect();
@@ -113,7 +127,13 @@ try {
       );
       await page.getByRole('link', { name: 'RPG', exact: true }).click();
       await expect(page).toHaveURL(/\/rpg\/pathways\/git-github\/[^/]+$/);
+      await expect(settings).toHaveAttribute('aria-expanded', 'false');
       await noOverflow();
+      const header = page.locator('.pilot-header');
+      const gearBounds = await settings.boundingBox();
+      const headerBounds = await header.boundingBox();
+      assert(gearBounds && headerBounds, 'Gear and header must have a visible layout');
+      assert(gearBounds.x >= headerBounds.x - 1 && gearBounds.x + gearBounds.width <= headerBounds.x + headerBounds.width + 1, 'Gear stays inside header');
       const headerLayout = await page.locator(
         '.pilot-content .lesson--rpg > .lesson-header.rpg-page-header',
       ).evaluate((header) => {
