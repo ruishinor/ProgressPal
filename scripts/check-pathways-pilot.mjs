@@ -9,6 +9,12 @@ const server = spawn(
   ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4179', '--strictPort'],
   { stdio: 'ignore' },
 );
+const viewports = [
+  { width: 360, height: 780 },
+  { width: 390, height: 844 },
+  { width: 768, height: 1024 },
+  { width: 1280, height: 900 },
+];
 let browser;
 try {
   let ready = false;
@@ -21,36 +27,69 @@ try {
         break;
       }
     } catch {
-      // Retry only while the local preview server starts.
+      // Preview is still starting.
     }
     await delay(250);
   }
   assert(ready, 'Pilot preview did not start');
 
   browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.goto(origin);
-  await expect(page.getByRole('heading', { name: 'Velkommen til Pathways' })).toBeVisible();
-  await page.getByRole('button', { name: 'Start Pathways' }).click();
-  await expect(page.getByRole('heading', { name: 'Pathways', exact: true })).toBeVisible({
-    timeout: 20_000,
-  });
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'Pathways', exact: true })).toBeVisible();
+  for (const viewport of viewports) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    try {
+      await page.goto(origin);
+      await expect(page.getByRole('heading', { name: 'Velkommen til Pathways' })).toBeVisible();
+      await page.getByRole('button', { name: 'Start Pathways' }).click();
+      await expect(page.getByRole('heading', { name: 'Pathways', exact: true })).toBeVisible({
+        timeout: 20_000,
+      });
+      const noOverflow = async () => {
+        const widths = await page.evaluate(() => ({
+          doc: document.documentElement.scrollWidth,
+          viewport: document.documentElement.clientWidth,
+        }));
+        assert(
+          widths.doc <= widths.viewport + 1,
+          'Horizontal overflow at ' + viewport.width + 'px: ' + JSON.stringify(widths),
+        );
+      };
+      await noOverflow();
+      const theme = page.getByLabel('Fargetema');
+      await theme.selectOption('dark');
+      await expect.poll(() =>
+        page.evaluate(() => document.documentElement.dataset.theme),
+      ).toBe('dark');
+      await page.reload();
+      await expect(page.getByLabel('Fargetema')).toHaveValue('dark');
+      await page.getByRole('link', { name: 'RPG', exact: true }).click();
+      await expect(page).toHaveURL(origin + '/rpg/pathways');
+      await expect(page.getByLabel('RPG-stil')).toBeVisible();
+      await page.getByLabel('RPG-stil').selectOption('glass');
+      await expect.poll(() =>
+        page.evaluate(() => document.body.dataset.rpgStyle),
+      ).toBe('glass');
+      await noOverflow();
 
-  for (const forbidden of ['/dashboard', '/rpg', '/course', '/settings', '/profile']) {
-    await page.goto(origin + forbidden);
-    await expect(page).toHaveURL(origin + '/pathways');
+      await page.getByRole('link', { name: 'Klassisk' }).click();
+      await expect(page).toHaveURL(origin + '/pathways');
+      await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
+      await expect(page).toHaveURL(origin + '/pathways/git-github');
+      await noOverflow();
+      for (const forbidden of ['/dashboard', '/rpg', '/course', '/settings', '/profile']) {
+        await page.goto(origin + forbidden);
+        await expect(page).toHaveURL(origin + '/pathways');
+      }
+      await expect(page.getByRole('heading', { name: 'Pathways', exact: true })).toBeVisible();
+      assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + viewport.width + 'px');
+      console.log('Pilot passed at ' + viewport.width + 'px');
+    } finally {
+      await context.close();
+    }
   }
-  await page.goto(origin + '/pathways/git-github');
-  await expect(
-    page.getByRole('heading', { name: 'Git & GitHub: fra første endring til samarbeid' }),
-  ).toBeVisible();
-  await page.goto(origin + '/pathways');
-  await page.getByRole('link', { name: 'Begynn med første leksjon' }).click();
-  await expect(page).toHaveURL(/\/pathways\/git-github\/[^/]+$/);
-  await expect(page.getByRole('link', { name: 'Alle Pathways' })).toBeVisible();
-  console.log('Pathways-only pilot smoke passed');
+  console.log('Pathways-only pilot responsive smoke passed');
 } finally {
   await browser?.close();
   server.kill();

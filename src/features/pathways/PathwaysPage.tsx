@@ -312,9 +312,9 @@ export function PathwaysPage({
         <>
           <h1>Pathways</h1>
           <p>
-            I Pathways finner du læringsveier. Foreløpig kan du lære Git og
-            GitHub, samtidig som du beholder framdriften i studieprogrammet
-            ditt.
+            {hideHomeLink
+              ? 'Dette er en avgrenset test av Git og GitHub. Framdriften lagres lokalt i nettleseren.'
+              : 'I Pathways finner du læringsveier. Foreløpig kan du lære Git og GitHub, samtidig som du beholder framdriften i studieprogrammet ditt.'}
           </p>
           <div className="pathways-page__offer">
             <h2>

@@ -27,3 +27,12 @@ This is a separate Vercel project, never a feature switch on the existing Progre
 - Vite copies shared public/ assets; audit them if those files contain confidential material.
 - The shared database framework still registers the programme catalogue for migration compatibility, but the pilot starts with Git & GitHub only.
 - Not release-certified until the pilot build and browser flow tests pass.
+
+## 23 November 2026 review
+
+- System / Light / Dark preferences were restored using the existing persisted learner profile.
+- Classic and RPG Pathways views, plus four existing RPG visual styles, are now available without exposing other application routes.
+- A pilot-specific programme composition stops importing the CS50 and Programvareutvikling catalogue modules. The build should emit Git & GitHub content only.
+- The CI browser smoke checks 360, 390, 768 and 1280 px widths, theme persistence, RPG style, navigation restrictions, console errors and horizontal overflow.
+- Vercel typecheck/build was successful. Independent live browser screenshots and interactive acceptance are not yet available; test infrastructure crashed before screenshots could be captured.
+- This is not the full accessibility audit. Keyboard navigation, screen readers, contrast and exercise inputs still require successful browser verification.
