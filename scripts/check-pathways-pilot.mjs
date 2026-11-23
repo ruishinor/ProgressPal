@@ -36,7 +36,10 @@ try {
 
   browser = await chromium.launch();
   for (const viewport of viewports) {
-    const context = await browser.newContext({ viewport });
+    const context = await browser.newContext({
+      viewport,
+      permissions: ['clipboard-read', 'clipboard-write'],
+    });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -93,6 +96,14 @@ try {
       await expect(page).toHaveURL(origin + '/pathways/git-github');
       await noOverflow();
       await page.locator('.pathways-track__lesson-list a').first().click();
+      const hint = page.getByRole('button', { name: /Vis hint 1 av 1/ });
+      await expect(hint).toBeVisible();
+      await hint.click();
+      await expect(page.getByText(/Hint 1/i).first()).toBeVisible();
+      await page.getByRole('button', { name: 'Sjekk svaret', exact: true }).click();
+      await expect(page.locator('.lesson-exercise [role="alert"]').first()).toContainText(
+        'Fyll ut hele svaret',
+      );
       await expect(page.getByRole('button', { name: 'Marker som fullført lokalt' })).toBeVisible();
       await noOverflow();
       await page.getByRole('button', { name: 'Marker som fullført lokalt' }).click();
@@ -180,6 +191,43 @@ try {
         otherContent.status === 404 || !otherContent.contentType.includes('json'),
         'Non-Pathways course catalogue must not be served by pilot deployment',
       );
+      // Exercise an actual command-copy and local checklist submission.
+      await page.goto(origin + '/rpg/pathways/git-github/git-m01-o02');
+      await expect(page.locator('.lesson > .lesson-header')).toBeVisible();
+      const copyButton = page.getByRole('button', { name: 'Kopier', exact: true }).first();
+      await expect(copyButton).toBeVisible();
+      await copyButton.click();
+      await expect(page.getByRole('button', { name: 'Kopiert', exact: true }).first()).toBeVisible();
+      assert(
+        (await page.evaluate(() => navigator.clipboard.readText())).includes('Get-Location'),
+        'Copy button should write the actual command to the clipboard',
+      );
+      await page.getByRole('checkbox').first().check();
+      await page.getByRole('checkbox').nth(1).check();
+      await page.getByRole('button', { name: 'Lagre svaret mitt', exact: true }).click();
+      await expect(page.getByText(/Svaret ditt er lagret/).first()).toBeVisible();
+      await page.reload();
+      await expect(page.getByText(/Svaret ditt er lagret/).first()).toBeVisible();
+
+      if (viewport.width === 1280) {
+        // Covers every current pilot lesson route and discovers dead links.
+        await page.goto(origin + '/pathways/git-github');
+        const lessonPaths = await page.locator(
+          '.pathways-track__lesson-list a[href*="/git-github/"]',
+        ).evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href')))]);
+        assert.equal(lessonPaths.length, 47, 'Expected the complete M01–M07 pilot curriculum');
+        for (const path of lessonPaths) {
+          assert(path !== null, 'A lesson link must have an href');
+          await page.goto(origin + path);
+          await expect(page.locator('.lesson > .lesson-header')).toBeVisible();
+          const unnamedButtons = await page.locator('.lesson button').evaluateAll(
+            (buttons) => buttons.filter(
+              (button) => !(button.getAttribute('aria-label') || button.textContent)?.trim(),
+            ).length,
+          );
+          assert.equal(unnamedButtons, 0, 'Lesson controls must have accessible names: ' + path);
+        }
+      }
       assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + viewport.width + 'px');
       console.log('Pilot passed at ' + viewport.width + 'px');
     } finally {
