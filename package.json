@@ -23,7 +23,8 @@
     "audit": "npm audit --audit-level=moderate",
     "review:payload-tree": "node scripts/review-payload-tree.mjs",
     "verify:release": "node scripts/run-release-gate.mjs",
-    "validate": "npm run verify:release"
+    "validate": "npm run verify:release",
+    "build:pathways-pilot": "vite build --config vite.pilot.config.ts && node scripts/finalize-pathways-pilot.mjs"
   },
   "dependencies": {
     "@nhost/nhost-js": "4.9.0",

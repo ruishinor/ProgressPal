@@ -1,0 +1,454 @@
+/* Pilot-only shell: mobile first; never expose the general ProgressPal navigation. */
+.pilot-shell {
+  width: min(100% - 2rem, 76rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block: 1rem 2rem;
+}
+
+.pilot-shell :is(a, button, select) {
+  touch-action: manipulation;
+}
+
+.pilot-intro {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 44rem;
+  margin: clamp(1rem, 8vh, 5rem) auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pilot-intro > button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+}
+
+.pilot-eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pilot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.pilot-header__title {
+  color: var(--color-heading);
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.pilot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.pilot-control {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pilot-control :is(legend, label) {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+
+.pilot-control select,
+.pilot-segment a {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.6rem;
+}
+
+.pilot-control select {
+  max-width: 100%;
+}
+
+.pilot-segment {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.pilot-segment a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.pilot-segment a[aria-current='page'] {
+  color: var(--color-canvas-strong);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.pilot-control-error {
+  flex-basis: 100%;
+  color: var(--color-danger);
+}
+
+.pilot-content,
+.pilot-content > *,
+.pilot-content :is(.page-section, .pathways-page, .pathways-track) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pilot-content {
+  overflow-wrap: anywhere;
+}
+
+.pilot-content :is(pre, table) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.pilot-footer {
+  margin-top: 2rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.pilot-skip {
+  position: absolute;
+  z-index: 100;
+  inset: 0 auto auto 1rem;
+  padding: 0.75rem 1rem;
+  transform: translateY(-150%);
+  background: var(--color-surface);
+}
+
+.pilot-skip:focus-visible {
+  transform: none;
+}
+
+body.rpg-route-active .pilot-header,
+body.rpg-route-active .pilot-intro {
+  background: var(--rpg-surface);
+  border-color: var(--rpg-border);
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-header__title,
+body.rpg-route-active .pilot-eyebrow,
+body.rpg-route-active .pilot-control :is(legend, label) {
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-content {
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-segment a[aria-current='page'] {
+  background: var(--rpg-accent);
+  border-color: var(--rpg-accent);
+  color: var(--rpg-on-accent);
+}
+
+@media (max-width: 42rem) {
+  .pilot-shell {
+    width: 100%;
+    padding: 0.75rem 0.75rem 2rem;
+  }
+  .pilot-header {
+    padding: 0.85rem;
+    align-items: stretch;
+  }
+  .pilot-header__identity {
+    flex-basis: 100%;
+  }
+  .pilot-controls {
+    width: 100%;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .pilot-control {
+    flex: 1 1 8rem;
+  }
+  .pilot-segment {
+    flex-wrap: nowrap;
+  }
+  .pilot-segment a {
+    flex: 1;
+  }
+  .pilot-intro {
+    margin-top: 1rem;
+  }
+  .pilot-content .page-section {
+    padding-inline: 0;
+  }
+}
+
+/*
+ * The isolated pilot does not render inside the full application's .rpg-shell.
+ * Restore its lesson colour bridge and replace the otherwise three-way
+ * horizontal flex header with a bounded, coherent lesson heading layout.
+ */
+body.rpg-route-active .pilot-content .lesson--rpg {
+  --color-canvas: var(--rpg-bg);
+  --color-canvas-strong: var(--rpg-surface);
+  --color-surface: var(--rpg-surface);
+  --color-surface-strong: var(--rpg-surface-raised);
+  --color-surface-muted: var(--rpg-surface-raised);
+  --color-border: var(--rpg-border);
+  --color-border-strong: var(--rpg-border-strong);
+  --color-text: var(--rpg-text);
+  --color-text-muted: var(--rpg-text-muted);
+  --color-text-soft: var(--rpg-text-muted);
+  --color-heading: var(--rpg-text);
+  --color-accent: var(--rpg-accent);
+  --color-accent-strong: var(--rpg-accent-strong);
+  --color-focus: var(--rpg-focus-ring);
+}
+
+.pilot-content .pathways-page:has(> .lesson--rpg) {
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+}
+
+.pilot-content .lesson--rpg > .lesson-header.rpg-page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  justify-content: start;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  background: var(--rpg-surface);
+  border: 1px solid var(--rpg-border);
+  border-radius: var(--radius-md);
+}
+
+.pilot-content .lesson--rpg > .lesson-header.rpg-page-header > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pilot-content .lesson--rpg > .lesson-header.rpg-page-header h1 {
+  color: var(--rpg-text);
+  font-size: clamp(1.65rem, 2.75vw, 2.35rem);
+  line-height: 1.2;
+  max-width: 27ch;
+  overflow-wrap: anywhere;
+}
+
+.pilot-content .lesson--rpg > .lesson-header.rpg-page-header .rpg-page-lede {
+  color: var(--rpg-text-muted);
+  max-width: 66ch;
+  line-height: 1.6;
+}
+
+@media (min-width: 60rem) {
+  .pilot-content .lesson--rpg > .lesson-header.rpg-page-header {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    column-gap: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .pilot-content
+    .lesson--rpg
+    > .lesson-header.rpg-page-header
+    .rpg-page-eyebrow {
+    grid-column: 1 / -1;
+  }
+
+  .pilot-content .lesson--rpg > .lesson-header.rpg-page-header h1 {
+    grid-column: 1;
+  }
+
+  .pilot-content .lesson--rpg > .lesson-header.rpg-page-header .rpg-page-lede {
+    grid-column: 2;
+    align-self: start;
+  }
+}
+
+/* The shared Classic lesson constrains prose but not its 76rem-wide
+   container. Center the entire pilot reading surface on wide screens. */
+@media (min-width: 48rem) {
+  .pilot-content .pathways-page:has(> .lesson:not(.lesson--rpg)) {
+    width: 100%;
+    max-width: 80ch;
+    margin-inline: auto;
+  }
+}
+
+/* Restore visual group boundaries on the patterned Classic canvas. */
+.pilot-content .lesson:not(.lesson--rpg) > .lesson-header,
+.pilot-content .lesson:not(.lesson--rpg) > .lesson-unit {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+/* Keep both mode choices visible when the label grows or the viewport
+   becomes narrower; do not clip a half-visible button. */
+@media (max-width: 42rem) {
+  .pilot-controls .pilot-segment {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .pilot-controls .pilot-segment > a {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}
+
+/* Restrained Pathways header: only the gear appears until a choice is needed. */
+.pilot-header {
+  flex-wrap: nowrap;
+  align-items: center;
+  position: relative;
+}
+.pilot-header__identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pilot-settings {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.pilot-settings__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.65rem;
+  background: var(--color-surface-strong);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.pilot-settings__trigger:hover,
+.pilot-settings__trigger[aria-expanded='true'] {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+.pilot-settings__trigger:focus-visible,
+.pilot-settings__close:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.pilot-settings__panel {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  top: calc(100% + 0.75rem);
+  width: min(22rem, calc(100vw - 2.5rem));
+  padding: 1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 0.27);
+}
+.pilot-settings__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+.pilot-settings__heading h2 {
+  font-size: 1rem;
+  margin: 0;
+  color: inherit;
+}
+.pilot-settings__close {
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.pilot-settings__panel .pilot-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  width: 100%;
+}
+.pilot-settings__panel .pilot-control {
+  width: 100%;
+  flex: none;
+}
+.pilot-settings__panel .pilot-control select {
+  width: 100%;
+}
+.pilot-settings__panel .pilot-segment {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.pilot-settings__panel .pilot-segment a {
+  flex: 1 1 6rem;
+}
+body.rpg-route-active .pilot-settings__trigger,
+body.rpg-route-active .pilot-settings__panel {
+  color: var(--rpg-text);
+  background: var(--rpg-surface);
+  border-color: var(--rpg-border);
+}
+body.rpg-route-active .pilot-settings__trigger:hover,
+body.rpg-route-active .pilot-settings__trigger[aria-expanded='true'] {
+  border-color: var(--rpg-accent);
+}
+@media (max-width: 42rem) {
+  .pilot-header {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .pilot-header__identity {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .pilot-settings__panel .pilot-controls {
+    align-items: stretch;
+  }
+  .pilot-settings__panel .pilot-control {
+    flex: none;
+  }
+}

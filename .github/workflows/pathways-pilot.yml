@@ -1,0 +1,38 @@
+name: Pathways pilot validation
+
+# The pilot lives on an open PR. Triggering on both push and pull_request
+# runs the same private-repository test twice for every commit.
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pathways-pilot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm
+        run: npm install --global npm@11.10.1
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build separate Pathways entry
+        run: npm run build:pathways-pilot
+      - name: Install Chromium
+        run: npx playwright install chromium
+      - name: Check tester onboarding and route restrictions
+        run: node scripts/check-pathways-pilot.mjs

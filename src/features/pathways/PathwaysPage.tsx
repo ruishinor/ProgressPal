@@ -59,7 +59,13 @@ function moduleStatus(
     : 'Ikke påbegynt';
 }
 
-export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
+export function PathwaysPage({
+  scope,
+  hideHomeLink = false,
+}: {
+  scope: ProgrammeScope;
+  hideHomeLink?: boolean;
+}) {
   const { pathname } = useLocation();
   const { itemId } = useParams();
   const rpg = pathname.startsWith('/rpg/');
@@ -291,9 +297,11 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
     <section className="page-section pathways-page" lang="nb">
       <nav aria-label="Pathways">
         <div className="action-row">
-          <Link to={home}>
-            Tilbake til {programmeScope?.title ?? 'studieprogrammet'}
-          </Link>
+          {!hideHomeLink && (
+            <Link to={home}>
+              Tilbake til {programmeScope?.title ?? 'studieprogrammet'}
+            </Link>
+          )}
           {!isOverview && <Link to={overview}>Alle Pathways</Link>}
           {itemId !== undefined && (
             <Link to={track}>Git &amp; GitHub — oversikt</Link>
@@ -304,9 +312,9 @@ export function PathwaysPage({ scope }: { scope: ProgrammeScope }) {
         <>
           <h1>Pathways</h1>
           <p>
-            I Pathways finner du læringsveier. Foreløpig kan du lære Git og
-            GitHub, samtidig som du beholder framdriften i studieprogrammet
-            ditt.
+            {hideHomeLink
+              ? 'Dette er en avgrenset test av Git og GitHub. Framdriften lagres lokalt i nettleseren.'
+              : 'I Pathways finner du læringsveier. Foreløpig kan du lære Git og GitHub, samtidig som du beholder framdriften i studieprogrammet ditt.'}
           </p>
           <div className="pathways-page__offer">
             <h2>
