@@ -89,6 +89,36 @@ try {
       await page.getByRole('link', { name: 'RPG', exact: true }).click();
       await expect(page).toHaveURL(/\/rpg\/pathways\/git-github\/[^/]+$/);
       await noOverflow();
+      const headerLayout = await page.locator(
+        '.pilot-content .lesson--rpg > .lesson-header.rpg-page-header',
+      ).evaluate((header) => {
+        const title = header.querySelector('h1');
+        const goal = header.querySelector('.rpg-page-lede');
+        const box = header.getBoundingClientRect();
+        return {
+          display: getComputedStyle(header).display,
+          width: box.width,
+          titleLeft: title?.getBoundingClientRect().left,
+          goalLeft: goal?.getBoundingClientRect().left,
+          goalTop: goal?.getBoundingClientRect().top,
+          titleTop: title?.getBoundingClientRect().top,
+        };
+      });
+      assert.equal(headerLayout.display, 'grid', 'RPG lesson header must use grid');
+      if (viewport.width >= 960) {
+        assert(
+          headerLayout.goalLeft > headerLayout.titleLeft,
+          'Desktop lesson goal must form a coherent second column',
+        );
+        assert(
+          Math.abs(headerLayout.goalTop - headerLayout.titleTop) < 15,
+          'Desktop lesson title and goal must align on the same row',
+        );
+        assert(
+          headerLayout.width <= 1025,
+          'Desktop lesson surface must use a bounded reading measure',
+        );
+      }
       for (const forbidden of ['/dashboard', '/rpg', '/course', '/settings', '/profile']) {
         await page.goto(origin + forbidden);
         await expect(page).toHaveURL(origin + '/pathways');
