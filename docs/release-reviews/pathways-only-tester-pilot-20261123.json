@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-only-tester-pilot-20261123",
+  "reviewer": "OpenAI GPT-6; same-session source, security, UX and test review; no independent human or external audit",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "5b91b6bd604424dc85e4f807ff528578ed522afc",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped, same-session adversarial review of PR #110's standalone Pathways-only Vite tester build against master 4e0bf3f. The review covers 14 changed files, learner data isolation, access/route restrictions, mobile and desktop learning flows, static-asset shipping, CI and release integration. Proceed with a small invited pilot subject to explicit limitations; no claim of human accessibility certification or full application deployment.",
+    "evidence": [
+      "Candidate HEAD 28fc64ce7362e68bfddba7ae8963c69dca89e795; master 4e0bf3f67a5b5bacf265423b0b25de0b66d933fd. Full 14-file diff inspected; no divergence from current master at review time.",
+      "Payload tree excluding docs/release-reviews computed with node scripts/review-payload-tree.mjs on clean candidate checkout: 5b91b6bd604424dc85e4f807ff528578ed522afc.",
+      "Separate pilot.html entry, pilot programmeComposition.ts (Git & GitHub only), Pathways route allowlist, local-only onboarding/profile and no Nhost account-sync gate are present. The full ProgressPal production route table and navigation are absent from the pilot entry.",
+      "Pilot-only build completed with npm ci, npm run typecheck and npm run build:pathways-pilot on Node 24 in isolated Vercel Linux sandbox. Finalization removes unrelated static content and keeps dist/content/git-github as the only course-content directory.",
+      "The complete browser pilot smoke passed at 320, 360, 390, 768, and 1280 CSS pixels in local Chromium against the candidate build: onboarding, theme persistence, Classic/RPG modes, RPG styles, lesson navigation, exact 47 lesson routes, exercise hint and incomplete-answer feedback, command copy, checklist submission persistence, completion/reopen/reload, route restrictions, link accessibility names and measured layout.",
+      "Focused npm test -- tests/features/pathways/pathways.test.tsx tests/db/gitGithubPersistence.test.ts completed successfully: 2 files, 17 tests passed, covering cross-programme persistence and metadata preservation.",
+      "GitHub dedicated Pathways validation run 45262470319 completed successfully on the identical payload-tree source before review-only evidence was added. Previous release run 45262470075 failed because it lacked candidate-bound evidence. Full hosted release certification for the reviewed commit remains pending.",
+      "A prior live Chromium check demonstrated single-owner multi-tab coordination: the second tab becomes read-only; closing the owner tab restores checkbox write access in the remaining tab. This is expected but the tester-facing message is still a usability limitation.",
+      "Deployed Vercel project progresspal-pathways-tester has Vercel Authentication across deployments and a short-lived share-link exception. A possession-based invitation is not single-user identity enforcement. The pilot uses origin-local IndexedDB rather than the owner's account.",
+      "No deployment promotion, human usability session, native-device keyboard/zoom test, exhaustive exercise-matrix run or independent second-party review is asserted by this document."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "PILOT-ROUTE-1",
+      "severity": "P1",
+      "description": "A normal ProgressPal URL with hidden navigation but unrestricted routes could expose unrelated learning tools to an invited tester.",
+      "resolution": "The dedicated pilot entry builds only Pathways routes; unknown routes redirect to /pathways. The full production router is not imported and browser smoke checks confirm direct non-Pathways paths redirect.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-ASSETS-2",
+      "severity": "P1",
+      "description": "Vite publicDir initially copied other programme content into the restricted pilot build despite hiding it in the UI.",
+      "resolution": "The pilot finalizer now fails closed if Git content is absent and removes all other static course-content directories; the inspected dist/content tree contains only git-github after the candidate build.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-UX-3",
+      "severity": "P2",
+      "description": "Earlier pilot versions omitted theme/RPG options and exposed permanent header controls and inconsistent desktop/mobile lesson layout.",
+      "resolution": "The pilot now uses a single accessible settings gear with a dismissible panel; responsive fixes are scoped to the pilot. The five-width Chromium smoke covers gear controls, visual preferences, navigation and lesson geometry.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-CI-4",
+      "severity": "P2",
+      "description": "A synchronous lesson-link count at 1280 pixels sometimes found zero links before React finished hydrating the programme page.",
+      "resolution": "The browser smoke now awaits the programme heading and expect(...).toHaveCount(47) before enumerating links. Fresh candidate build and five-width browser suite passed.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-LOCAL-5",
+      "severity": "P2",
+      "description": "The same-origin learner state uses IndexedDB and a single-writer lock; second tabs become read-only, and a browser reset loses progress.",
+      "resolution": "Retain the integrity guard rather than weakening concurrency. Document local-only storage and the need to use one tab and preserve site data. Prior two-tab browser testing verified writer recovery after owner tab closes; ergonomics and backup remain accepted pilot limitations.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PILOT-INVITE-6",
+      "severity": "P2",
+      "description": "A time-limited Vercel share link is a bearer credential; anyone receiving it can access the protected pilot during its validity.",
+      "resolution": "Protect all deployments via Vercel Authentication, limit share-link validity to seven days, share directly with one tester and revoke if leaked. This is not per-person login; accepted only for low-sensitivity, local-only trial.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PILOT-A11Y-7",
+      "severity": "P3",
+      "description": "Responsive and focused automated tests do not constitute complete accessibility certification or establish comprehension by a novice learner.",
+      "resolution": "The tested widths, accessible button names, navigation, basic controls and keyboard Escape path support the bounded trial. Physical devices, screen readers, native zoom, comprehensive contrast and all lesson exercise variants remain outside proven coverage.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PILOT-REVIEW-8",
+      "severity": "P2",
+      "description": "Implementation and review are conducted in the same assistant session, and prior pilot access claims were stronger than the evidence supported.",
+      "resolution": "Review provenance is explicitly disclosed as same-session AI work. Candidate-bound evidence enumerates actual tests and unverified areas; the existing full hosted release gate remains mandatory and may reject the candidate.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed only with the bounded single-tester Pathways pilot and existing immutable hosted release process. In the reviewed candidate no P0/P1 issue remains open; separate deployment, route restrictions and git-only static output are verified. All remaining accepted P2/P3 limitations are disclosed. No claim of independent human review, broad release readiness or full platform accessibility is made; merge must still await successful release certification on this exact payload tree."
+  }
+}
