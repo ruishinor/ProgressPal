@@ -149,6 +149,17 @@ try {
         await expect(page).toHaveURL(origin + '/pathways');
       }
       await expect(page.getByRole('heading', { name: 'Pathways', exact: true })).toBeVisible();
+      const otherContent = await page.evaluate(async () => {
+        const response = await fetch('/content/programvareutvikling/index.6510252460651033.json');
+        return {
+          status: response.status,
+          contentType: response.headers.get('content-type') ?? '',
+        };
+      });
+      assert(
+        otherContent.status === 404 || !otherContent.contentType.includes('json'),
+        'Non-Pathways course catalogue must not be served by pilot deployment',
+      );
       assert.deepEqual(pageErrors, [], 'Unexpected browser errors at ' + viewport.width + 'px');
       console.log('Pilot passed at ' + viewport.width + 'px');
     } finally {
