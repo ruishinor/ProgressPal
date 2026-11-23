@@ -1,15 +1,18 @@
 name: Pathways pilot validation
 
+# The pilot lives on an open PR. Triggering on both push and pull_request
+# runs the same private-repository test twice for every commit.
 on:
-  push:
-    branches:
-      - feat/pathways-only-tester-pilot
   pull_request:
     branches:
       - master
 
 permissions:
   contents: read
+
+concurrency:
+  group: pathways-pilot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   pilot:
