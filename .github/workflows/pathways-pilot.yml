@@ -1,0 +1,35 @@
+name: Pathways pilot validation
+
+on:
+  push:
+    branches:
+      - feat/pathways-only-tester-pilot
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Pin npm
+        run: npm install --global npm@11.10.1
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build separate Pathways entry
+        run: npm run build:pathways-pilot
+      - name: Install Chromium
+        run: npx playwright install chromium
+      - name: Check tester onboarding and route restrictions
+        run: node scripts/check-pathways-pilot.mjs
