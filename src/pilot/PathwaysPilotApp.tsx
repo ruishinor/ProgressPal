@@ -11,7 +11,7 @@ import {
 import {
   resolveDatabaseMigrationContext,
   resolveProgrammeScope,
-} from '@/app/providers/programmeComposition';
+} from './programmeComposition';
 import { AppStateProvider, useAppState } from '@/lib/appState';
 import { rpgStyleOptions, saveRpgStyle, useRpgStyle } from '@/lib/appState/rpgStyle';
 import { defaultLearnerProfileValues } from '@/lib/db';
