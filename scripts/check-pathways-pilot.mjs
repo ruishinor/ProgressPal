@@ -212,9 +212,18 @@ try {
       if (viewport.width === 1280) {
         // Covers every current pilot lesson route and discovers dead links.
         await page.goto(origin + '/pathways/git-github');
-        const lessonPaths = await page.locator(
+        await expect(page.getByRole('heading', {
+          name: 'Git & GitHub: fra første endring til samarbeid',
+        })).toBeVisible();
+        // page.goto waits for the document, not for asynchronous React render.
+        // A synchronous evaluateAll can return zero links while the SPA is loading.
+        const lessonLinks = page.locator(
           '.pathways-track__lesson-list a[href*="/git-github/"]',
-        ).evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute('href')))]);
+        );
+        await expect(lessonLinks).toHaveCount(47, { timeout: 20_000 });
+        const lessonPaths = await lessonLinks.evaluateAll(
+          (links) => [...new Set(links.map((link) => link.getAttribute('href')))],
+        );
         assert.equal(lessonPaths.length, 47, 'Expected the complete M01–M07 pilot curriculum');
         for (const path of lessonPaths) {
           assert(path !== null, 'A lesson link must have an href');
