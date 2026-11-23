@@ -292,3 +292,36 @@ body.rpg-route-active .pilot-content .lesson--rpg {
     align-self: start;
   }
 }
+
+/* The shared Classic lesson constrains prose but not its 76rem-wide
+   container. Center the entire pilot reading surface on wide screens. */
+@media (min-width: 48rem) {
+  .pilot-content .pathways-page:has(> .lesson:not(.lesson--rpg)) {
+    width: 100%;
+    max-width: 80ch;
+    margin-inline: auto;
+  }
+}
+
+/* Restore visual group boundaries on the patterned Classic canvas. */
+.pilot-content .lesson:not(.lesson--rpg) > .lesson-header,
+.pilot-content .lesson:not(.lesson--rpg) > .lesson-unit {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+/* Keep both mode choices visible when the label grows or the viewport
+   becomes narrower; do not clip a half-visible button. */
+@media (max-width: 42rem) {
+  .pilot-controls .pilot-segment {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .pilot-controls .pilot-segment > a {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}

@@ -86,6 +86,31 @@ try {
       await expect(page.getByRole('button', { name: 'Åpne leksjonen igjen' })).toBeVisible();
       await page.reload();
       await expect(page.getByRole('button', { name: 'Åpne leksjonen igjen' })).toBeVisible();
+      const classicLayout = await page.locator('.pilot-content .lesson:not(.lesson--rpg)').evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, width: rect.width, viewport: document.documentElement.clientWidth };
+      });
+      if (viewport.width >= 960) {
+        assert(
+          Math.abs(classicLayout.left - (classicLayout.viewport - classicLayout.right)) < 3,
+          'Classic lesson must be centered on desktop',
+        );
+        assert(
+          classicLayout.width < classicLayout.viewport * 0.85,
+          'Classic reading measure must not fill the desktop canvas',
+        );
+      }
+      const choices = await page.locator('.pilot-segment a').evaluateAll((elements) =>
+        elements.map((element) => {
+          const box = element.getBoundingClientRect();
+          const parent = element.closest('.pilot-header')?.getBoundingClientRect();
+          return { left: box.left, right: box.right, parentLeft: parent?.left ?? 0, parentRight: parent?.right ?? 0 };
+        }),
+      );
+      assert(
+        choices.every(({ left, right, parentLeft, parentRight }) => left >= parentLeft - 1 && right <= parentRight + 1),
+        'Both mode choices must be fully visible in the pilot header',
+      );
       await page.getByRole('link', { name: 'RPG', exact: true }).click();
       await expect(page).toHaveURL(/\/rpg\/pathways\/git-github\/[^/]+$/);
       await noOverflow();
