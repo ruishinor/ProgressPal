@@ -1,0 +1,213 @@
+/* Pilot-only shell: mobile first; never expose the general ProgressPal navigation. */
+.pilot-shell {
+  width: min(100% - 2rem, 76rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding-block: 1rem 2rem;
+}
+
+.pilot-shell :is(a, button, select) {
+  touch-action: manipulation;
+}
+
+.pilot-intro {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 44rem;
+  margin: clamp(1rem, 8vh, 5rem) auto;
+  padding: clamp(1rem, 4vw, 2rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pilot-intro > button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+}
+
+.pilot-eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pilot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.pilot-header__title {
+  color: var(--color-heading);
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.pilot-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+}
+
+.pilot-control {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pilot-control :is(legend, label) {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+
+.pilot-control select,
+.pilot-segment a {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.6rem;
+}
+
+.pilot-control select {
+  max-width: 100%;
+}
+
+.pilot-segment {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.pilot-segment a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.pilot-segment a[aria-current='page'] {
+  color: var(--color-canvas-strong);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.pilot-control-error {
+  flex-basis: 100%;
+  color: var(--color-danger);
+}
+
+.pilot-content,
+.pilot-content > *,
+.pilot-content :is(.page-section, .pathways-page, .pathways-track) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pilot-content {
+  overflow-wrap: anywhere;
+}
+
+.pilot-content :is(pre, table) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.pilot-footer {
+  margin-top: 2rem;
+  padding-block: 1rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.pilot-skip {
+  position: absolute;
+  z-index: 100;
+  inset: 0 auto auto 1rem;
+  padding: 0.75rem 1rem;
+  transform: translateY(-150%);
+  background: var(--color-surface);
+}
+
+.pilot-skip:focus-visible { transform: none; }
+
+body.rpg-route-active .pilot-header,
+body.rpg-route-active .pilot-intro {
+  background: var(--rpg-surface);
+  border-color: var(--rpg-border);
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-header__title,
+body.rpg-route-active .pilot-eyebrow,
+body.rpg-route-active .pilot-control :is(legend, label) {
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-content {
+  color: var(--rpg-text);
+}
+
+body.rpg-route-active .pilot-segment a[aria-current='page'] {
+  background: var(--rpg-accent);
+  border-color: var(--rpg-accent);
+  color: var(--rpg-on-accent);
+}
+
+@media (max-width: 42rem) {
+  .pilot-shell {
+    width: 100%;
+    padding: 0.75rem 0.75rem 2rem;
+  }
+  .pilot-header {
+    padding: 0.85rem;
+    align-items: stretch;
+  }
+  .pilot-header__identity {
+    flex-basis: 100%;
+  }
+  .pilot-controls {
+    width: 100%;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .pilot-control {
+    flex: 1 1 8rem;
+  }
+  .pilot-segment {
+    flex-wrap: nowrap;
+  }
+  .pilot-segment a {
+    flex: 1;
+  }
+  .pilot-intro {
+    margin-top: 1rem;
+  }
+  .pilot-content .page-section {
+    padding-inline: 0;
+  }
+}
