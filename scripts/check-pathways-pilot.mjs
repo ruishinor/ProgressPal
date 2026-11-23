@@ -58,7 +58,7 @@ try {
         );
       };
       await noOverflow();
-      const settings = page.getByRole('button', { name: 'Visningsinnstillinger' });
+      const settings = page.getByRole('button', { name: 'Visningsinnstillinger', exact: true });
       await expect(settings).toBeVisible();
       await expect(settings).toHaveAttribute('aria-expanded', 'false');
       await settings.click();
