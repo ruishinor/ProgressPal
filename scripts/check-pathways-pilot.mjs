@@ -10,6 +10,7 @@ const server = spawn(
   { stdio: 'ignore' },
 );
 const viewports = [
+  { width: 320, height: 780 },
   { width: 360, height: 780 },
   { width: 390, height: 844 },
   { width: 768, height: 1024 },
@@ -77,6 +78,16 @@ try {
       await expect(page).toHaveURL(origin + '/pathways');
       await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
       await expect(page).toHaveURL(origin + '/pathways/git-github');
+      await noOverflow();
+      await page.locator('.pathways-track__lesson-list a').first().click();
+      await expect(page.getByRole('button', { name: 'Marker som fullført lokalt' })).toBeVisible();
+      await noOverflow();
+      await page.getByRole('button', { name: 'Marker som fullført lokalt' }).click();
+      await expect(page.getByRole('button', { name: 'Åpne leksjonen igjen' })).toBeVisible();
+      await page.reload();
+      await expect(page.getByRole('button', { name: 'Åpne leksjonen igjen' })).toBeVisible();
+      await page.getByRole('link', { name: 'RPG', exact: true }).click();
+      await expect(page).toHaveURL(/\/rpg\/pathways\/git-github\/[^/]+$/);
       await noOverflow();
       for (const forbidden of ['/dashboard', '/rpg', '/course', '/settings', '/profile']) {
         await page.goto(origin + forbidden);
