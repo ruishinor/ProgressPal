@@ -13,7 +13,11 @@ import {
   resolveProgrammeScope,
 } from './programmeComposition';
 import { AppStateProvider, useAppState } from '@/lib/appState';
-import { rpgStyleOptions, saveRpgStyle, useRpgStyle } from '@/lib/appState/rpgStyle';
+import {
+  rpgStyleOptions,
+  saveRpgStyle,
+  useRpgStyle,
+} from '@/lib/appState/rpgStyle';
 import { defaultLearnerProfileValues } from '@/lib/db';
 import { RewardNotificationProvider } from '@/lib/rewards';
 import {
@@ -69,20 +73,29 @@ function PilotBody() {
   useLayoutEffect(() => {
     if (rpg) document.body.dataset.rpgStyle = rpgStyle;
     else delete document.body.dataset.rpgStyle;
-    return () => { delete document.body.dataset.rpgStyle; };
+    return () => {
+      delete document.body.dataset.rpgStyle;
+    };
   }, [rpg, rpgStyle]);
 
   // The settings panel is optional chrome, never a permanent lesson header.
   // Closing on navigation, Escape and outside clicks prevents it from
   // obstructing the learning flow, especially on small screens.
   useEffect(() => {
-    setSettingsOpen(false);
-  }, [location.pathname]);
+    // Browser history navigation must close an open panel without triggering
+    // a synchronous setState during the effect's initial execution.
+    const closeOnHistory = () => setSettingsOpen(false);
+    window.addEventListener('popstate', closeOnHistory);
+    return () => window.removeEventListener('popstate', closeOnHistory);
+  }, []);
 
   useEffect(() => {
     if (!settingsOpen) return;
     function onPointerDown(event: PointerEvent) {
-      if (event.target instanceof Node && !settingsRef.current?.contains(event.target)) {
+      if (
+        event.target instanceof Node &&
+        !settingsRef.current?.contains(event.target)
+      ) {
         setSettingsOpen(false);
       }
     }
@@ -146,8 +159,8 @@ function PilotBody() {
           <h1>Velkommen til Pathways</h1>
           <p>
             Dette er en avgrenset test av Git og GitHub. Du får leksjoner,
-            oppgaver, visningsvalg og lokal framdrift – men ikke andre deler
-            av ProgressPal.
+            oppgaver, visningsvalg og lokal framdrift – men ikke andre deler av
+            ProgressPal.
           </p>
           <p>
             Framdriften lagres i denne nettleseren. Bruk samme nettleser ved
@@ -162,7 +175,9 @@ function PilotBody() {
               void saveProfile(
                 {
                   ...defaultLearnerProfileValues,
-                  targetStudyDays: [...defaultLearnerProfileValues.targetStudyDays],
+                  targetStudyDays: [
+                    ...defaultLearnerProfileValues.targetStudyDays,
+                  ],
                 },
                 {
                   completeOnboarding: true,
@@ -184,7 +199,9 @@ function PilotBody() {
 
   return (
     <>
-      <a className="pilot-skip" href="#pilot-main">Hopp til innhold</a>
+      <a className="pilot-skip" href="#pilot-main">
+        Hopp til innhold
+      </a>
       <div className="pilot-shell">
         <header className="pilot-header">
           <div className="pilot-header__identity">
@@ -244,14 +261,20 @@ function PilotBody() {
                       <Link
                         aria-current={!rpg ? 'page' : undefined}
                         onClick={() => setSettingsOpen(false)}
-                        to={pathwaysPath + location.pathname.replace(/^\/(?:rpg\/)?pathways/, '')}
+                        to={
+                          pathwaysPath +
+                          location.pathname.replace(/^\/(?:rpg\/)?pathways/, '')
+                        }
                       >
                         Klassisk
                       </Link>
                       <Link
                         aria-current={rpg ? 'page' : undefined}
                         onClick={() => setSettingsOpen(false)}
-                        to={rpgPathwaysPath + location.pathname.replace(/^\/(?:rpg\/)?pathways/, '')}
+                        to={
+                          rpgPathwaysPath +
+                          location.pathname.replace(/^\/(?:rpg\/)?pathways/, '')
+                        }
                       >
                         RPG
                       </Link>
@@ -266,7 +289,9 @@ function PilotBody() {
                       onChange={(event) => void changeTheme(event.target.value)}
                     >
                       {themes.map((theme) => (
-                        <option key={theme.value} value={theme.value}>{theme.label}</option>
+                        <option key={theme.value} value={theme.value}>
+                          {theme.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -279,13 +304,19 @@ function PilotBody() {
                         onChange={(event) => saveRpgStyle(event.target.value)}
                       >
                         {rpgStyleOptions.map((style) => (
-                          <option key={style.value} value={style.value}>{style.label}</option>
+                          <option key={style.value} value={style.value}>
+                            {style.label}
+                          </option>
                         ))}
                       </select>
                     </div>
                   )}
                 </div>
-                {themeError && <p className="pilot-control-error" role="alert">Kunne ikke lagre tema. Prøv igjen.</p>}
+                {themeError && (
+                  <p className="pilot-control-error" role="alert">
+                    Kunne ikke lagre tema. Prøv igjen.
+                  </p>
+                )}
               </section>
             )}
           </div>
@@ -294,10 +325,19 @@ function PilotBody() {
           <Routes key={dataEpoch}>
             <Route path="/pathways" element={<PilotPathways />} />
             <Route path="/pathways/git-github" element={<PilotPathways />} />
-            <Route path="/pathways/git-github/:itemId" element={<PilotPathways />} />
+            <Route
+              path="/pathways/git-github/:itemId"
+              element={<PilotPathways />}
+            />
             <Route path="/rpg/pathways" element={<PilotPathways />} />
-            <Route path="/rpg/pathways/git-github" element={<PilotPathways />} />
-            <Route path="/rpg/pathways/git-github/:itemId" element={<PilotPathways />} />
+            <Route
+              path="/rpg/pathways/git-github"
+              element={<PilotPathways />}
+            />
+            <Route
+              path="/rpg/pathways/git-github/:itemId"
+              element={<PilotPathways />}
+            />
             <Route path="*" element={<Navigate replace to="/pathways" />} />
           </Routes>
         </main>

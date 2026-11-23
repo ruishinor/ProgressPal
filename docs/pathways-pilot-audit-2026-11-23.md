@@ -1,6 +1,7 @@
 # Pathways-only tester pilot: critical audit, 23 November 2026
 
 ## Scope and evidence
+
 Target: protected Vercel project `progresspal-pathways-tester`, built from `feat/pathways-only-tester-pilot`; not the normal ProgressPal production application. Audit uses repository source inspection, completed Vercel TypeScript/build logs, and a live Chromium browser against the protected pilot URL using an authorized short-lived share link. All browser contexts were new and isolated.
 
 1. First run: tested at widths 360, 390, 768 and 1280 px; onboarding completed at every width (PASS).
@@ -14,12 +15,14 @@ Target: protected Vercel project `progresspal-pathways-tester`, built from `feat
 Viewport screenshots were captured in the test sandbox and the reduced mobile Classic/RPG overview images inspected. No obvious clipping or blocked controls was visible. The sandbox files are ephemeral, not long-term evidence or a comprehensive screenshot archive. Browser automation measured viewport width; real device gesture, soft keyboard and browser chrome behavior are not proven.
 
 ## Defects corrected
+
 - P1: first pilot removed Classic/RPG and theme controls. Restored profile-backed System/Light/Dark, Classic/RPG Pathways routes, and the existing four RPG style choices.
 - P1: early pilot imported other study-programme catalogues. Pilot now uses a Git-only programme composition; the subsequent Vercel build output shows only the Git/GitHub catalogue chunk.
 - P2: no dedicated mobile shell. Added wrapping control layout, touch-sized controls, skip link and overflow protections.
 - P2: early pilot overview copy suggested another active study programme; restricted-pilot copy corrected.
 
 ## Remaining limitations and risks
+
 - **Authentication boundary:** Vercel project-level authentication protects the deployment, while a shareable link is a bearer capability valid until expiration/revocation. Forwarded links grant access. There are no per-learner permissions inside the client app.
 - **Static assets:** Vite copies public/ from the shared repository. The git-only JavaScript import graph removes other programme catalogue chunks, but a complete confidentiality audit of copied static files was not performed. Do not use this pilot to share data that would be sensitive if the invited tester could inspect static files.
 - **Persistence:** one browser/device; no account sync, centralized telemetry, tester analytics, consent capture or automatic feedback collection. Clearing site data loses progress. No built-in remote backup.
@@ -29,4 +32,5 @@ Viewport screenshots were captured in the test sandbox and the reduced mobile Cl
 - **UX:** pilot header and page h1 both read “Pathways” on overview, a minor repetition. There is no guided tester-feedback workflow.
 
 ## Recommendation
+
 Suitable for a **small, explicitly invited functional trial** with clearly communicated local-only storage, after confirming the desired link and expiry. Not certified for broad publication, sensitive-source confidentiality, universal accessibility, or long-term learner-data preservation. Keep the isolated branch/project rather than merge into standard production solely to distribute the pilot.

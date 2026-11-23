@@ -38,4 +38,6 @@ for (const path of [
 }
 
 renameSync(source, destination);
-console.log('Pathways-only entry and Git-only static content installed in dist/');
+console.log(
+  'Pathways-only entry and Git-only static content installed in dist/',
+);

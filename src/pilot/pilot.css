@@ -153,7 +153,9 @@
   background: var(--color-surface);
 }
 
-.pilot-skip:focus-visible { transform: none; }
+.pilot-skip:focus-visible {
+  transform: none;
+}
 
 body.rpg-route-active .pilot-header,
 body.rpg-route-active .pilot-intro {
@@ -279,7 +281,10 @@ body.rpg-route-active .pilot-content .lesson--rpg {
     column-gap: clamp(1.5rem, 3vw, 3rem);
   }
 
-  .pilot-content .lesson--rpg > .lesson-header.rpg-page-header .rpg-page-eyebrow {
+  .pilot-content
+    .lesson--rpg
+    > .lesson-header.rpg-page-header
+    .rpg-page-eyebrow {
     grid-column: 1 / -1;
   }
 
