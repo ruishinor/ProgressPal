@@ -318,7 +318,7 @@ export function PathwaysPage({
           </p>
           <div className="pathways-page__offer">
             <h2>
-              <Link to={track}>Git &amp; GitHub</Link>
+              <Link to={track}>Git &amp; GitHub (trykk her for oversikt)</Link>
             </h2>
             <p>
               I Git- og GitHub-løpet begynner du med å lagre egne endringer og

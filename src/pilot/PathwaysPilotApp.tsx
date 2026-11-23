@@ -338,7 +338,10 @@ function PilotBody() {
               path="/rpg/pathways/git-github/:itemId"
               element={<PilotPathways />}
             />
-            <Route path="*" element={<Navigate replace to="/pathways" />} />
+            <Route
+              path="*"
+              element={<Navigate replace to={rpgPathwaysPath} />}
+            />
           </Routes>
         </main>
         <footer className="pilot-footer">

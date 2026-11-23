@@ -65,6 +65,15 @@ try {
       ).toBeVisible({
         timeout: 20_000,
       });
+      // A new learner lands in RPG, while Classic remains an explicit choice.
+      await expect(page).toHaveURL(origin + '/rpg/pathways');
+      await expect
+        .poll(() =>
+          page.evaluate(() =>
+            globalThis.document.body.classList.contains('rpg-route-active'),
+          ),
+        )
+        .toBe(true);
       const noOverflow = async () => {
         const widths = await page.evaluate(() => ({
           doc: globalThis.document.documentElement.scrollWidth,
@@ -99,6 +108,9 @@ try {
       await page.reload();
       await settings.click();
       await expect(page.getByLabel('Fargetema')).toHaveValue('dark');
+      await page.getByRole('link', { name: 'Klassisk', exact: true }).click();
+      await expect(page).toHaveURL(origin + '/pathways');
+      await settings.click();
       await page.getByRole('link', { name: 'RPG', exact: true }).click();
       await expect(settings).toHaveAttribute('aria-expanded', 'false');
       await settings.click();
@@ -122,7 +134,10 @@ try {
       await page.getByRole('link', { name: 'Klassisk' }).click();
       await expect(page).toHaveURL(origin + '/pathways');
       await page
-        .getByRole('link', { name: 'Git & GitHub', exact: true })
+        .getByRole('link', {
+          name: 'Git & GitHub (trykk her for oversikt)',
+          exact: true,
+        })
         .click();
       await expect(page).toHaveURL(origin + '/pathways/git-github');
       await noOverflow();
@@ -257,8 +272,11 @@ try {
         '/profile',
       ]) {
         await page.goto(origin + forbidden);
-        await expect(page).toHaveURL(origin + '/pathways');
+        await expect(page).toHaveURL(origin + '/rpg/pathways');
       }
+      // Classic deep links remain valid; defaulting to RPG must not force users out.
+      await page.goto(origin + '/pathways');
+      await expect(page).toHaveURL(origin + '/pathways');
       await expect(
         page.getByRole('heading', { name: 'Pathways', exact: true }),
       ).toBeVisible();
