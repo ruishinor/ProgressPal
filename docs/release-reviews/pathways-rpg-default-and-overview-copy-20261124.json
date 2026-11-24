@@ -4,7 +4,7 @@
   "reviewer": "OpenAI GPT-6, same-session targeted implementation/review; not an independent human audit",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "fdfa5837481bc6686bbc1bf3681bc8f1605c772c",
+    "payloadTree": "54a169435936613b576a597ad0fa22fea70b3c55",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -16,7 +16,7 @@
       "On the updated candidate source, npm run typecheck, focused 14/14 Pathways unit tests, targeted ESLint, formatting and the dedicated pilot build/browser smoke passed; the correction updates only five tests expecting the previous exact link name.",
       "On the exact candidate source the complete Playwright pilot smoke passed at 320, 360, 390, 768 and 1280 CSS pixels; exercised first-run RPG default, explicit Classic/RPG switch, amended programme link to track overview, blocked routes, lesson navigation, saved exercise state and reload, and UI geometry.",
       "Previous exact-content comparison confirmed the eight Git & GitHub JSON assets of the live pilot and main GitHub repository matched SHA-256 and byte-for-byte; these three changed files do not modify any curriculum JSON or static asset.",
-      "Updated candidate Git payload tree excluding docs/release-reviews computed from staged source using node scripts/review-payload-tree.mjs: fdfa5837481bc6686bbc1bf3681bc8f1605c772c. Hosted CI and release certification required before merge."
+      "Rebound candidate Git payload tree (excluding docs/release-reviews) from Prettier-normalized test assertions: 54a169435936613b576a597ad0fa22fea70b3c55. Full Prettier and focused ESLint passed on the revised test files; hosted release certification required before merge."
     ]
   },
   "adversarialFindings": [
