@@ -81,7 +81,7 @@ test('opens the Git roadmap from a fresh profile and visits lessons across modul
   const details = await pathwaysInfo.getAttribute('aria-controls');
   await expect(page.locator('[id="' + details + '"]')).toBeVisible();
   await page.getByRole('link', { name: 'Pathways', exact: true }).click();
-  await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
+  await page.getByRole('link', { name: 'Git & GitHub (trykk her for oversikt)', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Hvorfor lære dette?' }),
   ).toBeVisible();
@@ -304,7 +304,7 @@ test('reading the Git roadmap does not enrol or change learner state', async ({
   await completeOnboarding(page);
   const before = await pathwayState(page);
   await page.goto('/rpg/pathways');
-  await page.getByRole('link', { name: 'Git & GitHub', exact: true }).click();
+  await page.getByRole('link', { name: 'Git & GitHub (trykk her for oversikt)', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: /Git & GitHub: fra første endring/ }),
   ).toBeVisible();
@@ -442,7 +442,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       ).toBeVisible();
       await expect(page.getByRole('main')).toBeFocused();
       const track = page.getByRole('link', {
-        name: 'Git & GitHub',
+        name: 'Git & GitHub (trykk her for oversikt)',
         exact: true,
       });
       await track.focus();

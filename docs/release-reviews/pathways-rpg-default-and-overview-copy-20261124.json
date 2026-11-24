@@ -4,19 +4,19 @@
   "reviewer": "OpenAI GPT-6, same-session targeted implementation/review; not an independent human audit",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "5e0102ad8bccf4594601bc567b1a0fc7813dfb29",
+    "payloadTree": "fdfa5837481bc6686bbc1bf3681bc8f1605c772c",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
     "summary": "Targeted shared Pathways copy correction ('Git & GitHub (trykk her for oversikt)') for the original application and tester, coupled with owner's prior instruction to default the separate tester to RPG. No learning content, assessment metadata, storage format or non-Pathways application routes changed.",
     "evidence": [
-      "Inspected master 40d271c and exact three-file diff: src/features/pathways/PathwaysPage.tsx, src/pilot/PathwaysPilotApp.tsx, scripts/check-pathways-pilot.mjs.",
+      "Inspected master 40d271c and five-file candidate diff: src/features/pathways/PathwaysPage.tsx, src/pilot/PathwaysPilotApp.tsx, scripts/check-pathways-pilot.mjs, tests/features/pathways/pathways.test.tsx, e2e/git-github.spec.ts.",
       "The visible Git & GitHub programme offer link is rendered by the shared PathwaysPage, used by full ProgressPal and the separately built pilot. It now reads exactly 'Git & GitHub (trykk her for oversikt)' and retains the original destination. Existing lesson breadcrumb already explicitly says 'Git & GitHub — oversikt' and was not changed.",
       "Pilot wildcard redirects to the existing /rpg/pathways route for fresh onboarding and disallowed routes; explicitly selected Classic overview/track/lesson links remain reachable, and no persisted preference or progress records are changed.",
-      "On the candidate source, npm run typecheck, npm run build:pathways-pilot, targeted ESLint with --max-warnings 0 and full npm run format:check passed.",
+      "On the updated candidate source, npm run typecheck, focused 14/14 Pathways unit tests, targeted ESLint, formatting and the dedicated pilot build/browser smoke passed; the correction updates only five tests expecting the previous exact link name.",
       "On the exact candidate source the complete Playwright pilot smoke passed at 320, 360, 390, 768 and 1280 CSS pixels; exercised first-run RPG default, explicit Classic/RPG switch, amended programme link to track overview, blocked routes, lesson navigation, saved exercise state and reload, and UI geometry.",
       "Previous exact-content comparison confirmed the eight Git & GitHub JSON assets of the live pilot and main GitHub repository matched SHA-256 and byte-for-byte; these three changed files do not modify any curriculum JSON or static asset.",
-      "Candidate Git payload tree excluding docs/release-reviews computed from staged three-file diff by node scripts/review-payload-tree.mjs: 5e0102ad8bccf4594601bc567b1a0fc7813dfb29. Hosted CI and release certification still required before merge."
+      "Updated candidate Git payload tree excluding docs/release-reviews computed from staged source using node scripts/review-payload-tree.mjs: fdfa5837481bc6686bbc1bf3681bc8f1605c772c. Hosted CI and release certification required before merge."
     ]
   },
   "adversarialFindings": [
@@ -54,10 +54,17 @@
       "description": "The parenthetical link invitation makes the destination more explicit but it is not a substitute for newcomer comprehension testing or complete screen-reader evaluation.",
       "resolution": "Accessible link name includes the parenthetical text and is exercised in a five-viewport smoke test. Further usability testing is outside this targeted change.",
       "status": "accepted-risk"
+    },
+    {
+      "id": "OVERVIEW-TEST-6",
+      "severity": "P2",
+      "description": "The new accessible label invalidated two unit and three E2E assertions matching the old link name exactly; full release validation failed.",
+      "resolution": "Update only those five exact-name selectors to the new requested visible label, retain exact matching and the navigation assertions, and verify 14 focused Pathways unit tests pass. No production code changes.",
+      "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed with this bounded copy and default-route adjustment, pending full hosted certification. Both main and tester use the single shared course-offer link. No curriculum divergence or data migration is introduced; no release gate is disabled or bypassed."
+    "summary": "Proceed with this bounded copy and default-route adjustment, pending full hosted certification. Both main and tester use the single shared course-offer link. No curriculum divergence or data migration is introduced; no release gate is disabled or bypassed. All five stale exact-link-name test references are corrected. Full hosted CI remains authoritative."
   }
 }
