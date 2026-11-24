@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-rpg-default-and-overview-copy-20261124",
+  "reviewer": "OpenAI GPT-6, same-session targeted implementation/review; not an independent human audit",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "54a169435936613b576a597ad0fa22fea70b3c55",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Targeted shared Pathways copy correction ('Git & GitHub (trykk her for oversikt)') for the original application and tester, coupled with owner's prior instruction to default the separate tester to RPG. No learning content, assessment metadata, storage format or non-Pathways application routes changed.",
+    "evidence": [
+      "Inspected master 40d271c and five-file candidate diff: src/features/pathways/PathwaysPage.tsx, src/pilot/PathwaysPilotApp.tsx, scripts/check-pathways-pilot.mjs, tests/features/pathways/pathways.test.tsx, e2e/git-github.spec.ts.",
+      "The visible Git & GitHub programme offer link is rendered by the shared PathwaysPage, used by full ProgressPal and the separately built pilot. It now reads exactly 'Git & GitHub (trykk her for oversikt)' and retains the original destination. Existing lesson breadcrumb already explicitly says 'Git & GitHub — oversikt' and was not changed.",
+      "Pilot wildcard redirects to the existing /rpg/pathways route for fresh onboarding and disallowed routes; explicitly selected Classic overview/track/lesson links remain reachable, and no persisted preference or progress records are changed.",
+      "On the updated candidate source, npm run typecheck, focused 14/14 Pathways unit tests, targeted ESLint, formatting and the dedicated pilot build/browser smoke passed; the correction updates only five tests expecting the previous exact link name.",
+      "On the exact candidate source the complete Playwright pilot smoke passed at 320, 360, 390, 768 and 1280 CSS pixels; exercised first-run RPG default, explicit Classic/RPG switch, amended programme link to track overview, blocked routes, lesson navigation, saved exercise state and reload, and UI geometry.",
+      "Previous exact-content comparison confirmed the eight Git & GitHub JSON assets of the live pilot and main GitHub repository matched SHA-256 and byte-for-byte; these three changed files do not modify any curriculum JSON or static asset.",
+      "Rebound candidate Git payload tree (excluding docs/release-reviews) from Prettier-normalized test assertions: 54a169435936613b576a597ad0fa22fea70b3c55. Full Prettier and focused ESLint passed on the revised test files; hosted release certification required before merge."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "OVERVIEW-DISCOVERY-1",
+      "severity": "P2",
+      "description": "A new learner may click straight to lessons without recognizing that Git & GitHub is also a higher-level overview entry point.",
+      "resolution": "Add the requested parenthetical instruction to the shared, clickable Git & GitHub link on the Pathways landing page. Preserve link destination and surrounding explanatory content.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-RPG-ENTRY-2",
+      "severity": "P2",
+      "description": "The limited tester previously landed in Classic after first onboarding although the owner requested RPG as the default.",
+      "resolution": "Change only the pilot wildcard route to rpgPathwaysPath; assert first-run RPG class and path in browser smoke.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-CLASSIC-CHOICE-3",
+      "severity": "P2",
+      "description": "Forcing all routes into RPG would break existing Classic bookmarks and remove an accepted user setting.",
+      "resolution": "Keep all explicit Classic routes and the gear's Classic control; test a Classic deep link and switches in both directions.",
+      "status": "resolved"
+    },
+    {
+      "id": "PILOT-LOCAL-4",
+      "severity": "P2",
+      "description": "Tester progress remains browser-local, and only one tab can write at a time.",
+      "resolution": "Keep the existing single-writer guard and unchanged storage origin; no data migration, schema or account changes. Use one editor tab in the tester trial.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "PILOT-A11Y-5",
+      "severity": "P3",
+      "description": "The parenthetical link invitation makes the destination more explicit but it is not a substitute for newcomer comprehension testing or complete screen-reader evaluation.",
+      "resolution": "Accessible link name includes the parenthetical text and is exercised in a five-viewport smoke test. Further usability testing is outside this targeted change.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "OVERVIEW-TEST-6",
+      "severity": "P2",
+      "description": "The new accessible label invalidated two unit and three E2E assertions matching the old link name exactly; full release validation failed.",
+      "resolution": "Update only those five exact-name selectors to the new requested visible label, retain exact matching and the navigation assertions, and verify 14 focused Pathways unit tests pass. No production code changes.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed with this bounded copy and default-route adjustment, pending full hosted certification. Both main and tester use the single shared course-offer link. No curriculum divergence or data migration is introduced; no release gate is disabled or bypassed. All five stale exact-link-name test references are corrected. Full hosted CI remains authoritative."
+  }
+}

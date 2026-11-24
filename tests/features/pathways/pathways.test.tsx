@@ -277,7 +277,11 @@ it.each(['cs50x', 'programvareutvikling'])(
       await screen.findByRole('link', { name: 'Pathways' }),
     ).toHaveAttribute('href', '/rpg/pathways');
     await router.navigate('/rpg/pathways');
-    fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
+    fireEvent.click(
+      await screen.findByRole('link', {
+        name: 'Git & GitHub (trykk her for oversikt)',
+      }),
+    );
     await loadedOverview();
     const first = await screen.findByRole('link', {
       name: 'Start her: hvorfor bruke Git?',
@@ -301,7 +305,11 @@ it.each(['cs50x', 'programvareutvikling'])(
       await screen.findByRole('link', { name: 'Pathways' }),
     ).toHaveAttribute('href', '/pathways');
     await router.navigate('/pathways');
-    fireEvent.click(await screen.findByRole('link', { name: 'Git & GitHub' }));
+    fireEvent.click(
+      await screen.findByRole('link', {
+        name: 'Git & GitHub (trykk her for oversikt)',
+      }),
+    );
     await loadedOverview();
     fireEvent.click(
       await screen.findByRole('link', {
