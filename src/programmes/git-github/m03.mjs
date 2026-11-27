@@ -160,7 +160,7 @@ export const gitM03Lessons = [
         'Her er det `git branch`, `git switch`, `git merge`, `git status` og `git diff` som er Git-ferdighetene. PowerShell-delen rundt kommandoene sjekker mappen og at det ikke finnes uventet arbeid. En «STOPP» betyr at du skal undersøke tilstanden, ikke fjerne filer for å få kontrollen grønn. Etter en pause finner du tilbake til samme M03-mappe og undersøker aktiv branch og status før du fortsetter.',
       ),
       text(
-        'Vi lager `ProgressPal-Git-M03` i Dokumenter, med en liten oppdiktet HTML-side, en README og en meldingsfil. Bruk Windows PowerShell 5.1 og Git 2.28+. Dette er en **ny** mappe, ikke M01/M02-mappen eller et av dine egne prosjekter. Kommandoen nekter å bruke et navn som allerede finnes.',
+        'Vi lager `ProgressPal-Git-M03` i Dokumenter, med en liten oppdiktet HTML-side, en README og en meldingsfil. Bruk Windows PowerShell 5.1 og Git 2.28+. Dette er en **ny** mappe, ikke M01/M02-mappen eller et prosjekt du allerede har. Kommandoen nekter å bruke et navn som allerede finnes.',
       ),
       command(
         'Opprett en separat M03-øving',
@@ -229,7 +229,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Når du fortsetter M03 etter en pause, finn `ProgressPal-Git-M03`-mappen og kontroller aktiv branch med `git branch --show-current` samt arbeidsstatus med `git status`. Arbeid videre på den branchen forrige steg brukte; en ny terminal bytter ikke automatisk Git-branch. Opprett ikke samme branch eller commit på nytt uten å undersøke historikken.',
       ),
       text(
-        'Du skal legge til en tydelig bekreftelse på påmeldingssiden. Fordi du står på `feature/kvittering`, kan du lage en ny commit uten at `main` flytter seg. **Arbeidsfilene** i øvingsmappen oppdateres når du bytter gren; dette er ikke to uavhengige mapper.',
+        'Du skal legge til en tydelig bekreftelse på påmeldingssiden. Fordi du står på `feature/kvittering`, kan du lage en ny commit uten at `main` flytter seg. **Arbeidsfilene** i øvingsmappen oppdateres når du bytter branch. Du har fortsatt bare én arbeidsmappe.',
       ),
       command(
         'Rediger HTML på feature-branchen',
@@ -408,7 +408,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
       ),
       command(
         'Løs konflikten gjennom redigering',
-        'Åpne `messages.txt` i Notisblokk og erstatt **hele konfliktområdet**, inkludert markørene, med én linje: `Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.` Lagre og lukk. Nå kombinerer du den nyttige betydningen fra begge versjonene.',
+        '1. Åpne `messages.txt` i Notisblokk.\n2. Erstatt **hele konfliktområdet**, inkludert konfliktmarkørene, med én linje: `Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.`\n3. Lagre og lukk Notisblokk.\n\nNå har du beholdt den nyttige informasjonen fra begge versjonene.',
         `${stay}\nif (-not (Test-Path -LiteralPath (Join-Path (Join-Path $practiceRoot '.git') 'MERGE_HEAD'))) { throw 'STOPP: Forventet merge er ikke aktiv.' }\nnotepad.exe (Join-Path $practiceRoot 'messages.txt')`,
         'Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.',
       ),

@@ -93,7 +93,7 @@ export const gitM02Lessons = [
     skillId: 'GIT-M02-PROBLEM',
     flow: [
       text(
-        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+        'I denne modulen lærer du tre Git-kommandoer:\n\n- `git log`: Se hvilke commits som finnes.\n- `git show`: Se innholdet i en commit eller en tidligere filversjon.\n- `git diff`: Sammenlign endringer.\n\nPowerShell-koden rundt dem beskytter øvingsmappen. Etter en pause går du tilbake til M02-mappen og undersøker status før du fortsetter.',
       ),
       text(
         '### Fra M01 til M02\n\nI M01 opprettet du et repository, valgte endringer med staging og lagde commits. Nå bruker vi historikken til å løse et problem. Du trenger ikke GitHub eller et nytt studieprogram. Vi lager en **egen M02-mappe**, slik at arbeidet ditt fra M01 blir liggende urørt.',
@@ -144,7 +144,7 @@ export const gitM02Lessons = [
     skillId: 'GIT-M02-FIXTURE',
     flow: [
       text(
-        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+        'I denne modulen lærer du tre Git-kommandoer:\n\n- `git log`: Se hvilke commits som finnes.\n- `git show`: Se innholdet i en commit eller en tidligere filversjon.\n- `git diff`: Sammenlign endringer.\n\nPowerShell-koden rundt dem beskytter øvingsmappen. Etter en pause går du tilbake til M02-mappen og undersøker status før du fortsetter.',
       ),
       text(
         'Vi lager en liten, oppdiktet påmeldingsløsning. Du trenger **Windows PowerShell 5.1** og Git (fra M01). Kommandoen lager mappen `ProgressPal-Git-M02` i Dokumenter, med sin egen `.git`-historikk. Hvis mappen allerede finnes, stopper oppsettet. Du må aldri slette en eksisterende mappe bare for å kjøre eksemplet på nytt.',
@@ -221,7 +221,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
       ),
       command(
         'Les de tre siste commitene',
-        'Arbeid videre i M02-mappen fra forrige del. `--no-pager` hindrer at terminalen åpner en egen visning du må avslutte.',
+        'Arbeid videre i `ProgressPal-Git-M02`, som du laget i leksjon 2, «Lag en egen historikk å undersøke». `--no-pager` hindrer at terminalen åpner en egen visning du må avslutte.',
         `${stay}\n& git --no-pager log --oneline -3\nif ($LASTEXITCODE -ne 0) { throw 'Kunne ikke lese historikken.' }`,
         '<hash C> Legg til hjelpetekst og kontaktinfo\n<hash B> Juster kapasitet for test\n<hash A> Opprett pameldingsinnstillinger',
       ),
