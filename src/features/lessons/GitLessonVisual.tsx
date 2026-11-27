@@ -76,7 +76,12 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
           <text className="git-graph-id" x={node.x} y={node.y + 4}>
             {node.id}
           </text>
-          <text className="git-graph-label" x={node.x} y={node.y + 34}>
+          <text
+            className="git-graph-label"
+            textAnchor={node.x < 60 ? 'start' : node.x > 290 ? 'end' : 'middle'}
+            x={node.x}
+            y={node.y + 34}
+          >
             {node.label}
           </text>
         </g>
@@ -91,7 +96,7 @@ function VisualCards({ frame, kind }: { frame: VisualFrame; kind: string }) {
   return (
     <div className={className}>
       {frame.cards?.map((card, index) => (
-        <div className="git-visual-card-wrap" key={card.label}>
+        <div className="git-visual-card-wrap" key={index}>
           <div className={`git-visual-card git-tone-${card.tone}`}>
             <span className="git-visual-label">{card.label}</span>
             <div className="git-visual-value">{card.value}</div>
@@ -100,9 +105,9 @@ function VisualCards({ frame, kind }: { frame: VisualFrame; kind: string }) {
           {frame.links?.[index] && (
             <div className="git-visual-link">
               <span aria-hidden="true">
-                {frame.links[index].includes('/')
+                {frame.directions?.[index] === 'both'
                   ? '↕'
-                  : frame.links[index] === 'Ingen merge'
+                  : frame.directions?.[index] === 'stop'
                     ? '⊣'
                     : '↓'}
               </span>
@@ -260,6 +265,14 @@ function TestCaseVisual() {
           </button>
         ))}
       </div>
+      <label className="git-test-input">
+        Prøv en egen verdi
+        <input
+          onChange={(event) => setValue(event.target.value)}
+          type="text"
+          value={value}
+        />
+      </label>
       <div aria-live="polite" className="git-visual-cards">
         {[
           { label: 'Bare lengde', pass: lengthPass },
@@ -319,6 +332,20 @@ export function GitLessonVisual({ visual }: { visual: GitVisual }) {
       {frame.nodes && <CommitGraph frame={frame} />}
       {frame.cards && <FrameCards frame={frame} kind={visual.kind} />}
       {frame.matrix && <CommandEffects frame={frame} />}
+      {frame.transcript !== undefined && (
+        <div className="git-terminal git-visual-transcript">
+          <div className="git-terminal-title">
+            <code>git status --short</code> – eksempel
+          </div>
+          {frame.transcript ? (
+            <pre tabIndex={0}>
+              <code>{frame.transcript}</code>
+            </pre>
+          ) : (
+            <p className="git-visual-caption">Ingen filrader. Ren status.</p>
+          )}
+        </div>
+      )}
       {visual.kind === 'test' && <TestCaseVisual />}
       {frame.caption && (
         <p aria-live="polite" className="git-visual-caption">

@@ -12,6 +12,8 @@ export type VisualFrame = {
   caption?: string;
   cards?: VisualCard[];
   links?: string[];
+  directions?: ('forward' | 'both' | 'stop')[];
+  transcript?: string;
   rows?: { x: string; y: string; file: string; meaning: string }[];
   nodes?: { id: string; x: number; y: number; label: string; tone: Tone }[];
   edges?: { from: string; to: string }[];
@@ -142,21 +144,21 @@ export const gitVisuals: readonly GitVisual[] = [
     "lesson": "git-m01-o03",
     "step": 2,
     "anchor": "Før Git kan følge endringene dine, må du gjøre prosjektmappen til et repo. **git",
-    "kind": "tree",
+    "kind": "files",
     "title": "Før og etter git init",
     "frames": [
       {
         "label": "",
         "cards": [
           {
-            "label": "Før",
+            "label": "Før git init",
             "value": "Prosjektmappe",
             "detail": "Vanlige filer",
             "tone": "neutral"
           },
           {
-            "label": "Etter",
-            "value": "Prosjektmappe / .git",
+            "label": "Etter git init",
+            "value": "Prosjektmappe\n└─ .git",
             "detail": "Skjult mappe med Git-data.",
             "tone": "blue"
           }
@@ -211,38 +213,110 @@ export const gitVisuals: readonly GitVisual[] = [
     "step": 20,
     "anchor": "### Fra en redigert fil til en commit\n\nDu kan rette en feil i én fil og prøve no",
     "kind": "flow",
-    "title": "Tre steder Git bruker",
+    "title": "Følg en fil gjennom Git",
     "frames": [
       {
-        "label": "",
+        "label": "Lagre fil",
         "cards": [
           {
             "label": "Working tree",
-            "value": "Arbeidsfilene",
-            "detail": "Det du redigerer.",
-            "tone": "neutral"
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Filen på disken.",
+            "tone": "amber"
           },
           {
             "label": "Staging area",
-            "value": "Valgt innhold",
-            "detail": "Det som skal med i neste commit.",
+            "value": "Notat",
+            "detail": "Innhold valgt til neste commit.",
             "tone": "blue"
           },
           {
-            "label": "Historikk",
-            "value": "Commit",
-            "detail": "En lagret versjon.",
+            "label": "Siste commit",
+            "value": "Notat",
+            "detail": "Versjonen i historikken.",
             "tone": "green"
           }
         ],
-        "caption": "Lagring alene lager ingen commit.",
-        "links": [
-          "git add",
-          "git commit"
-        ]
+        "caption": "Lagring endrer bare arbeidsfilen. I dette eksemplet finnes allerede en commit.",
+        "transcript": " M notat.txt"
+      },
+      {
+        "label": "git add",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Notat",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Git velger innholdet slik det er akkurat nå.",
+        "transcript": "M  notat.txt"
+      },
+      {
+        "label": "Rediger igjen",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Notat\nMøtested: biblioteket\nTa med lader.",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Notat",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Den nye linjen blir ikke staged automatisk.",
+        "transcript": "MM notat.txt"
+      },
+      {
+        "label": "git commit",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Notat\nMøtested: biblioteket\nTa med lader.",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Notat\nMøtested: biblioteket",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Bare møtestedet blir med. Den nye linjen ligger fortsatt i arbeidsfilen.",
+        "transcript": " M notat.txt"
       }
     ],
-    "short": "### Fra en redigert fil til en commit\n\nVelg innhold med `git add`. Lag en commit med `git commit`."
+    "short": "Working tree er filene på disken. Staging area er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen."
   },
   {
     "lesson": "git-m01-o04",
@@ -621,7 +695,7 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "HEAD og tidligere commits",
     "frames": [
       {
-        "label": "",
+        "label": "HEAD",
         "nodes": [
           {
             "id": "A",
@@ -655,7 +729,81 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "~1 følger første forelder. Å lese en tidligere commit endrer ikke arbeidsfilene."
+        "caption": "HEAD viser til C. git show HEAD leser den nyeste commiten."
+      },
+      {
+        "label": "HEAD~1",
+        "nodes": [
+          {
+            "id": "A",
+            "x": 45,
+            "y": 84,
+            "label": "HEAD~2",
+            "tone": "neutral"
+          },
+          {
+            "id": "B",
+            "x": 180,
+            "y": 84,
+            "label": "HEAD~1",
+            "tone": "blue"
+          },
+          {
+            "id": "C",
+            "x": 315,
+            "y": 84,
+            "label": "HEAD / main",
+            "tone": "neutral"
+          }
+        ],
+        "edges": [
+          {
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "caption": "HEAD~1 viser til B, ett steg bakover langs første forelder. Å lese den flytter ikke HEAD."
+      },
+      {
+        "label": "HEAD~2",
+        "nodes": [
+          {
+            "id": "A",
+            "x": 45,
+            "y": 84,
+            "label": "HEAD~2",
+            "tone": "blue"
+          },
+          {
+            "id": "B",
+            "x": 180,
+            "y": 84,
+            "label": "HEAD~1",
+            "tone": "neutral"
+          },
+          {
+            "id": "C",
+            "x": 315,
+            "y": 84,
+            "label": "HEAD / main",
+            "tone": "neutral"
+          }
+        ],
+        "edges": [
+          {
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "caption": "HEAD~2 viser til A. Arbeidsfilene og HEAD blir stående der de var."
       }
     ],
     "short": "`HEAD` peker her på C. `HEAD~1` er B og `HEAD~2` er A."
@@ -1256,6 +1404,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "push / fetch",
           "clone / fetch"
+        ],
+        "directions": [
+          "both",
+          "both"
         ]
       }
     ]
@@ -1321,6 +1473,9 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Push sender commits og ber remote oppdatere branchen.",
         "links": [
           "git push -u origin main"
+        ],
+        "directions": [
+          "forward"
         ]
       },
       {
@@ -1342,6 +1497,9 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Clone lager en ny lokal kopi.",
         "links": [
           "git clone"
+        ],
+        "directions": [
+          "forward"
         ]
       }
     ],
@@ -1414,6 +1572,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "git fetch",
           "Ingen merge"
+        ],
+        "directions": [
+          "forward",
+          "stop"
         ]
       }
     ],
@@ -1426,6 +1588,30 @@ export const gitVisuals: readonly GitVisual[] = [
     "kind": "remote",
     "title": "Fetch, pull og push",
     "frames": [
+      {
+        "label": "Før fetch",
+        "cards": [
+          {
+            "label": "Delt repo: main",
+            "value": "B",
+            "detail": "En kollega har pushet.",
+            "tone": "neutral"
+          },
+          {
+            "label": "A: origin/main",
+            "value": "A",
+            "detail": "Sist kjente remote.",
+            "tone": "blue"
+          },
+          {
+            "label": "A: main + arbeidsfil",
+            "value": "A",
+            "detail": "Uendret.",
+            "tone": "amber"
+          }
+        ],
+        "caption": "A har ennå ikke hentet commit B."
+      },
       {
         "label": "Fetch",
         "cards": [
@@ -1452,6 +1638,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "git fetch",
           "Ingen merge"
+        ],
+        "directions": [
+          "forward",
+          "stop"
         ]
       },
       {
@@ -1480,6 +1670,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "fetch",
           "fast-forward"
+        ],
+        "directions": [
+          "forward",
+          "forward"
         ]
       },
       {
@@ -1501,6 +1695,9 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Push sender commits til remote. Andre må fortsatt hente dem.",
         "links": [
           "git push"
+        ],
+        "directions": [
+          "forward"
         ]
       }
     ],
@@ -1548,7 +1745,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "B har én egen commit og mangler én fra remote. Fast-forward alene kan ikke samle dem."
+        "caption": "Lokal main har én egen commit (C) og mangler én fra remote (B). Fast-forward alene kan ikke samle dem."
       }
     ],
     "short": "`ahead 1, behind 1` betyr at hver side har en commit den andre mangler."
@@ -1650,6 +1847,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "push",
           "fetch"
+        ],
+        "directions": [
+          "forward",
+          "forward"
         ]
       }
     ]
@@ -1695,7 +1896,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "tone": "neutral"
           }
         ],
-        "caption": "Undervisningseksempel – ikke en faktisk GitHub-PR.",
+        "caption": "Eksempel på en pull request. En draft PR kan brukes mens du fortsatt jobber.",
         "links": []
       }
     ],
@@ -1757,7 +1958,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C",
             "x": 315,
             "y": 84,
-            "label": "Rettelse",
+            "label": "feature/valider-navn",
             "tone": "green"
           }
         ],
@@ -2103,7 +2304,7 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Hva påvirker reset?",
     "frames": [
       {
-        "label": "",
+        "label": "Sammenlign",
         "columns": [
           "Kommando",
           "Arbeidsfil",
@@ -2130,9 +2331,84 @@ export const gitVisuals: readonly GitVisual[] = [
             "Flyttes"
           ]
         ]
+      },
+      {
+        "label": "Soft",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Ny tekst",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Ny tekst",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Gammel tekst",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Soft flytter main bakover. Arbeidsfilen og staging beholder den nye teksten.",
+        "transcript": "M  melding.txt"
+      },
+      {
+        "label": "Mixed",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Ny tekst",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Gammel tekst",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Gammel tekst",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Mixed flytter main og tilpasser staging. Arbeidsfilen beholder den nye teksten.",
+        "transcript": " M melding.txt"
+      },
+      {
+        "label": "Hard",
+        "cards": [
+          {
+            "label": "Working tree",
+            "value": "Gammel tekst",
+            "detail": "Filen på disken.",
+            "tone": "amber"
+          },
+          {
+            "label": "Staging area",
+            "value": "Gammel tekst",
+            "detail": "Innhold valgt til neste commit.",
+            "tone": "blue"
+          },
+          {
+            "label": "Siste commit",
+            "value": "Gammel tekst",
+            "detail": "Versjonen i historikken.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Hard flytter main og erstatter staging og den sporede arbeidsfilen. Ikke bruk dette for å prøve deg fram.",
+        "transcript": ""
       }
     ],
-    "short": "Her ser vi på reset til en annen commit. `--hard` kan overskrive arbeid. Ikke bruk den til å rydde en ukjent situasjon."
+    "short": "Reset til en tidligere commit flytter branchen du står på. Velg et alternativ for å se hva som skjer med filen. I dette eksemplet starter du med en ren arbeidskopi. `--hard` kan overskrive arbeid."
   },
   {
     "lesson": "git-m06-o04",
@@ -2142,32 +2418,58 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Legg arbeid til side",
     "frames": [
       {
-        "label": "",
+        "label": "Før stash",
         "cards": [
           {
             "label": "Arbeidsfil",
-            "value": "Uferdig endring",
-            "detail": "",
-            "tone": "neutral"
+            "value": "Uferdig tekst",
+            "detail": "En sporet fil er endret.",
+            "tone": "amber"
           },
           {
             "label": "Stash",
-            "value": "Midlertidig lagret arbeid",
-            "detail": "Vanlig stash tar normalt ikke med nye, usporede filer.",
-            "tone": "blue"
-          },
-          {
-            "label": "Arbeidsfil",
-            "value": "Endringen tilbake",
-            "detail": "apply beholder stash-oppføringen.",
-            "tone": "green"
+            "value": "Ingen ny oppføring",
+            "detail": "",
+            "tone": "neutral"
           }
         ],
-        "caption": "Stash kan også gi konflikter når du henter endringer tilbake.",
-        "links": [
-          "git stash push",
-          "git stash apply"
-        ]
+        "caption": "Du har ikke laget en ny commit."
+      },
+      {
+        "label": "git stash push",
+        "cards": [
+          {
+            "label": "Arbeidsfil",
+            "value": "Siste commit",
+            "detail": "I dette enkle eksemplet er filen ren.",
+            "tone": "green"
+          },
+          {
+            "label": "Stash",
+            "value": "Uferdig tekst",
+            "detail": "Midlertidig lagret lokalt.",
+            "tone": "blue"
+          }
+        ],
+        "caption": "Vanlig stash tar normalt ikke med nye, usporede filer."
+      },
+      {
+        "label": "git stash apply",
+        "cards": [
+          {
+            "label": "Arbeidsfil",
+            "value": "Uferdig tekst",
+            "detail": "Endringen er tilbake.",
+            "tone": "amber"
+          },
+          {
+            "label": "Stash",
+            "value": "Uferdig tekst",
+            "detail": "Oppføringen beholdes.",
+            "tone": "blue"
+          }
+        ],
+        "caption": "Apply kan gi konflikter hvis filene har endret seg i mellomtiden."
       }
     ]
   },
@@ -2425,6 +2727,10 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": [
           "push / fetch",
           "push / fetch"
+        ],
+        "directions": [
+          "both",
+          "both"
         ]
       }
     ]

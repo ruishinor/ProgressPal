@@ -37,3 +37,36 @@ it('shows why a length check alone is insufficient', () => {
   fireEvent.click(screen.getByRole('button', { name: '12345678' }));
   expect(within(digits).getByText('Godtas')).toBeVisible();
 });
+
+it('keeps the staged snapshot unchanged after another edit and commit', () => {
+  const visual = gitVisuals.find(
+    (entry) => entry.lesson === 'git-m01-o03' && entry.frames.length === 4,
+  )!;
+  render(<GitLessonVisual visual={visual} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Rediger igjen' }));
+  const staged = screen.getByText('Staging area').parentElement!;
+  const working = screen.getByText('Working tree').parentElement!;
+  expect(staged).not.toHaveTextContent('Ta med lader.');
+  expect(working).toHaveTextContent('Ta med lader.');
+  expect(screen.getByText('MM notat.txt', { exact: true })).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'git commit' }));
+  const committed = screen.getByText('Siste commit').parentElement!;
+  expect(committed).toHaveTextContent('Møtested: biblioteket');
+  expect(committed).not.toHaveTextContent('Ta med lader.');
+});
+
+it('compares reset effects without altering a real repository', () => {
+  const visual = gitVisuals.find((entry) => entry.kind === 'effects')!;
+  render(<GitLessonVisual visual={visual} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Soft' }));
+  expect(screen.getByText('Staging area').parentElement).toHaveTextContent(
+    'Ny tekst',
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Mixed' }));
+  expect(screen.getByText('Staging area').parentElement).toHaveTextContent(
+    'Gammel tekst',
+  );
+  expect(screen.getByText('Working tree').parentElement).toHaveTextContent(
+    'Ny tekst',
+  );
+});

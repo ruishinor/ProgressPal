@@ -429,6 +429,8 @@ test('copies only the intended commands and keeps command blocks usable by keybo
   expect(copied).toContain("throw 'STOPP: Gaa tilbake til ovingsmappen.'");
   expect(copied).toContain('git init -b main');
   expect(copied).not.toMatch(/Initialized empty|PS C:/);
+  expect(await command.locator('pre code').textContent()).toBe(copied);
+  await expect(command).toHaveClass(/lesson-pre--git-terminal/);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await command.scrollIntoViewIfNeeded();
   await page.screenshot({
