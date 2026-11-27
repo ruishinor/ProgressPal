@@ -1,0 +1,39 @@
+name: Temporary Git visual preflight
+on:
+  pull_request:
+    branches:
+      - fix/git-m01-staging-reference
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Consolidated validation and exact formatting
+        run: |
+          npm exec -- prettier --write src/features/lessons/LessonBlocks.tsx src/features/lessons/GitLessonVisual.tsx src/features/lessons/gitVisuals.ts src/styles/lessons.css tests/features/pathways/gitVisuals.test.tsx e2e/git-github.spec.ts
+          git diff -- src/features/lessons/LessonBlocks.tsx src/features/lessons/GitLessonVisual.tsx src/features/lessons/gitVisuals.ts src/styles/lessons.css tests/features/pathways/gitVisuals.test.tsx e2e/git-github.spec.ts
+          failed=0
+          check() {
+            echo "::group::$*"
+            if "$@"; then echo "PREFLIGHT PASS: $*"; else echo "PREFLIGHT FAIL: $*"; failed=1; fi
+            echo "::endgroup::"
+          }
+          check node scripts/git-github-content.mjs --check
+          check npm run format:check
+          check npm run lint
+          check npm run typecheck
+          check npm run build
+          check npm run check:bundle
+          check node node_modules/vitest/vitest.mjs run tests/features/pathways/gitVisuals.test.tsx tests/programmes/gitGithub.test.ts --maxWorkers=2
+          check npm run check:circular
+          exit "$failed"
