@@ -12,6 +12,7 @@ import {
 } from '@/lib/domain';
 import { evaluateExercise, unavailablePythonRuntime } from '@/lib/evaluation';
 import { getProgrammeRegistry } from '@/programmes';
+import { gitVisualFor, gitVisuals } from '@/features/lessons/gitVisuals';
 import { gitGithubDefinition } from '@/programmes/git-github';
 import catalogueJson from '@/programmes/git-github/content/catalogue.json';
 import offline from '../../public/content/offline.json';
@@ -139,6 +140,38 @@ describe('Git beginner pilot source, boundaries and truthful evidence', () => {
       'git-m01-o04',
       'git-m01-o05',
     ]);
+  });
+
+  it('binds every visual to its existing lesson block without adding steps', async () => {
+    const lessons = catalogue.modules.flatMap((module) => module.missions);
+    const slots = new Set<string>();
+    for (const lesson of lessons) {
+      const bundle = await provider().loadLesson(lesson.itemId);
+      expect(bundle.status).toBe('ready');
+      if (bundle.status !== 'ready') continue;
+      const flow = bundle.value.units.flatMap((unit) => unit.flow);
+      const visuals = gitVisuals.filter(
+        (visual) => visual.lesson === lesson.itemId,
+      );
+      expect(visuals.length).toBeGreaterThan(0);
+      for (const visual of visuals) {
+        const slot = `${visual.lesson}:${visual.step}`;
+        expect(slots.has(slot)).toBe(false);
+        slots.add(slot);
+        const block = flow[visual.step];
+        expect(block?.t).toBe('text');
+        if (block?.t !== 'text') continue;
+        expect(gitVisualFor(lesson.itemId, visual.step, block.nb)).toBe(visual);
+        expect(visual.frames.length).toBeGreaterThan(0);
+        for (const frame of visual.frames) {
+          const ids = new Set(frame.nodes?.map((node) => node.id));
+          for (const edge of frame.edges ?? []) {
+            expect(ids.has(edge.from) && ids.has(edge.to)).toBe(true);
+          }
+        }
+      }
+    }
+    expect(slots.size).toBe(gitVisuals.length);
   });
 
   it('loads every real lesson through current validation and binds every exercise to its actual hash', async () => {

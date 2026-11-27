@@ -28,7 +28,7 @@ import { programvareutviklingDefinition as p2 } from '@/programmes/programvareut
 import { bundledCourseSeed } from '@/seed';
 
 const lessonId = 'git-m01-o01';
-const completeLabel = 'Marker som fullført lokalt';
+const completeLabel = 'Marker som fullført';
 const reopenLabel = 'Åpne leksjonen igjen';
 const oldTimestamp = '2026-11-01T08:00:00.000Z';
 
@@ -142,11 +142,9 @@ it('records matching start and completion times on initial manual completion', a
   expect(saved.startedAt).toBe(saved.completedAt);
   expect(saved.completedAt! >= earliest).toBe(true);
   expect(saved.completedAt! <= new Date().toISOString()).toBe(true);
-  const localStatus = screen.getByRole('region', {
-    name: 'Lokal leksjonsstatus',
-  });
+  const localStatus = screen.getByRole('region', { name: 'Leksjonsstatus' });
   expect(within(localStatus).getByRole('status')).toHaveTextContent(
-    'Lokal status: Fullført',
+    'Status: Fullført',
   );
   expect(localStatus.closest('[lang]')).toHaveAttribute('lang', 'nb');
 });
@@ -170,11 +168,10 @@ it('clears the completion timestamp when reopening and retains the original star
     completedAt: undefined,
     updatedAt: reopened.updatedAt,
   });
-  expect(
-    within(
-      screen.getByRole('region', { name: 'Lokal leksjonsstatus' }),
-    ).getByRole('status'),
-  ).toHaveTextContent('Lokal status: Ikke fullført');
+  const completion = screen.getByRole('region', { name: 'Leksjonsstatus' });
+  expect(within(completion).getByRole('status')).toHaveTextContent(
+    'Status: Ikke fullført',
+  );
 });
 
 it('records a fresh completion time after reopening while preserving identity and first start', async () => {

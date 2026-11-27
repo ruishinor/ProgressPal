@@ -73,26 +73,29 @@ export const gitGithubDefinition = validateProgrammeDefinition({
       copy: {
         ...programvareutviklingLessonCopy,
         recordSelfReportLabel: 'Lagre svaret mitt',
+        exerciseTypeLabels: {
+          ...programvareutviklingLessonCopy.exerciseTypeLabels,
+          evidence: 'Sjekk filvalget',
+          reflect: 'Skriv med egne ord',
+        },
         learnerWording: [],
         text: {
           ...programvareutviklingLessonCopy.text,
           minutes: 'Eget tempo',
           sourceLabel: 'Kommando – PowerShell 5.1',
           fileLabel: '{file}',
-          output: 'Forventet utskrift eller utdrag (ikke en kommando):',
+          output: 'Forventet utskrift (ikke en kommando):',
+          noPointsSuffix: '',
           correct: 'Svaret passer',
-          selfReported:
-            'Svaret ditt er lagret. Se også etter hva Git viser i terminalen.',
-          privacy:
-            'Ingen passord, tokens, personopplysninger, private repoer eller personlige stier. Lagrede svar følger med sikkerhetskopier.',
+          selfReported: '',
+          privacy: 'Ikke lim inn passord, tokens eller private opplysninger.',
           recordedBody:
             'Svaret ditt er lagret. Du kan gå videre eller komme tilbake senere.',
           localCompletionNote:
             'Denne delen er markert som gjennomgått. Du kan åpne den igjen når du vil.',
-          completionDisclaimer:
-            'Du kan øve igjen når du vil. Ingen XP tildeles i dette læringsløpet.',
-          whereNextModuleRule:
-            'Du har gått gjennom M01–M07. Bruk dem gjerne igjen, og ta med ferdighetene inn i egne studie- og utviklingsprosjekter.',
+          completionDisclaimer: '',
+          whereNextModuleRule: '',
+          whereNextMark: '',
         },
       },
     }),

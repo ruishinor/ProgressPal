@@ -265,13 +265,13 @@ export const gitM06Lessons = [
     skillId: 'GIT-M06-DIAGNOSE',
     flow: [
       text(
-        'Før du angrer noe, skill mellom filene på disken, staging og commit-historikken. Kommandoene `git status` og `git diff` hjelper deg å undersøke; `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige konsekvenser. PowerShell-kontrollene beskytter den separate M06-øvingen. Avbryter du, skal du tilbake til den samme mappen og lese tilstanden; aldri slette `.git` eller bruke `reset --hard` for å rydde en uventet situasjon.',
+        '### Før du angrer en endring\n\nFinn ut hvor endringen ligger: i filene på disken, i staging area eller i commit-historikken.\n\nBruk `git status` og `git diff` først. `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige virkninger.\n\nEtter en pause: gå tilbake til M06-mappen og undersøk status. Ikke slett `.git` eller bruk `reset --hard` for å rydde en ukjent situasjon.',
       ),
       text(
         '### En god reparasjon begynner med en undersøkelse\n\nI M05 gjennomgikk to utviklere en forbedring av påmeldingssiden. Nå kan brukere fortsatt skrive ugyldige opplysninger i et bestemt tilfelle. En utvikler sier: «Vi kan bare angre siste commit.» Men feilen kan ligge i en arbeidsfil, en staget endring, en lokal commit eller en commit som allerede er delt. Å velge kommando før dette er kjent, kan fjerne arbeid uten å løse problemet.',
       ),
       text(
-        'En **working tree** er filene du ser og redigerer. **Staging/index** er utvalget Git vil ta med i neste commit. **HEAD** peker vanligvis på den aktive branchens siste commit. Disse kan inneholde forskjellig innhold. `git status` viser hva som er endret og staged, `git diff` viser ikke-stagede endringer, `git diff --staged` viser staged innhold, og `git log` eller `git show` undersøker registrerte commits. Ingen av disse trenger å endre filene.',
+        '### Hvor ligger endringen?\n\n- **Working tree:** Filene du redigerer. Se unstaged endringer med `git diff`.\n- **Staging area (index):** Innholdet som er klart for neste commit. Se det med `git diff --staged`.\n- **HEAD:** Vanligvis siste commit på branchen du står på. Les historikken med `git log` og innholdet med `git show`.\n\nStart med `git status` for å få oversikt. Ingen av disse kommandoene endrer filene.',
       ),
       text(
         'Spør først: Hva har vi faktisk observert? Hvilken branch står vi på? Finnes det nyttige lokale endringer? Er den problematiske commiten delt med andre? Hva ønsker vi bevart? Er det nødvendig å flytte historikken, eller holder det å rette koden videre? Dette er ikke administrasjon for sin egen skyld: svarene avgjør hvilken reparasjon som er trygg.',
@@ -321,21 +321,21 @@ export const gitM06Lessons = [
             'c',
             'Git har mistet filinnholdet, siden de to diff-kommandoene viser ulikt resultat.',
             false,
-            'De to kommandoene sammenligner forskjellige tilstander og kan derfor vise forskjellige resultater.',
+            'De to diff-kommandoene sammenligner ulike versjoner av filen. Derfor kan resultatene være forskjellige.',
           ],
         ],
-        'Hvilke to tilstander sammenligner hver diff?',
+        'Hvilke versjoner av filen sammenligner hver diff?',
       ),
     ],
   },
   {
     missionId: 'GIT-M06-O02',
     title: 'Restore: behold eller forkast riktig endring',
-    goal: 'Skille unstage fra å forkaste ikke-stagede endringer og utføre trygg filrettet praksis.',
+    goal: 'Ta en fil ut av staging area uten å miste arbeidet, og forstå når restore kan slette endringer.',
     skillId: 'GIT-M06-RESTORE',
     flow: [
       text(
-        'Før du angrer noe, skill mellom filene på disken, staging og commit-historikken. Kommandoene `git status` og `git diff` hjelper deg å undersøke; `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige konsekvenser. PowerShell-kontrollene beskytter den separate M06-øvingen. Avbryter du, skal du tilbake til den samme mappen og lese tilstanden; aldri slette `.git` eller bruke `reset --hard` for å rydde en uventet situasjon.',
+        '### Før du angrer en endring\n\nFinn ut hvor endringen ligger: i filene på disken, i staging area eller i commit-historikken.\n\nBruk `git status` og `git diff` først. `restore`, `reset`, `stash`, `reflog` og `revert` har forskjellige virkninger.\n\nEtter en pause: gå tilbake til M06-mappen og undersøk status. Ikke slett `.git` eller bruk `reset --hard` for å rydde en ukjent situasjon.',
       ),
       text(
         '### «Angre» er to forskjellige oppgaver\n\nTenk at du retter teksten i `melding.txt`, men legger filen i staging ved en feil. Hvis du vil beholde teksten og bare ta den ut av staging, er `git restore --staged -- melding.txt` relevant. Den tar utgangspunkt i HEAD for staging, men lar arbeidsfilen være. Derimot kan `git restore -- melding.txt` erstatte ikke-staget innhold i arbeidsfilen med innholdet fra staging. Det siste kan forkaste arbeid.',
@@ -409,14 +409,14 @@ export const gitM06Lessons = [
             'Filrettet restore slår ikke sammen branches. Her ville kommandoen bare endret innholdet i den valgte arbeidsfilen.',
           ],
         ],
-        'Hvilken av de tre tilstandene ber denne kommandoen Git om å endre?',
+        'Endrer kommandoen arbeidsfilen, staging area eller historikken?',
       ),
     ],
   },
   {
     missionId: 'GIT-M06-O03',
     title: 'Reset: hva skjer med en lokal commit?',
-    goal: 'Skille soft, mixed og hard og forstå hvorfor delt historikk krever andre vurderinger.',
+    goal: 'Forstå forskjellen på reset med --soft, --mixed og --hard, og hvorfor delt historikk krever ekstra omtanke.',
     skillId: 'GIT-M06-RESET',
     flow: [
       text(
@@ -506,7 +506,7 @@ export const gitM06Lessons = [
       ),
       command(
         'Legg til side og før tilbake en kjent fil',
-        'Øvingsfilen fra forrige leksjon er ikke-staget. Blokken kontrollerer dette før den oppretter en navngitt stash, viser hva som er lagret, og bruker `apply` uten å slette stash-oppføringen.',
+        'Øvingsfilen fra leksjon 3, «Reset: hva skjer med en lokal commit?», har en endring som ikke er staged. Blokken kontrollerer dette før den oppretter en navngitt stash, viser hva som er lagret, og bruker `apply` uten å slette stash-oppføringen.',
         stash,
         'stash@{0}: On main: M06 uferdig telefonfelt\n M skjema.txt',
       ),
@@ -549,7 +549,7 @@ export const gitM06Lessons = [
             'b',
             'Nei, apply forsøker å føre tilbake endringene uten å fjerne stash-oppføringen automatisk.',
             true,
-            'Riktig. Den kan fortsatt finnes for kontroll. Fjern den bare med et bevisst valg etter vurdering.',
+            'Riktig. Stash-oppføringen blir værende. Slett den først når du ikke trenger den lenger.',
           ],
           [
             'c',
@@ -603,7 +603,7 @@ export const gitM06Lessons = [
             'Stash og reflog er ulike mekanismer. Å slette stash kan fjerne en annen mulig kilde til arbeid.',
           ],
         ],
-        'Har du verifisert hva den tidligere referansen peker på?',
+        'Har du sjekket hvilken commit referansen peker på?',
       ),
       question(
         'GIT-M06-E10',
@@ -646,7 +646,7 @@ export const gitM06Lessons = [
       ),
       command(
         'Lag og reverser en kjent feil i lokal historie',
-        'Blokken krever en bestemt, kontrollert tilstand fra forrige leksjon. Den registrerer først det valgfrie telefonfeltet, innfører deretter en konkret feil og oppretter en ny revert-commit. Den sender feilcommiten til en ny lokal bare remote og kloner en arbeidskopi B som mottar den. Deretter oppretter den revert-commit i A, pusher denne og lar B hente den med fetch. Den kontrollerer at B sin lokale main fortsatt peker til feilcommiten mens B sin origin/main peker til rettelsen. Ingen GitHub-konto er nødvendig.',
+        'Blokken fortsetter fra leksjon 5, «Reflog: finn en commit som ikke lenger vises».\n\nDette skjer i øvingen:\n\n1. A registrerer det valgfrie telefonfeltet og lager så en commit med en feil.\n2. A sender feilcommiten til en lokal bare remote. B kloner repoet.\n3. A bruker revert til å lage en ny commit som retter feilen, og pusher den.\n4. B henter den nye historikken med fetch.\n\n**Se etter:** Lokal `main` i B peker fortsatt på feilcommiten. `origin/main` i B peker på rettelsen. Ingen GitHub-konto er nødvendig.',
         revert,
         'Revert "Feil: krev telefonnummer"\nRevert ...\nFeil: krev telefonnummer',
       ),
@@ -670,7 +670,7 @@ export const gitM06Lessons = [
             'c',
             'Revert har automatisk fjernet alle andre feil som er registrert i repositoryet.',
             false,
-            'Revert er rettet mot konkrete endringer. Den verifiserer ikke hele funksjonaliteten.',
+            'Revert reverserer en bestemt endring. Test programmet etterpå.',
           ],
         ],
         'Hva viser `git log` etter en vanlig revert?',
@@ -689,13 +689,13 @@ export const gitM06Lessons = [
             'b',
             'Bare om `git status` viser ren working tree; det garanterer at funksjonen virker.',
             false,
-            'Ren Git-status er ikke en funksjonell test og sier ingenting om avhengighetene i senere commits.',
+            'Ren Git-status viser at arbeidsfilene ikke har ventende endringer. Den sier ikke om nyere kode trenger den gamle endringen.',
           ],
           [
             'c',
             'Bare om commitmeldingen inneholder ordet «feil».',
             false,
-            'Commitmeldingens ordlyd er ikke bevis for hvilke endringer eller avhengigheter en revert påvirker.',
+            'Les selve diffen. Commit-meldingen forteller ikke nødvendigvis alt en revert vil endre.',
           ],
         ],
         'Hvilken faktisk kode kan bli reversert, og hvem er avhengig av den?',
@@ -712,7 +712,7 @@ export const gitM06Lessons = [
         '### Nå er det din vurdering\n\nDu har sett hvordan to endringer som begge omtales som «feil», kan ligge på helt forskjellige steder. Før en reparasjon må du vite om du ønsker å bevare en arbeidsfil, endre staging, flytte en lokal referanse eller lage en ny commit. En kommando kan være teknisk riktig og samtidig uegnet for situasjonen. Ikke velg en metode før du kan beskrive hva den skal endre.',
       ),
       text(
-        '### Nytt prosjekt: registrering til et arrangement\n\nTo utviklere vedlikeholder en enkel registreringsside. En tidligere PR ble merget til `main` og hentet av begge. Etter publisering ser de at en valgfri e-postadresse feilaktig blir obligatorisk. En annen utvikler har allerede begynt en ny funksjon som bruker den samme valideringskoden. På din egen maskin har du samtidig en ikke-staget endring i `bekreftelse.txt` med en nyttig melding som ikke er kopiert eller committet. Du skal ikke slette den. Teamet trenger å rette den publiserte feilen uten å overskrive hverandres arbeid.',
+        '### Nytt prosjekt: registrering til et arrangement\n\nTo utviklere vedlikeholder en enkel registreringsside. En tidligere PR ble merget til `main` og hentet av begge. Etter publisering ser de at en valgfri e-postadresse feilaktig blir obligatorisk. En annen utvikler har allerede begynt en ny funksjon som bruker den samme valideringskoden. På maskinen din har du samtidig en ikke-staget endring i `bekreftelse.txt` med en nyttig melding som ikke er kopiert eller committet. Du skal ikke slette den. Teamet trenger å rette den publiserte feilen uten å overskrive hverandres arbeid.',
       ),
       question(
         'GIT-M06-E13',
@@ -747,7 +747,7 @@ export const gitM06Lessons = [
             'a',
             'Revert er alltid riktig så lenge PR-en hadde godkjenning.',
             false,
-            'Godkjenning sier ikke at en full reversering er korrekt i den nye tilstanden.',
+            'Selv om den gamle PR-en ble godkjent, kan nyere arbeid være avhengig av den.',
           ],
           [
             'b',
@@ -770,9 +770,9 @@ export const gitM06Lessons = [
         [
           [
             'a',
-            'Endringen er kontrollert innenfor de aktuelle kontrollenes omfang; funksjonen og relevante avhengigheter må fortsatt vurderes mot behovet.',
+            'De kjørte kontrollene har bestått. Sjekk også at programmet virker som det skal sammen med nyere arbeid.',
             true,
-            'Riktig. Ren status, grønn CI eller vellykket merge beviser ikke universell funksjonell korrekthet.',
+            'Riktig. Git-status, CI og merge forteller forskjellige ting. Test funksjonen som ble rettet.',
           ],
           [
             'b',

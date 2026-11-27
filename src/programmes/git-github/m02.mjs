@@ -89,11 +89,11 @@ export const gitM02Lessons = [
   {
     missionId: 'GIT-M02-O01',
     title: 'Når en gammel versjon er riktig',
-    goal: 'Forstå hva historieundersøkelse kan fortelle, og hvorfor en gammel prosjektkopi ikke er en god målrettet rettelse.',
+    goal: 'Lære å finne tidligere versjoner uten å miste nyere arbeid.',
     skillId: 'GIT-M02-PROBLEM',
     flow: [
       text(
-        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+        '### Tre måter å lese historikken på\n\n- `git log`: Hvilke commits finnes?\n- `git show`: Hva ligger i en bestemt commit?\n- `git diff`: Hva er forskjellen mellom to versjoner?\n\nPowerShell-koden rundt dem beskytter øvingsmappen. Etter en pause går du tilbake til M02-mappen og undersøker status før du fortsetter.',
       ),
       text(
         '### Fra M01 til M02\n\nI M01 opprettet du et repository, valgte endringer med staging og lagde commits. Nå bruker vi historikken til å løse et problem. Du trenger ikke GitHub eller et nytt studieprogram. Vi lager en **egen M02-mappe**, slik at arbeidet ditt fra M01 blir liggende urørt.',
@@ -140,11 +140,11 @@ export const gitM02Lessons = [
   {
     missionId: 'GIT-M02-O02',
     title: 'Lag en egen historikk å undersøke',
-    goal: 'Opprette et ufarlig øvingsrepository med tre meningsfulle commits uten å berøre egne prosjekter.',
+    goal: 'Lage et øvingsrepo med tre commits du kan sammenligne.',
     skillId: 'GIT-M02-FIXTURE',
     flow: [
       text(
-        'I denne modulen er `git log`, `git show` og `git diff` selve Git-verktøyene du lærer. PowerShell-linjene rundt dem oppretter og beskytter en separat øvingsmappe og stanser hvis tidligere arbeid kan bli berørt. Les Git-resultatet etter hver blokk: hvilke commits finnes, hvilken fil har endret seg, og hva er fortsatt urørt? Hvis du avbryter øvingen, finn M02-mappen igjen med navigasjonsblokken under, i stedet for å kjøre oppsettet en gang til.',
+        '### Tre måter å lese historikken på\n\n- `git log`: Hvilke commits finnes?\n- `git show`: Hva ligger i en bestemt commit?\n- `git diff`: Hva er forskjellen mellom to versjoner?\n\nPowerShell-koden rundt dem beskytter øvingsmappen. Etter en pause går du tilbake til M02-mappen og undersøker status før du fortsetter.',
       ),
       text(
         'Vi lager en liten, oppdiktet påmeldingsløsning. Du trenger **Windows PowerShell 5.1** og Git (fra M01). Kommandoen lager mappen `ProgressPal-Git-M02` i Dokumenter, med sin egen `.git`-historikk. Hvis mappen allerede finnes, stopper oppsettet. Du må aldri slette en eksisterende mappe bare for å kjøre eksemplet på nytt.',
@@ -182,7 +182,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
         [
           [
             'a',
-            'Det er ingen registrerte filendringer som venter på en ny commit i denne øvingstilstanden.',
+            'Git viser ingen endringer som venter på neste commit.',
             true,
             'Riktig. Git sammenligner arbeidsfilene og staging med gjeldende commit. Det sier ingenting om kravet om maks 20 er oppfylt.',
           ],
@@ -203,7 +203,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
       ),
       report(
         'GIT-M02-E03',
-        'Fortell kort hva du fikk til i din egen øvingsmappe: Ble tre commits laget? Hva viser historikken? Skriv gjerne om du stoppet eller trengte hjelp. Ikke skriv inn private filstier, passord eller andre personopplysninger.',
+        'Fortell kort hva du fikk til:\n\n- Lagde du tre commits?\n- Hva viste historikken?\n- Stoppet du underveis eller trengte hjelp?\n\nIkke ta med private filstier, passord eller personopplysninger.',
       ),
     ],
   },
@@ -221,7 +221,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
       ),
       command(
         'Les de tre siste commitene',
-        'Arbeid videre i M02-mappen fra forrige del. `--no-pager` hindrer at terminalen åpner en egen visning du må avslutte.',
+        'Arbeid videre i `ProgressPal-Git-M02`, som du laget i leksjon 2, «Lag en egen historikk å undersøke». `--no-pager` hindrer at terminalen åpner en egen visning du må avslutte.',
         `${stay}\n& git --no-pager log --oneline -3\nif ($LASTEXITCODE -ne 0) { throw 'Kunne ikke lese historikken.' }`,
         '<hash C> Legg til hjelpetekst og kontaktinfo\n<hash B> Juster kapasitet for test\n<hash A> Opprett pameldingsinnstillinger',
       ),
@@ -266,7 +266,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
             'En commit-melding beskriver intensjonen bak endringen, men kan ikke bekrefte at implementasjonen følger kravene.',
           ],
         ],
-        'Hva kan Git bevise om lagret filinnhold, og hva må du kontrollere utenfor Git?',
+        'Hva viser Git om filen, og hvem kan fortelle deg hvilket krav som gjelder?',
       ),
       question(
         'GIT-M02-E05',
@@ -327,7 +327,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
             'a',
             'Den undersøkte endringen erstattet 20 med 200 i filinnholdet som Git sammenligner.',
             true,
-            'Riktig. Minuslinjen er den tidligere teksten, plusslinjen er den nye. Diffen viser endringen, ikke om den var faglig riktig.',
+            'Riktig. Minuslinjen er den tidligere teksten, plusslinjen er den nye. Diffen viser hva som ble endret. Du må selv sjekke om det passer med kravet.',
           ],
           [
             'b',
@@ -355,7 +355,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
             'a',
             'Rette verdien i dagens settings.json, undersøke diffen og registrere rettelsen som en ny commit.',
             true,
-            'Riktig. Du tar vare på de senere forbedringene og gjør reparasjonen eksplisitt og etterprøvbar.',
+            'Riktig. Du beholder de nyere forbedringene og lager en ny commit som viser rettelsen.',
           ],
           [
             'b',
@@ -377,7 +377,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
   {
     missionId: 'GIT-M02-O05',
     title: 'Rett feilen og behold senere arbeid',
-    goal: 'Gjøre en målrettet filrettelse, kontrollere diff og staging, opprette commit og verifisere hele sluttresultatet.',
+    goal: 'Rette én verdi, sjekke diff og staging area, lage en commit og se om resten er bevart.',
     skillId: 'GIT-M02-CORRECT',
     flow: [
       text(
@@ -452,7 +452,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
       ),
       report(
         'GIT-M02-E09',
-        'Hva undersøkte du, hvilken commit eller fil viste den feilaktige endringen, hvorfor rettet du akkurat den verdien, og hvordan kontrollerte du at senere arbeid ble bevart? Oppgi også hvis du ikke fikk gjennomført hele øvingen. Ingen private filstier eller sensitive opplysninger.',
+        'Fortell kort:\n\n- Hvor fant du feilen?\n- Hva rettet du, og hvorfor?\n- Hvordan sjekket du at de nyere endringene ble beholdt?\n\nDu kan også fortelle hvor du stoppet. Ikke ta med private opplysninger.',
       ),
     ],
   },
@@ -499,13 +499,13 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
         [
           [
             'a',
-            'Undersøk hva endringen faktisk gjorde, avklar kravet med relevante personer og utsett kodeendring til du har et begrunnet valg.',
+            'Undersøk hva som ble endret. Spør hva som gjelder før du endrer koden.',
             true,
             'Riktig. Du bruker Git til å finne fakta om endringen, men antar ikke at en kort melding eller et symptom avgjør kravspørsmålet.',
           ],
           [
             'b',
-            'Commit-meldingen er bevis for at dagens oppførsel er feil.',
+            'Commit-meldingen viser at dagens oppførsel er feil.',
             false,
             'En commit-melding er et hint om intensjonen bak arbeidet. Den kan være ufullstendig eller misvisende.',
           ],

@@ -80,7 +80,7 @@ export const gitM03Lessons = [
   {
     missionId: 'GIT-M03-O01',
     title: 'Hvorfor arbeide med branches?',
-    goal: 'Forstå ulike utviklingslinjer og begrensningene ved branching før du endrer et prosjekt.',
+    goal: 'Forstå hvordan du kan bruke branches til å jobbe med flere endringer samtidig.',
     skillId: 'GIT-M03-BRANCH-CONCEPT',
     flow: [
       text(
@@ -104,7 +104,7 @@ export const gitM03Lessons = [
         [
           [
             'a',
-            'Du kan registrere sammenhengende funksjonsendringer på en egen utviklingslinje før de samles med main.',
+            'Du kan jobbe med en ny funksjon på en egen branch før du merger den inn i main.',
             true,
             'Riktig. Branch-navnet peker på sin egen commit-historikk. Senere kan du vurdere hvordan endringene skal samles.',
           ],
@@ -153,14 +153,14 @@ export const gitM03Lessons = [
   {
     missionId: 'GIT-M03-O02',
     title: 'Lag en trygg branch i en egen mappe',
-    goal: 'Opprette et isolert repository og undersøke hvordan branches opprettes og vises.',
+    goal: 'Lage et øvingsrepo og se hvordan Git oppretter og viser branches.',
     skillId: 'GIT-M03-SETUP',
     flow: [
       text(
         'Her er det `git branch`, `git switch`, `git merge`, `git status` og `git diff` som er Git-ferdighetene. PowerShell-delen rundt kommandoene sjekker mappen og at det ikke finnes uventet arbeid. En «STOPP» betyr at du skal undersøke tilstanden, ikke fjerne filer for å få kontrollen grønn. Etter en pause finner du tilbake til samme M03-mappe og undersøker aktiv branch og status før du fortsetter.',
       ),
       text(
-        'Vi lager `ProgressPal-Git-M03` i Dokumenter, med en liten oppdiktet HTML-side, en README og en meldingsfil. Bruk Windows PowerShell 5.1 og Git 2.28+. Dette er en **ny** mappe, ikke M01/M02-mappen eller et av dine egne prosjekter. Kommandoen nekter å bruke et navn som allerede finnes.',
+        'Vi lager `ProgressPal-Git-M03` i Dokumenter, med en liten oppdiktet HTML-side, en README og en meldingsfil. Bruk Windows PowerShell 5.1 og Git 2.28+. Dette er en **ny** mappe, ikke M01/M02-mappen eller et prosjekt du allerede har. Kommandoen nekter å bruke et navn som allerede finnes.',
       ),
       command(
         'Opprett en separat M03-øving',
@@ -215,7 +215,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
       ),
       report(
         'GIT-M03-E04',
-        'Fikk du opprettet en separat mappe og branch? Hva viste branch --list, og var status ren? Beskriv også om noe stoppet eller du trengte hjelp. Ikke lim inn private stier eller andre sensitive opplysninger.',
+        'Hva fikk du til?\n\n- Fikk du laget en øvingsmappe og branch?\n- Hva viste `git branch --list` og `git status`?\n- Var det noe du trengte hjelp med?\n\nIkke ta med private filstier eller opplysninger.',
       ),
     ],
   },
@@ -229,7 +229,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Når du fortsetter M03 etter en pause, finn `ProgressPal-Git-M03`-mappen og kontroller aktiv branch med `git branch --show-current` samt arbeidsstatus med `git status`. Arbeid videre på den branchen forrige steg brukte; en ny terminal bytter ikke automatisk Git-branch. Opprett ikke samme branch eller commit på nytt uten å undersøke historikken.',
       ),
       text(
-        'Du skal legge til en tydelig bekreftelse på påmeldingssiden. Fordi du står på `feature/kvittering`, kan du lage en ny commit uten at `main` flytter seg. **Arbeidsfilene** i øvingsmappen oppdateres når du bytter gren; dette er ikke to uavhengige mapper.',
+        'Du skal legge til en tydelig bekreftelse på påmeldingssiden. Fordi du står på `feature/kvittering`, kan du lage en ny commit uten at `main` flytter seg. **Arbeidsfilene** i øvingsmappen oppdateres når du bytter branch. Du har fortsatt bare én arbeidsmappe.',
       ),
       command(
         'Rediger HTML på feature-branchen',
@@ -264,7 +264,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         [
           [
             'a',
-            'Main peker fortsatt på sin egen commit. Feature-committen er ikke integrert der ennå.',
+            'Main peker fortsatt på sin tidligere commit. Endringen ligger på feature-branchen.',
             true,
             'Riktig. Du har laget en ny commit på feature-branchen, men main flyttes ikke før du aktivt integrerer endringene.',
           ],
@@ -292,7 +292,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
     skillId: 'GIT-M03-MERGE',
     flow: [
       text(
-        '`main` skal nå få en nyttig oppdatering av prosjektbeskrivelsen, mens den separate feature-branchen allerede har den nye bekreftelseslinjen. Når begge branches har nye commits etter sitt felles utgangspunkt, sier vi at historikkene har **skilt lag** (divergert). Da kan Git prøve å samle endringene med `merge`.',
+        '`main` skal nå få en nyttig oppdatering av prosjektbeskrivelsen, mens den separate feature-branchen allerede har den nye bekreftelseslinjen. Når begge branches får egne commits etter samme utgangspunkt, har historikkene **skilt lag** (divergert).\n\n```\n          B (main)\n         /\nA -------\n         \\\n          C (feature)\n```\n\n`git merge` kan samle endringene fra B og C i en ny commit.',
       ),
       command(
         'Legg til hjelpetekst på main',
@@ -345,11 +345,11 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
       ),
       question(
         'GIT-M03-E07',
-        'Git svarte at mergebearbeidet lyktes, og status er tom. Hva er fortsatt viktig å gjøre?',
+        'Git har merget uten konflikt, og `git status --short` er tom. Hva bør du sjekke nå?',
         [
           [
             'a',
-            'Kontrollere at både endringene og den forventede funksjonaliteten faktisk er riktige.',
+            'Sjekke at begge endringene er med, og at programmet virker som det skal.',
             true,
             'Riktig. Git kan forene filinnhold uten å vite om løsningen følger krav, fungerer i nettleseren eller består tester.',
           ],
@@ -408,7 +408,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
       ),
       command(
         'Løs konflikten gjennom redigering',
-        'Åpne `messages.txt` i Notisblokk og erstatt **hele konfliktområdet**, inkludert markørene, med én linje: `Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.` Lagre og lukk. Nå kombinerer du den nyttige betydningen fra begge versjonene.',
+        '1. Åpne `messages.txt` i Notisblokk.\n2. Erstatt **hele konfliktområdet**, inkludert konfliktmarkørene, med én linje: `Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.`\n3. Lagre og lukk Notisblokk.\n\nNå har du beholdt den nyttige informasjonen fra begge versjonene.',
         `${stay}\nif (-not (Test-Path -LiteralPath (Join-Path (Join-Path $practiceRoot '.git') 'MERGE_HEAD'))) { throw 'STOPP: Forventet merge er ikke aktiv.' }\nnotepad.exe (Join-Path $practiceRoot 'messages.txt')`,
         'Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.',
       ),
@@ -454,7 +454,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
             'a',
             'Undersøk forslagene, skriv ønsket sluttinnhold uten konfliktmarkører, stage filen og commit merge.',
             true,
-            'Riktig. Du tar et innholdsvalg som både er faglig begrunnet og registrert i Git-historikken.',
+            'Riktig. Du velger teksten som skal beholdes, og lagrer løsningen i Git-historikken.',
           ],
           [
             'b',
@@ -495,13 +495,13 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         [
           [
             'a',
-            'Det var ingen tekstkonflikt, men resultatet har en funksjonell uoverensstemmelse som må undersøkes mot kravet.',
+            'Git fant ingen tekstkonflikt, men programmet viser to ulike tall. Sjekk hvilket tall som er riktig.',
             true,
             'Riktig. Git kan sette sammen filer som teknisk sett ikke kolliderer, selv om produktets atferd og tekst blir inkonsistent.',
           ],
           [
             'b',
-            'Git må ha tatt feil; en vellykket merge skal også verifisere brukerkrav og UI-tekst.',
+            'Git må ha gjort en feil. En vellykket merge skal også sjekke at teksten på siden er riktig.',
             false,
             'Git foretar ikke produkt- eller funksjonstester. Det er utviklernes ansvar å undersøke resultatet.',
           ],
@@ -534,7 +534,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
             'c',
             'Velg alltid teksten fra main fordi main ikke kan inneholde feil.',
             false,
-            'Main er en navngitt utviklingslinje, ikke et kvalitetsstempel. Innholdet må vurderes på egne premisser.',
+            'Main er bare navnet på en branch. Også der kan det ligge feil.',
           ],
         ],
         'Hvorfor kan ikke Git velge mellom to gyldige, men forskjellige kravtolkninger?',

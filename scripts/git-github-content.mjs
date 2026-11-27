@@ -125,11 +125,11 @@ function buildModule(
         feedback: {
           correct:
             type === 'evidence'
-              ? 'Teksten inneholder bare plan.txt. Det passer med utvalget oppgaven ber om; kjøring og filinnhold er ikke bekreftet.'
+              ? 'Bare plan.txt står på listen. Det er riktig.'
               : 'Svaret passer med situasjonen som er beskrevet.',
           incorrect:
             type === 'evidence'
-              ? 'Teksten skal bare inneholde filnavnlisten med plan.txt. Undersøk utvalget og kopier bare utskriften fra riktig kommando.'
+              ? 'Sjekk staging area igjen. Listen skal bare inneholde plan.txt.'
               : 'Les forklaringen til valget og prøv igjen.',
         },
         hints: block.hints ?? [],

@@ -6,7 +6,7 @@
   "evaluatorContractVersion": 1,
   "language": "nb",
   "technicalLanguage": "en",
-  "sourceSha256": "746adb70c197ef52a4ad4936cf725d7b548484008284961cdbc720d07fd43d0e",
+  "sourceSha256": "af888e914b0a1cc4e0f16d63345de8f33a533943d147651f1aa37f7197f1b16f",
   "modules": [
     {
       "moduleId": "GIT-M01",
@@ -605,45 +605,45 @@
   ],
   "assets": {
     "index": {
-      "path": "content/git-github/index.d3dc8114d043b9bc.json",
-      "sha256": "d3dc8114d043b9bc44a28d6ced6588a485d036084422fbba51462c567b455814",
-      "bytes": 102588
+      "path": "content/git-github/index.155414bebdc1e133.json",
+      "sha256": "155414bebdc1e1330a26d33c3b8e9d73d7350ef76afa04eed986ba52f2fdbf3d",
+      "bytes": 102388
     },
     "modules": {
       "GIT-M01": {
-        "path": "content/git-github/git-m01.76c833cdd9436592.json",
-        "sha256": "76c833cdd9436592c8cacd1a4f093b8a222e0ec136edfaf409af033769f9cc18",
-        "bytes": 43046
+        "path": "content/git-github/git-m01.e191a51252a00e35.json",
+        "sha256": "e191a51252a00e355d3d8dc270ab8931ff29fd1f6f08facd72a6a6f4920f54f5",
+        "bytes": 42013
       },
       "GIT-M02": {
-        "path": "content/git-github/git-m02.60663086f1027aa3.json",
-        "sha256": "60663086f1027aa32ef9c3c8ba31f39fb05f2f47f30c3eebd97a137861420235",
-        "bytes": 37701
+        "path": "content/git-github/git-m02.f72f1d1ec9110230.json",
+        "sha256": "f72f1d1ec9110230130ef0feebb431bab4822026a8c375511bd1214d31a297c9",
+        "bytes": 37175
       },
       "GIT-M03": {
-        "path": "content/git-github/git-m03.0559386987ec1cd1.json",
-        "sha256": "0559386987ec1cd184a60fd8e6fc20def061a1f100506b25abe79bb9f97b61e4",
+        "path": "content/git-github/git-m03.2bcd1df1bc35eed6.json",
+        "sha256": "2bcd1df1bc35eed667e4e347e23c1c82c3957686be846bfb9448512aa9e54b87",
         "bytes": 51084
       },
       "GIT-M04": {
-        "path": "content/git-github/git-m04.f387b9c0b1d48a65.json",
-        "sha256": "f387b9c0b1d48a6567c9a6ad80777bbfb9da1e3c3ec0a81c3eec18678a4bf7f1",
-        "bytes": 84396
+        "path": "content/git-github/git-m04.38f56f471eeafa6c.json",
+        "sha256": "38f56f471eeafa6c51dea505eb61b1d84bb0002221d32686fa844fa562ab1428",
+        "bytes": 83542
       },
       "GIT-M05": {
-        "path": "content/git-github/git-m05.a6e87f5315584d1b.json",
-        "sha256": "a6e87f5315584d1bba9374368d6b63b8a0c36d61064ca3f9ef2b474fff04ecd2",
-        "bytes": 66032
+        "path": "content/git-github/git-m05.8bb6183c0b013076.json",
+        "sha256": "8bb6183c0b013076f71f2d779d50e41363e5771d7ff574de21349b46f56ada31",
+        "bytes": 65197
       },
       "GIT-M06": {
-        "path": "content/git-github/git-m06.615208691d56169f.json",
-        "sha256": "615208691d56169fea6805a37e538753fe79d4ce34df86a9df7ae0eea1720874",
-        "bytes": 57002
+        "path": "content/git-github/git-m06.ec4f7bd68e62aea0.json",
+        "sha256": "ec4f7bd68e62aea0bfddcf205cfd881476758770c8c90d85995ad78cdc126327",
+        "bytes": 56925
       },
       "GIT-M07": {
-        "path": "content/git-github/git-m07.f63bfb1ef07b7d1c.json",
-        "sha256": "f63bfb1ef07b7d1c26e38832e7217d590a5a42d7286e62e4e1741ef14435ddca",
-        "bytes": 94488
+        "path": "content/git-github/git-m07.b9cd8aef4be034ec.json",
+        "sha256": "b9cd8aef4be034ec4bb5245459cae805592896f288db63858deccd208e0684ba",
+        "bytes": 93890
       }
     }
   }

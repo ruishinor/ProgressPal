@@ -314,11 +314,11 @@ export const gitM04Lessons = [
   {
     missionId: 'GIT-M04-O01',
     title: 'Hvorfor dele et Git-prosjekt?',
-    goal: 'Forstå hva en remote løser, hva GitHub tilfører og hva som fortsatt er lokalt.',
+    goal: 'Forstå hva en remote er, hvordan GitHub brukes, og hva som blir på maskinen din.',
     skillId: 'GIT-M04-WHY-REMOTE',
     flow: [
       text(
-        'Du lærer forskjellen på `clone`, `fetch`, `pull` og `push` ved å dele historie gjennom en *lokal* remote. Den heter «remote» fordi den er en annen Git-plassering, ikke fordi den ligger på GitHub. PowerShell-koden kontrollerer at bare øvingskopiene brukes; `git.exe` er selve Git-kommandoen. Se hvilken branch og remote du arbeider mot før du deler noe. Ved en pause: behold mappene, åpne samme øving igjen og undersøk status før neste blokk.',
+        'Du lærer `clone`, `fetch`, `pull` og `push` med en lokal remote. En **remote** er en annen plassering for Git-historikken. Den trenger ikke ligge på GitHub.\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
       ),
       text(
         '### Når flere trenger den samme historikken\n\nI M03 arbeidet du med branches og merge i et lite prosjekt for en påmeldingsside. Forestill deg nå at du skal arbeide videre hjemme, mens en medstudent gjør en endring på skolen. Dere trenger begge tilgang til prosjektets commits. Å lagre en fil på hver maskin gir ikke automatisk den andre maskinen oppdatert Git-historikk.',
@@ -355,7 +355,7 @@ export const gitM04Lessons = [
             'c',
             'At origin/main på medstudentens PC allerede viser rettelsen fordi origin er konfigurert.',
             false,
-            'Origin/main er medstudentens sist kjente tilstand for den eksterne branchen. Den oppdateres ikke kontinuerlig over nett.',
+            '`origin/main` viser det medstudentens Git sist fikk vite om main på remote. Den oppdateres ikke av seg selv.',
           ],
         ],
         'Hva er det som faktisk flytter Git-historikk mellom repositoryer?',
@@ -394,7 +394,7 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-REMOTE-SETUP',
     flow: [
       text(
-        'Du lærer forskjellen på `clone`, `fetch`, `pull` og `push` ved å dele historie gjennom en *lokal* remote. Den heter «remote» fordi den er en annen Git-plassering, ikke fordi den ligger på GitHub. PowerShell-koden kontrollerer at bare øvingskopiene brukes; `git.exe` er selve Git-kommandoen. Se hvilken branch og remote du arbeider mot før du deler noe. Ved en pause: behold mappene, åpne samme øving igjen og undersøk status før neste blokk.',
+        'Du lærer `clone`, `fetch`, `pull` og `push` med en lokal remote. En **remote** er en annen plassering for Git-historikken. Den trenger ikke ligge på GitHub.\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
       ),
       text(
         '### Tre mapper med hver sin rolle\n\nVi lager et nytt eksempel på kurssiden fra M03, ikke en kopi av dine gamle øvingsfiler. I `ProgressPal-Git-M04` kommer `arbeidskopi-A` til å inneholde nettsidens filer og commit-historikk. `delt-repo.git` blir et **bare repository**: det lagrer Git-objekter og referanser, men har ikke en vanlig mappe der du redigerer nettsiden. Senere lager vi `arbeidskopi-B` ved å klone det delte repositoryet.',
@@ -505,7 +505,7 @@ export const gitM04Lessons = [
       ),
       question(
         'GIT-M04-E06',
-        'B er nyklonet. A lager deretter en commit uten å sende den. Begge viser fortsatt `main`. Hvilken påstand er riktig?',
+        'B er nyklonet. A lager deretter en commit uten å sende den. Begge viser fortsatt `main`. Hva skjer?',
         [
           [
             'a',
@@ -602,7 +602,7 @@ export const gitM04Lessons = [
         'main -> main\n## main...origin/main',
       ),
       text(
-        '### Fetch er å hente informasjon, ikke å ta endringen i bruk\n\nI A kan du nå kjøre `git fetch origin`. Git henter nye objekter og oppdaterer blant annet `origin/main`. Men A sin **lokale `main`** og filen `messages.txt` blir stående. Du kan dermed lese commit-historikk og sammenligne filene før du bestemmer om endringen skal integreres. Dette er nyttig når du vil undersøke en kollegas arbeid før det påvirker filene du bruker.',
+        '### Fetch: hent historikken uten å endre filene\n\nKjør `git fetch origin` i A.\n\n- **Remote:** B sin nye commit er tilgjengelig.\n- **`origin/main` i A:** Oppdateres til den nye commiten.\n- **Lokal `main` i A:** Blir stående på den gamle commiten.\n- **`messages.txt` i A:** Har fortsatt den gamle teksten.\n\nNå kan du undersøke endringen før du tar den inn i arbeidsfilene.',
       ),
       command(
         'Hent til A uten å endre arbeidsfilene',
@@ -618,7 +618,7 @@ export const gitM04Lessons = [
             'a',
             'Ja. Fetch skal alltid oppdatere arbeidsfilene; statusen tyder på ødelagt repo.',
             false,
-            'Fetch laster ned historie og oppdaterer remote-tracking-referanser. Den er ikke ment å integrere endringen i lokal main.',
+            '`git fetch` henter historikk og oppdaterer for eksempel `origin/main`. Lokal `main` og arbeidsfilene endres ikke.',
           ],
           [
             'b',
@@ -637,7 +637,7 @@ export const gitM04Lessons = [
       ),
       reflection(
         'GIT-M04-E10',
-        'Forklar hva som var ulikt mellom `main` og `origin/main` i A etter fetch. Ta med én konkret observasjon fra status, logg eller diff og hvorfor filen fremdeles hadde den gamle teksten.',
+        'Forklar med egne ord:\n\n- Hva var forskjellen på `main` og `origin/main` i A etter fetch?\n- Hva viste status, logg eller diff?\n- Hvorfor hadde filen fortsatt den gamle teksten?',
       ),
     ],
   },
@@ -648,7 +648,7 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-PULL-FF',
     flow: [
       text(
-        '### Fra informasjon til oppdatert arbeidsfil\n\nA har nå lest hva B endret. Ingen nye commits er laget i A siden den delte startcommiten. Derfor ligger A sin `main` **bak** `origin/main`, men de to linjene har ikke gått hver sin vei. Git kan flytte A sin branch fram til den nyere commiten uten å lage en egen merge-commit. Det kalles **fast-forward**.',
+        '### Pull: få endringen inn i arbeidsfilene\n\nA har hentet historikken, men har ikke laget noen egne commits siden A og B hadde samme versjon.\n\n```\nA --- B\n^     ^\nmain  origin/main\n```\n\nGit kan flytte `main` fram til B uten en ny merge commit. Det kalles **fast-forward**. Da får A også den nye teksten i arbeidsfilene.',
       ),
       text(
         '`git pull` består av å hente fra en remote og deretter forsøke å integrere endringene i den aktive lokale branchen. Vi velger `git pull --ff-only origin main`, som bare tillater integrering dersom det kan gjøres som fast-forward. Hvis både A og mottakeren har forskjellige nye commits, stopper kommandoen. Den bestemmer ikke på dine vegne hvordan historikkene skal samles.',
@@ -682,7 +682,7 @@ export const gitM04Lessons = [
             'Fetch henter historie og oppdaterer den sporede referansen. A har allerede gjort det; arbeidsfilene endres ikke av fetch alene.',
           ],
         ],
-        'Hva trenger du nå: mer informasjon, publisering eller integrering?',
+        'Vil du bare hente historikk, sende commits eller få endringene inn i arbeidsfilene?',
       ),
       question(
         'GIT-M04-E12',
@@ -692,7 +692,7 @@ export const gitM04Lessons = [
             'a',
             'At Git ikke kunne integrere ved bare å flytte branchen fram; du må undersøke historikk og lokale endringer før du velger metode.',
             true,
-            'Riktig. Meldingen alene sier ikke at en bestemt commit er feil eller skal slettes. Det kan være divergens som krever en bevisst integrering.',
+            'Riktig. Meldingen alene sier ikke at en bestemt commit er feil eller skal slettes. Branchene kan ha hver sin nye commit. Undersøk historikken før du merger.',
           ],
           [
             'b',
@@ -746,7 +746,7 @@ export const gitM04Lessons = [
             'b',
             'En automatisk merge på mottakeren som kombinerer A og B uten spørsmål.',
             false,
-            'En vanlig push oppretter ikke automatisk merge mellom divergerte branches. Arbeidet må først integreres på egnet måte.',
+            'En vanlig push merger ikke to branches som har hver sin nye commit. Du må først samle endringene på en måte som bevarer arbeidet.',
           ],
           [
             'c',
@@ -781,9 +781,9 @@ export const gitM04Lessons = [
           ],
           [
             'b',
-            'Bevar begge commits, undersøk endringene og velg en bevisst integrering; ikke tving mottakeren til å forkaste A.',
+            'Behold begge commits. Undersøk endringene og velg hvordan de skal samles uten å miste arbeidet i A.',
             true,
-            'Riktig. Først må begge utviklingslinjene forstås. At filene er forskjellige gjør integrering mer oversiktlig, men opphever ikke divergensen.',
+            'Riktig. Først må begge utviklingslinjene forstås. Selv om de endret ulike filer, har begge branches fått egne commits.',
           ],
           [
             'c',
@@ -807,7 +807,7 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-GITHUB-TRANSFER',
     flow: [
       text(
-        '### Det som er likt – og det som forandrer seg\n\nI øvingen var adressen til `origin` en mappe på din egen datamaskin. Hvis et remote i stedet peker til GitHub, bruker Git fortsatt de samme grunnleggende handlingene: `clone` for å lage en ny arbeidskopi, `fetch` for å hente historikk, `pull` for å hente og integrere og `push` for å foreslå en oppdatering av mottakerens branch. Forskjellen er at du nå trenger nett og riktig tilgang til et repository som noen eier og administrerer.',
+        '### Det som er likt – og det som forandrer seg\n\nI øvingen pekte `origin` til en mappe på datamaskinen din. Hvis et remote i stedet peker til GitHub, bruker Git fortsatt de samme grunnleggende handlingene: `clone` for å lage en ny arbeidskopi, `fetch` for å hente historikk, `pull` for å hente og integrere og `push` for å foreslå en oppdatering av mottakerens branch. Forskjellen er at du nå trenger nett og riktig tilgang til et repository som noen eier og administrerer.',
       ),
       text(
         'På GitHub kan et repository være **public** eller **private**. Public gjør normalt innholdet lesbart for alle. Private begrenser hvem som kan lese det. Ingen av valgene betyr at alle kan skrive til `main`: rettigheter og branch-regler kan begrense push. Før du deler et prosjekt, må du vite både **hvem som kan lese det** og **hvem som kan gjøre endringer**. GitHub, GitLab og Bitbucket tilbyr ulike administrasjons- og samarbeidsfunksjoner; Git-mekanismene er i stor grad felles.',
@@ -816,10 +816,10 @@ export const gitM04Lessons = [
         '### Forfatteridentitet er ikke innlogging\n\n`git config user.name` og `user.email` legger forfatteropplysninger på commits. De gir ikke adgang til GitHub. Ved HTTPS kan Git Credential Manager hjelpe med innlogging og trygg håndtering av legitimasjon. Med SSH kan en egen nøkkel brukes: den **offentlige** delen registreres hos tjenesten, mens den **private** nøkkelen ikke deles. GitHub CLI er et annet mulig oppsett. Vanlige kontopassord brukes ikke som Git-passord over HTTPS. Aktiver kontoens støttede tofaktorautentisering, og følg tjenestens aktuelle veiledning når du setter opp tilgang.',
       ),
       text(
-        '### Valgfri øving med ekte GitHub\n\nDu trenger ikke en konto for å fullføre M04. Hvis du vil prøve samme arbeidsflyt på nettet, opprett et **nytt, tomt repository** under din egen GitHub-konto og velg synlighet bevisst. Bruk bare de syntetiske filene fra arbeidskopi A. Unngå å opprette README eller andre startfiler på GitHub i dette eksemplet, ellers kan mottakeren ha en uavhengig første commit. Legg til GitHub-adressen som et **nytt remote med et annet navn**, for eksempel `github-oving`, i A etter at du har kontrollert hvilken URL du kopierte fra GitHub. Da kan den lokale `origin` fra øvingen få være urørt. En vanlig `git push github-oving main` er en faktisk publisering til kontoen du oppga; gjennomfør den bare hvis du ønsker det. GitHub viser den mottatte commit-historikken i nettgrensesnittet. Bruk ikke skolens, arbeidsgiverens eller andres repository uten avtale.',
+        '### Vil du prøve GitHub på nettet?\n\nDette er valgfritt. Du trenger ikke en konto for å fullføre M04.\n\nBruk bare øvingsfilene fra arbeidskopi A. Vi bruker en ny remote kalt `github-oving` slik at den lokale `origin` blir værende. `git push github-oving main` sender commits til repositoryet på GitHub. Gjør det bare hvis du vil dele dem. GitHub viser den mottatte commit-historikken i nettgrensesnittet. Bruk ikke skolens, arbeidsgiverens eller andres repository uten avtale.',
       ),
       text(
-        '### Valgfri øving med en ekte GitHub-remote\n\nPå GitHub: Velg *New repository*, gi det et nytt navn og velg synlighet bevisst. La repositoryet være helt tomt (ikke lag en automatisk README eller annen første commit). Kopier HTTPS-adressen fra GitHub. Den skal være til et nytt repository **du selv kontrollerer**, ikke skoleprosjekter eller andres arbeid. Du kan også nøye deg med den lokale øvingen; dette er ikke et krav for fullføring.',
+        '### Opprett repoet på GitHub\n\n1. Velg *New repository* og gi repoet et nytt navn.\n2. Velg hvem som skal kunne se det (public eller private).\n3. La repoet være tomt. Ikke legg til README eller andre startfiler.\n4. Kopier HTTPS-adressen til repoet du selv kontrollerer.\n\nIkke bruk skoleprosjekter eller andres repoer i øvingen.',
       ),
       command(
         'Valgfritt: legg GitHub til som en egen adresse',
@@ -837,7 +837,7 @@ export const gitM04Lessons = [
         'Disse valgfrie kommandoene sender **bare** det som finnes i arbeidskopi A sin `main`. De sender ikke B sin separate, divergerte README-commit. Hvis GitHub avviser kommandoen, undersøk feilen i stedet for å bruke force. Ingen GitHub-innlogging, token eller publisering skjer gjennom ProgressPal.',
       ),
       note(
-        '**Sjekk før publisering:** Se på hvilke filer og historiske commits som skal deles. En API-nøkkel som ble committet tidligere, forsvinner ikke fra historikken om du legger filen i `.gitignore` nå. Private er ikke det samme som hemmelighetssanering. Hvis en reell nøkkel er eksponert, stopp delingen og tilbakekall/roter nøkkelen etter riktig rutine. Ikke lim inn tokens, private SSH-nøkler, sensitivt filinnhold eller personlige stier i ProgressPal.',
+        '**Sjekk før publisering:** Se på hvilke filer og historiske commits som skal deles. En API-nøkkel som ble committet tidligere, forsvinner ikke fra historikken om du legger filen i `.gitignore` nå. Et privat repo gjør ikke en lekket nøkkel trygg igjen. Hvis en ekte nøkkel er kommet på avveie, stopp delingen, deaktiver nøkkelen og opprett en ny etter gjeldende rutiner. Ikke lim inn tokens, private SSH-nøkler, sensitivt filinnhold eller personlige stier i ProgressPal.',
       ),
       text(
         'Du kan slå opp kommandoene i Gits offisielle dokumentasjon: `https://git-scm.com/docs/git-remote`, `https://git-scm.com/docs/git-clone`, `https://git-scm.com/docs/git-fetch`, `https://git-scm.com/docs/git-push` og `https://git-scm.com/docs/git-pull`. For konto, synlighet og innlogging: `https://docs.github.com/`. Den lokale øvingen er fullført uten disse nettjenestene.',
@@ -856,7 +856,7 @@ export const gitM04Lessons = [
             'b',
             'At Git mangler `user.email`, som gir tilgang til offentlig GitHub-kode.',
             false,
-            'Forfatteridentitet står i commits. Den autentiserer ikke kontoen og gir ingen serverrettigheter.',
+            'Navn og e-post står i commits. De logger deg ikke inn på GitHub og gir deg ikke skrivetilgang.',
           ],
           [
             'c',

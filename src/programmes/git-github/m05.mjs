@@ -246,7 +246,7 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-WORKFLOW',
     flow: [
       text(
-        'Øvingen bruker ekte lokal Git for endringer og gjennomgang, men simulerer et forslag om pull request; den oppretter ingen PR på GitHub. Se etter `git diff`, `fetch`, `merge` og `status` som Git-handlinger. PowerShell-linjene sjekker at du bruker de syntetiske arbeidskopiene, og nekter å overskrive en gammel mappe. Hvis du allerede har gjennomført et steg, undersøk branch, logg og arbeidsfiler i stedet for å kjøre hele oppsettet om igjen.',
+        'Du øver på ekte Git-kommandoer og gjennomgang av kode. Vi bruker et tenkt pull request-eksempel, ikke en PR på GitHub.\n\n- Se etter `git diff`, `fetch`, `merge` og `status` i kommandoboksene.\n- PowerShell passer på at bare øvingsmappene brukes.\n- Har du allerede gjort et steg, sjekk branch, logg og arbeidsfiler. Ikke kjør hele oppsettet på nytt.',
       ),
       text(
         '### Dette er nytt etter M04\n\nI M01–M04 lærte du å registrere, undersøke, samle og dele Git-historikk. Nå kan du sende commits til en remote. Men **deling er ikke det samme som å beslutte at endringen hører hjemme i hovedversjonen**. To utviklere arbeider på en enkel påmeldingsside. Den ene vil rette en feil i navnefeltet. Den andre må undersøke om rettelsen løser problemet uten å skape nye. Her lærer du samarbeidsprosessen rundt selve endringen, ikke bare nye Git-kommandoer.',
@@ -328,7 +328,7 @@ export const gitM05Lessons = [
           ],
           [
             'c',
-            'Et issue beskriver et problem eller arbeid; en PR presenterer et konkret forslag til integrering.',
+            'Et issue beskriver en oppgave eller et problem. En PR foreslår endringer som kan merges inn i en annen branch.',
             true,
             'Riktig. Oppgaven og forslaget kan knyttes sammen, men er ikke samme objekt.',
           ],
@@ -344,7 +344,7 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-LOCAL-SETUP',
     flow: [
       text(
-        'Øvingen bruker ekte lokal Git for endringer og gjennomgang, men simulerer et forslag om pull request; den oppretter ingen PR på GitHub. Se etter `git diff`, `fetch`, `merge` og `status` som Git-handlinger. PowerShell-linjene sjekker at du bruker de syntetiske arbeidskopiene, og nekter å overskrive en gammel mappe. Hvis du allerede har gjennomført et steg, undersøk branch, logg og arbeidsfiler i stedet for å kjøre hele oppsettet om igjen.',
+        'Du øver på ekte Git-kommandoer og gjennomgang av kode. Vi bruker et tenkt pull request-eksempel, ikke en PR på GitHub.\n\n- Se etter `git diff`, `fetch`, `merge` og `status` i kommandoboksene.\n- PowerShell passer på at bare øvingsmappene brukes.\n- Har du allerede gjort et steg, sjekk branch, logg og arbeidsfiler. Ikke kjør hele oppsettet på nytt.',
       ),
       text(
         '### Her skal du faktisk bruke Git\n\nVi fortsetter med en ufarlig påmeldingsløsning, men lager **en helt ny M05-mappe**. I `utvikler` lager du endringen. I `gjennomgang` skal du lese forslaget som en annen deltaker ville gjort. `felles.git` er en lokal *bare remote* uten vanlig arbeidskopi, akkurat som i prinsippet fra M04. Du trenger verken internett, GitHub-konto eller en annen person for obligatorisk M05.',
@@ -420,7 +420,7 @@ export const gitM05Lessons = [
         "Vis feil ved tomt navn\n+  if (navn === '') {\n+    return 'Skriv inn navn.';\n+  }",
       ),
       text(
-        '### En PR-visning på GitHub (undervisningseksempel, ikke faktisk Git-output)\n\n**Tittel:** Avvis ugyldig navn i påmelding. **Base branch:** `main` (målbranch). **Head branch:** `feature/valider-navn` (kildebranch). **Endrede filer:** `paamelding.js`. **Commits:** «Vis feil ved tomt navn». **Beskrivelse:** «Skal avvise tomt navn og bare mellomrom. Har lagt til en kontroll for tom streng. Har undersøkt den lokale diffen, men ikke testet tilfellet med bare mellomrom.»\n\nDette er en nyttig, ærlig beskrivelse fordi den skiller behov, faktisk endring, utførte kontroller og gjenstående usikkerhet. Den er **ikke en PR du opprettet**. Et forslag kan også starte som *draft* mens utvikleren fremdeles arbeider.',
+        '### En PR-visning på GitHub (undervisningseksempel, ikke faktisk Git-output)\n\n- **Tittel:** Avvis ugyldig navn i påmelding.\n- **Base branch:** `main` (branchen endringen skal inn i).\n- **Head branch:** `feature/valider-navn` (branchen med endringen).\n- **Endrede filer:** `paamelding.js`.\n- **Commits:** «Vis feil ved tomt navn».\n- **Beskrivelse:** «Skal avvise tomt navn og bare mellomrom. Har lagt til en kontroll for tom streng. Har undersøkt den lokale diffen, men ikke testet tilfellet med bare mellomrom.»\n\nBeskrivelsen forteller hva utvikleren har endret, hva som er sjekket, og hva som gjenstår. På GitHub kan du også åpne en *draft PR* mens du fortsatt jobber med endringen.',
       ),
       text(
         'En **pull request** er et GitHub-objekt for å foreslå å integrere endringer fra head til base. Du kan se commits, endrede filer, kommentarer, reviews, checks og merge-muligheter. Rekkefølgen betyr noe: `feature` → `main` er ikke det samme som `main` → `feature`. En PR er heller ikke Git-kommandoen `git pull`. Den kommandoen henter og integrerer Git-historikk i den lokale arbeidskopien.',
@@ -473,7 +473,7 @@ export const gitM05Lessons = [
             'Riktig. Skriv hva du faktisk vet og hva som er usikkert, slik at reviewer kan undersøke riktig risiko.',
           ],
         ],
-        'Skiller du mellom dokumentert observasjon og en udokumentert kvalitetspåstand?',
+        'Hva har utvikleren faktisk sjekket? Hva gjenstår?',
       ),
       question(
         'GIT-M05-E08',
@@ -540,7 +540,7 @@ export const gitM05Lessons = [
             'c',
             '«Den er pushet, så review er unødvendig.»',
             false,
-            'Push dokumenterer overføring av commits, ikke funksjonell korrekthet eller sikkerhet.',
+            'En push sender commits. Den tester ikke om koden virker eller er trygg.',
           ],
         ],
         'Kan en annen utvikler forstå og kontrollere påstanden?',
@@ -568,7 +568,7 @@ export const gitM05Lessons = [
             'Riktig. Skill påviste feil fra preferanser, og behandle begge på en profesjonell måte.',
           ],
         ],
-        'Hva er et krav, og hva er et faglig valg flere løsninger kan tilfredsstille?',
+        'Hva må løsningen gjøre, og hva kan utvikleren velge selv?',
       ),
       question(
         'GIT-M05-E11',
@@ -604,7 +604,7 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-REVISION',
     flow: [
       text(
-        '### Ta stilling før du endrer\n\nRevieweren har rett i at mellomrom ikke dekkes. Du endrer derfor valideringen til å avvise verdier som ikke er tekst og navn der `trim()` fjerner alt innholdet. `trim()` fjerner også ledende og avsluttende mellomrom fra vanlige navn i bekreftelsen. Før du velger løsningen, må du forstå at denne funksjonen behandler navn som tekst; i andre systemer kan input og regler være annerledes. En review-kommentar er et utgangspunkt for faglig vurdering, ikke en ordre om akkurat én kodeform.',
+        '### Ta stilling før du endrer\n\nRevieweren har rett i at mellomrom ikke dekkes. Du endrer derfor valideringen til å avvise verdier som ikke er tekst og navn der `trim()` fjerner alt innholdet. `trim()` fjerner også ledende og avsluttende mellomrom fra vanlige navn i bekreftelsen. Før du velger løsningen, må du forstå at denne funksjonen behandler navn som tekst; i andre systemer kan input og regler være annerledes. En review-kommentar peker på noe du bør undersøke. Den trenger ikke bestemme nøyaktig hvordan du skriver koden.',
       ),
       command(
         'Rett samme feature branch og push en ny commit',
@@ -632,7 +632,7 @@ export const gitM05Lessons = [
             'b',
             'Merke tråden løst før feilen er vurdert, fordi reviewerens ord ikke er bindende.',
             false,
-            'En saklig review krever at innvendingen undersøkes og relevante problemer håndteres.',
+            'Undersøk kommentaren. Rett problemet hvis det faktisk er en feil.',
           ],
           [
             'c',
@@ -656,13 +656,13 @@ export const gitM05Lessons = [
     skillId: 'GIT-M05-INTEGRATION',
     flow: [
       text(
-        '### Grønt betyr det kontrollen faktisk sjekket\n\nEn pull request kan ha automatiserte **status checks**. For eksempel kan et prosjekt bygge programmet, kjøre tester, kontrollere formatering, bruke statisk analyse og undersøke tilgjengelighet. En grønn kontroll betyr at akkurat den kontrollen bestod i den kjøringen. Den er ikke bevis på at alle brukerbehov er dekket eller at løsningen er sikker. En rød kontroll må undersøkes før man trekker konklusjoner: det kan være en faktisk feil, feil miljø eller et tidsavbrudd. Noen repositories krever bestemte checks før merge; andre har ikke slike krav.',
+        '### Status checks: hva betyr resultatet?\n\nEn PR kan ha automatiske kontroller som bygger programmet, kjører tester eller sjekker formatering, kode og tilgjengelighet.\n\n- **Passed (grønn):** Kontrollen bestod. Se hva den faktisk sjekket.\n- **Failed (rød):** Les feilmeldingen. Det kan være en kodefeil, feil oppsett eller en test som ikke rakk å bli ferdig.\n\nNoen repoer krever at bestemte kontroller består før merge. En grønn test sier ikke at hele programmet virker.',
       ),
       text(
         "En test som bare bruker den tomme strengen `''`, kunne vært grønn allerede etter første commit. Akseptkriteriene krever også `'   '` og vanlige navn. Menneskelig review kan oppdage manglende tilfeller, urimelige antakelser og utilsiktede endringer; automatiske kontroller kan oppdage gjentakbare feil i bestemte betingelser. Begge har begrensninger. En konfliktfri merge betyr heller ikke at funksjonaliteten er bevart.",
       ),
       text(
-        '### Hva skjer med commit-historikken ved merge?\n\n**Merge commit** beholder vanligvis feature-commitene som del av hovedhistorikken og lager en sammenslåingscommit med to foreldre. **Squash and merge** samler endringen i én ny commit på målbranchen; feature-commitene blir ikke del av hovedbranchens første-familie-historikk slik de var. **Rebase and merge** spiller av commitene oppå målbranchen som nye commits uten merge commit, vanligvis med nye hashverdier. Ingen av metodene gjør koden automatisk korrekt. Teamet velger ofte policy for en forståelig historikk. Du trenger ikke kunne interaktiv rebase i M05.',
+        '### Hva skjer med commit-historikken ved merge?\n\n- **Merge commit** beholder feature-commitene i historikken og lager en ny merge commit med to foreldre.\n- **Squash and merge** samler endringen i én ny commit på målbranchen. De opprinnelige feature-commitene blir ikke med som egne commits i målbranchens historikk.\n- **Rebase and merge** legger commitene på toppen av målbranchen som nye commits uten merge commit, vanligvis med nye hashverdier.\n\n Ingen av metodene gjør koden automatisk korrekt. Teamet velger ofte policy for en forståelig historikk. Du trenger ikke kunne interaktiv rebase i M05.',
       ),
       text(
         'GitHub kan blokkere merge på grunn av uavklart konflikt, obligatoriske status checks, reviewregler eller manglende rettighet. En godkjenning gir ikke nødvendigvis mergetillatelse. Her integrerer du **bare lokalt** etter å ha undersøkt kravet og den korrigerte diffen. Du spiller både utvikler og reviewer, så dette er ikke uavhengig menneskelig review. En ekte GitHub-policy håndheves heller ikke i den lokale øvingen.',
@@ -772,7 +772,7 @@ export const gitM05Lessons = [
         '### Frivillig spor: en ekte GitHub-PR\n\nHvis du har GitHub-konto og ønsker plattformpraksis, opprett manuelt et **eget, syntetisk øvingsrepository**. Velg privat synlighet dersom innholdet ikke skal være offentlig, og sjekk innstillingene før publisering. Sørg for at nødvendig autentisering er på plass. Lag `main`, en feature branch og en commit; push feature-branchen. I GitHub velger du å opprette PR, kontrollerer riktig base og head, skriver kort behov, endring, utførte kontroller og usikkerhet, og bruker eventuelt draft. Undersøk Conversation, Commits, Checks og Files changed. Legg så til en ny commit på samme branch og se hvordan PR-en endres. Merge bare hvis rettigheter og regler tillater det. ProgressPal gjør ingen av disse nettoperasjonene for deg.',
       ),
       note(
-        'Det frivillige sporet er ikke nødvendig for fullføring. Din egen PR kan vise den reelle GitHub-mekanismen, men den dokumenterer ikke en uavhengig review av en annen person. Ikke bruk personopplysninger, private repositories du ikke eier, eller tokens i øvingen.',
+        'GitHub-øvingen er valgfri. Ikke bruk personopplysninger, tokens eller repoer du ikke har tillatelse til å bruke.',
       ),
       question(
         'GIT-M05-E17',
@@ -782,7 +782,7 @@ export const gitM05Lessons = [
             'a',
             'Be om eierens private tilgangstoken og push direkte til main.',
             false,
-            'Ikke del autentiseringshemmeligheter. Bruk ordinære rettigheter og bidragsflyt.',
+            'Ikke del passord eller tilgangstokener. Bruk din egen konto og de rettighetene du har.',
           ],
           [
             'b',
@@ -807,7 +807,7 @@ export const gitM05Lessons = [
             'a',
             'Undersøke de faktiske endringene og risikoen før noen kjører eller merger ukjent kode.',
             true,
-            'Riktig. PR-beskrivelsen er en påstand; diff og konsekvenser må undersøkes.',
+            'Riktig. Les hva koden faktisk endrer, ikke bare tittelen på PR-en.',
           ],
           [
             'b',
@@ -819,35 +819,35 @@ export const gitM05Lessons = [
             'c',
             'Kalle den trygg fordi den kommer fra en privat feature branch.',
             false,
-            'En branch har ingen garanti for konfidensialitet eller ufarlig innhold.',
+            'En branch kan inneholde hemmeligheter eller skadelig kode, selv om navnet virker uskyldig.',
           ],
         ],
         'Hva er det faktisk sendt inn, og hvilke rettigheter ville kjøring gitt?',
       ),
       question(
         'GIT-M05-E19',
-        'Hva kan en egen PR i et privat syntetisk øvingsrepository dokumentere?',
+        'Hva lærer du av å opprette en PR i et eget øvingsrepo?',
         [
           [
             'a',
-            'At en ekstern fagperson har reviewet og godkjent løsningen.',
+            'At en annen utvikler har godkjent koden.',
             false,
-            'Du kan ikke slutte at uavhengig review har skjedd når du er eneste deltaker.',
+            'Når du øver alene, har ikke en annen utvikler nødvendigvis sett på koden.',
           ],
           [
             'b',
-            'At ProgressPal har verifisert GitHub-kontoen og alle commits.',
+            'At GitHub automatisk har testet alle endringene.',
             false,
-            'ProgressPal har ingen slik ekstern verifikasjon og bruker lokale egenrapporter.',
+            'GitHub kjører bare de kontrollene som er satt opp for prosjektet.',
           ],
           [
             'c',
-            'At du har brukt GitHubs PR-mekanisme, men ikke nødvendigvis fått uavhengig review.',
+            'Hvordan du foreslår en endring og leser diffen i en PR.',
             true,
-            'Riktig. Plattformpraksis og uavhengig faglig vurdering er forskjellige ting.',
+            'Riktig. Du kan øve på å opprette og lese en PR selv.',
           ],
         ],
-        'Hva kan en enkelt deltaker faktisk observere uten hjelp fra andre?',
+        'Hvilke deler av en PR kan du prøve selv?',
       ),
     ],
   },
@@ -861,11 +861,11 @@ export const gitM05Lessons = [
         '### Et nytt problem\n\nTeamet arbeider nå med kursplasser. Et issue sier: «Når kurset er fullt, skal siden vise `Fullt`, og nye påmeldinger skal avvises. Når det finnes plasser, skal påmelding virke.» En utvikler lager en feature branch og en PR mot `main`. Diffen viser at teksten på siden er endret til `Fullt`, men registreringsfunksjonen mangler fortsatt kapasitetskontroll. En byggekontroll er grønn. Nettlesertesten er rød med meldingen «timeout while starting browser». En reviewer skriver: «Visningen ser riktig ut, men nye påmeldinger blir fortsatt akseptert når kurset er fullt.» Ingen formell approval finnes.',
       ),
       text(
-        'Denne oppgaven skal du ikke løse ved å kopiere kommandoene fra forrige leksjon. Finn først ut om behov og avgrensning er tydelige, hva PR-en faktisk foreslår, hvordan du undersøker diff og kontroller, hvilken del av reviewen som er et konkret funn, og om merge må vente. En timeout er verken automatisk en produktfeil eller noe du kan ignorere uten undersøkelse. Når endringen er integrert, må teamet fortsatt kontrollere at hovedversjonen både viser riktig status og hindrer registrering.',
+        '### Slik angriper du oppgaven\n\n1. Les hva oppgaven ber om.\n2. Undersøk hva PR-en faktisk endrer.\n3. Les testresultatene og kommentaren fra review.\n4. Vurder om endringen er klar for merge, eller om noe må rettes først.\n\nEn timeout kan skyldes at testen ikke kom i gang. Undersøk årsaken.\n\nEtter merge må teamet sjekke både teksten på siden og om påmelding faktisk blir avvist når kurset er fullt.',
       ),
       question(
         'GIT-M05-E20',
-        'Hva er den mest forsvarlige neste handlingen i dette nye scenariet?',
+        'Hva bør teamet gjøre nå?',
         [
           [
             'a',
@@ -894,7 +894,7 @@ export const gitM05Lessons = [
         [
           [
             'a',
-            'Kontroller tilgang og mergepolicy, og etterprøv den samlede atferden etter integrering.',
+            'Sjekk at du har tillatelse til å merge, og test programmet etter merge.',
             true,
             'Riktig. Godkjent forslag og vellykket merge er ikke garanti for fremtidig korrekthet.',
           ],
@@ -915,7 +915,7 @@ export const gitM05Lessons = [
       ),
       reflect(
         'GIT-M05-E22',
-        'Skriv en kort, selvstendig beslutning: problem og avgrensning, head/base, hva diffen viser, hvilken review-kommentar som krever oppfølging, relevante kontroller, hvorfor du vil merge eller vente, og hva du ville kontrollert etterpå. Skill lokal Git-øving fra ekte GitHub-PR.',
+        'Hva ville du gjort med denne PR-en?\n\n- Hva er oppgaven, og hvilke branches gjelder den?\n- Hva viser diffen og review-kommentaren?\n- Hvilke tester trenger du?\n- Ville du merget nå eller ventet? Hvorfor?\n- Hva ville du sjekket etter merge?',
       ),
       text(
         '### Videre til M06\n\nDu kan nå forklare hvordan utviklere foreslår, undersøker, forbedrer og integrerer endringer. Men hva gjør du dersom du oppdager en feil før commit, etter commit eller etter deling? M06 handler om å undersøke situasjonen først og velge trygg gjenoppretting. `restore`, `revert`, `reset`, `stash` og `reflog` kommer der – vi bruker dem ikke som snarveier i M05.',

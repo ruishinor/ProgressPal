@@ -45,7 +45,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     fill: 'Fyll inn',
     sort: 'Sorter',
     cmd: 'Skriv kommandoen',
-    evidence: 'Lim inn utskrift fra din maskin',
+    evidence: 'Lim inn utskrift fra maskinen din',
     diagnose: 'Les feilmeldingen',
     assemble: 'Sett sammen',
     testtable: 'Lag testtabell',
@@ -132,7 +132,7 @@ export const programvareutviklingLessonCopy: LessonUiCopy = {
     gateNoRetry:
       'Denne oppgaven i modulsjekken kan ikke prøves på nytt ennå, fordi regelen for nye forsøk ikke er bestemt.',
     runtimeUnavailable:
-      'Automatisk kjøring av Python er ikke tilgjengelig i denne nettleseren akkurat nå. Du kan skrive og kjøre programmet på din egen maskin, men appen kan ikke sjekke det her.',
+      'Automatisk kjøring av Python er ikke tilgjengelig i denne nettleseren akkurat nå. Du kan skrive og kjøre programmet på maskinen din, men appen kan ikke sjekke det her.',
     runtimeLoading: 'Gjør klar Python for den automatiske sjekken …',
     selfReported: '',
     privacy:

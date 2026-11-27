@@ -466,19 +466,19 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-OPPDRAG',
     flow: [
       text(
-        'Du skal ikke lære hele JavaScript her. I dette prosjektet betyr `function` at en navngitt del av koden kan brukes flere ganger. `String(navn).trim()` gjør inndata om til tekst og fjerner mellomrom i starten og slutten. `return` gir resultatet tilbake til koden som kaller funksjonen. I testfilen henter `require(...)` funksjonen og Node.js sitt innebygde testverktøy, mens `assert.equal(faktisk, forventet)` undersøker om en konkret regel oppfører seg som bestilt. En bestått test betyr at akkurat de beskrevne tilfellene stemmer, ikke at alle feil er utelukket.',
+        '### JavaScript du trenger i denne øvingen\n\n- `function`: En del av koden du kan bruke flere ganger.\n- `String(navn).trim()`: Gjør navnet om til tekst og fjerner mellomrom i starten og slutten.\n- `return`: Gir resultatet tilbake til koden som kaller funksjonen.\n- `require(...)`: Henter inn kode, for eksempel funksjonen og testverktøyet i Node.js.\n- `assert.equal(faktisk, forventet)`: Sjekker om resultatet er som forventet.\n\nDu trenger ikke lære resten av JavaScript nå. En bestått test forteller at de testede tilfellene virker.',
       ),
       text(
         '### Fra enkeltkommandoer til en arbeidsflyt\n\nI M01–M06 lærte du å registrere versjoner, undersøke historikk, arbeide på branches, dele endringer, behandle en pull request og rette Git-feil. Nå skal du bruke dette i sammenheng. Du overtar en enkel påmeldingsside for et arrangement sammen med en annen utvikler. Den første versjonen fungerer med navn. Telefonfeltet vises, men blir ennå ikke validert. Arrangøren har bedt om en endring: Hvis noen oppgir telefon, skal nummeret inneholde nøyaktig åtte siffer. Et tomt telefonfelt skal fortsatt være tillatt.',
       ),
       text(
-        'En utviklingsoppgave handler ikke først og fremst om å få noe nytt inn i en commit. Den handler om å finne ut hva som trengs, gjøre en avgrenset endring og kontrollere virkningen. Vi bruker **akseptansekriterier**: forhold vi kan undersøke for å avgjøre om oppgaven er løst. Her er de konkrete: Et navn er påkrevd; et tomt telefonfelt er gyldig; `12345678` er gyldig; `1234567` og `abcdefgh` er ugyldige; ingen påmeldinger skal lagres. Godkjent Git-status kan ikke alene bevise disse forholdene.',
+        'En utviklingsoppgave handler ikke først og fremst om å få noe nytt inn i en commit. Den handler om å finne ut hva som trengs, gjøre en avgrenset endring og kontrollere virkningen. Vi bruker **akseptansekriterier**: forhold vi kan undersøke for å avgjøre om oppgaven er løst. Her er kravene til skjemaet:\n\n- Navn er påkrevd.\n- Tomt telefonfelt: godtas.\n- `12345678`: godtas.\n- `1234567`: avvises.\n- `abcdefgh`: avvises.\n- Ingen påmeldinger skal lagres.\n\nTest disse tilfellene. Git-status alene kan ikke fortelle deg om skjemaet virker.',
       ),
       text(
         'Prosjektet består av `index.html` (skjemaet brukeren ser), `app.js` (kobler skjemaet til resultatet), `valider.js` (avgjør om inndata skal godkjennes), `kontroller.cjs` (noen enkle maskinelle kontroller), `oppgave.md` (bestillingen) og `README.md` (hvordan prosjektet brukes). `main` er felles utviklingslinje. Utvikler A arbeider med valideringen. Utvikler B forbedrer skjemaets hjelpetekst. Du skal se hvordan begge endringer kan bli del av samme produkt.',
       ),
       note(
-        'Dette er et lokalt øvingsprosjekt med syntetiske filer. Det sender ingen påmeldinger, bruker ingen ekte telefonnumre og krever ikke GitHub-konto. To arbeidskopier simulerer to utviklere; det betyr ikke at en annen person faktisk har reviewet arbeidet ditt. En separat, valgfri GitHub-øvelse kommer senere.',
+        'Vi bruker to lokale arbeidskopier, én for hver utvikler i eksemplet. Øvingsfilene sender ingen påmeldinger og bruker ingen ekte telefonnumre. Du trenger ikke en GitHub-konto. En valgfri GitHub-øvelse kommer senere.',
       ),
       question(
         'GIT-M07-E01',
@@ -531,14 +531,14 @@ export const gitM07Lessons = [
         'Hvilke opplysninger trenger en utvikler for å vite hva som kan endres trygt?',
       ),
       text(
-        'En hensiktsmessig arbeidsrekkefølge er: undersøk prosjektet, avgrens endringen, opprett en branch, endre og kontroller, vis diffen, be om gjennomgang, korriger ved behov, integrer og kontroller hele prosjektet. Dette er ikke en universell oppskrift, men en måte å unngå at hver Git-kommando blir et isolert mål.',
+        '### Fra oppgave til ferdig endring\n\n1. Undersøk prosjektet og avgrens oppgaven.\n2. Opprett en branch.\n3. Gjør endringen og sjekk at den virker.\n4. Vis diffen og få tilbakemelding når det er relevant.\n5. Rett eventuelle problemer, merge og sjekk prosjektet igjen.\n\nArbeidsrekkefølgen kan variere fra prosjekt til prosjekt.',
       ),
     ],
   },
   {
     missionId: 'GIT-M07-O02',
     title: 'Lag og undersøk prosjektet',
-    goal: 'Opprette en isolert lokal Git-fixture og lese prosjektets filer, historikk og status før endring.',
+    goal: 'Lage et lokalt øvingsprosjekt og undersøke filene, historikken og Git-statusen før du endrer noe.',
     skillId: 'GIT-M07-OVERSIKT',
     flow: [
       text(
@@ -599,7 +599,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O03',
     title: 'Fra oppgave til forslag på egen branch',
-    goal: 'Gjennomføre en liten kodeendring, kontrollere staging og opprette en ærlig, avgrenset commit.',
+    goal: 'Gjøre en liten kodeendring, sjekke staging area og lage en commit med bare den endringen.',
     skillId: 'GIT-M07-ENDRING',
     flow: [
       text(
@@ -631,7 +631,7 @@ export const gitM07Lessons = [
             'b',
             'README blir slettet fra historikken fordi den ikke ble lagt til på nytt.',
             false,
-            'En uendret, allerede sporet fil forblir i commitens snapshot.',
+            'En fil Git allerede følger, blir fortsatt med i den nye versjonen selv om den ikke er endret.',
           ],
           [
             'c',
@@ -675,7 +675,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O04',
     title: 'En review som fører til bedre kode',
-    goal: 'Undersøke et forslag fra en annen arbeidskopi og korrigere en påvist funksjonell mangel.',
+    goal: 'Undersøke forslaget til en annen utvikler, finne en feil og rette den.',
     skillId: 'GIT-M07-REVIEW',
     flow: [
       text(
@@ -719,10 +719,10 @@ export const gitM07Lessons = [
             'c',
             'At det ikke lenger er nødvendig å undersøke diffen eller historikken.',
             false,
-            'Testen sier noe om funksjonell atferd, mens diff og historikk dokumenterer hva som faktisk ble endret.',
+            'Testen viser om den sjekkede funksjonen virker. Diff og historikk viser hva du endret.',
           ],
         ],
-        'Hvilken konkret påstand blir kontrollert av denne testen?',
+        'Hva sjekker denne testen?',
       ),
       question(
         'GIT-M07-E08',
@@ -738,7 +738,7 @@ export const gitM07Lessons = [
             'b',
             'Vurder om det faktisk forbedrer lesbarhet eller følger en avtalt standard, og forklar valget.',
             true,
-            'Riktig. Skille mellom funksjonelle krav og preferanser gjør review mer nyttig.',
+            'Riktig. Skill mellom det programmet må gjøre, og ting som bare handler om smak.',
           ],
           [
             'c',
@@ -815,13 +815,13 @@ export const gitM07Lessons = [
       ),
       question(
         'GIT-M07-E11',
-        'B har merget begge branches, og `git status --short` er tom. Hva beviser dette?',
+        'B har merget begge branches, og `git status --short` er tom. Hva forteller det?',
         [
           [
             'a',
             'At ingen feil kan oppstå ved påmelding.',
             false,
-            'Ren Git-status sier ingenting om utestede funksjonelle eller visuelle forhold.',
+            'Ren Git-status sier ikke om skjemaet virker eller ser riktig ut.',
           ],
           [
             'b',
@@ -879,7 +879,7 @@ export const gitM07Lessons = [
         '### Selv gjennomgåtte endringer kan gi nye problemer\n\nTenk deg at en senere endring i telefonvalideringen gjør at tomt telefonfelt blir avvist, selv om feltet skal være valgfritt. Dette kalles en **regresjon**: noe som tidligere fungerte i henhold til kravet, fungerer ikke lenger. Feilen kan oppdages av en bruker, en utvikler eller en test. Det første steget er å undersøke den observerte atferden og historikken, ikke å gjette en reset-kommando.',
       ),
       note(
-        'Neste blokk oppretter med vilje en feilaktig commit på `main` i den **syntetiske lokale øvingsremoten**, slik at du kan undersøke delt historikk. Dette er en kontrollert undervisningshendelse, ikke anbefalt arbeidspraksis. I ekte prosjekter skal en kjent feil ikke med vilje publiseres for å demonstrere Git.',
+        'Neste blokk lager med vilje en feil i den lokale øvingen. Feilen legges i en commit på `main` i den delte øvingsmappen, slik at du kan lære å rette en feil andre allerede har hentet. Ikke gjør dette med vilje i et ekte prosjekt.',
       ),
       command(
         'Opprett en historisk feil bare i øvingsfixturen',
@@ -988,14 +988,14 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O07',
     title: 'Fra lokal øving til GitHub og overlevering',
-    goal: 'Skille faktisk GitHub-samarbeid fra lokale øvelser, og overlevere et etterprøvbart resultat.',
+    goal: 'Forstå hvordan lokal Git-øving skiller seg fra GitHub, og forklare arbeidet til en annen utvikler.',
     skillId: 'GIT-M07-OVERLEVERING',
     flow: [
       text(
-        '### Hva ville vært annerledes på GitHub?\n\nI den lokale øvingen brukte du `felles.git` for push, fetch og merge. Dette er en simulering av samarbeid på din egen datamaskin, ikke en GitHub pull request. En GitHub pull request ville i tillegg gitt et eget forslag med base/head, samtale, reviewtråder og eventuelle automatiserte status checks. Disse mekanismene oppstår **ikke** bare fordi du pusher en branch til en lokal Git-remote. Når et team har regler om godkjenning, må de følges før merge. En godkjent PR eller grønn CI er fremdeles ikke et bevis på at produktet er feilfritt.',
+        '### Hva ville vært annerledes på GitHub?\n\nI øvingen brukte du `felles.git` til push, fetch og merge på datamaskinen din. Du øvde på samarbeid uten å opprette en pull request på GitHub. En GitHub pull request ville i tillegg gitt et eget forslag med base/head, samtale, reviewtråder og eventuelle automatiserte status checks. Disse mekanismene oppstår **ikke** bare fordi du pusher en branch til en lokal Git-remote. Når et team har regler om godkjenning, må de følges før merge. En godkjent PR eller grønn CI er fremdeles ikke et bevis på at produktet er feilfritt.',
       ),
       text(
-        '### Valgfri GitHub-praksis med eget syntetisk repository\n\nHvis du har en GitHub-konto og ønsker å prøve dette med en faktisk PR, bruk et eget repository med bare syntetiske øvingsfiler. Les gjeldende GitHub-veiledning for opprettelse, autentisering og PR. Opprett en feature branch, push den, åpne en PR med `main` som base og feature-branchen som head, beskriv konkrete akseptansekriterier og hvilke kontroller du faktisk har kjørt. Undersøk endrede filer og reviewstatus. Hvis du gjør en egen gjennomgang, kall den egen gjennomgang; ikke påstå at en uavhengig person har godkjent den. Merge bare når du har tilgang, har vurdert innholdet og repositoryreglene tillater det. Du behøver ikke gjennomføre dette for å fullføre M07.',
+        '### Valgfritt: Prøv en pull request på GitHub\n\nBruk et eget repo med bare øvingsfiler. Følg GitHubs veiledning for å opprette repo og logge inn.\n\n1. Opprett en feature branch og push den.\n2. Åpne en PR med `main` som base og feature-branchen som head.\n3. Beskriv hva endringen skal gjøre og hva du har sjekket.\n4. Se på endrede filer, review og status checks.\n5. Merge når du har tillatelse og endringen er klar.\n\nDu trenger ikke gjøre denne øvingen for å fullføre M07.',
       ),
       note(
         'Ikke publiser dine faktiske skole- eller jobbprosjekter som del av øvingen. Ikke lim inn tokens, nøkler, passord, personopplysninger eller terminalutskrifter med hemmeligheter i ProgressPal eller offentlige PR-er. Et repository som er satt til private, er ikke en erstatning for å gjennomgå hva du deler.',
@@ -1040,7 +1040,7 @@ export const gitM07Lessons = [
           ],
           [
             'b',
-            'Dokumentert kontroll av skjemaet som helhet og eventuelle krav for sikker faktisk utrulling; denne øvingen har heller ingen backend eller produksjonssetting.',
+            'Sjekk hele skjemaet og hva som kreves før publisering. Øvingen har ingen backend og blir ikke satt i produksjon.',
             true,
             'Riktig. M07 leverer et lokalt øvingsprosjekt, ikke en publisert tjeneste.',
           ],
@@ -1066,13 +1066,13 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-SELVSTENDIG',
     flow: [
       text(
-        '### Den avsluttende oppgaven\n\nPåmeldingssiden har fått en ny bestilling: Navn på mer enn 40 tegn skal gi meldingen «Navn er for langt.» Navn på nøyaktig 40 tegn skal fortsatt godtas. Eksisterende regler om tomt navn og telefon skal bevares. Du skal arbeide i det samme **syntetiske** M07-prosjektet etter at den forrige regresjonen er rettet, og du må unngå å blande inn andre endringer. En kollega vurderer samtidig å endre overskriften i `index.html`, men har ennå ikke sendt en ny commit. Du kjenner derfor ikke den fremtidige overskriften; oppgaven krever ikke at du gjetter den.',
+        '### Den avsluttende oppgaven\n\nPåmeldingssiden har fått en ny bestilling: Navn på mer enn 40 tegn skal gi meldingen «Navn er for langt.» Navn på nøyaktig 40 tegn skal fortsatt godtas. Eksisterende regler om tomt navn og telefon skal bevares. Du skal arbeide i det samme øvingsprosjektet fra M07 etter at den forrige regresjonen er rettet, og du må unngå å blande inn andre endringer. En kollega vurderer samtidig å endre overskriften i `index.html`, men har ennå ikke sendt en ny commit. Du kjenner derfor ikke den fremtidige overskriften; oppgaven krever ikke at du gjetter den.',
       ),
       text(
-        'Dette er ikke en ny, ferdig kommandosekvens. Begynn med å undersøke egen branch, ren/dirty tilstand, relevant historikk og kravene. Velg en avgrenset branch. Finn hvor navnet kontrolleres i `valider.js`. Legg til en kontroll for grensen på 40 tegn uten å endre reglene for telefon. Oppdater `kontroller.cjs` med minst testene 40 tegn, 41 tegn, tomt navn og ett gyldig navn med gyldig/valgfri telefon. Undersøk diff, velg staging og lag en commit med en meningsfull melding. Hvis en annen utvikler senere pusher en endring, hent og undersøk den før integrering. Du skal ikke finne på at kollegaens overskrift allerede er publisert.',
+        '### Gjør endringen selv\n\n1. Undersøk branch, Git-status, historikk og krav.\n2. Opprett en egen branch for navneendringen.\n3. Finn navnekontrollen i `valider.js`. Legg til grensen på 40 tegn uten å endre telefonreglene.\n4. Oppdater `kontroller.cjs`. Test navn på 40 tegn, 41 tegn, tomt navn og et gyldig navn med gyldig eller tomt telefonfelt.\n5. Undersøk diffen, velg innholdet til neste commit og lag en commit med en tydelig melding.\n6. Hvis kollegaen senere pusher en endring, hent og undersøk den før merge.\n\nKollegaen har ikke pushet den nye overskriften ennå.',
       ),
       text(
-        'Du trenger bare én liten JavaScript-detalj for denne endringen: `ryddigNavn.length` gir lengden på navnet etter at mellomrom i starten og slutten er fjernet. Kontroller først at navnet ikke er tomt; vurder deretter grensen. Bruk syntetiske testnavn med enkle bokstaver. I en virkelig løsning må teamet avklare hva «40 tegn» betyr for sammensatte tegn og emoji; JavaScripts `.length` teller ikke alltid tegn slik brukeren oppfatter dem.',
+        'Du trenger bare én liten JavaScript-detalj for denne endringen: `ryddigNavn.length` gir lengden på navnet etter at mellomrom i starten og slutten er fjernet. Kontroller først at navnet ikke er tomt; vurder deretter grensen. Bruk oppdiktede navn med enkle bokstaver. I en virkelig løsning må teamet avklare hva «40 tegn» betyr for sammensatte tegn og emoji; JavaScripts `.length` teller ikke alltid tegn slik brukeren oppfatter dem.',
       ),
       text(
         'Før du mener at oppgaven er ferdig, må du kunne forklare hva du kontrollerte i kode og nettleser, hvilke filer som ble endret, om den lokale branchen er delt, og om arbeidet faktisk er integrert i lokal felles main. Du kan bruke tidligere M01–M06-leksjoner og vanlig dokumentasjon. Målet er å velge riktige handlinger ut fra tilstanden, ikke å kunne alle kommandoer utenat.',
@@ -1129,7 +1129,7 @@ export const gitM07Lessons = [
       ),
       question(
         'GIT-M07-E22',
-        'Du har laget og testet navnelengdeendringen, men har ikke pushet branchen. Hvilken overlevering er sannferdig?',
+        'Du har laget og testet navnelengdeendringen, men har ikke pushet branchen. Hva bør du fortelle en annen utvikler?',
         [
           [
             'a',
@@ -1145,7 +1145,7 @@ export const gitM07Lessons = [
           ],
           [
             'c',
-            '«All påmelding er produksjonssertifisert», fordi tester bestod.',
+            '«Alt er klart for produksjon», fordi testene bestod.',
             false,
             'Disse lokale testene gir ingen produksjonssertifisering.',
           ],
@@ -1154,7 +1154,7 @@ export const gitM07Lessons = [
       ),
       reflection(
         'GIT-M07-E23',
-        'Forklar hvordan du valgte arbeidsmåte for navnelengdeendringen. Oppgi hvilke Git-tilstander du undersøkte, hvilke testtilfeller du brukte, hva du committet, om du delte eller integrerte endringen, og hvilken usikkerhet som gjenstår. Hvis noe stoppet, forklar hva du observerte og hvorfor du ikke brukte destruktiv opprydding.',
+        'Fortell hvordan du jobbet med navnelengden:\n\n- Hva sjekket du i Git før du begynte?\n- Hvilke navn testet du?\n- Hva kom med i commiten?\n- Delte eller merget du endringen?\n- Hva gjenstår, eller hvor stoppet du?\n\nDu kan beskrive det du fikk til, selv om du ikke ble ferdig.',
       ),
       {
         t: 'recap',

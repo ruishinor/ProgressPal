@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-language-and-presentation-20261127",
+  "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a67ada163124d859d772d737ac24ce6bcc7cfffa",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Owner-authorized visual upgrade and plain-language Git & GitHub curriculum revision, M01–M07, preserving programme contracts and learner autonomy.",
+    "evidence": [
+      "Inspected all seven canonical modules and generated assets, the shared Classic/RPG lesson renderer, owner reference image and approved module-by-module visual plan.",
+      "62 authored visual entries bind to existing text blocks in all 47 lessons; all anchors and graph edges resolve, no duplicate slots or new lesson steps. Nine examples have local interaction. Reusable HTML/CSS/SVG status, graph, comparison, flow, terminal, file tree, conflict, PR, command-effect and test-case displays require no new service, arbitrary markup or learner persistence.",
+      "Compared candidate assets with master: 121 existing blocks changed, all 92 command blocks are identical, 113 exercise and option identifiers, correct choices, required practice, optionality, evaluator modes and logic, skill/unit metadata and lesson order unchanged. The optional paste evaluator's only difference is its simplified privacy copy. Source and asset hashes verified during regeneration. 56 exercise hashes differ from master; historical answers retain existing semantics.",
+      "Updated the tour fixture instructions and exercise E04 to use Starttid: 10:00 on a separate line, with explicit compatibility for older exercise folders; no destructive history rewrite.",
+      "Added functional binding and visual interaction tests. Prior candidate passed browser shards and pilot; release unit stage failed only on pilot-script formatting at that point. Updated that file. Current build, lint, formatting, browser and offline validation have not been executed locally and require hosted validation.",
+      "Release run 46064522266: pilot and E2E shard 1 passed; unit gate failed on two formatting files; shard 3 stopped because the offline answer selector used the old M01 wording (92 tests passed before the stop). Simplified the visual renderer and CSS syntax, and select both offline answers by their existing stable option IDs instead of prose. Correct option IDs a and b confirmed against current generated lesson assets. No evaluation logic, content assets or release checks changed. Exact formatter and runtime results remain subject to fresh hosted validation.",
+      "Temporary read-only GitHub Actions diagnostics run 46066985534, job 140734574915, ran locked Prettier 3.8.4 and the full repository format:check successfully. Applied exactly its two hunks and verified resulting Git blob IDs match the formatter output. No workflow or release gate change in the release candidate.",
+      "Owner approved bounded JavaScript gzip budget increase after explicit tradeoff assessment. Consolidated preflight 46068827980: actual canonical Git exporter --check, Prettier, lint, TypeScript, bundle unit tests, production build, bundle gate and circular check passed. Final measured JS 475242/485000 B; CSS 21906/40000 B; curriculum 265876/273000 B; raw chunk 344503/500000 B; runtime 6398912/7000000 B. No other limits or release checks changed. All 62 visuals retained; restored six omitted teaching points. The corrected direct Vitest preflight invocation is still running; no unit PASS claimed.",
+      "56 changed hashes comprise 47 MCQ, one checklist, one optional paste check and seven reflections. Existing version-aware answers remain history; no migration or new storage mechanism. This does not establish that old answers remain current."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P2",
+      "description": "Abstract Git concepts and visually undifferentiated scenarios burden beginner reading.",
+      "resolution": "Add contextual diagrams, staged/unstaged status annotations, real file comparisons, commit graphs, interactive remote states, conflict markers and test case examples; shorten 34 existing prose blocks in the presentation.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P3",
+      "description": "Visual placement must not invalidate existing saved step positions or introduce an exercise gate.",
+      "resolution": "Bind each visual to an existing lesson slot and matching text prefix; original prose is the fallback if the source changes. No extra lesson step, storage or scoring. Test anchor integrity against real content.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-3",
+      "severity": "P3",
+      "description": "Revised exercise hashes may change which old responses count as current.",
+      "resolution": "Preserve IDs and evaluator behavior; retain existing historical-answer semantics without migration.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Owner-authorized measured budget adjustment and targeted teaching fixes reviewed; merge remains conditional on required validation of exact candidate. No independent or owner review requested. No automation."
+  }
+}

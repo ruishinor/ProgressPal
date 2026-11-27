@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 /**
  * A small, purpose-built renderer for the markup the authored lessons use:
@@ -15,9 +16,44 @@ export type MarkupContext = {
   readonly wording: (text: string) => string;
   /** Heading level used for `#`/`##` lines inside a lesson. */
   readonly headingLevel: 3 | 4;
+  readonly highlightGitLiterals?: boolean;
+  readonly lessonReference?: { target: string; href: string };
+  readonly referenceAnchor?: { title: string; id: string };
 };
 
 const inlinePattern = /`([^`]+)`|\*\*([^*]+?)\*\*|\*([^*\s][^*]*?)\*/g;
+
+// Highlight recognisable literals in older Git prose, without changing the
+// authored text, command examples, answer keys or other programmes.
+const gitLiteralPattern =
+  /\b(?:git (?:--no-pager )?(?:add|branch|clone|commit|config|diff|fetch|init|log|merge|pull|push|reflog|remote|reset|restore|revert|show|stash|status|switch)(?: --[a-z][a-z-]*| -[a-zA-Z0-9]+)*|(?:README|plan|kladde|messages|melding|bekreftelse|settings|config|index|app|valider|kontroller|paamelding|oppgave)\.(?:txt|md|json|html|js|cjs)|origin\/[\w/-]+|feature\/[\w/-]+|HEAD(?:~\d+)?)\b/g;
+
+function plainText(context: MarkupContext, text: string, offset: number) {
+  if (!context.highlightGitLiterals) {
+    return context.wording(text);
+  }
+
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+
+  for (const match of text.matchAll(gitLiteralPattern)) {
+    const start = match.index ?? 0;
+    if (start > cursor) {
+      parts.push(context.wording(text.slice(cursor, start)));
+    }
+    parts.push(
+      <code key={offset + start} lang={context.technicalLanguage}>
+        {match[0]}
+      </code>,
+    );
+    cursor = start + match[0].length;
+  }
+
+  if (cursor < text.length) {
+    parts.push(context.wording(text.slice(cursor)));
+  }
+  return parts;
+}
 
 export function InlineText({
   context,
@@ -26,14 +62,23 @@ export function InlineText({
   context: MarkupContext;
   text: string;
 }) {
+  const reference = context.lessonReference;
+  const pattern =
+    reference === undefined
+      ? inlinePattern
+      : /`([^`]+)`|\*\*([^*]+?)\*\*|\*([^*\s][^*]*?)\*|\[([^\]]+)\]\(lesson:([a-z0-9-]+#[a-z0-9-]+)\)/g;
   const parts: ReactNode[] = [];
   let cursor = 0;
 
-  for (const match of text.matchAll(inlinePattern)) {
+  for (const match of text.matchAll(pattern)) {
     const start = match.index ?? 0;
 
     if (start > cursor) {
-      parts.push(context.wording(text.slice(cursor, start)));
+      parts.push(
+        <Fragment key={`plain-${cursor}`}>
+          {plainText(context, text.slice(cursor, start), cursor)}
+        </Fragment>,
+      );
     }
 
     if (match[1] !== undefined) {
@@ -54,13 +99,27 @@ export function InlineText({
           <InlineText context={context} text={match[3]} />
         </em>,
       );
+    } else if (match[4] !== undefined) {
+      parts.push(
+        reference !== undefined && reference.target === match[5] ? (
+          <Link key={start} to={reference.href}>
+            {context.wording(match[4])}
+          </Link>
+        ) : (
+          context.wording(match[4])
+        ),
+      );
     }
 
     cursor = start + match[0].length;
   }
 
   if (cursor < text.length) {
-    parts.push(context.wording(text.slice(cursor)));
+    parts.push(
+      <Fragment key={`plain-${cursor}`}>
+        {plainText(context, text.slice(cursor), cursor)}
+      </Fragment>,
+    );
   }
 
   return <>{parts}</>;
@@ -175,8 +234,16 @@ export function Markup({
               node.depth >= 3 && context.headingLevel === 3
                 ? 'h4'
                 : (`h${context.headingLevel}` as 'h3' | 'h4');
+            const anchor =
+              context.referenceAnchor?.title === node.text
+                ? context.referenceAnchor.id
+                : undefined;
             return (
-              <Heading key={index}>
+              <Heading
+                id={anchor}
+                key={index}
+                tabIndex={anchor === undefined ? undefined : -1}
+              >
                 <InlineText context={context} text={node.text} />
               </Heading>
             );

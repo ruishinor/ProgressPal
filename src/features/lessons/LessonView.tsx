@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import {
   createEvidenceAchievementPlanner,
@@ -42,6 +42,7 @@ import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
 import { ExerciseCard } from './ExerciseCard';
+import { gitVisualFor } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
 import type { MarkupContext } from './markup';
 import {
@@ -153,6 +154,7 @@ function LessonSurface({
   const surfaces = lessonSurfaces(presentation ?? 'classic');
   const { coordination, runLocalMutation } = useAppState();
   const navigate = useNavigate();
+  const { hash } = useLocation();
   const runtime = getPythonRuntime();
   const titleId = useId();
   const anchorPrefix = useId().replace(/:/g, '');
@@ -461,6 +463,22 @@ function LessonSurface({
     heading?.scrollIntoView?.({ behavior: 'auto', block: 'start' });
   }, [phaseIndex]);
 
+  // A named curriculum reference can land after asynchronous lesson loading.
+  // Reading it does not update the learner's saved position.
+  useEffect(() => {
+    if (
+      load.status !== 'ready' ||
+      programmeId !== 'git-github' ||
+      itemId !== 'git-m01-o04' ||
+      hash !== '#rett-bare-utvalget'
+    ) {
+      return;
+    }
+    const target = document.getElementById('rett-bare-utvalget');
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView?.({ behavior: 'auto', block: 'start' });
+  }, [hash, itemId, load.status, programmeId]);
+
   if (load.status === 'loading') {
     return <p className="lesson-note">{copy.text.lessonLoading}</p>;
   }
@@ -485,6 +503,23 @@ function LessonSurface({
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),
     headingLevel: 3,
+    highlightGitLiterals: programmeId === 'git-github',
+    ...(programmeId === 'git-github' && itemId === 'git-m01-o05'
+      ? {
+          lessonReference: {
+            target: 'git-m01-o04#rett-bare-utvalget',
+            href: `${lessonPath('git-m01-o04')}#rett-bare-utvalget`,
+          },
+        }
+      : {}),
+    ...(programmeId === 'git-github' && itemId === 'git-m01-o04'
+      ? {
+          referenceAnchor: {
+            title: 'Rett bare utvalget',
+            id: 'rett-bare-utvalget',
+          },
+        }
+      : {}),
   };
   const minutes =
     mission.surface === 'reinforcement'
@@ -548,6 +583,7 @@ function LessonSurface({
         aria-labelledby={titleId}
         className={surfaces.article}
         data-presentation={surfaces.name}
+        data-programme={programmeId}
         lang={readyBundle.language}
       >
         <header className={surfaces.header}>
@@ -728,6 +764,11 @@ function LessonSurface({
                       block={step.block}
                       context={context}
                       copy={copy}
+                      visual={
+                        programmeId === 'git-github' && step.block.t === 'text'
+                          ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
+                          : undefined
+                      }
                     />
                   )}
                 </div>
@@ -833,11 +874,17 @@ function LessonSurface({
                 {nextMission.optional ? ` ${copy.text.optionalSuffix}` : ''}
               </p>
             )}
-            <p>{copy.text.whereNextModuleRule}</p>
-            {footer === undefined ? null : <p>{copy.text.whereNextMark}</p>}
+            {copy.text.whereNextModuleRule && (
+              <p>{copy.text.whereNextModuleRule}</p>
+            )}
+            {footer !== undefined && copy.text.whereNextMark && (
+              <p>{copy.text.whereNextMark}</p>
+            )}
           </section>
         ) : null}
-        <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        {copy.text.completionDisclaimer && (
+          <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        )}
       </article>
       {footer === undefined ? null : <Fragment>{footer}</Fragment>}
     </>

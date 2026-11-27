@@ -44,7 +44,7 @@ export const gitLessons = [
     skillId: 'GIT-VERSIONING',
     flow: [
       text(
-        "Før kommandoene: Du skal lære hva Git gjør, ikke lære en lang PowerShell-oppskrift utenat. Se etter selve `git`-kommandoen i hver boks. Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` kontrollerer at du er i din egen øvingsmappe. «Forventet utskrift» er et eksempel på hva du skal undersøke, ikke noe du skal skrive inn. Hvis en kontroll stopper, ikke slett mappen eller kjør oppsettet på nytt: finn ut hvilken mappe og Git-tilstand du faktisk har. Du kan komme tilbake etter en pause med navigasjonsblokken lenger nede.",
+        "### Slik bruker du kommandoboksene\n\nDu skal lære hva Git gjør, ikke pugge PowerShell-kode.\n\n- **Kommando:** Kopier hele kommandoboksen til PowerShell. Se spesielt etter linjene med `git`.\n- **Forventet utskrift:** Les resultatet i terminalen. Ikke kopier dette som en kommando.\n- **STOPP:** Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` passer på at du arbeider i riktig øvingsmappe. Hvis de stopper, undersøk mappen og Git-statusen før du fortsetter. Ikke slett mappen eller kjør oppsettet på nytt.",
       ),
       text(
         'Du trenger ikke kunne programmere, Git eller terminal fra før. I denne modulen går vi fra å forstå et vanlig utviklingsproblem til å registrere og kontrollere egne versjoner. De praktiske øvelsene bruker ufarlige tekstfiler om en tur, slik at du kan lære Git uten samtidig å måtte feilsøke programkode. Du trenger ingen GitHub-konto.',
@@ -73,7 +73,7 @@ export const gitLessons = [
         [
           [
             'a',
-            'Lagring i Notisblokk oppdaterer filen. En commit registrerer et valgt snapshot i Git-historikken.',
+            'Lagring i Notisblokk oppdaterer filen. En commit lagrer det valgte innholdet som en versjon i Git-historikken.',
             true,
             'Ja. Filen må først være lagret på disken; deretter kan Git registrere en versjon du velger. Senere lærer du hvordan du velger innholdet.',
           ],
@@ -104,16 +104,16 @@ export const gitLessons = [
     skillId: 'GIT-TOOLS',
     flow: [
       text(
-        "Før kommandoene: Du skal lære hva Git gjør, ikke lære en lang PowerShell-oppskrift utenat. Se etter selve `git`-kommandoen i hver boks. Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` kontrollerer at du er i din egen øvingsmappe. «Forventet utskrift» er et eksempel på hva du skal undersøke, ikke noe du skal skrive inn. Hvis en kontroll stopper, ikke slett mappen eller kjør oppsettet på nytt: finn ut hvilken mappe og Git-tilstand du faktisk har. Du kan komme tilbake etter en pause med navigasjonsblokken lenger nede.",
+        "### Slik bruker du kommandoboksene\n\nDu skal lære hva Git gjør, ikke pugge PowerShell-kode.\n\n- **Kommando:** Kopier hele kommandoboksen til PowerShell. Se spesielt etter linjene med `git`.\n- **Forventet utskrift:** Les resultatet i terminalen. Ikke kopier dette som en kommando.\n- **STOPP:** Linjene med `$practiceRoot`, `Test-Path` og `throw 'STOPP'` passer på at du arbeider i riktig øvingsmappe. Hvis de stopper, undersøk mappen og Git-statusen før du fortsetter. Ikke slett mappen eller kjør oppsettet på nytt.",
       ),
       text(
         '**Du trenger:** Windows PowerShell 5.1, Git 2.28 eller nyere og Notisblokk på en Windows-maskin. PowerShell og Notisblokk følger med Windows. Du trenger nett bare hvis Git må installeres; selve øvingen fungerer uten nett. GitHub-konto, VS Code og programmeringskunnskap er ikke nødvendig. Bruker du en administrert skole- eller jobbmaskin, følger du installasjonsreglene der.',
       ),
       text(
-        'En **terminal** er et vindu der du skriver beskjeder til datamaskinen. **PowerShell** er programmet som tolker beskjedene, eller kommandoene, i dette vinduet. Åpne Start-menyen i Windows, skriv Windows PowerShell og åpne appen med det navnet. Velg vanlig åpning; ikke «Kjør som administrator». Velg Windows PowerShell framfor Git Bash i denne øvingen.',
+        'En **terminal** er et vindu der du skriver kommandoer til datamaskinen. **PowerShell** er programmet som tolker dem.\n\n1. Åpne Start-menyen i Windows.\n2. Søk etter Windows PowerShell og åpne appen.\n3. Bruk vanlig åpning, ikke «Kjør som administrator».\n\nBruk Windows PowerShell, ikke Git Bash, i denne øvingen.',
       ),
       text(
-        'Ledeteksten kan for eksempel vise PS C:\\Users\\navn> med en blinkende markør. Den forteller hvilken mappe terminalen står i. Ikke kopier ledeteksten, stien eller tegnet >. Du skriver eller kopierer bare innholdet i bokser merket «Kommando – PowerShell 5.1» og trykker Enter. Bokser med «Forventet utskrift» viser resultater du skal lese, ikke kjøre.',
+        '### Hva skal du skrive i PowerShell?\n\nTerminalen viser for eksempel `PS C:\\Users\\navn>` og en blinkende markør. Teksten foran markøren viser hvilken mappe du står i.\n\n- **Skriv eller kopier:** Innholdet i boksen «Kommando – PowerShell 5.1». Trykk Enter.\n- **Ikke kopier:** `PS C:\\Users\\navn>` eller boksen «Forventet utskrift». Den viser bare hva du kan forvente å se.',
       ),
       text(
         'Når du kopierer en kommandoboks, tar du med alle linjene. Noen bokser har ytterlinjene . { og }. De sørger for at en sikkerhetsstopp avbryter hele boksen, og at PowerShell husker øvingsmappen mellom boksene. Du trenger ikke forstå eller skrive disse tegnene selv for å lære Git; bruk dem slik de står.',
@@ -124,7 +124,7 @@ export const gitLessons = [
         'Get-Location',
       ),
       text(
-        'Utskriften har en Path med en sti, for eksempel C:\\Users\\navn. En sti er adressen til en mappe eller fil. Din sti skal gjerne være annerledes enn eksemplet. Kommandoer som bruker filnavn uten en full sti, leter normalt i gjeldende mappe. Derfor må vi vite hvor vi står.',
+        'Utskriften har en Path med en sti, for eksempel C:\\Users\\navn. En sti er adressen til en mappe eller fil. Stien din vil ofte være annerledes enn i eksemplet. Kommandoer som bruker filnavn uten en full sti, leter normalt i gjeldende mappe. Derfor må vi vite hvor vi står.',
       ),
       command(
         'Sjekk at Git finnes',
@@ -133,13 +133,13 @@ export const gitLessons = [
         'git version 2.x.y.windows.z',
       ),
       text(
-        'Versjonstallene varierer. Eksemplet over er en form, ikke en bestemt versjon du må finne. Trenger du å installere Git, eller får du en melding om at git ikke gjenkjennes? Åpne nettleseren og gå til den offisielle siden git-scm.com/install/windows. Last ned Git for Windows derfra, velg utgaven for maskinen din og følg installasjonsprogrammet. Behold valget som gjør Git tilgjengelig fra kommandolinjen og andre programmer. Du trenger ikke logge inn på GitHub. Lenken «Installer Git for Windows» finnes også på modulsiden.',
+        'Versjonstallet ditt kan være annerledes enn i eksemplet.\n\n### Hvis Git ikke er installert\n\n1. Åpne `git-scm.com/install/windows` i nettleseren. Lenken «Installer Git for Windows» finnes også på modulsiden.\n2. Last ned Git for Windows, velg utgaven for maskinen din og følg installasjonsprogrammet.\n3. Behold valget som gjør Git tilgjengelig fra kommandolinjen og andre programmer.\n\nDu trenger ikke en GitHub-konto.',
       ),
       text(
-        'Lukk PowerShell-vinduet etter installasjonen, åpne Windows PowerShell på nytt fra Start og kjør git --version igjen. Fortsett først når Git svarer med 2.28 eller nyere. Hvis installasjonen avvises, eller git fortsatt ikke gjenkjennes etter ny åpning, stopp Git-øvingene og få hjelp til selve installasjonen. Ikke prøv tilfeldige skript fra nettet. Installasjonsveiviseren er ikke en del av den lokale, reproduserte Git-øvelsen.',
+        '### Sjekk installasjonen\n\n1. Lukk PowerShell og åpne Windows PowerShell på nytt.\n2. Kjør `git --version`.\n3. Fortsett når Git viser versjon 2.28 eller nyere.\n\n**Hvis Git fortsatt ikke virker:** Få hjelp med installasjonen før du går videre. Ikke prøv tilfeldige skript fra nettet.',
       ),
       text(
-        'Vi lager en egen mappe under Dokumenter, ikke i et eksisterende kodeprosjekt. Kommandoene nedenfor undersøker om navnet allerede finnes, før de oppretter noe. $practiceRoot er et navn PowerShell bruker for å huske adressen til øvingsmappen; Join-Path setter sammen adressen og mappenavnet. Du trenger ikke lære skriptsyntaksen utenat. Det viktige er at du vet hvilken mappe Git skal arbeide i, og at en eksisterende mappe ikke overskrives.',
+        '### Lag en egen øvingsmappe\n\nVi bruker en ny mappe under Dokumenter, ikke et kodeprosjekt du allerede har. Kommandoen stopper hvis mappen finnes fra før.\n\n- `$practiceRoot` husker stien til øvingsmappen.\n- `Join-Path` setter sammen stien og mappenavnet.\n\nDu trenger ikke pugge PowerShell-koden. Det viktigste er å vite hvor Git arbeider.',
       ),
       command(
         'Opprett en ny øvingsmappe én gang',
@@ -147,7 +147,7 @@ export const gitLessons = [
         "$practiceRoot = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'ProgressPal Git oving'\nif (Test-Path -LiteralPath $practiceRoot) { throw 'STOPP: Mappen finnes allerede. Ikke overskriv den.' }\nNew-Item -ItemType Directory -Path $practiceRoot -ErrorAction Stop\nSet-Location -LiteralPath $practiceRoot -ErrorAction Stop\nGet-Location",
       ),
       text(
-        'Path skal nå slutte på ProgressPal Git oving. New-Item laget mappen; Set-Location gikk inn i den. -LiteralPath betyr at stien brukes som skrevet. Hvis du får STOPP om at mappen finnes: ikke slett noe. Hvis dette er din tidligere øvingsmappe, fortsetter du der som beskrevet under. Er innholdet ukjent, velger du et annet nytt mappenavn i første linje og bruker det samme navnet når du skal tilbake. Ved en annen rød feilmelding stopper du og leser hva som feilet før du fortsetter.',
+        '**Se etter:** `Path` skal slutte på `ProgressPal Git oving`.\n\n`New-Item` laget mappen, `Set-Location` gikk inn i den, og `-LiteralPath` bruker stien slik den er skrevet.\n\n**Hvis du får STOPP fordi mappen finnes:** Ikke slett noe. Er dette øvingsmappen din, bruk «Slik finner du tilbake etter en pause». Hvis innholdet er ukjent, velg et annet mappenavn i oppsettet og bruk samme navn når du kommer tilbake.\n\nVed andre røde feilmeldinger: les meldingen før du fortsetter.',
       ),
       command(
         'Se den nye mappen',
@@ -166,13 +166,13 @@ export const gitLessons = [
         "$practiceRoot = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'ProgressPal Git oving'\nSet-Location -LiteralPath $practiceRoot -ErrorAction Stop\nGet-Location",
       ),
       text(
-        'Ha ProgressPal ved siden av terminalen eller bytt mellom vinduene med Alt+Tab. Du kan bruke «Kopier» ved en kommandoboks. Svar lagres når du sender dem; tekst du ennå ikke har sendt, er et utkast og må sendes før du lukker eller laster siden på nytt. Nettleseren husker et sted i leksjonen når du bruker «Fortsett» mellom innholdsdelene eller sender et svar. Etter en pause bruker du «Fortsett der du slapp».',
+        '### Jobb med ProgressPal og PowerShell samtidig\n\n- Ha vinduene ved siden av hverandre, eller bytt med `Alt+Tab`.\n- Bruk «Kopier» ved kommandoboksene.\n- Send svar før du lukker eller laster siden på nytt. Utkast er ikke lagret.\n- Etter en pause: bruk «Fortsett der du slapp».',
       ),
       {
         id: 'GIT-M01-E02',
         type: 'checklist',
         prompt:
-          'Ta en ærlig egenkontroll før du går videre. Kryss bare av det du faktisk har gjort. Du kan lagre en delvis liste og komme tilbake.',
+          'Kryss av det du har gjort. Du kan lagre svarene og fortsette senere.',
         items: [
           'Jeg har åpnet Windows PowerShell og sett at git --version virker.',
           'Jeg har en egen øvingsmappe og har kontrollert stien med Get-Location.',
@@ -184,11 +184,11 @@ export const gitLessons = [
   {
     missionId: 'GIT-M01-O03',
     title: 'Lag og undersøk den første versjonen',
-    goal: 'Opprette et repository med ufarlige tekstfiler og registrere det første snapshotet.',
+    goal: 'Opprette et repo med øvingsfiler og lage den første commiten.',
     skillId: 'GIT-SNAPSHOT',
     flow: [
       text(
-        'Hvis du gjenopptar M01 etter en pause, åpner du PowerShell og går tilbake til din eksisterende `ProgressPal Git oving`-mappe via navigasjonsblokken fra forrige leksjon. Undersøk først `Get-Location` og, hvis repoet allerede er opprettet, `git status` og `git log --oneline`. Ikke gjenta `git init` eller første commit bare fordi du har åpnet terminalen på nytt. Et avvik er grunn til å stoppe og undersøke, ikke til å slette mappen.',
+        '### Fortsetter du etter en pause?\n\nÅpne PowerShell. Bruk «Slik finner du tilbake etter en pause» i leksjon 2, «Gjør klar Windows og øvingsmappen», for å gå til `ProgressPal Git oving`.\n\n- Kjør `Get-Location` for å se hvor du står.\n- Hvis repoet finnes: kjør `git status` og `git log --oneline`.\n\nIkke gjenta `git init` eller første commit hvis du allerede har gjort det. Behold mappen.',
       ),
       text(
         'I et utviklingsprosjekt kan den første commiten beskrive en fungerende grunnversjon av programmet. Da har teamet et kjent utgangspunkt å sammenligne senere endringer med. Her øver vi på akkurat den arbeidsmåten med små tekstfiler: én beskrivelse, én huskeliste og en kladd som ikke skal inn i historikken. Fortsett i den tomme mappen ProgressPal Git oving fra forrige leksjon. Sjekk hvor du står før du kjører kommandoer. Har du gjort dette før, skal du undersøke filene og historikken, ikke lage dem på nytt.',
@@ -202,7 +202,7 @@ export const gitLessons = [
         "if (@(Get-ChildItem -Force).Count -ne 0) { throw 'STOPP: Opprettelse krever en ny, tom ovingsmappe.' }\ngit init -b main\nif ($LASTEXITCODE -ne 0) { throw 'STOPP: Git kunne ikke opprette repositoryet.' }\ngit status",
       ),
       text(
-        'Git skal fortelle at du er på main, at det ikke finnes commits ennå, og at det ikke er noe å registrere. «Initialized empty Git repository» betyr at opprettelsen lyktes. Stien varierer. «Reinitialized» betyr at .git allerede fantes: stopp oppsettet og undersøk hva du har gjort tidligere. «not a git repository» betyr vanligvis at du står i feil mappe. Bruk Get-Location og gå tilbake med Set-Location fra forrige del.',
+        '**Se etter:** Du står på `main` uten commits. Stien kan variere.\n\n- `Initialized empty Git repository`: Git opprettet repoet.\n- `Reinitialized`: Repoet fantes fra før. Undersøk historikken før du fortsetter.\n- `not a git repository`: Du står sannsynligvis i feil mappe. Sjekk `Get-Location` og bruk «Slik finner du tilbake etter en pause» i leksjon 2.',
       ),
       command(
         'Finn Git-mappen',
@@ -244,7 +244,7 @@ export const gitLessons = [
         'Turplan\nDagstur langs elva.\n?? .gitignore\n?? README.txt\n?? plan.txt',
       ),
       text(
-        'I et virkelig prosjekt kan du for eksempel rette en feil i én fil mens du eksperimenterer med en annen. Du vil ikke nødvendigvis registrere begge deler i samme commit. Derfor skiller Git mellom **working tree** (filene på disken), **staging area** eller **index** (innholdet du har valgt til neste commit) og **commit-historikken** (versjoner som allerede er registrert). **git add** kopierer det valgte filinnholdet inn i staging. **git commit** registrerer det som er klargjort. En lagret fil blir verken staged eller committed av seg selv.',
+        '### Fra en redigert fil til en commit\n\nDu kan rette en feil i én fil og prøve noe uferdig i en annen. Du trenger ikke ta med begge i samme commit.\n\n- **Working tree:** Filene du redigerer på disken.\n- **Staging area (index):** Innholdet du har valgt til neste commit.\n- **Commit-historikken:** Versjonene du allerede har registrert.\n\n`git add` velger filinnhold til staging. `git commit` registrerer det valgte innholdet i historikken.\n\nÅ lagre en fil er altså ikke det samme som å kjøre `git add` eller `git commit`.',
       ),
       command(
         'Velg startfilene',
@@ -279,7 +279,7 @@ export const gitLessons = [
             'a',
             'Innholdet er valgt til neste commit, men det finnes ennå ingen ny commit.',
             true,
-            'Riktig. git add velger innhold. git commit er et eget steg som registrerer snapshotet.',
+            'Riktig. `git add` velger innholdet. `git commit` lagrer det som en versjon i historikken.',
           ],
           [
             'b',
@@ -313,7 +313,7 @@ export const gitLessons = [
         'notepad.exe .\\README.txt\nnotepad.exe .\\plan.txt',
       ),
       text(
-        'I README.txt beholder du Turplan på første linje og erstatter andre linje med Dagstur langs elva. Start klokken 10. I plan.txt erstatter du linjen med Husk vann og mat. Lagre begge med Ctrl+S. Gå deretter tilbake til PowerShell. En uendret fil i Git selv om editoren viser ny tekst, skyldes ofte at du ikke har lagret eller at du redigerer en annen fil.',
+        '### Endre de to filene i Notisblokk\n\n1. I `README.txt`: behold `Turplan` og `Dagstur langs elva.`. Legg til `Starttid: 10:00` på en egen linje.\n2. I `plan.txt`: bytt linjen til `Husk vann og mat.`\n3. Lagre begge med `Ctrl+S` og gå tilbake til PowerShell.\n\nViser Git ingen endring? Sjekk at du har lagret og åpnet riktig fil.',
       ),
       command(
         'Undersøk endringene før staging',
@@ -322,7 +322,7 @@ export const gitLessons = [
         ' M README.txt\n M plan.txt',
       ),
       text(
-        'Hver statusrad har to plasser før filnavnet. Den første gjelder staging area sammenlignet med siste commit; den andre gjelder working tree sammenlignet med staging area. M betyr modified, altså endret. En blank første plass og M på andre betyr at filen er endret, men ikke klargjort. ?? betyr en ny fil Git ennå ikke følger. Ikke skriv statusradene som kommandoer.',
+        '### Slik leser du `git status --short`\n\nDe to første plassene før filnavnet betyr forskjellige ting:\n\n- **Første plass:** Endring i staging area sammenlignet med siste commit.\n- **Andre plass:** Endring i working tree sammenlignet med staging area.\n- `M` betyr modified (endret). En blank første plass og `M` på andre betyr at endringen ikke er staged.\n- `??` betyr at Git ennå ikke følger filen.\n\nDette er utskrift fra Git, ikke kommandoer.',
       ),
       command(
         'Klargjør bare starttidspunktet',
@@ -331,11 +331,11 @@ export const gitLessons = [
         'M  README.txt\n M plan.txt',
       ),
       text(
-        'Diff med --cached skal nå inneholde start klokken 10 i README.txt, men ingen endring i plan.txt. Den første M-en viser klargjort innhold. Nå skal du se at staging area husker et bestemt innhold, ikke bare en liste med filnavn.',
+        '**Se etter:** `git diff --cached` viser `Starttid: 10:00` i `README.txt`, men ikke endringen i `plan.txt`.\n\nStaging area husker innholdet du valgte, ikke bare filnavnet.',
       ),
       command(
         'Endre en fil som allerede er staged',
-        'Åpne README.txt igjen. Legg til en tredje linje: Ta med kart. Lagre med Ctrl+S og gå tilbake til PowerShell. Ikke kjør git add igjen ennå.',
+        'Åpne `README.txt` igjen. Legg til `Ta med kart.` nederst. Lagre med Ctrl+S og gå tilbake til PowerShell. Ikke kjør git add igjen ennå.',
         'notepad.exe .\\README.txt',
       ),
       command(
@@ -345,29 +345,29 @@ export const gitLessons = [
         'MM README.txt\n M plan.txt',
       ),
       text(
-        'MM betyr at README.txt har både staged og unstaged innhold. Diff uten --cached viser den nye kartlinjen; diff med --cached viser fortsatt bare endringen til starttid 10. git add tok ikke med framtidige endringer automatisk. Kjører du add på nytt, oppdaterer du innholdet som er valgt. Her skal kartlinjen vente sammen med huskelisten.',
+        '### Hva betyr `MM`?\n\nI denne øvingen er den første endringen staged, mens den andre bare ligger i arbeidsfilen. Derfor viser Git to M-er.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** `Starttid: 10:00` er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
       ),
       question(
         'GIT-M01-E04',
-        'README.txt ble staged med starttid 10. Etterpå la du til Ta med kart. og lagret uten å kjøre add igjen. Status viser MM README.txt. Hva vil neste vanlige git commit registrere for denne filen?',
+        'Du har gjort to endringer i `README.txt`:\n\n- Du la til `Starttid: 10:00` og kjørte `git add`.\n- Du la til «Ta med kart.» og lagret, uten å kjøre `git add` igjen.\n\nGit viser `MM README.txt`.\n\n**Hva blir med i neste commit hvis du kjører `git commit` uten ekstra valg?**',
         [
           [
             'a',
-            'Starttid 10, uten den nye kartlinjen.',
+            'Starttid: 10:00, uten den nye kartlinjen.',
             true,
-            'Ja. Index inneholder versjonen fra add. Kartlinjen finnes bare i working tree og blir liggende som en endring etter commit.',
+            'Riktig. Git bruker innholdet du la i staging area med `git add`. Kartlinjen blir værende i filen etter commit.',
           ],
           [
             'b',
-            'Starttid 10 og kartlinjen, fordi filnavnet allerede var staged.',
+            'Starttid: 10:00 og kartlinjen, fordi filen allerede lå i staging area.',
             false,
-            'Staging er ikke et løfte om å følge framtidige endringer. Git bruker innholdet som ble valgt da add ble kjørt.',
+            'Git legger ikke nye endringer i staging area av seg selv. Kartlinjen blir først med hvis du kjører `git add` på nytt.',
           ],
           [
             'c',
-            'Ingen av endringene, fordi MM betyr at Git ikke kan lage en commit.',
+            'Ingen av endringene, fordi MM stopper Git fra å lage en commit.',
             false,
-            'MM er en beskrivelse av to forskjellige tilstander, ikke en sperre. Git kan registrere det staged innholdet og la resten vente.',
+            'MM viser at filen har både staged og unstaged endringer. Git kan lage en commit med det staged innholdet.',
           ],
         ],
         'Sammenlign hva diff med og uten --cached viser for samme fil.',
@@ -382,7 +382,7 @@ export const gitLessons = [
         'README.txt\nplan.txt',
       ),
       text(
-        'Du oppdaget at plan.txt var klargjort ved en feil. **git restore --staged -- plan.txt** fjerner denne filens endring fra utvalget for neste commit, men lar den redigerte filen på disken være i fred. Det er en nyttig retting når du ser at feil arbeid er valgt. **Behold --staged**: restore uten dette valget kan erstatte endringer i selve arbeidsfilen.',
+        'Du har klargjort `plan.txt` ved en feil. `git restore --staged -- plan.txt` tar endringen ut av staging area. Teksten du har lagret i filen, blir værende.\n\n**Viktig:** Behold `--staged`. Uten dette valget kan `git restore` overskrive endringer i arbeidsfilen.',
       ),
       command(
         'Rett bare utvalget',
@@ -396,7 +396,7 @@ export const gitLessons = [
         'git --no-pager diff --cached\ngit commit -m "Beskriv starttid for turen"\nif ($LASTEXITCODE -ne 0) { throw "STOPP: Commit ble ikke laget." }\ngit --no-pager log --oneline -2\ngit status --short',
       ),
       text(
-        'Historikken skal nå inneholde to commits: Beskriv starttid for turen øverst og Start turplanen under. Status skal vise blank første plass og M på andre for både README.txt og plan.txt. De ventende endringene ble bevart. Status blir altså ikke nødvendigvis tom etter en vellykket commit.',
+        '### Sjekk resultatet\n\n**Historikk (nyeste først):**\n- Beskriv starttid for turen\n- Start turplanen\n\n**Git-status:**\n```\n M README.txt\n M plan.txt\n```\n\nBegge filene har fortsatt unstaged endringer. Det er akkurat det vi vil her.',
       ),
       command(
         'Sammenlign registrert og nåværende innhold',
@@ -404,18 +404,18 @@ export const gitLessons = [
         "git --no-pager show HEAD:README.txt\nGet-Content -LiteralPath 'README.txt'",
       ),
       text(
-        'Begge viser Turplan og Dagstur langs elva. Start klokken 10. Bare Get-Content skal i tillegg vise Ta med kart. Hvis show også viser kartlinjen, har du klargjort README på nytt før commit. Det er ingen grunn til å slette eller skrive om historikken. Bruk dette til å forklare forskjellen, behold mappen og tilpass neste oppgave til det som faktisk gjenstår. Du kan også starte en ny øving i en helt ny mappe for å gjenskape eksemplet.',
+        'Begge viser `Turplan`, `Dagstur langs elva.` og `Starttid: 10:00`. Bare `Get-Content` skal i tillegg vise `Ta med kart.`. Hvis du brukte den tidligere teksten «Start klokken 10.», behold den. Du trenger ikke endre historikken. Hvis show også viser kartlinjen, har du klargjort README på nytt før commit. Det er ingen grunn til å slette eller skrive om historikken. Bruk dette til å forklare forskjellen, behold mappen og tilpass neste oppgave til det som faktisk gjenstår. Du kan også starte en ny øving i en helt ny mappe for å gjenskape eksemplet.',
       ),
     ],
   },
   {
     missionId: 'GIT-M01-O05',
     title: 'Prøv selv: et endret mål',
-    goal: 'Velge en annen endring, kontrollere en commit og skille egenrapportert øving fra et automatisk sjekket svar.',
+    goal: 'Velge riktig innhold til neste commit og sjekke hva som ble med.',
     skillId: 'GIT-TRANSFER',
     flow: [
       text(
-        'Til nå har du fått steg for steg-hjelp. I et virkelig programvareprosjekt endres ofte oppgaven mens du arbeider: en annen feil blir viktigere, eller teamet velger å sende én retting før den andre. Nå får du et endret mål og må selv bruke status og diff til å avgjøre hva Git skal registrere. Start i samme repo på main med to commits, en ventende kartlinje i README.txt og en ventende huskelisteendring i plan.txt. Er tilstanden annerledes, undersøk først hva som er staged eller committed før du gjør noe mer.',
+        'I et utviklingsprosjekt kan en annen feil plutselig bli viktigere. Nå skal du selv velge hva neste commit skal inneholde.\n\n### Før du starter\n\nDu skal være i samme repo som i leksjon 4, «Velg innholdet i neste commit»:\n\n- Branch: `main`.\n- To commits i historikken.\n- `README.txt`: kartlinjen er endret, men ikke committet.\n- `plan.txt`: huskelisten er endret, men ikke committet.\n\nHvis dette ikke stemmer, undersøk med `git status` og `git log --oneline` før du går videre.',
       ),
       text(
         'Det nye målet er motsatt av forrige commit: **registrer bare huskelisten i plan.txt**, nå med en sjekk av været. Kartlinjen i README.txt skal fortsatt vente. Før du fikk det nye målet, rakk du å klargjøre README.txt. Vi lager den startsituasjonen bevisst under.',
@@ -433,17 +433,17 @@ export const gitLessons = [
       ),
       question(
         'GIT-M01-E05',
-        'Målet er en commit med bare plan.txt. Nå viser status M i første kolonne for README.txt og M i andre kolonne for plan.txt. Hva trenger du å gjøre før commit?',
+        'Målet er å lage en commit med bare endringene i `plan.txt`.\n\nGit viser:\n```\nM  README.txt\n M plan.txt\n```\n\n**Hva må du gjøre før commit?**',
         [
           [
             'a',
-            'Ta README.txt ut av staging area uten å endre arbeidsfilen, klargjør plan.txt og kontroller utvalget.',
+            'Ta README.txt ut av staging area, legg til plan.txt og sjekk hva som er staged.',
             true,
-            'Ja. Begge delene trengs: fjern det gamle utvalget med git restore --staged -- README.txt, klargjør plan.txt med git add -- plan.txt og undersøk diff med --cached før commit. Dette er riktig vurdering av situasjonen; appen har ikke utført kommandoene.',
+            'Riktig. Du må både fjerne den gamle endringen og legge til den nye:\n\n- `git restore --staged -- README.txt`\n- `git add -- plan.txt`\n- `git diff --cached` for å sjekke innholdet.',
           ],
           [
             'b',
-            'Klargjør plan.txt og lag commit; den sist klargjorte filen erstatter automatisk den første i utvalget.',
+            'Legg til plan.txt og lag commit. Den nye filen erstatter automatisk README.txt i staging area.',
             false,
             'add legger ikke bort andre staged filer. Uten å ta README.txt ut av index vil begge endringene bli med.',
           ],
@@ -454,17 +454,17 @@ export const gitLessons = [
             'Commit bruker index, ikke tidspunktet for siste redigering. Her er feil fil klargjort og riktig fil fortsatt unstaged.',
           ],
         ],
-        'Se både på det som allerede er valgt, og det som mangler i utvalget. Hvordan rettet du staging uten å endre filer i forrige del?',
+        'Se både på filen som allerede er staged, og filen som ikke er staged. Hvordan tok du plan.txt ut av staging i leksjon 4, «Rett bare utvalget»?',
       ),
       text(
-        'Utfør nå arbeidet i PowerShell. Bruk det du har lært framfor å kopiere hele forrige oppskrift: ta README.txt ut av utvalget, velg plan.txt og undersøk både filnavnene og innholdet i diff --cached. Ingen README-endring skal være med. Noter hvorfor det ikke holder å bare legge til enda en fil. Ved behov kan du lese rettingen i forrige del igjen; det er lov å bruke hjelp.',
+        'Nå skal du selv velge hvilke endringer som blir med i neste commit.\n\nI leksjon 4, «Velg innholdet i neste commit», lærte du å fjerne en fil fra staging area uten å slette endringene i filen. Se kommandoboksen [«Rett bare utvalget»](lesson:git-m01-o04#rett-bare-utvalget) dersom du trenger hjelp.\n\nDenne gangen skal du:\n\n1. Fjerne README.txt fra staging area.\n2. Legge til plan.txt i staging area.\n3. Kontrollere hvilke filer som er klargjort.\n4. Kontrollere innholdet i endringene.\n\nBare endringene i plan.txt skal være klargjort for neste commit.\n\nHvorfor holder det ikke å bare legge til plan.txt?',
       ),
       {
         id: 'GIT-M01-E06',
         type: 'evidence',
         optional: true,
         prompt:
-          'Valgfri tekstkontroll før commit: kjør git diff --cached --name-only i øvingsmappen og lim bare inn filnavnlisten. Ikke lim inn ledetekst, stier eller diff-innhold. Sjekken ser etter at bare plan.txt står i teksten. Den kan ikke se repositoryet eller bekrefte at kommandoen ble kjørt.',
+          'Vil du sjekke filvalget før commit? Kjør `git diff --cached --name-only` i øvingsmappen. Lim inn bare filnavnene Git viser, uten teksten foran kommandoen (for eksempel `PS ...>`) eller innholdet fra diff.',
         hints: [
           'Se på det som er staged, ikke bare på hvilke filer du har endret.',
         ],
@@ -480,25 +480,25 @@ export const gitLessons = [
             },
           ],
           privacy:
-            'Lim bare inn de oppdiktede filnavnene fra øvingen. Ingen tokens, passord, personopplysninger, private repoer eller fullstendige filstier. Teksten lagres i nettleseren og blir med i sikkerhetskopier du eksporterer eller velger å laste opp.',
+            'Bruk bare filnavn fra øvingen. Ikke ta med passord, tokens eller private opplysninger.',
         },
       },
       text(
-        'Når diff --cached viser bare den nye huskelisten i plan.txt, lager du en commit med meldingen Oppdater huskelisten. Du har allerede lært git commit -m. Kontroller deretter git log --oneline -3, git show HEAD:plan.txt, git show HEAD:README.txt og git status --short. Bruk --no-pager foran log og show hvis du vil ha resultatet rett i terminalen.',
+        '### Lag commiten og sjekk resultatet\n\nNår `git diff --cached` bare viser endringen i `plan.txt`, lager du en commit med meldingen `Oppdater huskelisten`.\n\nSjekk deretter:\n\n- `git --no-pager log --oneline -3`\n- `git --no-pager show HEAD:plan.txt`\n- `git --no-pager show HEAD:README.txt`\n- `git status --short`',
       ),
       text(
-        'Du skal nå ha tre commits. Nyeste plan.txt i historikken skal ha Husk vann og mat. Sjekk vaeret. README.txt i historikken skal fortsatt mangle kartlinjen. Working tree skal fortsatt ha kartlinjen, og status skal vise bare README.txt som unstaged. Hvis resultatet er annerledes, bruk show, diff og status til å finne forskjellen. Ikke bruk reset --hard, clean eller slett .git for å få et pent resultat. Behold arbeidet mens du undersøker.',
+        '### Dette skal du se\n\n- Historikken har tre commits.\n- `HEAD:plan.txt` viser `Husk vann og mat. Sjekk vaeret.`\n- `HEAD:README.txt` har ikke kartlinjen.\n- `README.txt` på disken har kartlinjen. Status viser bare denne filen som unstaged.\n\nStemmer ikke resultatet? Bruk `git show`, `git diff` og `git status` til å finne forskjellen. Ikke bruk `reset --hard`, `clean` eller slett `.git`.',
       ),
       {
         id: 'GIT-M01-E07',
         type: 'reflect',
         prompt:
-          'Skriv en kort egenrapport: Hva fikk du gjort i den virkelige øvingsmappen, hva viste at bare huskelisten ble registrert, og hva lå igjen? Fortell også hvis noe ikke lyktes eller du brukte hjelp. Du kan skrive en delvis gjennomføring. Ingen personlige stier eller sensitive data.',
+          'Hva fikk du til? Fortell kort hva som kom med i commiten, hva som lå igjen, og om du trengte hjelp. Det går fint om du ikke ble ferdig. Ikke ta med private filstier eller personopplysninger.',
         choices: null,
         hints: [],
       },
       text(
-        'Du kan lagre svar, en valgfri filnavnkontroll og din egen beskrivelse av øvingen. Marker leksjonen som fullført når du selv har gått gjennom den. Framdrift og svar blir lagret i ProgressPal og følger med en sikkerhetskopi av appen; Git-øvingsmappen må du ta vare på separat.',
+        'Marker leksjonen som fullført når du har gått gjennom den. Svarene og framdriften din lagres i ProgressPal. Ta vare på Git-øvingsmappen separat.',
       ),
       {
         t: 'recap',

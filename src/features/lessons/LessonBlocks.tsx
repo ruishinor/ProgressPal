@@ -4,6 +4,8 @@ import type { LessonTextBlock, LessonUiCopy } from '@/lib/domain';
 
 import { transcriptHeading } from './codeLabels';
 import { LeadingSpaceNote } from './LeadingSpaceNote';
+import { GitLessonVisual } from './GitLessonVisual';
+import type { GitVisual } from './gitVisuals';
 import { copyableRoles, type PreformattedRole } from './copyPolicy';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy } from './model';
@@ -131,10 +133,12 @@ export function LessonTextBlockView({
   block,
   context,
   copy,
+  visual,
 }: {
   block: LessonTextBlock;
   context: MarkupContext;
   copy: LessonUiCopy;
+  visual?: GitVisual | undefined;
 }) {
   const surfaces = useLessonSurfaces();
 
@@ -143,7 +147,8 @@ export function LessonTextBlockView({
     case 'text':
       return (
         <div className="lesson-text">
-          <Markup context={context} text={block.nb} />
+          <Markup context={context} text={visual?.short ?? block.nb} />
+          {visual && <GitLessonVisual visual={visual} />}
         </div>
       );
     case 'callout':
