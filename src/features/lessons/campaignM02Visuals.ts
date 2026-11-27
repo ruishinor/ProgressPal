@@ -1,0 +1,877 @@
+import type { GitVisual } from './gitVisuals';
+
+// M02 teaching models share the existing visual renderer. Exact source-block
+// matching avoids showing stale explanations after a curriculum revision.
+// prettier-ignore
+export const campaignM02Visuals: readonly GitVisual[] = [
+  {
+    "lesson": "S1-M02-L01",
+    "step": 1,
+    "anchor": "## Verdi og variabel\n\nEn **verdi** (value) er data, for eksempel tallet `3` eller teksten `\"Kari\"`. En **variabel** (variable) er et navn du gir en verdi, slik at du kan bruke verdien senere. Du lager en variabel med tegnet `=`:",
+    "kind": "flow",
+    "title": "Navn, verdi og type",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Navn",
+            "value": "antall",
+            "detail": "",
+            "tone": "blue"
+          },
+          {
+            "label": "Verdi",
+            "value": "3",
+            "detail": "Heltall (int)",
+            "tone": "green"
+          }
+        ],
+        "caption": "Python knytter navnet antall til verdien 3.",
+        "links": [
+          "peker på"
+        ]
+      }
+    ],
+    "short": "## Verdi og variabel\n\nEn **verdi** (value) er data. En **variabel** (variable) er et navn du kan bruke for å hente en verdi senere."
+  },
+  {
+    "lesson": "S1-M02-L01",
+    "step": 3,
+    "anchor": "## `=` betyr «lagre», ikke «er lik»\n\nTegnet `=` er en **tilordning** (assignment): «regn ut høyresiden, og lagre resultatet under navnet til venstre». Det er ikke et likhetstegn slik som i matematikken. Python regner ut høyresiden først. Derfor er dette helt lovlig:",
+    "kind": "flow",
+    "title": "Følg tilordningen",
+    "frames": [
+      {
+        "label": "Linje 1",
+        "cards": [
+          {
+            "label": "Kode",
+            "value": "antall = 3",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "antall",
+            "value": "3",
+            "detail": "",
+            "tone": "blue"
+          }
+        ],
+        "caption": "Navnet får verdien 3."
+      },
+      {
+        "label": "Linje 2",
+        "cards": [
+          {
+            "label": "Før",
+            "value": "antall = 3",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Regn ut høyresiden",
+            "value": "3 + 2 = 5",
+            "detail": "",
+            "tone": "amber"
+          },
+          {
+            "label": "Etter",
+            "value": "antall = 5",
+            "detail": "",
+            "tone": "green"
+          }
+        ],
+        "caption": "Den gamle verdien brukes før navnet knyttes til den nye.",
+        "links": [
+          "regn ut",
+          "tilordne"
+        ]
+      }
+    ],
+    "short": "## Tilordning med `=`\n\nPython regner ut høyresiden først. Deretter knyttes navnet på venstre side til resultatet. Velg en linje for å følge eksemplet."
+  },
+  {
+    "lesson": "S1-M02-L01",
+    "step": 7,
+    "anchor": "## Variabler oppdateres ikke av seg selv\n\nDette er den vanligste misforståelsen. Når du bruker en variabel i en utregning, bruker Python verdien den har *akkurat da*. Endrer du variabelen senere, endres ikke det som ble regnet ut tidligere:",
+    "kind": "flow",
+    "title": "Endring av a endrer ikke b",
+    "frames": [
+      {
+        "label": "1: a = 1",
+        "cards": [
+          {
+            "label": "a",
+            "value": "1",
+            "detail": "",
+            "tone": "blue"
+          },
+          {
+            "label": "b",
+            "value": "Ikke opprettet",
+            "detail": "",
+            "tone": "neutral"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "2: b = a + 1",
+        "cards": [
+          {
+            "label": "a",
+            "value": "1",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "b",
+            "value": "2",
+            "detail": "Regnet ut nå.",
+            "tone": "blue"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "3: a = 10",
+        "cards": [
+          {
+            "label": "a",
+            "value": "10",
+            "detail": "Ny verdi.",
+            "tone": "amber"
+          },
+          {
+            "label": "b",
+            "value": "2",
+            "detail": "Uendret.",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      }
+    ],
+    "short": "## Variabler oppdateres ikke av seg selv\n\nPython bruker verdiene variablene har akkurat når uttrykket kjøres. `b` blir ikke regnet ut på nytt når `a` endres."
+  },
+  {
+    "lesson": "S1-M02-L02",
+    "step": 7,
+    "anchor": "## Rekkefølge og parenteser\n\nPython følger vanlige regneregler: `*`, `/`, `//` og `%` regnes før `+` og `-`. Bruk parenteser når du vil bestemme rekkefølgen:",
+    "kind": "flow",
+    "title": "Samme tall, ulik rekkefølge",
+    "frames": [
+      {
+        "label": "Uten parentes",
+        "cards": [
+          {
+            "label": "Uttrykk",
+            "value": "2 + 3 * 4",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Først",
+            "value": "3 * 4 = 12",
+            "detail": "",
+            "tone": "blue"
+          },
+          {
+            "label": "Så",
+            "value": "2 + 12 = 14",
+            "detail": "",
+            "tone": "green"
+          }
+        ],
+        "caption": "Gange før pluss.",
+        "links": [
+          "først",
+          "så"
+        ]
+      },
+      {
+        "label": "Med parentes",
+        "cards": [
+          {
+            "label": "Uttrykk",
+            "value": "(2 + 3) * 4",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Først",
+            "value": "2 + 3 = 5",
+            "detail": "",
+            "tone": "blue"
+          },
+          {
+            "label": "Så",
+            "value": "5 * 4 = 20",
+            "detail": "",
+            "tone": "green"
+          }
+        ],
+        "caption": "Parentesen endrer rekkefølgen.",
+        "links": [
+          "først",
+          "så"
+        ]
+      }
+    ],
+    "short": "## Rekkefølge og parenteser\n\n`*`, `/`, `//` og `%` regnes før `+` og `-`. Parenteser lar deg bestemme hva som regnes ut først."
+  },
+  {
+    "lesson": "S1-M02-L02",
+    "step": 9,
+    "anchor": "## Variabler i regnestykker\n\nDu kan bruke variabler i uttrykk, og lagre svaret i en ny variabel. Nå kan vi lage første versjon av kaffekassa:",
+    "kind": "flow",
+    "title": "Fra to verdier til en total",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "antall",
+            "value": "3",
+            "detail": "Kopper",
+            "tone": "blue"
+          },
+          {
+            "label": "pris",
+            "value": "45",
+            "detail": "Kroner per kopp",
+            "tone": "blue"
+          },
+          {
+            "label": "total",
+            "value": "135",
+            "detail": "3 * 45",
+            "tone": "green"
+          }
+        ],
+        "caption": "Python henter de to verdiene, ganger dem og knytter resultatet til total."
+      }
+    ],
+    "short": "## Variabler i regnestykker\n\nDu kan regne med verdier som har navn, og gi resultatet et nytt navn."
+  },
+  {
+    "lesson": "S1-M02-L03",
+    "step": 1,
+    "anchor": "## Reglene Python krever\n\n- Et variabelnavn kan inneholde bokstaver, tall og understrek (`_`).\n- Det kan ikke begynne med et tall og ikke inneholde mellomrom.\n- Store og små bokstaver er forskjellige: `antall` og `Antall` er to forskjellige navn.\n- Unngå æ, ø og å i navn. Det fungerer, men kan lage trøbbel i andre verktøy.\n- Bruk ikke navn som Python allerede bruker, for eksempel `print`.",
+    "kind": "flow",
+    "title": "Hvilke navn kan Python bruke?",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Gyldig",
+            "value": "antall_kopper",
+            "detail": "Bokstaver og understrek.",
+            "tone": "green"
+          },
+          {
+            "label": "Gyldig",
+            "value": "kopper2",
+            "detail": "Tall etter første tegn.",
+            "tone": "green"
+          },
+          {
+            "label": "Ugyldig",
+            "value": "2kopper",
+            "detail": "Begynner med et tall.",
+            "tone": "red"
+          },
+          {
+            "label": "Ugyldig",
+            "value": "antall kopper",
+            "detail": "Inneholder mellomrom.",
+            "tone": "red"
+          },
+          {
+            "label": "Reservert ord",
+            "value": "class",
+            "detail": "Kan ikke brukes som variabelnavn.",
+            "tone": "red"
+          },
+          {
+            "label": "Gyldig, men unngå",
+            "value": "print",
+            "detail": "Skjuler den innebygde funksjonen.",
+            "tone": "amber"
+          }
+        ],
+        "caption": "antall og Antall er to forskjellige navn."
+      }
+    ],
+    "short": "## Reglene Python krever\n\nBruk bokstaver, understrek og eventuelt tall etter første tegn. Unngå reserverte ord og navn som `print`. Python støtter også mange Unicode-bokstaver, men enkle ASCII-navn er vanlige i delte prosjekter."
+  },
+  {
+    "lesson": "S1-M02-L04",
+    "step": 5,
+    "anchor": "Anførselstegn i koden er måten du **skriver** en tekst på: `\"45\"` er teksten med tegnene 4 og 5. Selve verdien har ikke anførselstegn i seg, det ser du på utskriften. Det er verdien som har en type, ikke hvordan den ser ut.",
+    "kind": "flow",
+    "title": "Lik utskrift, forskjellige typer",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Kode",
+            "value": "45",
+            "detail": "int – heltall",
+            "tone": "blue"
+          },
+          {
+            "label": "Kode",
+            "value": "\"45\"",
+            "detail": "str – tekst",
+            "tone": "amber"
+          },
+          {
+            "label": "Utskrift",
+            "value": "45",
+            "detail": "Begge ser like ut på skjermen.",
+            "tone": "neutral"
+          }
+        ],
+        "caption": "Anførselstegnene i kildekoden markerer tekst. De er ikke en del av verdien."
+      }
+    ],
+    "short": "Utskriften alene forteller ikke alltid hvilken type en verdi har. Bruk `type()` når du er usikker."
+  },
+  {
+    "lesson": "S1-M02-L04",
+    "step": 6,
+    "anchor": "## Operatorer følger typen\n\nSamme operator kan gjøre ulike ting, avhengig av typen:",
+    "kind": "flow",
+    "title": "Hva gjør operatoren med verdiene?",
+    "frames": [
+      {
+        "label": "Tall",
+        "cards": [
+          {
+            "label": "Uttrykk",
+            "value": "3 + 4",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "7",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": "Tall legges sammen."
+      },
+      {
+        "label": "Tekst",
+        "cards": [
+          {
+            "label": "Uttrykk",
+            "value": "\"3\" + \"4\"",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "\"34\"",
+            "detail": "str",
+            "tone": "green"
+          }
+        ],
+        "caption": "Tekstene settes sammen."
+      },
+      {
+        "label": "Gjenta tekst",
+        "cards": [
+          {
+            "label": "Uttrykk",
+            "value": "\"ha\" * 3",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "\"hahaha\"",
+            "detail": "str",
+            "tone": "green"
+          }
+        ],
+        "caption": "Tekst kan gjentas med et heltall."
+      }
+    ],
+    "short": "## Operatorer følger typen\n\nSamme tegn kan bety ulike ting avhengig av verdienes typer."
+  },
+  {
+    "lesson": "S1-M02-L05",
+    "step": 6,
+    "anchor": "## Gjøre tekst om til tall\n\nDet å gjøre en verdi om til en annen type kalles å **konvertere** (convert). Du bruker funksjoner med typens navn:\n\n- `int(…)` gjør tekst med sifre om til et **heltall**.\n- `float(…)` gjør tekst om til et **desimaltall**.\n- `str(…)` går motsatt vei: fra tall til tekst.\n\nDen vanlige formen er `antall = int(input(\"Antall kopper: \"))`. Først kjører `input`, og så konverterer `int` svaret.",
+    "kind": "flow",
+    "title": "Fra tastatur til heltall",
+    "frames": [
+      {
+        "label": "1: input",
+        "cards": [
+          {
+            "label": "Brukeren skriver",
+            "value": "3",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "input() gir",
+            "value": "\"3\"",
+            "detail": "str",
+            "tone": "amber"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "2: int",
+        "cards": [
+          {
+            "label": "Før",
+            "value": "\"3\"",
+            "detail": "str",
+            "tone": "neutral"
+          },
+          {
+            "label": "int(\"3\")",
+            "value": "3",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": "Først input, deretter konvertering.",
+        "links": [
+          "konverter"
+        ]
+      },
+      {
+        "label": "3: variabel",
+        "cards": [
+          {
+            "label": "Navn",
+            "value": "antall",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Verdi",
+            "value": "3",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": "Nå kan antall brukes i regnestykker."
+      }
+    ],
+    "short": "## Gjør tekst om til tall\n\n`int()` konverterer egnet tekst til heltall, `float()` til desimaltall og `str()` til tekst. I `antall = int(input(\"Antall kopper: \"))` kjøres `input()` først."
+  },
+  {
+    "lesson": "S1-M02-L05",
+    "step": 9,
+    "anchor": "## Hva skjer hvis du glemmer å konvertere?\n\nSamme program, men uten `int`. Brukeren skriver 3, og vi ganger med prisen 45:",
+    "kind": "flow",
+    "title": "Samme inndata, forskjellig resultat",
+    "frames": [
+      {
+        "label": "Uten int",
+        "cards": [
+          {
+            "label": "antall",
+            "value": "\"3\"",
+            "detail": "str",
+            "tone": "amber"
+          },
+          {
+            "label": "Uttrykk",
+            "value": "\"3\" * 45",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "45 repetisjoner av tegnet 3",
+            "detail": "Tekst, ikke totalpris.",
+            "tone": "red"
+          }
+        ],
+        "caption": "Programmet kjører, men svaret er feil."
+      },
+      {
+        "label": "Med int",
+        "cards": [
+          {
+            "label": "antall",
+            "value": "3",
+            "detail": "int",
+            "tone": "blue"
+          },
+          {
+            "label": "Uttrykk",
+            "value": "3 * 45",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "135",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": "Nå ganger Python to tall."
+      }
+    ],
+    "short": "## Hva skjer hvis du glemmer å konvertere?\n\nBrukeren skriver 3 og prisen er 45. Sammenlign verdien og typen før multiplikasjonen."
+  },
+  {
+    "lesson": "S1-M02-L06",
+    "step": 3,
+    "anchor": "`TypeError` betyr at operasjonen ikke passer til typene. Her prøver `+` å legge sammen en tekst og et heltall. Feilen oppstår på **linje 2**, men **årsaken** ligger på linje 1: `antall` ble aldri gjort om til et tall. Feilmeldingen peker på der det gikk i stykker, ikke nødvendigvis der feilen startet.",
+    "kind": "flow",
+    "title": "Feilen vises senere enn årsaken",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Linje 1: årsak",
+            "value": "antall = input(...)",
+            "detail": "antall er str.",
+            "tone": "amber"
+          },
+          {
+            "label": "Linje 2: feil",
+            "value": "antall + 2",
+            "detail": "str + int passer ikke.",
+            "tone": "red"
+          },
+          {
+            "label": "Rettelse",
+            "value": "antall = int(input(...))",
+            "detail": "Konverter ved innlesing.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Traceback peker på operasjonen som feilet, ikke nødvendigvis årsaken.",
+        "links": [
+          "verdien går videre",
+          "rett årsaken"
+        ]
+      }
+    ],
+    "short": "`TypeError` betyr at operasjonen ikke passer til typene. Se både på linjen i feilmeldingen og hvor verdiene kommer fra."
+  },
+  {
+    "lesson": "S1-M02-L06",
+    "step": 4,
+    "anchor": "## Feil 2: riktig type, feil innhold (ValueError)\n\nNå har vi `int()`, men brukeren skriver prisen 12.5. `int()` kan ikke gjøre «12.5» om til et heltall. Typen er riktig (tekst), men **innholdet** passer ikke:",
+    "kind": "flow",
+    "title": "Konvertering med ulikt innhold",
+    "frames": [
+      {
+        "label": "Heltall",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "\"12\"",
+            "detail": "str",
+            "tone": "neutral"
+          },
+          {
+            "label": "int(\"12\")",
+            "value": "12",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "Desimaltall",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "\"12.5\"",
+            "detail": "str",
+            "tone": "neutral"
+          },
+          {
+            "label": "int(\"12.5\")",
+            "value": "ValueError",
+            "detail": "Teksten er ikke et heltall.",
+            "tone": "red"
+          },
+          {
+            "label": "float(\"12.5\")",
+            "value": "12.5",
+            "detail": "float",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "Desimalkomma",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "\"12,5\"",
+            "detail": "str",
+            "tone": "neutral"
+          },
+          {
+            "label": "float(\"12,5\")",
+            "value": "ValueError",
+            "detail": "Bruk desimalpunktum i dette eksemplet.",
+            "tone": "red"
+          }
+        ],
+        "caption": ""
+      }
+    ],
+    "short": "## Feil 2: verdien kan ikke konverteres (ValueError)\n\n`int()` kan ta imot tekst, men teksten må kunne leses som et heltall. `float()` kan lese desimalpunktum."
+  },
+  {
+    "lesson": "S1-M02-L07",
+    "step": 1,
+    "anchor": "## To tegn, to oppgaver\n\n- **`=`** lagrer: «regn ut høyresiden og legg den under navnet til venstre». Du kjenner den fra variabler.\n- **`==`** spør: «er verdien til venstre lik verdien til høyre?» Svaret er en **sammenligning** (comparison), og den gir `True` eller `False`.",
+    "kind": "flow",
+    "title": "Tilordning eller sammenligning?",
+    "frames": [
+      {
+        "label": "Tilordning",
+        "cards": [
+          {
+            "label": "Før",
+            "value": "x = 1",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kode",
+            "value": "x = 5",
+            "detail": "Endrer hva x viser til.",
+            "tone": "amber"
+          },
+          {
+            "label": "Etter",
+            "value": "x = 5",
+            "detail": "",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "Sammenligning",
+        "cards": [
+          {
+            "label": "Før",
+            "value": "x = 1",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kode",
+            "value": "x == 5",
+            "detail": "Resultat: False",
+            "tone": "blue"
+          },
+          {
+            "label": "Etter",
+            "value": "x = 1",
+            "detail": "Uendret.",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      }
+    ],
+    "short": "## To tegn, to oppgaver\n\n`=` tilordner en verdi til et navn. `==` sammenligner to verdier og gir `True` eller `False` (boolean)."
+  },
+  {
+    "lesson": "S1-M02-L08",
+    "step": 1,
+    "anchor": "## f-strenger\n\nSett bokstaven `f` rett foran anførselstegnet, og sett variabler og uttrykk mellom krøllparenteser `{ }`. Python setter inn verdiene. Dette kalles en **f-streng** (f-string):",
+    "kind": "flow",
+    "title": "Fra f-streng til utskrift",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Variabel",
+            "value": "navn = \"Kari\"",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kode",
+            "value": "f\"Hei, {navn}\"",
+            "detail": "f ber Python sette inn uttrykket.",
+            "tone": "blue"
+          },
+          {
+            "label": "Resultat",
+            "value": "Hei, Kari",
+            "detail": "",
+            "tone": "green"
+          }
+        ],
+        "caption": "Krøllparentesene markerer uttrykket som skal regnes ut.",
+        "links": [
+          "bruk verdien",
+          "sett inn"
+        ]
+      }
+    ],
+    "short": "## F-strenger\n\nSkriv `f` foran anførselstegnet og sett variabler eller uttrykk mellom krøllparenteser. Python setter inn resultatene."
+  },
+  {
+    "lesson": "S1-M02-L08",
+    "step": 5,
+    "anchor": "Python kan ikke lagre tall som `0.1` og `0.2` helt nøyaktig som *float*. Derfor kan summen skrives ut som `0.30000000000000004`. Med `:.2f` viser du tallet med to desimaler. Når tallet har flere desimaler, blir det avrundet for utskriften: `1.239` blir `1.24`, mens `1.231` blir `1.23`. Dette endrer ikke verdien som er lagret i variabelen.",
+    "kind": "flow",
+    "title": "Formatet endrer utskriften, ikke verdien",
+    "frames": [
+      {
+        "label": "Uten format",
+        "cards": [
+          {
+            "label": "Lagret verdi",
+            "value": "1.239",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Utskrift",
+            "value": "1.239",
+            "detail": "",
+            "tone": "blue"
+          }
+        ],
+        "caption": ""
+      },
+      {
+        "label": "Med .2f",
+        "cards": [
+          {
+            "label": "Lagret verdi",
+            "value": "1.239",
+            "detail": "Uendret.",
+            "tone": "neutral"
+          },
+          {
+            "label": "Format",
+            "value": "f\"{verdi:.2f}\"",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Utskrift",
+            "value": "1.24",
+            "detail": "Avrundet for visning.",
+            "tone": "green"
+          }
+        ],
+        "caption": ""
+      }
+    ],
+    "short": "Python lagrer ikke alle desimaltall helt nøyaktig som `float`, for eksempel `0.1 + 0.2`. Med `:.2f` formaterer du utskriften til to desimaler uten å endre den lagrede verdien."
+  },
+  {
+    "lesson": "S1-M02-L09",
+    "step": 2,
+    "anchor": "## Velg varierte eksempler\n\n- et **vanlig** tilfelle,\n- et **grensetilfelle**, for eksempel 0, der feil ofte gjemmer seg,\n- gjerne et tilfelle som er litt **uvanlig**, for eksempel et desimaltall eller et veldig stort tall.",
+    "kind": "flow",
+    "title": "Én riktig test kan skjule en feil",
+    "frames": [
+      {
+        "label": "Vanlig tilfelle",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "3 kopper, 45 kr",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Forventet",
+            "value": "135",
+            "detail": "3 * 45",
+            "tone": "blue"
+          },
+          {
+            "label": "Faktisk",
+            "value": "48",
+            "detail": "Feil kode bruker +.",
+            "tone": "red"
+          }
+        ],
+        "caption": "Testen avdekker feilen."
+      },
+      {
+        "label": "Tilfeldig treff",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "2 kopper, 2 kr",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Forventet",
+            "value": "4",
+            "detail": "2 * 2",
+            "tone": "blue"
+          },
+          {
+            "label": "Faktisk",
+            "value": "4",
+            "detail": "Feil kode bruker fortsatt +.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Testen består, men programmet har fortsatt en feil."
+      },
+      {
+        "label": "Grensetilfelle",
+        "cards": [
+          {
+            "label": "Inndata",
+            "value": "0 kopper, 45 kr",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Forventet",
+            "value": "0",
+            "detail": "0 * 45",
+            "tone": "blue"
+          },
+          {
+            "label": "Faktisk",
+            "value": "45",
+            "detail": "Feil kode bruker +.",
+            "tone": "red"
+          }
+        ],
+        "caption": "Null kopper avslører også feilen."
+      }
+    ],
+    "short": "## Velg varierte eksempler\n\nPrøv et vanlig tilfelle, et grensetilfelle og gjerne et uvanlig tilfelle. Velg testverdier før du kjører programmet."
+  }
+];
+
+export function campaignM02VisualFor(unitId: string, text: string) {
+  return campaignM02Visuals.find(
+    (visual) => visual.lesson === unitId && visual.anchor === text,
+  );
+}
