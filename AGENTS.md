@@ -26,8 +26,11 @@ Product boundary (do not cross it):
   instruction or reference. Avoid «ledetekst»; show the terminal prompt itself.
 - Separate the explanation, the action and the expected result. Name earlier
   lessons and sections explicitly. Use short paragraphs, purposeful lists,
-  inline code and selective emphasis. Keep safety boundaries and actual command
-  examples correct.
+  inline code and selective emphasis. Review all learner-facing fields, including
+  question prompts, choices, hints, feedback, captions and result messages.
+  Visually distinguish commands, file names and status output from explanation;
+  show multi-step situations as short sequences or simple comparisons. Keep
+  safety boundaries and actual command examples correct.
 - Practical work is self-reported. Do not add proof, authentication or
   certification mechanisms for learner work. Keep optional checks optional and
   avoid learner-facing disclaimers about assessment, proof and points where

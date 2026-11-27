@@ -771,9 +771,7 @@ export function PathwaysPage({
                   ? 'Fullført'
                   : 'Ikke fullført'}
               </p>
-              <p>
-                Marker leksjonen som fullført når du er ferdig.
-              </p>
+              <p>Marker leksjonen som fullført når du er ferdig.</p>
               <button
                 type="button"
                 disabled={!coordination.canWrite || saving}

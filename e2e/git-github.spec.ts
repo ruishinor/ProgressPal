@@ -267,9 +267,7 @@ test('explains Git answers and preserves learner evidence through reload and pro
     .getByRole('button', { name: 'Marker som fullført', exact: true })
     .click();
   await expect(
-    page
-      .getByRole('region', { name: 'Leksjonsstatus' })
-      .getByRole('status'),
+    page.getByRole('region', { name: 'Leksjonsstatus' }).getByRole('status'),
   ).toContainText('Fullført');
   expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
   const before = await counts(page);
@@ -500,9 +498,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
         /lesson-result--success/,
       );
       const assessed = await pathwayState(page);
-      const localStatus = page.getByRole('region', {
-        name: 'Leksjonsstatus',
-      });
+      const localStatus = page.getByRole('region', { name: 'Leksjonsstatus' });
       await expect(
         localStatus.locator('xpath=ancestor::*[@lang][1]'),
       ).toHaveAttribute('lang', 'nb');

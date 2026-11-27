@@ -142,9 +142,7 @@ it('records matching start and completion times on initial manual completion', a
   expect(saved.startedAt).toBe(saved.completedAt);
   expect(saved.completedAt! >= earliest).toBe(true);
   expect(saved.completedAt! <= new Date().toISOString()).toBe(true);
-  const localStatus = screen.getByRole('region', {
-    name: 'Leksjonsstatus',
-  });
+  const localStatus = screen.getByRole('region', { name: 'Leksjonsstatus' });
   expect(within(localStatus).getByRole('status')).toHaveTextContent(
     'Status: Fullført',
   );
@@ -171,9 +169,9 @@ it('clears the completion timestamp when reopening and retains the original star
     updatedAt: reopened.updatedAt,
   });
   expect(
-    within(
-      screen.getByRole('region', { name: 'Leksjonsstatus' }),
-    ).getByRole('status'),
+    within(screen.getByRole('region', { name: 'Leksjonsstatus' })).getByRole(
+      'status',
+    ),
   ).toHaveTextContent('Status: Ikke fullført');
 });
 

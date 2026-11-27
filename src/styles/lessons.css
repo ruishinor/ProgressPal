@@ -106,8 +106,22 @@
 
 /* Git Pathways: comfortable prose, clear action lists and visible references.
    Keep the existing reading measure, colours and responsive code overflow. */
-.lesson[data-programme='git-github'] .lesson-text {
+.lesson[data-programme='git-github'] :is(.lesson-text, .lesson-exercise) {
   line-height: 1.65;
+}
+
+.lesson[data-programme='git-github'] .lesson-choices {
+  display: grid;
+  gap: var(--space-2);
+  max-inline-size: 72ch;
+}
+
+.lesson[data-programme='git-github'] .lesson-exercise > :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+.lesson[data-programme='git-github'] .lesson-exercise > pre {
+  max-inline-size: 68ch;
 }
 
 .lesson[data-programme='git-github'] .lesson-text > :is(ul, ol) {

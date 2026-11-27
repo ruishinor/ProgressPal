@@ -502,6 +502,7 @@ function LessonSurface({
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),
     headingLevel: 3,
+    highlightGitLiterals: programmeId === 'git-github',
     ...(programmeId === 'git-github' && itemId === 'git-m01-o05'
       ? {
           lessonReference: {

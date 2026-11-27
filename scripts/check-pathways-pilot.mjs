@@ -156,9 +156,7 @@ try {
         page.getByRole('button', { name: 'Marker som fullført' }),
       ).toBeVisible();
       await noOverflow();
-      await page
-        .getByRole('button', { name: 'Marker som fullført' })
-        .click();
+      await page.getByRole('button', { name: 'Marker som fullført' }).click();
       await expect(
         page.getByRole('button', { name: 'Åpne leksjonen igjen' }),
       ).toBeVisible();
