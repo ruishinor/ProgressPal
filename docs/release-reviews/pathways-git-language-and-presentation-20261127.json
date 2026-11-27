@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-language-and-presentation-20261127",
+  "reviewer": "ChatGPT GPT-6.2 — implementer self-review (same-session; not independent)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "eb79c7d5bcdb5c797a7412594ba9d4b8b5ac0959",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped owner-authorized language, presentation and navigation improvement across Git & GitHub Pathways M01–M07. Reviewed beginner teaching, natural Bokmål, Git semantics, privacy, accessibility, content delivery and persistence boundaries.",
+    "evidence": [
+      "Inspected canonical curriculum sources for all seven modules, the shared lesson renderer, Git-specific and inherited Norwegian UI copy, the existing release gate and affected browser selectors.",
+      "Compared original master cc502c6 and candidate e128049 generated module assets: 47 lessons, 29 revised lessons, 54 changed blocks; 92 command blocks have identical executable text, expected output and error fields. All lesson IDs, block order, skill/unit metadata, 113 exercise IDs, optionality, evaluator modes and answer keys are unchanged.",
+      "Four existing exercise content hashes change because their wording changes (M01 E05/E06/E07 and M05 E19); the existing history-retention behaviour applies. No learner storage migration, new proof mechanism, or assessment gate.",
+      "Verified original asset/source hashes during regeneration and checked all final rendered module prompt/text blocks for the specified banned terms; none remain. Same-origin hashed assets, catalogue and offline manifest updated together.",
+      "Existing keyboard navigation regression exercises the actual reference target and saved progress; removed its unnecessary exact prose assertion. Browser, formatter, source exporter and release validation have not been executed in this environment; hosted GitHub checks must pass."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P2",
+      "description": "Ambiguous references, crowded instructions, misleading completion/saved-answer text and unnecessarily clinical practice wording made learning harder.",
+      "resolution": "Named the previous staging section with a direct link; separated explanations, actions and results; simplified Git-only copy and kept self-reporting and the optional filename check.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P3",
+      "description": "Editorial changes to four exercise records produce new content hashes; existing submissions are retained as history rather than counted as current answers.",
+      "resolution": "Preserved all identifiers, evaluator rules and completion state; no new migration or certification logic. The established content-hash rule remains in force.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "PASS for scoped implementer review: no concrete unresolved material issue found in source and generated-asset comparison. Hosted engineering validation is still required. No independent review or routine owner approval requested."
+  }
+}
