@@ -741,3 +741,38 @@
   background: var(--color-surface);
   color: var(--color-text);
 }
+
+.git-graph-layout {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.git-graph-key {
+  display: none;
+  margin: 0;
+}
+
+@media (max-width: 42rem) {
+  .git-graph-key {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .git-graph-key > div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .git-graph-key dt {
+    flex: none;
+    font-weight: 700;
+    font-family: ui-monospace, monospace;
+  }
+
+  .git-graph-key dd {
+    min-inline-size: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}

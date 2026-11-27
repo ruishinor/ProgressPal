@@ -51,42 +51,52 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
     frame.caption,
   ].join('. ');
   return (
-    <svg
-      aria-label={description}
-      className="git-visual-graph"
-      role="img"
-      viewBox="0 0 360 215"
-    >
-      <title>{frame.caption ?? 'Commit-historikk'}</title>
-      {frame.edges?.map(({ from, to }) => {
-        const a = nodes.find((node) => node.id === from);
-        const b = nodes.find((node) => node.id === to);
-        if (!a || !b) return null;
-        return (
-          <path
-            className={`git-tone-${b.tone} git-graph-edge`}
-            d={`M${a.x} ${a.y} L${b.x} ${b.y}`}
-            key={from + to}
-          />
-        );
-      })}
-      {nodes.map((node) => (
-        <g className={`git-tone-${node.tone}`} key={node.id}>
-          <circle className="git-graph-node" cx={node.x} cy={node.y} r="16" />
-          <text className="git-graph-id" x={node.x} y={node.y + 4}>
-            {node.id}
-          </text>
-          <text
-            className="git-graph-label"
-            textAnchor={node.x < 60 ? 'start' : node.x > 290 ? 'end' : 'middle'}
-            x={node.x}
-            y={node.y + 34}
-          >
-            {node.label}
-          </text>
-        </g>
-      ))}
-    </svg>
+    <div className="git-graph-layout">
+      <svg
+        aria-label={description}
+        className="git-visual-graph"
+        role="img"
+        viewBox="0 0 360 215"
+      >
+        <title>{frame.caption ?? 'Commit-historikk'}</title>
+        {frame.edges?.map(({ from, to }) => {
+          const a = nodes.find((node) => node.id === from);
+          const b = nodes.find((node) => node.id === to);
+          if (!a || !b) return null;
+          return (
+            <path
+              className={`git-tone-${b.tone} git-graph-edge`}
+              d={`M${a.x} ${a.y} L${b.x} ${b.y}`}
+              key={from + to}
+            />
+          );
+        })}
+        {nodes.map((node) => (
+          <g className={`git-tone-${node.tone}`} key={node.id}>
+            <circle className="git-graph-node" cx={node.x} cy={node.y} r="16" />
+            <text className="git-graph-id" x={node.x} y={node.y + 4}>
+              {node.id}
+            </text>
+            <text
+              className="git-graph-label"
+              textAnchor={node.x < 60 ? 'start' : node.x > 290 ? 'end' : 'middle'}
+              x={node.x}
+              y={node.y + 34}
+            >
+              {node.label}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <dl className="git-graph-key">
+        {nodes.filter((node) => node.label).map((node) => (
+          <div key={node.id}>
+            <dt>{node.id}</dt>
+            <dd>{node.label}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
 
