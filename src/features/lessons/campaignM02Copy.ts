@@ -850,7 +850,9 @@ export function campaignM02Copy<T extends LessonBlock>(
   block: T,
 ): T {
   const revisions = campaignM02Revisions[key];
-  if (!revisions?.some((r) => readAt(block, r.path) === r.before)) return block;
+  if (!revisions?.some((r) => readAt(block, r.path) === r.before)) {
+    return block;
+  }
 
   const presentation = JSON.parse(JSON.stringify(block)) as T;
   for (const revision of revisions) {

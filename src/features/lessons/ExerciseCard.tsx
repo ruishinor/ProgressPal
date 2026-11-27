@@ -380,16 +380,18 @@ export function ExerciseCard({
       />
       {exercise.hints.length > 0 ? (
         <div className="lesson-hints">
-          {presentationExercise.hints.slice(0, hintsRevealed).map((hint, index) => (
-            <div className="lesson-hint" key={index}>
-              <p>
-                <strong>
-                  {formatCopy(copy, 'hintHeading', { n: index + 1 })}
-                </strong>
-              </p>
-              <Markup context={context} text={hint} />
-            </div>
-          ))}
+          {presentationExercise.hints
+            .slice(0, hintsRevealed)
+            .map((hint, index) => (
+                <div className="lesson-hint" key={index}>
+                  <p>
+                    <strong>
+                      {formatCopy(copy, 'hintHeading', { n: index + 1 })}
+                    </strong>
+                  </p>
+                  <Markup context={context} text={hint} />
+                </div>
+            ))}
           {hintsRevealed < exercise.hints.length ? (
             <button
               className={surfaces.quiet}

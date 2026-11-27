@@ -19,6 +19,16 @@ it('applies scoped presentation edits without mutating the packaged blocks', () 
       if (Object.hasOwn(campaignM02Revisions, key)) {
         found.add(key);
         expect(copy).not.toBe(block);
+        for (const revision of campaignM02Revisions[key]!) {
+          const read = (value: unknown) =>
+            revision.path.reduce<unknown>(
+              (parent, part) =>
+                (parent as Record<string | number, unknown>)[part],
+              value,
+            );
+          expect(read(block)).toBe(revision.before);
+          expect(read(copy)).toBe(revision.after);
+        }
         if (block.t === 'exercise' && copy.t === 'exercise') {
           expect(copy.id).toBe(block.id);
           expect(copy.evaluator).toEqual(block.evaluator);

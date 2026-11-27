@@ -1,5 +1,16 @@
 # ProgressPal current state
 
+**Campaign M02 visual and copy upgrade — PR candidate, 2026-11-27.**
+Adds 21 source-bound teaching diagrams and a scoped presentation-only
+revision of 86 text fields in 81 blocks (47 exercises). Reuses the existing
+lesson renderer in Classic and RPG, with no new dependencies, data stores,
+progression rules or content hash changes. Original authoring output matches
+the exported source SHA; the uploaded producer can replay M02 against the
+recorded execution cache, but a complete producer rebuild is unavailable
+without its frozen v0.1 skill graph. Product copy is intentionally applied
+only in the presentation layer, not passed to grading. Hosted certification
+and browser validation remain pending.
+
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2
 weekly-focus upgrade (`guild-focus-v1.sql`) is installed on `progresspal-g0`

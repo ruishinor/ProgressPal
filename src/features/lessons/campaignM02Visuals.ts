@@ -867,6 +867,280 @@ export const campaignM02Visuals: readonly GitVisual[] = [
       }
     ],
     "short": "## Velg varierte eksempler\n\nPrøv et vanlig tilfelle, et grensetilfelle og gjerne et uvanlig tilfelle. Velg testverdier før du kjører programmet."
+  },
+  {
+    "lesson": "S1-M02-L02",
+    "step": 3,
+    "anchor": "## Desimaltall\n\nTall med desimaler kalles **desimaltall** (float). I Python skriver du desimalpunktum, ikke komma: `2.5`, ikke `2,5`. Operatoren `/` gir alltid et desimaltall, også når svaret går opp:",
+    "kind": "flow",
+    "title": "Tre måter å dele på",
+    "frames": [
+      {
+        "label": "Vanlig deling",
+        "cards": [
+          {
+            "label": "Kode",
+            "value": "7 / 2",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "3.5",
+            "detail": "float",
+            "tone": "green"
+          }
+        ],
+        "caption": "Vanlig deling av heltall gir float."
+      },
+      {
+        "label": "Gulvdeling",
+        "cards": [
+          {
+            "label": "Kode",
+            "value": "7 // 2",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "3",
+            "detail": "int",
+            "tone": "green"
+          },
+          {
+            "label": "Med desimaltall",
+            "value": "7.0 // 2 = 3.0",
+            "detail": "float",
+            "tone": "neutral"
+          }
+        ],
+        "caption": "Gulvdeling runder ned, også når tallet er negativt: -7 // 2 = -4."
+      },
+      {
+        "label": "Rest",
+        "cards": [
+          {
+            "label": "Kode",
+            "value": "7 % 2",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Resultat",
+            "value": "1",
+            "detail": "int",
+            "tone": "green"
+          }
+        ],
+        "caption": "7 = 3 * 2 + 1."
+      }
+    ],
+    "short": "## Desimaltall og deling\n\nSkriv desimalpunktum i Python, for eksempel `2.5`. Sammenlign `/`, `//` og `%` med de samme tallene."
+  },
+  {
+    "lesson": "S1-M02-L08",
+    "step": 7,
+    "anchor": "## Glemmer du `f`\n\nMangler `f` foran anførselstegnet, skriver Python krøllparentesene ordrett:",
+    "kind": "flow",
+    "title": "Bokstaven f gjør forskjellen",
+    "frames": [
+      {
+        "label": "Uten f",
+        "cards": [
+          {
+            "label": "Variabel",
+            "value": "total = 135",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kode",
+            "value": "print(\"Totalt: {total} kr\")",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Utskrift",
+            "value": "Totalt: {total} kr",
+            "detail": "Teksten skrives ordrett.",
+            "tone": "red"
+          }
+        ],
+        "caption": "Ingen feilmelding, men utskriften er ikke det vi ønsker."
+      },
+      {
+        "label": "Med f",
+        "cards": [
+          {
+            "label": "Variabel",
+            "value": "total = 135",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kode",
+            "value": "print(f\"Totalt: {total} kr\")",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Utskrift",
+            "value": "Totalt: 135 kr",
+            "detail": "Python setter inn verdien.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Sjekk hva som faktisk kommer ut."
+      }
+    ],
+    "short": "## Glemmer du `f`\n\nSammenlign utskriftene. Bare den ene er en f-streng."
+  },
+  {
+    "lesson": "S1-M02-LAB",
+    "step": 0,
+    "anchor": "Kontoret trenger kaffekassa. Programmet skal spørre etter antall kopper (heltall) og pris per kopp (desimaltall, kan ha desimaler), og skrive ut totalen med to desimaler. Du jobber lokalt på din egen maskin, med editor og terminal fra forrige modul. Rekkefølgen er viktig: **tabellen først**, så koden.",
+    "kind": "flow",
+    "title": "Slik jobber du med labben",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "1. Testtabell",
+            "value": "Velg inndata",
+            "detail": "Regn ut forventet svar før du skriver koden.",
+            "tone": "blue"
+          },
+          {
+            "label": "2. Program",
+            "value": "Skriv kaffekasse.py",
+            "detail": "Bruk spesifikasjonen under.",
+            "tone": "neutral"
+          },
+          {
+            "label": "3. Kjør og sammenlign",
+            "value": "Forventet / faktisk",
+            "detail": "Rett eventuelle forskjeller.",
+            "tone": "amber"
+          },
+          {
+            "label": "4. Commit",
+            "value": "Lagre endringen",
+            "detail": "Bruk en melding som forklarer hva du har gjort.",
+            "tone": "green"
+          }
+        ],
+        "caption": "Du bruker editoren og terminalen på maskinen din.",
+        "links": [
+          "deretter",
+          "deretter",
+          "til slutt"
+        ]
+      }
+    ],
+    "short": "Kontoret trenger kaffekassa. Programmet skal lese antall kopper og pris per kopp, og skrive ut totalen med to desimaler."
+  },
+  {
+    "lesson": "S1-M02-LAB2",
+    "step": 0,
+    "anchor": "Denne labben er lengre og gir mindre hjelp. Du får en spesifikasjon, og du bestemmer rekkefølgen selv innenfor en fast ramme: gjenfortell oppgaven, lag testtabell, bygg første trinn, bygg andre trinn, og lag en commit etter hvert trinn.",
+    "kind": "flow",
+    "title": "Bygg vekselkalkulatoren i to trinn",
+    "frames": [
+      {
+        "label": "Trinn 1",
+        "cards": [
+          {
+            "label": "Testtabell",
+            "value": "Bare veksel",
+            "detail": "Regn ut forventet verdi først.",
+            "tone": "blue"
+          },
+          {
+            "label": "Program",
+            "value": "Veksel: N kr",
+            "detail": "",
+            "tone": "neutral"
+          },
+          {
+            "label": "Commit",
+            "value": "Lagre trinn 1",
+            "detail": "Når programmet gir forventet resultat.",
+            "tone": "green"
+          }
+        ]
+      },
+      {
+        "label": "Trinn 2",
+        "cards": [
+          {
+            "label": "Utvid programmet",
+            "value": "Fordeling på sedler og mynter",
+            "detail": "Behold beregningen av veksel.",
+            "tone": "neutral"
+          },
+          {
+            "label": "Kjør",
+            "value": "Sjekk flere beløp",
+            "detail": "Sammenlign med spesifikasjonen.",
+            "tone": "amber"
+          },
+          {
+            "label": "Commit",
+            "value": "Lagre trinn 2",
+            "detail": "",
+            "tone": "green"
+          }
+        ]
+      }
+    ],
+    "short": "Forklar først hva programmet skal gjøre. Bygg ett trinn om gangen; du velger detaljene i koden selv."
+  },
+  {
+    "lesson": "S1-M02-Q01",
+    "step": 0,
+    "anchor": "Kaffekassa skal bli bedre: den skal også ta imot betalingen og vise hvor mye kunden får tilbake. Du velger selv arbeidsmåten, men du skal lage tabellen først, bygge programmet og lagre en commit. Underveis kommer en liten endringsforespørsel, slik virkelige oppdrag ofte gjør.",
+    "kind": "flow",
+    "title": "Fra ny bestilling til ferdig endring",
+    "frames": [
+      {
+        "label": "",
+        "cards": [
+          {
+            "label": "Bestilling",
+            "value": "Kaffekassa skal ta imot betaling",
+            "detail": "Les spesifikasjonen.",
+            "tone": "blue"
+          },
+          {
+            "label": "Plan",
+            "value": "Testtabell",
+            "detail": "Regn ut forventet før du skriver kode.",
+            "tone": "neutral"
+          },
+          {
+            "label": "Bygg og test",
+            "value": "Program og commit",
+            "detail": "Sjekk eksemplene.",
+            "tone": "neutral"
+          },
+          {
+            "label": "Ny bestilling",
+            "value": "Oppdater kvitteringen",
+            "detail": "Endre bare det kontoret ber om.",
+            "tone": "amber"
+          }
+        ],
+        "caption": "Dette er arbeidsrekkefølgen, ikke en ferdig løsning.",
+        "links": [
+          "deretter",
+          "deretter",
+          "nytt behov"
+        ]
+      }
+    ],
+    "short": "Kaffekassa skal nå ta imot betaling og vise hvor mye kunden får tilbake. Du velger arbeidsmåten selv, men lag testtabellen før du bygger programmet."
   }
 ];
 

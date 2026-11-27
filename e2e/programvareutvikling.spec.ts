@@ -920,3 +920,35 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   await expect(result).not.toContainText('XP');
   expect(await readLedger(page)).toEqual(earned);
 });
+
+test('M02 teaching models work in Classic and RPG without recording attempts', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
+
+  for (const path of ['/course/s1-m02-o01', '/rpg/resource/s1-m02-o01']) {
+    await page.setViewportSize({
+      width: path.startsWith('/rpg') ? 390 : 1280,
+      height: 900,
+    });
+    await page.goto(path);
+    const figure = page.locator('figure.git-visual').filter({
+      hasText: 'Følg tilordningen',
+    });
+    await expect(figure).toBeVisible();
+    const before = await readEvidenceCount(page);
+    const next = figure.getByRole('button', { name: 'Linje 2', exact: true });
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await expect(next).toHaveAttribute('aria-pressed', 'true');
+    await expect(figure.getByText('antall = 5', { exact: true })).toBeVisible();
+    expect((await readEvidenceCount(page)).evidence).toBe(before.evidence);
+    const bounds = await figure.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(
+      page.viewportSize()!.width + 1,
+    );
+  }
+});
