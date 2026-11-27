@@ -415,7 +415,11 @@
   border: 1px solid var(--git-tone);
   border-inline-start-width: 3px;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--git-tone) 7%, var(--color-surface-muted));
+  background: color-mix(
+    in srgb,
+    var(--git-tone) 7%,
+    var(--color-surface-muted)
+  );
 }
 
 .git-visual-label {

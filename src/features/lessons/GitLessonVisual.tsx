@@ -122,8 +122,7 @@ function TerminalVisual({ frame }: { frame: VisualFrame }) {
       <div className="git-terminal-title">Windows PowerShell</div>
       <div className="git-terminal-body">
         <div className="git-terminal-command">
-          <span>{cards[0]?.value}</span>{' '}
-          <strong>{cards[1]?.value}</strong>
+          <span>{cards[0]?.value}</span> <strong>{cards[1]?.value}</strong>
         </div>
         <div>{cards[2]?.value}</div>
       </div>
