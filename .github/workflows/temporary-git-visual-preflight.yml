@@ -18,17 +18,34 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Consolidated validation and exact formatting
+      - name: Generate and transfer exact files
         run: |
-          npm exec -- prettier --write src/features/lessons/LessonBlocks.tsx src/features/lessons/GitLessonVisual.tsx src/features/lessons/gitVisuals.ts src/styles/lessons.css tests/features/pathways/gitVisuals.test.tsx e2e/git-github.spec.ts
-          git diff -- src/features/lessons/LessonBlocks.tsx src/features/lessons/GitLessonVisual.tsx src/features/lessons/gitVisuals.ts src/styles/lessons.css tests/features/pathways/gitVisuals.test.tsx e2e/git-github.spec.ts
+          npm exec -- prettier --write src/programmes/git-github/m02.mjs src/programmes/git-github/m03.mjs src/programmes/git-github/m05.mjs src/programmes/git-github/m06.mjs src/programmes/git-github/m07.mjs
+          node scripts/git-github-content.mjs
+          node scripts/git-github-content.mjs --check
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { existsSync, readFileSync } from 'node:fs';
+          const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+          const files = [...new Set([...git('diff', '--name-only', '--').split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')].filter(Boolean))].sort();
+          const emit = (obj) => console.log('PPTRANSFER ' + JSON.stringify(obj));
+          for (const path of files) {
+            if (!/^(src\/programmes\/git-github\/|public\/content\/git-github\/|public\/content\/offline\.json$)/.test(path)) throw Error(path);
+            if (!existsSync(path)) { emit({ kind: 'delete', path }); continue; }
+            const content = readFileSync(path, 'utf8');
+            emit({ kind: 'file', path, sha: git('hash-object', path), length: content.length });
+            for (let i = 0; i < content.length; i += 3000) emit({ kind: 'chunk', path, index: i, data: content.slice(i, i + 3000) });
+          }
+          emit({ kind: 'end', count: files.length });
+          NODE
+      - name: Consolidated validation
+        run: |
           failed=0
           check() {
             echo "::group::$*"
             if "$@"; then echo "PREFLIGHT PASS: $*"; else echo "PREFLIGHT FAIL: $*"; failed=1; fi
             echo "::endgroup::"
           }
-          check node scripts/git-github-content.mjs --check
           check npm run format:check
           check npm run lint
           check npm run typecheck
@@ -37,3 +54,5 @@ jobs:
           check node node_modules/vitest/vitest.mjs run tests/features/pathways/gitVisuals.test.tsx tests/programmes/gitGithub.test.ts --maxWorkers=2
           check npm run check:circular
           exit "$failed"
+      - run: npx playwright install chromium
+      - run: npm run test:e2e -- e2e/git-github.spec.ts --project=chromium --grep "copies only the intended|keeps lesson 3|keeps lesson 4"

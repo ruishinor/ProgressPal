@@ -2,7 +2,7 @@
 // Requires accepted M01 and M02; keeps their authored lesson/exercise IDs stable.
 const text = (nb) => ({ t: 'text', nb });
 const note = (nb) => ({ t: 'callout', kind: 'merk', nb });
-const command = (heading, explanation, source, stdout = '') => [
+const command = (heading, explanation, source, stdout = '', resultNote = '') => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',
@@ -12,7 +12,7 @@ const command = (heading, explanation, source, stdout = '') => [
     stdout,
     error: '',
     error_info: null,
-    nb: '',
+    nb: resultNote,
   },
 ];
 const question = (id, prompt, choices, hint) => ({
@@ -166,7 +166,8 @@ export const gitM03Lessons = [
         'Opprett en separat M03-øving',
         'Kopier hele blokken samlet i PowerShell. Den gjør kun endringer i den nye øvingsmappen og setter oppdiktet Git-identitet **lokalt** i denne mappen.',
         setup,
-        '[main] Opprett enkel paameldingsside\n(Tom utskrift fra git status --short)',
+        '[main ...] Opprett enkel paameldingsside',
+        'Etter `git status --short` skal det ikke komme noen filrader.',
       ),
       command(
         'Sjekk hvilket sted du arbeider',
@@ -247,13 +248,15 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Registrer endringen på feature-branchen',
         'Staging og commit fungerer akkurat som i M01. Kontroller at bare `index.html` er endret før du lager commiten.',
         `${stay}\nif ((& git branch --show-current) -ne 'feature/kvittering') { throw 'STOPP: Feil branch.' }\nif (@(& git diff --name-only).Count -ne 1 -or @(& git diff --name-only)[0] -ne 'index.html') { throw 'STOPP: Uventet filutvalg.' }\n$changes = @(& git status --porcelain)\nif ($LASTEXITCODE -ne 0 -or $changes.Count -ne 1 -or $changes[0] -ne ' M index.html') { throw 'STOPP: Uventet Git-status. Undersoek andre filer foer commit.' }\n${must('add -- index.html')}\n${must("commit -m 'Legg til bekreftelse paa paameldingssiden'")}\n${must('branch -v')}`,
-        'feature/kvittering peker nå på den nye commiten. main peker fremdeles på start-commiten.',
+        '',
+        'Se på `git branch -v`: `feature/kvittering` peker på den nye commiten, mens `main` fortsatt peker på startcommiten.',
       ),
       command(
         'Undersøk begge utviklingslinjene',
         'Grafen viser historikken for begge branches. Bytt deretter til `main` først etter at arbeidsmappen er ren, og se at bekreftelseslinjen ikke finnes i denne versjonen.',
         `${stay}\n${clean}\n${must('--no-pager log --graph --oneline --decorate --all')}\n${must('switch main')}\n${must("--no-pager show 'HEAD:index.html'")}`,
-        'main: HTML-siden er ennå uten bekreftelseslinjen. feature/kvittering har den.',
+        '',
+        'På `main` skal HTML-siden ennå ikke ha bekreftelseslinjen. Den finnes på `feature/kvittering`.',
       ),
       note(
         'Ikke bruk `switch -f`, `reset --hard` eller slett mapper for å bytte gren. Git kan nekte vanlig switching når det ellers ville risikert ulagrede endringer. Det er en beskyttelse du skal forstå, ikke omgå.',
@@ -307,13 +310,15 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Undersøk grenene og merge feature inn i main',
         'Sjekk aktiv branch og ren status før sammenslåingen. `--no-edit` bruker Gits foreslåtte merge-melding uten å åpne en tekstredigerer. Ikke gjett hvilken gren du står på.',
         `${stay}\n${clean}\nif ((& git branch --show-current) -ne 'main') { throw 'STOPP: Merge skal skje inn i main.' }\n${must('--no-pager log --graph --oneline --decorate --all')}\n${must('merge --no-edit feature/kvittering')}\n${must('status --short')}`,
-        'Merge made by the ort strategy.\n(Tom status)',
+        'Merge made by the \'ort\' strategy.',
+        'Navnet på merge-strategien kan variere med Git-versjonen. Siste statuskommando skal ikke vise noen filrader.',
       ),
       command(
         'Kontroller hva som ble bevart',
         'Det ferdige resultatet skal inneholde både bekreftelsen i HTML og kontakten i README. Historikken skal nå vise en merge-commit med to foreldre.',
         `${stay}\n${must("--no-pager show 'HEAD:index.html'")}\n${must("--no-pager show 'HEAD:README.txt'")}\n${must('--no-pager log --graph --oneline --decorate --all -6')}\n${must('rev-list --parents -n 1 HEAD')}`,
-        'Begge endringene finnes; HEAD har to parent-commits.',
+        '',
+        'Sjekk begge filene. Den siste linjen fra `git rev-list --parents -n 1 HEAD` skal ha tre commit-ID-er: HEAD og de to foreldrene.',
       ),
       text(
         'En **fast-forward** skjer når main ikke har fått noen nye commits siden feature-branchen ble opprettet. Git kan da flytte main-referansen fram uten å lage en ekstra merge-commit. I vår øving hadde begge branches nye commits, og derfor oppstår en ekte merge-commit med to foreldre. Du trenger ikke bruke `--no-ff` bare for å tvinge fram et bestemt utseende.',
@@ -416,7 +421,8 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Kontroller løsningen og fullfør merge',
         'Før commit må meldingen være akkurat som avtalt. Kontrollen nekter å stage markørtekst eller en uventet løsning. `git add` markerer konflikten som løst; deretter oppretter du merge-commit.',
         `${stay}\n$expected = 'Bekreftelse: Paameldingen er registrert. Praktisk informasjon sendes senere.'\n$actual = @(Get-Content -LiteralPath (Join-Path $practiceRoot 'messages.txt'))\nif ($actual.Count -ne 1 -or $actual[0] -ne $expected) { throw 'STOPP: Meldingen er ikke loest som avtalt. Undersoek den foer du fortsetter.' }\n$unmerged = @(& git diff --name-only --diff-filter=U)\nif ($LASTEXITCODE -ne 0 -or $unmerged.Count -ne 1 -or $unmerged[0] -ne 'messages.txt') { throw 'STOPP: Uventet konfliktstatus.' }\n${must('add -- messages.txt')}\n${must('diff --cached --check')}\n${must("commit -m 'Samle de to meldingsforbedringene'")}\n${must('status --short')}\n${must('--no-pager log --graph --oneline --decorate --all -8')}`,
-        'Status er tom. Konfliktmarkørene finnes ikke lenger, og merge-committen har to foreldre.',
+        '',
+        'Sjekk at status ikke viser filrader, at konfliktmarkørene er borte, og at grafen har en merge commit.',
       ),
       note(
         'Hvis du blir usikker, stopp og undersøk. `git merge --abort` kan normalt avbryte en pågående merge og gjenopprette tilstanden før merge, **men** kan ha begrensninger når det fantes lokale endringer før sammenslåingen. Derfor kontrollerer vi ren status *før* hver merge. Ikke bruk `reset --hard`, `clean` eller «velg vår/deres» uten å forstå hva som går tapt.',

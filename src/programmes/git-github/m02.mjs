@@ -2,7 +2,7 @@
 // M01 remains authored separately in source.mjs, with stable exercise identities.
 const text = (nb) => ({ t: 'text', nb });
 const note = (nb) => ({ t: 'callout', kind: 'merk', nb });
-const command = (title, explanation, code, output = '') => [
+const command = (title, explanation, code, output = '', resultNote = '') => [
   text('### ' + title + '\n\n' + explanation),
   {
     t: 'code',
@@ -12,7 +12,7 @@ const command = (title, explanation, code, output = '') => [
     stdout: output,
     error: '',
     error_info: null,
-    nb: '',
+    nb: resultNote,
   },
 ];
 const question = (id, prompt, choices, hint) => ({
@@ -232,13 +232,15 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
         'Se hva en tidligere commit gjorde',
         'Undersøk B uten å flytte HEAD eller overskrive dagens filer.',
         `${stay}\n& git --no-pager show --stat HEAD~1\nif ($LASTEXITCODE -ne 0) { throw 'Kunne ikke vise commit.' }`,
-        'B endret settings.json',
+        '',
+        'Se etter `settings.json` i listen over filene commit B endret.',
       ),
       command(
         'Les tidligere filinnhold',
         'Et kolon etter commit-referansen betyr at du ber om en **fil slik den var lagret i den commiten**. Du leser historikken; arbeidsfilen endres ikke.',
         `${stay}\n& git --no-pager show 'HEAD~2:settings.json'\n& git --no-pager show 'HEAD:settings.json'\nif ($LASTEXITCODE -ne 0) { throw 'Kunne ikke lese historisk fil.' }`,
-        'A: "maxRegistrations": 20\nC: "maxRegistrations": 200',
+        '"maxRegistrations": 20,\n"maxRegistrations": 200,',
+        'Første verdi kommer fra A, den andre fra C.',
       ),
       text(
         'Sammenlign dette med det du ser i Notisblokk: `settings.json` på disken er foreløpig fortsatt 200. `git show HEAD~2:settings.json` har bare skrevet gammel filtekst i terminalen. Det er ikke en gjenopprettingskommando.',
@@ -445,7 +447,8 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
         'Kontroller resultatet',
         'Du skal nå ha **fire commits**. Innstillingen er 20 i HEAD. README og support.txt inneholder fortsatt de senere forbedringene. En tom status betyr at øvingen ikke har nye lokale endringer.',
         `${stay}\n& git --no-pager log --oneline -4\n& git --no-pager show 'HEAD:settings.json'\n& git --no-pager show 'HEAD:README.txt'\n& git --no-pager show 'HEAD:support.txt'\n& git status --short\nif ($LASTEXITCODE -ne 0) { throw 'Kunne ikke kontrollere sluttresultatet.' }`,
-        'HEAD:settings.json har 20; README.txt og support.txt inneholder senere tekst; status er tom.',
+        '',
+        'Se etter 20 i `HEAD:settings.json`, den nyere teksten i `README.txt` og `support.txt`, og ingen filrader fra siste statuskommando.',
       ),
       note(
         'Har du et annet resultat, undersøk status og diffs før du gjør mer. Ikke slett historikken eller bruk destruktiv reset for å få øvingen til å se riktig ut. Det er legitimt å stoppe og beskrive hvor du står.',

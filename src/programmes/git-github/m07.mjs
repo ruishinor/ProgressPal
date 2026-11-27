@@ -22,7 +22,7 @@ const reflection = (id, prompt) => ({
   choices: null,
   hints: [],
 });
-const command = (heading, explanation, script, stdout = '') => [
+const command = (heading, explanation, script, stdout = '', resultNote = '') => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',
@@ -32,7 +32,7 @@ const command = (heading, explanation, script, stdout = '') => [
     stdout,
     error: '',
     error_info: null,
-    nb: '',
+    nb: resultNote,
   },
 ];
 
@@ -554,7 +554,8 @@ export const gitM07Lessons = [
         'Opprett et reelt, lokalt prosjekt',
         'Kopier hele blokken i Windows PowerShell 5.1. Den lager filene, en første commit, lokal remote og utviklerkopi B. Den siste kontrollen skal vise at de to arbeidskopiene ikke har lokale endringer, og at de opprinnelige funksjonstestene består.',
         setupBody,
-        'PASS: navn og tomt valgfritt telefonfelt\nIngen linjer under status --short for A og B.',
+        'PASS: navn og tomt valgfritt telefonfelt',
+        'Ingen filrader fra `git status --short` for A og B.',
       ),
       text(
         'Åpne deretter `index.html` fra `utvikler-A` i nettleseren. Prøv navnet «Ada» med tom telefon. Skjemaet skal gi «Klar for: Ada». Skriv så `abcdefgh` i telefonfeltet. Den første versjonen gir fremdeles en bekreftelse: det er den konkrete mangelen vi skal arbeide med. Nettleseren og Node-kontrollen undersøker forskjellige ting: Node-kontrollen undersøker returverdier fra valideringsfunksjonen, mens du selv ser om skjemaet viser resultatet. Ingen av dem er en full tilgjengelighets- eller produksjonstest.',
@@ -768,7 +769,8 @@ export const gitM07Lessons = [
         'Utvikler B lager sin egen feature branch',
         'Kjør etter at A har pushet den korrigerte valideringen. B står fortsatt på sin egen `main`. Blokken lager `feature/hjelpetekst`, endrer bare `index.html`, viser diff, committer og pusher til lokal remote. B endrer ikke A sin branch.',
         bParallel,
-        'Ny feature/hjelpetekst på lokal remote; B har ren arbeidsstatus.',
+        '',
+        '`feature/hjelpetekst` skal nå finnes på lokal remote. Status i B skal være tom.',
       ),
       text(
         '### Integrering er en faglig beslutning\n\nFør B integrerer, bør vedkommende se hvilken versjon A faktisk har pushet. Den første A-commiten inneholdt en feil, men den andre rettet den. `git fetch` oppdaterer B sine remote-tracking-referanser. En diff mot `origin/feature/telefon` viser koden som foreslås tatt inn. B skal ikke bare anta at navnet på en branch beskriver dens faktiske innhold.',
@@ -882,8 +884,8 @@ export const gitM07Lessons = [
         'Neste blokk lager med vilje en feil i den lokale øvingen. Feilen legges i en commit på `main` i den delte øvingsmappen, slik at du kan lære å rette en feil andre allerede har hentet. Ikke gjør dette med vilje i et ekte prosjekt.',
       ),
       command(
-        'Opprett en historisk feil bare i øvingsfixturen',
-        'Kjør etter integreringen. B sin `main` må være ren og oppdatert. Blokken endrer én kjent betingelse, oppretter en syntetisk regresjonscommit i den lokale remoten og kjører en test som **skal feile**. Ingen ekte GitHub-branch eller brukerdata påvirkes.',
+        'Lag en feil med vilje i øvingsprosjektet',
+        'Kjør etter integreringen. B sin `main` må være ren og oppdatert. Blokken endrer én kjent betingelse, lager og deler en commit med feilen i det lokale øvingsrepoet og kjører en test som **skal feile**. Ingen ekte GitHub-branch eller brukerdata påvirkes.',
         seedRegression,
         'FORVENTET FEIL: tomt, valgfritt telefonfelt avvises feilaktig.',
       ),
@@ -906,7 +908,8 @@ export const gitM07Lessons = [
         'Integrer korrigeringen og kontroller begge kopier',
         'B henter og undersøker den korrigerende endringen, integrerer den på sin main, kjører testen og pusher. A oppdaterer deretter main med fast-forward. De opprinnelige og korrigerende commitene finnes fortsatt i historikken.',
         finish,
-        'PASS i B og PASS i A; begge arbeidskopiene har ren status.',
+        'PASS: navn og tomt valgfritt telefonfelt',
+        'Se etter bestått test i begge arbeidskopier og ingen filrader fra status.',
       ),
       question(
         'GIT-M07-E14',
