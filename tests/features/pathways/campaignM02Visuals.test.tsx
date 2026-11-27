@@ -19,6 +19,10 @@ it('binds every model to exactly one instructional block in M02', () => {
         block.nb === visual.anchor,
     );
     expect(matches).toHaveLength(1);
+    for (const frame of visual.frames) {
+      const labels = frame.cards?.map((card) => card.label) ?? [];
+      expect(new Set(labels).size).toBe(labels.length);
+    }
     expect(campaignM02VisualFor(visual.lesson, visual.anchor)).toBe(visual);
     expect(campaignM02VisualFor(visual.lesson, 'Changed source')).toBeUndefined();
   }

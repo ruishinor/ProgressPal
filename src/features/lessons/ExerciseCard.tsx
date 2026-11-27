@@ -383,14 +383,14 @@ export function ExerciseCard({
           {presentationExercise.hints
             .slice(0, hintsRevealed)
             .map((hint, index) => (
-                <div className="lesson-hint" key={index}>
-                  <p>
-                    <strong>
-                      {formatCopy(copy, 'hintHeading', { n: index + 1 })}
-                    </strong>
-                  </p>
-                  <Markup context={context} text={hint} />
-                </div>
+              <div className="lesson-hint" key={index}>
+                <p>
+                  <strong>
+                    {formatCopy(copy, 'hintHeading', { n: index + 1 })}
+                  </strong>
+                </p>
+                <Markup context={context} text={hint} />
+              </div>
             ))}
           {hintsRevealed < exercise.hints.length ? (
             <button

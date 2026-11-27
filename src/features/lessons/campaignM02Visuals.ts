@@ -266,25 +266,25 @@ export const campaignM02Visuals: readonly GitVisual[] = [
         "label": "",
         "cards": [
           {
-            "label": "Gyldig",
+            "label": "Gyldig: understrek",
             "value": "antall_kopper",
             "detail": "Bokstaver og understrek.",
             "tone": "green"
           },
           {
-            "label": "Gyldig",
+            "label": "Gyldig: tall til slutt",
             "value": "kopper2",
             "detail": "Tall etter første tegn.",
             "tone": "green"
           },
           {
-            "label": "Ugyldig",
+            "label": "Ugyldig: tall først",
             "value": "2kopper",
             "detail": "Begynner med et tall.",
             "tone": "red"
           },
           {
-            "label": "Ugyldig",
+            "label": "Ugyldig: mellomrom",
             "value": "antall kopper",
             "detail": "Inneholder mellomrom.",
             "tone": "red"
@@ -318,13 +318,13 @@ export const campaignM02Visuals: readonly GitVisual[] = [
         "label": "",
         "cards": [
           {
-            "label": "Kode",
+            "label": "Heltall i koden",
             "value": "45",
             "detail": "int – heltall",
             "tone": "blue"
           },
           {
-            "label": "Kode",
+            "label": "Tekst i koden",
             "value": "\"45\"",
             "detail": "str – tekst",
             "tone": "amber"

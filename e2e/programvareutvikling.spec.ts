@@ -942,7 +942,9 @@ test('M02 teaching models work in Classic and RPG without recording attempts', a
     await next.focus();
     await page.keyboard.press('Enter');
     await expect(next).toHaveAttribute('aria-pressed', 'true');
-    await expect(figure.getByText('antall = 5', { exact: true })).toBeVisible();
+    await expect(
+      figure.getByText('antall = 5', { exact: true }),
+    ).toBeVisible();
     expect((await readEvidenceCount(page)).evidence).toBe(before.evidence);
     const bounds = await figure.boundingBox();
     expect(bounds).not.toBeNull();
