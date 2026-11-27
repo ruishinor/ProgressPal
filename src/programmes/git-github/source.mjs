@@ -345,7 +345,7 @@ export const gitLessons = [
         'MM README.txt\n M plan.txt',
       ),
       text(
-        '### Hva betyr `MM`?\n\nGit viser to M-er fordi du har endret den samme filen to ganger.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** Start klokken 10 er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
+        '### Hva betyr `MM`?\n\nI denne øvingen er den første endringen staged, mens den andre bare ligger i arbeidsfilen. Derfor viser Git to M-er.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** Start klokken 10 er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
       ),
       question(
         'GIT-M01-E04',

@@ -478,7 +478,7 @@ export const gitM07Lessons = [
         'Prosjektet består av `index.html` (skjemaet brukeren ser), `app.js` (kobler skjemaet til resultatet), `valider.js` (avgjør om inndata skal godkjennes), `kontroller.cjs` (noen enkle maskinelle kontroller), `oppgave.md` (bestillingen) og `README.md` (hvordan prosjektet brukes). `main` er felles utviklingslinje. Utvikler A arbeider med valideringen. Utvikler B forbedrer skjemaets hjelpetekst. Du skal se hvordan begge endringer kan bli del av samme produkt.',
       ),
       note(
-        'Dette er et lokalt øvingsprosjekt med syntetiske filer. Det sender ingen påmeldinger, bruker ingen ekte telefonnumre og krever ikke GitHub-konto. To arbeidskopier simulerer to utviklere; det betyr ikke at en annen person faktisk har reviewet arbeidet ditt. En separat, valgfri GitHub-øvelse kommer senere.',
+        'Vi bruker to lokale arbeidskopier, én for hver utvikler i eksemplet. Øvingsfilene sender ingen påmeldinger og bruker ingen ekte telefonnumre. Du trenger ikke en GitHub-konto. En valgfri GitHub-øvelse kommer senere.',
       ),
       question(
         'GIT-M07-E01',
@@ -879,7 +879,7 @@ export const gitM07Lessons = [
         '### Selv gjennomgåtte endringer kan gi nye problemer\n\nTenk deg at en senere endring i telefonvalideringen gjør at tomt telefonfelt blir avvist, selv om feltet skal være valgfritt. Dette kalles en **regresjon**: noe som tidligere fungerte i henhold til kravet, fungerer ikke lenger. Feilen kan oppdages av en bruker, en utvikler eller en test. Det første steget er å undersøke den observerte atferden og historikken, ikke å gjette en reset-kommando.',
       ),
       note(
-        'Neste blokk oppretter med vilje en feilaktig commit på `main` i den **syntetiske lokale øvingsremoten**, slik at du kan undersøke delt historikk. Dette er en kontrollert undervisningshendelse, ikke anbefalt arbeidspraksis. I ekte prosjekter skal en kjent feil ikke med vilje publiseres for å demonstrere Git.',
+        'Neste blokk lager med vilje en feil i den lokale øvingen. Feilen legges i en commit på `main` i den delte øvingsmappen, slik at du kan lære å rette en feil andre allerede har hentet. Ikke gjør dette med vilje i et ekte prosjekt.',
       ),
       command(
         'Opprett en historisk feil bare i øvingsfixturen',
@@ -1066,13 +1066,13 @@ export const gitM07Lessons = [
     skillId: 'GIT-M07-SELVSTENDIG',
     flow: [
       text(
-        '### Den avsluttende oppgaven\n\nPåmeldingssiden har fått en ny bestilling: Navn på mer enn 40 tegn skal gi meldingen «Navn er for langt.» Navn på nøyaktig 40 tegn skal fortsatt godtas. Eksisterende regler om tomt navn og telefon skal bevares. Du skal arbeide i det samme **syntetiske** M07-prosjektet etter at den forrige regresjonen er rettet, og du må unngå å blande inn andre endringer. En kollega vurderer samtidig å endre overskriften i `index.html`, men har ennå ikke sendt en ny commit. Du kjenner derfor ikke den fremtidige overskriften; oppgaven krever ikke at du gjetter den.',
+        '### Den avsluttende oppgaven\n\nPåmeldingssiden har fått en ny bestilling: Navn på mer enn 40 tegn skal gi meldingen «Navn er for langt.» Navn på nøyaktig 40 tegn skal fortsatt godtas. Eksisterende regler om tomt navn og telefon skal bevares. Du skal arbeide i det samme øvingsprosjektet fra M07 etter at den forrige regresjonen er rettet, og du må unngå å blande inn andre endringer. En kollega vurderer samtidig å endre overskriften i `index.html`, men har ennå ikke sendt en ny commit. Du kjenner derfor ikke den fremtidige overskriften; oppgaven krever ikke at du gjetter den.',
       ),
       text(
         '### Gjør endringen selv\n\n1. Undersøk branch, Git-status, historikk og krav.\n2. Opprett en egen branch for navneendringen.\n3. Finn navnekontrollen i `valider.js`. Legg til grensen på 40 tegn uten å endre telefonreglene.\n4. Oppdater `kontroller.cjs`. Test navn på 40 tegn, 41 tegn, tomt navn og et gyldig navn med gyldig eller tomt telefonfelt.\n5. Undersøk diffen, velg innholdet til neste commit og lag en commit med en tydelig melding.\n6. Hvis kollegaen senere pusher en endring, hent og undersøk den før merge.\n\nKollegaen har ikke pushet den nye overskriften ennå.',
       ),
       text(
-        'Du trenger bare én liten JavaScript-detalj for denne endringen: `ryddigNavn.length` gir lengden på navnet etter at mellomrom i starten og slutten er fjernet. Kontroller først at navnet ikke er tomt; vurder deretter grensen. Bruk syntetiske testnavn med enkle bokstaver. I en virkelig løsning må teamet avklare hva «40 tegn» betyr for sammensatte tegn og emoji; JavaScripts `.length` teller ikke alltid tegn slik brukeren oppfatter dem.',
+        'Du trenger bare én liten JavaScript-detalj for denne endringen: `ryddigNavn.length` gir lengden på navnet etter at mellomrom i starten og slutten er fjernet. Kontroller først at navnet ikke er tomt; vurder deretter grensen. Bruk oppdiktede navn med enkle bokstaver. I en virkelig løsning må teamet avklare hva «40 tegn» betyr for sammensatte tegn og emoji; JavaScripts `.length` teller ikke alltid tegn slik brukeren oppfatter dem.',
       ),
       text(
         'Før du mener at oppgaven er ferdig, må du kunne forklare hva du kontrollerte i kode og nettleser, hvilke filer som ble endret, om den lokale branchen er delt, og om arbeidet faktisk er integrert i lokal felles main. Du kan bruke tidligere M01–M06-leksjoner og vanlig dokumentasjon. Målet er å velge riktige handlinger ut fra tilstanden, ikke å kunne alle kommandoer utenat.',

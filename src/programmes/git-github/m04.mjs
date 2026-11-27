@@ -602,7 +602,7 @@ export const gitM04Lessons = [
         'main -> main\n## main...origin/main',
       ),
       text(
-        '### Fetch er å hente informasjon, ikke å ta endringen i bruk\n\nI A kan du nå kjøre `git fetch origin`. Git henter nye objekter og oppdaterer blant annet `origin/main`. Men A sin **lokale `main`** og filen `messages.txt` blir stående. Du kan dermed lese commit-historikk og sammenligne filene før du bestemmer om endringen skal integreres. Dette er nyttig når du vil undersøke en kollegas arbeid før det påvirker filene du bruker.',
+        '### Fetch: hent historikken uten å endre filene\n\nKjør `git fetch origin` i A.\n\n- **Remote:** B sin nye commit er tilgjengelig.\n- **`origin/main` i A:** Oppdateres til den nye commiten.\n- **Lokal `main` i A:** Blir stående på den gamle commiten.\n- **`messages.txt` i A:** Har fortsatt den gamle teksten.\n\nNå kan du undersøke endringen før du tar den inn i arbeidsfilene.',
       ),
       command(
         'Hent til A uten å endre arbeidsfilene',
@@ -648,7 +648,7 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-PULL-FF',
     flow: [
       text(
-        '### Fra informasjon til oppdatert arbeidsfil\n\nA har nå lest hva B endret. Ingen nye commits er laget i A siden den delte startcommiten. Derfor ligger A sin `main` **bak** `origin/main`, men de to linjene har ikke gått hver sin vei. Git kan flytte A sin branch fram til den nyere commiten uten å lage en egen merge-commit. Det kalles **fast-forward**.',
+        '### Pull: få endringen inn i arbeidsfilene\n\nA har hentet historikken, men har ikke laget noen egne commits siden A og B hadde samme versjon.\n\n```\nA --- B\n^     ^\nmain  origin/main\n```\n\nGit kan flytte `main` fram til B uten en ny merge commit. Det kalles **fast-forward**. Da får A også den nye teksten i arbeidsfilene.',
       ),
       text(
         '`git pull` består av å hente fra en remote og deretter forsøke å integrere endringene i den aktive lokale branchen. Vi velger `git pull --ff-only origin main`, som bare tillater integrering dersom det kan gjøres som fast-forward. Hvis både A og mottakeren har forskjellige nye commits, stopper kommandoen. Den bestemmer ikke på dine vegne hvordan historikkene skal samles.',
