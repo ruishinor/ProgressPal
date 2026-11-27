@@ -18,6 +18,31 @@ Product boundary (do not cross it):
 
 `master` is the default branch. Release and freeze tags, including `v1.3.0-local-first-proof` and `freeze/rpg-product-completion-2026-09-16`, are immutable records. Push, PR, merge, tag, release, deployment and version decisions each need explicit owner instruction; an earlier one-off authorization does not carry forward. Any push to `master` is promoted to Production by Vercel, so confirm the release model in `docs/CURRENT_STATE.md` before one.
 
+## Owner policy — Pathways teaching and review (2026-11-27)
+
+- Write learner-facing Bokmål in ordinary conversational language. Prefer natural
+  possessives (for example «maskinen din»); use exact Git/GitHub and programming
+  terminology where it teaches a real concept. Do not use «oppskrift» as an
+  instruction or reference. Avoid «ledetekst»; show the terminal prompt itself.
+- Separate the explanation, the action and the expected result. Name earlier
+  lessons and sections explicitly. Use short paragraphs, purposeful lists,
+  inline code and selective emphasis. Keep safety boundaries and actual command
+  examples correct.
+- Practical work is self-reported. Do not add proof, authentication or
+  certification mechanisms for learner work. Keep optional checks optional and
+  avoid learner-facing disclaimers about assessment, proof and points where
+  they do not help the learner. Maintain useful exercise feedback.
+- A scoped implementer review is PASS when no concrete, material unresolved
+  issue is found. Do not require independent review, routine owner approval,
+  extra review rounds or separate reviewer packs. Record genuine blockers;
+  distinguish engineering validation from editorial judgement. If the existing
+  release gate requires a machine-readable review binding, the implementer
+  supplies the single required record without asking the owner to review.
+- Do not test prose for its own sake. Test functional behaviour, accessibility,
+  generated-content integrity and strings only when they form a dependency
+  (such as an accessible control name). Use the existing hosted release checks;
+  do not repeat comprehensive local suites for routine edits.
+
 ## Tech stack
 
 - **Vite 8** + `@vitejs/plugin-react`, **React 19**, **react-router-dom 7**, **TypeScript 6** (strict).

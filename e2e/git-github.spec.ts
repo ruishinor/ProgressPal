@@ -264,11 +264,11 @@ test('explains Git answers and preserves learner evidence through reload and pro
   ).toHaveClass(/lesson-result--neutral/, { timeout: 15_000 });
   await expect(reflection.locator('img')).toHaveCount(0);
   await page
-    .getByRole('button', { name: 'Marker som fullført lokalt', exact: true })
+    .getByRole('button', { name: 'Marker som fullført', exact: true })
     .click();
   await expect(
     page
-      .getByRole('region', { name: 'Lokal leksjonsstatus' })
+      .getByRole('region', { name: 'Leksjonsstatus' })
       .getByRole('status'),
   ).toContainText('Fullført');
   expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
@@ -309,11 +309,6 @@ test('opens the exact staging correction from lesson five without changing progr
   await completeOnboarding(page);
   await page.goto(route(5));
   const article = page.getByRole('article');
-  await expect(
-    article.getByText(
-      'Nå skal du selv velge hvilke endringer som blir med i neste commit.',
-    ),
-  ).toBeVisible();
   const reference = article.getByRole('link', { name: '«Rett bare utvalget»' });
   await expect(reference).toHaveAttribute(
     'href',
@@ -506,7 +501,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
       );
       const assessed = await pathwayState(page);
       const localStatus = page.getByRole('region', {
-        name: 'Lokal leksjonsstatus',
+        name: 'Leksjonsstatus',
       });
       await expect(
         localStatus.locator('xpath=ancestor::*[@lang][1]'),
@@ -515,7 +510,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
         'Ikke fullført',
       );
       await localStatus
-        .getByRole('button', { name: 'Marker som fullført lokalt' })
+        .getByRole('button', { name: 'Marker som fullført' })
         .focus();
       await page.keyboard.press('Enter');
       await expect(localStatus.getByRole('status')).toContainText('Fullført');
@@ -542,7 +537,7 @@ for (const programme of ['CS50x', 'Programvareutvikling'] as const) {
         }),
       );
       await localStatus
-        .getByRole('button', { name: 'Marker som fullført lokalt' })
+        .getByRole('button', { name: 'Marker som fullført' })
         .click();
       await expect(localStatus.getByRole('status')).toContainText('Fullført');
       await expect(first.getByRole('status', { name: 'Resultat' })).toHaveClass(
@@ -587,7 +582,7 @@ test('a read-only peer cannot prepare or save Pathways and reads existing Git wo
   await page.goto(route(1));
   await expect(exercise(page, 1)).toBeVisible();
   await page
-    .getByRole('button', { name: 'Marker som fullført lokalt', exact: true })
+    .getByRole('button', { name: 'Marker som fullført', exact: true })
     .click();
   await expect(
     page.getByRole('button', { name: 'Åpne leksjonen igjen' }),

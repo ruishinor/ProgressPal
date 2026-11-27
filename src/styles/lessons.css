@@ -104,6 +104,21 @@
   max-inline-size: 68ch;
 }
 
+/* Git Pathways: comfortable prose, clear action lists and visible references.
+   Keep the existing reading measure, colours and responsive code overflow. */
+.lesson[data-programme='git-github'] .lesson-text {
+  line-height: 1.65;
+}
+
+.lesson[data-programme='git-github'] .lesson-text > :is(ul, ol) {
+  padding-inline-start: 1.5em;
+}
+
+.lesson[data-programme='git-github'] .lesson-text a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 /* Balanced headings keep long titles readable; unsupported browsers wrap normally. */
 .lesson :is(h1, h2, h3, h4) {
   text-wrap: balance;

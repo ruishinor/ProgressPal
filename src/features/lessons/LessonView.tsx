@@ -581,6 +581,7 @@ function LessonSurface({
         aria-labelledby={titleId}
         className={surfaces.article}
         data-presentation={surfaces.name}
+        data-programme={programmeId}
         lang={readyBundle.language}
       >
         <header className={surfaces.header}>
@@ -866,11 +867,17 @@ function LessonSurface({
                 {nextMission.optional ? ` ${copy.text.optionalSuffix}` : ''}
               </p>
             )}
-            <p>{copy.text.whereNextModuleRule}</p>
-            {footer === undefined ? null : <p>{copy.text.whereNextMark}</p>}
+            {copy.text.whereNextModuleRule && (
+              <p>{copy.text.whereNextModuleRule}</p>
+            )}
+            {footer !== undefined && copy.text.whereNextMark && (
+              <p>{copy.text.whereNextMark}</p>
+            )}
           </section>
         ) : null}
-        <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        {copy.text.completionDisclaimer && (
+          <p className="lesson-note">{copy.text.completionDisclaimer}</p>
+        )}
       </article>
       {footer === undefined ? null : <Fragment>{footer}</Fragment>}
     </>

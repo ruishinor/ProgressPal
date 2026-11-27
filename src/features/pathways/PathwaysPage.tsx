@@ -764,15 +764,15 @@ export function PathwaysPage({
           lessonPath={(id) => getPathwayLessonPath(id, rpg)}
           presentation={rpg ? 'rpg' : 'classic'}
           footer={
-            <section aria-label="Lokal leksjonsstatus">
+            <section aria-label="Leksjonsstatus">
               <p role="status">
-                Lokal status:{' '}
+                Status:{' '}
                 {progress?.status === 'completed'
                   ? 'Fullført'
                   : 'Ikke fullført'}
               </p>
               <p>
-                Du styrer selv når du vil markere leksjonen som gjennomgått.
+                Marker leksjonen som fullført når du er ferdig.
               </p>
               <button
                 type="button"
@@ -781,7 +781,7 @@ export function PathwaysPage({
               >
                 {progress?.status === 'completed'
                   ? 'Åpne leksjonen igjen'
-                  : 'Marker som fullført lokalt'}
+                  : 'Marker som fullført'}
               </button>
               {saveFailed && (
                 <p role="alert">
