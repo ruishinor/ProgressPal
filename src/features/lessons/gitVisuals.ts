@@ -286,7 +286,7 @@ export const gitVisuals: readonly GitVisual[] = [
   {
     "lesson": "git-m01-o04",
     "step": 3,
-    "anchor": "### Endre de to filene i Notisblokk\n\n1. I `README.txt`: behold første linje `Tur",
+    "anchor": "### Endre de to filene i Notisblokk\n\n1. I `README.txt`: behold `Turplan` og `Dag",
     "kind": "diff",
     "title": "Teksten du skal endre",
     "frames": [
@@ -321,7 +321,7 @@ export const gitVisuals: readonly GitVisual[] = [
   {
     "lesson": "git-m01-o04",
     "step": 9,
-    "anchor": "**Se etter:** `git diff --cached` viser start klokken 10 i `README.txt`, men ikk",
+    "anchor": "**Se etter:** `git diff --cached` viser `Starttid: 10:00` i `README.txt`, men ik",
     "kind": "diff",
     "title": "To forskjellige sammenligninger",
     "frames": [
@@ -350,7 +350,7 @@ export const gitVisuals: readonly GitVisual[] = [
   {
     "lesson": "git-m01-o04",
     "step": 10,
-    "anchor": "### Endre en fil som allerede er staged\n\nÅpne README.txt igjen. Legg til en tred",
+    "anchor": "### Endre en fil som allerede er staged\n\nÅpne `README.txt` igjen. Legg til `Ta m",
     "kind": "files",
     "title": "Legg til kartlinjen",
     "frames": [
@@ -456,7 +456,7 @@ export const gitVisuals: readonly GitVisual[] = [
   {
     "lesson": "git-m01-o04",
     "step": 27,
-    "anchor": "Begge viser Turplan og Dagstur langs elva. Start klokken 10. Bare Get-Content sk",
+    "anchor": "Begge viser `Turplan`, `Dagstur langs elva.` og `Starttid: 10:00`. Bare `Get-Con",
     "kind": "diff",
     "title": "Siste commit og arbeidsfil",
     "frames": [

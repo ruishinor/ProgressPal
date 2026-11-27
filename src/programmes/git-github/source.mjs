@@ -313,7 +313,7 @@ export const gitLessons = [
         'notepad.exe .\\README.txt\nnotepad.exe .\\plan.txt',
       ),
       text(
-        '### Endre de to filene i Notisblokk\n\n1. I `README.txt`: behold første linje `Turplan`. Bytt andre linje til `Dagstur langs elva. Start klokken 10.`\n2. I `plan.txt`: bytt linjen til `Husk vann og mat.`\n3. Lagre begge med `Ctrl+S` og gå tilbake til PowerShell.\n\nViser Git ingen endring? Sjekk at du har lagret og åpnet riktig fil.',
+        '### Endre de to filene i Notisblokk\n\n1. I `README.txt`: behold `Turplan` og `Dagstur langs elva.`. Legg til `Starttid: 10:00` på en egen linje.\n2. I `plan.txt`: bytt linjen til `Husk vann og mat.`\n3. Lagre begge med `Ctrl+S` og gå tilbake til PowerShell.\n\nViser Git ingen endring? Sjekk at du har lagret og åpnet riktig fil.',
       ),
       command(
         'Undersøk endringene før staging',
@@ -331,11 +331,11 @@ export const gitLessons = [
         'M  README.txt\n M plan.txt',
       ),
       text(
-        '**Se etter:** `git diff --cached` viser start klokken 10 i `README.txt`, men ikke endringen i `plan.txt`.\n\nStaging area husker innholdet du valgte, ikke bare filnavnet.',
+        '**Se etter:** `git diff --cached` viser `Starttid: 10:00` i `README.txt`, men ikke endringen i `plan.txt`.\n\nStaging area husker innholdet du valgte, ikke bare filnavnet.',
       ),
       command(
         'Endre en fil som allerede er staged',
-        'Åpne README.txt igjen. Legg til en tredje linje: Ta med kart. Lagre med Ctrl+S og gå tilbake til PowerShell. Ikke kjør git add igjen ennå.',
+        'Åpne `README.txt` igjen. Legg til `Ta med kart.` nederst. Lagre med Ctrl+S og gå tilbake til PowerShell. Ikke kjør git add igjen ennå.',
         'notepad.exe .\\README.txt',
       ),
       command(
@@ -345,21 +345,21 @@ export const gitLessons = [
         'MM README.txt\n M plan.txt',
       ),
       text(
-        '### Hva betyr `MM`?\n\nI denne øvingen er den første endringen staged, mens den andre bare ligger i arbeidsfilen. Derfor viser Git to M-er.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** Start klokken 10 er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
+        '### Hva betyr `MM`?\n\nI denne øvingen er den første endringen staged, mens den andre bare ligger i arbeidsfilen. Derfor viser Git to M-er.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** `Starttid: 10:00` er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
       ),
       question(
         'GIT-M01-E04',
-        'Du har gjort to endringer i `README.txt`:\n\n- Du la til starttid 10 og kjørte `git add`.\n- Du la til «Ta med kart.» og lagret, uten å kjøre `git add` igjen.\n\nGit viser `MM README.txt`.\n\n**Hva blir med i neste commit hvis du kjører `git commit` uten ekstra valg?**',
+        'Du har gjort to endringer i `README.txt`:\n\n- Du la til `Starttid: 10:00` og kjørte `git add`.\n- Du la til «Ta med kart.» og lagret, uten å kjøre `git add` igjen.\n\nGit viser `MM README.txt`.\n\n**Hva blir med i neste commit hvis du kjører `git commit` uten ekstra valg?**',
         [
           [
             'a',
-            'Starttid 10, uten den nye kartlinjen.',
+            'Starttid: 10:00, uten den nye kartlinjen.',
             true,
             'Riktig. Git bruker innholdet du la i staging area med `git add`. Kartlinjen blir værende i filen etter commit.',
           ],
           [
             'b',
-            'Starttid 10 og kartlinjen, fordi filen allerede lå i staging area.',
+            'Starttid: 10:00 og kartlinjen, fordi filen allerede lå i staging area.',
             false,
             'Git legger ikke nye endringer i staging area av seg selv. Kartlinjen blir først med hvis du kjører `git add` på nytt.',
           ],
@@ -404,7 +404,7 @@ export const gitLessons = [
         "git --no-pager show HEAD:README.txt\nGet-Content -LiteralPath 'README.txt'",
       ),
       text(
-        'Begge viser Turplan og Dagstur langs elva. Start klokken 10. Bare Get-Content skal i tillegg vise Ta med kart. Hvis show også viser kartlinjen, har du klargjort README på nytt før commit. Det er ingen grunn til å slette eller skrive om historikken. Bruk dette til å forklare forskjellen, behold mappen og tilpass neste oppgave til det som faktisk gjenstår. Du kan også starte en ny øving i en helt ny mappe for å gjenskape eksemplet.',
+        'Begge viser `Turplan`, `Dagstur langs elva.` og `Starttid: 10:00`. Bare `Get-Content` skal i tillegg vise `Ta med kart.`. Hvis du brukte den tidligere teksten «Start klokken 10.», behold den. Du trenger ikke endre historikken. Hvis show også viser kartlinjen, har du klargjort README på nytt før commit. Det er ingen grunn til å slette eller skrive om historikken. Bruk dette til å forklare forskjellen, behold mappen og tilpass neste oppgave til det som faktisk gjenstår. Du kan også starte en ny øving i en helt ny mappe for å gjenskape eksemplet.',
       ),
     ],
   },
