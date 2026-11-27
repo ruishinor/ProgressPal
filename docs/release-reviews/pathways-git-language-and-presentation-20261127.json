@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "6ea8b3c61c59891b9d8d2e8bec22cb8945c0c90b",
+    "payloadTree": "5e0b9c9c6d4f298852dd058af0778b9b01ffbc63",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,8 @@
       "62 authored visual entries bind to existing text blocks in all 47 lessons; all anchors and graph edges resolve, no duplicate slots or new lesson steps. Nine examples have local interaction. Reusable HTML/CSS/SVG status, graph, comparison, flow, terminal, file tree, conflict, PR, command-effect and test-case displays require no new service, arbitrary markup or learner persistence.",
       "Compared candidate assets with master: 121 existing blocks changed, all 92 command blocks are identical, 113 exercise and option identifiers, correct choices, required practice, optionality, evaluator modes and logic, skill/unit metadata and lesson order unchanged. The optional paste evaluator's only difference is its simplified privacy copy. Source and asset hashes verified during regeneration. 56 exercise hashes differ from master; historical answers retain existing semantics.",
       "Updated the tour fixture instructions and exercise E04 to use Starttid: 10:00 on a separate line, with explicit compatibility for older exercise folders; no destructive history rewrite.",
-      "Added functional binding and visual interaction tests. Prior candidate passed browser shards and pilot; release unit stage failed only on pilot-script formatting at that point. Updated that file. Current build, lint, formatting, browser and offline validation have not been executed locally and require hosted validation."
+      "Added functional binding and visual interaction tests. Prior candidate passed browser shards and pilot; release unit stage failed only on pilot-script formatting at that point. Updated that file. Current build, lint, formatting, browser and offline validation have not been executed locally and require hosted validation.",
+      "Release run 46064522266: pilot and E2E shard 1 passed; unit gate failed on two formatting files; shard 3 stopped because the offline answer selector used the old M01 wording (92 tests passed before the stop). Simplified the visual renderer and CSS syntax, and select both offline answers by their existing stable option IDs instead of prose. Correct option IDs a and b confirmed against current generated lesson assets. No evaluation logic, content assets or release checks changed. Exact formatter and runtime results remain subject to fresh hosted validation."
     ]
   },
   "adversarialFindings": [
@@ -42,6 +43,6 @@
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Scoped implementer review PASS; no separate owner or independent review required. Hosted automated engineering checks must pass before merging or production."
+    "summary": "Scoped implementer review PASS for these targeted corrections; automated checks must pass for the new head. No independent or owner review required."
   }
 }
