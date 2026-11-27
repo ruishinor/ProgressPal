@@ -21,7 +21,13 @@ const reflect = (id, prompt) => ({
   choices: null,
   hints: [],
 });
-const command = (heading, explanation, script, sampleOutput = '', resultNote = '') => [
+const command = (
+  heading,
+  explanation,
+  script,
+  sampleOutput = '',
+  resultNote = '',
+) => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',
@@ -359,7 +365,7 @@ export const gitM05Lessons = [
         'Opprett M05-mappen, remote og to arbeidskopier',
         'Denne blokken **stopper dersom mappen finnes**. Den oppretter en enkel `paamelding.js`, et kravdokument og grunnversjonen på `main`, pusher til lokal remote og kloner deretter gjennomgangskopien. Det skal ikke stå filnavn etter `status --short` til slutt.',
         setup,
-        'Initialized empty Git repository ...\n[main ...] Opprett enkel paamelding\n... main -> main\nCloning into \'...gjennomgang\'...',
+        "Initialized empty Git repository ...\n[main ...] Opprett enkel paamelding\n... main -> main\nCloning into '...gjennomgang'...",
         'Siste statuskommando skal ikke vise noen filrader.',
       ),
       text(

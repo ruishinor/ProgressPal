@@ -22,7 +22,13 @@ const reflection = (id, prompt) => ({
   choices: null,
   hints: [],
 });
-const command = (heading, explanation, script, stdout = '', resultNote = '') => [
+const command = (
+  heading,
+  explanation,
+  script,
+  stdout = '',
+  resultNote = '',
+) => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',

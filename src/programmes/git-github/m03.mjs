@@ -2,7 +2,13 @@
 // Requires accepted M01 and M02; keeps their authored lesson/exercise IDs stable.
 const text = (nb) => ({ t: 'text', nb });
 const note = (nb) => ({ t: 'callout', kind: 'merk', nb });
-const command = (heading, explanation, source, stdout = '', resultNote = '') => [
+const command = (
+  heading,
+  explanation,
+  source,
+  stdout = '',
+  resultNote = '',
+) => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',
@@ -310,7 +316,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repositoryet.' }`,
         'Undersøk grenene og merge feature inn i main',
         'Sjekk aktiv branch og ren status før sammenslåingen. `--no-edit` bruker Gits foreslåtte merge-melding uten å åpne en tekstredigerer. Ikke gjett hvilken gren du står på.',
         `${stay}\n${clean}\nif ((& git branch --show-current) -ne 'main') { throw 'STOPP: Merge skal skje inn i main.' }\n${must('--no-pager log --graph --oneline --decorate --all')}\n${must('merge --no-edit feature/kvittering')}\n${must('status --short')}`,
-        'Merge made by the \'ort\' strategy.',
+        "Merge made by the 'ort' strategy.",
         'Navnet på merge-strategien kan variere med Git-versjonen. Siste statuskommando skal ikke vise noen filrader.',
       ),
       command(
