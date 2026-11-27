@@ -210,16 +210,16 @@ function LessonSurface({
       const lessonSubjectIds = lessonBundle.exercises.map(
         (entry) => entry.meta.subjectId,
       );
+      const isCampaignM01 =
+        programmeId === 'programvareutvikling' &&
+        lessonBundle.moduleId === 'S1-M01' &&
+        lessonBundle.sourceSha256 === campaignM01SourceSha;
       const [rows, stored, campaignVisuals] = await Promise.all([
         lessonSubjectIds.length === 0
           ? Promise.resolve([])
           : listLearnerEvidence({ programmeId, subjectIds: lessonSubjectIds }),
         getLessonPosition(itemId),
-        programmeId === 'programvareutvikling' &&
-          lessonBundle.moduleId === 'S1-M01' &&
-          lessonBundle.sourceSha256 === campaignM01SourceSha
-          ? loadCampaignM01Visuals()
-          : Promise.resolve([]),
+        isCampaignM01 ? loadCampaignM01Visuals() : Promise.resolve([]),
       ]);
 
       if (!active) {

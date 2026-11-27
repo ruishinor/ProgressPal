@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "913a3de7983d2c5b417c2a97938b23d540805e8c",
+    "payloadTree": "4d678019a434104142df71b25456af38e1e3cfd7",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,8 @@
       "23 contextual examples (seven selectable) and 124 source-pinned learner-prose replacements. Original exercises, answers, identifiers, hashes, positions and progression remain unchanged. New component and browser regression checks, not yet run on this payload.",
       "Initial run 46071603686 passed all three E2E shards but failed formatting. Run 46073104442 passed formatting, lint, typecheck and build but failed JS gzip budget (487252 > 485000). Moved visuals to a SHA-256-addressed offline presentation asset and compacted editorial keys. Both budget limits unchanged. Await fresh hosted checks.",
       "Repository history and prior release artifacts do not contain the complete pinned producer input. Source SHA remains unchanged; source-scoped presentation fallback avoids generated-content edits. The earlier three-module ZIP is not a substitute.",
-      "Follow-up source review confirmed the visual loader checks the pinned SHA-256 and falls back to the original lesson. Corrected the contradictory review status to allow mandatory hosted measurement; no code or budget limit changed."
+      "Follow-up source review confirmed the visual loader checks the pinned SHA-256 and falls back to the original lesson. Corrected the contradictory review status to allow mandatory hosted measurement; no code or budget limit changed.",
+      "Run 46075518288 reached lint/format and real E2E. Unit stopped on three format warnings; E2E found a stale match prompt. Compared the exact M01 original strings and all existing E2E literal selectors against the presentation overrides; corrected the matching prompt, the changed reflection prompt and the changed incorrect-answer feedback assertion. Kept the keyboard, outcome, XP and persistence assertions. Other two interrupted browser tests were not confirmed failures. Fresh hosted format and budget checks remain required."
     ]
   },
   "adversarialFindings": [

@@ -144,9 +144,8 @@ test('enrols in Programvareutvikling, answers by keyboard and keeps the result a
   });
   await expect(rpgVisual).toBeVisible();
   await rpgVisual.getByRole('button', { name: 'Etter Ctrl+S' }).click();
-  await expect(
-    rpgVisual.getByText('Hei, Ola!', { exact: true }),
-  ).toBeVisible();
+  const savedOutput = rpgVisual.getByText('Hei, Ola!', { exact: true });
+  await expect(savedOutput).toBeVisible();
   expect((await readEvidenceCount(page)).evidence).toBe(2);
 
   expect(consoleIssues).toEqual([]);
@@ -561,7 +560,7 @@ const keyboardModes = [
   {
     mode: 'match',
     item: 's1-m01-o04',
-    prompt: 'Koble hvert utsagn til det utvikleren har i hånden etterpå',
+    prompt: 'Koble det utvikleren gjør, til resultatet av arbeidet.',
   },
   {
     mode: 'prediction',
@@ -571,7 +570,7 @@ const keyboardModes = [
   {
     mode: 'reflection choice',
     item: 's1-m01-o05',
-    prompt: 'Hva slags forutsigelse gikk oftest galt for deg',
+    prompt: 'Hva syntes du var vanskeligst å forutsi?',
   },
   { mode: 'error diagnosis', item: 's1-m01-o06', prompt: 'Program 1 av 10.' },
   {
@@ -919,7 +918,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   await wrong.check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(result).toContainText('Ikke riktig ennå', { timeout: 15_000 });
-  await expect(result).toContainText('Python leser filen på nytt');
+  await expect(result).toContainText('Python leser den lagrede filen hver gang den kjøres.');
   expect((await readLedger(page)).rows).toBe(0);
 
   // The retry solves it and earns once.

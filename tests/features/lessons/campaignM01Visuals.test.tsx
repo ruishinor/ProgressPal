@@ -18,7 +18,11 @@ import type { GitVisual } from '@/features/lessons/gitVisuals';
 import { GitLessonVisual } from '@/features/lessons/GitLessonVisual';
 import { InlineText, Markup } from '@/features/lessons/markup';
 
-import { p2Catalogue, p2Modules, readP2Asset } from '../../programmes/p2Content';
+import {
+  p2Catalogue,
+  p2Modules,
+  readP2Asset,
+} from '../../programmes/p2Content';
 
 const visualText = readP2Asset(campaignM01VisualPath);
 const campaignM01Visuals = JSON.parse(visualText) as readonly GitVisual[];
@@ -42,15 +46,20 @@ it('binds every visual to one existing teaching block in M01', () => {
     if (block?.t !== 'text' && block?.t !== 'orient') {
       throw new Error('Visual must belong to a teaching block');
     }
-    expect(
-      campaignM01VisualFor(campaignM01Visuals, visual.lesson, block.nb),
-    ).toBe(visual);
-    expect(
-      campaignM01VisualFor(campaignM01Visuals, 'S1-M02-L01', block.nb),
-    ).toBeUndefined();
-    expect(
-      campaignM01VisualFor(campaignM01Visuals, visual.lesson, ''),
-    ).toBeUndefined();
+    const matched = campaignM01VisualFor(
+      campaignM01Visuals,
+      visual.lesson,
+      block.nb,
+    );
+    const other = campaignM01VisualFor(
+      campaignM01Visuals,
+      'S1-M02-L01',
+      block.nb,
+    );
+    const empty = campaignM01VisualFor(campaignM01Visuals, visual.lesson, '');
+    expect(matched).toBe(visual);
+    expect(other).toBeUndefined();
+    expect(empty).toBeUndefined();
     const key = `${visual.lesson}:${visual.step}`;
     expect(keys.has(key)).toBe(false);
     keys.add(key);
@@ -80,9 +89,9 @@ it('applies editorial revisions only to exact source strings', () => {
   }
   collect(p2Modules['S1-M01']);
   for (const [key, revised] of campaignM01Editorial) {
-    const matches = [...strings].filter(
-      (text) => campaignM01TextKey(text) === key,
-    );
+    const matches = [...strings].filter((text) => {
+      return campaignM01TextKey(text) === key;
+    });
     expect(matches).toHaveLength(1);
     const original = matches[0]!;
     expect(reviseCampaignM01(original)).toBe(revised);
