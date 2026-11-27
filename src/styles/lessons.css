@@ -380,8 +380,11 @@
 .git-graph-id,
 .git-graph-label {
   fill: var(--color-text);
-  text-anchor: middle;
   font-size: 11px;
+}
+
+.git-graph-id {
+  text-anchor: middle;
 }
 
 .git-graph-id {
@@ -651,5 +654,125 @@
   .git-pr-direction > span {
     justify-self: center;
     transform: rotate(90deg);
+  }
+}
+
+/* Git terminal panels preserve the original text and copy behaviour. */
+.lesson-pre--git-terminal {
+  min-inline-size: 0;
+  gap: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.lesson-pre--git-terminal > .lesson-note {
+  margin: 0;
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--color-border-strong);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lesson-pre--git-terminal > pre {
+  border-radius: 0;
+  min-inline-size: 0;
+  user-select: text;
+  line-height: 1.55;
+}
+
+.lesson-pre--git-terminal > .lesson-copy {
+  justify-self: start;
+  margin: var(--space-2);
+}
+
+.lesson-pre--git-terminal > pre:focus-visible,
+.git-visual-transcript pre:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
+.git-transcript-command,
+.git-transcript-status {
+  font-weight: 700;
+}
+
+.git-transcript-meta {
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-strong);
+  text-underline-offset: 0.2em;
+}
+
+.git-transcript-added {
+  color: var(--color-success);
+}
+
+.git-transcript-removed {
+  color: var(--color-danger);
+}
+
+.git-visual,
+.git-visual-card-wrap,
+.git-visual-card {
+  min-inline-size: 0;
+}
+
+.git-visual-value,
+.git-visual-transcript pre,
+.git-terminal-body {
+  user-select: text;
+}
+
+.git-visual-transcript > p {
+  padding: var(--space-3);
+}
+
+.git-test-input {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.git-test-input input {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.git-graph-layout {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.git-graph-key {
+  display: none;
+  margin: 0;
+}
+
+@media (max-width: 42rem) {
+  .git-graph-key {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .git-graph-key > div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .git-graph-key dt {
+    flex: none;
+    font-weight: 700;
+    font-family: ui-monospace, monospace;
+  }
+
+  .git-graph-key dd {
+    min-inline-size: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
   }
 }

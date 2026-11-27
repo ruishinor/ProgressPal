@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { Fragment, useId, useState } from 'react';
 
 import type { LessonTextBlock, LessonUiCopy } from '@/lib/domain';
 
@@ -47,6 +47,35 @@ function CopyButton({ copy, text }: { copy: LessonUiCopy; text: string }) {
   );
 }
 
+// Preserve every authored character, including leading Git status spaces.
+function GitTerminalText({
+  text,
+  role,
+}: {
+  text: string;
+  role: PreformattedRole;
+}) {
+  return text.split('\n').map((line, index) => {
+    let tone = '';
+    if (role === 'source' && /^\s*(?:& )?git(?:\.exe)?\s/.test(line)) {
+      tone = 'command';
+    }
+    if (role === 'output') {
+      if (/^[ MADRCU?!]{2} \S/.test(line)) tone = 'status';
+      else if (/^(?:diff --git |index [a-f0-9]|@@ |--- |\+\+\+ )/.test(line))
+        tone = 'meta';
+      else if (/^\+/.test(line)) tone = 'added';
+      else if (/^-/.test(line)) tone = 'removed';
+    }
+    return (
+      <Fragment key={index}>
+        {index > 0 && '\n'}
+        {tone ? <span className={`git-transcript-${tone}`}>{line}</span> : line}
+      </Fragment>
+    );
+  });
+}
+
 function Preformatted({
   context,
   copy,
@@ -61,11 +90,13 @@ function Preformatted({
   text: string;
 }) {
   const labelId = useId();
+  const git = context.highlightGitLiterals === true;
+  const gitClass = git ? ' lesson-pre--git-terminal' : '';
 
   return (
     <div
       aria-labelledby={label === undefined ? undefined : labelId}
-      className={`lesson-pre lesson-pre--${role}`}
+      className={`lesson-pre lesson-pre--${role}${gitClass}`}
       role={label === undefined ? undefined : 'group'}
     >
       {label === undefined ? null : (
@@ -74,7 +105,7 @@ function Preformatted({
         </p>
       )}
       <pre tabIndex={0} lang={context.technicalLanguage}>
-        <code>{text}</code>
+        <code>{git ? <GitTerminalText role={role} text={text} /> : text}</code>
       </pre>
       {role === 'source' ? <LeadingSpaceNote code={text} copy={copy} /> : null}
       {copyableRoles[role] ? <CopyButton copy={copy} text={text} /> : null}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-visual-second-pass-20261127",
+  "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "e28a3097f0924bbc648cff9aa379ba6311b305d0",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Owner-authorized second Git & GitHub Pathways review, M01–M07: selectable terminal text, state comparisons, concise explanations and accurate result captions.",
+    "evidence": [
+      "Inspected all seven canonical module assets, 47 lesson identities, 113 exercise entries and 62 visual entries. Retained existing renderer and visual registry; 13 entries now have local interaction. No new exercise step, scoring, learner persistence, dependency or service.",
+      "Terminal panels preserve literal text, leading whitespace and source-only copy behavior. Seventeen stdout examples revised; eighteen code-result captions distinguish descriptive expectations from actual output. Seven other canonical text blocks revised. The real 92 command scripts and lesson flow topology are unchanged.",
+      "Compared the full exercise metadata including all 113 content hashes, module/unit metadata and skills against master 59ecbb77a721780a996b707050bc7d511e6fe094: byte-equivalent JSON values. No new exercise invalidation or migration.",
+      "Staging and reset state demonstrations checked using Git 2.47.3 in isolated local temporary repositories. Full Windows PowerShell walkthrough not executed; existing guarded scripts were preserved.",
+      "Read-only preflight 46072080932 / job 140751166712 completed successfully. Locked Prettier, canonical generator and --check, lint, typecheck, production build, bundle budget, circular dependency check, 12 targeted Vitest tests and 5 focused Chromium E2E tests passed. Tested terminal selection, clipboard equality, keyboard interaction and mobile layout. Final JS gzip 476868 / 485000 bytes; no budget increase.",
+      "Transferred exact canonical generator and formatter output from hosted runner into e5ac281eb33c41e7929c5ebc750a92847837a12f: all 13 returned file blob SHAs independently matched; eight stale generated assets removed. Temporary diagnostic workflow excluded from candidate. No full manual screenshot audit or learner efficacy study; full release suite remains required."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P2",
+      "description": "Plain output panels conflate literal terminal lines and descriptions of expected state.",
+      "resolution": "Use selectable terminal styling with exact source copy and separate result captions; keep all guarded script text.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P2",
+      "description": "Static concept diagrams require beginners to mentally reconstruct changes between Git states.",
+      "resolution": "Extend existing local-only visuals for staging, HEAD, remote states, merge methods, reset, stash and validation, with explicit captions and mobile labels.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-3",
+      "severity": "P3",
+      "description": "Content generation or visual placement could invalidate learner state or reorder steps.",
+      "resolution": "Canonical generation and --check passed, all exercise metadata and hashes, lesson flow topology, 92 command scripts and anchor tests verified unchanged or valid.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-4",
+      "severity": "P3",
+      "description": "Automated browser tests are not a full manual visual or Windows walkthrough.",
+      "resolution": "Run focused browser checks and isolated Git state tests, preserve existing scripts, require normal release validation; do not claim a comprehensive manual visual or learner outcome assessment.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped implementer self-review and successful exact-output preflight. Proceed to required full release validation, then merge only on green checks for exact head. No independent or owner review required. No automation."
+  }
+}

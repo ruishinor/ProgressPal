@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 2,
+  "module": "consolidated-teaching-20261128",
+  "reviewer": "ChatGPT GPT-6.2 — integration and targeted recovery self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "6678c629cb3999b430b153c0f964abc81f3f6a94",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Integrate the four owner-authorized teaching candidates, reconcile shared source and retain all existing release gates.",
+    "evidence": [
+      "Compared the complete Git trees of common master 59ecbb77 and PRs #119, #117, #116 and #115: 61 distinct changed paths, four shared paths. Verified every unique path and unchanged base path by Git blob identity. Reconciled the module-specific lesson surface, combined E2E tests, offline manifest and current-state entry.",
+      "Git & GitHub, M02 and Utviklerblikk standalone candidates passed their hosted release and pilot checks; M01 latest red run identified an incorrect feedback assertion and a formatting issue on that line. Restored the actual wrong-choice feedback assertion without changing XP or persistence expectations. New M01 and combined runs are required.",
+      "Existing source-bound presentation logic and exercise grading/storage contracts retained. M01 and M02 assets loaded only for their respective modules. No dependencies, database, CSP, release workflow or budget changes. Original branch reviews retained as historical records; this new binding names the integrated payload.",
+      "Standalone JS gzip measurements: Git 476868 B, Utviklerblikk 477859 B, M02 482716 B. Standalone curriculum measurements: 266062, 265876 and 271951 B respectively. These cannot establish combined compliance. Run the existing budget and all regression gates on this tree.",
+      "Recovery: read actual Unit stage failure (run 46080610489); all three E2E shards and Pathways pilot passed. Locked Prettier fixed only one line in LessonView. A clean sandbox build of the exact prior head and current master with identical lockfiles measured JS 494862 vs 475242 B, curriculum 278894 vs 265876 B; 12785 B of curriculum growth is the two new visual assets. Lesson chunk grew 17002 B. Runtime unchanged, largest JS chunk 346006 B.",
+      "Owner requested reassessment rather than sacrificing valuable teaching visuals. Hard ceilings recalibrated to 505000 B JS and 285000 B curriculum (about 2% headroom); unchanged classification, all other limits and rejection logic. Budget test 6/6, actual built asset budget check, targeted formatting, TypeScript build and diff check passed in sandbox. Full hosted validation of the new payload remains required."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "INT-01",
+      "severity": "P1",
+      "description": "M01 and M02 each modified the shared LessonView; taking either file alone would discard the other module's presentation.",
+      "resolution": "Explicit module selection for visual data, preserve M01 editorial context and M02 copy layer, preserve both browser journeys and exact lesson anchor matching.",
+      "status": "resolved"
+    },
+    {
+      "id": "INT-02",
+      "severity": "P1",
+      "description": "Replacing offline manifest with a single branch could omit content-addressed assets or reference superseded Git curriculum files.",
+      "resolution": "Use the Git-upgraded manifest plus both new Campaign presentation paths, preserving every other entry and sorting the union.",
+      "status": "resolved"
+    },
+    {
+      "id": "INT-03",
+      "severity": "P2",
+      "description": "Combined JS and curriculum sizes may exceed the independent hard caps even though three branches passed separately.",
+      "resolution": "Measured both builds and attributed the increase primarily to the intended teaching content. Under the owner's latest direction, retain visuals and recalibrate only the two ceilings; actual bundle check now passes, hard rejection and all other limits preserved.",
+      "status": "resolved"
+    },
+    {
+      "id": "INT-04",
+      "severity": "P2",
+      "description": "Original M01 and Utviklerblikk full-area editorial and external-authoring scope is not completely reviewed.",
+      "resolution": "Keep the implemented presentation upgrade scoped; preserve canonical assets and original review limitations. Do not claim a full editorial audit or source regeneration. Any concrete material concern must be resolved before production.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "INT-05",
+      "severity": "P2",
+      "description": "The shared LessonView merge introduced a Prettier-only failure that prevented later unit gates.",
+      "resolution": "Locked Prettier 3.8.4 reformatted one condition; exact diff and targeted format check verified. No behaviour change.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to native hosted validation of this exact recovered candidate. Prior E2E success is not a new-head certificate. Full-area editorial audit and external authoring remain incomplete; no production readiness claimed."
+  }
+}

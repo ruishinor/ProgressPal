@@ -41,8 +41,21 @@ import {
 import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
+import {
+  campaignM01SourceSha,
+  reviseCampaignM01,
+} from './campaignM01Editorial';
+import {
+  campaignM01VisualFor,
+  loadCampaignM01Visuals,
+} from './campaignM01Visuals';
+import { campaignM02Copy } from './campaignM02Copy';
+import {
+  campaignM02VisualFor,
+  loadCampaignM02Visuals,
+} from './campaignM02Visuals';
 import { ExerciseCard } from './ExerciseCard';
-import { gitVisualFor } from './gitVisuals';
+import { gitVisualFor, type GitVisual } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
 import type { MarkupContext } from './markup';
 import {
@@ -89,6 +102,7 @@ type LoadState =
       readonly bundle: LessonBundle;
       readonly index: ProgrammeContentIndex;
       readonly steps: readonly LessonStep[];
+      readonly campaignVisuals: readonly GitVisual[];
     }
   | { readonly status: 'failed'; readonly reason: ContentLoadFailureStatus };
 
@@ -201,11 +215,24 @@ function LessonSurface({
       const lessonSubjectIds = lessonBundle.exercises.map(
         (entry) => entry.meta.subjectId,
       );
-      const [rows, stored] = await Promise.all([
+      const isCampaignM01 =
+        programmeId === 'programvareutvikling' &&
+        lessonBundle.moduleId === 'S1-M01' &&
+        lessonBundle.sourceSha256 === campaignM01SourceSha;
+      const isCampaignM02 =
+        programmeId === 'programvareutvikling' &&
+        lessonBundle.moduleId === 'S1-M02';
+      const visualData = isCampaignM01
+        ? loadCampaignM01Visuals()
+        : isCampaignM02
+          ? loadCampaignM02Visuals()
+          : Promise.resolve([]);
+      const [rows, stored, campaignVisuals] = await Promise.all([
         lessonSubjectIds.length === 0
           ? Promise.resolve([])
           : listLearnerEvidence({ programmeId, subjectIds: lessonSubjectIds }),
         getLessonPosition(itemId),
+        visualData,
       ]);
 
       if (!active) {
@@ -256,6 +283,7 @@ function LessonSurface({
         bundle: lessonBundle,
         index: index.value,
         steps: lessonStepList,
+        campaignVisuals,
       });
     })().catch(() => {
       if (active) {
@@ -491,7 +519,7 @@ function LessonSurface({
     );
   }
 
-  const { index } = load;
+  const { index, campaignVisuals } = load;
   const readyBundle = load.bundle;
   const { mission } = readyBundle;
   const phases = mission.phases ?? [];
@@ -499,9 +527,16 @@ function LessonSurface({
     phases.length > 0
       ? steps.filter((step) => step.phaseIndex === phaseIndex)
       : steps;
+  const isM01 =
+    programmeId === 'programvareutvikling' &&
+    readyBundle.moduleId === 'S1-M01' &&
+    readyBundle.sourceSha256 === campaignM01SourceSha;
+  const isM02 =
+    programmeId === 'programvareutvikling' && readyBundle.moduleId === 'S1-M02';
   const context: MarkupContext = {
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),
+    ...(isM01 ? { editorial: reviseCampaignM01 } : {}),
     headingLevel: 3,
     highlightGitLiterals: programmeId === 'git-github',
     ...(programmeId === 'git-github' && itemId === 'git-m01-o05'
@@ -521,6 +556,22 @@ function LessonSurface({
         }
       : {}),
   };
+  function visualForStep(step: LessonStep) {
+    const { block } = step;
+    if (programmeId === 'git-github' && block.t === 'text') {
+      return gitVisualFor(itemId, step.stepIndex, block.nb);
+    }
+    if (block.t === 'text' || block.t === 'orient') {
+      if (isM01) {
+        return campaignM01VisualFor(campaignVisuals, step.unitId, block.nb);
+      }
+      if (isM02) {
+        return campaignM02VisualFor(campaignVisuals, step.unitId, block.nb);
+      }
+    }
+    return undefined;
+  }
+
   const minutes =
     mission.surface === 'reinforcement'
       ? (mission.optionalMinutes ?? mission.minutes)
@@ -761,14 +812,17 @@ function LessonSurface({
                     })()
                   ) : (
                     <LessonTextBlockView
-                      block={step.block}
+                      block={
+                        isM02
+                          ? campaignM02Copy(
+                              `${step.unitId}:${unit.flow.indexOf(step.block)}`,
+                              step.block,
+                            )
+                          : step.block
+                      }
                       context={context}
                       copy={copy}
-                      visual={
-                        programmeId === 'git-github' && step.block.t === 'text'
-                          ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
-                          : undefined
-                      }
+                      visual={visualForStep(step)}
                     />
                   )}
                 </div>

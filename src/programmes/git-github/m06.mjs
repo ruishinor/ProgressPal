@@ -20,7 +20,7 @@ const reflection = (id, prompt) => ({
   choices: null,
   hints: [],
 });
-const command = (heading, why, script, stdout = '') => [
+const command = (heading, why, script, stdout = '', resultNote = '') => [
   text('### ' + heading + '\n\n' + why),
   {
     t: 'code',
@@ -30,7 +30,7 @@ const command = (heading, why, script, stdout = '') => [
     stdout,
     error: '',
     error_info: null,
-    nb: '',
+    nb: resultNote,
   },
 ];
 const must = (arguments_) =>
@@ -345,15 +345,17 @@ export const gitM06Lessons = [
       ),
       command(
         'Opprett M06-øving i Dokumenter',
-        'Åpne Windows PowerShell 5.1. Hele blokken oppretter bare `ProgressPal-Git-M06` med syntetiske tekstfiler, egen lokal forfatteridentitet og én commit. En eksisterende mappe blir ikke overskrevet. Hvis oppsettet stopper halvveis, undersøk den nye mappen; ikke kjør alt på nytt.',
+        'Åpne Windows PowerShell 5.1. Hele blokken oppretter bare `ProgressPal-Git-M06` med oppdiktede tekstfiler, egen lokal forfatteridentitet og én commit. En eksisterende mappe blir ikke overskrevet. Hvis oppsettet stopper halvveis, undersøk den nye mappen; ikke kjør alt på nytt.',
         init,
-        'Opprett pameldingsside\nIngen filer vises i kort status når arbeidskopien er ren.',
+        '... Opprett pameldingsside',
+        'Ingen filrader fra `git status --short` betyr ren arbeidskopi.',
       ),
       command(
         'Legg feil fil i staging, og ta den ut igjen',
         'Kjør bare etter første oppsett. Følg utskriften: `M  melding.txt` før unstage og ` M melding.txt` etterpå. Innholdet i arbeidsfilen skal fortsatt være den nye teksten.',
         staging,
         'M  melding.txt\n M melding.txt',
+        'Første status er etter add. Andre status er etter restore --staged.',
       ),
       question(
         'GIT-M06-E03',
@@ -382,9 +384,10 @@ export const gitM06Lessons = [
       ),
       command(
         'Forkast bare denne kjente øvingsendringen',
-        'Blokken avviser ukjente endringer og kontrollerer nøyaktig hvilken fil og tekst som skal forkastes. **Dette er en reell overskriving av den syntetiske arbeidsfilen.** Den gamle teksten kommer tilbake fra staging, som i dette tilfellet fortsatt er lik HEAD.',
+        'Blokken avviser ukjente endringer og kontrollerer nøyaktig hvilken fil og tekst som skal forkastes. **Dette er en reell overskriving av øvingsfilen.** Den gamle teksten kommer tilbake fra staging, som i dette tilfellet fortsatt er lik HEAD.',
         restore,
-        'Ren status; Melding: Kontroller navnet',
+        '',
+        'Status skal være tom. Filen skal igjen inneholde `Melding: Kontroller navnet`.',
       ),
       question(
         'GIT-M06-E04',
@@ -430,7 +433,7 @@ export const gitM06Lessons = [
       ),
       command(
         'Gjør én upublisert commit om til staged endring',
-        'Blokken krever ren main, oppretter en ny syntetisk commit og flytter deretter main tilbake med `--soft`. Den kontrollerer at filinnholdet og staging er bevart. Ingen remote blir berørt.',
+        'Blokken krever ren main, oppretter en ny commit i øvingsrepoet og flytter deretter main tilbake med `--soft`. Den kontrollerer at filinnholdet og staging er bevart. Ingen remote blir berørt.',
         softReset,
         'M  skjema.txt\n+ Navn: paakrevd; Telefon: valgfritt',
       ),
@@ -798,7 +801,7 @@ export const gitM06Lessons = [
         can: [
           'Undersøke Git-status, staged og ikke-staged diff og commit-historikk før endring.',
           'Skille restore, reset, revert, stash og reflog ut fra hvilken tilstand de påvirker.',
-          'Utføre avgrenset unstage, restore, soft reset, stash/apply, reflog-basert sikring og revert i et syntetisk repository.',
+          'Utføre avgrenset unstage, restore, soft reset, stash/apply, reflog-basert sikring og revert i et øvingsrepo.',
           'Forklare hvorfor delt historikk, aldri-registrerte filer og senere avhengigheter endrer risikovurderingen.',
           'Velge og begrunne neste sikre handling i et nytt problem uten å bruke destruktiv opprydding.',
         ],

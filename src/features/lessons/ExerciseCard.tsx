@@ -31,6 +31,7 @@ import {
   reviewAnswer,
   type AnswerDraft,
 } from './drafts';
+import { campaignM02Copy } from './campaignM02Copy';
 import { InlineText, Markup, type MarkupContext } from './markup';
 import { formatCopy, isCurrentEvidence, presentResult } from './model';
 import { useLessonSurfaces } from './presentation';
@@ -115,6 +116,10 @@ export function ExerciseCard({
   write,
 }: ExerciseCardProps) {
   const { exercise, meta } = entry;
+  const presentationExercise =
+    programmeId === 'programvareutvikling'
+      ? campaignM02Copy(exercise.id, exercise)
+      : exercise;
   const surfaces = useLessonSurfaces();
   const headingId = useId();
   const idPrefix = useId().replace(/:/g, '');
@@ -316,7 +321,7 @@ export function ExerciseCard({
   const result =
     showResult && latestResult !== undefined
       ? presentResult(
-          exercise,
+          presentationExercise,
           latestResult,
           copy,
           (latest?.answer as { selected?: string[] }).selected ?? [],
@@ -375,16 +380,18 @@ export function ExerciseCard({
       />
       {exercise.hints.length > 0 ? (
         <div className="lesson-hints">
-          {exercise.hints.slice(0, hintsRevealed).map((hint, index) => (
-            <div className="lesson-hint" key={index}>
-              <p>
-                <strong>
-                  {formatCopy(copy, 'hintHeading', { n: index + 1 })}
-                </strong>
-              </p>
-              <Markup context={context} text={hint} />
-            </div>
-          ))}
+          {presentationExercise.hints
+            .slice(0, hintsRevealed)
+            .map((hint, index) => (
+              <div className="lesson-hint" key={index}>
+                <p>
+                  <strong>
+                    {formatCopy(copy, 'hintHeading', { n: index + 1 })}
+                  </strong>
+                </p>
+                <Markup context={context} text={hint} />
+              </div>
+            ))}
           {hintsRevealed < exercise.hints.length ? (
             <button
               className={surfaces.quiet}

@@ -429,6 +429,8 @@ test('copies only the intended commands and keeps command blocks usable by keybo
   expect(copied).toContain("throw 'STOPP: Gaa tilbake til ovingsmappen.'");
   expect(copied).toContain('git init -b main');
   expect(copied).not.toMatch(/Initialized empty|PS C:/);
+  expect(await command.locator('pre code').textContent()).toBe(copied);
+  await expect(command).toHaveClass(/lesson-pre--git-terminal/);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await command.scrollIntoViewIfNeeded();
   await page.screenshot({
@@ -453,6 +455,39 @@ test('copies only the intended commands and keeps command blocks usable by keybo
   await page.screenshot({
     path: testInfo.outputPath('git-mobile-commands-keyboard.png'),
   });
+
+  const visual = page.locator('.git-visual').filter({
+    has: page.getByRole('button', { name: 'Rediger igjen', exact: true }),
+  });
+  const edit = visual.getByRole('button', { name: 'Rediger igjen' });
+  await edit.focus();
+  await page.keyboard.press('Enter');
+  await expect(edit).toHaveAttribute('aria-pressed', 'true');
+  await expect(visual.locator('pre code')).toHaveText('MM notat.txt');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth + 1,
+    ),
+  ).toBe(true);
+
+  await page.goto(route(4));
+  const output = page
+    .locator('.lesson-pre--output pre code')
+    .filter({ hasText: 'MM README.txt' });
+  await expect(output).toBeVisible();
+  expect(await output.textContent()).toBe('MM README.txt\n M plan.txt');
+  expect(
+    await output.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+      const selected = selection.toString();
+      selection.removeAllRanges();
+      return selected;
+    }),
+  ).toBe('MM README.txt\n M plan.txt');
   expect(externalRequests).toEqual([]);
 });
 
