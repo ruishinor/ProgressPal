@@ -126,7 +126,7 @@ export const scrumSessions: readonly MicroSession[] = [
         correctId: 'bruke',
         hint: 'Hva skjedde fordi trenerne fikk prøve appen etter bare to uker? Tenk på hva som kunne ha skjedd hvis de først hadde fått se den etter et halvt år.',
         explanation:
-          'Teamet bruker den nye kunnskapen der den hører hjemme: Produktbackloggen blir oppdatert, og neste sprint planlegges ut fra det teamet nå vet. Teamet kunne ikke vite hvordan trenerne bruker hallen før trenerne fikk noe ekte å prøve. Fordi sprinten var kort og ga et brukbart resultat, ble misforståelsen oppdaget etter to uker i stedet for etter flere måneder. Men det hjelper bare hvis teamet faktisk endrer noe: Å se på resultatet uten å tilpasse seg, er meningsløst.',
+          'Teamet bruker den nye kunnskapen der den hører hjemme: Produktbackloggen blir oppdatert, og neste sprint planlegges ut fra det teamet nå vet. Teamet kunne ha undersøkt hvordan trenerne bruker hallen tidligere. Da trenerne fikk prøve appen, ble behovet tydelig. Fordi sprinten var kort og ga et brukbart resultat, ble misforståelsen oppdaget etter to uker i stedet for etter flere måneder. Men det hjelper bare hvis teamet faktisk endrer noe: Bruk det dere lærer til å justere planen.',
       },
       {
         kind: 'select',
@@ -191,9 +191,36 @@ export const scrumSessions: readonly MicroSession[] = [
           },
           {
             term: 'Scrum Master',
-            text: 'har ansvar for at teamet forstår og bruker Scrum, og for at teamet jobber effektivt. Scrum Master veileder teamet og sørger for at hindringer blir fjernet. Scrum Master er ikke prosjektleder og ikke sjef for teamet.',
+            text: 'har ansvar for at teamet forstår og bruker Scrum, og for at teamet jobber effektivt. Scrum Master veileder teamet og hjelper til med å få hindringer fjernet. Scrum Master er ikke prosjektleder og ikke sjef for teamet.',
           },
         ],
+        visual: {
+          title: 'Et team lager en reiseapp',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Product Owner',
+                      text: 'Prioriterer billettkjøp foran reisestatistikk.',
+                    },
+                    {
+                      label: 'Developers',
+                      text: 'Planlegger, bygger og tester billettkjøpet.',
+                    },
+                    {
+                      label: 'Scrum Master',
+                      text: 'Hjelper teamet å løse hindringer i samarbeidet.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to ledere vil ha hver sin ting først.',
       },
       {
@@ -262,7 +289,7 @@ export const scrumSessions: readonly MicroSession[] = [
             label:
               'Scrum Master må selv ordne tilgangen og fortelle Sara hva Sara skal jobbe med i mellomtiden, så teamet ikke mister tid.',
             feedback:
-              'Scrum Master har ansvar for at hindringen blir fjernet, men trenger ikke å gjøre alt selv. Å fortelle Sara hva Sara skal jobbe med, er dessuten å styre utviklerne som en prosjektleder. I Scrum planlegger utviklerne sitt eget arbeid.',
+              'Scrum Master har ansvar for å bidra til at hindringen blir fjernet, men trenger ikke å gjøre alt selv. Å fortelle Sara hva Sara skal jobbe med, er dessuten å styre utviklerne som en prosjektleder. I Scrum planlegger utviklerne sitt eget arbeid.',
           },
           {
             id: 'produkteier',
@@ -274,7 +301,7 @@ export const scrumSessions: readonly MicroSession[] = [
           {
             id: 'hindring',
             label:
-              'Scrum Master har ansvar for at hindringen blir fjernet, men utviklerne bestemmer selv hvordan de justerer planen.',
+              'Scrum Master har ansvar for å bidra til at hindringen blir fjernet, men utviklerne bestemmer selv hvordan de justerer planen.',
           },
         ],
         correctId: 'hindring',
@@ -302,7 +329,7 @@ export const scrumSessions: readonly MicroSession[] = [
         definitions: [
           {
             term: 'Sprint Planning (starten av sprinten)',
-            text: 'Hele teamet blir enige om hvorfor sprinten er verdifull (sprintmålet), hva de skal ta med, og hvordan arbeidet skal gjøres.',
+            text: 'Hele Scrum-teamet lager sprintmålet sammen. Utviklerne velger arbeidet i samråd med produkteieren og planlegger hvordan det skal gjøres.',
           },
           {
             term: 'Daily Scrum (hver arbeidsdag, maks 15 minutter)',
@@ -317,6 +344,37 @@ export const scrumSessions: readonly MicroSession[] = [
             text: 'Teamet ser på hvordan de har jobbet – samarbeid, verktøy og arbeidsmåter – og velger forbedringer.',
           },
         ],
+        visual: {
+          title: 'En sprint i praksis',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Sprint Planning',
+                      text: 'Avtal målet: søke etter ledige togavganger.',
+                    },
+                    {
+                      label: 'Daily Scrum',
+                      text: 'Juster planen hver arbeidsdag.',
+                    },
+                    {
+                      label: 'Sprint Review',
+                      text: 'Prøv søket sammen med reisende og diskuter neste steg.',
+                    },
+                    {
+                      label: 'Sprint Retrospective',
+                      text: 'Avtal en forbedring av arbeidsmåten.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to temaer på siste dag i en sprint.',
       },
       {
@@ -397,7 +455,7 @@ export const scrumSessions: readonly MicroSession[] = [
         correctId: 'planning',
         hint: 'Skal teamet planlegge en hel sprint, eller justere planen underveis?',
         explanation:
-          'Sprint Planning starter sprinten. Hele teamet blir enige om sprintmålet og hva de skal ta med. Produkteieren kan forklare hvorfor allergenvisningen er viktig, og utviklerne vurderer hva de kan få ferdig.',
+          'Sprint Planning starter sprinten. Hele teamet lager sprintmålet. Produkteieren forklarer hvorfor allergenvisningen er viktig, og utviklerne velger arbeidet i samråd med produkteieren.',
       },
       {
         kind: 'select',
@@ -463,6 +521,37 @@ export const scrumSessions: readonly MicroSession[] = [
             text: 'sprintmålet, elementene som er valgt fra produktbackloggen, og utviklernes plan for hvordan de skal lage dem.',
           },
         ],
+        visual: {
+          title: 'Fra produktmål til arbeid i sprinten',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Produktmål',
+                      text: 'Kunder kan bestille en reise på nett.',
+                    },
+                    {
+                      label: 'Produktbacklog',
+                      text: 'Søk, billettvalg, betaling, kvittering.',
+                    },
+                    {
+                      label: 'Sprintmål',
+                      text: 'Kunder finner avganger på ønsket dato.',
+                    },
+                    {
+                      label: 'Sprintbacklog',
+                      text: 'Målet, valgte søkeoppgaver og utviklernes plan.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en app for skolebiblioteket.',
       },
       {

@@ -934,3 +934,36 @@ for (const viewport of [
     },
   );
 }
+
+test('SQL teaching example stays usable on desktop and at enlarged mobile text', async ({
+  page,
+}) => {
+  await completeOnboarding(page, { programme: 'Programvareutvikling' });
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    await openCard(page, 'tsu-sql-04-uten-treff');
+    if (width === 320)
+      await page.addStyleTag({ content: 'html{font-size:200% !important}' });
+    const url = page.url();
+    const figure = page.getByRole('figure', {
+      name: 'INNER JOIN og LEFT JOIN',
+    });
+    const inner = figure.getByRole('button', { name: 'INNER JOIN' });
+    const left = figure.getByRole('button', { name: 'LEFT JOIN' });
+    await expect(inner).toHaveAttribute('aria-pressed', 'true');
+    await expect(figure.getByText('NULL', { exact: true })).toHaveCount(0);
+    await left.focus();
+    await page.keyboard.press('Enter');
+    await expect(left).toHaveAttribute('aria-pressed', 'true');
+    await expect(figure.getByText('NULL', { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(url);
+    await inspect(page, 'SQL teaching example ' + width);
+    await capture(page, 'sql-teaching-example-' + width);
+    expect(
+      (await new AxeBuilder({ page }).include('.micro-teaching').analyze())
+        .violations,
+    ).toEqual([]);
+    await inner.click();
+    await expect(figure.getByText('NULL', { exact: true })).toHaveCount(0);
+  }
+});

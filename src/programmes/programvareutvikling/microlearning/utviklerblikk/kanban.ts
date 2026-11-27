@@ -93,6 +93,37 @@ export const kanbanSessions: readonly MicroSession[] = [
             text: 'en måte å gjøre denne avtalen synlig på. En tavle med «Å gjøre», «Pågår» og «Ferdig» kan være en god start. Men kolonner alene er ikke Kanban. Tavla blir først virkelig nyttig når alle er enige om hva den betyr.',
           },
         ],
+        visual: {
+          title: 'Eksempel på en arbeidsflyt',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Klar',
+                      text: 'Oppgaven er beskrevet, men ikke startet.',
+                    },
+                    {
+                      label: 'Utvikles',
+                      text: 'Oppgaven er startet.',
+                    },
+                    {
+                      label: 'Testes',
+                      text: 'Kontroller at den virker; fortsatt i gang.',
+                    },
+                    {
+                      label: 'Ferdig',
+                      text: 'Oppgaven oppfyller teamets avtalte krav.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: tavla til et team som lager en festivalapp.',
       },
       {
@@ -399,7 +430,7 @@ export const kanbanSessions: readonly MicroSession[] = [
             label:
               'Si seg enig med Kim. Test er flaskehalsen, og testeren må få beskjed om å jobbe raskere, slik at køen blir kortere.',
             feedback:
-              'Bare én oppgave er gammel. Den andre oppgaven i test er bare 2 dager gammel. Én forsinket oppgave er ikke bevis på at test er flaskehalsen, og enda mindre på at noen jobber for sakte. Kanskje venter oppgaven på en avklaring, eller den er blokkert av noe utenfor test.',
+              'Bare én oppgave er gammel. Den andre oppgaven i test er bare 2 dager gammel. Én forsinket oppgave forteller ikke hvor hele arbeidsflyten stopper opp eller hvor raskt noen jobber. Kanskje venter oppgaven på en avklaring, eller den er blokkert av noe utenfor test.',
           },
           {
             id: 'normalt',
@@ -620,7 +651,7 @@ export const kanbanSessions: readonly MicroSession[] = [
   {
     id: 'tsu-kanban-k05',
     title: 'Hvor lang tid vil arbeidet ta?',
-    summary: 'Gi et ærlig anslag med tid og sannsynlighet.',
+    summary: 'Anslå tiden med tidligere målinger.',
     minutes: 5,
     takeaway:
       'En tidsforventning har to deler: hvor lang tid og hvor sannsynlig. Den bygger på hvor lang tid tidligere oppgaver tok, og regnes fra oppgaven blir startet.\nDet er en forventning – ikke en frist eller et løfte.',
@@ -794,7 +825,38 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Forbedre flyten i fire steg',
         role: 'explain',
         source: k06,
-        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. I Kanban kan teamet:\n1. Se hvor arbeidet venter.\n2. Undersøke hvorfor.\n3. Prøve en tydelig endring.\n4. Sjekke om den hjalp.\nWIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Teamet må ha kontroll på alt som er startet, men ikke ferdig – ikke bare det som ligger i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
+        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. WIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Teamet må ha kontroll på alt som er startet, men ikke ferdig – ikke bare det som ligger i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
+        visual: {
+          title: 'En forbedring i et supportteam',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Se',
+                      text: 'Saker blir liggende før godkjenning.',
+                    },
+                    {
+                      label: 'Undersøk',
+                      text: 'Bare én person kan godkjenne.',
+                    },
+                    {
+                      label: 'Prøv',
+                      text: 'Avtal at to personer kan godkjenne.',
+                    },
+                    {
+                      label: 'Sjekk',
+                      text: 'Sammenlign ventetiden før og etter.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en lang kø før test.',
       },
       {

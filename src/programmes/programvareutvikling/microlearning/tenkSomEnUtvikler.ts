@@ -119,7 +119,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Fire stikkord som hjelper deg',
           role: 'explain',
           source: a1,
-          idea: 'Disse fire stikkordene hjelper deg å holde ting fra hverandre.',
+          idea: 'Når noen ber om en app, spør først hva de trenger hjelp til. Her er fire begreper som skiller behovet fra forslaget.',
           definitions: [
             { term: 'Problem', text: 'det som ikke fungerer godt i dag.' },
             { term: 'Behov', text: 'det noen trenger å få til.' },
@@ -129,6 +129,37 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             },
             { term: 'Antakelse', text: 'noe vi tror, men ikke har sjekket.' },
           ],
+          visual: {
+            title: 'Før du bestemmer hva som skal bygges',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'Problem',
+                        text: 'Folk mister oversikten over vaktene sine.',
+                      },
+                      {
+                        label: 'Behov',
+                        text: 'Kunne se når de skal møte.',
+                      },
+                      {
+                        label: 'Mulig løsning',
+                        text: 'En felles vaktkalender.',
+                      },
+                      {
+                        label: 'Antakelse å sjekke',
+                        text: 'Alle har tilgang til kalenderen.',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: et treningssenter vil ha en app.',
         },
         {
@@ -290,6 +321,29 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
               text: 'egenskaper som svartid, sikkerhet, brukervennlighet og stabilitet. Eksempel: «Betalingen skal være ferdig innen fem sekunder.» Krav må kunne sjekkes, men trenger ikke alltid tall.',
             },
           ],
+          visual: {
+            title: 'To krav til en søketjeneste',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Funksjonelt',
+                        text: 'Brukeren skal kunne søke på et navn.',
+                      },
+                      {
+                        label: 'Ikke-funksjonelt',
+                        text: 'Søket skal svare innen ett sekund ved 100 samtidige brukere.',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: to krav om innlogging.',
         },
         {
@@ -1080,7 +1134,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Fire stikkord om hvordan arbeid organiseres',
           role: 'explain',
           source: a6,
-          idea: 'Disse fire stikkordene hjelper deg å holde arbeidet i et team fra hverandre.',
+          idea: 'Når et team planlegger arbeidet, er det nyttig å skille ansvar, deler av prosjektet, konkrete oppgaver og hvor langt de har kommet.',
           definitions: [
             { term: 'Rolle', text: 'hvem som har ansvar for noe.' },
             {
@@ -1090,6 +1144,37 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             { term: 'Oppgave', text: 'et konkret arbeid som kan bli ferdig.' },
             { term: 'Status', text: 'hvor langt en oppgave har kommet.' },
           ],
+          visual: {
+            title: 'Et team lager et kontaktskjema',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Rolle',
+                        text: 'Utvikler',
+                      },
+                      {
+                        label: 'Fase',
+                        text: 'Utvikling',
+                      },
+                      {
+                        label: 'Oppgave',
+                        text: 'Lage e-postfelt',
+                      },
+                      {
+                        label: 'Status',
+                        text: 'Pågår',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: et team lager en bestillingsapp.',
         },
         {

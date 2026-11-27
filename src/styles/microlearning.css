@@ -733,6 +733,7 @@ body:has(.micro) {
   border: 1px solid var(--rpg-border);
   border-inline-start: 3px solid var(--rpg-accent);
   background: var(--rpg-surface-raised);
+  overflow-wrap: anywhere;
 }
 
 .micro-teaching__arrow {

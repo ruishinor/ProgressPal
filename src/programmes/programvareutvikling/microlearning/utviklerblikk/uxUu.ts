@@ -180,6 +180,33 @@ export const uxUuSessions: readonly MicroSession[] = [
         title: 'Hva kan en modell vise?',
         role: 'explain',
         idea: 'Et team lager en app for togbilletter. Før de bygger alt, vil de se om folk forstår billettvalgene.\nEn skisse er en rask tegning av en idé. En wireframe er en enkel skisse av hvor tekst, felt og knapper skal stå, uten ferdig utseende. En prototype er en modell noen kan prøve: på papir kan testlederen bytte tegning når deltakeren peker; digitalt kan deltakeren trykke seg mellom skjermbilder.\nEn brukertest betyr her at en deltaker prøver å løse en oppgave mens teamet observerer. Oppgaven må fortelle målet, men la deltakeren finne valgene selv. Ellers lærer teamet bare om deltakeren klarer å følge instruksjoner.',
+        visual: {
+          title: 'Tre modeller av en billettapp',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Skisse',
+                      text: 'En rask tegning av billettkjøpet.',
+                    },
+                    {
+                      label: 'Wireframe',
+                      text: 'Viser plasseringen av dato, avgang og pris.',
+                    },
+                    {
+                      label: 'Prototype',
+                      text: 'Deltakeren kan prøve å velge en avgang og gå videre.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Velg en oppgave for en klikkbar billettmodell.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -320,6 +347,33 @@ export const uxUuSessions: readonly MicroSession[] = [
         title: 'En enkel påmelding — for hvem?',
         role: 'explain',
         idea: 'Et bibliotek har påmelding til et foredrag på nettsiden. Brukervennlighet handler blant annet om hvor lett og effektivt en person kan forstå og fullføre påmeldingen. Det er en del av brukeropplevelsen, UX, som også omfatter forventninger og opplevelsen før og etterpå.\nTilgjengelighet handler om å fjerne barrierer, særlig for personer med funksjonsnedsettelser. En knapp som bare virker med mus, kan være rask for noen og umulig for andre. Med tastatur brukes ofte Tab til å flytte mellom felt og knapper.\nUniversell utforming betyr å planlegge hovedløsningen slik at flest mulig kan bruke den på ulike måter, i stedet for å kreve en særordning i etterkant.',
+        visual: {
+          title: 'Samme skjema, ulike måter å bruke det på',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Mus',
+                      text: 'Trykk på felt og knapp.',
+                    },
+                    {
+                      label: 'Tastatur',
+                      text: 'Flytt fokus med Tab og aktiver knappen.',
+                    },
+                    {
+                      label: 'Skjermleser',
+                      text: 'Hør feltenes navn og om påmeldingen lyktes.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Vurder resultatet når deltakerne bruker ulike måter å navigere på.',
         source: {
@@ -769,6 +823,29 @@ export const uxUuSessions: readonly MicroSession[] = [
         title: 'Hvilken feil haster mest?',
         role: 'explain',
         idea: 'Et team finner to feil før påmeldingen til et arrangement stenger. For å velge hva som må rettes først, trenger det mer enn antall klager. Hvem får ikke meldt seg på? Finnes det et alternativ personen faktisk kan bruke? Hvor lang tid tar retting og kontroll?\nEn automatisk tilgjengelighetstest undersøker bestemte forhold i koden, som om et felt mangler navn. Den kan ikke avgjøre alt, for eksempel om en beskjed gir mening. En grønn rapport betyr bare at verktøyet ikke fant feil med kontrollene det utførte.',
+        visual: {
+          title: 'To ulike kontroller av et skjema',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Automatisk test',
+                      text: 'Kan finne et felt som mangler tilgjengelig navn.',
+                    },
+                    {
+                      label: 'Manuell bruk',
+                      text: 'Prøv å fylle ut skjemaet og forstå feilmeldingene uten mus.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Fordel en begrenset arbeidstid før påmeldingsfristen.',
         source: {
           moduleId: 'tenk-som-en-utvikler',

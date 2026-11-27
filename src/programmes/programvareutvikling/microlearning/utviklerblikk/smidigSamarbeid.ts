@@ -43,6 +43,29 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
             text: 'Hva må vente eller droppes hvis vi gjør dette nå?',
           },
         ],
+        visual: {
+          title: 'Ny informasjon før en lansering',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Brukere finner ikke kontaktinformasjonen',
+                      text: 'Undersøk hvor de leter; vurder å endre navigasjonen.',
+                    },
+                    {
+                      label: 'En kollega ønsker ny bakgrunnsfarge',
+                      text: 'Vurder nytten mot annet arbeid før dere endrer den.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to nye ting fire uker før lansering.',
       },
       {
@@ -332,26 +355,26 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
         title: 'Tredje sprint på rad',
         role: 'explain',
         source: a03,
-        idea: 'Et team lager en app for et bibliotek. For tredje sprint på rad står det samme på retrospektiv-tavla: «Misforståelser om hva som skal lages.»\nDet har skjedd flere ganger at utviklerne har laget en funksjon, og så sier produkteieren – personen som bestemmer hva som skal lages – «Det var ikke det jeg mente.» Da må arbeidet gjøres om.\nDe to forrige retrospektivene endte med det samme aksjonspunktet: «Vi må kommunisere bedre.»',
-        bridge: 'Neste: Hvilket aksjonspunkt vil hjelpe?',
+        idea: 'Et team lager en app for et bibliotek. For tredje sprint på rad står det samme på retrospektiv-tavla: «Misforståelser om hva som skal lages.»\nDet har skjedd flere ganger at utviklerne har laget en funksjon, og så sier produkteieren – personen som bestemmer hva som skal lages – «Det var ikke det jeg mente.» Da må arbeidet gjøres om.\nDe to forrige retrospektivene endte med det samme tiltaket: «Vi må kommunisere bedre.»',
+        bridge: 'Neste: Hvilket tiltak vil hjelpe?',
       },
       {
         kind: 'select',
         id: 'tsu-smidig-a03-sporsmal',
-        title: 'Et bedre aksjonspunkt',
+        title: 'Et bedre tiltak',
         role: 'scaffold',
         source: a03,
         context:
-          'For tredje sprint på rad står «Misforståelser om hva som skal lages» på retrospektiv-tavla. Utviklerne lager en funksjon, produkteieren sier «Det var ikke det jeg mente», og arbeidet må gjøres om. De to forrige retrospektivene endte med «Vi må kommunisere bedre». Nå har teamet også fått sju forslag på post-it-lapper.\nAkseptansekriterier er korte punkter som sier hva som må være på plass for at en oppgave er løst slik brukeren ønsker.',
+          'For tredje sprint på rad står «Misforståelser om hva som skal lages» på retrospektiv-tavla. Utviklerne lager en funksjon, produkteieren sier «Det var ikke det jeg mente», og arbeidet må gjøres om. De to forrige retrospektivene endte med «Vi må kommunisere bedre». Nå har teamet også fått sju forslag på post-it-lapper.\nAkseptansekriterier sier hva som må være på plass før en oppgave kan godtas.',
         question:
-          'Hvilket aksjonspunkt vil mest sannsynlig føre til en reell forbedring?',
+          'Hvilket tiltak vil mest sannsynlig føre til en reell forbedring?',
         options: [
           {
             id: 'kommunisere',
             label:
               '«Vi må kommunisere bedre, og alle må være mer nøye med å forstå hva produkteieren mener før de begynner.»',
             feedback:
-              'Dette er nesten det samme aksjonspunktet som teamet har prøvd to ganger før, og problemet er der fortsatt. Det sier ikke hva teamet skal gjøre annerledes, og det er ikke mulig å sjekke om det har hjulpet.',
+              'Dette er nesten det samme tiltaket som teamet har prøvd to ganger før, og problemet er der fortsatt. Det sier ikke hva teamet skal gjøre annerledes, og det er ikke mulig å sjekke om det har hjulpet.',
           },
           {
             id: 'hvem',
@@ -429,7 +452,7 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
         title: 'Når er et møte verdt tiden?',
         role: 'explain',
         source: a04,
-        idea: 'Møter er en av de viktigste måtene et team holder arbeidet sammen på. Et godt møte kan gi struktur og felles forståelse, men det tar tid som ellers kunne vært brukt på arbeidet.\nIkke alt trenger et møte. Ren informasjon kan ofte deles skriftlig, og et enkelt spørsmål kan stilles direkte til den som vet svaret.\nEt møte er som regel verdt tiden når det har:',
+        idea: 'Et godt møte hjelper teamet å ta en beslutning eller løse et problem sammen. Men det tar også tid.\nIkke alt trenger et møte. Ren informasjon kan ofte deles skriftlig, og et enkelt spørsmål kan stilles direkte til den som vet svaret.\nEt møte er som regel verdt tiden når det har:',
         definitions: [
           {
             term: 'Et tydelig formål',
@@ -448,6 +471,33 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
             text: 'hva ble bestemt, og hvem gjør hva?',
           },
         ],
+        visual: {
+          title: 'Tre måter å samarbeide på',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Skriftlig',
+                      text: 'Del en liste over ferdige oppgaver.',
+                    },
+                    {
+                      label: 'Direkte spørsmål',
+                      text: 'Spør den som kjenner passordreglene.',
+                    },
+                    {
+                      label: 'Møte',
+                      text: 'Avklar en uenighet om hvem som skal håndtere lagringsfeil.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: et statusmøte uten resultat.',
       },
       {
@@ -564,6 +614,33 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
             text: 'konkrete forhold som skal kunne sjekkes før funksjonen godtas. De kan handle om hva funksjonen gjør, hvordan den ser ut eller kvalitet, hvis dette er relevant for behovet. Kriteriene bør være tydelige og mulige å undersøke. At de er oppfylt, viser at det avtalte er levert, men ikke nødvendigvis at løsningen har ønsket virkning i praksis.',
           },
         ],
+        visual: {
+          title: 'Fra behov til en sjekkbar funksjon',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Brukerhistorie',
+                      text: 'Som låner vil jeg se når boka skal leveres, så jeg unngår gebyr.',
+                    },
+                    {
+                      label: 'Akseptansekriterium',
+                      text: 'Mine lån viser riktig leveringsdato for hver bok.',
+                    },
+                    {
+                      label: 'Test',
+                      text: 'Logg inn med to lån med ulike datoer og kontroller visningen.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en trener vil ha en rød knapp.',
       },
       {
@@ -650,7 +727,7 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
         correctId: 'nytt-behov',
         hint: 'Hva er allerede kontrollert, og hva er et nytt ønske?',
         explanation:
-          'Det avtalte er kontrollert, og trenerens tilbakemelding er positiv. Det nye behovet kan prioriteres, men er ikke automatisk en feil ved den leverte funksjonen. Kriterier gir felles forventninger før og etter utvikling, men de beviser ikke at ønsket brukernytte oppnås. Tilbakemeldinger fra faktisk bruk må fortsatt tas alvorlig.',
+          'Det avtalte er kontrollert, og trenerens tilbakemelding er positiv. Det nye behovet kan prioriteres, men er ikke automatisk en feil ved den leverte funksjonen. Kriteriene hjelper teamet og kunden å bli enige om hva som skal leveres. Etterpå må de også undersøke om løsningen hjelper i praksis.',
       },
     ],
   },
@@ -675,6 +752,29 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
             text: 'der mange team skriver ned avtalene sine, for eksempel hvor ofte de møtes, hvordan de fordeler arbeid, og hvordan de sier fra om endringer.',
           },
         ],
+        visual: {
+          title: 'Ansvar i et selvstyrt team',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Felles mål',
+                      text: 'Kunden og teamet avklarer hva løsningen skal oppnå.',
+                    },
+                    {
+                      label: 'Arbeidsmåte',
+                      text: 'Teamet fordeler oppgaver og avtaler hvem som hjelper ved problemer.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en elevgruppe der det skurrer.',
       },
       {

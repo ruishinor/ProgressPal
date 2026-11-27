@@ -13,35 +13,27 @@ const illustrated = cards.filter(
 );
 
 describe('Utviklerblikk teaching examples', () => {
-  it('keeps every category represented and visual examples on Learn cards', () => {
-    for (const category of tenkSomEnUtviklerTrack.categories!) {
-      expect(
-        tenkSomEnUtviklerTrack.sessions
-          .filter((session) => category.sessionIds.includes(session.id))
-          .some((session) =>
-            session.cards.some(
-              (card) => card.kind === 'learn' && card.visual !== undefined,
-            ),
-          ),
-        category.id,
-      ).toBe(true);
+  it('gives every activity a visual example or an existing board', () => {
+    for (const session of tenkSomEnUtviklerTrack.sessions) {
+      const hasVisual = session.cards.some(
+        (card) => card.kind === 'learn' && (card.visual || card.board),
+      );
+      expect(hasVisual, session.id).toBe(true);
     }
   });
 
   it.each(illustrated)('renders the example on $id', (card) => {
     render(<LearnCard card={card} nextLabel="Neste" onNext={vi.fn()} />);
-    expect(
-      screen.getByRole('figure', { name: card.visual!.title }),
-    ).toBeVisible();
+    const figure = screen.getByRole('figure', { name: card.visual!.title });
+    expect(figure).toBeVisible();
     expect(screen.getByRole('button', { name: 'Neste' })).toBeEnabled();
   });
 
   it('switches the displayed SQL result without advancing the lesson', async () => {
     const user = userEvent.setup();
     const onNext = vi.fn();
-    const card = illustrated.find(
-      (entry) => entry.id === 'tsu-sql-04-uten-treff',
-    )!;
+    const id = 'tsu-sql-04-uten-treff';
+    const card = illustrated.find((entry) => entry.id === id)!;
     render(<LearnCard card={card} nextLabel="Neste" onNext={onNext} />);
     const figure = screen.getByRole('figure', { name: card.visual!.title });
     expect(within(figure).queryByText('NULL')).not.toBeInTheDocument();

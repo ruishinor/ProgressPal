@@ -447,6 +447,33 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
           code: "INSERT INTO pameldinger\n  (id, deltaker_id, aktivitet, status)\nVALUES (104, 3, 'Web', 'ja');",
           note: 'Dette legger til påmelding 104 for deltaker 3. Tekst som Web og ja står i enkle anførselstegn; tallene er ID-er.',
         },
+        visual: {
+          title: 'Tre måter å endre en tabell på',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'INSERT',
+                      text: 'Legg til en ny bestilling.',
+                    },
+                    {
+                      label: 'UPDATE',
+                      text: 'Endre status på en bestilling.',
+                    },
+                    {
+                      label: 'DELETE',
+                      text: 'Fjern en bestilling.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Avgrens en endring til én bestemt påmelding.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -830,7 +857,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-05-ide',
         title: 'Teller vi personer eller adresser?',
         role: 'explain',
-        idea: 'NULL betyr at en verdi mangler. Det er ikke tallet null eller teksten «NULL». COUNT(*) teller alle rader, mens COUNT(epost) bare teller rader med en verdi i epost. Det sier ikke om adressene virker.',
+        idea: 'NULL betyr at en verdi mangler. Det er ikke tallet 0 eller teksten «NULL». COUNT(*) teller alle rader, mens COUNT(epost) bare teller rader med en verdi i epost. Det sier ikke om adressene virker.',
         visual: {
           title: 'Tre personer, to oppgitte adresser',
           frames: [
@@ -1190,7 +1217,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-06-parametre',
         title: 'Hvem får bestemme vilkåret?',
         role: 'explain',
-        idea: 'Et navnesøk må også beholde riktig utvalg. Limes søketekst inn i SQL, kan anførselstegn i teksten endre kommandoen: SQL-injeksjon.\nParameterbinding betyr at appen sender SQL-mønster og søkeverdi separat til databasebiblioteket, koden som kommuniserer med databasen. Biblioteket behandler verdien som data. I neste eksempel viser ? plassen for verdien. Tegnet avhenger av biblioteket; det er ingen ferdig verdi i MySQL-konsollen.',
+        idea: 'Et navnesøk må også beholde riktig utvalg. Hvis appen setter søketeksten direkte inn i SQL-kommandoen, kan spesialtegn endre kommandoen. Det kalles SQL-injeksjon.\nParameterbinding betyr at appen sender SQL-mønster og søkeverdi separat til databasebiblioteket, koden som kommuniserer med databasen. Biblioteket behandler verdien som data. I neste eksempel viser ? plassen for verdien. Tegnet avhenger av biblioteket; det er ingen ferdig verdi i MySQL-konsollen.',
         bridge: 'Neste: Bevar skillet mellom søkeverdi og SQL i en butikkapp.',
         source: {
           moduleId: 'tenk-som-en-utvikler',

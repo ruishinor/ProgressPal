@@ -1,11 +1,14 @@
 # ProgressPal current state
 
 **Utviklerblikk teaching visuals — development candidate, 2026-11-27.**
-Adds structured worked examples across all seven categories: data tables,
-comparisons, flows and selectable examples on existing Learn cards.
-Existing practice cards, answer rules, IDs and order remain unchanged. No
-storage, network, XP or navigation changes. Full instructional copy and
-exercise review is not complete; hosted validation is required before release.
+Adds 42 structured worked examples across all seven categories. All 41
+activities have an illustration or the existing Kanban board. Source
+comparison against the base confirms 194 card identities and order; targeted
+wording edits retain the practice answer keys. No storage, network, XP or
+navigation changes. The original candidate built in browser CI and passed
+all three E2E shards; the unit stage stopped at formatting. The expanded
+candidate requires fresh checks, including build budget and the new focused
+browser test. Full card-by-card editorial review remains unfinished.
 
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2

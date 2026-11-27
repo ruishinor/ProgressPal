@@ -135,7 +135,7 @@ export const teknologiSessions: readonly MicroSession[] = [
         title: 'Vite hjelper utvikleren',
         role: 'explain',
         source: source('TEK-02'),
-        idea: 'Ada bruker React-biblioteket til brukergrensesnittet og Vite til utvikling og bygging. Vites utviklingsserver viser endringer lokalt. En bundler samler og bearbeider egen kode og kode den bruker; byggkommandoen lager filer for publisering.',
+        idea: 'Ada bruker React-biblioteket til brukergrensesnittet og Vite til utvikling og bygging. Vites utviklingsserver viser endringer lokalt. En bundler samler og bearbeider koden i prosjektet og bibliotekene du bruker. Byggkommandoen lager filer som kan publiseres.',
         bridge: 'Neste: Se hvordan delene brukes.',
       },
       {
@@ -375,7 +375,34 @@ export const teknologiSessions: readonly MicroSession[] = [
         title: 'Vue og Angular gir ulik struktur',
         role: 'explain',
         source: source('TEK-04'),
-        idea: 'Vue er et progressivt UI-rammeverk: for én del av en HTML-side eller en hel app. Angular er et mer samlet webrammeverk med skjemaer og ruting, valg av visning ut fra nettadressen. Det bygger på TypeScript, JavaScript med typer. Omfanget avgjør ikke hva som er best.',
+        idea: 'Vue er et UI-rammeverk som kan innføres gradvis, fra én del av en HTML-side til en hel app. Angular er et mer samlet webrammeverk med skjemaer og ruting, valg av visning ut fra nettadressen. Det bygger på TypeScript, JavaScript med typer. Omfanget avgjør ikke hva som er best.',
+        visual: {
+          title: 'Omfanget varierer',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'React',
+                      text: 'UI-bibliotek; teamet velger øvrige verktøy.',
+                    },
+                    {
+                      label: 'Vue',
+                      text: 'UI-rammeverk som kan brukes i en del av en side eller en hel app.',
+                    },
+                    {
+                      label: 'Angular',
+                      text: 'Større rammeverk med blant annet ruting og skjemaverktøy.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Forbedre ett skjema.',
       },
       {

@@ -36,7 +36,10 @@ export function TeachingVisual({ visual }: { visual: Visual }) {
           ))}
         </div>
       ) : null}
-      <div className="micro-teaching__blocks">
+      <div
+        aria-live={visual.frames.length > 1 ? 'polite' : undefined}
+        className="micro-teaching__blocks"
+      >
         {frame.blocks.map((block, index) =>
           block.kind === 'table' ? (
             <table className="micro-teaching__table" key={index}>
