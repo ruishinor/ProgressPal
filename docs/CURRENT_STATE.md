@@ -1,5 +1,14 @@
 # ProgressPal current state
 
+**Campaign M01 teaching visuals — draft candidate, 2026-11-27.** Adds 21
+lesson-bound examples (seven with selectable states) to the existing shared
+lesson renderer, covering nine teaching lessons and the lab. No changes to the
+canonical lesson assets, exercise hashes, IDs, persistence or progression.
+The full M01 editorial and exercise review is unfinished: the pinned external
+Programvareutvikling authoring workspace is not available in this environment.
+Source inspection only; runtime and hosted validation are pending. Do not
+merge as completion of the owner's full M01 upgrade.
+
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2
 weekly-focus upgrade (`guild-focus-v1.sql`) is installed on `progresspal-g0`

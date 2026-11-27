@@ -41,6 +41,7 @@ import {
 import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
+import { campaignM01VisualFor } from './campaignM01Visuals';
 import { ExerciseCard } from './ExerciseCard';
 import { gitVisualFor } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
@@ -767,7 +768,10 @@ function LessonSurface({
                       visual={
                         programmeId === 'git-github' && step.block.t === 'text'
                           ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
-                          : undefined
+                          : programmeId === 'programvareutvikling' &&
+                              (step.block.t === 'text' || step.block.t === 'orient')
+                            ? campaignM01VisualFor(step.unitId, step.block.nb)
+                            : undefined
                       }
                     />
                   )}
