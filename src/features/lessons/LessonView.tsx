@@ -42,6 +42,7 @@ import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
 import { ExerciseCard } from './ExerciseCard';
+import { gitVisualFor } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
 import type { MarkupContext } from './markup';
 import {
@@ -763,6 +764,11 @@ function LessonSurface({
                       block={step.block}
                       context={context}
                       copy={copy}
+                      visual={
+                        programmeId === 'git-github' && step.block.t === 'text'
+                          ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
+                          : undefined
+                      }
                     />
                   )}
                 </div>

@@ -31,6 +31,10 @@ Product boundary (do not cross it):
   Visually distinguish commands, file names and status output from explanation;
   show multi-step situations as short sequences or simple comparisons. Keep
   safety boundaries and actual command examples correct.
+- Use structured, accessible HTML/SVG teaching diagrams where a concept has
+  multiple states or references. Reuse visual components; keep the illustration
+  tied to its lesson and replace redundant prose. No visual quiz scoring or
+  persistence for concept exploration. Preserve lesson positions and answer IDs.
 - Practical work is self-reported. Do not add proof, authentication or
   certification mechanisms for learner work. Keep optional checks optional and
   avoid learner-facing disclaimers about assessment, proof and points where

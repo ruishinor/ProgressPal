@@ -152,7 +152,9 @@ try {
       await expect(
         page.locator('.lesson-exercise [role="alert"]').first(),
       ).toContainText('Fyll ut hele svaret');
-      const complete = page.getByRole('button', { name: 'Marker som fullført' });
+      const complete = page.getByRole('button', {
+        name: 'Marker som fullført',
+      });
       await expect(complete).toBeVisible();
       await noOverflow();
       await complete.click();
