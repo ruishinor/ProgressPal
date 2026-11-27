@@ -918,7 +918,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   await wrong.check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(result).toContainText('Ikke riktig ennå', { timeout: 15_000 });
-  await expect(result).toContainText('Python leser den lagrede filen hver gang den kjøres.');
+  await expect(result).toContainText('Python leser filen på nytt');
   expect((await readLedger(page)).rows).toBe(0);
 
   // The retry solves it and earns once.
