@@ -328,7 +328,10 @@
   border: 2px solid var(--git-tone);
   border-radius: 0.6rem;
   background: color-mix(in srgb, var(--git-tone) 13%, transparent);
-  font: 700 1.9rem ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 1.9rem;
+  line-height: normal;
+  font-family: ui-monospace, monospace;
 }
 
 .git-status-label {
@@ -347,7 +350,10 @@
 .git-status-file {
   align-self: flex-start;
   padding-block-start: 0.75rem;
-  font: 600 clamp(1rem, 3vw, 1.6rem) ui-monospace, monospace;
+  font-weight: 600;
+  font-size: clamp(1rem, 3vw, 1.6rem);
+  line-height: normal;
+  font-family: ui-monospace, monospace;
   overflow-wrap: anywhere;
 }
 
@@ -379,7 +385,10 @@
 }
 
 .git-graph-id {
-  font: 700 13px ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: normal;
+  font-family: ui-monospace, monospace;
 }
 
 .git-visual-cards {
@@ -417,7 +426,10 @@
 .git-visual-value {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font: 500 0.95em/1.55 ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.95em;
+  line-height: 1.55;
+  font-family: ui-monospace, monospace;
 }
 
 .git-visual-card p,
@@ -511,7 +523,10 @@
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--color-surface-muted);
-  font: 500 0.95em/1.6 ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.95em;
+  line-height: 1.6;
+  font-family: ui-monospace, monospace;
   overflow-wrap: anywhere;
 }
 
@@ -553,7 +568,10 @@
 }
 
 .git-conflict-section > div {
-  font: 500 0.95em/1.6 ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.95em;
+  line-height: 1.6;
+  font-family: ui-monospace, monospace;
 }
 
 .git-conflict-section > span {

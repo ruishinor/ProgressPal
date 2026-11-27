@@ -24,9 +24,8 @@ test('opens a previously unread Git lesson and records an answer after a cold of
     }),
   ).toBeVisible();
   const card = offlinePage.getByRole('group', { name: /^Oppgave 1 · / });
-  await card
-    .getByRole('radio', { name: 'Starttid 10, uten den nye kartlinjen.' })
-    .check();
+  // The authored option ID is stable even when the wording changes.
+  await card.locator('input[type="radio"][value="a"]').check();
   await card.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(card.getByRole('status', { name: 'Resultat' })).toContainText(
     'Svaret passer',
@@ -48,11 +47,7 @@ test('opens a previously unread Git lesson and records an answer after a cold of
     }),
   ).toBeVisible();
   const m05 = offlinePage.getByRole('group', { name: /^Oppgave 1 · / });
-  await m05
-    .getByRole('radio', {
-      name: /At branchen er overført, men review og merge/,
-    })
-    .check();
+  await m05.locator('input[type="radio"][value="b"]').check();
   await m05.getByRole('button', { name: 'Sjekk svaret' }).click();
   await expect(m05.getByRole('status', { name: 'Resultat' })).toContainText(
     'Svaret passer',

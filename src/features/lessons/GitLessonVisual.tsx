@@ -7,13 +7,13 @@ function StatusRows({ frame }: { frame: VisualFrame }) {
     <div className="git-visual-status">
       {frame.rows?.map(({ x, y, file, meaning }) => {
         const special = x + y === '??' || x + y === 'UU';
+        const firstTone = special ? 'git-tone-neutral' : 'git-tone-blue';
+        const secondTone = special ? 'git-tone-neutral' : 'git-tone-amber';
         return (
           <div className="git-status-row" key={x + y + file}>
             <div className="git-status-line">
               <div className="git-status-part">
-                <span
-                  className={`git-status-cell ${special ? 'git-tone-neutral' : 'git-tone-blue'}`}
-                >
+                <span className={`git-status-cell ${firstTone}`}>
                   {x === ' ' ? '·' : x}
                 </span>
                 <span className="git-status-label">
@@ -21,9 +21,7 @@ function StatusRows({ frame }: { frame: VisualFrame }) {
                 </span>
               </div>
               <div className="git-status-part">
-                <span
-                  className={`git-status-cell ${special ? 'git-tone-neutral' : 'git-tone-amber'}`}
-                >
+                <span className={`git-status-cell ${secondTone}`}>
                   {y === ' ' ? '·' : y}
                 </span>
                 <span className="git-status-label">
@@ -88,10 +86,10 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
 }
 
 function VisualCards({ frame, kind }: { frame: VisualFrame; kind: string }) {
+  const linked = frame.links?.length ? 'git-visual-linked' : '';
+  const className = `git-visual-cards git-visual-cards--${kind} ${linked}`;
   return (
-    <div
-      className={`git-visual-cards git-visual-cards--${kind} ${frame.links?.length ? 'git-visual-linked' : ''}`}
-    >
+    <div className={className}>
       {frame.cards?.map((card, index) => (
         <div className="git-visual-card-wrap" key={card.label}>
           <div className={`git-visual-card git-tone-${card.tone}`}>
@@ -281,6 +279,21 @@ function TestCaseVisual() {
   );
 }
 
+function FrameCards({ frame, kind }: { frame: VisualFrame; kind: string }) {
+  switch (kind) {
+    case 'terminal':
+      return <TerminalVisual frame={frame} />;
+    case 'conflict':
+      return <ConflictVisual frame={frame} />;
+    case 'pr':
+      return <PullRequestVisual frame={frame} />;
+    case 'tree':
+      return <FileTreeVisual frame={frame} />;
+    default:
+      return <VisualCards frame={frame} kind={kind} />;
+  }
+}
+
 export function GitLessonVisual({ visual }: { visual: GitVisual }) {
   const [index, setIndex] = useState(0);
   const frame = visual.frames[index] ?? visual.frames[0];
@@ -305,18 +318,7 @@ export function GitLessonVisual({ visual }: { visual: GitVisual }) {
       )}
       {frame.rows && <StatusRows frame={frame} />}
       {frame.nodes && <CommitGraph frame={frame} />}
-      {frame.cards &&
-        (visual.kind === 'terminal' ? (
-          <TerminalVisual frame={frame} />
-        ) : visual.kind === 'conflict' ? (
-          <ConflictVisual frame={frame} />
-        ) : visual.kind === 'pr' ? (
-          <PullRequestVisual frame={frame} />
-        ) : visual.kind === 'tree' ? (
-          <FileTreeVisual frame={frame} />
-        ) : (
-          <VisualCards frame={frame} kind={visual.kind} />
-        ))}
+      {frame.cards && <FrameCards frame={frame} kind={visual.kind} />}
       {frame.matrix && <CommandEffects frame={frame} />}
       {visual.kind === 'test' && <TestCaseVisual />}
       {frame.caption && (
