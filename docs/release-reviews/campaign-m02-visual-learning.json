@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT, implementer self-review (owner-authorized)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "ee6fc22c8c0b0227210956b71350adbd25ad0fdd",
+    "payloadTree": "609cebbe897e7cfc070e0034c079adcfbff06d76",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -13,7 +13,8 @@
       "Compared the uploaded seven-module source with the pinned SHA-256 70438bd924141500ebb636b69f74a578f58c1b37f7a152fa073349bce50b60bb.",
       "Inspected the existing Git teaching renderer, M02 curriculum and 139 exercises. Replayed the recorded M02 authoring DSL cache; the 63 initial revision targets matched the pinned source. Full external producer regeneration not performed.",
       "Verified all 86 product presentation fields and all 21 visual anchors against the unchanged packaged M02 JSON. Corrected duplicate card labels in two diagrams.",
-      "Scoped implementation uses the same renderer in both shells; exercise feedback and hints are applied only to their presentation, not evaluation or storage. Added source-binding, nonmutation, renderer interaction and browser journey tests; not executed locally."
+      "Scoped implementation uses the same renderer in both shells; exercise feedback and hints are applied only to their presentation, not evaluation or storage. Added source-binding, nonmutation, renderer interaction and browser journey tests; not executed locally.",
+      "Follow-up CI log review identified formatting failures; the exact correction is limited to expression wrapping, equivalent test-local variables and test names. No assertions, product behavior, dependencies or budgets changed. Manual source correction; locked Prettier and all remaining checks must run on GitHub."
     ]
   },
   "adversarialFindings": [

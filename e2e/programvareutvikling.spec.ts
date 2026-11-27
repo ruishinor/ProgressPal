@@ -921,9 +921,7 @@ test('earns Programvareutvikling XP once for a solved task, through a hint and a
   expect(await readLedger(page)).toEqual(earned);
 });
 
-test('M02 teaching models work in Classic and RPG without recording attempts', async ({
-  page,
-}) => {
+test('M02 visuals do not record attempts', async ({ page }) => {
   await completeOnboarding(page);
   await switchProgramme(page, 'programvareutvikling', 'Programvareutvikling');
 
@@ -942,9 +940,8 @@ test('M02 teaching models work in Classic and RPG without recording attempts', a
     await next.focus();
     await page.keyboard.press('Enter');
     await expect(next).toHaveAttribute('aria-pressed', 'true');
-    await expect(
-      figure.getByText('antall = 5', { exact: true }),
-    ).toBeVisible();
+    const result = figure.getByText('antall = 5', { exact: true });
+    await expect(result).toBeVisible();
     expect((await readEvidenceCount(page)).evidence).toBe(before.evidence);
     const bounds = await figure.boundingBox();
     expect(bounds).not.toBeNull();

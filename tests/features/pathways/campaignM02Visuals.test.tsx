@@ -24,7 +24,8 @@ it('binds every model to exactly one instructional block in M02', () => {
       expect(new Set(labels).size).toBe(labels.length);
     }
     expect(campaignM02VisualFor(visual.lesson, visual.anchor)).toBe(visual);
-    expect(campaignM02VisualFor(visual.lesson, 'Changed source')).toBeUndefined();
+    const changed = campaignM02VisualFor(visual.lesson, 'Changed source');
+    expect(changed).toBeUndefined();
   }
 });
 

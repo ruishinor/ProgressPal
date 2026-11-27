@@ -777,7 +777,8 @@ function LessonSurface({
                         programmeId === 'git-github' && step.block.t === 'text'
                           ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
                           : programmeId === 'programvareutvikling' &&
-                              (step.block.t === 'text' || step.block.t === 'orient')
+                              (step.block.t === 'text' ||
+                                step.block.t === 'orient')
                             ? campaignM02VisualFor(step.unitId, step.block.nb)
                             : undefined
                       }
