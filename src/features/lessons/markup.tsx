@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 /**
  * A small, purpose-built renderer for the markup the authored lessons use:
@@ -15,6 +16,8 @@ export type MarkupContext = {
   readonly wording: (text: string) => string;
   /** Heading level used for `#`/`##` lines inside a lesson. */
   readonly headingLevel: 3 | 4;
+  readonly lessonReference?: { target: string; href: string };
+  readonly referenceAnchor?: { title: string; id: string };
 };
 
 const inlinePattern = /`([^`]+)`|\*\*([^*]+?)\*\*|\*([^*\s][^*]*?)\*/g;
@@ -26,10 +29,15 @@ export function InlineText({
   context: MarkupContext;
   text: string;
 }) {
+  const reference = context.lessonReference;
+  const pattern =
+    reference === undefined
+      ? inlinePattern
+      : /`([^`]+)`|\*\*([^*]+?)\*\*|\*([^*\s][^*]*?)\*|\[([^\]]+)\]\(lesson:([a-z0-9-]+#[a-z0-9-]+)\)/g;
   const parts: ReactNode[] = [];
   let cursor = 0;
 
-  for (const match of text.matchAll(inlinePattern)) {
+  for (const match of text.matchAll(pattern)) {
     const start = match.index ?? 0;
 
     if (start > cursor) {
@@ -53,6 +61,16 @@ export function InlineText({
         <em key={start}>
           <InlineText context={context} text={match[3]} />
         </em>,
+      );
+    } else if (match[4] !== undefined) {
+      parts.push(
+        reference !== undefined && reference.target === match[5] ? (
+          <Link key={start} to={reference.href}>
+            {context.wording(match[4])}
+          </Link>
+        ) : (
+          context.wording(match[4])
+        ),
       );
     }
 
@@ -175,8 +193,16 @@ export function Markup({
               node.depth >= 3 && context.headingLevel === 3
                 ? 'h4'
                 : (`h${context.headingLevel}` as 'h3' | 'h4');
+            const anchor =
+              context.referenceAnchor?.title === node.text
+                ? context.referenceAnchor.id
+                : undefined;
             return (
-              <Heading key={index}>
+              <Heading
+                id={anchor}
+                key={index}
+                tabIndex={anchor === undefined ? undefined : -1}
+              >
                 <InlineText context={context} text={node.text} />
               </Heading>
             );

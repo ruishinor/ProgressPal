@@ -303,6 +303,37 @@ test('explains Git answers and preserves learner evidence through reload and pro
   expect(errors).toEqual([]);
 });
 
+test('opens the exact staging correction from lesson five without changing progress', async ({
+  page,
+}) => {
+  await completeOnboarding(page);
+  await page.goto(route(5));
+  const article = page.getByRole('article');
+  await expect(
+    article.getByText(
+      'Nå skal du selv velge hvilke endringer som blir med i neste commit.',
+    ),
+  ).toBeVisible();
+  const reference = article.getByRole('link', { name: '«Rett bare utvalget»' });
+  await expect(reference).toHaveAttribute(
+    'href',
+    route(4) + '#rett-bare-utvalget',
+  );
+  const before = await counts(page);
+  await reference.focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(route(4) + '#rett-bare-utvalget');
+  const heading = page.getByRole('heading', { name: 'Rett bare utvalget' });
+  await expect(heading).toBeFocused();
+  await expect(heading).toHaveAttribute('id', 'rett-bare-utvalget');
+  await expect(
+    page.locator('pre').filter({ hasText: 'git restore --staged -- plan.txt' }),
+  ).toBeVisible();
+  expect(await counts(page)).toEqual(before);
+  await page.goBack();
+  await expect(reference).toBeVisible();
+});
+
 test('reading the Git roadmap does not enrol or change learner state', async ({
   page,
 }) => {

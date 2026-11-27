@@ -457,7 +457,7 @@ export const gitLessons = [
         'Se både på det som allerede er valgt, og det som mangler i utvalget. Hvordan rettet du staging uten å endre filer i forrige del?',
       ),
       text(
-        'Utfør nå arbeidet i PowerShell. Bruk det du har lært framfor å kopiere hele forrige oppskrift: ta README.txt ut av utvalget, velg plan.txt og undersøk både filnavnene og innholdet i diff --cached. Ingen README-endring skal være med. Noter hvorfor det ikke holder å bare legge til enda en fil. Ved behov kan du lese rettingen i forrige del igjen; det er lov å bruke hjelp.',
+        'Nå skal du selv velge hvilke endringer som blir med i neste commit.\n\nI leksjon 4, «Velg innholdet i neste commit», lærte du å fjerne en fil fra staging area uten å slette endringene i filen. Se kommandoboksen [«Rett bare utvalget»](lesson:git-m01-o04#rett-bare-utvalget) dersom du trenger hjelp.\n\nDenne gangen skal du:\n\n1. Fjerne README.txt fra staging area.\n2. Legge til plan.txt i staging area.\n3. Kontrollere hvilke filer som er klargjort.\n4. Kontrollere innholdet i endringene.\n\nBare endringene i plan.txt skal være klargjort for neste commit.\n\nHvorfor holder det ikke å bare legge til plan.txt?',
       ),
       {
         id: 'GIT-M01-E06',
