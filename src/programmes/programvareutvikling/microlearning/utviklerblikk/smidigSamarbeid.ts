@@ -147,7 +147,34 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
         title: 'Avhengigheter og koordinering',
         role: 'explain',
         source: a02,
-        idea: 'Når flere personer eller team lager noe sammen, blir de avhengige av hverandre. Man kan for eksempel være avhengig av informasjon fra noen andre, at noe skjer før noe annet, bestemte verktøy eller tilganger, eller at bestemt kode er på plass.\nAvhengigheter er helt normale. De blir et problem når ingen har sett dem, eller når det mangler en avtale om hvordan de skal håndteres. Da blir folk sittende og vente, eller de bygger på feil antakelser.\nLurt spørsmål: Hva er vi egentlig avhengige av, og hva er den enkleste måten å håndtere akkurat det på?',
+        idea: 'En avhengighet betyr at arbeidet ditt trenger noe fra en annen del av prosjektet. Det kan være kode, tilgang, informasjon eller en beslutning. Avhengigheten er normal; problemet oppstår når den ikke er kjent eller avtalt.',
+        visual: {
+          title: 'En oppgave venter på en annen',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Team A',
+                      text: 'Lager et kart som kan vise steder',
+                    },
+                    {
+                      label: 'Avhengighet',
+                      text: 'Team B må avtale formatet for posisjonsdata',
+                    },
+                    {
+                      label: 'Team A',
+                      text: 'Kan koble kartet til dataene når formatet er kjent',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Koordinering',
@@ -259,7 +286,34 @@ export const smidigSamarbeidSessions: readonly MicroSession[] = [
         title: 'Se, endre, sjekke',
         role: 'explain',
         source: a03,
-        idea: 'Et av de smidige prinsippene sier at et team med jevne mellomrom skal se tilbake på hvordan det jobber, og deretter justere måten det jobber på. Mange team jobber i sprinter – faste arbeidsperioder på noen uker – og gjør dette i et retrospektiv på slutten av hver sprint.\nDet er lett å stoppe halvveis. En forbedring har tre steg:\n1. Se problemet – og prøve å forstå hvorfor det skjer.\n2. Endre noe konkret – bli enige om hva som skal gjøres annerledes, av hvem og fra når.\n3. Sjekke etterpå – hjalp det, eller må vi prøve noe annet?\nEn setning som «vi må bli flinkere» er en god intensjon, men det er ikke en endring. Det er vanskelig å vite hva man skal gjøre annerledes i morgen, og umulig å sjekke om det har hjulpet.\nDet er også viktig at alle tør å si fra. Hvis retrospektivet handler om å finne noen å skylde på, slutter folk å dele det de har sett.',
+        idea: 'Smidige team ser jevnlig på hvordan de jobber og justerer arbeidsmåten. Mange gjør dette i et retrospektiv etter en arbeidsperiode. Alle må kunne si fra uten å bli gjort til problemet. «Vi må bli flinkere» er ikke nok: avtal en konkret endring, og sjekk om den hjelper.',
+        visual: {
+          title: 'Fra problem til forbedring',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Se',
+                      text: 'Kodegjennomgang venter ofte i flere dager',
+                    },
+                    {
+                      label: 'Endre',
+                      text: 'Avtal å sjekke køen hver morgen',
+                    },
+                    {
+                      label: 'Sjekk',
+                      text: 'Etter to uker: venter koden kortere?',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Retrospektiv',

@@ -22,7 +22,34 @@ export const teknologiSessions: readonly MicroSession[] = [
         title: 'Kode trenger et sted å kjøre',
         role: 'explain',
         source: source('TEK-01'),
-        idea: 'Ada lager ungdomshusets nettside. HTML beskriver innholdet, CSS utseendet og programmeringsspråket JavaScript handlingene. Et kjøremiljø, runtime, kjører kode: nettleseren kjører sidens JavaScript; Node.js kjører JavaScript utenfor nettleseren.',
+        idea: 'Ada lager en nettside for ungdomshuset. HTML beskriver innholdet, CSS utseendet og JavaScript handlingene. Et kjøremiljø (runtime) kjører kode. Nettleseren kjører sidens JavaScript; Node.js kjører JavaScript utenfor nettleseren.',
+        visual: {
+          title: 'Tre deler av samme nettside',
+          frames: [
+            {
+              label: 'Eksempel: påmelding',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'HTML',
+                      text: 'En knapp med teksten Meld meg på',
+                    },
+                    {
+                      label: 'CSS',
+                      text: 'Knappens størrelse, farge og plassering',
+                    },
+                    {
+                      label: 'JavaScript',
+                      text: 'Hva som skjer når du trykker',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Se hvordan delene brukes.',
       },
       {
@@ -118,6 +145,37 @@ export const teknologiSessions: readonly MicroSession[] = [
         role: 'explain',
         source: source('TEK-02'),
         idea: 'Deployment betyr å legge løsningen i drift. En statisk vert leverer ferdige filer til nettleseren. Vite lager ikke database eller innlogging. Utviklingsserveren og den lokale forhåndsvisningen er ikke produksjonsservere.',
+        visual: {
+          title: 'Fra prosjekt til nettside',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Prosjekt',
+                      text: 'React-komponenter og CSS',
+                    },
+                    {
+                      label: 'Vite build',
+                      text: 'Bygg ferdige HTML-, CSS- og JavaScript-filer',
+                    },
+                    {
+                      label: 'Statisk vert',
+                      text: 'Publiser filene',
+                    },
+                    {
+                      label: 'Nettleser',
+                      text: 'Last inn og vis siden',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Finn trinnet som mangler.',
       },
       {
@@ -195,7 +253,38 @@ export const teknologiSessions: readonly MicroSession[] = [
         title: 'En påmelding krysser flere deler',
         role: 'explain',
         source: source('TEK-03'),
-        idea: 'Ada og Bo lager delte påmeldinger. Frontend er delen brukeren møter i nettleseren. Backend behandler forespørsler på en server. Et API er et avtalt grensesnitt mellom programmer, her «registrer påmeldingen». Databasen lagrer opplysningene.',
+        idea: 'Ada og Bo lager delte påmeldinger. Frontend er det brukeren møter. Backend behandler forespørsler på en server. Et API er et avtalt grensesnitt mellom programmer. Databasen lagrer opplysningene.',
+        visual: {
+          title: 'Hva skjer når Ada melder seg på?',
+          frames: [
+            {
+              label: 'Request og response',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Frontend',
+                      text: 'Send påmelding som request til API-et',
+                    },
+                    {
+                      label: 'Backend',
+                      text: 'Sjekk påmeldingen og send den til databasen',
+                    },
+                    {
+                      label: 'Database',
+                      text: 'Lagre påmeldingen',
+                    },
+                    {
+                      label: 'Backend → frontend',
+                      text: 'Send response: påmelding registrert',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Se hvordan delene brukes.',
       },
       {
@@ -373,7 +462,30 @@ export const teknologiSessions: readonly MicroSession[] = [
         title: 'Next.js samler flere deler',
         role: 'explain',
         source: source('TEK-05'),
-        idea: 'Fullstack-rammeverket Next.js bygger på React. Det samler frontend (brukergrensesnitt), ruting mellom sider og serverfunksjoner. Det kan lage HTML, nettleserens sideformat, på serveren. Serverfunksjoner trenger serverdrift; en eksport med bare statiske filer kan ikke utføre dem. Teamet lager fortsatt databaseregler og tester kravene.',
+        idea: 'Next.js er et fullstack-rammeverk som bygger på React. Det samler frontend, ruting og serverfunksjoner. Det kan lage HTML på serveren. Serverfunksjoner trenger et kjøremiljø; en statisk eksport kan ikke utføre dem. Teamet må fortsatt lage databaseregler og teste kravene.',
+        visual: {
+          title: 'To måter å sette sammen løsningen',
+          frames: [
+            {
+              label: 'Sammenligning',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'React + Vite',
+                      text: 'UI og byggverktøy. Legg til en separat backend ved behov.',
+                    },
+                    {
+                      label: 'Next.js',
+                      text: 'UI, ruting og mulighet for serverkode i samme rammeverk.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Velg en kombinasjon.',
       },
       {

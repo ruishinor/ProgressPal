@@ -15,7 +15,34 @@ export const uxUuSessions: readonly MicroSession[] = [
         id: 'tsu-ux-uu-u01-forklart',
         title: 'Hva så dere, og hva tror dere?',
         role: 'explain',
-        idea: 'Et team lager nettsiden til en privat klinikk. Pasientene skal kunne velge og bestille en time. Brukeropplevelse, ofte kalt UX, handler om hvordan tjenesten oppleves: fra å finne en passende time til å få bekreftelsen.\nI en test ser teamet hva pasientene trykker på. En slik observasjon forteller hva som skjedde. Den forteller ikke alltid hvorfor. Et forslag som «Lag en snarvei» sier heller ikke hvilket problem snarveien skal løse.',
+        idea: 'Et team lager timebestilling for en klinikk. Brukeropplevelse (UX) handler om hvordan hele tjenesten oppleves. Under en brukertest kan teamet observere hva som skjer, men det må undersøke hvorfor før det velger en løsning.',
+        visual: {
+          title: 'Skill tre forskjellige ting',
+          frames: [
+            {
+              label: 'Eksempel fra en annen tjeneste',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Observasjon',
+                      text: 'En bruker stopper ved adressefeltet',
+                    },
+                    {
+                      label: 'Mulig forklaring',
+                      text: 'Kanskje brukeren ikke vet hvilket format som kreves',
+                    },
+                    {
+                      label: 'Undersøk',
+                      text: 'Spør hva brukeren prøvde å gjøre',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Hva kan teamet vite fra en test av timebestillingen?',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -407,7 +434,48 @@ export const uxUuSessions: readonly MicroSession[] = [
         id: 'tsu-ux-uu-u04-forklart',
         title: 'Hvor virker neste tastetrykk?',
         role: 'explain',
-        idea: 'Sara bruker en nettside uten mus. Hun trykker Tab for å flytte mellom lenker, knapper og felt. Elementet som mottar neste tastetrykk, har tastaturfokus. En synlig ramme rundt elementet hjelper henne å se hvor hun er. Enter eller mellomrom kan aktivere en knapp.\nNår Sara åpner en meny, bruker hun tastene til å velge i den. Hvis hun lukker menyen uten å velge en ny side, bør hun kunne fortsette ved knappen som åpnet den. Hun skal også kunne bevege seg ut av menyen; tastaturet må ikke bli fanget der.',
+        idea: 'Sara bruker nettsiden uten mus. Tab flytter tastaturfokus mellom lenker, knapper og felt. En synlig ramme viser hvor neste tastetrykk virker. Enter eller mellomrom kan aktivere en knapp. Når en meny lukkes uten et sidevalg, bør fokus gå tilbake til knappen som åpnet den. Tastaturet må ikke bli fanget i menyen.',
+        visual: {
+          title: 'Fokus flytter seg med tastaturet',
+          frames: [
+            {
+              label: 'Før menyen åpnes',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Fokus',
+                      text: 'Meny-knappen',
+                    },
+                    {
+                      label: 'Neste Tab',
+                      text: 'Neste kontroll på siden',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              label: 'Meny åpnet og lukket',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Åpne meny',
+                      text: 'Velg en kontroll i menyen',
+                    },
+                    {
+                      label: 'Lukk uten sidevalg',
+                      text: 'Fokus tilbake til Meny-knappen',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Vurder to konkrete fokusproblemer i en meny.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -576,7 +644,30 @@ export const uxUuSessions: readonly MicroSession[] = [
         id: 'tsu-ux-uu-u05-veiledning',
         title: 'Hjelp før og etter en feil',
         role: 'explain',
-        idea: 'Et skjemafelt trenger et tydelig navn, som «Fødselsdato». Navnet må være koblet til feltet i koden, slik at også skjermleseren kan fortelle hvilket felt personen fyller ut. Hvis formatet er viktig, vis et eksempel før personen skriver.\nVed feil trenger personen å vite hvilket felt som er galt, hva som må endres og hvordan. Bevar andre gyldige svar. En rød ramme eller «Ugyldig verdi» forklarer ikke hvordan personen skal komme videre.',
+        idea: 'Et felt trenger et tydelig navn som er koblet til feltet i koden. Vis et eksempel før personen skriver hvis formatet er viktig. Ved feil skal personen få vite hvilket felt som må rettes og hvordan. Bevar de andre gyldige svarene.',
+        visual: {
+          title: 'To måter å hjelpe i et skjema',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Uklart',
+                      text: 'Dato: 15/7/2027. Feil: Ugyldig verdi.',
+                    },
+                    {
+                      label: 'Tydelig',
+                      text: 'Dato (DD.MM.ÅÅÅÅ): 15/7/2027. Bruk punktum og to sifre i måneden, for eksempel 15.07.2027.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Undersøk en feil i et datofelt.',
         source: {
           moduleId: 'tenk-som-en-utvikler',

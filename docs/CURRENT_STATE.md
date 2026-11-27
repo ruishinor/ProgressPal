@@ -1,5 +1,12 @@
 # ProgressPal current state
 
+**Utviklerblikk teaching visuals — development candidate, 2026-11-27.**
+Adds structured worked examples across all seven categories: data tables,
+comparisons, flows and selectable examples on existing Learn cards.
+Existing practice cards, answer rules, IDs and order remain unchanged. No
+storage, network, XP or navigation changes. Full instructional copy and
+exercise review is not complete; hosted validation is required before release.
+
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2
 weekly-focus upgrade (`guild-focus-v1.sql`) is installed on `progresspal-g0`

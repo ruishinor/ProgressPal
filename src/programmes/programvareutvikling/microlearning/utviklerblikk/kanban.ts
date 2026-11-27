@@ -306,7 +306,30 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Alder og syklustid',
         role: 'explain',
         source: k03,
-        idea: 'Kanban er en måte å styre og forbedre flyten av arbeid på. Der følger teamet med på hvor lang tid arbeidet tar. To mål er lette å blande sammen.\nAlder er nyttig fordi den varsler teamet mens arbeidet pågår. Når en oppgave blir eldre enn forventet, er det et tegn på at teamet bør se på den: Står den fast? Venter den på noe? Er den større enn de trodde?',
+        idea: 'Når en oppgave har vært i gang lenger enn forventet, bør teamet undersøke hvorfor.',
+        visual: {
+          title: 'Samme start, forskjellig slutt',
+          frames: [
+            {
+              label: 'To oppgaver',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Alder – oppgaven pågår',
+                      text: 'Start mandag → torsdag nå: 3 dager',
+                    },
+                    {
+                      label: 'Syklustid – oppgaven er ferdig',
+                      text: 'Start mandag → onsdag ferdig: 2 dager',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Alder (Work Item Age)',
@@ -454,7 +477,38 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Fire flytmål',
         role: 'explain',
         source: k04,
-        idea: 'Kanban er en måte å styre og forbedre flyten av arbeid på – fra en oppgave blir startet til den er ferdig. Kanban-team følger med på fire tall, såkalte flytmål. To av dem er antall (WIP og gjennomstrømning). To er tid (alder og syklustid).\nTallene er bare nyttige hvis de hjelper teamet å styre og forbedre arbeidet. Husk forskjellen: Å starte arbeid er ikke det samme som å levere det.',
+        idea: 'Å starte flere oppgaver er ikke det samme som å levere flere. Fire flytmål hjelper teamet å se hvordan arbeidet går.',
+        visual: {
+          title: 'Fire tall med ulik betydning',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'WIP',
+                      text: '3 oppgaver i gang akkurat nå',
+                    },
+                    {
+                      label: 'Gjennomstrømning',
+                      text: '5 oppgaver ferdige denne uka',
+                    },
+                    {
+                      label: 'Alder',
+                      text: 'En pågående oppgave har tatt 4 dager så langt',
+                    },
+                    {
+                      label: 'Syklustid',
+                      text: 'En ferdig oppgave tok 2 dager fra start til slutt',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'WIP (work in progress)',
@@ -586,7 +640,29 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: '20 oppgaver',
         role: 'explain',
         source: k05,
-        idea: 'Et team har sett på syklustiden til de 20 siste oppgavene de fullførte. Her er antall dager for hver oppgave, sortert fra kortest til lengst:\n2 · 3 · 3 · 4 · 4 · 4 · 5 · 5 · 5 · 6 · 6 · 6 · 7 · 7 · 7 · 8 · 8 · 9 · 12 · 15\nGjennomsnittet er 6,3 dager.',
+        idea: 'Teamet har målt syklustiden til de siste 20 ferdige oppgavene. Tallene under er sortert fra kortest til lengst. Gjennomsnittet er 6,3 dager.',
+        visual: {
+          title: 'Dager fra start til ferdig',
+          frames: [
+            {
+              label: '20 oppgaver',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'Sorterte målinger',
+                  columns: ['Oppgave nr.', 'Dager'],
+                  rows: [
+                    ['1–4', '2 · 3 · 3 · 4'],
+                    ['5–8', '4 · 4 · 5 · 5'],
+                    ['9–12', '5 · 6 · 6 · 6'],
+                    ['13–16', '7 · 7 · 7 · 8'],
+                    ['17–20', '8 · 9 · 12 · 15'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to spørsmål om tallene.',
       },
       {

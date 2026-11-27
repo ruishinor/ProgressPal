@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-teaching-visuals-20261127",
+  "reviewer": "ChatGPT GPT-6.2 (same-session source review; no independent QA)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "ce1b67fa54f9cc5b2b840d3a89ad90b2a2bb85b5",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Scoped implementation of visual teaching examples across the seven Utviklerblikk categories; not a completed review of the entire learning area.",
+    "evidence": [
+      "Inspected existing learning data, domain contract, renderer and the Git & GitHub visual approach before implementation.",
+      "Added structured examples on 25 existing learning cards across all seven categories, including selectable comparisons of SQL conditions, joins, transaction outcomes and keyboard-focus states.",
+      "Preserved existing activity identities and ordering. Compared source blocks for exercises; no intentional changes to answer keys, grading, persistence or progression.",
+      "Introduced one shared renderer, existing design tokens and focused regression tests; no external dependencies.",
+      "Reviewed and corrected misleading date input, SQL NULL filtering, and transaction example before publishing the candidate.",
+      "Local checkout and execution unavailable; no successful build, tests, browser or accessibility run claimed."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UBV-01",
+      "severity": "P2",
+      "description": "The new renderer and content have not been executed or checked at representative viewport sizes.",
+      "resolution": "Run hosted release checks and inspect visual behavior before production.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UBV-02",
+      "severity": "P2",
+      "description": "The full independent pedagogical and language pass over every practice card is unfinished.",
+      "resolution": "Keep as a draft development candidate; do not treat the whole learning-area assignment as complete.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UBV-03",
+      "severity": "P2",
+      "description": "Additional inline teaching data can increase the build chunk.",
+      "resolution": "Measure using existing bundle budget gate; assess actual increase before any threshold decision.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to hosted validation of this scoped draft only. No release certification, merge or production readiness is asserted."
+  }
+}

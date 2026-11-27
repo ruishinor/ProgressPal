@@ -25,7 +25,38 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Sprinter: lære tidlig',
         role: 'explain',
         source: s01,
-        idea: 'Det er ofte vanskelig å vite nøyaktig hva brukerne trenger før de har fått prøve noe. Det gjelder også når alle har gjort sitt beste for å forklare det.\nDerfor jobber Scrum – en måte å organisere teamarbeid på, i små steg – i sprinter. En sprint er en fast periode på én måned eller mindre, ofte to uker. I hver sprint lager teamet et inkrement: en ferdig del av produktet som faktisk kan brukes og prøves.\nHver sprint har et sprintmål: én tydelig grunn til at akkurat denne sprinten er verdt å gjennomføre. Det gir teamet felles fokus.\nMot slutten av hver sprint ser teamet og de som skal bruke produktet, på resultatet sammen. Jo kortere sprintene er, desto oftere får teamet mulighet til å lære og justere retningen.',
+        idea: 'Scrum deler arbeidet inn i sprinter på én måned eller mindre, ofte to uker. Teamet jobber mot et sprintmål og lager minst ett brukbart inkrement – en ferdig del av produktet. Ved Sprint Review ser teamet og interessentene på resultatet og hva som bør skje videre. Korte sprinter gir hyppige muligheter til å lære.',
+        visual: {
+          title: 'Eksempel: en app utvikles over to sprinter',
+          frames: [
+            {
+              label: 'To sprinter',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Sprint 1',
+                      text: 'Lag en brukbar bestilling',
+                    },
+                    {
+                      label: 'Sprint Review',
+                      text: 'Se hvordan bestillingen fungerer i praksis',
+                    },
+                    {
+                      label: 'Tilpass Product Backlog',
+                      text: 'Endre hva som er viktigst videre',
+                    },
+                    {
+                      label: 'Sprint 2',
+                      text: 'Bygg neste brukbare del',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Inspeksjon',
@@ -534,7 +565,30 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Hva betyr «ferdig»?',
         role: 'explain',
         source: s05,
-        idea: 'Scrum er en måte å organisere teamarbeid på, i korte perioder som kalles sprinter. I Scrum er et inkrement en ferdig, brukbar del av produktet. Det skal fungere sammen med alt som er laget før.\nFor at alle skal mene det samme med «ferdig», har Scrum-teamet en Definition of Done. Det er en felles beskrivelse av hvilke krav til kvalitet som må være oppfylt, for eksempel at koden er gjennomgått og testet. Noen organisasjoner har en felles Definition of Done for alle team. Ellers lager Scrum-teamet sin egen.\nRegelen er enkel: Når et arbeid oppfyller Definition of Done, er det et inkrement. Når det ikke gjør det, er det ikke ferdig. Det kan hverken leveres eller vises i Sprint Review.',
+        idea: 'Et inkrement er en ferdig, brukbar del av produktet som fungerer sammen med det som allerede er laget. Definition of Done (DoD) er kravene til kvalitet som må være oppfylt. Hvis organisasjonen har en felles DoD, må teamet minst følge den. Ellers lager Scrum-teamet sin egen. Arbeid som ikke oppfyller DoD, er ikke del av inkrementet og kan ikke leveres eller vises i Sprint Review.',
+        visual: {
+          title: 'Samme funksjon, to ulike tilstander',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Ikke ferdig',
+                      text: 'Koden virker lokalt. Avtalt testing mangler.',
+                    },
+                    {
+                      label: 'Ferdig',
+                      text: 'Koden virker, alle avtalte kvalitetskrav er oppfylt.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Sprint Review',
@@ -653,7 +707,34 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Regler når noe endrer seg',
         role: 'explain',
         source: s06,
-        idea: 'Scrum er en måte å organisere teamarbeid på, i sprinter – faste perioder på én måned eller mindre, ofte to uker. Det skjer ofte at noe endrer seg midt i en sprint. Scrum har noen tydelige regler for hvordan teamet skal håndtere det:\n• Teamet gjør ingen endringer som setter sprintmålet i fare. Sprintmålet er grunnen til at sprinten er verdifull.\n• Kvaliteten skal ikke bli dårligere.\n• Hvis arbeidet viser seg å bli annerledes enn ventet, kan utviklerne og produkteieren forhandle om hva som skal være med i sprinten – så lenge sprintmålet ikke påvirkes.\n• Hvis sprintmålet ikke lenger gir mening, kan sprinten avbrytes. Bare produkteieren kan avbryte en sprint.\nSprintmålet beskriver hva teamet vil oppnå, ikke nøyaktig hvilke oppgaver som skal gjøres. Det gir rom for å justere detaljene.',
+        idea: 'Når arbeidet endrer seg midt i sprinten, kan utviklerne og Product Owner avklare og forhandle om omfanget. De må ikke sette sprintmålet i fare eller senke kvaliteten. Hvis sprintmålet blir utdatert, kan bare Product Owner avbryte sprinten.',
+        visual: {
+          title: 'Hva kan endres i en sprint?',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Mål',
+                      text: 'Brukeren kan bestille en time. Beskyttes.',
+                    },
+                    {
+                      label: 'Kvalitet',
+                      text: 'Avtalte krav til ferdig arbeid. Beholdes.',
+                    },
+                    {
+                      label: 'Detaljer',
+                      text: 'For eksempel ekstra filtre. Kan justeres med Product Owner.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Produkteieren',

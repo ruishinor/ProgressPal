@@ -489,7 +489,34 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Det systemet vet, og det systemet gjør',
           role: 'explain',
           source: a3,
-          idea: 'Informasjon er det systemet må vite og huske. «Gruppetime» med tid, sal og antall plasser er informasjon.\nEn funksjon er noe som gjøres med informasjonen. «Bestille gruppetime» er en funksjon.\nSpør: Hva må systemet vite? Og hva skal det gjøre med opplysningene?',
+          idea: 'Informasjon er det appen må vite eller huske. En funksjon er noe appen gjør. Se hvordan en funksjon bruker informasjonen i en treningsapp.',
+          visual: {
+            title: 'Fra informasjon til handling',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'Informasjon',
+                        text: 'Gruppetime: yoga, kl. 17, sal 2, 12 plasser',
+                      },
+                      {
+                        label: 'Funksjon',
+                        text: 'Bestill en plass',
+                      },
+                      {
+                        label: 'Ny informasjon',
+                        text: 'Én påmelding er registrert',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: en app for gruppetimer.',
         },
         {
@@ -658,7 +685,30 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Treningsappen mangler påmeldinger',
           role: 'explain',
           source: a4,
-          idea: 'Et treningssenter bruker en app som viser gruppetimer og lar medlemmer melde seg på.\nAppen henter timeplanen med navn, tid, sal og antall plasser. Påmeldingene, som viser hvem som deltar på hver time, hentes separat.\nEn morgen får appen hentet timeplanen, men ikke påmeldingene.',
+          idea: 'En treningsapp henter timeplanen og påmeldingene hver for seg. En morgen kommer bare timeplanen fram. Se hvilke opplysninger appen har, før du vurderer hva den kan vise.',
+          visual: {
+            title: 'To separate datakilder',
+            frames: [
+              {
+                label: 'Denne morgenen',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Timeplan – hentet',
+                        text: 'Navn, tid, sal og antall plasser',
+                      },
+                      {
+                        label: 'Påmeldinger – ikke hentet',
+                        text: 'Hvem som deltar på hver time',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: Hva tror du skjer?',
         },
         {
@@ -836,7 +886,38 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Ett trykk – mange steg',
           role: 'explain',
           source: a5,
-          idea: 'Biblioteket har et kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Her sjekker appen plass og registrerer påmeldingen før den svarer. Dette er systematferd. Ali ser handlingen sin og svaret på skjermen, men ikke sjekken og registreringen bak.',
+          idea: 'Biblioteket har et foredrag med 40 plasser. Ali trykker «Meld meg på». Brukerhandlingen er det Ali gjør. Systematferden er det appen gjør som svar. Her er et eksempel på en vellykket påmelding.',
+          visual: {
+            title: 'Det Ali ser, og det som skjer bak',
+            frames: [
+              {
+                label: 'Én påmelding',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'På skjermen',
+                        text: 'Ali trykker «Meld meg på»',
+                      },
+                      {
+                        label: 'I systemet',
+                        text: 'Sjekk ledig plass',
+                      },
+                      {
+                        label: 'I systemet',
+                        text: 'Registrer påmeldingen',
+                      },
+                      {
+                        label: 'På skjermen',
+                        text: 'Du er påmeldt',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: koble Alis handlinger til systemets svar.',
         },
         {
