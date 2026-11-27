@@ -1,5 +1,24 @@
 # ProgressPal current state
 
+**Consolidated teaching upgrade — release candidate, 2026-11-28.**
+Combines Git & GitHub Pathways (#119), Campaign M01 (#117), Campaign M02
+(#116) and Utviklerblikk (#115). The three previously green candidates are
+not separately promoted. M01's latest correction restores the actual
+wrong-choice feedback assertion. The shared lesson surface selects the
+module-specific visual data and presentation layer; the offline manifest
+contains both new presentation assets and the updated Git content assets.
+Original Campaign curriculum files, exercise IDs, evaluator inputs, answer
+keys, positions and stored progress are preserved. Utviklerblikk retains
+its 194 card identities and answer identifiers. Existing release limits,
+including 485,000 B JS and 273,000 B curriculum gzip, are unchanged.
+
+The external frozen producer graph and full editorial passes for M01 and
+Utviklerblikk remain incomplete; this candidate delivers the scoped teaching
+improvements, not a regenerated external curriculum or a completed full-area
+audit. The combined tree must pass the native hosted release gate, including
+both size budgets and browser regressions, before one production release.
+No production deployment has been made from this candidate.
+
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2
 weekly-focus upgrade (`guild-focus-v1.sql`) is installed on `progresspal-g0`

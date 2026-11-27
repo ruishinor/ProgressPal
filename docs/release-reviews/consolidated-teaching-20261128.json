@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "module": "consolidated-teaching-20261128",
+  "reviewer": "ChatGPT GPT-6.2 — scoped integration self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "219a7ef0891e54b4c3e125666ab78c22e19c4316",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Integrate the four owner-authorized teaching candidates, reconcile shared source and retain all existing release gates.",
+    "evidence": [
+      "Compared the complete Git trees of common master 59ecbb77 and PRs #119, #117, #116 and #115: 61 distinct changed paths, four shared paths. Verified every unique path and unchanged base path by Git blob identity. Reconciled the module-specific lesson surface, combined E2E tests, offline manifest and current-state entry.",
+      "Git & GitHub, M02 and Utviklerblikk standalone candidates passed their hosted release and pilot checks; M01 latest red run identified an incorrect feedback assertion and a formatting issue on that line. Restored the actual wrong-choice feedback assertion without changing XP or persistence expectations. New M01 and combined runs are required.",
+      "Existing source-bound presentation logic and exercise grading/storage contracts retained. M01 and M02 assets loaded only for their respective modules. No dependencies, database, CSP, release workflow or budget changes. Original branch reviews retained as historical records; this new binding names the integrated payload.",
+      "Standalone JS gzip measurements: Git 476868 B, Utviklerblikk 477859 B, M02 482716 B. Standalone curriculum measurements: 266062, 265876 and 271951 B respectively. These cannot establish combined compliance. Run the existing budget and all regression gates on this tree."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "INT-01",
+      "severity": "P1",
+      "description": "M01 and M02 each modified the shared LessonView; taking either file alone would discard the other module's presentation.",
+      "resolution": "Explicit module selection for visual data, preserve M01 editorial context and M02 copy layer, preserve both browser journeys and exact lesson anchor matching.",
+      "status": "resolved"
+    },
+    {
+      "id": "INT-02",
+      "severity": "P1",
+      "description": "Replacing offline manifest with a single branch could omit content-addressed assets or reference superseded Git curriculum files.",
+      "resolution": "Use the Git-upgraded manifest plus both new Campaign presentation paths, preserving every other entry and sorting the union.",
+      "status": "resolved"
+    },
+    {
+      "id": "INT-03",
+      "severity": "P2",
+      "description": "Combined JS and curriculum sizes may exceed the independent hard caps even though three branches passed separately.",
+      "resolution": "Only proceed to hosted validation; the unchanged hard gate must measure and pass both budgets. No acceptance of a budget overrun or automatic threshold change.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "INT-04",
+      "severity": "P2",
+      "description": "Original M01 and Utviklerblikk full-area editorial and external-authoring scope is not completely reviewed.",
+      "resolution": "Keep the implemented presentation upgrade scoped; preserve canonical assets and original review limitations. Do not claim a full editorial audit or source regeneration. Any concrete material concern must be resolved before production.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to native hosted validation of this combined development candidate only. No production readiness or full editorial completion claimed."
+  }
+}

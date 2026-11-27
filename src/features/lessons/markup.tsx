@@ -14,6 +14,7 @@ export type MarkupContext = {
   readonly technicalLanguage: string;
   /** Learner-wording rules for prose; never applied to code. */
   readonly wording: (text: string) => string;
+  readonly editorial?: (text: string) => string;
   /** Heading level used for `#`/`##` lines inside a lesson. */
   readonly headingLevel: 3 | 4;
   readonly highlightGitLiterals?: boolean;
@@ -70,13 +71,15 @@ export function InlineText({
   const parts: ReactNode[] = [];
   let cursor = 0;
 
-  for (const match of text.matchAll(pattern)) {
+  const revised = context.editorial?.(text) ?? text;
+
+  for (const match of revised.matchAll(pattern)) {
     const start = match.index ?? 0;
 
     if (start > cursor) {
       parts.push(
         <Fragment key={`plain-${cursor}`}>
-          {plainText(context, text.slice(cursor, start), cursor)}
+          {plainText(context, revised.slice(cursor, start), cursor)}
         </Fragment>,
       );
     }
@@ -114,10 +117,10 @@ export function InlineText({
     cursor = start + match[0].length;
   }
 
-  if (cursor < text.length) {
+  if (cursor < revised.length) {
     parts.push(
       <Fragment key={`plain-${cursor}`}>
-        {plainText(context, text.slice(cursor), cursor)}
+        {plainText(context, revised.slice(cursor), cursor)}
       </Fragment>,
     );
   }
@@ -221,7 +224,7 @@ export function Markup({
 }) {
   return (
     <>
-      {parseMarkup(text).map((node, index) => {
+      {parseMarkup(context.editorial?.(text) ?? text).map((node, index) => {
         switch (node.kind) {
           case 'paragraph':
             return (

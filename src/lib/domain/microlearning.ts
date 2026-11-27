@@ -99,12 +99,35 @@ type MicroPracticeBase = MicroCardBase & {
   readonly explanation: string;
 };
 
+/** A small, authored teaching example. Frames are optional choices, not tasks. */
+type MicroVisualBlock =
+  | {
+      readonly kind: 'flow' | 'compare';
+      readonly items: readonly {
+        readonly label: string;
+        readonly text: string;
+      }[];
+    }
+  | {
+      readonly kind: 'table';
+      readonly label: string;
+      readonly columns: readonly string[];
+      readonly rows: readonly (readonly string[])[];
+    };
+
 export type MicroLearnCard = MicroCardBase & {
   readonly kind: 'learn';
   readonly role: 'explain';
   /** Plain text; a line break starts a new paragraph. */
   readonly idea: string;
   readonly board?: MicroKanbanBoard;
+  readonly visual?: {
+    readonly title: string;
+    readonly frames: readonly {
+      readonly label: string;
+      readonly blocks: readonly MicroVisualBlock[];
+    }[];
+  };
   /**
    * Key words, each with a short plain explanation, shown after the idea with
    * the word in bold. Structured data rather than markup, so nothing in the
@@ -524,6 +547,38 @@ function findCardShapeIssues(
         }
       } else if (card.example.code.trim() === '') {
         issues.push(`${label} has no example code`);
+      }
+      if (card.visual) {
+        const { title, frames } = card.visual;
+        if (
+          !track ||
+          !title.trim() ||
+          !frames.length ||
+          !unique(frames.map((frame) => frame.label)) ||
+          frames.some(
+            (frame) =>
+              !frame.label.trim() ||
+              !frame.blocks.length ||
+              frame.blocks.some((block) =>
+                block.kind === 'table'
+                  ? !block.label.trim() ||
+                    !block.columns.length ||
+                    block.columns.some((column) => !column.trim()) ||
+                    !block.rows.length ||
+                    block.rows.some(
+                      (row) =>
+                        row.length !== block.columns.length ||
+                        row.some((cell) => !cell.trim()),
+                    )
+                  : block.items.length < 2 ||
+                    block.items.some(
+                      (item) => !item.label.trim() || !item.text.trim(),
+                    ),
+              ),
+          )
+        ) {
+          issues.push(`${label} has an invalid teaching visual`);
+        }
       }
       if (card.idea.trim() === '') {
         issues.push(`${label} has no idea`);

@@ -93,6 +93,37 @@ export const kanbanSessions: readonly MicroSession[] = [
             text: 'en måte å gjøre denne avtalen synlig på. En tavle med «Å gjøre», «Pågår» og «Ferdig» kan være en god start. Men kolonner alene er ikke Kanban. Tavla blir først virkelig nyttig når alle er enige om hva den betyr.',
           },
         ],
+        visual: {
+          title: 'Eksempel på en arbeidsflyt',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Klar',
+                      text: 'Oppgaven er beskrevet, men ikke startet.',
+                    },
+                    {
+                      label: 'Utvikles',
+                      text: 'Oppgaven er startet.',
+                    },
+                    {
+                      label: 'Testes',
+                      text: 'Kontroller at den virker; fortsatt i gang.',
+                    },
+                    {
+                      label: 'Ferdig',
+                      text: 'Oppgaven oppfyller teamets avtalte krav.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: tavla til et team som lager en festivalapp.',
       },
       {
@@ -306,7 +337,30 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Alder og syklustid',
         role: 'explain',
         source: k03,
-        idea: 'Kanban er en måte å styre og forbedre flyten av arbeid på. Der følger teamet med på hvor lang tid arbeidet tar. To mål er lette å blande sammen.\nAlder er nyttig fordi den varsler teamet mens arbeidet pågår. Når en oppgave blir eldre enn forventet, er det et tegn på at teamet bør se på den: Står den fast? Venter den på noe? Er den større enn de trodde?',
+        idea: 'Når en oppgave har vært i gang lenger enn forventet, bør teamet undersøke hvorfor.',
+        visual: {
+          title: 'Samme start, forskjellig slutt',
+          frames: [
+            {
+              label: 'To oppgaver',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Alder – oppgaven pågår',
+                      text: 'Start mandag → torsdag nå: 3 dager',
+                    },
+                    {
+                      label: 'Syklustid – oppgaven er ferdig',
+                      text: 'Start mandag → onsdag ferdig: 2 dager',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Alder (Work Item Age)',
@@ -376,7 +430,7 @@ export const kanbanSessions: readonly MicroSession[] = [
             label:
               'Si seg enig med Kim. Test er flaskehalsen, og testeren må få beskjed om å jobbe raskere, slik at køen blir kortere.',
             feedback:
-              'Bare én oppgave er gammel. Den andre oppgaven i test er bare 2 dager gammel. Én forsinket oppgave er ikke bevis på at test er flaskehalsen, og enda mindre på at noen jobber for sakte. Kanskje venter oppgaven på en avklaring, eller den er blokkert av noe utenfor test.',
+              'Bare én oppgave er gammel. Den andre oppgaven i test er bare 2 dager gammel. Én forsinket oppgave forteller ikke hvor hele arbeidsflyten stopper opp eller hvor raskt noen jobber. Kanskje venter oppgaven på en avklaring, eller den er blokkert av noe utenfor test.',
           },
           {
             id: 'normalt',
@@ -454,7 +508,38 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Fire flytmål',
         role: 'explain',
         source: k04,
-        idea: 'Kanban er en måte å styre og forbedre flyten av arbeid på – fra en oppgave blir startet til den er ferdig. Kanban-team følger med på fire tall, såkalte flytmål. To av dem er antall (WIP og gjennomstrømning). To er tid (alder og syklustid).\nTallene er bare nyttige hvis de hjelper teamet å styre og forbedre arbeidet. Husk forskjellen: Å starte arbeid er ikke det samme som å levere det.',
+        idea: 'Å starte flere oppgaver er ikke det samme som å levere flere. Fire flytmål hjelper teamet å se hvordan arbeidet går.',
+        visual: {
+          title: 'Fire tall med ulik betydning',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'WIP',
+                      text: '3 oppgaver i gang akkurat nå',
+                    },
+                    {
+                      label: 'Gjennomstrømning',
+                      text: '5 oppgaver ferdige denne uka',
+                    },
+                    {
+                      label: 'Alder',
+                      text: 'En pågående oppgave har tatt 4 dager så langt',
+                    },
+                    {
+                      label: 'Syklustid',
+                      text: 'En ferdig oppgave tok 2 dager fra start til slutt',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'WIP (work in progress)',
@@ -566,7 +651,7 @@ export const kanbanSessions: readonly MicroSession[] = [
   {
     id: 'tsu-kanban-k05',
     title: 'Hvor lang tid vil arbeidet ta?',
-    summary: 'Gi et ærlig anslag med tid og sannsynlighet.',
+    summary: 'Anslå tiden med tidligere målinger.',
     minutes: 5,
     takeaway:
       'En tidsforventning har to deler: hvor lang tid og hvor sannsynlig. Den bygger på hvor lang tid tidligere oppgaver tok, og regnes fra oppgaven blir startet.\nDet er en forventning – ikke en frist eller et løfte.',
@@ -586,7 +671,29 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: '20 oppgaver',
         role: 'explain',
         source: k05,
-        idea: 'Et team har sett på syklustiden til de 20 siste oppgavene de fullførte. Her er antall dager for hver oppgave, sortert fra kortest til lengst:\n2 · 3 · 3 · 4 · 4 · 4 · 5 · 5 · 5 · 6 · 6 · 6 · 7 · 7 · 7 · 8 · 8 · 9 · 12 · 15\nGjennomsnittet er 6,3 dager.',
+        idea: 'Teamet har målt syklustiden til de siste 20 ferdige oppgavene. Tallene under er sortert fra kortest til lengst. Gjennomsnittet er 6,3 dager.',
+        visual: {
+          title: 'Dager fra start til ferdig',
+          frames: [
+            {
+              label: '20 oppgaver',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'Sorterte målinger',
+                  columns: ['Oppgave nr.', 'Dager'],
+                  rows: [
+                    ['1–4', '2 · 3 · 3 · 4'],
+                    ['5–8', '4 · 4 · 5 · 5'],
+                    ['9–12', '5 · 6 · 6 · 6'],
+                    ['13–16', '7 · 7 · 7 · 8'],
+                    ['17–20', '8 · 9 · 12 · 15'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to spørsmål om tallene.',
       },
       {
@@ -718,7 +825,38 @@ export const kanbanSessions: readonly MicroSession[] = [
         title: 'Forbedre flyten i fire steg',
         role: 'explain',
         source: k06,
-        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. I Kanban kan teamet:\n1. Se hvor arbeidet venter.\n2. Undersøke hvorfor.\n3. Prøve en tydelig endring.\n4. Sjekke om den hjalp.\nWIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Teamet må ha kontroll på alt som er startet, men ikke ferdig – ikke bare det som ligger i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
+        idea: 'Når arbeid hoper seg opp, trenger teamet å finne årsaken før det endrer reglene. WIP (work in progress) betyr arbeid som er startet, men ikke ferdig. Teamet må ha kontroll på alt som er startet, men ikke ferdig – ikke bare det som ligger i én kolonne. Det kan for eksempel gjøres med en samlet grense, men en grense som passer i ett steg, kan ikke automatisk gjenbrukes for hele flyten.',
+        visual: {
+          title: 'En forbedring i et supportteam',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Se',
+                      text: 'Saker blir liggende før godkjenning.',
+                    },
+                    {
+                      label: 'Undersøk',
+                      text: 'Bare én person kan godkjenne.',
+                    },
+                    {
+                      label: 'Prøv',
+                      text: 'Avtal at to personer kan godkjenne.',
+                    },
+                    {
+                      label: 'Sjekk',
+                      text: 'Sammenlign ventetiden før og etter.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en lang kø før test.',
       },
       {

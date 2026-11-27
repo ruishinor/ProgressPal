@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "module": "utviklerblikk-teaching-visuals-20261127",
+  "reviewer": "ChatGPT GPT-6.2 (same-session source review; no independent QA)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "340005b78f3f646af2b5d4efca36078d613766c7",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Expanded visual teaching examples across all 41 Utviklerblikk activities; focused editorial and technical review, not a completed full-area editorial pass.",
+    "evidence": [
+      "Inspected the existing learning data, domain contract, renderer and Git & GitHub visual approach.",
+      "Added structured examples on 42 existing Learn cards. Every activity has an example or existing Kanban board.",
+      "Compared 194 card IDs, types, order and answer identifier fields against the base, preserving assessment behavior. Targeted changes clarify Scrum accountability, Kanban interpretation and collaboration wording.",
+      "Initial candidate built and all three hosted E2E shards passed; Unit stage stopped on a single formatting issue. The expanded candidate adds a focused mobile/desktop keyboard, reflow and accessibility regression test; these new tests are not yet executed.",
+      "No new dependencies or changes to grading, XP, persistence, navigation or release gates.",
+      "Follow-up CI log review identified formatting failures; the exact correction is limited to expression wrapping, equivalent test-local variables and test names. No assertions, product behavior, dependencies or budgets changed. Manual source correction; locked Prettier and all remaining checks must run on GitHub."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "UBV-01",
+      "severity": "P2",
+      "description": "Expanded examples and focused browser regression have not yet been executed.",
+      "resolution": "Run hosted validation including desktop and enlarged mobile text, keyboard interaction and automated accessibility scan.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UBV-02",
+      "severity": "P2",
+      "description": "The full language and pedagogy pass over every practice card is unfinished.",
+      "resolution": "Keep as a draft development candidate; do not treat the whole learning-area assignment as complete.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "UBV-03",
+      "severity": "P2",
+      "description": "Additional inline teaching data can increase the build chunk.",
+      "resolution": "Measure using existing bundle budget gate; assess actual increase before any threshold decision.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to hosted validation of the expanded draft only. No final release certification or completed full-area review is claimed."
+  }
+}

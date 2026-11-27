@@ -119,7 +119,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Fire stikkord som hjelper deg',
           role: 'explain',
           source: a1,
-          idea: 'Disse fire stikkordene hjelper deg å holde ting fra hverandre.',
+          idea: 'Når noen ber om en app, spør først hva de trenger hjelp til. Her er fire begreper som skiller behovet fra forslaget.',
           definitions: [
             { term: 'Problem', text: 'det som ikke fungerer godt i dag.' },
             { term: 'Behov', text: 'det noen trenger å få til.' },
@@ -129,6 +129,37 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             },
             { term: 'Antakelse', text: 'noe vi tror, men ikke har sjekket.' },
           ],
+          visual: {
+            title: 'Før du bestemmer hva som skal bygges',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'Problem',
+                        text: 'Folk mister oversikten over vaktene sine.',
+                      },
+                      {
+                        label: 'Behov',
+                        text: 'Kunne se når de skal møte.',
+                      },
+                      {
+                        label: 'Mulig løsning',
+                        text: 'En felles vaktkalender.',
+                      },
+                      {
+                        label: 'Antakelse å sjekke',
+                        text: 'Alle har tilgang til kalenderen.',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: et treningssenter vil ha en app.',
         },
         {
@@ -290,6 +321,29 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
               text: 'egenskaper som svartid, sikkerhet, brukervennlighet og stabilitet. Eksempel: «Betalingen skal være ferdig innen fem sekunder.» Krav må kunne sjekkes, men trenger ikke alltid tall.',
             },
           ],
+          visual: {
+            title: 'To krav til en søketjeneste',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Funksjonelt',
+                        text: 'Brukeren skal kunne søke på et navn.',
+                      },
+                      {
+                        label: 'Ikke-funksjonelt',
+                        text: 'Søket skal svare innen ett sekund ved 100 samtidige brukere.',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: to krav om innlogging.',
         },
         {
@@ -489,7 +543,34 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Det systemet vet, og det systemet gjør',
           role: 'explain',
           source: a3,
-          idea: 'Informasjon er det systemet må vite og huske. «Gruppetime» med tid, sal og antall plasser er informasjon.\nEn funksjon er noe som gjøres med informasjonen. «Bestille gruppetime» er en funksjon.\nSpør: Hva må systemet vite? Og hva skal det gjøre med opplysningene?',
+          idea: 'Informasjon er det appen må vite eller huske. En funksjon er noe appen gjør. Se hvordan en funksjon bruker informasjonen i en treningsapp.',
+          visual: {
+            title: 'Fra informasjon til handling',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'Informasjon',
+                        text: 'Gruppetime: yoga, kl. 17, sal 2, 12 plasser',
+                      },
+                      {
+                        label: 'Funksjon',
+                        text: 'Bestill en plass',
+                      },
+                      {
+                        label: 'Ny informasjon',
+                        text: 'Én påmelding er registrert',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: en app for gruppetimer.',
         },
         {
@@ -658,7 +739,30 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Treningsappen mangler påmeldinger',
           role: 'explain',
           source: a4,
-          idea: 'Et treningssenter bruker en app som viser gruppetimer og lar medlemmer melde seg på.\nAppen henter timeplanen med navn, tid, sal og antall plasser. Påmeldingene, som viser hvem som deltar på hver time, hentes separat.\nEn morgen får appen hentet timeplanen, men ikke påmeldingene.',
+          idea: 'En treningsapp henter timeplanen og påmeldingene hver for seg. En morgen kommer bare timeplanen fram. Se hvilke opplysninger appen har, før du vurderer hva den kan vise.',
+          visual: {
+            title: 'To separate datakilder',
+            frames: [
+              {
+                label: 'Denne morgenen',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Timeplan – hentet',
+                        text: 'Navn, tid, sal og antall plasser',
+                      },
+                      {
+                        label: 'Påmeldinger – ikke hentet',
+                        text: 'Hvem som deltar på hver time',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: Hva tror du skjer?',
         },
         {
@@ -836,7 +940,38 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Ett trykk – mange steg',
           role: 'explain',
           source: a5,
-          idea: 'Biblioteket har et kveldsforedrag med 40 plasser. Ali trykker «Meld meg på».\nTrykket er en brukerhandling. Her sjekker appen plass og registrerer påmeldingen før den svarer. Dette er systematferd. Ali ser handlingen sin og svaret på skjermen, men ikke sjekken og registreringen bak.',
+          idea: 'Biblioteket har et foredrag med 40 plasser. Ali trykker «Meld meg på». Brukerhandlingen er det Ali gjør. Systematferden er det appen gjør som svar. Her er et eksempel på en vellykket påmelding.',
+          visual: {
+            title: 'Det Ali ser, og det som skjer bak',
+            frames: [
+              {
+                label: 'Én påmelding',
+                blocks: [
+                  {
+                    kind: 'flow',
+                    items: [
+                      {
+                        label: 'På skjermen',
+                        text: 'Ali trykker «Meld meg på»',
+                      },
+                      {
+                        label: 'I systemet',
+                        text: 'Sjekk ledig plass',
+                      },
+                      {
+                        label: 'I systemet',
+                        text: 'Registrer påmeldingen',
+                      },
+                      {
+                        label: 'På skjermen',
+                        text: 'Du er påmeldt',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: koble Alis handlinger til systemets svar.',
         },
         {
@@ -999,7 +1134,7 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
           title: 'Fire stikkord om hvordan arbeid organiseres',
           role: 'explain',
           source: a6,
-          idea: 'Disse fire stikkordene hjelper deg å holde arbeidet i et team fra hverandre.',
+          idea: 'Når et team planlegger arbeidet, er det nyttig å skille ansvar, deler av prosjektet, konkrete oppgaver og hvor langt de har kommet.',
           definitions: [
             { term: 'Rolle', text: 'hvem som har ansvar for noe.' },
             {
@@ -1009,6 +1144,37 @@ export const tenkSomEnUtviklerTrack: MicroTrack = {
             { term: 'Oppgave', text: 'et konkret arbeid som kan bli ferdig.' },
             { term: 'Status', text: 'hvor langt en oppgave har kommet.' },
           ],
+          visual: {
+            title: 'Et team lager et kontaktskjema',
+            frames: [
+              {
+                label: 'Eksempel',
+                blocks: [
+                  {
+                    kind: 'compare',
+                    items: [
+                      {
+                        label: 'Rolle',
+                        text: 'Utvikler',
+                      },
+                      {
+                        label: 'Fase',
+                        text: 'Utvikling',
+                      },
+                      {
+                        label: 'Oppgave',
+                        text: 'Lage e-postfelt',
+                      },
+                      {
+                        label: 'Status',
+                        text: 'Pågår',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
           bridge: 'Neste: et team lager en bestillingsapp.',
         },
         {

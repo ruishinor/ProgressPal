@@ -15,7 +15,27 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-01-ide',
         title: 'Hvem har meldt seg på?',
         role: 'explain',
-        idea: 'Et ungdomshus trenger oversikt over deltakere og påmeldingene deres til verksteder. En database lagrer opplysninger slik at appen kan finne og endre dem. MySQL er et databasesystem; SQL er språket appen bruker for å be det om noe.\nEn tabell samler opplysninger om én type ting. I tabellen deltakere er hver rad én person. Kolonnene id, navn og alder forteller hva hvert felt betyr. To personer kan hete Ada, så navnet alene er ikke nok til å finne riktig person.',
+        idea: 'En database lagrer opplysninger slik at appen kan hente og endre dem. MySQL er et databasesystem; SQL er språket appen bruker for å be det om noe. En tabell består av rader og kolonner. Her er hver rad én person. To personer kan ha samme navn.',
+        visual: {
+          title: 'Tabellen deltakere',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'deltakere',
+                  columns: ['id', 'navn', 'alder'],
+                  rows: [
+                    ['1', 'Ada', '18'],
+                    ['2', 'Ada', '23'],
+                    ['3', 'Bo', '21'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Se hvordan en påmelding peker på én bestemt deltaker.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -28,7 +48,48 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-01-kobling',
         title: 'To ulike ID-er',
         role: 'explain',
-        idea: 'En primærnøkkel er en verdi som identifiserer én rad, uten duplikater eller manglende verdi. I deltakere er kolonnen id primærnøkkelen.\nPåmeldingene ligger i en egen tabell, pameldinger. Hver påmelding har sin egen id. Kolonnen deltaker_id lagrer ID-en til personen som meldte seg på. Dette er en fremmednøkkel (foreign key) som viser til deltakere.id. Flere påmeldinger kan vise til samme person.\nNotasjonen deltakere.id betyr «kolonnen id i tabellen deltakere». Påmeldingens id og deltakerens id identifiserer ulike ting.',
+        idea: 'En primærnøkkel identifiserer hver rad entydig. Påmeldingens id er ikke deltakerens id. Kolonnen deltaker_id er en fremmednøkkel (foreign key) som viser til deltakere.id. Flere påmeldinger kan vise til den samme personen. Notasjonen deltakere.id betyr kolonnen id i tabellen deltakere.',
+        visual: {
+          title: 'Følg deltaker_id, ikke påmeldingens id',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'deltakere',
+                  columns: ['id', 'navn'],
+                  rows: [
+                    ['1', 'Ada'],
+                    ['2', 'Bo'],
+                  ],
+                },
+                {
+                  kind: 'table',
+                  label: 'pameldinger',
+                  columns: ['id', 'deltaker_id', 'aktivitet'],
+                  rows: [
+                    ['101', '1', 'SQL'],
+                    ['102', '1', 'Web'],
+                  ],
+                },
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'pameldinger.deltaker_id = 1',
+                      text: 'Begge påmeldingene peker til samme person',
+                    },
+                    {
+                      label: 'deltakere.id = 1',
+                      text: 'Ada',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Bruk deltaker_id for å finne personen bak påmelding 102.',
         source: {
@@ -193,7 +254,42 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-02-vilkar',
         title: 'Begge grensene må gjelde',
         role: 'explain',
-        idea: 'Ungdomshuset vil kontakte deltakere fra 18 til og med 25 år. alder >= 18 tar bort dem under 18. alder <= 25 tar bort dem over 25. AND betyr at begge må stemme for samme rad.\nOR betyr at minst ett vilkår er nok. En 30-åring oppfyller «minst 18» og blir derfor med hvis grensene kobles med OR.\nORDER BY alder ASC sorterer treffene fra lavest til høyest alder. Uten ORDER BY er rekkefølgen ikke garantert. Semikolonet avslutter kommandoen i eksemplene.',
+        idea: 'Ungdomshuset vil kontakte deltakere fra 18 til og med 25 år. AND krever at begge vilkårene stemmer for samme rad. OR krever bare at ett stemmer. Sammenlign resultatene. ORDER BY alder ASC sorterer fra lavest til høyest; uten ORDER BY er rekkefølgen ikke garantert.',
+        visual: {
+          title: 'Samme rader, ulike vilkår',
+          frames: [
+            {
+              label: 'AND – begge',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'alder >= 18 AND alder <= 25',
+                  columns: ['Alder', 'Med?'],
+                  rows: [
+                    ['16', 'Nei'],
+                    ['21', 'Ja'],
+                    ['30', 'Nei'],
+                  ],
+                },
+              ],
+            },
+            {
+              label: 'OR – minst ett',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'alder >= 18 OR alder <= 25',
+                  columns: ['Alder', 'Med?'],
+                  rows: [
+                    ['16', 'Ja'],
+                    ['21', 'Ja'],
+                    ['30', 'Ja'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Bygg spørringen som finner navnene innenfor begge grenser.',
         source: {
@@ -351,6 +447,33 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
           code: "INSERT INTO pameldinger\n  (id, deltaker_id, aktivitet, status)\nVALUES (104, 3, 'Web', 'ja');",
           note: 'Dette legger til påmelding 104 for deltaker 3. Tekst som Web og ja står i enkle anførselstegn; tallene er ID-er.',
         },
+        visual: {
+          title: 'Tre måter å endre en tabell på',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'INSERT',
+                      text: 'Legg til en ny bestilling.',
+                    },
+                    {
+                      label: 'UPDATE',
+                      text: 'Endre status på en bestilling.',
+                    },
+                    {
+                      label: 'DELETE',
+                      text: 'Fjern en bestilling.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Avgrens en endring til én bestemt påmelding.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -498,7 +621,44 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-04-ide',
         title: 'Navn og påmelding ligger hver for seg',
         role: 'explain',
-        idea: 'Et ungdomshus vil vise navnet til personen bak hver påmelding. Databasen har to tabeller: deltakere har én rad per person med unik id og navn. pameldinger har én rad per påmelding med egen id, deltaker_id og aktivitet. deltaker_id lagrer ID-en til personen påmeldingen gjelder.\nSQL er språket for å spørre databasen. INNER JOIN kobler hver deltakerrad til hver påmeldingsrad som passer et ON-vilkår. Her må deltakerens id være lik påmeldingens deltaker_id. To påmeldinger for samme person gir to treff. Begge påmeldingene kommer med.',
+        idea: 'To tabeller lagrer navn og påmeldinger hver for seg. INNER JOIN kobler hver deltakerrad til hver påmeldingsrad som passer ON-vilkåret. Her må deltakernes id være lik påmeldingens deltaker_id. En person med to påmeldinger gir to resultatrader.',
+        visual: {
+          title: 'INNER JOIN på id = deltaker_id',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'deltakere',
+                  columns: ['id', 'navn'],
+                  rows: [
+                    ['1', 'Ada'],
+                    ['2', 'Bo'],
+                  ],
+                },
+                {
+                  kind: 'table',
+                  label: 'pameldinger',
+                  columns: ['deltaker_id', 'aktivitet'],
+                  rows: [
+                    ['1', 'SQL'],
+                    ['1', 'Web'],
+                  ],
+                },
+                {
+                  kind: 'table',
+                  label: 'Resultat: navn og aktivitet',
+                  columns: ['navn', 'aktivitet'],
+                  rows: [
+                    ['Ada', 'SQL'],
+                    ['Ada', 'Web'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: Les SQL-navnene for denne koblingen.',
         source: {
           moduleId: 'tenk-som-en-utvikler',
@@ -602,7 +762,41 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-04-uten-treff',
         title: 'Hvordan finne dem uten treff?',
         role: 'explain',
-        idea: 'LEFT JOIN beholder alle radene fra tabellen etter FROM, også dem uten treff i tabellen etter LEFT JOIN. Ved manglende treff får kolonnene fra den siste tabellen verdien NULL, som markerer at en verdi mangler.\nEn person med to påmeldinger får fortsatt to rader. En person uten påmelding får én rad med NULL i påmeldingsnummeret. WHERE filtrerer svaret; IS NULL kan velge nettopp radene der påmeldingsnummeret mangler.',
+        idea: 'LEFT JOIN beholder alle radene fra tabellen etter FROM, også dem som ikke har treff i tabellen etter LEFT JOIN. Ved manglende treff får kolonnene fra den andre tabellen verdien NULL. For å finne radene uten treff kan WHERE sjekke IS NULL på en kolonne som ellers aldri er NULL, som påmeldingens id.',
+        visual: {
+          title: 'INNER JOIN og LEFT JOIN',
+          frames: [
+            {
+              label: 'INNER JOIN',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'To deltakere, Ada har to påmeldinger',
+                  columns: ['navn', 'aktivitet'],
+                  rows: [
+                    ['Ada', 'SQL'],
+                    ['Ada', 'Web'],
+                  ],
+                },
+              ],
+            },
+            {
+              label: 'LEFT JOIN',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'Samme deltakere og påmeldinger',
+                  columns: ['navn', 'aktivitet'],
+                  rows: [
+                    ['Ada', 'SQL'],
+                    ['Ada', 'Web'],
+                    ['Bo', 'NULL'],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Bruk fraværet av en kobling til å finne en kunde uten ordre.',
         source: {
@@ -663,7 +857,40 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-05-ide',
         title: 'Teller vi personer eller adresser?',
         role: 'explain',
-        idea: 'Et ungdomshus trenger å vite både hvor mange deltakere som er registrert, og hvor mange e-postadresser som er oppgitt. Tabellen deltakere har én rad per person. Kolonnen epost inneholder adressen, eller NULL hvis adressen mangler. NULL er ikke tallet null og heller ikke teksten «NULL».\nSQL er språket for å spørre databasen. SELECT COUNT(*) FROM deltakere teller alle radene. COUNT(epost) teller bare radene som har en verdi i epost. Det betyr ikke at adressene er kontrollert eller kan motta e-post.',
+        idea: 'NULL betyr at en verdi mangler. Det er ikke tallet 0 eller teksten «NULL». COUNT(*) teller alle rader, mens COUNT(epost) bare teller rader med en verdi i epost. Det sier ikke om adressene virker.',
+        visual: {
+          title: 'Tre personer, to oppgitte adresser',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'table',
+                  label: 'deltakere',
+                  columns: ['id', 'epost'],
+                  rows: [
+                    ['1', 'ada@example.com'],
+                    ['2', 'NULL'],
+                    ['3', 'bo@example.com'],
+                  ],
+                },
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'COUNT(*)',
+                      text: '3',
+                    },
+                    {
+                      label: 'COUNT(epost)',
+                      text: '2',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Sammenlign antall personer med antall oppgitte adresser.',
         source: {
@@ -882,7 +1109,64 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-06-angre',
         title: 'Kontroller før endringen blir endelig',
         role: 'explain',
-        idea: 'Panelet skal fjerne en feilregistrert påmelding. DELETE fjerner radene som passer WHERE. En transaksjon lar deg kontrollere radendringer før de blir endelige. START TRANSACTION åpner den, COMMIT gjør endringene endelige, og ROLLBACK avbryter før COMMIT.\nEksemplet bruker MySQL med InnoDB-tabeller, som støtter dette. Vanlig DROP TABLE fjerner selve tabellen og kan ikke angres med denne oppskriften.\nNår automatisk lagring er på utenfor en transaksjon, blir hver radendring endelig med en gang.',
+        idea: 'I MySQL med InnoDB-tabeller kan du åpne en transaksjon og kontrollere radendringer før de blir endelige. COMMIT gjør endringene endelige. ROLLBACK avbryter endringene før COMMIT. Vanlig DROP TABLE kan ikke angres på denne måten. Med autocommit på blir radendringer utenfor en åpen transaksjon endelige når kommandoen lykkes.',
+        visual: {
+          title: 'To mulige avslutninger på en transaksjon',
+          frames: [
+            {
+              label: 'Behold endringen',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'START TRANSACTION',
+                      text: 'Åpne en transaksjon',
+                    },
+                    {
+                      label: 'UPDATE',
+                      text: 'Endre status på en valgt påmelding',
+                    },
+                    {
+                      label: 'SELECT',
+                      text: 'Sjekk den nye statusen',
+                    },
+                    {
+                      label: 'COMMIT',
+                      text: 'Behold endringen',
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              label: 'Angre endringen',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'START TRANSACTION',
+                      text: 'Åpne en transaksjon',
+                    },
+                    {
+                      label: 'UPDATE',
+                      text: 'Endre status på en valgt påmelding',
+                    },
+                    {
+                      label: 'SELECT',
+                      text: 'Sjekk den nye statusen',
+                    },
+                    {
+                      label: 'ROLLBACK',
+                      text: 'Angre radendringen',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge:
           'Neste: Legg resultatkontrollen mens slettingen fortsatt kan avbrytes.',
         source: {
@@ -933,7 +1217,7 @@ export const sqlMysqlSessions: readonly MicroSession[] = [
         id: 'tsu-sql-06-parametre',
         title: 'Hvem får bestemme vilkåret?',
         role: 'explain',
-        idea: 'Et navnesøk må også beholde riktig utvalg. Limes søketekst inn i SQL, kan anførselstegn i teksten endre kommandoen: SQL-injeksjon.\nParameterbinding betyr at appen sender SQL-mønster og søkeverdi separat til databasebiblioteket, koden som kommuniserer med databasen. Biblioteket behandler verdien som data. I neste eksempel viser ? plassen for verdien. Tegnet avhenger av biblioteket; det er ingen ferdig verdi i MySQL-konsollen.',
+        idea: 'Et navnesøk må også beholde riktig utvalg. Hvis appen setter søketeksten direkte inn i SQL-kommandoen, kan spesialtegn endre kommandoen. Det kalles SQL-injeksjon.\nParameterbinding betyr at appen sender SQL-mønster og søkeverdi separat til databasebiblioteket, koden som kommuniserer med databasen. Biblioteket behandler verdien som data. I neste eksempel viser ? plassen for verdien. Tegnet avhenger av biblioteket; det er ingen ferdig verdi i MySQL-konsollen.',
         bridge: 'Neste: Bevar skillet mellom søkeverdi og SQL i en butikkapp.',
         source: {
           moduleId: 'tenk-som-en-utvikler',

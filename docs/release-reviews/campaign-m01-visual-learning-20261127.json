@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "module": "campaign-m01-visual-learning-20261127",
+  "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "f586ba66a23bcf3db55d22fd888302aca66c4aa2",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Campaign M01 visual and scoped presentation-language revision; draft, not a full authoring-source upgrade.",
+    "evidence": [
+      "Inspected committed M01: 23 units, 327 flow blocks, 152 exercise prompts, choices, hints and ordinary feedback. Full evaluator-diagnostic and browser visual inspection remain outstanding.",
+      "23 contextual examples (seven selectable) and 124 source-pinned learner-prose replacements. Original exercises, answers, identifiers, hashes, positions and progression remain unchanged. New component and browser regression checks, not yet run on this payload.",
+      "Initial run 46071603686 passed all three E2E shards but failed formatting. Run 46073104442 passed formatting, lint, typecheck and build but failed JS gzip budget (487252 > 485000). Moved visuals to a SHA-256-addressed offline presentation asset and compacted editorial keys. Both budget limits unchanged. Await fresh hosted checks.",
+      "Repository history and prior release artifacts do not contain the complete pinned producer input. Source SHA remains unchanged; source-scoped presentation fallback avoids generated-content edits. The earlier three-module ZIP is not a substitute.",
+      "Follow-up source review confirmed the visual loader checks the pinned SHA-256 and falls back to the original lesson. Corrected the contradictory review status to allow mandatory hosted measurement; no code or budget limit changed.",
+      "Run 46075518288 reached lint/format and real E2E. Unit stopped on three format warnings; E2E found a stale match prompt. Compared the exact M01 original strings and all existing E2E literal selectors against the presentation overrides; corrected the matching prompt, the changed reflection prompt and the changed incorrect-answer feedback assertion. Kept the keyboard, outcome, XP and persistence assertions. Other two interrupted browser tests were not confirmed failures. Fresh hosted format and budget checks remain required.",
+      "Run 46076766284 confirmed the updated match and reflection selectors pass; the incorrect-answer feedback assertion was mistakenly changed for a different source string. Actual wrong-choice feedback is unchanged, as the browser log shows. Restored the original exact substring assertion (also removes the remaining overlong formatting line). XP and persistence assertions unchanged. Fresh validation required."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "M01-V1",
+      "severity": "P2",
+      "description": "Abstract code, terminal location, file versions and error timing are hard to distinguish in prose.",
+      "resolution": "Use existing visual renderer for contextual diagrams and selectable examples.",
+      "status": "resolved"
+    },
+    {
+      "id": "M01-V2",
+      "severity": "P2",
+      "description": "The external producer snapshot cannot be reproduced from available GitHub resources alone.",
+      "resolution": "Keep generated artifacts intact, use an exact-source presentation-only overlay, and retain this as a draft rather than claim a complete canonical revision.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M01-V3",
+      "severity": "P3",
+      "description": "Presentation overrides could drift or change exercise semantics.",
+      "resolution": "The source SHA must match; non-security 64-bit fingerprint plus length is verified unique among all distinct source strings by a regression test. Exercise objects are untouched. Missing or mismatched visual asset falls back to original teaching blocks.",
+      "status": "resolved"
+    },
+    {
+      "id": "M01-V4",
+      "severity": "P3",
+      "description": "Initial release unit stage failed formatting.",
+      "resolution": "Typed visual helper passed formatting in second run; fresh checks required for current payload.",
+      "status": "resolved"
+    },
+    {
+      "id": "M01-V5",
+      "severity": "P2",
+      "description": "The prior candidate exceeded the JS gzip budget; the new asset-based remediation has not yet been measured.",
+      "resolution": "Accept only the risk of a failed validation run on this draft. The unchanged bundle budget gate must measure the new content-addressed visual asset and compact keys before release. A budget overrun is not accepted.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Proceed to hosted validation only; retain draft. No acceptance of an exceeded bundle limit, no completed editorial review, and no production authorization."
+  }
+}

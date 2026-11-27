@@ -25,7 +25,38 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Sprinter: lære tidlig',
         role: 'explain',
         source: s01,
-        idea: 'Det er ofte vanskelig å vite nøyaktig hva brukerne trenger før de har fått prøve noe. Det gjelder også når alle har gjort sitt beste for å forklare det.\nDerfor jobber Scrum – en måte å organisere teamarbeid på, i små steg – i sprinter. En sprint er en fast periode på én måned eller mindre, ofte to uker. I hver sprint lager teamet et inkrement: en ferdig del av produktet som faktisk kan brukes og prøves.\nHver sprint har et sprintmål: én tydelig grunn til at akkurat denne sprinten er verdt å gjennomføre. Det gir teamet felles fokus.\nMot slutten av hver sprint ser teamet og de som skal bruke produktet, på resultatet sammen. Jo kortere sprintene er, desto oftere får teamet mulighet til å lære og justere retningen.',
+        idea: 'Scrum deler arbeidet inn i sprinter på én måned eller mindre, ofte to uker. Teamet jobber mot et sprintmål og lager minst ett brukbart inkrement – en ferdig del av produktet. Ved Sprint Review ser teamet og interessentene på resultatet og hva som bør skje videre. Korte sprinter gir hyppige muligheter til å lære.',
+        visual: {
+          title: 'Eksempel: en app utvikles over to sprinter',
+          frames: [
+            {
+              label: 'To sprinter',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Sprint 1',
+                      text: 'Lag en brukbar bestilling',
+                    },
+                    {
+                      label: 'Sprint Review',
+                      text: 'Se hvordan bestillingen fungerer i praksis',
+                    },
+                    {
+                      label: 'Tilpass Product Backlog',
+                      text: 'Endre hva som er viktigst videre',
+                    },
+                    {
+                      label: 'Sprint 2',
+                      text: 'Bygg neste brukbare del',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Inspeksjon',
@@ -95,7 +126,7 @@ export const scrumSessions: readonly MicroSession[] = [
         correctId: 'bruke',
         hint: 'Hva skjedde fordi trenerne fikk prøve appen etter bare to uker? Tenk på hva som kunne ha skjedd hvis de først hadde fått se den etter et halvt år.',
         explanation:
-          'Teamet bruker den nye kunnskapen der den hører hjemme: Produktbackloggen blir oppdatert, og neste sprint planlegges ut fra det teamet nå vet. Teamet kunne ikke vite hvordan trenerne bruker hallen før trenerne fikk noe ekte å prøve. Fordi sprinten var kort og ga et brukbart resultat, ble misforståelsen oppdaget etter to uker i stedet for etter flere måneder. Men det hjelper bare hvis teamet faktisk endrer noe: Å se på resultatet uten å tilpasse seg, er meningsløst.',
+          'Teamet bruker den nye kunnskapen der den hører hjemme: Produktbackloggen blir oppdatert, og neste sprint planlegges ut fra det teamet nå vet. Teamet kunne ha undersøkt hvordan trenerne bruker hallen tidligere. Da trenerne fikk prøve appen, ble behovet tydelig. Fordi sprinten var kort og ga et brukbart resultat, ble misforståelsen oppdaget etter to uker i stedet for etter flere måneder. Men det hjelper bare hvis teamet faktisk endrer noe: Bruk det dere lærer til å justere planen.',
       },
       {
         kind: 'select',
@@ -160,9 +191,36 @@ export const scrumSessions: readonly MicroSession[] = [
           },
           {
             term: 'Scrum Master',
-            text: 'har ansvar for at teamet forstår og bruker Scrum, og for at teamet jobber effektivt. Scrum Master veileder teamet og sørger for at hindringer blir fjernet. Scrum Master er ikke prosjektleder og ikke sjef for teamet.',
+            text: 'har ansvar for at teamet forstår og bruker Scrum, og for at teamet jobber effektivt. Scrum Master veileder teamet og hjelper til med å få hindringer fjernet. Scrum Master er ikke prosjektleder og ikke sjef for teamet.',
           },
         ],
+        visual: {
+          title: 'Et team lager en reiseapp',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Product Owner',
+                      text: 'Prioriterer billettkjøp foran reisestatistikk.',
+                    },
+                    {
+                      label: 'Developers',
+                      text: 'Planlegger, bygger og tester billettkjøpet.',
+                    },
+                    {
+                      label: 'Scrum Master',
+                      text: 'Hjelper teamet å løse hindringer i samarbeidet.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to ledere vil ha hver sin ting først.',
       },
       {
@@ -231,7 +289,7 @@ export const scrumSessions: readonly MicroSession[] = [
             label:
               'Scrum Master må selv ordne tilgangen og fortelle Sara hva Sara skal jobbe med i mellomtiden, så teamet ikke mister tid.',
             feedback:
-              'Scrum Master har ansvar for at hindringen blir fjernet, men trenger ikke å gjøre alt selv. Å fortelle Sara hva Sara skal jobbe med, er dessuten å styre utviklerne som en prosjektleder. I Scrum planlegger utviklerne sitt eget arbeid.',
+              'Scrum Master har ansvar for å bidra til at hindringen blir fjernet, men trenger ikke å gjøre alt selv. Å fortelle Sara hva Sara skal jobbe med, er dessuten å styre utviklerne som en prosjektleder. I Scrum planlegger utviklerne sitt eget arbeid.',
           },
           {
             id: 'produkteier',
@@ -243,7 +301,7 @@ export const scrumSessions: readonly MicroSession[] = [
           {
             id: 'hindring',
             label:
-              'Scrum Master har ansvar for at hindringen blir fjernet, men utviklerne bestemmer selv hvordan de justerer planen.',
+              'Scrum Master har ansvar for å bidra til at hindringen blir fjernet, men utviklerne bestemmer selv hvordan de justerer planen.',
           },
         ],
         correctId: 'hindring',
@@ -271,7 +329,7 @@ export const scrumSessions: readonly MicroSession[] = [
         definitions: [
           {
             term: 'Sprint Planning (starten av sprinten)',
-            text: 'Hele teamet blir enige om hvorfor sprinten er verdifull (sprintmålet), hva de skal ta med, og hvordan arbeidet skal gjøres.',
+            text: 'Hele Scrum-teamet lager sprintmålet sammen. Utviklerne velger arbeidet i samråd med produkteieren og planlegger hvordan det skal gjøres.',
           },
           {
             term: 'Daily Scrum (hver arbeidsdag, maks 15 minutter)',
@@ -286,6 +344,37 @@ export const scrumSessions: readonly MicroSession[] = [
             text: 'Teamet ser på hvordan de har jobbet – samarbeid, verktøy og arbeidsmåter – og velger forbedringer.',
           },
         ],
+        visual: {
+          title: 'En sprint i praksis',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Sprint Planning',
+                      text: 'Avtal målet: søke etter ledige togavganger.',
+                    },
+                    {
+                      label: 'Daily Scrum',
+                      text: 'Juster planen hver arbeidsdag.',
+                    },
+                    {
+                      label: 'Sprint Review',
+                      text: 'Prøv søket sammen med reisende og diskuter neste steg.',
+                    },
+                    {
+                      label: 'Sprint Retrospective',
+                      text: 'Avtal en forbedring av arbeidsmåten.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: to temaer på siste dag i en sprint.',
       },
       {
@@ -366,7 +455,7 @@ export const scrumSessions: readonly MicroSession[] = [
         correctId: 'planning',
         hint: 'Skal teamet planlegge en hel sprint, eller justere planen underveis?',
         explanation:
-          'Sprint Planning starter sprinten. Hele teamet blir enige om sprintmålet og hva de skal ta med. Produkteieren kan forklare hvorfor allergenvisningen er viktig, og utviklerne vurderer hva de kan få ferdig.',
+          'Sprint Planning starter sprinten. Hele teamet lager sprintmålet. Produkteieren forklarer hvorfor allergenvisningen er viktig, og utviklerne velger arbeidet i samråd med produkteieren.',
       },
       {
         kind: 'select',
@@ -432,6 +521,37 @@ export const scrumSessions: readonly MicroSession[] = [
             text: 'sprintmålet, elementene som er valgt fra produktbackloggen, og utviklernes plan for hvordan de skal lage dem.',
           },
         ],
+        visual: {
+          title: 'Fra produktmål til arbeid i sprinten',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'flow',
+                  items: [
+                    {
+                      label: 'Produktmål',
+                      text: 'Kunder kan bestille en reise på nett.',
+                    },
+                    {
+                      label: 'Produktbacklog',
+                      text: 'Søk, billettvalg, betaling, kvittering.',
+                    },
+                    {
+                      label: 'Sprintmål',
+                      text: 'Kunder finner avganger på ønsket dato.',
+                    },
+                    {
+                      label: 'Sprintbacklog',
+                      text: 'Målet, valgte søkeoppgaver og utviklernes plan.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         bridge: 'Neste: en app for skolebiblioteket.',
       },
       {
@@ -534,7 +654,30 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Hva betyr «ferdig»?',
         role: 'explain',
         source: s05,
-        idea: 'Scrum er en måte å organisere teamarbeid på, i korte perioder som kalles sprinter. I Scrum er et inkrement en ferdig, brukbar del av produktet. Det skal fungere sammen med alt som er laget før.\nFor at alle skal mene det samme med «ferdig», har Scrum-teamet en Definition of Done. Det er en felles beskrivelse av hvilke krav til kvalitet som må være oppfylt, for eksempel at koden er gjennomgått og testet. Noen organisasjoner har en felles Definition of Done for alle team. Ellers lager Scrum-teamet sin egen.\nRegelen er enkel: Når et arbeid oppfyller Definition of Done, er det et inkrement. Når det ikke gjør det, er det ikke ferdig. Det kan hverken leveres eller vises i Sprint Review.',
+        idea: 'Et inkrement er en ferdig, brukbar del av produktet som fungerer sammen med det som allerede er laget. Definition of Done (DoD) er kravene til kvalitet som må være oppfylt. Hvis organisasjonen har en felles DoD, må teamet minst følge den. Ellers lager Scrum-teamet sin egen. Arbeid som ikke oppfyller DoD, er ikke del av inkrementet og kan ikke leveres eller vises i Sprint Review.',
+        visual: {
+          title: 'Samme funksjon, to ulike tilstander',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Ikke ferdig',
+                      text: 'Koden virker lokalt. Avtalt testing mangler.',
+                    },
+                    {
+                      label: 'Ferdig',
+                      text: 'Koden virker, alle avtalte kvalitetskrav er oppfylt.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Sprint Review',
@@ -653,7 +796,34 @@ export const scrumSessions: readonly MicroSession[] = [
         title: 'Regler når noe endrer seg',
         role: 'explain',
         source: s06,
-        idea: 'Scrum er en måte å organisere teamarbeid på, i sprinter – faste perioder på én måned eller mindre, ofte to uker. Det skjer ofte at noe endrer seg midt i en sprint. Scrum har noen tydelige regler for hvordan teamet skal håndtere det:\n• Teamet gjør ingen endringer som setter sprintmålet i fare. Sprintmålet er grunnen til at sprinten er verdifull.\n• Kvaliteten skal ikke bli dårligere.\n• Hvis arbeidet viser seg å bli annerledes enn ventet, kan utviklerne og produkteieren forhandle om hva som skal være med i sprinten – så lenge sprintmålet ikke påvirkes.\n• Hvis sprintmålet ikke lenger gir mening, kan sprinten avbrytes. Bare produkteieren kan avbryte en sprint.\nSprintmålet beskriver hva teamet vil oppnå, ikke nøyaktig hvilke oppgaver som skal gjøres. Det gir rom for å justere detaljene.',
+        idea: 'Når arbeidet endrer seg midt i sprinten, kan utviklerne og Product Owner avklare og forhandle om omfanget. De må ikke sette sprintmålet i fare eller senke kvaliteten. Hvis sprintmålet blir utdatert, kan bare Product Owner avbryte sprinten.',
+        visual: {
+          title: 'Hva kan endres i en sprint?',
+          frames: [
+            {
+              label: 'Eksempel',
+              blocks: [
+                {
+                  kind: 'compare',
+                  items: [
+                    {
+                      label: 'Mål',
+                      text: 'Brukeren kan bestille en time. Beskyttes.',
+                    },
+                    {
+                      label: 'Kvalitet',
+                      text: 'Avtalte krav til ferdig arbeid. Beholdes.',
+                    },
+                    {
+                      label: 'Detaljer',
+                      text: 'For eksempel ekstra filtre. Kan justeres med Product Owner.',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
         definitions: [
           {
             term: 'Produkteieren',

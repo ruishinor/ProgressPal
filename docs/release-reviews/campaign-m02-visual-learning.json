@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 2,
+  "module": "campaign-m02-visual-learning",
+  "reviewer": "ChatGPT, implementer self-review (owner-authorized)",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "5cdd3099e33743a39e09531ed41229f8c1ee04ea",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "M02 product presentation, source alignment, exercise identity and visual models; exact candidate hosted verification still required.",
+    "evidence": [
+      "Compared the uploaded seven-module source with the pinned SHA-256 70438bd924141500ebb636b69f74a578f58c1b37f7a152fa073349bce50b60bb.",
+      "Inspected the existing Git teaching renderer, M02 curriculum and 139 exercises. Replayed the recorded M02 authoring DSL cache; the 63 initial revision targets matched the pinned source. Full external producer regeneration not performed.",
+      "Verified all 86 product presentation fields and all 21 visual anchors against the unchanged packaged M02 JSON. Corrected duplicate card labels in two diagrams.",
+      "Scoped implementation uses the same renderer in both shells; exercise feedback and hints are applied only to their presentation, not evaluation or storage. Added source-binding, nonmutation, renderer interaction and browser journey tests; not executed locally.",
+      "Follow-up CI log review identified formatting failures; the exact correction is limited to expression wrapping, equivalent test-local variables and test names. No assertions, product behavior, dependencies or budgets changed. Manual source correction; locked Prettier and all remaining checks must run on GitHub.",
+      "Run 46075475806 passed formatting and all E2E shards, then stopped on JS gzip 487068/485000. Moved only the 21 unchanged visual models to a SHA-256-addressed same-origin asset in the offline list, following M01's asset pattern. Exact anchor matching retained, no new dependencies or budget edits. Asset hash independently checked against the known M01 asset and a standard hash vector; regression tests retain anchor and interaction checks and verify the packaged hash/offline manifest. Both actual curriculum and JS budgets must pass in the next run."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "M02-01",
+      "severity": "P1",
+      "description": "Editing an exported exercise's prose changes its content hash and can make earlier correct answers stale.",
+      "resolution": "Use an exact-source-bound presentation-only layer; keep evaluator inputs, IDs, packaged assets, hashes and persistence unchanged.",
+      "status": "resolved"
+    },
+    {
+      "id": "M02-02",
+      "severity": "P2",
+      "description": "Two visual frames repeated labels used as React keys.",
+      "resolution": "Use distinct descriptive labels and assert their uniqueness in the focused test.",
+      "status": "resolved"
+    },
+    {
+      "id": "M02-03",
+      "severity": "P2",
+      "description": "Full external producer reproduction requires the frozen historic skill graph, absent in the provided archive.",
+      "resolution": "Do not regenerate or claim a canonical external authoring export. Product presentation is a scoped overlay on the verified existing export; preserve every source asset. Future source revision can retire exact-matched overrides.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M02-04",
+      "severity": "P2",
+      "description": "Build size, browser behaviour and complete release check not measured in this chat environment.",
+      "resolution": "Submit the exact candidate to the unchanged hosted release gate; merge only after required checks pass and no material issue remains.",
+      "status": "accepted-risk"
+    },
+    {
+      "id": "M02-04",
+      "severity": "P2",
+      "description": "Previous candidate exceeded total JavaScript gzip cap by 2068 bytes.",
+      "resolution": "Package visual content separately in the existing curriculum asset class, load only in M02 with digest verification, preserve fallback and offline list. No budget limit change. Await measurements for both budgets; no acceptance of a failed gate.",
+      "status": "accepted-risk"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Scoped source-level review supports submission to the existing hosted release gate, not a declaration of a successful build or production readiness."
+  }
+}
