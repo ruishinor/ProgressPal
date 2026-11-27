@@ -41,6 +41,7 @@ import {
 import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
+import { campaignM02Copy } from './campaignM02Copy';
 import { campaignM02VisualFor } from './campaignM02Visuals';
 import { ExerciseCard } from './ExerciseCard';
 import { gitVisualFor } from './gitVisuals';
@@ -762,7 +763,14 @@ function LessonSurface({
                     })()
                   ) : (
                     <LessonTextBlockView
-                      block={step.block}
+                      block={
+                        programmeId === 'programvareutvikling'
+                          ? campaignM02Copy(
+                              `${step.unitId}:${unit.flow.indexOf(step.block)}`,
+                              step.block,
+                            )
+                          : step.block
+                      }
                       context={context}
                       copy={copy}
                       visual={
