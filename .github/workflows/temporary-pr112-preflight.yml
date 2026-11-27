@@ -1,0 +1,38 @@
+name: Temporary consolidated PR112 preflight
+on:
+  pull_request:
+    branches:
+      - fix/git-m01-staging-reference
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Consolidated checks
+        run: |
+          failed=0
+          check() {
+            echo "::group::$*"
+            if "$@"; then echo "PREFLIGHT PASS: $*"; else echo "PREFLIGHT FAIL: $*"; failed=1; fi
+            echo "::endgroup::"
+          }
+          check node scripts/git-github-content.mjs --check
+          check npm run format:check
+          check npm run lint
+          check npm run typecheck
+          check node --test scripts/bundle-budget-utils.test.mjs
+          check npm run build
+          check npm run check:bundle
+          check npm test -- --bail=0
+          check npm run check:circular
+          exit "$failed"
