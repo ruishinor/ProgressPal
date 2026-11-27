@@ -109,9 +109,7 @@ function Preformatted({
         </p>
       )}
       <pre tabIndex={0} lang={context.technicalLanguage}>
-        <code>
-          {git ? <GitTerminalText role={role} text={text} /> : text}
-        </code>
+        <code>{git ? <GitTerminalText role={role} text={text} /> : text}</code>
       </pre>
       {role === 'source' ? <LeadingSpaceNote code={text} copy={copy} /> : null}
       {copyableRoles[role] ? <CopyButton copy={copy} text={text} /> : null}

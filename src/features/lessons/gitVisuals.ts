@@ -104,7 +104,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": []
       }
     ],
-    "short": "### Hva skal du skrive i PowerShell?\n\nKopier bare kommandoboksen, ikke teksten foran kommandoen eller den forventede utskriften."
+    "short": "### Hva skal du skrive i PowerShell?\n\nTeksten før markøren viser mappen du står i. Kopier bare kommandoboksen og trykk Enter. Ikke kopier teksten foran markøren eller den forventede utskriften."
   },
   {
     "lesson": "git-m01-o02",
@@ -316,7 +316,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "transcript": " M notat.txt"
       }
     ],
-    "short": "Working tree er filene på disken. Staging area er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen."
+    "short": "### Fra en redigert fil til en commit\n\nWorking tree er filene på disken. Staging area (index) er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen."
   },
   {
     "lesson": "git-m01-o04",
@@ -355,7 +355,7 @@ export const gitVisuals: readonly GitVisual[] = [
         ]
       }
     ],
-    "short": "### Slik leser du `git status --short`\n\nM betyr modified (endret). De to plassene viser forskjellige sammenligninger. `??` betyr at filen ikke er sporet."
+    "short": "### Slik leser du `git status --short`\n\nM betyr modified (endret). Første plass sammenligner staging med siste commit. Andre plass sammenligner arbeidsfilen med staging. `??` betyr at Git ikke følger filen ennå. Dette er utskrift, ikke kommandoer."
   },
   {
     "lesson": "git-m01-o04",
@@ -685,7 +685,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "C beholder grensen 200. Hjelpetekst og kontaktinfo er nye."
       }
     ],
-    "short": "Oppsettet lager A, B og C i et lokalt repo. Ingen GitHub-konto trengs. De lokale navn- og e-postinnstillingene gjelder bare øvingsrepoet."
+    "short": "Oppsettet lager A, B og C i et eget, lokalt repo. Ingen GitHub-konto trengs. De lokale navn- og e-postinnstillingene gjelder bare øvingsrepoet. Ikke bruk M01-mappen eller andre prosjekter."
   },
   {
     "lesson": "git-m02-o03",
@@ -715,7 +715,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C",
             "x": 315,
             "y": 84,
-            "label": "HEAD / main",
+            "label": "HEAD / main (valgt)",
             "tone": "blue"
           }
         ],
@@ -745,7 +745,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 180,
             "y": 84,
-            "label": "HEAD~1",
+            "label": "HEAD~1 (valgt)",
             "tone": "blue"
           },
           {
@@ -775,7 +775,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "A",
             "x": 45,
             "y": 84,
-            "label": "HEAD~2",
+            "label": "HEAD~2 (valgt)",
             "tone": "blue"
           },
           {
@@ -806,7 +806,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "HEAD~2 viser til A. Arbeidsfilene og HEAD blir stående der de var."
       }
     ],
-    "short": "`HEAD` peker her på C. `HEAD~1` er B og `HEAD~2` er A."
+    "short": "`HEAD` viser normalt til gjeldende commit via branchen du står på. I denne historikken er `HEAD` C, `HEAD~1` B og `HEAD~2` A. `~1` betyr første forelder."
   },
   {
     "lesson": "git-m02-o04",
@@ -835,7 +835,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": []
       }
     ],
-    "short": "A og C har ulike verdier. Undersøk B med `git show HEAD~1` og C med `git show HEAD`."
+    "short": "A og C har ulike verdier. Det forteller ikke alene hvilken commit som endret tallet. Undersøk B med `git show HEAD~1` og C med `git show HEAD`."
   },
   {
     "lesson": "git-m02-o05",
@@ -1445,7 +1445,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": []
       }
     ],
-    "short": "Vi lager en ny øving. `delt-repo.git` lagrer historikk, men har ingen vanlig arbeidsmappe. B opprettes senere med clone."
+    "short": "### Tre mapper med hver sin rolle\n\nVi lager en ny øving, ikke en kopi av de gamle øvingsfilene. `delt-repo.git` er et **bare repository**: det lagrer Git-historikk og referanser, men har ingen vanlig arbeidsmappe. B opprettes senere med `git clone`."
   },
   {
     "lesson": "git-m04-o03",
@@ -1579,7 +1579,7 @@ export const gitVisuals: readonly GitVisual[] = [
         ]
       }
     ],
-    "short": "`git fetch origin` oppdaterer blant annet `origin/main`. A sin lokale `main` og `messages.txt` blir stående."
+    "short": "### Fetch: hent historikken uten å endre filene\n\n`git fetch origin` oppdaterer blant annet `origin/main`. A sin lokale `main` og `messages.txt` blir stående. Nå kan du undersøke endringen før du tar den inn."
   },
   {
     "lesson": "git-m04-o05",
@@ -1701,7 +1701,7 @@ export const gitVisuals: readonly GitVisual[] = [
         ]
       }
     ],
-    "short": "A kan flytte `main` fram til den nye commiten uten å lage en merge commit. Dette kalles fast-forward."
+    "short": "### Pull: få endringen inn i arbeidsfilene\n\nA har ingen egne nye commits. Git kan derfor flytte `main` fram til den nye commiten uten å lage en merge commit. Dette kalles fast-forward. Velg mellom tilstandene under."
   },
   {
     "lesson": "git-m04-o06",
@@ -1748,7 +1748,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Lokal main har én egen commit (C) og mangler én fra remote (B). Fast-forward alene kan ikke samle dem."
       }
     ],
-    "short": "`ahead 1, behind 1` betyr at hver side har en commit den andre mangler."
+    "short": "`ahead 1, behind 1` betyr at hver side har en commit den andre mangler. Det sier ikke hvilke filer som er riktige. Begge endringene kan være nyttige."
   },
   {
     "lesson": "git-m04-o07",
@@ -1803,7 +1803,7 @@ export const gitVisuals: readonly GitVisual[] = [
           {
             "label": "Pull request",
             "value": "Avvis tomt navn og mellomrom",
-            "detail": "Foreslår endringen.",
+            "detail": "Avvis tomt navn og bare mellomrom. Vanlige navn skal fortsatt godtas.",
             "tone": "blue"
           }
         ],
@@ -1860,7 +1860,7 @@ export const gitVisuals: readonly GitVisual[] = [
     "step": 6,
     "anchor": "### En PR-visning på GitHub (undervisningseksempel, ikke faktisk Git-output)\n\n- ",
     "kind": "pr",
-    "title": "Eksempel på en pull request",
+    "title": "Avvis ugyldig navn i påmelding",
     "frames": [
       {
         "label": "",
@@ -2068,7 +2068,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "Når begge branches har egne commits, kan en merge commit samle dem."
+        "caption": "En merge commit beholder feature-commitene i historikken og har to foreldre."
       },
       {
         "label": "Squash",
@@ -2094,7 +2094,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "S"
           }
         ],
-        "caption": "Endringene samles i én ny commit."
+        "caption": "Endringene samles i én ny commit. De opprinnelige feature-commitene blir ikke med som egne commits på main."
       },
       {
         "label": "Rebase",
@@ -2408,7 +2408,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "transcript": ""
       }
     ],
-    "short": "Reset til en tidligere commit flytter branchen du står på. Velg et alternativ for å se hva som skjer med filen. I dette eksemplet starter du med en ren arbeidskopi. `--hard` kan overskrive arbeid."
+    "short": "`git reset` til en tidligere commit flytter branchen du står på. Her sammenligner vi `git reset --soft HEAD~1` med mixed og hard til samme mål. Eksemplet starter med en ren arbeidskopi. `--hard` kan overskrive arbeid."
   },
   {
     "lesson": "git-m06-o04",
@@ -2507,7 +2507,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Før reset stod HEAD på B. Reflog kan hjelpe deg å finne B igjen. En recovery-branch kan peke på B uten å lage en ny commit."
       }
     ],
-    "short": "Reflog kan vise tidligere lokale referanseposisjoner. Sjekk innholdet med `git show` før du gjør mer."
+    "short": "Reflog viser hvor HEAD og andre lokale referanser har pekt tidligere. En commit som ikke lenger vises i vanlig `git log`, kan fortsatt finnes. Sjekk innholdet med `git show` før du gjør mer."
   },
   {
     "lesson": "git-m06-o06",
@@ -2565,7 +2565,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "D reverserer endringen fra B, hvis det lar seg gjøre. B blir værende i historikken."
       }
     ],
-    "short": "Når andre har hentet historikken, er det ofte bedre å lage en ny rettelse enn å flytte main bakover."
+    "short": "Når andre har hentet historikken, er det ofte bedre å lage en ny rettelse enn å flytte main bakover. `git revert` lager normalt en ny commit som reverserer endringen fra den commiten du velger."
   },
   {
     "lesson": "git-m06-o07",
@@ -2747,7 +2747,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Prøv eksempelverdiene. Dette er en illustrasjon, ikke kjøring av prosjektkoden."
       }
     ],
-    "short": "Den første løsningen sjekker bare lengden. Den opprinnelige testen dekker ikke bokstavtilfellet."
+    "short": "### Hvorfor er det ikke ferdig?\n\nDen første løsningen sjekker bare lengden. Den opprinnelige testen dekker ikke bokstavtilfellet. Prøv ulike verdier. En grønn test sier bare noe om tilfellene den faktisk sjekker."
   },
   {
     "lesson": "git-m07-o04",

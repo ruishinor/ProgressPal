@@ -36,6 +36,9 @@ it('shows why a length check alone is insufficient', () => {
   expect(within(digits).getByText('Avvises')).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: '12345678' }));
   expect(within(digits).getByText('Godtas')).toBeVisible();
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: '1234567 ' } });
+  expect(within(results).getByText('Godtas')).toBeVisible();
+  expect(within(digits).getByText('Avvises')).toBeVisible();
 });
 
 it('keeps the staged snapshot unchanged after another edit and commit', () => {

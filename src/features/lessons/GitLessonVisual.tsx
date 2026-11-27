@@ -266,7 +266,7 @@ function TestCaseVisual() {
         ))}
       </div>
       <label className="git-test-input">
-        Prøv en egen verdi
+        Prøv en oppdiktet verdi
         <input
           onChange={(event) => setValue(event.target.value)}
           type="text"
