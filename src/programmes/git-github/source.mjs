@@ -439,7 +439,7 @@ export const gitLessons = [
             'a',
             'Ta README.txt ut av staging area uten å endre arbeidsfilen, klargjør plan.txt og kontroller utvalget.',
             true,
-            'Ja. Begge delene trengs: fjern det gamle utvalget med git restore --staged -- README.txt, klargjør plan.txt med git add -- plan.txt og undersøk diff med --cached før commit. Dette er riktig vurdering av situasjonen; appen har ikke utført kommandoene.',
+            'Ja. Begge delene trengs: fjern det gamle utvalget med git restore --staged -- README.txt, klargjør plan.txt med git add -- plan.txt og undersøk diff med --cached før commit.',
           ],
           [
             'b',
@@ -464,7 +464,7 @@ export const gitLessons = [
         type: 'evidence',
         optional: true,
         prompt:
-          'Vil du sjekke filvalget før commit? Kjør `git diff --cached --name-only` i øvingsmappen. Lim bare inn filnavnet Git viser, ikke teksten foran kommandoen (for eksempel PS C:\\\\...) eller innholdet fra diff.',
+          'Vil du sjekke filvalget før commit? Kjør `git diff --cached --name-only` i øvingsmappen. Lim inn bare filnavnene Git viser, uten teksten foran kommandoen (for eksempel `PS ...>`) eller innholdet fra diff.',
         hints: [
           'Se på det som er staged, ikke bare på hvilke filer du har endret.',
         ],
@@ -480,7 +480,7 @@ export const gitLessons = [
             },
           ],
           privacy:
-            'Lim bare inn de oppdiktede filnavnene fra øvingen. Ingen tokens, passord, personopplysninger, private repoer eller fullstendige filstier. Teksten lagres i nettleseren og blir med i sikkerhetskopier du eksporterer eller velger å laste opp.',
+            'Bruk bare filnavn fra øvingen. Ikke ta med passord, tokens eller private opplysninger.',
         },
       },
       text(
@@ -498,7 +498,7 @@ export const gitLessons = [
         hints: [],
       },
       text(
-        'Du kan lagre svar, en valgfri filnavnkontroll og din egen beskrivelse av øvingen. Marker leksjonen som fullført når du selv har gått gjennom den. Framdrift og svar blir lagret i ProgressPal og følger med en sikkerhetskopi av appen; Git-øvingsmappen må du ta vare på separat.',
+        'Marker leksjonen som fullført når du har gått gjennom den. Svarene og framdriften din lagres i ProgressPal. Ta vare på Git-øvingsmappen separat.',
       ),
       {
         t: 'recap',
