@@ -21,7 +21,7 @@ const reflect = (id, prompt) => ({
   choices: null,
   hints: [],
 });
-const command = (heading, explanation, script, sampleOutput = '') => [
+const command = (heading, explanation, script, sampleOutput = '', resultNote = '') => [
   text('### ' + heading + '\n\n' + explanation),
   {
     t: 'code',
@@ -31,7 +31,7 @@ const command = (heading, explanation, script, sampleOutput = '') => [
     stdout: sampleOutput,
     error: '',
     error_info: null,
-    nb: '',
+    nb: resultNote,
   },
 ];
 
@@ -353,13 +353,14 @@ export const gitM05Lessons = [
         'Dette er **ikke** en ekte GitHub-PR. Den lokale remoten tilbyr ikke PR-er, formelle approvals, review threads, status checks eller GitHubs regler for merge. Du bruker ekte Git for å vise det tekniske grunnlaget, og senere undersøker vi hvordan GitHub bygger samarbeidsfunksjonene rundt det.',
       ),
       text(
-        'Bruk Windows PowerShell 5.1, Git for Windows 2.28 eller nyere og en vanlig brukerkonto. Kjør hele kommando-blokker i rekkefølge, ikke enkeltlinjer fra en blokk som har stoppet. Blokkene bruker `git.exe` for å unngå kollisjon med en eventuell PowerShell-funksjon kalt `git`. Alle oppgaver er syntetiske, med egne lokale Git-identiteter. Skriv aldri passord, tokens eller private filstier i svarene du lagrer i ProgressPal.',
+        'Bruk Windows PowerShell 5.1, Git for Windows 2.28 eller nyere og en vanlig brukerkonto. Kjør hele kommando-blokker i rekkefølge, ikke enkeltlinjer fra en blokk som har stoppet. Blokkene bruker `git.exe` for å unngå kollisjon med en eventuell PowerShell-funksjon kalt `git`. Du bruker bare oppdiktede øvingsfiler og lokale Git-identiteter. Skriv aldri passord, tokens eller private filstier i svarene du lagrer i ProgressPal.',
       ),
       command(
         'Opprett M05-mappen, remote og to arbeidskopier',
         'Denne blokken **stopper dersom mappen finnes**. Den oppretter en enkel `paamelding.js`, et kravdokument og grunnversjonen på `main`, pusher til lokal remote og kloner deretter gjennomgangskopien. Det skal ikke stå filnavn etter `status --short` til slutt.',
         setup,
-        "Initialized empty Git repository ...\n[main ...] Opprett enkel paamelding\n... main -> main\nCloning into '...gjennomgang'...\nSiste status er tom.",
+        'Initialized empty Git repository ...\n[main ...] Opprett enkel paamelding\n... main -> main\nCloning into \'...gjennomgang\'...',
+        'Siste statuskommando skal ikke vise noen filrader.',
       ),
       text(
         'Les `utvikler/oppgave.txt` og `utvikler/paamelding.js` som vanlig tekst i Notisblokk. Den første funksjonen bekrefter alle verdier. Den mangler foreløpig validering. Gjennomgangen senere skal kontrollere at rettelsen dekker begge ugyldige tilfeller, **ikke bare at filen har forandret seg**. `git status --short` sier noe om arbeidskopien, ikke om programmets funksjonalitet.',
@@ -610,7 +611,8 @@ export const gitM05Lessons = [
         'Rett samme feature branch og push en ny commit',
         'Den første løsningen og en ren feature branch må finnes. Kontroller diffen, commit rettelsen og push til **samme branch**. En uventet tilstand gir STOPP i stedet for automatisk opprydding.',
         revise,
-        '[feature/valider-navn ...] Avvis ogsaa navn med bare mellomrom\n... feature/valider-navn -> feature/valider-navn\nTo feature-commits etter main.',
+        '[feature/valider-navn ...] Avvis ogsaa navn med bare mellomrom\n... feature/valider-navn -> feature/valider-navn',
+        'Loggen skal vise to feature-commits etter main.',
       ),
       text(
         'På GitHub vil en eksisterende pull request som følger denne branchen normalt få med seg den nye commiten og vise oppdatert diff. Du trenger vanligvis **ikke en ny PR for hver rettelse**. Du kan svare på tråden: «Du hadde rett; mellomromstilfellet manglet. Jeg har oppdatert samme branch. Se den nye diffen.» Oppgi i tillegg bare kontroller du faktisk har gjennomført. Om en tidligere approval blir stående eller må fornyes, avhenger av repositoryets reviewregler.',
@@ -677,7 +679,8 @@ export const gitM05Lessons = [
         'Bekreft at endringen nå finnes i remote main',
         'Fra `utvikler` gjør du `fetch` og kontrollerer at feature-branchen er en forfader til `origin/main`. Den lokale `main` i utviklerkopien oppdateres **ikke** av `fetch` alene. En tom `git status --short` viser en ren arbeidskopi; det er ikke en funksjonstest.',
         verifyIntegration,
-        'Grafen viser to feature-commits og en merge commit. Lokal status er tom.',
+        '',
+        'Grafen skal vise to feature-commits og en merge commit. Siste status skal være tom.',
       ),
       question(
         'GIT-M05-E14',
@@ -769,7 +772,7 @@ export const gitM05Lessons = [
         '### Hvilken risiko følger med en PR?\n\nEn endring kan inneholde tokens, passord, personopplysninger eller private data i filer eller historikk, skadelige eller ukjente kodeendringer, uventede endringer i avhengigheter eller CI-workflows, og arbeid langt utenfor oppgavens omfang. En feature branch er ikke automatisk hemmelig når den pushes. Undersøk **alle** endrede filer og kildehistorikken som er relevant, ikke bare PR-tittelen. Kjør ikke ukjent PR-kode med tilgang til hemmeligheter. Fork-baserte bidrag kan ha andre regler for workflow-godkjenning og secrets.',
       ),
       text(
-        '### Frivillig spor: en ekte GitHub-PR\n\nHvis du har GitHub-konto og ønsker plattformpraksis, opprett manuelt et **eget, syntetisk øvingsrepository**. Velg privat synlighet dersom innholdet ikke skal være offentlig, og sjekk innstillingene før publisering. Sørg for at nødvendig autentisering er på plass. Lag `main`, en feature branch og en commit; push feature-branchen. I GitHub velger du å opprette PR, kontrollerer riktig base og head, skriver kort behov, endring, utførte kontroller og usikkerhet, og bruker eventuelt draft. Undersøk Conversation, Commits, Checks og Files changed. Legg så til en ny commit på samme branch og se hvordan PR-en endres. Merge bare hvis rettigheter og regler tillater det. ProgressPal gjør ingen av disse nettoperasjonene for deg.',
+        '### Frivillig spor: en ekte GitHub-PR\n\nHvis du har GitHub-konto og ønsker plattformpraksis, opprett manuelt et **eget repo med øvingsfiler**. Velg privat synlighet dersom innholdet ikke skal være offentlig, og sjekk innstillingene før publisering. Sjekk at du er logget inn og har tilgang. Lag `main`, en feature branch og en commit; push feature-branchen. I GitHub velger du å opprette PR, kontrollerer riktig base og head, skriver kort behov, endring, utførte kontroller og usikkerhet, og bruker eventuelt draft. Undersøk Conversation, Commits, Checks og Files changed. Legg så til en ny commit på samme branch og se hvordan PR-en endres. Merge bare hvis rettigheter og regler tillater det. ProgressPal gjør ingen av disse nettoperasjonene for deg.',
       ),
       note(
         'GitHub-øvingen er valgfri. Ikke bruk personopplysninger, tokens eller repoer du ikke har tillatelse til å bruke.',

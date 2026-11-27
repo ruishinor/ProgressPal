@@ -79,7 +79,9 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
             </text>
             <text
               className="git-graph-label"
-              textAnchor={node.x < 60 ? 'start' : node.x > 290 ? 'end' : 'middle'}
+              textAnchor={
+                node.x < 60 ? 'start' : node.x > 290 ? 'end' : 'middle'
+              }
               x={node.x}
               y={node.y + 34}
             >
@@ -89,12 +91,14 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
         ))}
       </svg>
       <dl className="git-graph-key">
-        {nodes.filter((node) => node.label).map((node) => (
-          <div key={node.id}>
-            <dt>{node.id}</dt>
-            <dd>{node.label}</dd>
-          </div>
-        ))}
+        {nodes
+          .filter((node) => node.label)
+          .map((node) => (
+            <div key={node.id}>
+              <dt>{node.id}</dt>
+              <dd>{node.label}</dd>
+            </div>
+          ))}
       </dl>
     </div>
   );

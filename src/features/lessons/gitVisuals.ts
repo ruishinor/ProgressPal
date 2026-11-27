@@ -316,7 +316,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "transcript": " M notat.txt"
       }
     ],
-    "short": "### Fra en redigert fil til en commit\n\nWorking tree er filene på disken. Staging area (index) er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen."
+    "short": "### Fra en redigert fil til en commit\n\nWorking tree er filene på disken. Staging area (index) er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen. Her bruker vi en egen eksempelfil, `notat.txt`. Du trenger ikke lage den."
   },
   {
     "lesson": "git-m01-o04",
@@ -2019,34 +2019,89 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Tre måter å merge på",
     "frames": [
       {
-        "label": "Merge commit",
+        "label": "Før merge",
         "nodes": [
           {
             "id": "A",
-            "x": 45,
-            "y": 104,
+            "x": 35,
+            "y": 95,
             "label": "Felles",
             "tone": "neutral"
           },
           {
             "id": "B",
-            "x": 170,
-            "y": 52,
-            "label": "main før",
+            "x": 130,
+            "y": 45,
+            "label": "main",
             "tone": "blue"
           },
           {
-            "id": "C",
-            "x": 170,
-            "y": 156,
+            "id": "C1",
+            "x": 130,
+            "y": 145,
+            "label": "",
+            "tone": "amber"
+          },
+          {
+            "id": "C2",
+            "x": 230,
+            "y": 145,
+            "label": "feature",
+            "tone": "amber"
+          }
+        ],
+        "edges": [
+          {
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "from": "A",
+            "to": "C1"
+          },
+          {
+            "from": "C1",
+            "to": "C2"
+          }
+        ],
+        "caption": "Main har B. Feature har to egne commits, C1 og C2. Alle tre alternativene starter her."
+      },
+      {
+        "label": "Merge commit",
+        "nodes": [
+          {
+            "id": "A",
+            "x": 35,
+            "y": 95,
+            "label": "Felles",
+            "tone": "neutral"
+          },
+          {
+            "id": "B",
+            "x": 130,
+            "y": 45,
+            "label": "Tidligere main",
+            "tone": "blue"
+          },
+          {
+            "id": "C1",
+            "x": 130,
+            "y": 145,
+            "label": "",
+            "tone": "amber"
+          },
+          {
+            "id": "C2",
+            "x": 230,
+            "y": 145,
             "label": "feature",
             "tone": "amber"
           },
           {
             "id": "D",
-            "x": 315,
-            "y": 104,
-            "label": "main etter",
+            "x": 325,
+            "y": 45,
+            "label": "main",
             "tone": "green"
           }
         ],
@@ -2057,81 +2112,151 @@ export const gitVisuals: readonly GitVisual[] = [
           },
           {
             "from": "A",
-            "to": "C"
+            "to": "C1"
+          },
+          {
+            "from": "C1",
+            "to": "C2"
           },
           {
             "from": "B",
             "to": "D"
           },
           {
-            "from": "C",
+            "from": "C2",
             "to": "D"
           }
         ],
-        "caption": "En merge commit beholder feature-commitene i historikken og har to foreldre."
+        "caption": "D har to foreldre: B og C2. C1 og C2 blir en del av main sin historikk."
       },
       {
         "label": "Squash",
         "nodes": [
           {
             "id": "A",
-            "x": 45,
-            "y": 84,
-            "label": "main før",
+            "x": 35,
+            "y": 95,
+            "label": "Felles",
+            "tone": "neutral"
+          },
+          {
+            "id": "B",
+            "x": 130,
+            "y": 45,
+            "label": "Tidligere main",
             "tone": "blue"
           },
           {
+            "id": "C1",
+            "x": 130,
+            "y": 145,
+            "label": "",
+            "tone": "amber"
+          },
+          {
+            "id": "C2",
+            "x": 230,
+            "y": 145,
+            "label": "feature",
+            "tone": "amber"
+          },
+          {
             "id": "S",
-            "x": 300,
-            "y": 84,
-            "label": "main etter",
+            "x": 325,
+            "y": 45,
+            "label": "main",
             "tone": "green"
           }
         ],
         "edges": [
           {
             "from": "A",
+            "to": "B"
+          },
+          {
+            "from": "A",
+            "to": "C1"
+          },
+          {
+            "from": "C1",
+            "to": "C2"
+          },
+          {
+            "from": "B",
             "to": "S"
           }
         ],
-        "caption": "Endringene samles i én ny commit. De opprinnelige feature-commitene blir ikke med som egne commits på main."
+        "caption": "S samler endringene fra C1 og C2. De opprinnelige commitene blir ikke med som egne commits på main."
       },
       {
         "label": "Rebase",
         "nodes": [
           {
             "id": "A",
-            "x": 45,
-            "y": 84,
-            "label": "main før",
+            "x": 35,
+            "y": 95,
+            "label": "Felles",
+            "tone": "neutral"
+          },
+          {
+            "id": "B",
+            "x": 130,
+            "y": 45,
+            "label": "Tidligere main",
             "tone": "blue"
           },
           {
-            "id": "B′",
-            "x": 180,
-            "y": 84,
-            "label": "Ny commit",
+            "id": "C1",
+            "x": 130,
+            "y": 145,
+            "label": "",
             "tone": "amber"
           },
           {
-            "id": "C′",
-            "x": 315,
-            "y": 84,
-            "label": "main etter",
+            "id": "C2",
+            "x": 230,
+            "y": 145,
+            "label": "feature",
+            "tone": "amber"
+          },
+          {
+            "id": "C1′",
+            "x": 225,
+            "y": 45,
+            "label": "",
+            "tone": "blue"
+          },
+          {
+            "id": "C2′",
+            "x": 325,
+            "y": 45,
+            "label": "main",
             "tone": "green"
           }
         ],
         "edges": [
           {
             "from": "A",
-            "to": "B′"
+            "to": "B"
           },
           {
-            "from": "B′",
-            "to": "C′"
+            "from": "A",
+            "to": "C1"
+          },
+          {
+            "from": "C1",
+            "to": "C2"
+          },
+          {
+            "from": "B",
+            "to": "C1′"
+          },
+          {
+            "from": "C1′",
+            "to": "C2′"
           }
         ],
-        "caption": "Commitene legges på nytt på toppen av main, normalt med nye hasher."
+        "caption": "Endringene fra C1 og C2 legges på nytt oppå B, normalt med nye hasher. Ingen merge commit."
       }
     ],
     "short": "De tre metodene gir forskjellige historikker. Ingen av dem tester programmet."
@@ -2355,7 +2480,7 @@ export const gitVisuals: readonly GitVisual[] = [
           }
         ],
         "caption": "Soft flytter main bakover. Arbeidsfilen og staging beholder den nye teksten.",
-        "transcript": "M  melding.txt"
+        "transcript": "M  notat.txt"
       },
       {
         "label": "Mixed",
@@ -2380,7 +2505,7 @@ export const gitVisuals: readonly GitVisual[] = [
           }
         ],
         "caption": "Mixed flytter main og tilpasser staging. Arbeidsfilen beholder den nye teksten.",
-        "transcript": " M melding.txt"
+        "transcript": " M notat.txt"
       },
       {
         "label": "Hard",

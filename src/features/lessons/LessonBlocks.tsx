@@ -70,11 +70,7 @@ function GitTerminalText({
     return (
       <Fragment key={index}>
         {index > 0 && '\n'}
-        {tone ? (
-          <span className={`git-transcript-${tone}`}>{line}</span>
-        ) : (
-          line
-        )}
+        {tone ? <span className={`git-transcript-${tone}`}>{line}</span> : line}
       </Fragment>
     );
   });
