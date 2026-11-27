@@ -41,10 +41,16 @@ import {
 import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
-import { reviseCampaignM01 } from './campaignM01Editorial';
-import { campaignM01VisualFor } from './campaignM01Visuals';
+import {
+  campaignM01SourceSha,
+  reviseCampaignM01,
+} from './campaignM01Editorial';
+import {
+  campaignM01VisualFor,
+  loadCampaignM01Visuals,
+} from './campaignM01Visuals';
 import { ExerciseCard } from './ExerciseCard';
-import { gitVisualFor } from './gitVisuals';
+import { gitVisualFor, type GitVisual } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
 import type { MarkupContext } from './markup';
 import {
@@ -91,6 +97,7 @@ type LoadState =
       readonly bundle: LessonBundle;
       readonly index: ProgrammeContentIndex;
       readonly steps: readonly LessonStep[];
+      readonly campaignVisuals: readonly GitVisual[];
     }
   | { readonly status: 'failed'; readonly reason: ContentLoadFailureStatus };
 
@@ -203,11 +210,16 @@ function LessonSurface({
       const lessonSubjectIds = lessonBundle.exercises.map(
         (entry) => entry.meta.subjectId,
       );
-      const [rows, stored] = await Promise.all([
+      const [rows, stored, campaignVisuals] = await Promise.all([
         lessonSubjectIds.length === 0
           ? Promise.resolve([])
           : listLearnerEvidence({ programmeId, subjectIds: lessonSubjectIds }),
         getLessonPosition(itemId),
+        programmeId === 'programvareutvikling' &&
+          lessonBundle.moduleId === 'S1-M01' &&
+          lessonBundle.sourceSha256 === campaignM01SourceSha
+          ? loadCampaignM01Visuals()
+          : Promise.resolve([]),
       ]);
 
       if (!active) {
@@ -258,6 +270,7 @@ function LessonSurface({
         bundle: lessonBundle,
         index: index.value,
         steps: lessonStepList,
+        campaignVisuals,
       });
     })().catch(() => {
       if (active) {
@@ -493,7 +506,7 @@ function LessonSurface({
     );
   }
 
-  const { index } = load;
+  const { index, campaignVisuals } = load;
   const readyBundle = load.bundle;
   const { mission } = readyBundle;
   const phases = mission.phases ?? [];
@@ -502,7 +515,9 @@ function LessonSurface({
       ? steps.filter((step) => step.phaseIndex === phaseIndex)
       : steps;
   const isM01 =
-    programmeId === 'programvareutvikling' && readyBundle.moduleId === 'S1-M01';
+    programmeId === 'programvareutvikling' &&
+    readyBundle.moduleId === 'S1-M01' &&
+    readyBundle.sourceSha256 === campaignM01SourceSha;
   const context: MarkupContext = {
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),
@@ -531,11 +546,8 @@ function LessonSurface({
     if (programmeId === 'git-github' && block.t === 'text') {
       return gitVisualFor(itemId, step.stepIndex, block.nb);
     }
-    if (
-      programmeId === 'programvareutvikling' &&
-      (block.t === 'text' || block.t === 'orient')
-    ) {
-      return campaignM01VisualFor(step.unitId, block.nb);
+    if (isM01 && (block.t === 'text' || block.t === 'orient')) {
+      return campaignM01VisualFor(campaignVisuals, step.unitId, block.nb);
     }
     return undefined;
   }

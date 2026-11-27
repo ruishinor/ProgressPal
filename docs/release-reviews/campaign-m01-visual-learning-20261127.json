@@ -4,16 +4,16 @@
   "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "9f5f1c415f9396067b123c3fa1669e8eaf842c77",
+    "payloadTree": "913a3de7983d2c5b417c2a97938b23d540805e8c",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
     "summary": "Campaign M01 visual and scoped presentation-language revision; draft, not a full authoring-source upgrade.",
     "evidence": [
-      "Reviewed committed M01: 23 units, 152 exercise prompts and their response modes; inspected setup and troubleshooting choices, hints and feedback in detail. The remaining individual exercise feedback and browser visual review are unfinished.",
-      "21 lesson-bound examples (seven selectable), plus 72 exact-string prose revisions scoped to M01. Corrected misleading hidden-file-extension example and clarified Python version requirements, file execution, error investigation and Git workflow. Original code, expected outputs, exercise identifiers, evaluators, hashes and progression remain unchanged.",
-      "Initial hosted run 46071603686: all three E2E shards passed; unit stage stopped on LessonView.tsx formatting. Replaced nested JSX conditional with a typed helper; new exact-source binding regression test. Fresh hosted checks required.",
-      "Repository history, PRs #85 and #88, and their available artifact listings contain shipped exports and release records, not the full pinned producer source. The supplied earlier authoring snapshot has three modules and does not match the seven-module pin. No source pin changed. The exact-text presentation layer avoids breaking regeneration and does not reinterpret evaluator inputs."
+      "Inspected committed M01: 23 units, 327 flow blocks, 152 exercise prompts, choices, hints and ordinary feedback. Full evaluator-diagnostic and browser visual inspection remain outstanding.",
+      "23 contextual examples (seven selectable) and 124 source-pinned learner-prose replacements. Original exercises, answers, identifiers, hashes, positions and progression remain unchanged. New component and browser regression checks, not yet run on this payload.",
+      "Initial run 46071603686 passed all three E2E shards but failed formatting. Run 46073104442 passed formatting, lint, typecheck and build but failed JS gzip budget (487252 > 485000). Moved visuals to a SHA-256-addressed offline presentation asset and compacted editorial keys. Both budget limits unchanged. Await fresh hosted checks.",
+      "Repository history and prior release artifacts do not contain the complete pinned producer input. Source SHA remains unchanged; source-scoped presentation fallback avoids generated-content edits. The earlier three-module ZIP is not a substitute."
     ]
   },
   "adversarialFindings": [
@@ -35,19 +35,26 @@
       "id": "M01-V3",
       "severity": "P3",
       "description": "Presentation overrides could drift or change exercise semantics.",
-      "resolution": "Exact original-string keys, M01-only context, original exercise objects untouched; added binding regression test. The overlay falls back to original text if the source changes.",
+      "resolution": "The source SHA must match; non-security 64-bit fingerprint plus length is verified unique among all distinct source strings by a regression test. Exercise objects are untouched. Missing or mismatched visual asset falls back to original teaching blocks.",
       "status": "resolved"
     },
     {
       "id": "M01-V4",
       "severity": "P3",
       "description": "Initial release unit stage failed formatting.",
-      "resolution": "Simplify the conditional and run the existing hosted checks again; do not claim PASS until observed.",
+      "resolution": "Typed visual helper passed formatting in second run; fresh checks required for current payload.",
       "status": "resolved"
+    },
+    {
+      "id": "M01-V5",
+      "severity": "P2",
+      "description": "The previous candidate exceeded the JavaScript gzip budget.",
+      "resolution": "Separate static teaching diagrams into the existing offline content manifest and compact editorial keys. Do not relax either size limit; hosted measurement required.",
+      "status": "open"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed to hosted validation of this scoped draft. Full review remains outstanding and this is not a production release authorization."
+    "summary": "Proceed only to hosted validation. Draft; no claim of complete canonical revision, verified budget compliance, or production readiness."
   }
 }

@@ -104,6 +104,17 @@ test('enrols in Programvareutvikling, answers by keyboard and keeps the result a
   await page.goto('/course');
   await expect(page.getByText('Sett opp arbeidsstedet').first()).toBeVisible();
 
+  await page.goto(firstLesson);
+  const visual = page.locator('figure.git-visual').filter({
+    hasText: 'Det du ser er ikke alltid det som er lagret',
+  });
+  const save = visual.getByRole('button', { name: 'Etter Ctrl+S' });
+  await save.focus();
+  await page.keyboard.press('Enter');
+  await expect(save).toHaveAttribute('aria-pressed', 'true');
+  await expect(visual.getByText('Hei, Ola!', { exact: true })).toBeVisible();
+  expect((await readEvidenceCount(page)).evidence).toBe(0);
+
   const card = await answerFirstChoiceExercise(page);
   await expect(card.getByText('Lagrer og sjekker svaret')).toHaveCount(0);
   const afterSubmit = await readEvidenceCount(page);
@@ -127,6 +138,16 @@ test('enrols in Programvareutvikling, answers by keyboard and keeps the result a
   await expect(
     exercise(page, 3).getByRole('status', { name: 'Resultat' }),
   ).toContainText('Riktig', { timeout: 15_000 });
+
+  const rpgVisual = page.locator('figure.git-visual').filter({
+    hasText: 'Det du ser er ikke alltid det som er lagret',
+  });
+  await expect(rpgVisual).toBeVisible();
+  await rpgVisual.getByRole('button', { name: 'Etter Ctrl+S' }).click();
+  await expect(
+    rpgVisual.getByText('Hei, Ola!', { exact: true }),
+  ).toBeVisible();
+  expect((await readEvidenceCount(page)).evidence).toBe(2);
 
   expect(consoleIssues).toEqual([]);
 });

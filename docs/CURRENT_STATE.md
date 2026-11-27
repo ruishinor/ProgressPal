@@ -1,16 +1,22 @@
 # ProgressPal current state
 
-**Campaign M01 teaching visuals — draft candidate, 2026-11-27.** Adds 21
+**Campaign M01 teaching visuals — draft candidate, 2026-11-27.** Adds 23
 lesson-bound examples (seven with selectable states) to the existing shared
-lesson renderer, covering nine teaching lessons and the lab. No changes to the
-canonical lesson assets, exercise hashes, IDs, persistence or progression.
-A scoped exact-string presentation revision (72 distinct replacements) improves
-setup, troubleshooting, practice prompts and feedback without editing generated
-assets. The original
-source remains pinned; Git history and PR #88 contain exports but not the
-complete producer inputs. Initial three browser shards passed; unit stage
-stopped on formatting. Fresh validation and the remaining full review are
-required before release.
+lesson renderer, covering nine teaching lessons, troubleshooting, the lab and
+quest. No changes to the canonical lesson assets, exercise hashes, IDs,
+persistence or progression.
+A source-pinned presentation revision (124 distinct replacements)
+improves setup, troubleshooting, practice prompts and feedback without editing
+generated assets. The original source remains pinned; Git history and PRs #85
+and #88 contain exports but not the complete producer inputs. Initial three
+browser shards passed; unit stage stopped on formatting. The next unit run
+passed formatting, lint, typecheck and build but exceeded the JS gzip budget.
+Visual data is now a content-addressed offline asset; compact editorial keys
+are checked against the pinned source. Both budget ceilings remain unchanged.
+Inspected all 152 exercise prompts and their choices, hints and ordinary feedback at source level;
+the existing evaluator and progress contracts remain intact. Added a browser
+regression check in both lesson interfaces. Fresh hosted validation and visual
+inspection are required before release.
 
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2
