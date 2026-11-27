@@ -13,7 +13,8 @@
       "Inspected committed M01: 23 units, 327 flow blocks, 152 exercise prompts, choices, hints and ordinary feedback. Full evaluator-diagnostic and browser visual inspection remain outstanding.",
       "23 contextual examples (seven selectable) and 124 source-pinned learner-prose replacements. Original exercises, answers, identifiers, hashes, positions and progression remain unchanged. New component and browser regression checks, not yet run on this payload.",
       "Initial run 46071603686 passed all three E2E shards but failed formatting. Run 46073104442 passed formatting, lint, typecheck and build but failed JS gzip budget (487252 > 485000). Moved visuals to a SHA-256-addressed offline presentation asset and compacted editorial keys. Both budget limits unchanged. Await fresh hosted checks.",
-      "Repository history and prior release artifacts do not contain the complete pinned producer input. Source SHA remains unchanged; source-scoped presentation fallback avoids generated-content edits. The earlier three-module ZIP is not a substitute."
+      "Repository history and prior release artifacts do not contain the complete pinned producer input. Source SHA remains unchanged; source-scoped presentation fallback avoids generated-content edits. The earlier three-module ZIP is not a substitute.",
+      "Follow-up source review confirmed the visual loader checks the pinned SHA-256 and falls back to the original lesson. Corrected the contradictory review status to allow mandatory hosted measurement; no code or budget limit changed."
     ]
   },
   "adversarialFindings": [
@@ -48,13 +49,13 @@
     {
       "id": "M01-V5",
       "severity": "P2",
-      "description": "The previous candidate exceeded the JavaScript gzip budget.",
-      "resolution": "Separate static teaching diagrams into the existing offline content manifest and compact editorial keys. Do not relax either size limit; hosted measurement required.",
-      "status": "open"
+      "description": "The prior candidate exceeded the JS gzip budget; the new asset-based remediation has not yet been measured.",
+      "resolution": "Accept only the risk of a failed validation run on this draft. The unchanged bundle budget gate must measure the new content-addressed visual asset and compact keys before release. A budget overrun is not accepted.",
+      "status": "accepted-risk"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed only to hosted validation. Draft; no claim of complete canonical revision, verified budget compliance, or production readiness."
+    "summary": "Proceed to hosted validation only; retain draft. No acceptance of an exceeded bundle limit, no completed editorial review, and no production authorization."
   }
 }
