@@ -37,7 +37,9 @@ function StatusRows({ frame }: { frame: VisualFrame }) {
         );
       })}
       {frame.rows?.some((row) => row.x === ' ' || row.y === ' ') && (
-        <p className="lesson-note">Prikken viser et mellomrom i Git-utskriften.</p>
+        <p className="lesson-note">
+          Prikken viser et mellomrom i Git-utskriften.
+        </p>
       )}
     </div>
   );
@@ -45,9 +47,14 @@ function StatusRows({ frame }: { frame: VisualFrame }) {
 
 function CommitGraph({ frame }: { frame: VisualFrame }) {
   const nodes = frame.nodes ?? [];
+  const description = [
+    ...nodes.map((node) => `${node.id}: ${node.label}`),
+    ...(frame.edges ?? []).map((edge) => `${edge.from} til ${edge.to}`),
+    frame.caption,
+  ].join('. ');
   return (
     <svg
-      aria-label={frame.caption ?? 'Commit-historikk'}
+      aria-label={description}
       className="git-visual-graph"
       role="img"
       viewBox="0 0 360 215"
@@ -67,12 +74,7 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
       })}
       {nodes.map((node) => (
         <g className={`git-tone-${node.tone}`} key={node.id}>
-          <circle
-            className="git-graph-node"
-            cx={node.x}
-            cy={node.y}
-            r="16"
-          />
+          <circle className="git-graph-node" cx={node.x} cy={node.y} r="16" />
           <text className="git-graph-id" x={node.x} y={node.y + 4}>
             {node.id}
           </text>
@@ -99,10 +101,98 @@ function VisualCards({ frame, kind }: { frame: VisualFrame; kind: string }) {
           </div>
           {frame.links?.[index] && (
             <div className="git-visual-link">
-              <span aria-hidden="true">↓</span>
+              <span aria-hidden="true">
+                {frame.links[index].includes('/')
+                  ? '↕'
+                  : frame.links[index] === 'Ingen merge'
+                    ? '⊣'
+                    : '↓'}
+              </span>
               <code>{frame.links[index]}</code>
             </div>
           )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TerminalVisual({ frame }: { frame: VisualFrame }) {
+  const cards = frame.cards ?? [];
+  return (
+    <div className="git-terminal">
+      <div className="git-terminal-title">Windows PowerShell</div>
+      <div className="git-terminal-body">
+        <div className="git-terminal-command">
+          <span>{cards[0]?.value}</span>{' '}
+          <strong>{cards[1]?.value}</strong>
+        </div>
+        <div>{cards[2]?.value}</div>
+      </div>
+      <div className="git-terminal-notes">
+        <p>Teksten før kommandoen: {cards[0]?.detail}</p>
+        <p>Kommando: {cards[1]?.detail}</p>
+        <p>Utskrift: {cards[2]?.detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function ConflictVisual({ frame }: { frame: VisualFrame }) {
+  const [current, , incoming] = frame.cards ?? [];
+  return (
+    <div className="git-conflict">
+      <div className="git-conflict-section git-tone-blue">
+        <code>{current?.label}</code>
+        <div>{current?.value}</div>
+        <span>{current?.detail}</span>
+      </div>
+      <code>=======</code>
+      <div className="git-conflict-section git-tone-amber">
+        <div>{incoming?.value}</div>
+        <code>{incoming?.label}</code>
+        <span>{incoming?.detail}</span>
+      </div>
+    </div>
+  );
+}
+
+function PullRequestVisual({ frame }: { frame: VisualFrame }) {
+  const base = frame.cards?.find((card) => card.label === 'Base');
+  const head = frame.cards?.find((card) => card.label === 'Head');
+  if (!base || !head) return <VisualCards frame={frame} kind="pr" />;
+  const rest = frame.cards?.filter(
+    (card) => card.label !== 'Base' && card.label !== 'Head',
+  );
+  return (
+    <div className="git-pr">
+      <div className="git-pr-direction">
+        <div className="git-visual-card git-tone-blue">
+          <span className="git-visual-label">Base – mottar endringen</span>
+          <code>{base.value}</code>
+        </div>
+        <span aria-hidden="true">←</span>
+        <div className="git-visual-card git-tone-amber">
+          <span className="git-visual-label">Head – har endringen</span>
+          <code>{head.value}</code>
+        </div>
+      </div>
+      <VisualCards frame={{ ...frame, cards: rest }} kind="pr" />
+    </div>
+  );
+}
+
+function FileTreeVisual({ frame }: { frame: VisualFrame }) {
+  return (
+    <div className="git-file-tree">
+      {frame.cards?.map((card, index) => (
+        <div className="git-file-tree-row" key={card.label}>
+          <span aria-hidden="true">{index === 0 ? '▾' : '└─'}</span>
+          <div>
+            <span className="git-visual-label">{card.label}</span>
+            <div className="git-visual-value">{card.value}</div>
+            {card.detail && <p>{card.detail}</p>}
+          </div>
         </div>
       ))}
     </div>
@@ -157,7 +247,11 @@ function TestCaseVisual() {
 
   return (
     <div className="git-visual-test">
-      <div className="git-visual-buttons" aria-label="Eksempelverdier">
+      <div
+        aria-label="Eksempelverdier"
+        className="git-visual-buttons"
+        role="group"
+      >
         {['12345678', '1234567', 'abcdefgh', ''].map((example) => (
           <button
             aria-pressed={example === value}
@@ -196,7 +290,7 @@ export function GitLessonVisual({ visual }: { visual: GitVisual }) {
     <figure className="git-visual" data-visual-kind={visual.kind}>
       <figcaption className="git-visual-title">{visual.title}</figcaption>
       {visual.frames.length > 1 && (
-        <div className="git-visual-buttons" aria-label="Visning">
+        <div aria-label="Visning" className="git-visual-buttons" role="group">
           {visual.frames.map((item, position) => (
             <button
               aria-pressed={position === index}
@@ -211,10 +305,25 @@ export function GitLessonVisual({ visual }: { visual: GitVisual }) {
       )}
       {frame.rows && <StatusRows frame={frame} />}
       {frame.nodes && <CommitGraph frame={frame} />}
-      {frame.cards && <VisualCards frame={frame} kind={visual.kind} />}
+      {frame.cards &&
+        (visual.kind === 'terminal' ? (
+          <TerminalVisual frame={frame} />
+        ) : visual.kind === 'conflict' ? (
+          <ConflictVisual frame={frame} />
+        ) : visual.kind === 'pr' ? (
+          <PullRequestVisual frame={frame} />
+        ) : visual.kind === 'tree' ? (
+          <FileTreeVisual frame={frame} />
+        ) : (
+          <VisualCards frame={frame} kind={visual.kind} />
+        ))}
       {frame.matrix && <CommandEffects frame={frame} />}
       {visual.kind === 'test' && <TestCaseVisual />}
-      {frame.caption && <p className="git-visual-caption">{frame.caption}</p>}
+      {frame.caption && (
+        <p aria-live="polite" className="git-visual-caption">
+          {frame.caption}
+        </p>
+      )}
     </figure>
   );
 }

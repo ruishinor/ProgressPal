@@ -108,7 +108,7 @@ export const gitVisuals: readonly GitVisual[] = [
     "lesson": "git-m01-o02",
     "step": 7,
     "anchor": "Utskriften har en Path med en sti, for eksempel C:\\Users\\navn. En sti er adresse",
-    "kind": "files",
+    "kind": "tree",
     "title": "Hvilken mappe står du i?",
     "frames": [
       {
@@ -142,7 +142,7 @@ export const gitVisuals: readonly GitVisual[] = [
     "lesson": "git-m01-o03",
     "step": 2,
     "anchor": "Før Git kan følge endringene dine, må du gjøre prosjektmappen til et repo. **git",
-    "kind": "files",
+    "kind": "tree",
     "title": "Før og etter git init",
     "frames": [
       {
@@ -384,7 +384,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "x": "M",
             "y": "M",
             "file": "README.txt",
-            "meaning": "Første M: starttiden er staged. Andre M: kartlinjen er unstaged."
+            "meaning": "Første M: starttiden er staged (git diff --cached). Andre M: kartlinjen er unstaged (git diff)."
           }
         ],
         "caption": "Første M sammenligner staging med siste commit. Andre M sammenligner arbeidsfilen med staging."
@@ -411,7 +411,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "tone": "amber"
           }
         ],
-        "caption": "Sammenlign de tre versjonene av README.txt."
+        "caption": "Her sammenlignes innholdet, ikke bare filnavnet. Har du brukt den gamle starttidsteksten, er forskjellen den samme."
       }
     ],
     "short": "### Hva betyr `MM`?\n\n`git add` velger innholdet slik det er når du kjører kommandoen. Kartlinjen og huskelisten skal vente."
@@ -816,7 +816,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C",
             "x": 275,
             "y": 142,
-            "label": "feature",
+            "label": "feature · HEAD",
             "tone": "amber"
           }
         ],
@@ -928,7 +928,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C",
             "x": 275,
             "y": 142,
-            "label": "feature",
+            "label": "feature · HEAD",
             "tone": "amber"
           }
         ],
@@ -1152,9 +1152,9 @@ export const gitVisuals: readonly GitVisual[] = [
         "cards": [
           {
             "label": "<<<<<<< HEAD",
-            "value": "Forslaget på main",
-            "detail": "",
-            "tone": "neutral"
+            "value": "Bekreftelse: Paameldingen er registrert.",
+            "detail": "Forslaget på main.",
+            "tone": "blue"
           },
           {
             "label": "=======",
@@ -1164,12 +1164,12 @@ export const gitVisuals: readonly GitVisual[] = [
           },
           {
             "label": ">>>>>>> feature/melding",
-            "value": "Forslaget fra feature",
-            "detail": "",
-            "tone": "neutral"
+            "value": "Bekreftelse: Takk! Praktisk informasjon sendes senere.",
+            "detail": "Forslaget fra feature.",
+            "tone": "amber"
           }
         ],
-        "caption": "Markørene skal ikke være med i den ferdige filen.",
+        "caption": "Velg sluttinnholdet og fjern alle tre konfliktmarkørene.",
         "links": []
       }
     ],
@@ -2422,7 +2422,10 @@ export const gitVisuals: readonly GitVisual[] = [
           }
         ],
         "caption": "Alt er lokalt i ProgressPal-Git-M07. Kommandoene bruker separate øvingsmapper.",
-        "links": []
+        "links": [
+          "push / fetch",
+          "push / fetch"
+        ]
       }
     ]
   },
