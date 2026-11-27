@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 
 import {
+  campaignM01Editorial,
+  reviseCampaignM01,
+} from '@/features/lessons/campaignM01Editorial';
+import {
   campaignM01VisualFor,
   campaignM01Visuals,
 } from '@/features/lessons/campaignM01Visuals';
@@ -37,4 +41,13 @@ it('lets the learner compare the saved and unsaved file', () => {
   fireEvent.click(save);
   expect(save).toHaveAttribute('aria-pressed', 'true');
   expect(screen.getByText('Hei, Ola!', { exact: true })).toBeVisible();
+});
+
+it('applies editorial revisions only to exact source strings', () => {
+  const content = JSON.stringify(p2Modules['S1-M01']);
+  for (const [original, revised] of campaignM01Editorial) {
+    expect(content).toContain(JSON.stringify(original));
+    expect(reviseCampaignM01(original)).toBe(revised);
+    expect(reviseCampaignM01(original + '!')).toBe(original + '!');
+  }
 });

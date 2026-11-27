@@ -41,6 +41,7 @@ import {
 import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
+import { reviseCampaignM01 } from './campaignM01Editorial';
 import { campaignM01VisualFor } from './campaignM01Visuals';
 import { ExerciseCard } from './ExerciseCard';
 import { gitVisualFor } from './gitVisuals';
@@ -500,9 +501,12 @@ function LessonSurface({
     phases.length > 0
       ? steps.filter((step) => step.phaseIndex === phaseIndex)
       : steps;
+  const isM01 =
+    programmeId === 'programvareutvikling' && readyBundle.moduleId === 'S1-M01';
   const context: MarkupContext = {
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),
+    ...(isM01 ? { editorial: reviseCampaignM01 } : {}),
     headingLevel: 3,
     highlightGitLiterals: programmeId === 'git-github',
     ...(programmeId === 'git-github' && itemId === 'git-m01-o05'
@@ -522,6 +526,20 @@ function LessonSurface({
         }
       : {}),
   };
+  function visualForStep(step: LessonStep) {
+    const { block } = step;
+    if (programmeId === 'git-github' && block.t === 'text') {
+      return gitVisualFor(itemId, step.stepIndex, block.nb);
+    }
+    if (
+      programmeId === 'programvareutvikling' &&
+      (block.t === 'text' || block.t === 'orient')
+    ) {
+      return campaignM01VisualFor(step.unitId, block.nb);
+    }
+    return undefined;
+  }
+
   const minutes =
     mission.surface === 'reinforcement'
       ? (mission.optionalMinutes ?? mission.minutes)
@@ -765,14 +783,7 @@ function LessonSurface({
                       block={step.block}
                       context={context}
                       copy={copy}
-                      visual={
-                        programmeId === 'git-github' && step.block.t === 'text'
-                          ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
-                          : programmeId === 'programvareutvikling' &&
-                              (step.block.t === 'text' || step.block.t === 'orient')
-                            ? campaignM01VisualFor(step.unitId, step.block.nb)
-                            : undefined
-                      }
+                      visual={visualForStep(step)}
                     />
                   )}
                 </div>

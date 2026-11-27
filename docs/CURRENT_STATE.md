@@ -4,10 +4,13 @@
 lesson-bound examples (seven with selectable states) to the existing shared
 lesson renderer, covering nine teaching lessons and the lab. No changes to the
 canonical lesson assets, exercise hashes, IDs, persistence or progression.
-The full M01 editorial and exercise review is unfinished: the pinned external
-Programvareutvikling authoring workspace is not available in this environment.
-Source inspection only; runtime and hosted validation are pending. Do not
-merge as completion of the owner's full M01 upgrade.
+A scoped exact-string presentation revision (72 distinct replacements) improves
+setup, troubleshooting, practice prompts and feedback without editing generated
+assets. The original
+source remains pinned; Git history and PR #88 contain exports but not the
+complete producer inputs. Initial three browser shards passed; unit stage
+stopped on formatting. Fresh validation and the remaining full review are
+required before release.
 
 **Guild Commons — live status, 2026-11-16.** S1 is active in production: PR
 #108 (activation) merged at 11:14 UTC and its master check passed. The S2

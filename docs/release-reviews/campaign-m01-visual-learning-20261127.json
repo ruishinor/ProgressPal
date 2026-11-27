@@ -4,43 +4,50 @@
   "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "ea313a495620fbde18c2b4c4679369ba40028723",
+    "payloadTree": "9f5f1c415f9396067b123c3fa1669e8eaf842c77",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Draft visual-learning slice for Campaign M01, not the complete owner-requested editorial upgrade.",
+    "summary": "Campaign M01 visual and scoped presentation-language revision; draft, not a full authoring-source upgrade.",
     "evidence": [
-      "Inspected M01's committed 23-unit, 327-block snapshot, catalogue, external-source exporter, existing shared Git visual implementation and lesson-step model. Inventoried 152 exercises but did not complete their individual editorial/evaluator review.",
-      "21 illustrations across L01–L09 and LAB; seven have selectable example states. Unit IDs and exact prefixes checked against the committed M01 snapshot; the shared renderer provides cards, status, terminal and selectable frames. Shorter prose is presentation-only.",
-      "No authored asset, exercise evaluator, ID, content hash, progression, lesson position, persistence, dependency, or service changed. Added binding and example-state tests; tests not executed locally.",
-      "External pinned authoring workspace unavailable; do not treat this slice as the full requested M01 review. Actual build, test, browser, offline and production validation have not been observed."
+      "Reviewed committed M01: 23 units, 152 exercise prompts and their response modes; inspected setup and troubleshooting choices, hints and feedback in detail. The remaining individual exercise feedback and browser visual review are unfinished.",
+      "21 lesson-bound examples (seven selectable), plus 72 exact-string prose revisions scoped to M01. Corrected misleading hidden-file-extension example and clarified Python version requirements, file execution, error investigation and Git workflow. Original code, expected outputs, exercise identifiers, evaluators, hashes and progression remain unchanged.",
+      "Initial hosted run 46071603686: all three E2E shards passed; unit stage stopped on LessonView.tsx formatting. Replaced nested JSX conditional with a typed helper; new exact-source binding regression test. Fresh hosted checks required.",
+      "Repository history, PRs #85 and #88, and their available artifact listings contain shipped exports and release records, not the full pinned producer source. The supplied earlier authoring snapshot has three modules and does not match the seven-module pin. No source pin changed. The exact-text presentation layer avoids breaking regeneration and does not reinterpret evaluator inputs."
     ]
   },
   "adversarialFindings": [
     {
       "id": "M01-V1",
       "severity": "P2",
-      "description": "Terminal location, saved file state, print arguments and error timing are hard to distinguish in prose alone.",
-      "resolution": "Reuse shared visual frames and explicit text labels, with examples bound to existing teaching blocks.",
+      "description": "Abstract code, terminal location, file versions and error timing are hard to distinguish in prose.",
+      "resolution": "Use existing visual renderer for contextual diagrams and selectable examples.",
       "status": "resolved"
     },
     {
       "id": "M01-V2",
       "severity": "P2",
-      "description": "Revising the generated asset without its pinned authoring inputs would break the reproducible source contract.",
-      "resolution": "Keep generated assets unchanged and publish this visual-only slice as a draft; canonical exercise and language revisions remain outstanding.",
+      "description": "The external producer snapshot cannot be reproduced from available GitHub resources alone.",
+      "resolution": "Keep generated artifacts intact, use an exact-source presentation-only overlay, and retain this as a draft rather than claim a complete canonical revision.",
       "status": "accepted-risk"
     },
     {
       "id": "M01-V3",
       "severity": "P3",
-      "description": "An interleaved mission can change the relationship between mission step and unit-local block.",
-      "resolution": "Look up M01 visuals by source unit ID and text prefix, without adding a lesson step; add a binding test against the packaged module.",
+      "description": "Presentation overrides could drift or change exercise semantics.",
+      "resolution": "Exact original-string keys, M01-only context, original exercise objects untouched; added binding regression test. The overlay falls back to original text if the source changes.",
+      "status": "resolved"
+    },
+    {
+      "id": "M01-V4",
+      "severity": "P3",
+      "description": "Initial release unit stage failed formatting.",
+      "resolution": "Simplify the conditional and run the existing hosted checks again; do not claim PASS until observed.",
       "status": "resolved"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Proceed with hosted validation of this scoped draft only. Do not merge as the requested full M01 release; authoring source and remaining review are needed."
+    "summary": "Proceed to hosted validation of this scoped draft. Full review remains outstanding and this is not a production release authorization."
   }
 }
