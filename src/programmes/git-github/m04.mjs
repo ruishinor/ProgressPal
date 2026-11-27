@@ -314,7 +314,7 @@ export const gitM04Lessons = [
   {
     missionId: 'GIT-M04-O01',
     title: 'Hvorfor dele et Git-prosjekt?',
-    goal: 'Forstå hva en remote løser, hva GitHub tilfører og hva som fortsatt er lokalt.',
+    goal: 'Forstå hva en remote er, hvordan GitHub brukes, og hva som blir på maskinen din.',
     skillId: 'GIT-M04-WHY-REMOTE',
     flow: [
       text(
@@ -355,7 +355,7 @@ export const gitM04Lessons = [
             'c',
             'At origin/main på medstudentens PC allerede viser rettelsen fordi origin er konfigurert.',
             false,
-            'Origin/main er medstudentens sist kjente tilstand for den eksterne branchen. Den oppdateres ikke kontinuerlig over nett.',
+            '`origin/main` viser det medstudentens Git sist fikk vite om main på remote. Den oppdateres ikke av seg selv.',
           ],
         ],
         'Hva er det som faktisk flytter Git-historikk mellom repositoryer?',
@@ -505,7 +505,7 @@ export const gitM04Lessons = [
       ),
       question(
         'GIT-M04-E06',
-        'B er nyklonet. A lager deretter en commit uten å sende den. Begge viser fortsatt `main`. Hvilken påstand er riktig?',
+        'B er nyklonet. A lager deretter en commit uten å sende den. Begge viser fortsatt `main`. Hva skjer?',
         [
           [
             'a',
@@ -618,7 +618,7 @@ export const gitM04Lessons = [
             'a',
             'Ja. Fetch skal alltid oppdatere arbeidsfilene; statusen tyder på ødelagt repo.',
             false,
-            'Fetch laster ned historie og oppdaterer remote-tracking-referanser. Den er ikke ment å integrere endringen i lokal main.',
+            '`git fetch` henter historikk og oppdaterer for eksempel `origin/main`. Lokal `main` og arbeidsfilene endres ikke.',
           ],
           [
             'b',
@@ -637,7 +637,7 @@ export const gitM04Lessons = [
       ),
       reflection(
         'GIT-M04-E10',
-        'Forklar hva som var ulikt mellom `main` og `origin/main` i A etter fetch. Ta med én konkret observasjon fra status, logg eller diff og hvorfor filen fremdeles hadde den gamle teksten.',
+        'Forklar med egne ord:\n\n- Hva var forskjellen på `main` og `origin/main` i A etter fetch?\n- Hva viste status, logg eller diff?\n- Hvorfor hadde filen fortsatt den gamle teksten?',
       ),
     ],
   },
@@ -682,7 +682,7 @@ export const gitM04Lessons = [
             'Fetch henter historie og oppdaterer den sporede referansen. A har allerede gjort det; arbeidsfilene endres ikke av fetch alene.',
           ],
         ],
-        'Hva trenger du nå: mer informasjon, publisering eller integrering?',
+        'Vil du bare hente historikk, sende commits eller få endringene inn i arbeidsfilene?',
       ),
       question(
         'GIT-M04-E12',
@@ -692,7 +692,7 @@ export const gitM04Lessons = [
             'a',
             'At Git ikke kunne integrere ved bare å flytte branchen fram; du må undersøke historikk og lokale endringer før du velger metode.',
             true,
-            'Riktig. Meldingen alene sier ikke at en bestemt commit er feil eller skal slettes. Det kan være divergens som krever en bevisst integrering.',
+            'Riktig. Meldingen alene sier ikke at en bestemt commit er feil eller skal slettes. Branchene kan ha hver sin nye commit. Undersøk historikken før du merger.',
           ],
           [
             'b',
@@ -746,7 +746,7 @@ export const gitM04Lessons = [
             'b',
             'En automatisk merge på mottakeren som kombinerer A og B uten spørsmål.',
             false,
-            'En vanlig push oppretter ikke automatisk merge mellom divergerte branches. Arbeidet må først integreres på egnet måte.',
+            'En vanlig push merger ikke to branches som har hver sin nye commit. Du må først samle endringene på en måte som bevarer arbeidet.',
           ],
           [
             'c',
@@ -781,9 +781,9 @@ export const gitM04Lessons = [
           ],
           [
             'b',
-            'Bevar begge commits, undersøk endringene og velg en bevisst integrering; ikke tving mottakeren til å forkaste A.',
+            'Behold begge commits. Undersøk endringene og velg hvordan de skal samles uten å miste arbeidet i A.',
             true,
-            'Riktig. Først må begge utviklingslinjene forstås. At filene er forskjellige gjør integrering mer oversiktlig, men opphever ikke divergensen.',
+            'Riktig. Først må begge utviklingslinjene forstås. Selv om de endret ulike filer, har begge branches fått egne commits.',
           ],
           [
             'c',
@@ -856,7 +856,7 @@ export const gitM04Lessons = [
             'b',
             'At Git mangler `user.email`, som gir tilgang til offentlig GitHub-kode.',
             false,
-            'Forfatteridentitet står i commits. Den autentiserer ikke kontoen og gir ingen serverrettigheter.',
+            'Navn og e-post står i commits. De logger deg ikke inn på GitHub og gir deg ikke skrivetilgang.',
           ],
           [
             'c',

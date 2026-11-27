@@ -73,7 +73,7 @@ export const gitLessons = [
         [
           [
             'a',
-            'Lagring i Notisblokk oppdaterer filen. En commit registrerer et valgt snapshot i Git-historikken.',
+            'Lagring i Notisblokk oppdaterer filen. En commit lagrer det valgte innholdet som en versjon i Git-historikken.',
             true,
             'Ja. Filen må først være lagret på disken; deretter kan Git registrere en versjon du velger. Senere lærer du hvordan du velger innholdet.',
           ],
@@ -172,7 +172,7 @@ export const gitLessons = [
         id: 'GIT-M01-E02',
         type: 'checklist',
         prompt:
-          'Ta en ærlig egenkontroll før du går videre. Kryss bare av det du faktisk har gjort. Du kan lagre en delvis liste og komme tilbake.',
+          'Kryss av det du har gjort. Du kan lagre svarene og fortsette senere.',
         items: [
           'Jeg har åpnet Windows PowerShell og sett at git --version virker.',
           'Jeg har en egen øvingsmappe og har kontrollert stien med Get-Location.',
@@ -184,7 +184,7 @@ export const gitLessons = [
   {
     missionId: 'GIT-M01-O03',
     title: 'Lag og undersøk den første versjonen',
-    goal: 'Opprette et repository med ufarlige tekstfiler og registrere det første snapshotet.',
+    goal: 'Opprette et repo med øvingsfiler og lage den første commiten.',
     skillId: 'GIT-SNAPSHOT',
     flow: [
       text(
@@ -279,7 +279,7 @@ export const gitLessons = [
             'a',
             'Innholdet er valgt til neste commit, men det finnes ennå ingen ny commit.',
             true,
-            'Riktig. git add velger innhold. git commit er et eget steg som registrerer snapshotet.',
+            'Riktig. `git add` velger innholdet. `git commit` lagrer det som en versjon i historikken.',
           ],
           [
             'b',
@@ -331,7 +331,7 @@ export const gitLessons = [
         'M  README.txt\n M plan.txt',
       ),
       text(
-        'Diff med --cached skal nå inneholde start klokken 10 i README.txt, men ingen endring i plan.txt. Den første M-en viser klargjort innhold. Nå skal du se at staging area husker et bestemt innhold, ikke bare en liste med filnavn.',
+        '**Se etter:** `git diff --cached` viser start klokken 10 i `README.txt`, men ikke endringen i `plan.txt`.\n\nStaging area husker innholdet du valgte, ikke bare filnavnet.',
       ),
       command(
         'Endre en fil som allerede er staged',
@@ -345,29 +345,29 @@ export const gitLessons = [
         'MM README.txt\n M plan.txt',
       ),
       text(
-        'MM betyr at README.txt har både staged og unstaged innhold. Diff uten --cached viser den nye kartlinjen; diff med --cached viser fortsatt bare endringen til starttid 10. git add tok ikke med framtidige endringer automatisk. Kjører du add på nytt, oppdaterer du innholdet som er valgt. Her skal kartlinjen vente sammen med huskelisten.',
+        '### Hva betyr `MM`?\n\nGit viser to M-er fordi du har endret den samme filen to ganger.\n\n```\nMM README.txt\n```\n\n- **Første M – staged:** Start klokken 10 er klar for neste commit. Se med `git diff --cached`.\n- **Andre M – unstaged:** Kartlinjen ligger bare i arbeidsfilen. Se med `git diff`.\n\n`git add` tar med innholdet slik det er akkurat når du kjører kommandoen. Senere endringer kommer ikke med før du kjører `git add` på nytt.\n\n**I denne øvingen:** Kartlinjen og huskelisten skal vente.',
       ),
       question(
         'GIT-M01-E04',
-        'README.txt ble staged med starttid 10. Etterpå la du til Ta med kart. og lagret uten å kjøre add igjen. Status viser MM README.txt. Hva vil neste vanlige git commit registrere for denne filen?',
+        'Du har gjort to endringer i `README.txt`:\n\n- Du la til starttid 10 og kjørte `git add`.\n- Du la til «Ta med kart.» og lagret, uten å kjøre `git add` igjen.\n\nGit viser `MM README.txt`.\n\n**Hva blir med i neste commit hvis du kjører `git commit` uten ekstra valg?**',
         [
           [
             'a',
             'Starttid 10, uten den nye kartlinjen.',
             true,
-            'Ja. Index inneholder versjonen fra add. Kartlinjen finnes bare i working tree og blir liggende som en endring etter commit.',
+            'Riktig. Git bruker innholdet du la i staging area med `git add`. Kartlinjen blir værende i filen etter commit.',
           ],
           [
             'b',
-            'Starttid 10 og kartlinjen, fordi filnavnet allerede var staged.',
+            'Starttid 10 og kartlinjen, fordi filen allerede lå i staging area.',
             false,
-            'Staging er ikke et løfte om å følge framtidige endringer. Git bruker innholdet som ble valgt da add ble kjørt.',
+            'Git legger ikke nye endringer i staging area av seg selv. Kartlinjen blir først med hvis du kjører `git add` på nytt.',
           ],
           [
             'c',
-            'Ingen av endringene, fordi MM betyr at Git ikke kan lage en commit.',
+            'Ingen av endringene, fordi MM stopper Git fra å lage en commit.',
             false,
-            'MM er en beskrivelse av to forskjellige tilstander, ikke en sperre. Git kan registrere det staged innholdet og la resten vente.',
+            'MM viser at filen har både staged og unstaged endringer. Git kan lage en commit med det staged innholdet.',
           ],
         ],
         'Sammenlign hva diff med og uten --cached viser for samme fil.',
@@ -396,7 +396,7 @@ export const gitLessons = [
         'git --no-pager diff --cached\ngit commit -m "Beskriv starttid for turen"\nif ($LASTEXITCODE -ne 0) { throw "STOPP: Commit ble ikke laget." }\ngit --no-pager log --oneline -2\ngit status --short',
       ),
       text(
-        'Historikken skal nå inneholde to commits: Beskriv starttid for turen øverst og Start turplanen under. Status skal vise blank første plass og M på andre for både README.txt og plan.txt. De ventende endringene ble bevart. Status blir altså ikke nødvendigvis tom etter en vellykket commit.',
+        '### Sjekk resultatet\n\n**Historikk (nyeste først):**\n- Beskriv starttid for turen\n- Start turplanen\n\n**Git-status:**\n```\n M README.txt\n M plan.txt\n```\n\nBegge filene har fortsatt unstaged endringer. Det er akkurat det vi vil her.',
       ),
       command(
         'Sammenlign registrert og nåværende innhold',
@@ -433,17 +433,17 @@ export const gitLessons = [
       ),
       question(
         'GIT-M01-E05',
-        'Målet er en commit med bare plan.txt. Nå viser status M i første kolonne for README.txt og M i andre kolonne for plan.txt. Hva trenger du å gjøre før commit?',
+        'Målet er å lage en commit med bare endringene i `plan.txt`.\n\nGit viser:\n```\nM  README.txt\n M plan.txt\n```\n\n**Hva må du gjøre før commit?**',
         [
           [
             'a',
-            'Ta README.txt ut av staging area uten å endre arbeidsfilen, klargjør plan.txt og kontroller utvalget.',
+            'Ta README.txt ut av staging area, legg til plan.txt og sjekk hva som er staged.',
             true,
-            'Ja. Begge delene trengs: fjern det gamle utvalget med git restore --staged -- README.txt, klargjør plan.txt med git add -- plan.txt og undersøk diff med --cached før commit.',
+            'Riktig. Du må både fjerne den gamle endringen og legge til den nye:\n\n- `git restore --staged -- README.txt`\n- `git add -- plan.txt`\n- `git diff --cached` for å sjekke innholdet.',
           ],
           [
             'b',
-            'Klargjør plan.txt og lag commit; den sist klargjorte filen erstatter automatisk den første i utvalget.',
+            'Legg til plan.txt og lag commit. Den nye filen erstatter automatisk README.txt i staging area.',
             false,
             'add legger ikke bort andre staged filer. Uten å ta README.txt ut av index vil begge endringene bli med.',
           ],
@@ -454,7 +454,7 @@ export const gitLessons = [
             'Commit bruker index, ikke tidspunktet for siste redigering. Her er feil fil klargjort og riktig fil fortsatt unstaged.',
           ],
         ],
-        'Se både på det som allerede er valgt, og det som mangler i utvalget. Hvordan tok du plan.txt ut av staging i leksjon 4, «Rett bare utvalget»?',
+        'Se både på filen som allerede er staged, og filen som ikke er staged. Hvordan tok du plan.txt ut av staging i leksjon 4, «Rett bare utvalget»?',
       ),
       text(
         'Nå skal du selv velge hvilke endringer som blir med i neste commit.\n\nI leksjon 4, «Velg innholdet i neste commit», lærte du å fjerne en fil fra staging area uten å slette endringene i filen. Se kommandoboksen [«Rett bare utvalget»](lesson:git-m01-o04#rett-bare-utvalget) dersom du trenger hjelp.\n\nDenne gangen skal du:\n\n1. Fjerne README.txt fra staging area.\n2. Legge til plan.txt i staging area.\n3. Kontrollere hvilke filer som er klargjort.\n4. Kontrollere innholdet i endringene.\n\nBare endringene i plan.txt skal være klargjort for neste commit.\n\nHvorfor holder det ikke å bare legge til plan.txt?',

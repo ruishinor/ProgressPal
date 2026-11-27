@@ -328,7 +328,7 @@ export const gitM05Lessons = [
           ],
           [
             'c',
-            'Et issue beskriver et problem eller arbeid; en PR presenterer et konkret forslag til integrering.',
+            'Et issue beskriver en oppgave eller et problem. En PR foreslår endringer som kan merges inn i en annen branch.',
             true,
             'Riktig. Oppgaven og forslaget kan knyttes sammen, men er ikke samme objekt.',
           ],
@@ -473,7 +473,7 @@ export const gitM05Lessons = [
             'Riktig. Skriv hva du faktisk vet og hva som er usikkert, slik at reviewer kan undersøke riktig risiko.',
           ],
         ],
-        'Skiller du mellom dokumentert observasjon og en udokumentert kvalitetspåstand?',
+        'Hva har utvikleren faktisk sjekket? Hva gjenstår?',
       ),
       question(
         'GIT-M05-E08',
@@ -540,7 +540,7 @@ export const gitM05Lessons = [
             'c',
             '«Den er pushet, så review er unødvendig.»',
             false,
-            'Push dokumenterer overføring av commits, ikke funksjonell korrekthet eller sikkerhet.',
+            'En push sender commits. Den tester ikke om koden virker eller er trygg.',
           ],
         ],
         'Kan en annen utvikler forstå og kontrollere påstanden?',
@@ -568,7 +568,7 @@ export const gitM05Lessons = [
             'Riktig. Skill påviste feil fra preferanser, og behandle begge på en profesjonell måte.',
           ],
         ],
-        'Hva er et krav, og hva er et faglig valg flere løsninger kan tilfredsstille?',
+        'Hva må løsningen gjøre, og hva kan utvikleren velge selv?',
       ),
       question(
         'GIT-M05-E11',
@@ -632,7 +632,7 @@ export const gitM05Lessons = [
             'b',
             'Merke tråden løst før feilen er vurdert, fordi reviewerens ord ikke er bindende.',
             false,
-            'En saklig review krever at innvendingen undersøkes og relevante problemer håndteres.',
+            'Undersøk kommentaren. Rett problemet hvis det faktisk er en feil.',
           ],
           [
             'c',
@@ -782,7 +782,7 @@ export const gitM05Lessons = [
             'a',
             'Be om eierens private tilgangstoken og push direkte til main.',
             false,
-            'Ikke del autentiseringshemmeligheter. Bruk ordinære rettigheter og bidragsflyt.',
+            'Ikke del passord eller tilgangstokener. Bruk din egen konto og de rettighetene du har.',
           ],
           [
             'b',
@@ -807,7 +807,7 @@ export const gitM05Lessons = [
             'a',
             'Undersøke de faktiske endringene og risikoen før noen kjører eller merger ukjent kode.',
             true,
-            'Riktig. PR-beskrivelsen er en påstand; diff og konsekvenser må undersøkes.',
+            'Riktig. Les hva koden faktisk endrer, ikke bare tittelen på PR-en.',
           ],
           [
             'b',
@@ -819,7 +819,7 @@ export const gitM05Lessons = [
             'c',
             'Kalle den trygg fordi den kommer fra en privat feature branch.',
             false,
-            'En branch har ingen garanti for konfidensialitet eller ufarlig innhold.',
+            'En branch kan inneholde hemmeligheter eller skadelig kode, selv om navnet virker uskyldig.',
           ],
         ],
         'Hva er det faktisk sendt inn, og hvilke rettigheter ville kjøring gitt?',
@@ -865,7 +865,7 @@ export const gitM05Lessons = [
       ),
       question(
         'GIT-M05-E20',
-        'Hva er den mest forsvarlige neste handlingen i dette nye scenariet?',
+        'Hva bør teamet gjøre nå?',
         [
           [
             'a',
@@ -894,7 +894,7 @@ export const gitM05Lessons = [
         [
           [
             'a',
-            'Kontroller tilgang og mergepolicy, og etterprøv den samlede atferden etter integrering.',
+            'Sjekk at du har tillatelse til å merge, og test programmet etter merge.',
             true,
             'Riktig. Godkjent forslag og vellykket merge er ikke garanti for fremtidig korrekthet.',
           ],
@@ -915,7 +915,7 @@ export const gitM05Lessons = [
       ),
       reflect(
         'GIT-M05-E22',
-        'Skriv en kort, selvstendig beslutning: problem og avgrensning, head/base, hva diffen viser, hvilken review-kommentar som krever oppfølging, relevante kontroller, hvorfor du vil merge eller vente, og hva du ville kontrollert etterpå. Skill lokal Git-øving fra ekte GitHub-PR.',
+        'Hva ville du gjort med denne PR-en?\n\n- Hva er oppgaven, og hvilke branches gjelder den?\n- Hva viser diffen og review-kommentaren?\n- Hvilke tester trenger du?\n- Ville du merget nå eller ventet? Hvorfor?\n- Hva ville du sjekket etter merge?',
       ),
       text(
         '### Videre til M06\n\nDu kan nå forklare hvordan utviklere foreslår, undersøker, forbedrer og integrerer endringer. Men hva gjør du dersom du oppdager en feil før commit, etter commit eller etter deling? M06 handler om å undersøke situasjonen først og velge trygg gjenoppretting. `restore`, `revert`, `reset`, `stash` og `reflog` kommer der – vi bruker dem ikke som snarveier i M05.',

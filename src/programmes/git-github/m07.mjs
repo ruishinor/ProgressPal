@@ -472,7 +472,7 @@ export const gitM07Lessons = [
         '### Fra enkeltkommandoer til en arbeidsflyt\n\nI M01–M06 lærte du å registrere versjoner, undersøke historikk, arbeide på branches, dele endringer, behandle en pull request og rette Git-feil. Nå skal du bruke dette i sammenheng. Du overtar en enkel påmeldingsside for et arrangement sammen med en annen utvikler. Den første versjonen fungerer med navn. Telefonfeltet vises, men blir ennå ikke validert. Arrangøren har bedt om en endring: Hvis noen oppgir telefon, skal nummeret inneholde nøyaktig åtte siffer. Et tomt telefonfelt skal fortsatt være tillatt.',
       ),
       text(
-        'En utviklingsoppgave handler ikke først og fremst om å få noe nytt inn i en commit. Den handler om å finne ut hva som trengs, gjøre en avgrenset endring og kontrollere virkningen. Vi bruker **akseptansekriterier**: forhold vi kan undersøke for å avgjøre om oppgaven er løst. Her er de konkrete: Et navn er påkrevd; et tomt telefonfelt er gyldig; `12345678` er gyldig; `1234567` og `abcdefgh` er ugyldige; ingen påmeldinger skal lagres. Godkjent Git-status kan ikke alene bevise disse forholdene.',
+        'En utviklingsoppgave handler ikke først og fremst om å få noe nytt inn i en commit. Den handler om å finne ut hva som trengs, gjøre en avgrenset endring og kontrollere virkningen. Vi bruker **akseptansekriterier**: forhold vi kan undersøke for å avgjøre om oppgaven er løst. Her er kravene til skjemaet:\n\n- Navn er påkrevd.\n- Tomt telefonfelt: godtas.\n- `12345678`: godtas.\n- `1234567`: avvises.\n- `abcdefgh`: avvises.\n- Ingen påmeldinger skal lagres.\n\nTest disse tilfellene. Git-status alene kan ikke fortelle deg om skjemaet virker.',
       ),
       text(
         'Prosjektet består av `index.html` (skjemaet brukeren ser), `app.js` (kobler skjemaet til resultatet), `valider.js` (avgjør om inndata skal godkjennes), `kontroller.cjs` (noen enkle maskinelle kontroller), `oppgave.md` (bestillingen) og `README.md` (hvordan prosjektet brukes). `main` er felles utviklingslinje. Utvikler A arbeider med valideringen. Utvikler B forbedrer skjemaets hjelpetekst. Du skal se hvordan begge endringer kan bli del av samme produkt.',
@@ -538,7 +538,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O02',
     title: 'Lag og undersøk prosjektet',
-    goal: 'Opprette en isolert lokal Git-fixture og lese prosjektets filer, historikk og status før endring.',
+    goal: 'Lage et lokalt øvingsprosjekt og undersøke filene, historikken og Git-statusen før du endrer noe.',
     skillId: 'GIT-M07-OVERSIKT',
     flow: [
       text(
@@ -599,7 +599,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O03',
     title: 'Fra oppgave til forslag på egen branch',
-    goal: 'Gjennomføre en liten kodeendring, kontrollere staging og opprette en ærlig, avgrenset commit.',
+    goal: 'Gjøre en liten kodeendring, sjekke staging area og lage en commit med bare den endringen.',
     skillId: 'GIT-M07-ENDRING',
     flow: [
       text(
@@ -631,7 +631,7 @@ export const gitM07Lessons = [
             'b',
             'README blir slettet fra historikken fordi den ikke ble lagt til på nytt.',
             false,
-            'En uendret, allerede sporet fil forblir i commitens snapshot.',
+            'En fil Git allerede følger, blir fortsatt med i den nye versjonen selv om den ikke er endret.',
           ],
           [
             'c',
@@ -675,7 +675,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O04',
     title: 'En review som fører til bedre kode',
-    goal: 'Undersøke et forslag fra en annen arbeidskopi og korrigere en påvist funksjonell mangel.',
+    goal: 'Undersøke forslaget til en annen utvikler, finne en feil og rette den.',
     skillId: 'GIT-M07-REVIEW',
     flow: [
       text(
@@ -719,10 +719,10 @@ export const gitM07Lessons = [
             'c',
             'At det ikke lenger er nødvendig å undersøke diffen eller historikken.',
             false,
-            'Testen sier noe om funksjonell atferd, mens diff og historikk dokumenterer hva som faktisk ble endret.',
+            'Testen viser om den sjekkede funksjonen virker. Diff og historikk viser hva du endret.',
           ],
         ],
-        'Hvilken konkret påstand blir kontrollert av denne testen?',
+        'Hva sjekker denne testen?',
       ),
       question(
         'GIT-M07-E08',
@@ -738,7 +738,7 @@ export const gitM07Lessons = [
             'b',
             'Vurder om det faktisk forbedrer lesbarhet eller følger en avtalt standard, og forklar valget.',
             true,
-            'Riktig. Skille mellom funksjonelle krav og preferanser gjør review mer nyttig.',
+            'Riktig. Skill mellom det programmet må gjøre, og ting som bare handler om smak.',
           ],
           [
             'c',
@@ -815,13 +815,13 @@ export const gitM07Lessons = [
       ),
       question(
         'GIT-M07-E11',
-        'B har merget begge branches, og `git status --short` er tom. Hva beviser dette?',
+        'B har merget begge branches, og `git status --short` er tom. Hva forteller det?',
         [
           [
             'a',
             'At ingen feil kan oppstå ved påmelding.',
             false,
-            'Ren Git-status sier ingenting om utestede funksjonelle eller visuelle forhold.',
+            'Ren Git-status sier ikke om skjemaet virker eller ser riktig ut.',
           ],
           [
             'b',
@@ -988,7 +988,7 @@ export const gitM07Lessons = [
   {
     missionId: 'GIT-M07-O07',
     title: 'Fra lokal øving til GitHub og overlevering',
-    goal: 'Skille faktisk GitHub-samarbeid fra lokale øvelser, og overlevere et etterprøvbart resultat.',
+    goal: 'Forstå hvordan lokal Git-øving skiller seg fra GitHub, og forklare arbeidet til en annen utvikler.',
     skillId: 'GIT-M07-OVERLEVERING',
     flow: [
       text(
@@ -1040,7 +1040,7 @@ export const gitM07Lessons = [
           ],
           [
             'b',
-            'Dokumentert kontroll av skjemaet som helhet og eventuelle krav for sikker faktisk utrulling; denne øvingen har heller ingen backend eller produksjonssetting.',
+            'Sjekk hele skjemaet og hva som kreves før publisering. Øvingen har ingen backend og blir ikke satt i produksjon.',
             true,
             'Riktig. M07 leverer et lokalt øvingsprosjekt, ikke en publisert tjeneste.',
           ],
@@ -1129,7 +1129,7 @@ export const gitM07Lessons = [
       ),
       question(
         'GIT-M07-E22',
-        'Du har laget og testet navnelengdeendringen, men har ikke pushet branchen. Hvilken overlevering er sannferdig?',
+        'Du har laget og testet navnelengdeendringen, men har ikke pushet branchen. Hva bør du fortelle en annen utvikler?',
         [
           [
             'a',
@@ -1145,7 +1145,7 @@ export const gitM07Lessons = [
           ],
           [
             'c',
-            '«All påmelding er produksjonssertifisert», fordi tester bestod.',
+            '«Alt er klart for produksjon», fordi testene bestod.',
             false,
             'Disse lokale testene gir ingen produksjonssertifisering.',
           ],
@@ -1154,7 +1154,7 @@ export const gitM07Lessons = [
       ),
       reflection(
         'GIT-M07-E23',
-        'Forklar hvordan du valgte arbeidsmåte for navnelengdeendringen. Oppgi hvilke Git-tilstander du undersøkte, hvilke testtilfeller du brukte, hva du committet, om du delte eller integrerte endringen, og hvilken usikkerhet som gjenstår. Hvis noe stoppet, forklar hva du observerte og hvorfor du ikke brukte destruktiv opprydding.',
+        'Fortell hvordan du jobbet med navnelengden:\n\n- Hva sjekket du i Git før du begynte?\n- Hvilke navn testet du?\n- Hva kom med i commiten?\n- Delte eller merget du endringen?\n- Hva gjenstår, eller hvor stoppet du?\n\nDu kan beskrive det du fikk til, selv om du ikke ble ferdig.',
       ),
       {
         t: 'recap',

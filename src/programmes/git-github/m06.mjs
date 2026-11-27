@@ -271,7 +271,7 @@ export const gitM06Lessons = [
         '### En god reparasjon begynner med en undersøkelse\n\nI M05 gjennomgikk to utviklere en forbedring av påmeldingssiden. Nå kan brukere fortsatt skrive ugyldige opplysninger i et bestemt tilfelle. En utvikler sier: «Vi kan bare angre siste commit.» Men feilen kan ligge i en arbeidsfil, en staget endring, en lokal commit eller en commit som allerede er delt. Å velge kommando før dette er kjent, kan fjerne arbeid uten å løse problemet.',
       ),
       text(
-        'En **working tree** er filene du ser og redigerer. **Staging/index** er utvalget Git vil ta med i neste commit. **HEAD** peker vanligvis på den aktive branchens siste commit. Disse kan inneholde forskjellig innhold. `git status` viser hva som er endret og staged, `git diff` viser ikke-stagede endringer, `git diff --staged` viser staged innhold, og `git log` eller `git show` undersøker registrerte commits. Ingen av disse trenger å endre filene.',
+        '### Hvor ligger endringen?\n\n- **Working tree:** Filene du redigerer. Se unstaged endringer med `git diff`.\n- **Staging area (index):** Innholdet som er klart for neste commit. Se det med `git diff --staged`.\n- **HEAD:** Vanligvis siste commit på branchen du står på. Les historikken med `git log` og innholdet med `git show`.\n\nStart med `git status` for å få oversikt. Ingen av disse kommandoene endrer filene.',
       ),
       text(
         'Spør først: Hva har vi faktisk observert? Hvilken branch står vi på? Finnes det nyttige lokale endringer? Er den problematiske commiten delt med andre? Hva ønsker vi bevart? Er det nødvendig å flytte historikken, eller holder det å rette koden videre? Dette er ikke administrasjon for sin egen skyld: svarene avgjør hvilken reparasjon som er trygg.',
@@ -321,17 +321,17 @@ export const gitM06Lessons = [
             'c',
             'Git har mistet filinnholdet, siden de to diff-kommandoene viser ulikt resultat.',
             false,
-            'De to kommandoene sammenligner forskjellige tilstander og kan derfor vise forskjellige resultater.',
+            'De to diff-kommandoene sammenligner ulike versjoner av filen. Derfor kan resultatene være forskjellige.',
           ],
         ],
-        'Hvilke to tilstander sammenligner hver diff?',
+        'Hvilke versjoner av filen sammenligner hver diff?',
       ),
     ],
   },
   {
     missionId: 'GIT-M06-O02',
     title: 'Restore: behold eller forkast riktig endring',
-    goal: 'Skille unstage fra å forkaste ikke-stagede endringer og utføre trygg filrettet praksis.',
+    goal: 'Ta en fil ut av staging area uten å miste arbeidet, og forstå når restore kan slette endringer.',
     skillId: 'GIT-M06-RESTORE',
     flow: [
       text(
@@ -409,14 +409,14 @@ export const gitM06Lessons = [
             'Filrettet restore slår ikke sammen branches. Her ville kommandoen bare endret innholdet i den valgte arbeidsfilen.',
           ],
         ],
-        'Hvilken av de tre tilstandene ber denne kommandoen Git om å endre?',
+        'Endrer kommandoen arbeidsfilen, staging area eller historikken?',
       ),
     ],
   },
   {
     missionId: 'GIT-M06-O03',
     title: 'Reset: hva skjer med en lokal commit?',
-    goal: 'Skille soft, mixed og hard og forstå hvorfor delt historikk krever andre vurderinger.',
+    goal: 'Forstå forskjellen på reset med --soft, --mixed og --hard, og hvorfor delt historikk krever ekstra omtanke.',
     skillId: 'GIT-M06-RESET',
     flow: [
       text(
@@ -549,7 +549,7 @@ export const gitM06Lessons = [
             'b',
             'Nei, apply forsøker å føre tilbake endringene uten å fjerne stash-oppføringen automatisk.',
             true,
-            'Riktig. Den kan fortsatt finnes for kontroll. Fjern den bare med et bevisst valg etter vurdering.',
+            'Riktig. Stash-oppføringen blir værende. Slett den først når du ikke trenger den lenger.',
           ],
           [
             'c',
@@ -603,7 +603,7 @@ export const gitM06Lessons = [
             'Stash og reflog er ulike mekanismer. Å slette stash kan fjerne en annen mulig kilde til arbeid.',
           ],
         ],
-        'Har du verifisert hva den tidligere referansen peker på?',
+        'Har du sjekket hvilken commit referansen peker på?',
       ),
       question(
         'GIT-M06-E10',
@@ -670,7 +670,7 @@ export const gitM06Lessons = [
             'c',
             'Revert har automatisk fjernet alle andre feil som er registrert i repositoryet.',
             false,
-            'Revert er rettet mot konkrete endringer. Den verifiserer ikke hele funksjonaliteten.',
+            'Revert reverserer en bestemt endring. Test programmet etterpå.',
           ],
         ],
         'Hva viser `git log` etter en vanlig revert?',
@@ -689,13 +689,13 @@ export const gitM06Lessons = [
             'b',
             'Bare om `git status` viser ren working tree; det garanterer at funksjonen virker.',
             false,
-            'Ren Git-status er ikke en funksjonell test og sier ingenting om avhengighetene i senere commits.',
+            'Ren Git-status viser at arbeidsfilene ikke har ventende endringer. Den sier ikke om nyere kode trenger den gamle endringen.',
           ],
           [
             'c',
             'Bare om commitmeldingen inneholder ordet «feil».',
             false,
-            'Commitmeldingens ordlyd er ikke bevis for hvilke endringer eller avhengigheter en revert påvirker.',
+            'Les selve diffen. Commit-meldingen forteller ikke nødvendigvis alt en revert vil endre.',
           ],
         ],
         'Hvilken faktisk kode kan bli reversert, og hvem er avhengig av den?',
@@ -747,7 +747,7 @@ export const gitM06Lessons = [
             'a',
             'Revert er alltid riktig så lenge PR-en hadde godkjenning.',
             false,
-            'Godkjenning sier ikke at en full reversering er korrekt i den nye tilstanden.',
+            'Selv om den gamle PR-en ble godkjent, kan nyere arbeid være avhengig av den.',
           ],
           [
             'b',
@@ -770,9 +770,9 @@ export const gitM06Lessons = [
         [
           [
             'a',
-            'Endringen er kontrollert innenfor de aktuelle kontrollenes omfang; funksjonen og relevante avhengigheter må fortsatt vurderes mot behovet.',
+            'De kjørte kontrollene har bestått. Sjekk også at programmet virker som det skal sammen med nyere arbeid.',
             true,
-            'Riktig. Ren status, grønn CI eller vellykket merge beviser ikke universell funksjonell korrekthet.',
+            'Riktig. Git-status, CI og merge forteller forskjellige ting. Test funksjonen som ble rettet.',
           ],
           [
             'b',
