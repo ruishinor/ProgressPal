@@ -4,7 +4,7 @@
   "reviewer": "ChatGPT GPT-6.2 (same-session source review; no independent QA)",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "473a274c54cfed666a5820471ca60723f1401ab6",
+    "payloadTree": "340005b78f3f646af2b5d4efca36078d613766c7",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
@@ -14,7 +14,8 @@
       "Added structured examples on 42 existing Learn cards. Every activity has an example or existing Kanban board.",
       "Compared 194 card IDs, types, order and answer identifier fields against the base, preserving assessment behavior. Targeted changes clarify Scrum accountability, Kanban interpretation and collaboration wording.",
       "Initial candidate built and all three hosted E2E shards passed; Unit stage stopped on a single formatting issue. The expanded candidate adds a focused mobile/desktop keyboard, reflow and accessibility regression test; these new tests are not yet executed.",
-      "No new dependencies or changes to grading, XP, persistence, navigation or release gates."
+      "No new dependencies or changes to grading, XP, persistence, navigation or release gates.",
+      "Follow-up CI log review identified formatting failures; the exact correction is limited to expression wrapping, equivalent test-local variables and test names. No assertions, product behavior, dependencies or budgets changed. Manual source correction; locked Prettier and all remaining checks must run on GitHub."
     ]
   },
   "adversarialFindings": [

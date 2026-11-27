@@ -6,7 +6,9 @@ import { LearnCard } from '@/features/microlearning/components/LearnCard';
 import type { MicroLearnCard } from '@/lib/domain';
 import { tenkSomEnUtviklerTrack } from '@/programmes/programvareutvikling/microlearning/tenkSomEnUtvikler';
 
-const cards = tenkSomEnUtviklerTrack.sessions.flatMap((session) => session.cards);
+const cards = tenkSomEnUtviklerTrack.sessions.flatMap(
+  (session) => session.cards,
+);
 const illustrated = cards.filter(
   (card): card is MicroLearnCard =>
     card.kind === 'learn' && card.visual !== undefined,
@@ -29,7 +31,7 @@ describe('Utviklerblikk teaching examples', () => {
     expect(screen.getByRole('button', { name: 'Neste' })).toBeEnabled();
   });
 
-  it('switches the displayed SQL result without advancing the lesson', async () => {
+  it('switches SQL results without advancing', async () => {
     const user = userEvent.setup();
     const onNext = vi.fn();
     const id = 'tsu-sql-04-uten-treff';
