@@ -1,0 +1,26 @@
+name: Temporary Prettier diagnostics
+on:
+  pull_request:
+    branches:
+      - fix/git-m01-staging-reference
+permissions:
+  contents: read
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Format the two affected files
+        run: |
+          npm exec -- prettier --version
+          npm exec -- prettier --write src/features/lessons/GitLessonVisual.tsx src/styles/lessons.css
+          npm run format:check
+          git diff -- src/features/lessons/GitLessonVisual.tsx src/styles/lessons.css
