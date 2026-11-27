@@ -42,9 +42,12 @@ import { deriveProgrammeMastery } from '@/lib/mastery';
 import { createLessonAwardPlanner } from '@/lib/rewards';
 
 import { campaignM02Copy } from './campaignM02Copy';
-import { campaignM02VisualFor } from './campaignM02Visuals';
+import {
+  campaignM02VisualFor,
+  loadCampaignM02Visuals,
+} from './campaignM02Visuals';
 import { ExerciseCard } from './ExerciseCard';
-import { gitVisualFor } from './gitVisuals';
+import { gitVisualFor, type GitVisual } from './gitVisuals';
 import { LessonTextBlockView } from './LessonBlocks';
 import type { MarkupContext } from './markup';
 import {
@@ -91,6 +94,7 @@ type LoadState =
       readonly bundle: LessonBundle;
       readonly index: ProgrammeContentIndex;
       readonly steps: readonly LessonStep[];
+      readonly campaignVisuals: readonly GitVisual[];
     }
   | { readonly status: 'failed'; readonly reason: ContentLoadFailureStatus };
 
@@ -203,11 +207,15 @@ function LessonSurface({
       const lessonSubjectIds = lessonBundle.exercises.map(
         (entry) => entry.meta.subjectId,
       );
-      const [rows, stored] = await Promise.all([
+      const isCampaignM02 =
+        programmeId === 'programvareutvikling' &&
+        lessonBundle.moduleId === 'S1-M02';
+      const [rows, stored, campaignVisuals] = await Promise.all([
         lessonSubjectIds.length === 0
           ? Promise.resolve([])
           : listLearnerEvidence({ programmeId, subjectIds: lessonSubjectIds }),
         getLessonPosition(itemId),
+        isCampaignM02 ? loadCampaignM02Visuals() : Promise.resolve([]),
       ]);
 
       if (!active) {
@@ -258,6 +266,7 @@ function LessonSurface({
         bundle: lessonBundle,
         index: index.value,
         steps: lessonStepList,
+        campaignVisuals,
       });
     })().catch(() => {
       if (active) {
@@ -493,7 +502,7 @@ function LessonSurface({
     );
   }
 
-  const { index } = load;
+  const { index, campaignVisuals } = load;
   const readyBundle = load.bundle;
   const { mission } = readyBundle;
   const phases = mission.phases ?? [];
@@ -523,6 +532,17 @@ function LessonSurface({
         }
       : {}),
   };
+  function visualForStep(step: LessonStep) {
+    const { block } = step;
+    if (programmeId === 'git-github' && block.t === 'text') {
+      return gitVisualFor(itemId, step.stepIndex, block.nb);
+    }
+    if (block.t === 'text' || block.t === 'orient') {
+      return campaignM02VisualFor(campaignVisuals, step.unitId, block.nb);
+    }
+    return undefined;
+  }
+
   const minutes =
     mission.surface === 'reinforcement'
       ? (mission.optionalMinutes ?? mission.minutes)
@@ -773,15 +793,7 @@ function LessonSurface({
                       }
                       context={context}
                       copy={copy}
-                      visual={
-                        programmeId === 'git-github' && step.block.t === 'text'
-                          ? gitVisualFor(itemId, step.stepIndex, step.block.nb)
-                          : programmeId === 'programvareutvikling' &&
-                              (step.block.t === 'text' ||
-                                step.block.t === 'orient')
-                            ? campaignM02VisualFor(step.unitId, step.block.nb)
-                            : undefined
-                      }
+                      visual={visualForStep(step)}
                     />
                   )}
                 </div>
