@@ -26,7 +26,7 @@ const inlinePattern = /`([^`]+)`|\*\*([^*]+?)\*\*|\*([^*\s][^*]*?)\*/g;
 // Highlight recognisable literals in older Git prose, without changing the
 // authored text, command examples, answer keys or other programmes.
 const gitLiteralPattern =
-  /\b(?:git (?:--no-pager )?(?:add|branch|clone|commit|config|diff|fetch|init|log|merge|pull|push|reflog|remote|reset|restore|revert|show|stash|status|switch)|(?:README|plan|kladde|messages|melding|bekreftelse|settings|config|index|app|valider|kontroller|paamelding|oppgave)\.(?:txt|md|json|html|js|cjs)|origin\/[\w/-]+|feature\/[\w/-]+|HEAD(?:~\d+)?)\b/g;
+  /\b(?:git (?:--no-pager )?(?:add|branch|clone|commit|config|diff|fetch|init|log|merge|pull|push|reflog|remote|reset|restore|revert|show|stash|status|switch)(?: --[a-z][a-z-]*| -[a-zA-Z0-9]+)*|(?:README|plan|kladde|messages|melding|bekreftelse|settings|config|index|app|valider|kontroller|paamelding|oppgave)\.(?:txt|md|json|html|js|cjs)|origin\/[\w/-]+|feature\/[\w/-]+|HEAD(?:~\d+)?)\b/g;
 
 function plainText(context: MarkupContext, text: string, offset: number) {
   if (!context.highlightGitLiterals) {

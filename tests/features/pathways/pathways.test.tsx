@@ -168,11 +168,10 @@ it('clears the completion timestamp when reopening and retains the original star
     completedAt: undefined,
     updatedAt: reopened.updatedAt,
   });
-  expect(
-    within(screen.getByRole('region', { name: 'Leksjonsstatus' })).getByRole(
-      'status',
-    ),
-  ).toHaveTextContent('Status: Ikke fullført');
+  const completion = screen.getByRole('region', { name: 'Leksjonsstatus' });
+  expect(within(completion).getByRole('status')).toHaveTextContent(
+    'Status: Ikke fullført',
+  );
 });
 
 it('records a fresh completion time after reopening while preserving identity and first start', async () => {

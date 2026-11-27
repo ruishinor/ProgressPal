@@ -266,9 +266,8 @@ test('explains Git answers and preserves learner evidence through reload and pro
   await page
     .getByRole('button', { name: 'Marker som fullført', exact: true })
     .click();
-  await expect(
-    page.getByRole('region', { name: 'Leksjonsstatus' }).getByRole('status'),
-  ).toContainText('Fullført');
+  const completion = page.getByRole('region', { name: 'Leksjonsstatus' });
+  await expect(completion.getByRole('status')).toContainText('Fullført');
   expect((await pathwayState(page)).appMeta).toEqual(primary.appMeta);
   const before = await counts(page);
   expect(before[0]).toBe(12); // Six submitted attempts, each with its terminal result.
@@ -301,9 +300,7 @@ test('explains Git answers and preserves learner evidence through reload and pro
   expect(errors).toEqual([]);
 });
 
-test('opens the exact staging correction from lesson five without changing progress', async ({
-  page,
-}) => {
+test('opens staging help without changing progress', async ({ page }) => {
   await completeOnboarding(page);
   await page.goto(route(5));
   const article = page.getByRole('article');
