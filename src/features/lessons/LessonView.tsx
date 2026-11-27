@@ -532,8 +532,7 @@ function LessonSurface({
     readyBundle.moduleId === 'S1-M01' &&
     readyBundle.sourceSha256 === campaignM01SourceSha;
   const isM02 =
-    programmeId === 'programvareutvikling' &&
-    readyBundle.moduleId === 'S1-M02';
+    programmeId === 'programvareutvikling' && readyBundle.moduleId === 'S1-M02';
   const context: MarkupContext = {
     technicalLanguage: readyBundle.technicalLanguage,
     wording: createWording(copy),

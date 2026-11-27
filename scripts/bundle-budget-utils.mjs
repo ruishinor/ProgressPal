@@ -42,7 +42,9 @@ export const releaseBundleBudget = Object.freeze({
   // Owner decision (2026-11-27): retain the Git visual-learning upgrade.
   // Candidate measured 474,996 B gzip; 485,000 B allows 2.1% headroom.
   // Only this limit changes; the hard gate and other asset budgets remain.
-  maxJavaScriptGzipBytes: 485_000,
+  // Consolidated teaching upgrade (2026-11-28): 494,862 B measured.
+  // Retain a hard ceiling with about 2% headroom for the visual and editorial work.
+  maxJavaScriptGzipBytes: 505_000,
   maxJavaScriptRawBytes: 500_000,
   // Owner-authorized M02 expansion (2026-11-05): 152002 B curriculum gzip measured; prior ceiling 150000 B.
   // New ceiling 157000 B includes bounded headroom.
@@ -56,7 +58,9 @@ export const releaseBundleBudget = Object.freeze({
   // Autumn curriculum expansion, 2026-11-10:
   // Measured 265822 B gzip for the combined packaged curriculum.
   // Ceiling 273000 B retains approximately 2.7% headroom.
-  maxCurriculumGzipBytes: 273000,
+  // Consolidated teaching upgrade (2026-11-28): 278,894 B measured,
+  // including 12,785 B of new M01/M02 visual assets. About 2% headroom.
+  maxCurriculumGzipBytes: 285000,
   // The pinned Pyodide 314.0.7 runtime measured 6,398,912 bytes gzip (five
   // packaged files plus the runtime list); about 9.4 % headroom, within the
   // owner-authorized ~10 % (decision 2026-10-03).

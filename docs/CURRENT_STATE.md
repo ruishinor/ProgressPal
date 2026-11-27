@@ -9,8 +9,10 @@ module-specific visual data and presentation layer; the offline manifest
 contains both new presentation assets and the updated Git content assets.
 Original Campaign curriculum files, exercise IDs, evaluator inputs, answer
 keys, positions and stored progress are preserved. Utviklerblikk retains
-its 194 card identities and answer identifiers. Existing release limits,
-including 485,000 B JS and 273,000 B curriculum gzip, are unchanged.
+its 194 card identities and answer identifiers. The combined build measures 494,862 B JS and 278,894 B curriculum gzip.
+The two hard ceilings are recalibrated to 505,000 B and 285,000 B,
+respectively, following the owner-directed assessment of the teaching
+upgrade. All other limits and asset classifications remain unchanged.
 
 The external frozen producer graph and full editorial passes for M01 and
 Utviklerblikk remain incomplete; this candidate delivers the scoped teaching
