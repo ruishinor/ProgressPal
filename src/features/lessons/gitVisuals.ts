@@ -345,7 +345,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": []
       }
     ],
-    "short": "Staging area husker innholdet du valgte med `git add`, ikke bare filnavnet."
+    "short": "**Se etter:** `git diff --cached` viser starttiden i `README.txt`, men ingen endring i `plan.txt`. Staging area husker innholdet du valgte, ikke bare filnavnet."
   },
   {
     "lesson": "git-m01-o04",
@@ -480,7 +480,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "links": []
       }
     ],
-    "short": "Hvis kartlinjen også vises i `git show`, har du lagt den i staging før commit. Behold arbeidet. Undersøk forskjellen før du fortsetter. Du kan også gjenskape eksemplet i en ny øvingsmappe."
+    "short": "Bare `Get-Content` skal vise kartlinjen. Hvis den også vises i `git show`, ble den staged før commit. Behold arbeidet og undersøk forskjellen. Tilpass neste oppgave til det som faktisk gjenstår, eller bruk en ny øvingsmappe."
   },
   {
     "lesson": "git-m01-o05",
@@ -881,7 +881,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Når begge branches har egne commits, kan en merge commit samle dem."
       }
     ],
-    "short": "HEAD viser normalt hvilken branch du står på. Når du lager en commit, flyttes den aktive branchen."
+    "short": "En **branch** er et navn som peker på en commit. Når du lager en ny commit, flyttes branchen du står på. HEAD viser normalt den aktive branchen. Andre branches og commits blir værende når du bytter."
   },
   {
     "lesson": "git-m03-o02",
@@ -1345,7 +1345,7 @@ export const gitVisuals: readonly GitVisual[] = [
         ]
       }
     ],
-    "short": "Første push med `-u` setter upstream: branchen din får en kobling til branchen på remote."
+    "short": "Ved første push setter `-u` upstream: Git husker hvilken branch på remote den lokale branchen hører sammen med. Det betyr ikke at Git synkroniserer automatisk. En vanlig push krever skrivetilgang og at historikken kan oppdateres uten å overskrive andres arbeid."
   },
   {
     "lesson": "git-m04-o03",
@@ -1774,7 +1774,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "En ny push til samme head branch oppdaterer normalt den eksisterende PR-en."
       }
     ],
-    "short": "Du trenger ikke åpne en ny PR når du retter samme forslag."
+    "short": "Push en ny commit til samme head branch. PR-en viser den oppdaterte diffen; du trenger ikke en ny PR. Svar på review-kommentaren og fortell hva du har sjekket. Tidligere approvals kan måtte fornyes, avhengig av reglene i repoet."
   },
   {
     "lesson": "git-m05-o06",
@@ -2540,7 +2540,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Forenklet graf. I øvingen brukes to mergehendelser."
       }
     ],
-    "short": "A endrer `valider.js`. B endrer `index.html`, inkludert hjelpetekst og `aria-describedby`. Begge endringene skal beholdes."
+    "short": "A endrer `valider.js`. B legger til hjelpetekst i `index.html`: «Hvis du skriver inn telefon, bruk åtte siffer». `aria-describedby` kobler hjelpeteksten til feltet, også for skjermlesere. Begge endringene skal beholdes."
   },
   {
     "lesson": "git-m07-o06",
@@ -2587,7 +2587,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Ny commit retter problemet uten å skrive om delt historikk."
       }
     ],
-    "short": "Lokal reset reparerer ikke historikken hos andre. Her er fix forward en liten, målrettet rettelse. Revert kan også vurderes dersom avhengighetene tillater det."
+    "short": "Lokal reset reparerer ikke historikken hos andre. En force-push kan overskrive delt historikk og skape problemer for kollegaen. Her er fix forward en liten rettelse i en ny commit. Revert kan også være et alternativ hvis nyere arbeid ikke blir ødelagt."
   },
   {
     "lesson": "git-m07-o07",

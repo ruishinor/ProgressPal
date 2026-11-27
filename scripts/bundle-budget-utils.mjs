@@ -39,7 +39,10 @@ export const releaseBundleBudget = Object.freeze({
   // Owner decision (2026-10-28): approved educational-content expansion after
   // one bounded investigation; measured candidate 467,691 B gzip. Previous
   // ceiling 465,000 B; new ceiling 470,000 B. All other thresholds unchanged.
-  maxJavaScriptGzipBytes: 470_000,
+  // Owner decision (2026-11-27): retain the Git visual-learning upgrade.
+  // Candidate measured 474,996 B gzip; 485,000 B allows 2.1% headroom.
+  // Only this limit changes; the hard gate and other asset budgets remain.
+  maxJavaScriptGzipBytes: 485_000,
   maxJavaScriptRawBytes: 500_000,
   // Owner-authorized M02 expansion (2026-11-05): 152002 B curriculum gzip measured; prior ceiling 150000 B.
   // New ceiling 157000 B includes bounded headroom.

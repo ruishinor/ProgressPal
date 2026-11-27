@@ -4,7 +4,7 @@ import { expect, it } from 'vitest';
 import { GitLessonVisual } from '@/features/lessons/GitLessonVisual';
 import { gitVisuals } from '@/features/lessons/gitVisuals';
 
-it('switches the commit graph using keyboard-accessible native controls', () => {
+it('switches the commit graph using native controls', () => {
   const visual = gitVisuals.find(
     (entry) => entry.lesson === 'git-m03-o01' && entry.kind === 'graph',
   )!;
