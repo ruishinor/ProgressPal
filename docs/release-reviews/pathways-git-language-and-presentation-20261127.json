@@ -1,39 +1,47 @@
 {
   "schemaVersion": 2,
   "module": "pathways-git-language-and-presentation-20261127",
-  "reviewer": "ChatGPT GPT-6.2 — same-session implementer self-review",
+  "reviewer": "ChatGPT GPT-6.2 — scoped implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "fe7c6152bd7182640d39c2ce295bf0b1b456fa3b",
+    "payloadTree": "6ea8b3c61c59891b9d8d2e8bec22cb8945c0c90b",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {
-    "summary": "Owner-directed editorial and visual-learning revision across all seven Git & GitHub Pathways modules, including explanation, practical guidance, goals, prompts, choices, hints, feedback and shared Git presentation.",
+    "summary": "Owner-authorized visual upgrade and plain-language Git & GitHub curriculum revision, M01–M07, preserving programme contracts and learner autonomy.",
     "evidence": [
-      "Inspected authored sources, generated lessons, Git copy, renderer, answer widgets and user screenshot. Revised all 47 lessons; 119 of 507 flow blocks changed compared with master cc502c6. 92 command blocks retain original commands, outputs and error fields. All 113 exercise IDs, option IDs, correct choices, evaluator modes, optionality, required-practice settings, lesson topology and skill/unit metadata are unchanged.",
-      "Verified source and original asset SHA-256 during each regeneration; updated index, modules, catalogue and offline manifest together. 56 exercise content hashes change as a consequence of editorial changes; existing history retention semantics apply.",
-      "Used the existing Markup renderer for headings, lists and fenced status/branch examples; scoped inline literal highlighting, answer spacing and reading layout to Git. No new learning verification mechanism or storage change.",
-      "Prior PR candidate passed all three E2E shards and pilot validation; the unit stage stopped at Prettier in four files. Adjusted the flagged formatting and simplified affected control selectors; the current candidate still requires its own hosted validation. Local Prettier, exporter and browser execution are unavailable here."
+      "Inspected all seven canonical modules and generated assets, the shared Classic/RPG lesson renderer, owner reference image and approved module-by-module visual plan.",
+      "62 authored visual entries bind to existing text blocks in all 47 lessons; all anchors and graph edges resolve, no duplicate slots or new lesson steps. Nine examples have local interaction. Reusable HTML/CSS/SVG status, graph, comparison, flow, terminal, file tree, conflict, PR, command-effect and test-case displays require no new service, arbitrary markup or learner persistence.",
+      "Compared candidate assets with master: 121 existing blocks changed, all 92 command blocks are identical, 113 exercise and option identifiers, correct choices, required practice, optionality, evaluator modes and logic, skill/unit metadata and lesson order unchanged. The optional paste evaluator's only difference is its simplified privacy copy. Source and asset hashes verified during regeneration. 56 exercise hashes differ from master; historical answers retain existing semantics.",
+      "Updated the tour fixture instructions and exercise E04 to use Starttid: 10:00 on a separate line, with explicit compatibility for older exercise folders; no destructive history rewrite.",
+      "Added functional binding and visual interaction tests. Prior candidate passed browser shards and pilot; release unit stage failed only on pilot-script formatting at that point. Updated that file. Current build, lint, formatting, browser and offline validation have not been executed locally and require hosted validation."
     ]
   },
   "adversarialFindings": [
     {
       "id": "F-1",
       "severity": "P2",
-      "description": "Long prose, ambiguous references and visually undifferentiated technical terms obscured the lesson action and the distinction between staged and unstaged changes.",
-      "resolution": "Split scenarios into short paragraphs and lists, retained exact Git status output and commands, added branch and fetch/pull diagrams, and improved exercise wording and scoped literal highlighting.",
+      "description": "Abstract Git concepts and visually undifferentiated scenarios burden beginner reading.",
+      "resolution": "Add contextual diagrams, staged/unstaged status annotations, real file comparisons, commit graphs, interactive remote states, conflict markers and test case examples; shorten 34 existing prose blocks in the presentation.",
       "status": "resolved"
     },
     {
       "id": "F-2",
       "severity": "P3",
-      "description": "Revising existing exercise text changes content hashes, so previous answers may no longer be presented as current answers.",
-      "resolution": "Preserved all IDs and evaluation rules, retained historical answers under existing storage semantics, and did not introduce a migration or new checking mechanism.",
+      "description": "Visual placement must not invalidate existing saved step positions or introduce an exercise gate.",
+      "resolution": "Bind each visual to an existing lesson slot and matching text prefix; original prose is the fallback if the source changes. No extra lesson step, storage or scoring. Test anchor integrity against real content.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-3",
+      "severity": "P3",
+      "description": "Revised exercise hashes may change which old responses count as current.",
+      "resolution": "Preserve IDs and evaluator behavior; retain existing historical-answer semantics without migration.",
       "status": "accepted-risk"
     }
   ],
   "retrospective": {
     "decision": "proceed",
-    "summary": "Scoped implementer review PASS for the inspected payload; no independent review or additional owner review required. Production remains conditional on the existing automated engineering checks for this exact candidate."
+    "summary": "Scoped implementer review PASS; no separate owner or independent review required. Hosted automated engineering checks must pass before merging or production."
   }
 }
