@@ -17,6 +17,21 @@ export type VisualFrame = {
   rows?: { x: string; y: string; file: string; meaning: string }[];
   nodes?: { id: string; x: number; y: number; label: string; tone: Tone }[];
   edges?: { from: string; to: string }[];
+  refs?: { name: string; at: string }[];
+  reversal?: { from: string; to: string };
+  diff?: {
+    file: string;
+    lines: string[];
+    compare?: boolean;
+    labels?: [string, string];
+  };
+  remote?: {
+    shared: string;
+    tracking: string;
+    local: string;
+    action?: 'fetch' | 'pull' | 'push';
+  };
+  pr?: 'pending' | 'failed' | 'review' | 'fix' | 'pass' | 'ready';
   columns?: string[];
   matrix?: string[][];
 };
@@ -368,18 +383,6 @@ export const gitVisuals: readonly GitVisual[] = [
         "label": "",
         "cards": [
           {
-            "label": "README.txt før",
-            "value": "Turplan\nDagstur langs elva.",
-            "detail": "",
-            "tone": "neutral"
-          },
-          {
-            "label": "README.txt etter",
-            "value": "Turplan\nDagstur langs elva.\nStarttid: 10:00",
-            "detail": "",
-            "tone": "green"
-          },
-          {
             "label": "plan.txt etter",
             "value": "Husk vann og mat.",
             "detail": "",
@@ -387,7 +390,16 @@ export const gitVisuals: readonly GitVisual[] = [
           }
         ],
         "caption": "Lagre begge filer før du går tilbake til PowerShell.",
-        "links": []
+        "links": [],
+        "diff": {
+          "file": "README.txt",
+          "lines": [
+            " Turplan",
+            " Dagstur langs elva.",
+            "+Starttid: 10:00"
+          ],
+          "compare": true
+        }
       }
     ],
     "short": "### Endre de to filene i Notisblokk\n\nLegg til `Starttid: 10:00` på en egen linje i `README.txt`. Bytt innholdet i `plan.txt` til `Husk vann og mat.`. Lagre begge med `Ctrl+S`. Hvis Git ikke viser endring, sjekk at riktig fil er lagret."
@@ -536,22 +548,22 @@ export const gitVisuals: readonly GitVisual[] = [
     "frames": [
       {
         "label": "",
-        "cards": [
-          {
-            "label": "git show HEAD:README.txt",
-            "value": "Turplan\nDagstur langs elva.\nStarttid: 10:00",
-            "detail": "Lagret i historikken.",
-            "tone": "green"
-          },
-          {
-            "label": "Get-Content README.txt",
-            "value": "Turplan\nDagstur langs elva.\nStarttid: 10:00\nTa med kart.",
-            "detail": "Arbeidsfilen.",
-            "tone": "amber"
-          }
-        ],
-        "caption": "Har du brukt den gamle teksten «Start klokken 10.», er det helt greit. Ikke endre historikken bare for å få samme tekst.",
-        "links": []
+        "caption": "Her ser du det samme som i git show HEAD:README.txt og Get-Content README.txt. Brukte du «Start klokken 10.» tidligere, kan den teksten stå.",
+        "links": [],
+        "diff": {
+          "file": "README.txt",
+          "lines": [
+            " Turplan",
+            " Dagstur langs elva.",
+            " Starttid: 10:00",
+            "+Ta med kart."
+          ],
+          "compare": true,
+          "labels": [
+            "Siste commit",
+            "Arbeidsfil"
+          ]
+        }
       }
     ],
     "short": "Bare `Get-Content` skal vise kartlinjen. Hvis den også vises i `git show`, ble den staged før commit. Behold arbeidet og undersøk forskjellen. Tilpass neste oppgave til det som faktisk gjenstår, eller bruk en ny øvingsmappe."
@@ -621,22 +633,18 @@ export const gitVisuals: readonly GitVisual[] = [
     "frames": [
       {
         "label": "",
-        "cards": [
-          {
-            "label": "Tidligere",
-            "value": "20",
-            "detail": "Maks antall påmeldinger.",
-            "tone": "neutral"
-          },
-          {
-            "label": "Nå",
-            "value": "200",
-            "detail": "Maks antall påmeldinger.",
-            "tone": "amber"
-          }
-        ],
         "caption": "Finn ut når grensen ble endret før du retter noe.",
-        "links": []
+        "links": [],
+        "diff": {
+          "file": "settings.json",
+          "lines": [
+            " {",
+            "-  \"maxRegistrations\": 20,",
+            "+  \"maxRegistrations\": 200,",
+            "   \"sendConfirmation\": true",
+            " }"
+          ]
+        }
       }
     ]
   },
@@ -817,22 +825,18 @@ export const gitVisuals: readonly GitVisual[] = [
     "frames": [
       {
         "label": "",
-        "cards": [
-          {
-            "label": "− Fjernet",
-            "value": "\"maxRegistrations\": 20",
-            "detail": "",
-            "tone": "red"
-          },
-          {
-            "label": "+ Lagt til",
-            "value": "\"maxRegistrations\": 200",
-            "detail": "",
-            "tone": "green"
-          }
-        ],
         "caption": "Diff viser forskjellen. Bruk git show HEAD~1 for å finne endringen i commit B.",
-        "links": []
+        "links": [],
+        "diff": {
+          "file": "settings.json",
+          "lines": [
+            " {",
+            "-  \"maxRegistrations\": 20,",
+            "+  \"maxRegistrations\": 200,",
+            "   \"sendConfirmation\": true",
+            " }"
+          ]
+        }
       }
     ],
     "short": "A og C har ulike verdier. Det forteller ikke alene hvilken commit som endret tallet. Undersøk B med `git show HEAD~1` og C med `git show HEAD`."
@@ -845,34 +849,77 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Rett bare verdien",
     "frames": [
       {
-        "label": "",
+        "label": "Finn feilen",
         "nodes": [
           {
             "id": "A",
             "x": 35,
             "y": 84,
-            "label": "20",
+            "label": "Grense 20",
             "tone": "neutral"
           },
           {
             "id": "B",
             "x": 130,
             "y": 84,
-            "label": "200",
+            "label": "Grense 200",
             "tone": "amber"
           },
           {
             "id": "C",
             "x": 225,
             "y": 84,
-            "label": "Kontaktinfo",
+            "label": "Kontaktinfo · 200",
+            "tone": "blue"
+          }
+        ],
+        "edges": [
+          {
+            "from": "A",
+            "to": "B"
+          },
+          {
+            "from": "B",
+            "to": "C"
+          }
+        ],
+        "caption": "HEAD står på C. Kontaktinfoen kom i C, men grensen ble endret fra 20 til 200 allerede i B.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "C"
+          }
+        ]
+      },
+      {
+        "label": "Rett grensen",
+        "nodes": [
+          {
+            "id": "A",
+            "x": 35,
+            "y": 84,
+            "label": "Grense 20",
+            "tone": "neutral"
+          },
+          {
+            "id": "B",
+            "x": 130,
+            "y": 84,
+            "label": "Grense 200",
+            "tone": "amber"
+          },
+          {
+            "id": "C",
+            "x": 225,
+            "y": 84,
+            "label": "Kontaktinfo · 200",
             "tone": "blue"
           },
           {
             "id": "D",
             "x": 325,
             "y": 84,
-            "label": "20 igjen",
+            "label": "Grense 20",
             "tone": "green"
           }
         ],
@@ -890,7 +937,23 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "Ny commit D retter tallet og beholder forbedringene fra C."
+        "caption": "Ny commit D retter tallet og beholder forbedringene fra C.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "D"
+          }
+        ],
+        "diff": {
+          "file": "settings.json",
+          "lines": [
+            " {",
+            "-  \"maxRegistrations\": 200,",
+            "+  \"maxRegistrations\": 20,",
+            "   \"sendConfirmation\": true",
+            " }"
+          ]
+        }
       }
     ],
     "short": "Rettelsen blir en ny commit. Du beholder dagens dokumentasjon og supporttekst."
@@ -941,30 +1004,64 @@ export const gitVisuals: readonly GitVisual[] = [
         "nodes": [
           {
             "id": "A",
-            "x": 180,
-            "y": 82,
-            "label": "main + feature",
-            "tone": "blue"
+            "x": 45,
+            "y": 104,
+            "label": "Felles",
+            "tone": "neutral"
           }
         ],
         "edges": [],
-        "caption": "Begge branches peker på samme commit. HEAD viser normalt den aktive branchen."
+        "caption": "Begge brancher starter på A. HEAD peker på main, branchen du står på.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "A"
+          },
+          {
+            "name": "feature",
+            "at": "A"
+          }
+        ]
+      },
+      {
+        "label": "Bytt branch",
+        "nodes": [
+          {
+            "id": "A",
+            "x": 45,
+            "y": 104,
+            "label": "Felles",
+            "tone": "neutral"
+          }
+        ],
+        "edges": [],
+        "caption": "git switch feature flytter HEAD til feature. Begge brancher peker fortsatt på A.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "A"
+          },
+          {
+            "name": "HEAD → feature",
+            "at": "A"
+          }
+        ]
       },
       {
         "label": "Endre",
         "nodes": [
           {
             "id": "A",
-            "x": 55,
-            "y": 64,
-            "label": "main",
-            "tone": "blue"
+            "x": 45,
+            "y": 104,
+            "label": "Felles",
+            "tone": "neutral"
           },
           {
             "id": "C",
-            "x": 275,
-            "y": 142,
-            "label": "feature · HEAD",
+            "x": 170,
+            "y": 156,
+            "label": "Påmeldingsskjema",
             "tone": "amber"
           }
         ],
@@ -974,7 +1071,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "Feature har fått en ny commit. Main står stille."
+        "caption": "Feature har fått en ny commit. Main står stille.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "A"
+          },
+          {
+            "name": "HEAD → feature",
+            "at": "C"
+          }
+        ]
       },
       {
         "label": "Merge commit",
@@ -990,21 +1097,21 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 170,
             "y": 52,
-            "label": "main før",
+            "label": "README",
             "tone": "blue"
           },
           {
             "id": "C",
             "x": 170,
             "y": 156,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
             "id": "D",
             "x": 315,
             "y": 104,
-            "label": "main etter",
+            "label": "main etter merge",
             "tone": "green"
           }
         ],
@@ -1026,7 +1133,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "Når begge branches har egne commits, kan en merge commit samle dem."
+        "caption": "D har to foreldre, B og C. Main flyttes til D mens feature fortsatt peker på C.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "D"
+          },
+          {
+            "name": "feature",
+            "at": "C"
+          }
+        ]
       }
     ],
     "short": "En **branch** er et navn som peker på en commit. Når du lager en ny commit, flyttes branchen du står på. HEAD viser normalt den aktive branchen. Andre branches og commits blir værende når du bytter."
@@ -1043,14 +1160,24 @@ export const gitVisuals: readonly GitVisual[] = [
         "nodes": [
           {
             "id": "A",
-            "x": 180,
-            "y": 82,
-            "label": "main + feature",
-            "tone": "blue"
+            "x": 45,
+            "y": 104,
+            "label": "Felles",
+            "tone": "neutral"
           }
         ],
         "edges": [],
-        "caption": "Begge branches peker på samme commit. HEAD viser normalt den aktive branchen."
+        "caption": "Begge brancher starter på A. HEAD peker på main, branchen du står på.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "A"
+          },
+          {
+            "name": "feature",
+            "at": "A"
+          }
+        ]
       }
     ],
     "short": "Du har opprettet en branch. Ingen ny commit er laget ennå."
@@ -1067,16 +1194,16 @@ export const gitVisuals: readonly GitVisual[] = [
         "nodes": [
           {
             "id": "A",
-            "x": 55,
-            "y": 64,
-            "label": "main",
-            "tone": "blue"
+            "x": 45,
+            "y": 104,
+            "label": "Felles",
+            "tone": "neutral"
           },
           {
             "id": "C",
-            "x": 275,
-            "y": 142,
-            "label": "feature · HEAD",
+            "x": 170,
+            "y": 156,
+            "label": "Påmeldingsskjema",
             "tone": "amber"
           }
         ],
@@ -1086,7 +1213,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "Feature har fått en ny commit. Main står stille."
+        "caption": "Feature har fått en ny commit. Main står stille.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "A"
+          },
+          {
+            "name": "HEAD → feature",
+            "at": "C"
+          }
+        ]
       }
     ]
   },
@@ -1111,14 +1248,14 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 170,
             "y": 52,
-            "label": "main før",
+            "label": "README",
             "tone": "blue"
           },
           {
             "id": "C",
             "x": 170,
             "y": 156,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           }
         ],
@@ -1132,7 +1269,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "Begge branches har egne commits etter A."
+        "caption": "Begge branches har egne commits etter A.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "B"
+          },
+          {
+            "name": "feature",
+            "at": "C"
+          }
+        ]
       },
       {
         "label": "Etter merge",
@@ -1148,21 +1295,21 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 170,
             "y": 52,
-            "label": "main før",
+            "label": "README",
             "tone": "blue"
           },
           {
             "id": "C",
             "x": 170,
             "y": 156,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
             "id": "D",
             "x": 315,
             "y": 104,
-            "label": "main etter",
+            "label": "Main etter merge",
             "tone": "green"
           }
         ],
@@ -1184,7 +1331,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "Når begge branches har egne commits, kan en merge commit samle dem."
+        "caption": "Når begge branches har egne commits, kan en merge commit samle dem.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "D"
+          },
+          {
+            "name": "feature",
+            "at": "C"
+          }
+        ]
       }
     ],
     "short": "`main` får en README-endring. Feature-branchen har en HTML-endring. Når begge har fått nye commits, har historikkene skilt lag."
@@ -1217,7 +1374,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C",
             "x": 315,
             "y": 84,
-            "label": "main + feature",
+            "label": "Siste commit",
             "tone": "green"
           }
         ],
@@ -1231,7 +1388,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C"
           }
         ],
-        "caption": "Main flyttes fram. Ingen ny merge commit."
+        "caption": "Main flyttes fram. Ingen ny merge commit.",
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "C"
+          },
+          {
+            "name": "feature",
+            "at": "C"
+          }
+        ]
       },
       {
         "label": "Merge commit",
@@ -1247,21 +1414,21 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 170,
             "y": 52,
-            "label": "main før",
+            "label": "README",
             "tone": "blue"
           },
           {
             "id": "C",
             "x": 170,
             "y": 156,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
             "id": "D",
             "x": 315,
             "y": 104,
-            "label": "main etter",
+            "label": "Main etter merge",
             "tone": "green"
           }
         ],
@@ -1283,7 +1450,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "Når begge branches har egne commits, kan en merge commit samle dem."
+        "caption": "Når begge branches har egne commits, kan en merge commit samle dem.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "D"
+          },
+          {
+            "name": "feature",
+            "at": "C"
+          }
+        ]
       }
     ],
     "short": "Når begge branches har egne commits, er en vanlig merge ikke en fast-forward. Du trenger ikke tvinge fram en merge commit med `--no-ff` bare for utseendets skyld."
@@ -1547,36 +1724,23 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Hva flyttes ved fetch?",
     "frames": [
       {
+        "label": "Før fetch",
+        "remote": {
+          "shared": "B",
+          "tracking": "A",
+          "local": "A"
+        },
+        "caption": "En kollega har pushet B. På maskinen din peker både main og origin/main fortsatt på A."
+      },
+      {
         "label": "Fetch",
-        "cards": [
-          {
-            "label": "Delt repo: main",
-            "value": "B",
-            "detail": "Ny commit.",
-            "tone": "neutral"
-          },
-          {
-            "label": "A: origin/main",
-            "value": "B",
-            "detail": "Oppdatert.",
-            "tone": "blue"
-          },
-          {
-            "label": "A: main + arbeidsfil",
-            "value": "A",
-            "detail": "Uendret.",
-            "tone": "amber"
-          }
-        ],
-        "caption": "Fetch henter historikken, men tar den ikke inn i arbeidsfilen.",
-        "links": [
-          "git fetch",
-          "Ingen merge"
-        ],
-        "directions": [
-          "forward",
-          "stop"
-        ]
+        "remote": {
+          "shared": "B",
+          "tracking": "B",
+          "local": "A",
+          "action": "fetch"
+        },
+        "caption": "git fetch origin henter B og oppdaterer origin/main. Lokal main og arbeidsfilen blir på A."
       }
     ],
     "short": "### Fetch: hent historikken uten å endre filene\n\n`git fetch origin` oppdaterer blant annet `origin/main`. A sin lokale `main` og `messages.txt` blir stående. Nå kan du undersøke endringen før du tar den inn."
@@ -1590,115 +1754,42 @@ export const gitVisuals: readonly GitVisual[] = [
     "frames": [
       {
         "label": "Før fetch",
-        "cards": [
-          {
-            "label": "Delt repo: main",
-            "value": "B",
-            "detail": "En kollega har pushet.",
-            "tone": "neutral"
-          },
-          {
-            "label": "A: origin/main",
-            "value": "A",
-            "detail": "Sist kjente remote.",
-            "tone": "blue"
-          },
-          {
-            "label": "A: main + arbeidsfil",
-            "value": "A",
-            "detail": "Uendret.",
-            "tone": "amber"
-          }
-        ],
-        "caption": "A har ennå ikke hentet commit B."
+        "remote": {
+          "shared": "B",
+          "tracking": "A",
+          "local": "A"
+        },
+        "caption": "En kollega har pushet B. På maskinen din peker både main og origin/main fortsatt på A."
       },
       {
         "label": "Fetch",
-        "cards": [
-          {
-            "label": "Delt repo: main",
-            "value": "B",
-            "detail": "Ny commit.",
-            "tone": "neutral"
-          },
-          {
-            "label": "A: origin/main",
-            "value": "B",
-            "detail": "Oppdatert.",
-            "tone": "blue"
-          },
-          {
-            "label": "A: main + arbeidsfil",
-            "value": "A",
-            "detail": "Uendret.",
-            "tone": "amber"
-          }
-        ],
-        "caption": "Fetch henter historikken, men tar den ikke inn i arbeidsfilen.",
-        "links": [
-          "git fetch",
-          "Ingen merge"
-        ],
-        "directions": [
-          "forward",
-          "stop"
-        ]
+        "remote": {
+          "shared": "B",
+          "tracking": "B",
+          "local": "A",
+          "action": "fetch"
+        },
+        "caption": "git fetch origin henter B og oppdaterer origin/main. Lokal main og arbeidsfilen blir på A."
       },
       {
         "label": "Pull",
-        "cards": [
-          {
-            "label": "Delt repo: main",
-            "value": "B",
-            "detail": "",
-            "tone": "neutral"
-          },
-          {
-            "label": "A: origin/main",
-            "value": "B",
-            "detail": "",
-            "tone": "neutral"
-          },
-          {
-            "label": "A: main + arbeidsfil",
-            "value": "B",
-            "detail": "Oppdatert ved fast-forward.",
-            "tone": "green"
-          }
-        ],
-        "caption": "Her kan main flyttes fram fordi A ikke har egne nye commits.",
-        "links": [
-          "fetch",
-          "fast-forward"
-        ],
-        "directions": [
-          "forward",
-          "forward"
-        ]
+        "remote": {
+          "shared": "B",
+          "tracking": "B",
+          "local": "B",
+          "action": "pull"
+        },
+        "caption": "git pull henter og tar inn endringer etter oppsettet ditt. Her kan main flyttes rett fram til B fordi du ikke har egne nye commits."
       },
       {
         "label": "Push",
-        "cards": [
-          {
-            "label": "A: main",
-            "value": "C",
-            "detail": "Ny lokal commit.",
-            "tone": "neutral"
-          },
-          {
-            "label": "Delt repo: main",
-            "value": "C",
-            "detail": "Etter godkjent push.",
-            "tone": "green"
-          }
-        ],
-        "caption": "Push sender commits til remote. Andre må fortsatt hente dem.",
-        "links": [
-          "git push"
-        ],
-        "directions": [
-          "forward"
-        ]
+        "remote": {
+          "shared": "C",
+          "tracking": "C",
+          "local": "C",
+          "action": "push"
+        },
+        "caption": "Du lager C lokalt. git push sender C og ber remote flytte main til C. Ved vellykket push oppdateres også origin/main i dette oppsettet. Kollegaens arbeidsfiler endres først når kollegaen selv tar inn endringene."
       }
     ],
     "short": "### Pull: få endringen inn i arbeidsfilene\n\nA har ingen egne nye commits. Git kan derfor flytte `main` fram til den nye commiten uten å lage en merge commit. Dette kalles fast-forward. Velg mellom tilstandene under."
@@ -1863,41 +1954,34 @@ export const gitVisuals: readonly GitVisual[] = [
     "title": "Avvis ugyldig navn i påmelding",
     "frames": [
       {
-        "label": "",
-        "cards": [
-          {
-            "label": "Base",
-            "value": "main",
-            "detail": "Branchen som skal motta endringen.",
-            "tone": "blue"
-          },
-          {
-            "label": "Head",
-            "value": "feature/valider-navn",
-            "detail": "Branchen med endringen.",
-            "tone": "amber"
-          },
-          {
-            "label": "Files changed",
-            "value": "paamelding.js",
-            "detail": "",
-            "tone": "neutral"
-          },
-          {
-            "label": "Commit",
-            "value": "Vis feil ved tomt navn",
-            "detail": "",
-            "tone": "neutral"
-          },
-          {
-            "label": "Beskrivelse",
-            "value": "Tom streng er kontrollert",
-            "detail": "Mellomrom er ikke testet ennå.",
-            "tone": "neutral"
-          }
-        ],
-        "caption": "Eksempel på en pull request. En draft PR kan brukes mens du fortsatt jobber.",
-        "links": []
+        "label": "Forslag",
+        "pr": "pending",
+        "caption": "PR-en åpnes med én commit. Sjekkene har ikke kjørt ennå."
+      },
+      {
+        "label": "Test feiler",
+        "pr": "failed",
+        "caption": "Testen viser at tre mellomrom passerer kontrollen for tom streng."
+      },
+      {
+        "label": "Review",
+        "pr": "review",
+        "caption": "En kollega ber deg sjekke navnet etter at mellomrom rundt teksten er fjernet."
+      },
+      {
+        "label": "Ny commit",
+        "pr": "fix",
+        "caption": "Du legger til trim() i samme branch. Sjekkene kjører på nytt."
+      },
+      {
+        "label": "Sjekker består",
+        "pr": "pass",
+        "caption": "Begge testene består. I dette repoet må en kollega også godkjenne rettelsen."
+      },
+      {
+        "label": "Klar for merge",
+        "pr": "ready",
+        "caption": "Kollegaen har godkjent rettelsen og de påkrevde sjekkene har bestått."
       }
     ],
     "short": "### En PR på GitHub\n\nSe på base, head, endrede filer og hva som er sjekket."
@@ -2032,7 +2116,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "B",
             "x": 130,
             "y": 45,
-            "label": "main",
+            "label": "Siste commit på main",
             "tone": "blue"
           },
           {
@@ -2046,7 +2130,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C2",
             "x": 230,
             "y": 145,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           }
         ],
@@ -2064,7 +2148,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C2"
           }
         ],
-        "caption": "Main har B. Feature har to egne commits, C1 og C2. Alle tre alternativene starter her."
+        "caption": "Main har B. Feature har to egne commits, C1 og C2. Alle tre alternativene starter her.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "B"
+          },
+          {
+            "name": "feature",
+            "at": "C2"
+          }
+        ]
       },
       {
         "label": "Merge commit",
@@ -2094,14 +2188,14 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C2",
             "x": 230,
             "y": 145,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
             "id": "D",
             "x": 325,
             "y": 45,
-            "label": "main",
+            "label": "Siste commit på main",
             "tone": "green"
           }
         ],
@@ -2127,7 +2221,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "D har to foreldre: B og C2. C1 og C2 blir en del av main sin historikk."
+        "caption": "D har to foreldre: B og C2. C1 og C2 blir en del av main sin historikk.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "D"
+          },
+          {
+            "name": "feature",
+            "at": "C2"
+          }
+        ]
       },
       {
         "label": "Squash",
@@ -2157,14 +2261,14 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C2",
             "x": 230,
             "y": 145,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
             "id": "S",
             "x": 325,
             "y": 45,
-            "label": "main",
+            "label": "Siste commit på main",
             "tone": "green"
           }
         ],
@@ -2186,7 +2290,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "S"
           }
         ],
-        "caption": "S samler endringene fra C1 og C2. De opprinnelige commitene blir ikke med som egne commits på main."
+        "caption": "S samler endringene fra C1 og C2. De opprinnelige commitene blir ikke med som egne commits på main.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "S"
+          },
+          {
+            "name": "feature",
+            "at": "C2"
+          }
+        ]
       },
       {
         "label": "Rebase",
@@ -2216,7 +2330,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C2",
             "x": 230,
             "y": 145,
-            "label": "feature",
+            "label": "Skjema",
             "tone": "amber"
           },
           {
@@ -2230,7 +2344,7 @@ export const gitVisuals: readonly GitVisual[] = [
             "id": "C2′",
             "x": 325,
             "y": 45,
-            "label": "main",
+            "label": "Siste commit på main",
             "tone": "green"
           }
         ],
@@ -2256,7 +2370,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "C2′"
           }
         ],
-        "caption": "Endringene fra C1 og C2 legges på nytt oppå B, normalt med nye hasher. Ingen merge commit."
+        "caption": "Endringene fra C1 og C2 legges på nytt oppå B, normalt med nye hasher. Ingen merge commit.",
+        "refs": [
+          {
+            "name": "main",
+            "at": "C2′"
+          },
+          {
+            "name": "feature",
+            "at": "C2"
+          }
+        ]
       }
     ],
     "short": "De tre metodene gir forskjellige historikker. Ingen av dem tester programmet."
@@ -2426,36 +2550,49 @@ export const gitVisuals: readonly GitVisual[] = [
     "step": 1,
     "anchor": "### En commit er registrert, men ennå ikke delt\n\nDu har laget en lokal commit so",
     "kind": "effects",
-    "title": "Hva påvirker reset?",
+    "title": "Hva påvirker restore og reset?",
     "frames": [
       {
         "label": "Sammenlign",
         "columns": [
           "Kommando",
-          "Arbeidsfil",
-          "Staging",
+          "Working tree",
+          "Staging area",
           "HEAD / branch"
         ],
         "matrix": [
           [
-            "reset --soft",
+            "git restore <fil>",
+            "Kan erstattes",
+            "Beholdes",
+            "Beholdes"
+          ],
+          [
+            "git restore --staged <fil>",
+            "Beholdes",
+            "Kan endres",
+            "Beholdes"
+          ],
+          [
+            "git reset --soft <commit>",
             "Beholdes",
             "Beholdes",
             "Flyttes"
           ],
           [
-            "reset --mixed",
+            "git reset --mixed <commit>",
             "Beholdes",
-            "Endres",
+            "Kan endres",
             "Flyttes"
           ],
           [
-            "reset --hard",
-            "Kan overskrives",
-            "Endres",
+            "git reset --hard <commit>",
+            "Kan erstattes",
+            "Kan endres",
             "Flyttes"
           ]
-        ]
+        ],
+        "caption": "Her står du på en branch. Vanlig restore henter filinnholdet fra staging. Med --staged hentes det fra HEAD til staging. Reset-variantene bruker en commit som mål og gjelder hele repoet. Sjekk git status før du bruker restore på arbeidsfilen eller reset --hard: endringer kan gå tapt."
       },
       {
         "label": "Soft",
@@ -2687,7 +2824,17 @@ export const gitVisuals: readonly GitVisual[] = [
             "to": "D"
           }
         ],
-        "caption": "D reverserer endringen fra B, hvis det lar seg gjøre. B blir værende i historikken."
+        "caption": "Den stiplede linjen viser hvilken endring D gjør om. D er en ny commit etter C. B blir i historikken, og Git beholder arbeidet fra C når endringene lar seg kombinere. HEAD går fram til D.",
+        "reversal": {
+          "from": "D",
+          "to": "B"
+        },
+        "refs": [
+          {
+            "name": "HEAD → main",
+            "at": "D"
+          }
+        ]
       }
     ],
     "short": "Når andre har hentet historikken, er det ofte bedre å lage en ny rettelse enn å flytte main bakover. `git revert` lager normalt en ny commit som reverserer endringen fra den commiten du velger."

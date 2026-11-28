@@ -776,3 +776,146 @@
     overflow-wrap: anywhere;
   }
 }
+
+.git-graph-reversal {
+  stroke-dasharray: 5 4;
+}
+
+.git-review,
+.git-remote-repo,
+.git-remote-local,
+.git-diff {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  min-inline-size: 0;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.5rem;
+}
+
+.git-review p,
+.git-review blockquote,
+.git-review ul,
+.git-diff pre {
+  margin: 0;
+}
+
+.git-review-summary,
+.git-review-checks,
+.git-review blockquote {
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--color-border-strong);
+}
+
+.git-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.git-review strong[class*='git-tone-'] {
+  color: var(--git-tone);
+}
+
+.git-remote-history {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.git-remote-repo {
+  text-align: center;
+}
+
+.git-remote-transfer {
+  display: grid;
+  place-items: center;
+  min-block-size: 3.25rem;
+  padding-inline: var(--space-2);
+  text-align: center;
+}
+
+.git-remote-refs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.git-remote-refs > div {
+  padding-inline-start: var(--space-2);
+  border-inline-start: 2px solid var(--color-border-strong);
+  overflow-wrap: anywhere;
+}
+
+.git-remote-refs small {
+  display: block;
+}
+
+.git-diff pre {
+  overflow-x: auto;
+  padding: var(--space-2);
+}
+
+.git-diff pre span[class*='git-tone-'] {
+  background: color-mix(in srgb, var(--git-tone) 16%, transparent);
+  color: var(--git-tone);
+}
+
+.git-file-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-2);
+}
+
+.git-remote-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: var(--space-2);
+}
+
+.git-remote-repo .git-remote-chain {
+  justify-content: center;
+}
+
+.git-remote-commit {
+  display: grid;
+  place-items: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  font-family: ui-monospace, monospace;
+}
+
+.git-remote-commit + .git-remote-commit {
+  position: relative;
+  margin-inline-start: 0.45rem;
+}
+
+.git-remote-commit + .git-remote-commit::before {
+  position: absolute;
+  inset-inline-end: 100%;
+  inline-size: 0.5rem;
+  border-block-start: 1px solid var(--color-border-strong);
+  content: '';
+}
+
+.git-remote-pointer {
+  margin-inline-start: var(--space-2);
+}
+
+@media (max-width: 42rem) {
+  .git-visual[data-visual-kind='effects'] .git-visual-matrix table {
+    table-layout: fixed;
+  }
+
+  .git-visual[data-visual-kind='effects'] .git-visual-matrix :is(th, td) {
+    padding-inline: 0.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  .git-visual[data-visual-kind='effects'] .git-visual-matrix th:first-child {
+    inline-size: 32%;
+  }
+}

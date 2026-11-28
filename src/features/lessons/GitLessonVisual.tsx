@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import type { GitVisual, VisualFrame } from './gitVisuals';
 
@@ -44,10 +44,22 @@ function StatusRows({ frame }: { frame: VisualFrame }) {
 }
 
 function CommitGraph({ frame }: { frame: VisualFrame }) {
+  const marker = useId();
   const nodes = frame.nodes ?? [];
+  const reversalStart = nodes.find((node) => node.id === frame.reversal?.from);
+  const reversalEnd = nodes.find((node) => node.id === frame.reversal?.to);
+  const refs = frame.refs ?? [];
+  const graphTop = Math.min(
+    0,
+    ...refs.map(
+      ({ at }) => (nodes.find((node) => node.id === at)?.y ?? 0) - 52,
+    ),
+  );
+  const graphBottom = Math.max(...nodes.map((node) => node.y + 67), 90);
   const description = [
     ...nodes.map((node) => `${node.id}: ${node.label}`),
     ...(frame.edges ?? []).map((edge) => `${edge.from} til ${edge.to}`),
+    ...refs.map((ref) => `${ref.name} peker på ${ref.at}`),
     frame.caption,
   ].join('. ');
   return (
@@ -56,9 +68,39 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
         aria-label={description}
         className="git-visual-graph"
         role="img"
-        viewBox="0 0 360 215"
+        viewBox={`0 ${graphTop} 360 ${graphBottom - graphTop}`}
       >
         <title>{frame.caption ?? 'Commit-historikk'}</title>
+        <defs>
+          <marker
+            id={marker}
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="5"
+            markerHeight="5"
+            orient="auto"
+          >
+            <path d="M0 0 L10 5 L0 10 Z" fill="context-stroke" />
+          </marker>
+        </defs>
+        {reversalStart && reversalEnd && (
+          <g className="git-tone-red">
+            <path
+              className="git-graph-edge git-graph-reversal"
+              d={`M${reversalStart.x} ${reversalStart.y - 16} Q${(reversalStart.x + reversalEnd.x) / 2} -34 ${reversalEnd.x} ${reversalEnd.y - 16}`}
+              markerEnd={`url(#${marker})`}
+            />
+            <text
+              className="git-graph-label"
+              x={(reversalStart.x + reversalEnd.x) / 2}
+              y="10"
+              textAnchor="middle"
+            >
+              Gjør om B
+            </text>
+          </g>
+        )}
         {frame.edges?.map(({ from, to }) => {
           const a = nodes.find((node) => node.id === from);
           const b = nodes.find((node) => node.id === to);
@@ -69,6 +111,45 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
               d={`M${a.x} ${a.y} L${b.x} ${b.y}`}
               key={from + to}
             />
+          );
+        })}
+        {refs.map(({ name, at }, index) => {
+          const node = nodes.find((entry) => entry.id === at);
+          if (!node) return null;
+          const overlapping = refs.slice(0, index).some((ref) => ref.at === at);
+          const x = Math.min(
+            303,
+            Math.max(57, node.x + (overlapping ? 85 : 0)),
+          );
+          const below = overlapping || node.id === frame.reversal?.from;
+          const y = below ? node.y + 54 : node.y - 34;
+          const lineStart = below ? y - 9 : y + 9;
+          const lineEnd = below ? node.y + 16 : node.y - 16;
+          const width = name.length * 6.6 + 14;
+          return (
+            <g className="git-tone-blue" key={name}>
+              <path
+                className="git-graph-edge"
+                d={`M${x} ${lineStart} L${node.x} ${lineEnd}`}
+                markerEnd={`url(#${marker})`}
+              />
+              <rect
+                className="git-graph-node"
+                x={x - width / 2}
+                y={y - 9}
+                width={width}
+                height="18"
+                rx="4"
+              />
+              <text
+                className="git-graph-label"
+                x={x}
+                y={y + 4}
+                textAnchor="middle"
+              >
+                {name}
+              </text>
+            </g>
           );
         })}
         {nodes.map((node) => (
@@ -99,6 +180,12 @@ function CommitGraph({ frame }: { frame: VisualFrame }) {
               <dd>{node.label}</dd>
             </div>
           ))}
+        {refs.map(({ name, at }) => (
+          <div key={name}>
+            <dt>{name}</dt>
+            <dd>peker på {at}</dd>
+          </div>
+        ))}
       </dl>
     </div>
   );
@@ -198,6 +285,177 @@ function PullRequestVisual({ frame }: { frame: VisualFrame }) {
   );
 }
 
+function ReviewSimulation({
+  stage,
+}: {
+  stage: NonNullable<VisualFrame['pr']>;
+}) {
+  const corrected = stage === 'fix' || stage === 'pass' || stage === 'ready';
+  const checked =
+    stage === 'failed' ||
+    stage === 'review' ||
+    stage === 'pass' ||
+    stage === 'ready';
+  const reviewed = stage === 'review' || corrected;
+  const ready = stage === 'ready';
+
+  const mergeStatus = {
+    pending: 'Venter på status checks',
+    failed: 'En påkrevd sjekk feilet',
+    review: 'En påkrevd sjekk feilet',
+    fix: 'Venter på nye status checks',
+    pass: 'Venter på godkjent review',
+    ready: 'Klar for merge',
+  }[stage];
+  return (
+    <div className="git-review">
+      <strong>Avvis ugyldig navn i påmelding</strong>
+      <p>
+        <code>main</code> <span aria-label="mottar endringen fra">←</span>{' '}
+        <code>feature/valider-navn</code>
+      </p>
+      <div className="git-review-summary">
+        <span>Commits · {corrected ? 2 : 1}</span>
+        <span>
+          Files changed · 1 · <code>paamelding.js</code>
+        </span>
+      </div>
+      <ul className="git-review-checks" aria-label="Status checks">
+        <li>Tomt navn: {checked ? '✓ Bestått' : '… Venter'}</li>
+        <li>
+          Bare mellomrom:{' '}
+          {!checked ? '… Venter' : corrected ? '✓ Bestått' : '× Feilet'}
+        </li>
+      </ul>
+      {reviewed && (
+        <blockquote>
+          «Tre mellomrom går fortsatt gjennom. Kan du sjekke navnet etter{' '}
+          <code>trim()</code>?»
+        </blockquote>
+      )}
+      {corrected && <p>Commit 2 · Fjern mellomrom før validering</p>}
+      {ready && <p>✓ Review godkjent</p>}
+      <strong className={ready ? 'git-tone-green' : 'git-tone-amber'}>
+        {mergeStatus}
+      </strong>
+      <small>
+        I dette eksemplet krever repoet beståtte sjekker og godkjent review.
+      </small>
+    </div>
+  );
+}
+
+function RemoteCommitChain({ tip, refName }: { tip: string; refName: string }) {
+  const commits = ['A', 'B', 'C'].slice(0, 'ABC'.indexOf(tip) + 1);
+  return (
+    <div className="git-remote-chain">
+      {commits.map((commit) => (
+        <span className="git-remote-commit" key={commit}>
+          {commit}
+        </span>
+      ))}
+      <code className="git-remote-pointer">← {refName}</code>
+    </div>
+  );
+}
+
+function RemoteHistory({
+  remote,
+}: {
+  remote: NonNullable<VisualFrame['remote']>;
+}) {
+  return (
+    <div className="git-remote-history">
+      <div className="git-remote-repo">
+        <strong>Delt repo</strong>
+        <RemoteCommitChain tip={remote.shared} refName="main" />
+      </div>
+      <div className="git-remote-transfer">
+        {!remote.action && <small>Du har ennå ikke hentet B</small>}
+        {remote.action === 'push' && (
+          <code>
+            ↑ git push · sender C<br />↓ origin/main oppdateres
+          </code>
+        )}
+        {remote.action === 'fetch' && (
+          <code>↓ git fetch · B til origin/main</code>
+        )}
+        {remote.action === 'pull' && (
+          <code>↓ git pull · fast-forward av lokal main</code>
+        )}
+      </div>
+      <div className="git-remote-local">
+        <strong>Maskinen din</strong>
+        <div className="git-remote-refs">
+          <div>
+            <RemoteCommitChain tip={remote.tracking} refName="origin/main" />
+            <small>Sist kjent fra remote</small>
+          </div>
+          <div>
+            <RemoteCommitChain tip={remote.local} refName="main" />
+            <small>Arbeidsfilen følger {remote.local}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DiffLines({ lines }: { lines: string[] }) {
+  return (
+    <code>
+      {lines.map((line, index) => (
+        <span
+          className={
+            line.startsWith('+')
+              ? 'git-tone-green'
+              : line.startsWith('-')
+                ? 'git-tone-red'
+                : undefined
+          }
+          key={index}
+        >
+          {line}
+          {index < lines.length - 1 ? '\n' : ''}
+        </span>
+      ))}
+    </code>
+  );
+}
+
+function FileDiff({ diff }: { diff: NonNullable<VisualFrame['diff']> }) {
+  if (diff.compare) {
+    const [before, after] = diff.labels ?? ['Før endringen', 'Etter endringen'];
+    return (
+      <div className="git-file-comparison">
+        {[
+          { label: before, omit: '+' },
+          { label: after, omit: '-' },
+        ].map(({ label, omit }) => (
+          <div className="git-diff" key={label}>
+            <strong>
+              {label} · <code>{diff.file}</code>
+            </strong>
+            <pre tabIndex={0} aria-label={`${label}: ${diff.file}`}>
+              <DiffLines
+                lines={diff.lines.filter((line) => !line.startsWith(omit))}
+              />
+            </pre>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="git-diff">
+      <code>{diff.file}</code>
+      <pre tabIndex={0} aria-label={`Diff for ${diff.file}`}>
+        <DiffLines lines={diff.lines} />
+      </pre>
+    </div>
+  );
+}
+
 function FileTreeVisual({ frame }: { frame: VisualFrame }) {
   return (
     <div className="git-file-tree">
@@ -217,7 +475,12 @@ function FileTreeVisual({ frame }: { frame: VisualFrame }) {
 
 function CommandEffects({ frame }: { frame: VisualFrame }) {
   return (
-    <div className="git-visual-matrix">
+    <div
+      className="git-visual-matrix"
+      tabIndex={0}
+      role="region"
+      aria-label="Sammenlign kommandoene"
+    >
       <table>
         <thead>
           <tr>
@@ -239,7 +502,7 @@ function CommandEffects({ frame }: { frame: VisualFrame }) {
                   className={
                     cell === 'Beholdes'
                       ? 'git-tone-neutral'
-                      : cell === 'Kan overskrives'
+                      : cell === 'Kan erstattes'
                         ? 'git-tone-red'
                         : 'git-tone-amber'
                   }
@@ -345,6 +608,9 @@ export function GitLessonVisual({ visual }: { visual: GitVisual }) {
       {frame.rows && <StatusRows frame={frame} />}
       {frame.nodes && <CommitGraph frame={frame} />}
       {frame.cards && <FrameCards frame={frame} kind={visual.kind} />}
+      {frame.remote && <RemoteHistory remote={frame.remote} />}
+      {frame.pr && <ReviewSimulation stage={frame.pr} />}
+      {frame.diff && <FileDiff diff={frame.diff} />}
       {frame.matrix && <CommandEffects frame={frame} />}
       {frame.transcript !== undefined && (
         <div className="git-terminal git-visual-transcript">
