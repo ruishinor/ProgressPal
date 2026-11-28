@@ -902,7 +902,7 @@ export const gitM07Lessons = [
         'REGRESJON OBSERVERT: Undersøk koden og commit-historikken før retting.',
       ),
       text(
-        '### Hvorfor ikke bare flytte main bakover?\n\nDen problematiske commiten finnes nå i `felles.git` og er tilgjengelig for begge utviklere. En lokal `git reset` på A sin main ville ikke i seg selv endre B sin historikk eller reparere delt kode. En force-push som overskriver delt historikk kan dessuten skade samarbeid. I dette tilfellet er den defekte endringen liten og isolert. En **fix forward** med en ny korrigerende commit beholder en forståelig historikk. En vanlig `git revert` av den problematiske, ikke-merge-commiten kunne også vært en kandidat etter kontroll av avhengigheter. Ingen av dem er automatisk best i enhver situasjon.',
+        '### Hvorfor ikke bare flytte main bakover?\n\nDen problematiske commiten finnes nå i `felles.git` og er tilgjengelig for begge utviklere. En lokal `git reset` på A sin main ville ikke i seg selv endre B sin historikk eller reparere delt kode. En **force-push** kan tvinge en remote branch til å peke på en annen historikk, selv når en vanlig push blir avvist. Det kan overskrive delt historikk og skade samarbeid. I dette tilfellet er den defekte endringen liten og isolert. En **fix forward** med en ny korrigerende commit beholder en forståelig historikk. En vanlig `git revert` av den problematiske, ikke-merge-commiten kunne også vært en kandidat etter kontroll av avhengigheter. Ingen av dem er automatisk best i enhver situasjon.',
       ),
       command(
         'Rett feilen videre på egen branch',

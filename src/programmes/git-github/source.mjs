@@ -158,7 +158,7 @@ export const gitLessons = [
         'Kommandobokser som senere endrer filer eller Git-utvalget, begynner med en mappekontroll. Den sammenligner gjeldende sti med $practiceRoot og stopper med STOPP hvis de er ulike. Hvis du får den meldingen, bruker du «Slik finner du tilbake etter en pause» under. Ikke fjern kontrollen for å komme videre.',
       ),
       note(
-        'Bruk bare oppdiktede turtekster her. Ikke bruk et arbeidsprosjekt, passord, tokens eller private filer. Et repository deler ingenting av seg selv, men historikk kan senere bli delt. .gitignore er heller ingen beskyttelse for hemmeligheter.',
+        'Bruk bare oppdiktede turtekster her. Ikke bruk et arbeidsprosjekt, passord, tokens eller private filer. Et repository deler ingenting av seg selv, men historikk kan senere bli delt. `.gitignore` forteller Git hvilke nye filer som normalt skal ignoreres. Den beskytter ikke hemmeligheter som allerede er registrert.',
       ),
       command(
         'Slik finner du tilbake etter en pause',
@@ -239,12 +239,12 @@ export const gitLessons = [
       ),
       command(
         'Se filinnhold og Git-status',
-        'Git kjenner foreløpig disse filene som untracked: de er ikke lagt i staging area eller registrert i historikken.',
+        'Git viser nye filer som **untracked**: Git følger dem ikke ennå. **Staging** betyr å klargjøre innhold til neste commit. **Staging area (index)** er mellomområdet der Git holder på innholdet du har valgt med `git add`. Disse filene er ennå ikke valgt eller registrert.',
         "Get-Content -LiteralPath 'README.txt'\ngit status --short",
         'Turplan\nDagstur langs elva.\n?? .gitignore\n?? README.txt\n?? plan.txt',
       ),
       text(
-        '### Fra en redigert fil til en commit\n\nDu kan rette en feil i én fil og prøve noe uferdig i en annen. Du trenger ikke ta med begge i samme commit.\n\n- **Working tree:** Filene du redigerer på disken.\n- **Staging area (index):** Innholdet du har valgt til neste commit.\n- **Commit-historikken:** Versjonene du allerede har registrert.\n\n`git add` velger filinnhold til staging. `git commit` registrerer det valgte innholdet i historikken.\n\nÅ lagre en fil er altså ikke det samme som å kjøre `git add` eller `git commit`.',
+        '### Fra en redigert fil til en commit\n\nDu kan rette en feil i én fil og prøve noe uferdig i en annen. Du trenger ikke ta med begge i samme commit.\n\n- **Working tree:** Filene du redigerer på disken.\n- **Staging area (index):** Innholdet du har valgt til neste commit.\n- **Commit-historikken:** Versjonene du allerede har registrert.\n\n`git add` klargjør filinnhold til neste commit. Dette kalles **staging**. `git commit` registrerer det valgte innholdet i historikken.\n\nÅ lagre en fil er altså ikke det samme som å kjøre `git add` eller `git commit`.',
       ),
       command(
         'Velg startfilene',
@@ -253,7 +253,7 @@ export const gitLessons = [
         '.gitignore\nREADME.txt\nplan.txt',
       ),
       text(
-        '--cached ber diff vise det som er klargjort for neste commit. --name-only viser bare filnavn. Du skal se akkurat disse tre. Se også innholdet før du registrerer det. --no-pager gjør at Git skriver rett i terminalen, uten å åpne en egen lesevisning. Plusslinjer i diff er innhold som legges til.',
+        '`git diff` viser forskjeller i filinnhold. Med `--cached` sammenligner Git det valgte innholdet i staging area med siste commit. --name-only viser bare filnavn. Du skal se akkurat disse tre. Se også innholdet før du registrerer det. --no-pager gjør at Git skriver rett i terminalen, uten å åpne en egen lesevisning. Plusslinjer i diff er innhold som legges til.',
       ),
       command(
         'Undersøk og registrer',
@@ -265,7 +265,7 @@ export const gitLessons = [
       ),
       command(
         'Se det Git faktisk registrerte',
-        'log viser historikken. show HEAD:README.txt leser README.txt fra den nyeste commiten; HEAD betegner versjonen du står på. Disse kommandoene endrer ikke filene.',
+        '`git log` viser historikken. **HEAD** viser hvor du står i historikken, vanligvis via branchen du har valgt. `git show HEAD:README.txt` leser README.txt fra commiten HEAD viser til. Disse kommandoene endrer ikke filene.',
         'git --no-pager log --oneline -1\ngit --no-pager show HEAD:README.txt',
       ),
       text(
@@ -322,7 +322,7 @@ export const gitLessons = [
         ' M README.txt\n M plan.txt',
       ),
       text(
-        '### Slik leser du `git status --short`\n\nDe to første plassene før filnavnet betyr forskjellige ting:\n\n- **Første plass:** Endring i staging area sammenlignet med siste commit.\n- **Andre plass:** Endring i working tree sammenlignet med staging area.\n- `M` betyr modified (endret). En blank første plass og `M` på andre betyr at endringen ikke er staged.\n- `??` betyr at Git ennå ikke følger filen.\n\nDette er utskrift fra Git, ikke kommandoer.',
+        '### Slik leser du `git status --short`\n\nDe to første plassene før filnavnet betyr forskjellige ting:\n\n- **Første plass:** Endring i staging area sammenlignet med siste commit.\n- **Andre plass:** Endring i working tree sammenlignet med staging area.\n- `M` betyr modified (endret). **Staged** betyr at endringen er valgt til neste commit. **Unstaged** betyr at endringen ligger i arbeidsfilen, men ikke er valgt. En blank første plass og `M` på andre betyr at endringen er unstaged.\n- `??` betyr at Git ennå ikke følger filen.\n\nDette er utskrift fra Git, ikke kommandoer.',
       ),
       command(
         'Klargjør bare starttidspunktet',
@@ -391,7 +391,7 @@ export const gitLessons = [
         'README.txt\nHusk vann og mat.',
       ),
       command(
-        'Kontroller snapshotet og lag commit',
+        'Kontroller snapshotet (versjonsbildet) og lag commit',
         'Les diff før du utfører commit-linjen. Den skal bare registrere starttidspunktet, uten kartlinjen og uten huskelisten.',
         'git --no-pager diff --cached\ngit commit -m "Beskriv starttid for turen"\nif ($LASTEXITCODE -ne 0) { throw "STOPP: Commit ble ikke laget." }\ngit --no-pager log --oneline -2\ngit status --short',
       ),

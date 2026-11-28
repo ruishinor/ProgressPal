@@ -316,7 +316,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "transcript": " M notat.txt"
       }
     ],
-    "short": "### Fra en redigert fil til en commit\n\nWorking tree er filene på disken. Staging area (index) er innholdet du har valgt til neste commit. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen. Her bruker vi en egen eksempelfil, `notat.txt`. Du trenger ikke lage den."
+    "short": "### Fra en redigert fil til en commit\n\nWorking tree er filene på disken. **Staging** betyr å klargjøre innhold til neste commit med `git add`. **Staging area (index)** holder på innholdet du har valgt. Historikken inneholder versjonene du har committet. Velg et trinn for å se forskjellen. Her bruker vi en egen eksempelfil, `notat.txt`. Du trenger ikke lage den."
   },
   {
     "lesson": "git-m01-o04",
@@ -355,7 +355,7 @@ export const gitVisuals: readonly GitVisual[] = [
         ]
       }
     ],
-    "short": "### Slik leser du `git status --short`\n\nM betyr modified (endret). Første plass sammenligner staging med siste commit. Andre plass sammenligner arbeidsfilen med staging. `??` betyr at Git ikke følger filen ennå. Dette er utskrift, ikke kommandoer."
+    "short": "### Slik leser du `git status --short`\n\nM betyr modified (endret). **Staged** betyr valgt til neste commit, **unstaged** betyr endret i arbeidsfilen, men ikke valgt. Første plass sammenligner staging med siste commit. Andre plass sammenligner arbeidsfilen med staging. `??` betyr at Git ikke følger filen ennå. Dette er utskrift, ikke kommandoer."
   },
   {
     "lesson": "git-m01-o04",
@@ -3018,7 +3018,7 @@ export const gitVisuals: readonly GitVisual[] = [
         "caption": "Ny commit retter problemet uten å skrive om delt historikk."
       }
     ],
-    "short": "Lokal reset reparerer ikke historikken hos andre. En force-push kan overskrive delt historikk og skape problemer for kollegaen. Her er fix forward en liten rettelse i en ny commit. Revert kan også være et alternativ hvis nyere arbeid ikke blir ødelagt."
+    "short": "Lokal reset reparerer ikke historikken hos andre. En **force-push** kan tvinge en remote branch til å peke på en annen historikk, selv når en vanlig push blir avvist. Det kan overskrive delt historikk. Her er fix forward en liten rettelse i en ny commit. Revert kan også være et alternativ hvis nyere arbeid ikke blir ødelagt."
   },
   {
     "lesson": "git-m07-o07",
