@@ -4,7 +4,7 @@
   "reviewer": "OpenAI Codex (GPT-6.2), implementer self-review",
   "binding": {
     "kind": "payload-tree",
-    "payloadTree": "a3b91b43494ceefa805889d2219e54093c4634da",
+    "payloadTree": "d2f3fd22aea1eb90cc34d7209fc60aceab92a215",
     "excludedPath": "docs/release-reviews"
   },
   "reviewScope": {

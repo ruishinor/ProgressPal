@@ -88,7 +88,7 @@ it('keeps remote, tracking and working history distinct during fetch and push', 
     );
 
   expect(chainLengths()).toEqual([2, 1, 1]);
-  fireEvent.click(screen.getByRole('button', { name: 'Fetch', exact: true }));
+  fireEvent.click(screen.getByRole('button', { name: /^Fetch$/ }));
   expect(chainLengths()).toEqual([2, 2, 1]);
   fireEvent.click(screen.getByRole('button', { name: 'Pull' }));
   expect(chainLengths()).toEqual([2, 2, 2]);
