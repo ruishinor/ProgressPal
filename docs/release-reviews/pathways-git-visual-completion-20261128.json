@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "module": "pathways-git-visual-completion-20261128",
+  "reviewer": "OpenAI Codex (GPT-6.2), implementer self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "a3b91b43494ceefa805889d2219e54093c4634da",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Git Pathways M01–M07 visual completion and the consolidated first-use terminology changes.",
+    "evidence": [
+      "Inspected real Pathways lesson figures in Chromium at 1440px dark and 390px light against five supplied reference screenshots.",
+      "Verified all 62 visual placements through the existing binding test, ran 14 focused tests and checked all 47 lessons and 113 exercises through the canonical generator.",
+      "Type check, changed-source lint, main build, bundle check and separate Pathways build passed locally. The hosted release and pilot workflows remain the merge gates."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "F-1",
+      "severity": "P2",
+      "description": "The command comparison hid part of its last column at the representative mobile viewport.",
+      "resolution": "Constrained mobile column sizes and verified the full table fits at 390px.",
+      "status": "resolved"
+    },
+    {
+      "id": "F-2",
+      "severity": "P2",
+      "description": "The existing successful push frame omitted the locally stored remote-tracking ref.",
+      "resolution": "Kept both local refs and the shared branch visible throughout the example, with a focused state-transition regression test.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "The scoped changes preserve lesson placement and learner contracts. Proceed to normal hosted validation."
+  }
+}
