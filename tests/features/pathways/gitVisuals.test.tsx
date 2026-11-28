@@ -75,3 +75,40 @@ it('compares reset effects without altering a real repository', () => {
     'Ny tekst',
   );
 });
+
+it('keeps remote, tracking and working history distinct during fetch and push', () => {
+  const visual = gitVisuals.find(
+    (entry) => entry.lesson === 'git-m04-o05' && entry.kind === 'remote',
+  )!;
+  const { container } = render(<GitLessonVisual visual={visual} />);
+  const chainLengths = () =>
+    Array.from(
+      container.querySelectorAll('.git-remote-chain'),
+      (chain) => chain.querySelectorAll('.git-remote-commit').length,
+    );
+
+  expect(chainLengths()).toEqual([2, 1, 1]);
+  fireEvent.click(screen.getByRole('button', { name: /^Fetch$/ }));
+  expect(chainLengths()).toEqual([2, 2, 1]);
+  fireEvent.click(screen.getByRole('button', { name: 'Pull' }));
+  expect(chainLengths()).toEqual([2, 2, 2]);
+  fireEvent.click(screen.getByRole('button', { name: 'Push' }));
+  expect(chainLengths()).toEqual([3, 3, 3]);
+});
+
+it('keeps the simulated pull request blocked until checks and review pass', () => {
+  const visual = gitVisuals.find(
+    (entry) => entry.lesson === 'git-m05-o03' && entry.kind === 'pr',
+  )!;
+  render(<GitLessonVisual visual={visual} />);
+  const checks = screen.getByRole('list', { name: 'Status checks' });
+  fireEvent.click(screen.getByRole('button', { name: 'Test feiler' }));
+  expect(within(checks).getByText(/mellomrom.*Feilet/)).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Sjekker består' }));
+  expect(within(checks).getAllByText(/Bestått/)).toHaveLength(2);
+  expect(screen.getByText('Venter på godkjent review')).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Klar for merge' }));
+  expect(
+    screen.getByText('Klar for merge', { selector: 'strong' }),
+  ).toBeVisible();
+});

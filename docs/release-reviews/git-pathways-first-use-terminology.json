@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "module": "git-pathways-first-use-terminology",
+  "reviewer": "ChatGPT GPT-6.2 — implementer self-review",
+  "binding": {
+    "kind": "payload-tree",
+    "payloadTree": "6e68e70bbf9bc6a1e3c004bff237d3c354e82ed4",
+    "excludedPath": "docs/release-reviews"
+  },
+  "reviewScope": {
+    "summary": "Clarify Git and GitHub terminology at first use in the existing Norwegian lessons and their displayed visual summaries.",
+    "evidence": [
+      "Inspected first uses across the 47 lessons in M01–M07 and the corresponding visual summaries. Edited existing text blocks only in M01, M02, M04, M05 and M07 plus three visual summaries. No new steps, exercise changes, grading changes or progress schema changes.",
+      "Regenerated all eight content-addressed Git assets, catalogue and offline manifest using scripts/git-github-content.mjs. The exporter --check passed, locked Prettier reported unchanged formatting, git diff --check passed, and the GitHub tree exactly matched the validated sandbox tree c6131137990224c1ca539c7ce77c29746725ae62.",
+      "The two existing functional test files for Git course asset integrity, exercise hashes, visual bindings and interactive visual behaviour passed 12/12. The full app built and measured 494945 B JS gzip and 279272 B curriculum gzip, below unchanged limits of 505000 and 285000 B. No new prose-only tests added."
+    ]
+  },
+  "adversarialFindings": [
+    {
+      "id": "TERM-01",
+      "severity": "P2",
+      "description": "The first occurrence of staging area precedes its formal explanation, and visual summaries can replace the source prose.",
+      "resolution": "Explain staging and untracked at first occurrence; add definitions of staged/unstaged to displayed visual summary; retain visual slots and anchors.",
+      "status": "resolved"
+    },
+    {
+      "id": "TERM-02",
+      "severity": "P1",
+      "description": "Regenerating content changes source identity and asset paths; stale references or accidental exercise changes can break learning or offline access.",
+      "resolution": "Use the canonical exporter, preserve all lesson and exercise IDs and existing evaluator inputs, verify asset hashes, exercise hashes and visual bindings with existing tests; regenerate offline list.",
+      "status": "resolved"
+    }
+  ],
+  "retrospective": {
+    "decision": "proceed",
+    "summary": "Targeted beginner terminology improvements; no material unresolved issue found in this scoped review. Native hosted release and pilot validation still required before merging. Not a comprehensive pedagogical audit or production browser verification."
+  }
+}

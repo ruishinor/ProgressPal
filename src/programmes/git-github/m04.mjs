@@ -318,7 +318,7 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-WHY-REMOTE',
     flow: [
       text(
-        'Du lærer `clone`, `fetch`, `pull` og `push` med en lokal remote. En **remote** er en annen plassering for Git-historikken. Den trenger ikke ligge på GitHub.\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
+        'En **remote** er en registrert adresse til et annet repository. Den trenger ikke ligge på GitHub. Du lærer `clone` (lage en lokal kopi), `fetch` (hente historikk uten å integrere den), `pull` (hente og integrere) og `push` (sende commits).\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
       ),
       text(
         '### Når flere trenger den samme historikken\n\nI M03 arbeidet du med branches og merge i et lite prosjekt for en påmeldingsside. Forestill deg nå at du skal arbeide videre hjemme, mens en medstudent gjør en endring på skolen. Dere trenger begge tilgang til prosjektets commits. Å lagre en fil på hver maskin gir ikke automatisk den andre maskinen oppdatert Git-historikk.',
@@ -394,13 +394,13 @@ export const gitM04Lessons = [
     skillId: 'GIT-M04-REMOTE-SETUP',
     flow: [
       text(
-        'Du lærer `clone`, `fetch`, `pull` og `push` med en lokal remote. En **remote** er en annen plassering for Git-historikken. Den trenger ikke ligge på GitHub.\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
+        'En **remote** er en registrert adresse til et annet repository. Den trenger ikke ligge på GitHub. Du lærer `clone` (lage en lokal kopi), `fetch` (hente historikk uten å integrere den), `pull` (hente og integrere) og `push` (sende commits).\n\nPowerShell-koden passer på øvingsmappene. Se hvilken branch og remote du bruker før du deler noe.\n\nEtter en pause: behold mappene og undersøk status før du fortsetter.',
       ),
       text(
         '### Tre mapper med hver sin rolle\n\nVi lager et nytt eksempel på kurssiden fra M03, ikke en kopi av dine gamle øvingsfiler. I `ProgressPal-Git-M04` kommer `arbeidskopi-A` til å inneholde nettsidens filer og commit-historikk. `delt-repo.git` blir et **bare repository**: det lagrer Git-objekter og referanser, men har ikke en vanlig mappe der du redigerer nettsiden. Senere lager vi `arbeidskopi-B` ved å klone det delte repositoryet.',
       ),
       text(
-        'Akkurat som når en server mottar commits, kan det bare repositoryet oppbevare en delt `main`. I dette eksemplet ligger serverrollen på samme datamaskin. Git-kommandoene er reelle; GitHub-funksjoner som kontotilgang, pull requests og review er ikke del av den lokale øvingen.',
+        'Akkurat som når en server mottar commits, kan det bare repositoryet oppbevare en delt `main`. I dette eksemplet ligger serverrollen på samme datamaskin. Git-kommandoene er reelle; GitHub-funksjoner som kontotilgang, pull requests (forslag om å slå sammen brancher) og review (gjennomgang av endringer) er ikke del av den lokale øvingen.',
       ),
       text(
         '**Før du starter:** Åpne Windows PowerShell 5.1 med vanlig brukertilgang. Du trenger Git for Windows med støtte for `git init --initial-branch` (Git 2.28 eller nyere). Du kan kontrollere dette med `git --version`. Kjør blokkene i rekkefølge. Hver blokk bruker komplette stier til sin egen øvingsmappe; du trenger ikke navigere mellom A og B selv. Oppsettet stopper hvis `ProgressPal-Git-M04` allerede finnes, slik at tidligere arbeid ikke overskrives.',

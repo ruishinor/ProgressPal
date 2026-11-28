@@ -217,7 +217,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOPP: Git fant ikke repoet.' }`,
         'Etter en pause går du tilbake til den eksisterende `ProgressPal-Git-M02`-mappen. Kontroller mappe og `git status`, og les `git log --oneline` før du fortsetter fra riktig commit. Oppsettet i første leksjon skal ikke kjøres en gang til når øvingsmappen finnes. Hvis historikken ikke stemmer med forventningen, stopp i stedet for å opprette nye commits.',
       ),
       text(
-        '### Commits er spor, ikke fasit\n\n`git log --oneline` viser en forkortet oversikt med nyeste commit først. Git viser en kort hash og commit-meldingen. En melding forteller hva forfatteren mente å gjøre, men er ikke et bevis for at koden ble riktig. For å se hva som faktisk er registrert, bruker du `git show`.',
+        '### Commits er spor, ikke fasit\n\n`git log --oneline` viser en forkortet oversikt med nyeste commit først. Git viser en kort **hash**, altså en forkortet ID som identifiserer commiten, sammen med commit-meldingen. En melding forteller hva forfatteren mente å gjøre, men er ikke et bevis for at koden ble riktig. For å se hva som faktisk er registrert, bruker du `git show`.',
       ),
       command(
         'Les de tre siste commitene',
